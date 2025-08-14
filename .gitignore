@@ -2,3 +2,49 @@
 .DS_Store
 proxyapi/src/ca/*.key
 proxyapi/src/ca/*.cer
+
+# Android/IntelliJ
+#
+.idea
+
+# dependencies
+node_modules
+/.pnp
+.pnp.js
+
+# testing
+/coverage
+
+# production
+/build
+release
+
+# misc
+.DS_Store
+.env*
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# comile js ignore
+/compile-main
+/dist
+
+_
+payhereKioskLog
+.erb/dll
+
+# dd rum flag file
+dd-flag
+
+.swc
+
+# Tauri build artifacts
+**/src-tauri/target/
+**/src-tauri/dist/
+**/src-tauri/gen/
+
+# Log files
+logs/
+*.log
