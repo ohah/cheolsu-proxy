@@ -4,16 +4,15 @@ use tokio::sync::oneshot::Sender;
 
 use tauri::{
     async_runtime::Mutex,
-    plugin::{Builder, TauriPlugin},
-    AppHandle, Manager, Runtime, State,
+    AppHandle, Runtime, State, Emitter,
 };
 
 use proxyapi_models::RequestInfo;
 
-type ProxyState = Mutex<Option<(Sender<()>, tauri::async_runtime::JoinHandle<()>)>>;
+pub type ProxyState = Mutex<Option<(Sender<()>, tauri::async_runtime::JoinHandle<()>)>>;
 
 #[tauri::command]
-async fn start_proxy<R: Runtime>(
+pub async fn start_proxy<R: Runtime>(
     app: AppHandle<R>,
     proxy: State<'_, ProxyState>,
     addr: SocketAddr,
@@ -37,8 +36,7 @@ async fn start_proxy<R: Runtime>(
     tauri::async_runtime::spawn(async move {
         for exchange in rx.iter() {
             let (request, response) = exchange.to_parts();
-            app.emit_all("proxy_event", RequestInfo(request, response))
-                .unwrap();
+            app.emit("proxy_event", RequestInfo(request, response)).unwrap();
         }
     });
 
@@ -46,7 +44,7 @@ async fn start_proxy<R: Runtime>(
 }
 
 #[tauri::command]
-async fn stop_proxy(proxy: State<'_, ProxyState>) -> Result<(), String> {
+pub async fn stop_proxy(proxy: State<'_, ProxyState>) -> Result<(), String> {
     let mut proxy = proxy.lock().await;
     assert!(proxy.is_some());
     proxy.take();
@@ -54,20 +52,7 @@ async fn stop_proxy(proxy: State<'_, ProxyState>) -> Result<(), String> {
 }
 
 #[tauri::command]
-async fn proxy_status(proxy: State<'_, ProxyState>) -> Result<bool, String> {
+pub async fn proxy_status(proxy: State<'_, ProxyState>) -> Result<bool, String> {
     Ok(proxy.lock().await.is_some())
 }
 
-pub fn init<R: Runtime>() -> TauriPlugin<R> {
-    Builder::new("proxy")
-        .setup(|app_handle| {
-            app_handle.manage(Mutex::new(None) as ProxyState);
-            Ok(())
-        })
-        .invoke_handler(tauri::generate_handler![
-            start_proxy,
-            stop_proxy,
-            proxy_status
-        ])
-        .build()
-}
