@@ -5484,6 +5484,7 @@ version = "0.0.0"
 dependencies = [
  "proxyapi",
  "proxyapi_models",
+ "serde_json",
  "tauri",
  "tauri-build",
  "tauri-plugin-devtools",
