@@ -3,7 +3,7 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 mod proxy;
-use proxy::{start_proxy, stop_proxy, proxy_status, ProxyState};
+use proxy::{start_proxy, stop_proxy, proxy_status, set_proxy, ProxyState};
 use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -27,7 +27,23 @@ pub fn run() {
             .setup(|app_handle| {
                 use tauri::async_runtime::Mutex;
                 app_handle.manage(Mutex::new(None) as ProxyState);
+                tauri::async_runtime::spawn(async {
+                    if let Err(e) = set_proxy(true) {
+                        eprintln!("프록시 설정 실패: {}", e);
+                    }
+                });                
                 Ok(())
+            })
+            .on_window_event(|window, event| {
+                // 앱 종료 시 프록시 해제
+                if let tauri::WindowEvent::CloseRequested { .. } = event {
+                    println!("CloseRequested");
+                    tauri::async_runtime::spawn(async {
+                        if let Err(e) = set_proxy(false) {
+                            eprintln!("프록시 설정 실패: {}", e);
+                        }
+                    });
+                }
             })
             .invoke_handler(tauri::generate_handler![
                 start_proxy,
