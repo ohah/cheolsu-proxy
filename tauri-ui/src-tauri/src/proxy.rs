@@ -1,12 +1,9 @@
 use proxyapi::Proxy;
-use std::net::SocketAddr;
-use tokio::sync::oneshot::Sender;
 use std::process::Command;
+use std::{env, net::SocketAddr};
+use tokio::sync::oneshot::Sender;
 
-use tauri::{
-    async_runtime::Mutex,
-    AppHandle, Runtime, State, Emitter,
-};
+use tauri::{async_runtime::Mutex, AppHandle, Emitter, Runtime, State};
 
 use proxyapi_models::RequestInfo;
 
@@ -37,7 +34,8 @@ pub async fn start_proxy<R: Runtime>(
     tauri::async_runtime::spawn(async move {
         for exchange in rx.iter() {
             let (request, response) = exchange.to_parts();
-            app.emit("proxy_event", RequestInfo(request, response)).unwrap();
+            app.emit("proxy_event", RequestInfo(request, response))
+                .unwrap();
         }
     });
 
@@ -57,7 +55,6 @@ pub async fn proxy_status(proxy: State<'_, ProxyState>) -> Result<bool, String> 
     Ok(proxy.lock().await.is_some())
 }
 
-
 pub fn get_active_service() -> Option<String> {
     // 1. 기본 네트워크 인터페이스 이름 가져오기 (en0, en1 등)
     let route_output = Command::new("sh")
@@ -65,7 +62,9 @@ pub fn get_active_service() -> Option<String> {
         .arg("route get default | grep interface | awk '{print $2}'")
         .output()
         .ok()?;
-    let interface = String::from_utf8_lossy(&route_output.stdout).trim().to_string();
+    let interface = String::from_utf8_lossy(&route_output.stdout)
+        .trim()
+        .to_string();
 
     // 2. 인터페이스 -> 서비스 이름 매핑
     let list_output = Command::new("networksetup")
@@ -86,6 +85,12 @@ pub fn get_active_service() -> Option<String> {
 }
 
 pub fn set_proxy(enable: bool) -> Result<(), String> {
+    let is_proxy = env::var("IS_PROXY").unwrap_or_else(|_| "true".to_string());
+    // NOTE: IS_PROXY 환경변수가 없으면 프록시 설정 안함
+    if is_proxy == "false" {
+        return Ok(());
+    }
+
     let service = get_active_service();
     if let Some(service) = service {
         let service = service.as_str();
@@ -114,7 +119,6 @@ pub fn set_proxy(enable: bool) -> Result<(), String> {
                 .status()
                 .map_err(|e| e.to_string())?;
         }
-    }   
+    }
     Ok(())
 }
-
