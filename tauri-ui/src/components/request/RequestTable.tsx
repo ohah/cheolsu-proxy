@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { listen } from '@tauri-apps/api/event';
 import { RequestInfo } from '../../types';
 import MultipleSelectInput from '../MultipleSelectInput';
@@ -21,20 +21,15 @@ const RequestTable: React.FC<RequestTableProps> = ({ paused }) => {
   const [requests, setRequests] = useState<RequestInfo[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [filters, setFilters] = useState<string[]>(OPTIONS);
-  const requestsRef = useRef(requests);
-
-  useEffect(() => {
-    requestsRef.current = requests;
-  }, [requests]);
 
   useEffect(() => {
     if (paused) return;
 
     const unlisten = listen<RequestInfo>('proxy_event', (event) => {
-      const [request] = event.payload;
-        if (!requestsRef.current.find(r => r.request?.time === request?.time)) {
-            setRequests(prevRequests => [...prevRequests, event.payload]);
-        }
+      const [request, response] = event.payload;
+      if (!requests.find(r => r.request?.time === request?.time)) {
+        setRequests(prevRequests => [...prevRequests, {request, response}]);
+      }
     });
 
     return () => {
@@ -72,7 +67,7 @@ const RequestTable: React.FC<RequestTableProps> = ({ paused }) => {
   );
 
   if (requests.length === 0) {
-    return <div className="loader"></div>;
+    return <div className="loader" />;
   }
 
   return (
