@@ -9,12 +9,16 @@
     "tauri": "tauri"
   },
   "dependencies": {
+    "@tailwindcss/postcss": "^4.1.12",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-http": "^2.5.1",
     "@tauri-apps/plugin-opener": "^2.4.0",
     "@tauri-apps/plugin-store": "^2.3.0",
+    "postcss": "^8.5.6",
+    "postcss-loader": "^8.1.1",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "tailwindcss": "^4.1.12"
   },
   "devDependencies": {
     "@rspack/cli": "^1.4.11",

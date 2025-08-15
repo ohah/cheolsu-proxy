@@ -1,9 +1,8 @@
-
-import React, { useState, useEffect } from 'react';
-import { fetchProxyStatus } from '../api';
-import ProxyOff from './ProxyOff';
-import ProxyOn from './ProxyOn';
-import { useThemeProvider } from '../hooks/use-theme-provider';
+import React, { useState, useEffect } from "react";
+import { fetchProxyStatus } from "../api";
+import ProxyOff from "./ProxyOff";
+import ProxyOn from "./ProxyOn";
+import { useThemeProvider } from "../hooks/use-theme-provider";
 
 const App: React.FC = () => {
   const [isProxyOn, setIsProxyOn] = useState(false);
@@ -14,7 +13,7 @@ const App: React.FC = () => {
         const status = await fetchProxyStatus();
         setIsProxyOn(status);
       } catch (err) {
-        console.error('Failed to fetch proxy status:', err);
+        console.error("Failed to fetch proxy status:", err);
       }
     };
     getStatus();
