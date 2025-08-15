@@ -7,14 +7,14 @@ on:
       - 'tauri-ui/src-tauri/**'
       - 'proxyapi/**'
       - 'proxyapi_models/**'
-      - '.github/workflows/lint.yml'
+      - '.github/workflows/rust-lint.yml'
   pull_request:
     branches: [ master ]
     paths:
       - 'tauri-ui/src-tauri/**'
       - 'proxyapi/**'
       - 'proxyapi_models/**'
-      - '.github/workflows/lint.yml'
+      - '.github/workflows/rust-lint.yml'
 
 jobs:
   rust-format:
@@ -25,32 +25,15 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Install Rust toolchain
-      uses: actions-rs/toolchain@v1
+    - name: Setup Rust toolchain
+      uses: actions-rust-lang/setup-rust-toolchain@v1
       with:
         toolchain: stable
         components: rustfmt
-        override: true
+        cache: true
+        matcher: true
 
     - name: Check Rust formatting
       run: |
         echo "Checking Rust code formatting..."
         cargo fmt --all -- --check
-
-    - name: Check tauri-ui formatting
-      working-directory: tauri-ui/src-tauri
-      run: |
-        echo "Checking tauri-ui formatting..."
-        cargo fmt -- --check
-
-    - name: Check proxyapi formatting
-      working-directory: proxyapi
-      run: |
-        echo "Checking proxyapi formatting..."
-        cargo fmt -- --check
-
-    - name: Check proxyapi_models formatting
-      working-directory: proxyapi_models
-      run: |
-        echo "Checking proxyapi_models formatting..."
-        cargo fmt -- --check
