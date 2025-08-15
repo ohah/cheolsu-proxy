@@ -27,14 +27,22 @@ pub fn run() {
             .setup(|app_handle| {
                 use tauri::async_runtime::Mutex;
                 app_handle.manage(Mutex::new(None) as ProxyState);
-                set_proxy(true);
+                tauri::async_runtime::spawn(async {
+                    if let Err(e) = set_proxy(true) {
+                        eprintln!("프록시 설정 실패: {}", e);
+                    }
+                });                
                 Ok(())
             })
             .on_window_event(|window, event| {
                 // 앱 종료 시 프록시 해제
                 if let tauri::WindowEvent::CloseRequested { .. } = event {
                     println!("CloseRequested");
-                    set_proxy(false);
+                    tauri::async_runtime::spawn(async {
+                        if let Err(e) = set_proxy(false) {
+                            eprintln!("프록시 설정 실패: {}", e);
+                        }
+                    });
                 }
             })
             .invoke_handler(tauri::generate_handler![
