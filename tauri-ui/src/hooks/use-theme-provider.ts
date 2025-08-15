@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 
 export const useThemeProvider = () => {
   const [isDark, setIsDark] = useState(false);
-  
+
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     setIsDark(mediaQuery.matches);
@@ -15,4 +15,4 @@ export const useThemeProvider = () => {
   useEffect(() => {
     document.body.setAttribute('data-theme', isDark ? 'dark' : 'light');
   }, [isDark]);
-}
+};
