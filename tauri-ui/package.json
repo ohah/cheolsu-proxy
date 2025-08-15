@@ -6,6 +6,8 @@
     "dev": "rspack dev",
     "build": "rspack build",
     "preview": "rspack preview",
+    "tauri-dev": "tauri dev",
+    "tauri:local": "IS_PROXY=false tauri",
     "tauri": "tauri"
   },
   "dependencies": {
