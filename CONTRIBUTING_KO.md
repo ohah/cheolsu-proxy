@@ -53,6 +53,10 @@ npm install
 - 개발 시작
 ```bash
 npm run tauri dev
+ㅂㅏ ```
+- 프록시 환경 세팅 X
+```bash
+npm run tauri:local dev
 ```
 
 - 패키징 및 릴리즈
