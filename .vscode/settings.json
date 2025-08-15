@@ -6,5 +6,10 @@
     "**/.git/**": true,
     "**/node_modules/**": true,
     "**/.vscode/**": true
-  }
+  },
+  "editor.formatOnSave": true,
+  "[rust]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "rust-lang.rust-analyzer"
+  },
 }
