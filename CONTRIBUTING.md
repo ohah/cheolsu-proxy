@@ -15,11 +15,6 @@ We appreciate contributions of any size, from small bug fixes to major new featu
 
 ### Contribute to UI with Tauri UI
 
-- install required tools
-```bash
-cargo install tauri-cli wasm-bindgen-cli trunk
-```
-
 - start development
 ```bash
 cargo tauri dev
