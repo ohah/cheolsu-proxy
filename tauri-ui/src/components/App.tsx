@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { fetchProxyStatus } from '../api';
 import ProxyOff from './ProxyOff';
 import ProxyOn from './ProxyOn';
-import TitleBar from './TitleBar';
+import { useThemeProvider } from '../hooks/use-theme-provider';
 
 const App: React.FC = () => {
   const [isProxyOn, setIsProxyOn] = useState(false);
@@ -28,9 +27,11 @@ const App: React.FC = () => {
     setIsProxyOn(false);
   };
 
+  useThemeProvider();
+
   return (
     <main>
-      <TitleBar />
+      {/* <TitleBar /> */}
       {isProxyOn ? (
         <ProxyOn onStop={handleStop} />
       ) : (
