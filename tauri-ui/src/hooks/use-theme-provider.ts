@@ -1,7 +1,6 @@
+import { useEffect, useState } from 'react';
 
-import React, { useState, useEffect } from 'react';
-
-const ThemeButton: React.FC = () => {
+export const useThemeProvider = () => {
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
@@ -16,21 +15,4 @@ const ThemeButton: React.FC = () => {
   useEffect(() => {
     document.body.setAttribute('data-theme', isDark ? 'dark' : 'light');
   }, [isDark]);
-
-  const toggleTheme = () => {
-    setIsDark(!isDark);
-  };
-
-  return <button onClick={toggleTheme}>{isDark ? '🔆' : '🌙'}</button>;
 };
-
-const TitleBar: React.FC = () => {
-  return (
-    <div className="title-bar">
-      <h1>Man In The Middle Proxy</h1>
-      <ThemeButton />
-    </div>
-  );
-};
-
-export default TitleBar;
