@@ -2,7 +2,7 @@
 name = "tauri-ui"
 version = "0.0.0"
 description = "A Tauri App"
-authors = ["ohah", "jinjoo-dev "emanuele-em"]
+authors = ["ohah", "jinjoo-dev", "emanuele-em"]
 license = "MIT"
 repository = ""
 edition = "2021"
