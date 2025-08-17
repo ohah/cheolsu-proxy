@@ -23,7 +23,7 @@ pub async fn start_proxy<R: Runtime>(
     let sessions = store.get("sessions").unwrap_or_default();
 
     let thread = tauri::async_runtime::spawn(async move {
-        if let Err(e) = Proxy::new(addr, Some(tx.clone()))
+        if let Err(e) = Proxy::new(addr, Some(tx.clone()), sessions)
             .start(async move {
                 let _ = close_rx.await;
             })

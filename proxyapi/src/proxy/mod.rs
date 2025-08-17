@@ -1,10 +1,12 @@
 mod internal;
 //pub mod builder;
 
+use serde_json::Value;
 use std::{
     convert::Infallible,
     future::Future,
     net::SocketAddr,
+    path::PathBuf,
     sync::{mpsc::SyncSender, Arc},
 };
 
@@ -25,15 +27,21 @@ use hyper_rustls::HttpsConnectorBuilder;
 pub struct Proxy {
     addr: SocketAddr,
     tx: Option<SyncSender<proxy_handler::ProxyHandler>>,
+    sessions: Value,
 }
 
 impl Proxy {
-    pub fn new(addr: SocketAddr, tx: Option<SyncSender<proxy_handler::ProxyHandler>>) -> Self {
-        Self { addr, tx }
+    pub fn new(
+        addr: SocketAddr,
+        tx: Option<SyncSender<proxy_handler::ProxyHandler>>,
+        sessions: Value,
+    ) -> Self {
+        Self { addr, tx, sessions }
     }
 
     pub async fn start<F: Future<Output = ()>>(self, signal: F) -> Result<(), Error> {
         let addr = self.addr;
+        let sessions = self.sessions;
 
         let https = HttpsConnectorBuilder::new()
             .with_webpki_roots()
@@ -58,6 +66,7 @@ impl Proxy {
             let http_handler = proxy_handler::ProxyHandler::new(self.tx.clone().unwrap());
             let websocket_connector = None;
             let remote_addr = conn.remote_addr();
+            let sessions = sessions.clone();
             async move {
                 Ok::<_, Infallible>(service_fn(move |req| {
                     InternalProxy {
@@ -66,6 +75,7 @@ impl Proxy {
                         http_handler: http_handler.clone(),
                         remote_addr,
                         websocket_connector: websocket_connector.clone(),
+                        sessions: sessions.clone(),
                     }
                     .proxy(req)
                 }))
