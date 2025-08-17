@@ -39,6 +39,15 @@ interface SessionStoreState {
 
 const tauriStore = await load('session.json', { autoSave: true });
 
+const notifyStoreChange = async () => {
+  try {
+    const { invoke } = await import('@tauri-apps/api/core');
+    await invoke('store_changed');
+  } catch (error) {
+    console.error('Failed to notify store change:', error);
+  }
+};
+
 const useSessionStore = create<SessionStoreState>()(
   subscribeWithSelector((set) => ({
     sessions: (tauriStore.get('sessions') as never as SessionStore[]) ?? ([] as SessionStore[]),
@@ -57,6 +66,7 @@ useSessionStore.subscribe(
     try {
       await tauriStore.set('sessions', sessions);
       await tauriStore.save();
+      await notifyStoreChange();
     } catch (error) {
       console.error('Auto-save failed:', error);
     }
