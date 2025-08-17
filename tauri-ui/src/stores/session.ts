@@ -1,0 +1,67 @@
+import { create } from 'zustand';
+import { subscribeWithSelector } from 'zustand/middleware';
+import { load } from '@tauri-apps/plugin-store';
+
+// TypeScript 기본 HTTP 상태 코드 타입 사용
+type Http = {
+  statusCode: number;
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS' | 'CONNECT' | 'TRACE' | 'OTHERS';
+};
+
+type RequestPayload = {
+  headers?: Record<string, string>;
+  data?: Record<string, any>;
+  params?: Record<string, any>;
+} & Record<string, any>;
+
+type ResponsePayload = {
+  statusCode: Http['statusCode'];
+  headers?: Record<string, string>;
+  data?: Record<string, any>;
+} & Record<string, any>;
+
+interface SessionStore {
+  id: string;
+  url: string;
+  method: Http['method'];
+  request: RequestPayload;
+  response: ResponsePayload;
+}
+
+interface SessionStoreState {
+  sessions: SessionStore[];
+  setSessions: (sessions: SessionStore[]) => void;
+  addSession: (session: SessionStore) => void;
+  updateSession: (session: SessionStore) => void;
+  deleteSession: (id: string) => void;
+  deleteSessionByUrl: (url: string) => void;
+}
+
+const tauriStore = await load('session.json', { autoSave: true });
+await tauriStore.set('sessions', ['session_test']);
+await tauriStore.save();
+const useSessionStore = create<SessionStoreState>()(
+  subscribeWithSelector((set) => ({
+    sessions: (tauriStore.get('sessions') as never as SessionStore[]) ?? ([] as SessionStore[]),
+    setSessions: (sessions: SessionStore[]) => set({ sessions }),
+    addSession: (session: SessionStore) => set((state) => ({ sessions: [...state.sessions, session] })),
+    updateSession: (session: SessionStore) =>
+      set((state) => ({ sessions: state.sessions.map((s) => (s.id === session.id ? session : s)) })),
+    deleteSession: (id: string) => set((state) => ({ sessions: state.sessions.filter((s) => s.id !== id) })),
+    deleteSessionByUrl: (url: string) => set((state) => ({ sessions: state.sessions.filter((s) => s.url !== url) })),
+  })),
+);
+
+useSessionStore.subscribe(
+  (state) => state.sessions,
+  async (sessions) => {
+    try {
+      await tauriStore.set('sessions', sessions);
+      await tauriStore.save();
+    } catch (error) {
+      console.error('Auto-save failed:', error);
+    }
+  },
+);
+
+export default useSessionStore;
