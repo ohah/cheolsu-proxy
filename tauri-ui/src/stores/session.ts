@@ -38,8 +38,7 @@ interface SessionStoreState {
 }
 
 const tauriStore = await load('session.json', { autoSave: true });
-await tauriStore.set('sessions', ['session_test']);
-await tauriStore.save();
+
 const useSessionStore = create<SessionStoreState>()(
   subscribeWithSelector((set) => ({
     sessions: (tauriStore.get('sessions') as never as SessionStore[]) ?? ([] as SessionStore[]),
