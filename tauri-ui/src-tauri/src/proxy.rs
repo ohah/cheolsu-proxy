@@ -8,7 +8,7 @@ use tauri::{async_runtime::Mutex, AppHandle, Emitter, Runtime, State};
 
 use proxyapi_models::RequestInfo;
 
-pub type ProxyState = Mutex<Option<(Sender<()>, tauri::async_runtime::JoinHandle<()>)>>;
+pub type ProxyState = Mutex<Option<(Sender<()>, tauri::async_runtime::JoinHandle<()>, Proxy)>>;
 
 #[tauri::command]
 pub async fn start_proxy<R: Runtime>(
@@ -22,8 +22,12 @@ pub async fn start_proxy<R: Runtime>(
     let store = app.store("session.json").map_err(|e| e.to_string())?;
     let sessions = store.get("sessions").unwrap_or_default();
 
+    let proxy_server = Proxy::new(addr, Some(tx.clone()), sessions);
+
+    let proxy_server_clone = proxy_server.clone();
+
     let thread = tauri::async_runtime::spawn(async move {
-        if let Err(e) = Proxy::new(addr, Some(tx.clone()), sessions)
+        if let Err(e) = proxy_server_clone
             .start(async move {
                 let _ = close_rx.await;
             })
@@ -34,7 +38,7 @@ pub async fn start_proxy<R: Runtime>(
     });
 
     let mut proxy = proxy.lock().await;
-    proxy.replace((close_tx, thread));
+    proxy.replace((close_tx, thread, proxy_server));
 
     tauri::async_runtime::spawn(async move {
         for exchange in rx.iter() {
@@ -58,6 +62,22 @@ pub async fn stop_proxy(proxy: State<'_, ProxyState>) -> Result<(), String> {
 #[tauri::command]
 pub async fn proxy_status(proxy: State<'_, ProxyState>) -> Result<bool, String> {
     Ok(proxy.lock().await.is_some())
+}
+
+#[tauri::command]
+pub async fn store_changed<R: Runtime>(
+    app: AppHandle<R>,
+    proxy: State<'_, ProxyState>,
+) -> Result<(), String> {
+    let mut proxy = proxy.lock().await;
+    assert!(proxy.is_some());
+
+    let store = app.store("session.json").map_err(|e| e.to_string())?;
+    let sessions = store.get("sessions").unwrap_or_default();
+
+    println!("store_changed: {:?}", sessions);
+    proxy.as_mut().unwrap().2.update_sessions(sessions);
+    Ok(())
 }
 
 pub fn get_active_service() -> Option<String> {

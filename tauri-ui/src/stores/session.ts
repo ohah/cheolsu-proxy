@@ -24,8 +24,8 @@ interface SessionStore {
   id: string;
   url: string;
   method: Http['method'];
-  request: RequestPayload;
-  response: ResponsePayload;
+  request?: RequestPayload;
+  response?: ResponsePayload;
 }
 
 interface SessionStoreState {

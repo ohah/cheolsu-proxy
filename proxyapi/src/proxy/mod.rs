@@ -6,7 +6,6 @@ use std::{
     convert::Infallible,
     future::Future,
     net::SocketAddr,
-    path::PathBuf,
     sync::{mpsc::SyncSender, Arc},
 };
 
@@ -24,10 +23,11 @@ use hyper::{
 
 use hyper_rustls::HttpsConnectorBuilder;
 
+#[derive(Clone)]
 pub struct Proxy {
     addr: SocketAddr,
     tx: Option<SyncSender<proxy_handler::ProxyHandler>>,
-    sessions: Value,
+    sessions: Arc<Value>,
 }
 
 impl Proxy {
@@ -36,12 +36,27 @@ impl Proxy {
         tx: Option<SyncSender<proxy_handler::ProxyHandler>>,
         sessions: Value,
     ) -> Self {
-        Self { addr, tx, sessions }
+        Self {
+            addr,
+            tx,
+            sessions: Arc::new(sessions),
+        }
+    }
+
+    // 새로운 sessions로 교체
+    pub fn update_sessions(&mut self, new_sessions: Value) {
+        println!("update_sessions: {:?}", new_sessions);
+        self.sessions = Arc::new(new_sessions);
+    }
+
+    // 현재 sessions 가져오기
+    pub fn get_sessions(&self) -> Value {
+        (*self.sessions).clone()
     }
 
     pub async fn start<F: Future<Output = ()>>(self, signal: F) -> Result<(), Error> {
         let addr = self.addr;
-        let sessions = self.sessions;
+        let sessions = Arc::clone(&self.sessions);
 
         let https = HttpsConnectorBuilder::new()
             .with_webpki_roots()
@@ -75,7 +90,7 @@ impl Proxy {
                         http_handler: http_handler.clone(),
                         remote_addr,
                         websocket_connector: websocket_connector.clone(),
-                        sessions: sessions.clone(),
+                        sessions: (*sessions).clone(),
                     }
                     .proxy(req)
                 }))
