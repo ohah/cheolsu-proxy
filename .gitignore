@@ -48,3 +48,9 @@ dd-flag
 # Log files
 logs/
 *.log
+
+
+c/
+licenses/
+perl/
+win32/
