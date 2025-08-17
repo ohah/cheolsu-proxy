@@ -1,6 +1,7 @@
 use proxyapi::Proxy;
 use std::process::Command;
 use std::{env, net::SocketAddr};
+use tauri_plugin_store::StoreExt;
 use tokio::sync::oneshot::Sender;
 
 use tauri::{async_runtime::Mutex, AppHandle, Emitter, Runtime, State};
@@ -17,6 +18,10 @@ pub async fn start_proxy<R: Runtime>(
 ) -> Result<(), String> {
     let (tx, rx) = std::sync::mpsc::sync_channel(1);
     let (close_tx, close_rx) = tokio::sync::oneshot::channel();
+
+    let store = app.store("session.json").map_err(|e| e.to_string())?;
+    let sessions = store.get("sessions").unwrap_or_default();
+
     let thread = tauri::async_runtime::spawn(async move {
         if let Err(e) = Proxy::new(addr, Some(tx.clone()))
             .start(async move {
