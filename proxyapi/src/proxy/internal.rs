@@ -88,6 +88,12 @@ where
                         }
                     };
 
+                    //TEST: 데이터를 읽지 못한 경우 (빈 연결) 처리
+                    if bytes_read == 0 {
+                        eprintln!("No data received from upgraded connection");
+                        return;
+                    }
+
                     let mut upgraded = Rewind::new_buffered(
                         upgraded,
                         bytes::Bytes::copy_from_slice(buffer[..bytes_read].as_ref()),
