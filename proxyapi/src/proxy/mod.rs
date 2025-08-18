@@ -6,7 +6,7 @@ use std::{
     convert::Infallible,
     future::Future,
     net::SocketAddr,
-    sync::{mpsc::SyncSender, Arc},
+    sync::{mpsc::SyncSender, Arc, Mutex},
 };
 
 use internal::InternalProxy;
@@ -27,7 +27,7 @@ use hyper_rustls::HttpsConnectorBuilder;
 pub struct Proxy {
     addr: SocketAddr,
     tx: Option<SyncSender<proxy_handler::ProxyHandler>>,
-    sessions: Arc<Value>,
+    sessions: Arc<Mutex<Value>>,
 }
 
 impl Proxy {
@@ -39,19 +39,25 @@ impl Proxy {
         Self {
             addr,
             tx,
-            sessions: Arc::new(sessions),
+            sessions: Arc::new(Mutex::new(sessions)),
         }
     }
 
     // 새로운 sessions로 교체
     pub fn update_sessions(&mut self, new_sessions: Value) {
         println!("update_sessions: {:?}", new_sessions);
-        self.sessions = Arc::new(new_sessions);
+        if let Ok(mut sessions) = self.sessions.lock() {
+            *sessions = new_sessions;
+        }
     }
 
     // 현재 sessions 가져오기
     pub fn get_sessions(&self) -> Value {
-        (*self.sessions).clone()
+        if let Ok(sessions) = self.sessions.lock() {
+            sessions.clone()
+        } else {
+            serde_json::json!([])
+        }
     }
 
     pub async fn start<F: Future<Output = ()>>(self, signal: F) -> Result<(), Error> {
@@ -81,18 +87,33 @@ impl Proxy {
             let http_handler = proxy_handler::ProxyHandler::new(self.tx.clone().unwrap());
             let websocket_connector = None;
             let remote_addr = conn.remote_addr();
-            let sessions = sessions.clone();
+            let sessions = Arc::clone(&sessions);
             async move {
                 Ok::<_, Infallible>(service_fn(move |req| {
-                    InternalProxy {
-                        ca: Arc::clone(&ca),
-                        client: client.clone(),
-                        http_handler: http_handler.clone(),
-                        remote_addr,
-                        websocket_connector: websocket_connector.clone(),
-                        sessions: (*sessions).clone(),
+                    let sessions_clone = Arc::clone(&sessions);
+                    let ca = Arc::clone(&ca);
+                    let client = client.clone();
+                    let http_handler = http_handler.clone();
+                    let remote_addr = remote_addr;
+                    let websocket_connector = websocket_connector.clone();
+
+                    async move {
+                        let current_sessions = if let Ok(sessions) = sessions_clone.lock() {
+                            sessions.clone()
+                        } else {
+                            serde_json::json!([])
+                        };
+
+                        let proxy = InternalProxy {
+                            ca,
+                            client,
+                            http_handler,
+                            remote_addr,
+                            websocket_connector,
+                            sessions: current_sessions,
+                        };
+                        proxy.proxy(req).await
                     }
-                    .proxy(req)
                 }))
             }
         });

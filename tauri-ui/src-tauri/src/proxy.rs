@@ -70,12 +70,15 @@ pub async fn store_changed<R: Runtime>(
     proxy: State<'_, ProxyState>,
 ) -> Result<(), String> {
     let mut proxy = proxy.lock().await;
-    assert!(proxy.is_some());
+
+    if proxy.is_none() {
+        println!("store_changed: Proxy is not running, ignoring session update");
+        return Ok(());
+    }
 
     let store = app.store("session.json").map_err(|e| e.to_string())?;
     let sessions = store.get("sessions").unwrap_or_default();
 
-    println!("store_changed: {:?}", sessions);
     proxy.as_mut().unwrap().2.update_sessions(sessions);
     Ok(())
 }
