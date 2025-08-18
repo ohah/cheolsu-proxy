@@ -45,7 +45,6 @@ impl Proxy {
 
     // 새로운 sessions로 교체
     pub fn update_sessions(&mut self, new_sessions: Value) {
-        println!("update_sessions: {:?}", new_sessions);
         if let Ok(mut sessions) = self.sessions.lock() {
             *sessions = new_sessions;
         }

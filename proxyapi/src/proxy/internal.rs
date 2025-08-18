@@ -56,9 +56,6 @@ where
             remote_addr: self.remote_addr,
         };
 
-        // 세션 데이터 사용 예시
-        println!("Available sessions: {:?}", self.sessions);
-
         let req = match self.http_handler.handle_request(&ctx, req).await {
             RequestResponse::Request(req) => req,
             RequestResponse::Response(res) => return Ok(res),
