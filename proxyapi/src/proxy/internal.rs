@@ -7,6 +7,7 @@ use hyper::{
     client::connect::Connect, header::Entry, server::conn::Http, service::service_fn,
     upgrade::Upgraded, Body, Client, Method, Request, Response, Uri,
 };
+use serde_json::Value;
 use std::{net::SocketAddr, sync::Arc};
 use tokio::{
     io::{AsyncRead, AsyncReadExt, AsyncWrite},
@@ -21,6 +22,7 @@ pub struct InternalProxy<C, CA, H> {
     pub http_handler: H,
     pub websocket_connector: Option<Connector>,
     pub remote_addr: SocketAddr,
+    pub sessions: Value,
 }
 
 impl<C, CA, H> Clone for InternalProxy<C, CA, H>
@@ -35,6 +37,7 @@ where
             http_handler: self.http_handler.clone(),
             websocket_connector: self.websocket_connector.clone(),
             remote_addr: self.remote_addr,
+            sessions: self.sessions.clone(),
         }
     }
 }
@@ -81,6 +84,12 @@ where
                             return;
                         }
                     };
+
+                    //TEST: 데이터를 읽지 못한 경우 (빈 연결) 처리
+                    if bytes_read == 0 {
+                        eprintln!("No data received from upgraded connection");
+                        return;
+                    }
 
                     let mut upgraded = Rewind::new_buffered(
                         upgraded,

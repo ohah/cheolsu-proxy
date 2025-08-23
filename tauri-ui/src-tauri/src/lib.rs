@@ -3,7 +3,7 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 mod proxy;
-use proxy::{proxy_status, set_proxy, start_proxy, stop_proxy, ProxyState};
+use proxy::{proxy_status, set_proxy, start_proxy, stop_proxy, store_changed, ProxyState};
 use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -46,6 +46,7 @@ pub fn run() {
             .invoke_handler(tauri::generate_handler![
                 start_proxy,
                 stop_proxy,
+                store_changed,
                 proxy_status
             ])
             .run(tauri::generate_context!())
