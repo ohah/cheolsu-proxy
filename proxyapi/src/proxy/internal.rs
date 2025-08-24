@@ -84,25 +84,15 @@ where
 
     // 세션에서 매칭되는 응답을 확인하는 새로운 메서드 (더 안전하게)
     async fn check_session_response(&self, req: &Request<Body>) -> Option<Response<Body>> {
-        println!("🔍 세션 응답 확인 시작");
-
         // 세션 데이터가 없으면 즉시 반환
         if self.sessions.is_null() {
-            println!("❌ 세션 데이터가 비어있음");
             return None;
         }
 
-        println!("📡 요청 URI: {}", req.uri());
-        println!("📡 요청 메서드: {}", req.method());
-
         // 세션 데이터를 안전하게 파싱
         let sessions = match self.sessions.as_array() {
-            Some(sessions) => {
-                println!("📋 등록된 세션 수: {}", sessions.len());
-                sessions
-            }
+            Some(sessions) => sessions,
             None => {
-                println!("❌ 세션 데이터가 배열 형태가 아님: {:?}", self.sessions);
                 return None;
             }
         };
@@ -111,8 +101,6 @@ where
         let req_method = req.method().as_str();
 
         for (index, session) in sessions.iter().enumerate() {
-            println!(" 세션 {} 확인 중", index + 1);
-
             // 세션 데이터를 안전하게 추출
             let session_url = match session.get("url").and_then(|v| v.as_str()) {
                 Some(url) => url,
@@ -144,25 +132,20 @@ where
                 // 응답 데이터를 안전하게 추출
                 match session.get("response") {
                     Some(response_data) => {
-                        println!("📤 응답 데이터 발견: {:?}", response_data);
                         return self.create_response_from_session(response_data);
                     }
                     None => {
-                        println!("❌ 세션에 응답 데이터가 없음");
                         return None;
                     }
                 }
             }
         }
 
-        println!("❌ 매칭되는 세션을 찾지 못함");
         None
     }
 
     // 세션 데이터로부터 HTTP 응답을 생성하는 메서드
     fn create_response_from_session(&self, response_data: &Value) -> Option<Response<Body>> {
-        println!("🔧 세션 응답 생성 시작");
-
         // 상태 코드 추출
         let status_code = response_data
             .get("status")
@@ -178,12 +161,7 @@ where
                         if let Ok(header_name) = key.parse::<http::HeaderName>() {
                             if let Ok(header_value) = value_str.parse::<http::HeaderValue>() {
                                 headers.insert(header_name, header_value);
-                                println!("  📋 헤더 추가: {} = {}", key, value_str);
-                            } else {
-                                println!("  ❌ 헤더 값 파싱 실패: {}", value_str);
                             }
-                        } else {
-                            println!("  ❌ 헤더 이름 파싱 실패: {}", key);
                         }
                     }
                 }
@@ -200,25 +178,20 @@ where
 
         // 응답 본문 생성
         let body = if let Some(data) = response_data.get("data") {
-            println!("📦 응답 데이터: {:?}", data);
             match data {
-                Value::String(s) => {
-                    println!("📝 문자열 데이터로 응답 생성: {}", s);
-                    Body::from(s.clone())
-                }
+                Value::String(s) => Body::from(s.clone()),
                 Value::Object(_) | Value::Array(_) => {
                     let json_string = serde_json::to_string(data).unwrap_or_default();
-                    println!("📝 JSON 데이터로 응답 생성: {}", json_string);
+
                     Body::from(json_string)
                 }
                 _ => {
                     let string_data = data.to_string();
-                    println!("📝 기타 데이터로 응답 생성: {}", string_data);
+
                     Body::from(string_data)
                 }
             }
         } else {
-            println!("📝 빈 응답 본문 생성");
             Body::empty()
         };
 
@@ -228,7 +201,6 @@ where
             http::StatusCode::from_u16(status_code).unwrap_or(http::StatusCode::OK);
         *response.headers_mut() = headers;
 
-        println!("✅ 세션 응답 생성 완료 - 상태: {}", response.status());
         Some(response)
     }
 
