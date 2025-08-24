@@ -105,7 +105,6 @@ where
             let session_url = match session.get("url").and_then(|v| v.as_str()) {
                 Some(url) => url,
                 None => {
-                    println!("  ❌ 세션 {}의 URL 정보 누락", index + 1);
                     continue;
                 }
             };
@@ -113,22 +112,11 @@ where
             let session_method = match session.get("method").and_then(|v| v.as_str()) {
                 Some(method) => method,
                 None => {
-                    println!("  ❌ 세션 {}의 메서드 정보 누락", index + 1);
                     continue;
                 }
             };
 
-            println!("  📋 세션 URL: {}", session_url);
-            println!("  📋 세션 메서드: {}", session_method);
-            println!(
-                "   매칭 확인: URL={}, 메서드={}",
-                session_url == req_uri,
-                session_method == req_method
-            );
-
             if session_url == req_uri && session_method == req_method {
-                println!("✅ 세션 매칭 성공!");
-
                 // 응답 데이터를 안전하게 추출
                 match session.get("response") {
                     Some(response_data) => {
