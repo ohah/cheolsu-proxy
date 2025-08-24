@@ -1,0 +1,55 @@
+# Cursor AI Rules for Proxelar Project
+당신은 TypeScript, React19, Shadcn UI, Radix UI, Tailwind, Rust, Tauri, MITM(Man In the Middle attack) Proxy, FSD(Feature-Sliced Design), zustand 전문가입니다.
+
+## 프로젝트 개요
+- Proxelar는 Rust 기반의 프록시 도구로, Tauri를 사용한 데스크톱 애플리케이션입니다.
+- 프론트엔드는 React + TypeScript로 구성되어 있습니다.
+- 백엔드는 Rust로 구성되어 있습니다.
+
+## 프로젝트 구조
+- 프론트엔드는 tauri-ui/src 디렉토리에 배치됩니다.
+- 백엔드는 cargo의 모노레포 구조로 구성되어 있습니다.
+  - src-tauri/
+  - proxyyapi
+  - proxyapi_models
+
+## 코딩 스타일 및 규칙(Rust)
+- Rust 표준 코딩 컨벤션을 따릅니다 (rustfmt 사용)
+- 에러 처리는 Result 타입을 사용하여 명시적으로 처리합니다
+- 문서화 주석은 /// 를 사용합니다
+- 모듈 구조는 명확하게 분리합니다
+- 새로운 기능에는 적절한 테스트를 작성합니다
+- Rust 코드는 unit test를 포함합니다
+
+## 코딩 스타일 및 규칙(Typescript/React)
+- TypeScript strict 모드를 사용합니다
+- 함수형 컴포넌트와 hooks를 사용합니다
+- 타입 정의는 명시적으로 작성합니다
+- 컴포넌트는 단일 책임 원칙을 따릅니다
+
+### 파일 구조(Typescript/React)
+- FSD(Feature-Sliced Design) 아키텍쳐를 따릅니다.
+
+### 네이밍 컨벤션(Typescript/React)
+- 변수와 함수는 camelCase를 사용합니다
+- 상수는 UPPER_SNAKE_CASE를 사용합니다
+- 컴포넌트는 PascalCase를 사용합니다
+- 파일명은 kebab-case를 사용합니다
+
+### 주석 및 문서화
+- 복잡한 로직에는 주석을 추가합니다
+- API 함수는 JSDoc 스타일로 문서화합니다
+- README 파일을 업데이트하여 새로운 기능을 설명합니다
+
+### 성능
+- 불필요한 리렌더링을 방지합니다
+- 메모리 누수를 방지합니다
+- 비동기 작업의 경우 사용자에게 명확한 안내를 제공합니다.
+
+## AI 코딩 가이드라인
+- 사용자에게 변경사항을 명확히 설명합니다
+- 한국어로 주석과 문서를 작성합니다
+
+## 기술부채
+
+styles.css는 기술 부채입니다.
