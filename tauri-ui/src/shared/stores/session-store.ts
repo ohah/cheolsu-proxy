@@ -1,41 +1,7 @@
 import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
 import { load } from '@tauri-apps/plugin-store';
-
-// TypeScript 기본 HTTP 상태 코드 타입 사용
-type Http = {
-  statusCode: number;
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS' | 'CONNECT' | 'TRACE' | 'OTHERS';
-};
-
-type RequestPayload = {
-  headers?: Record<string, string>;
-  data?: Record<string, any>;
-  params?: Record<string, any>;
-} & Record<string, any>;
-
-type ResponsePayload = {
-  statusCode: Http['statusCode'];
-  headers?: Record<string, string>;
-  data?: Record<string, any>;
-} & Record<string, any>;
-
-interface SessionStore {
-  id: string;
-  url: string;
-  method: Http['method'];
-  request?: RequestPayload;
-  response?: ResponsePayload;
-}
-
-interface SessionStoreState {
-  sessions: SessionStore[];
-  setSessions: (sessions: SessionStore[]) => void;
-  addSession: (session: SessionStore) => void;
-  updateSession: (session: SessionStore) => void;
-  deleteSession: (id: string) => void;
-  deleteSessionByUrl: (url: string) => void;
-}
+import type { SessionStore, SessionStoreState } from './types';
 
 const tauriStore = await load('session.json', { autoSave: true });
 
@@ -73,4 +39,4 @@ useSessionStore.subscribe(
   },
 );
 
-export default useSessionStore;
+export { useSessionStore };
