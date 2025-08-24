@@ -28,7 +28,7 @@ export const RequestTable = ({ paused }: RequestTableProps) => {
     return () => {
       unlisten.then((f) => f());
     };
-  }, [paused, requests]);
+  }, [paused]);
 
   const handleFilterChange = (newFilters: HttpMethod[]) => {
     if (selectedId !== null) {
@@ -70,7 +70,7 @@ export const RequestTable = ({ paused }: RequestTableProps) => {
           <tr>
             <th>Path</th>
             <th>
-              Method ...
+              Method
               <MultipleSelectInput
                 options={HTTP_METHOD_OPTIONS}
                 selectedOptions={filters}
