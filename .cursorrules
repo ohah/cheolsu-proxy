@@ -26,6 +26,7 @@
 - 함수형 컴포넌트와 hooks를 사용합니다
 - 타입 정의는 명시적으로 작성합니다
 - 컴포넌트는 단일 책임 원칙을 따릅니다
+- 가능하면 타입 선언은 Interface를 사용합니다
 
 ### 파일 구조(Typescript/React)
 - FSD(Feature-Sliced Design) 아키텍쳐를 따릅니다.
