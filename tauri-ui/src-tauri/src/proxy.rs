@@ -79,6 +79,8 @@ pub async fn store_changed<R: Runtime>(
     let store = app.store("session.json").map_err(|e| e.to_string())?;
     let sessions = store.get("sessions").unwrap_or_default();
 
+    println!("store_changed: sessions: {:?}", sessions);
+
     proxy.as_mut().unwrap().2.update_sessions(sessions);
     Ok(())
 }

@@ -66,10 +66,146 @@ where
         } else if hyper_tungstenite::is_upgrade_request(&req) {
             Ok(self.upgrade_websocket(req))
         } else {
+            // 세션에서 매칭되는 응답이 있는지 확인
+            if let Some(session_response) = self.check_session_response(&req).await {
+                // 세션 응답을 http_handler를 통해 처리하여 이벤트 발생
+                return Ok(self.http_handler.handle_response(&ctx, session_response).await);
+            }
+
             let res = self.client.request(normalize_request(req)).await?;
 
             Ok(self.http_handler.handle_response(&ctx, res).await)
         }
+    }
+
+    // 세션에서 매칭되는 응답을 확인하는 새로운 메서드
+    async fn check_session_response(&self, req: &Request<Body>) -> Option<Response<Body>> {
+        println!("🔍 세션 응답 확인 시작");
+        println!("📡 요청 URI: {}", req.uri());
+        println!("📡 요청 메서드: {}", req.method());
+
+        // 세션 데이터를 파싱
+        let sessions = match self.sessions.as_array() {
+            Some(sessions) => {
+                println!("📋 등록된 세션 수: {}", sessions.len());
+                sessions
+            }
+            None => {
+                println!("❌ 세션 데이터가 배열 형태가 아님");
+                return None;
+            }
+        };
+
+        let req_uri = req.uri().to_string();
+        let req_method = req.method().as_str();
+
+        for (index, session) in sessions.iter().enumerate() {
+            println!(" 세션 {} 확인 중", index + 1);
+
+            // 세션의 URL과 메서드가 요청과 일치하는지 확인
+            if let (Some(session_url), Some(session_method)) = (
+                session.get("url").and_then(|v| v.as_str()),
+                session.get("method").and_then(|v| v.as_str()),
+            ) {
+                println!("  📋 세션 URL: {}", session_url);
+                println!("  📋 세션 메서드: {}", session_method);
+                println!(
+                    "   매칭 확인: URL={}, 메서드={}",
+                    session_url == req_uri,
+                    session_method == req_method
+                );
+
+                if session_url == req_uri && session_method == req_method {
+                    println!("✅ 세션 매칭 성공!");
+
+                    // 응답 데이터가 있는지 확인
+                    if let Some(response_data) = session.get("response") {
+                        println!("📤 응답 데이터 발견: {:?}", response_data);
+                        return self.create_response_from_session(response_data);
+                    } else {
+                        println!("❌ 세션에 응답 데이터가 없음");
+                    }
+                }
+            } else {
+                println!("❌ 세션의 URL 또는 메서드 정보 누락");
+            }
+        }
+
+        println!("❌ 매칭되는 세션을 찾지 못함");
+        None
+    }
+
+    // 세션 데이터로부터 HTTP 응답을 생성하는 메서드
+    fn create_response_from_session(&self, response_data: &Value) -> Option<Response<Body>> {
+        println!("🔧 세션 응답 생성 시작");
+
+        // 상태 코드 추출
+        let status_code = response_data
+            .get("status")
+            .and_then(|v| v.as_u64())
+            .unwrap_or(200) as u16;
+        println!(" 상태 코드: {}", status_code);
+
+        // 헤더 추출
+        let mut headers = http::HeaderMap::new();
+        if let Some(headers_data) = response_data.get("headers") {
+            println!("📋 헤더 데이터: {:?}", headers_data);
+            if let Some(headers_obj) = headers_data.as_object() {
+                for (key, value) in headers_obj {
+                    if let Some(value_str) = value.as_str() {
+                        if let Ok(header_name) = key.parse::<http::HeaderName>() {
+                            if let Ok(header_value) = value_str.parse::<http::HeaderValue>() {
+                                headers.insert(header_name, header_value);
+                                println!("  📋 헤더 추가: {} = {}", key, value_str);
+                            } else {
+                                println!("  ❌ 헤더 값 파싱 실패: {}", value_str);
+                            }
+                        } else {
+                            println!("  ❌ 헤더 이름 파싱 실패: {}", key);
+                        }
+                    }
+                }
+            }
+        }
+
+        // 기본 Content-Type 헤더 설정 (없는 경우)
+        if !headers.contains_key("content-type") {
+            headers.insert("content-type", "application/json".parse().unwrap());
+            println!(" 기본 Content-Type 헤더 추가: application/json");
+        }
+
+        // 응답 본문 생성
+        let body = if let Some(data) = response_data.get("data") {
+            println!("📦 응답 데이터: {:?}", data);
+            match data {
+                Value::String(s) => {
+                    println!("📝 문자열 데이터로 응답 생성: {}", s);
+                    Body::from(s.clone())
+                }
+                Value::Object(_) | Value::Array(_) => {
+                    let json_string = serde_json::to_string(data).unwrap_or_default();
+                    println!("📝 JSON 데이터로 응답 생성: {}", json_string);
+                    Body::from(json_string)
+                }
+                _ => {
+                    let string_data = data.to_string();
+                    println!("📝 기타 데이터로 응답 생성: {}", string_data);
+                    Body::from(string_data)
+                }
+            }
+        } else {
+            println!("📝 빈 응답 본문 생성");
+            Body::empty()
+        };
+
+        // 응답 생성
+        let mut response = Response::new(body);
+        *response.status_mut() =
+            http::StatusCode::from_u16(status_code).unwrap_or(http::StatusCode::OK);
+        *response.headers_mut() = headers;
+
+        println!("✅ 세션 응답 생성 완료 - 상태: {}", response.status());
+        Some(response)
     }
 
     fn process_connect(self, mut req: Request<Body>) -> Result<Response<Body>, hyper::Error> {
