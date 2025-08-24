@@ -18,14 +18,14 @@ export type HttpStatusCode = number;
 export interface RequestPayload {
   headers?: Record<string, string>;
   data?: Record<string, unknown>;
-  params?: Record<string, unknown>;
+  params?: Record<string, unknown> | string;
 }
 
 // 응답 페이로드 타입
 export interface ResponsePayload {
-  statusCode: HttpStatusCode;
+  status: HttpStatusCode;
   headers?: Record<string, string>;
-  data?: Record<string, unknown>;
+  data?: Record<string, unknown> | string;
 }
 
 // 세션 스토어 타입
