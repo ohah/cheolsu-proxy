@@ -1,6 +1,4 @@
-
-import React from 'react';
-import { RequestInfo } from '../../types';
+import type { RequestInfo } from '../../../entities/request';
 
 interface RequestRowProps {
   exchange: RequestInfo;
@@ -9,7 +7,7 @@ interface RequestRowProps {
   onSelect: (id: number) => void;
 }
 
-const RequestRow: React.FC<RequestRowProps> = ({ exchange, idx, onDelete, onSelect }) => {
+export const RequestRow = ({ exchange, idx, onDelete, onSelect }: RequestRowProps) => {
   const { request, response } = exchange;
 
   if (!request || !response) {
@@ -32,17 +30,26 @@ const RequestRow: React.FC<RequestRowProps> = ({ exchange, idx, onDelete, onSele
   const getAuthority = (uri: string) => {
     try {
       const url = new URL(uri);
-      return url.hostname + (url.port ? ':' + url.port : '');
+      return `${url.hostname}${url.port ? `:${url.port}` : ''}`;
     } catch (e) {
       return uri.split('/')[0] || uri;
     }
-  }
+  };
 
-  const timeDiff = response.time && request.time ?
-    Math.trunc((response.time - request.time) / 1e6) : 'N/A';
+  const timeDiff = response.time && request.time ? Math.trunc((response.time - request.time) / 1e6) : 'N/A';
 
   return (
-    <tr className="grid-body" onClick={handleSelect}>
+    <tr
+      className="grid-body"
+      onClick={handleSelect}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleSelect();
+        }
+      }}
+      tabIndex={0}
+    >
       <td className="path">
         <b>{getAuthority(request.uri)}</b>
         <br />
@@ -53,12 +60,10 @@ const RequestRow: React.FC<RequestRowProps> = ({ exchange, idx, onDelete, onSele
       <td>{request.body.length}</td>
       <td>{timeDiff} ms</td>
       <td>
-        <button title="Delete" className="delete-btn" onClick={handleDelete}>
+        <button title="Delete" className="delete-btn" onClick={handleDelete} type="button">
           🗑
         </button>
       </td>
     </tr>
   );
 };
-
-export default RequestRow;

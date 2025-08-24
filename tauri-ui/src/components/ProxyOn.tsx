@@ -1,7 +1,6 @@
-
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { stopProxy } from '../api';
-import RequestTable from './request/RequestTable';
+import { RequestTable } from '../features/network-table';
 
 interface ProxyOnProps {
   onStop: () => void;
@@ -23,8 +22,12 @@ const ProxyOn: React.FC<ProxyOnProps> = ({ onStop }) => {
   return (
     <div className="proxy-on">
       <div className="controls">
-        <button onClick={() => setPaused(!paused)}>{paused ? '▶' : '⏸'}</button>
-        <button onClick={handleStopClick}>⏹</button>
+        <button type="button" onClick={() => setPaused(!paused)}>
+          {paused ? '▶' : '⏸'}
+        </button>
+        <button type="button" onClick={handleStopClick}>
+          ⏹
+        </button>
       </div>
       <RequestTable paused={paused} />
     </div>

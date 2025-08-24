@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import App from './components/App';
 import './main.css';
 import '../styles.css';
-import './stores/session';
+import './shared/stores/session-store';
 
 const container = document.getElementById('root');
 
