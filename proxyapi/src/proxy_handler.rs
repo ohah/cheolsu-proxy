@@ -58,6 +58,27 @@ impl ProxyHandler {
     pub fn res(&self) -> &Option<ProxiedResponse> {
         &self.res
     }
+
+    // 세션 응답을 처리하는 새로운 메서드
+    pub async fn handle_session_response(&mut self, mut res: Response<Body>) -> Response<Body> {
+        let mut body_mut = res.body_mut();
+        let body_bytes = to_bytes(&mut body_mut).await.unwrap_or_default();
+        *body_mut = Body::from(body_bytes.clone());
+
+        let output_response = ProxiedResponse::new(
+            res.status(),
+            res.version(),
+            res.headers().clone(),
+            body_bytes,
+            chrono::Local::now()
+                .timestamp_nanos_opt()
+                .unwrap_or_default(),
+        );
+
+        self.set_res(output_response).send_output();
+
+        res
+    }
 }
 
 #[async_trait]
