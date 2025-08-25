@@ -42,27 +42,4 @@ useSessionStore.subscribe(
   },
 );
 
-setTimeout(() => {
-  useSessionStore.setState({
-    sessions: [
-      {
-        id: '1',
-        url: 'http://127.0.0.1:8080/',
-        method: 'PATCH',
-        response: {
-          status: 200,
-          headers: {
-            'Content-Type': 'application/json',
-            Connection: 'keep-alive',
-            Date: new Date().toUTCString(),
-          },
-          data: {
-            message: 'Hello, world!',
-          },
-        },
-      },
-    ],
-  });
-}, 1000);
-
 export { useSessionStore };
