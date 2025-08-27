@@ -66,10 +66,130 @@ where
         } else if hyper_tungstenite::is_upgrade_request(&req) {
             Ok(self.upgrade_websocket(req))
         } else {
-            let res = self.client.request(normalize_request(req)).await?;
-
-            Ok(self.http_handler.handle_response(&ctx, res).await)
+            // 세션에서 매칭되는 응답이 있는지 확인 (안전하게 처리)
+            match self.check_session_response(&req).await {
+                Some(session_response) => {
+                    return Ok(self
+                        .http_handler
+                        .handle_response(&ctx, session_response)
+                        .await);
+                }
+                None => {
+                    let res = self.client.request(normalize_request(req)).await?;
+                    Ok(self.http_handler.handle_response(&ctx, res).await)
+                }
+            }
         }
+    }
+
+    // 세션에서 매칭되는 응답을 확인하는 새로운 메서드 (더 안전하게)
+    async fn check_session_response(&self, req: &Request<Body>) -> Option<Response<Body>> {
+        // 세션 데이터가 없으면 즉시 반환
+        if self.sessions.is_null() {
+            return None;
+        }
+
+        // 세션 데이터를 안전하게 파싱
+        let sessions = match self.sessions.as_array() {
+            Some(sessions) => sessions,
+            None => {
+                return None;
+            }
+        };
+
+        let req_uri = req.uri().to_string();
+        let req_method = req.method().as_str();
+
+        for (index, session) in sessions.iter().enumerate() {
+            // 세션 데이터를 안전하게 추출
+            let session_url = match session.get("url").and_then(|v| v.as_str()) {
+                Some(url) => url,
+                None => {
+                    continue;
+                }
+            };
+
+            let session_method = match session.get("method").and_then(|v| v.as_str()) {
+                Some(method) => method,
+                None => {
+                    continue;
+                }
+            };
+
+            if session_url == req_uri && session_method == req_method {
+                // 응답 데이터를 안전하게 추출
+                match session.get("response") {
+                    Some(response_data) => {
+                        return self.create_response_from_session(response_data);
+                    }
+                    None => {
+                        return None;
+                    }
+                }
+            }
+        }
+
+        None
+    }
+
+    // 세션 데이터로부터 HTTP 응답을 생성하는 메서드
+    fn create_response_from_session(&self, response_data: &Value) -> Option<Response<Body>> {
+        // 상태 코드 추출
+        let status_code = response_data
+            .get("status")
+            .and_then(|v| v.as_u64())
+            .unwrap_or(200) as u16;
+
+        // 헤더 추출
+        let mut headers = http::HeaderMap::new();
+        if let Some(headers_data) = response_data.get("headers") {
+            if let Some(headers_obj) = headers_data.as_object() {
+                for (key, value) in headers_obj {
+                    if let Some(value_str) = value.as_str() {
+                        if let Ok(header_name) = key.parse::<http::HeaderName>() {
+                            if let Ok(header_value) = value_str.parse::<http::HeaderValue>() {
+                                headers.insert(header_name, header_value);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // 기본 Content-Type 헤더 설정 (없는 경우)
+        if !headers.contains_key("content-type") {
+            headers.insert("content-type", "application/json".parse().unwrap());
+        }
+
+        // 세션 응답임을 나타내는 특별한 헤더 추가
+        headers.insert("x-proxelar-session", "true".parse().unwrap());
+
+        // 응답 본문 생성
+        let body = if let Some(data) = response_data.get("data") {
+            match data {
+                Value::String(s) => Body::from(s.clone()),
+                Value::Object(_) | Value::Array(_) => {
+                    let json_string = serde_json::to_string(data).unwrap_or_default();
+
+                    Body::from(json_string)
+                }
+                _ => {
+                    let string_data = data.to_string();
+
+                    Body::from(string_data)
+                }
+            }
+        } else {
+            Body::empty()
+        };
+
+        // 응답 생성
+        let mut response = Response::new(body);
+        *response.status_mut() =
+            http::StatusCode::from_u16(status_code).unwrap_or(http::StatusCode::OK);
+        *response.headers_mut() = headers;
+
+        Some(response)
     }
 
     fn process_connect(self, mut req: Request<Body>) -> Result<Response<Body>, hyper::Error> {

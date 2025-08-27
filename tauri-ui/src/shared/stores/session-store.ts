@@ -8,6 +8,7 @@ const tauriStore = await load('session.json', { autoSave: true });
 const notifyStoreChange = async () => {
   try {
     const { invoke } = await import('@tauri-apps/api/core');
+    console.log('notifyStoreChange');
     await invoke('store_changed');
   } catch (error) {
     console.error('Failed to notify store change:', error);
@@ -25,6 +26,8 @@ const useSessionStore = create<SessionStoreState>()(
     deleteSessionByUrl: (url: string) => set((state) => ({ sessions: state.sessions.filter((s) => s.url !== url) })),
   })),
 );
+
+console.log('useSessionStore.getState().sessions', useSessionStore.getState().sessions);
 
 useSessionStore.subscribe(
   (state) => state.sessions,

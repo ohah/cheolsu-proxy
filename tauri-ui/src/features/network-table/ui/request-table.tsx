@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { listen } from '@tauri-apps/api/event';
 import type { RequestInfo } from '../../../entities/request';
-import { HTTP_METHOD_OPTIONS, filterRequest } from '../model';
+import { HTTP_METHOD_OPTIONS, type HttpMethod, filterRequest } from '../model';
 import { RequestRow } from './request-row';
 import { RequestDetails } from './request-details';
 import { MultipleSelectInput } from '../../../shared/ui/multiple-select-input';
@@ -13,7 +13,7 @@ interface RequestTableProps {
 export const RequestTable = ({ paused }: RequestTableProps) => {
   const [requests, setRequests] = useState<RequestInfo[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
-  const [filters, setFilters] = useState<string[]>(HTTP_METHOD_OPTIONS);
+  const [filters, setFilters] = useState<HttpMethod[]>([...HTTP_METHOD_OPTIONS]);
 
   useEffect(() => {
     if (paused) return;
@@ -28,9 +28,9 @@ export const RequestTable = ({ paused }: RequestTableProps) => {
     return () => {
       unlisten.then((f) => f());
     };
-  }, [paused, requests]);
+  }, [paused]);
 
-  const handleFilterChange = (newFilters: string[]) => {
+  const handleFilterChange = (newFilters: HttpMethod[]) => {
     if (selectedId !== null) {
       const selectedRequest = requests[selectedId];
       if (selectedRequest?.request && !filterRequest(selectedRequest.request.method, newFilters)) {
@@ -70,7 +70,7 @@ export const RequestTable = ({ paused }: RequestTableProps) => {
           <tr>
             <th>Path</th>
             <th>
-              Method ...
+              Method
               <MultipleSelectInput
                 options={HTTP_METHOD_OPTIONS}
                 selectedOptions={filters}

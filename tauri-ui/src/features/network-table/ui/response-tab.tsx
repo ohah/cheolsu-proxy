@@ -7,7 +7,8 @@ interface ResponseTabProps {
 export const ResponseTab = ({ response }: ResponseTabProps) => {
   const renderBody = () => {
     try {
-      const text = new TextDecoder('utf-8', { fatal: true }).decode(response.body);
+      const body = Array.isArray(response?.body) ? new Uint8Array(response.body) : response.body;
+      const text = new TextDecoder('utf-8', { fatal: true }).decode(body);
       // JSON인 경우 포맷팅
       try {
         const json = JSON.parse(text);
@@ -16,7 +17,11 @@ export const ResponseTab = ({ response }: ResponseTabProps) => {
         return <p>{text}</p>;
       }
     } catch (e) {
-      return <p>{`Binary data (bytes): ${Array.from(response.body).join(', ')}`}</p>;
+      try {
+        return <p>{`Binary data (bytes): ${Array.from(response.body).join(', ')}`}</p>;
+      } catch (e) {
+        return 'Error';
+      }
     }
   };
 

@@ -2,14 +2,14 @@ import type { HttpMethod } from '../../stores';
 
 interface MultipleSelectInputProps {
   options: readonly HttpMethod[];
-  selectedOptions: string[];
-  onChange: (selected: string[]) => void;
+  selectedOptions: HttpMethod[];
+  onChange: (selected: HttpMethod[]) => void;
 }
 
 export const MultipleSelectInput = ({ options, selectedOptions, onChange }: MultipleSelectInputProps) => {
   const handleSelectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const selected = Array.from(event.target.selectedOptions, (option) => option.value);
-    onChange(selected);
+    onChange(selected as HttpMethod[]);
   };
 
   return (
