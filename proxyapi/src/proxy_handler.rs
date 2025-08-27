@@ -93,7 +93,7 @@ impl HttpHandler for ProxyHandler {
     ) -> Response<Body> {
         let mut body_mut = res.body_mut();
         let body_bytes = to_bytes(&mut body_mut).await.unwrap_or_default();
-        *body_mut = Body::from(body_bytes.clone()); // Replacing the potentially mutated body with a reference to the entire contents
+        *body_mut = Body::from(body_bytes.clone());
 
         let output_response = ProxiedResponse::new(
             res.status(),
@@ -105,6 +105,21 @@ impl HttpHandler for ProxyHandler {
                 .unwrap_or_default(),
         );
 
+        // 세션 응답인지 확인 (x-proxelar-session 헤더로 구분)
+        let is_session_response = res
+            .headers()
+            .get("x-proxelar-session")
+            .and_then(|v| v.to_str().ok())
+            .map(|s| s == "true")
+            .unwrap_or(false);
+
+        // if is_session_response {
+        //     println!("📤 세션 응답 이벤트 전송");
+        // } else {
+        //     println!("📤 실제 서버 응답 이벤트 전송");
+        // }
+
+        // 항상 이벤트 전송 (세션 응답이든 실제 서버 응답이든)
         self.set_res(output_response).send_output();
 
         res
