@@ -7,6 +7,22 @@
         }
       },
       "format_on_save": "on"
+    },
+    "JavaScript": {
+      "formatter": {
+        "external": {
+          "command": "oxlint"
+        }
+      },
+      "format_on_save": "on"
+    },
+    "TypeScript": {
+      "formatter": {
+        "external": {
+          "command": "oxlint"
+        }
+      },
+      "format_on_save": "on"
     }
   }
 }
