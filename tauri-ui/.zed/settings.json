@@ -1,0 +1,12 @@
+{
+  "languages": {
+    "Rust": {
+      "formatter": {
+        "external": {
+          "command": "rustfmt"
+        }
+      },
+      "format_on_save": "on"
+    }
+  }
+}
