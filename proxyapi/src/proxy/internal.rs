@@ -141,20 +141,15 @@ where
             .unwrap_or(200) as u16;
 
         // 헤더 추출
-        let mut headers = http::HeaderMap::new();
-        if let Some(headers_data) = response_data.get("headers") {
-            if let Some(headers_obj) = headers_data.as_object() {
-                for (key, value) in headers_obj {
-                    if let Some(value_str) = value.as_str() {
-                        if let Ok(header_name) = key.parse::<http::HeaderName>() {
-                            if let Ok(header_value) = value_str.parse::<http::HeaderValue>() {
-                                headers.insert(header_name, header_value);
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        let mut headers: http::HeaderMap = response_data
+            .get("headers")
+            .and_then(Value::as_object)
+            .map(|obj| {
+                obj.iter()
+                    .filter_map(|(k, v)| Some((k.parse().ok()?, v.as_str()?.parse().ok()?)))
+                    .collect()
+            })
+            .unwrap_or_default();
 
         // 기본 Content-Type 헤더 설정 (없는 경우)
         if !headers.contains_key("content-type") {
