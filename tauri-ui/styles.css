@@ -1,13 +1,12 @@
 /* https://blog.jim-nielsen.com/2021/css-system-colors/ */
 :root {
-  --gradient: linear-gradient(312deg, rgba(99,69,177,1) 35%, rgba(203,135,173,1) 100%);
-  font-family: Verdana, Geneva, Tahoma, sans-serif;
+  --gradient: linear-gradient(312deg, rgba(99, 69, 177, 1) 35%, rgba(203, 135, 173, 1) 100%);
 }
-[data-theme="light"] {
-  --bg-color: #dee5f3;
-  --bg-color-secondary: #efefef;
-  --font-color: #474547;
-  --font-color-emphasis: #474547; 
+[data-theme='light'] {
+  --bg-color: #ffffff;
+  --bg-color-secondary: #faf9f7;
+  --font-color: #0c0c0c;
+  --font-color-emphasis: #474547;
   --post: #48cb90;
   --get: #2a69a7;
   --put: #d59d58;
@@ -16,13 +15,13 @@
   --head: #8c3fcf;
   --patch: #5cd6bc;
   --method: darkgray;
-  --little-contrast:#e4e4e4;
+  --little-contrast: #e4e4e4;
   --bg-input: #fff;
   --shadow-color: 220deg 47% 85%;
 }
-[data-theme="dark"] {
-  --font-color-emphasis: rgba(255,255,255,.87);
-  --font-color: rgba(255,255,255,.6);
+[data-theme='dark'] {
+  --font-color-emphasis: rgba(255, 255, 255, 0.87);
+  --font-color: rgba(255, 255, 255, 0.6);
   --bg-color: #121212;
   --bg-color-secondary: #1d1d1d;
   --post: #49cc90;
@@ -33,17 +32,17 @@
   --head: #9012fe;
   --patch: #50e3c2;
   --method: lightgray;
-  --little-contrast:#2a2a2a;
+  --little-contrast: #2a2a2a;
   --bg-input: #373737;
   --shadow-color: 240deg 4% 14%;
 }
-[data-theme= "dark"], [data-theme ="light"] {
-    --box-shadow: 1px 2px 2px hsl(var(--shadow-color) / 0.2),
-      2px 4px 4px hsl(var(--shadow-color) / 0.2),
-      4px 8px 8px hsl(var(--shadow-color) / 0.2),
-      8px 8px 16px hsl(var(--shadow-color) / 0.2),
-      16px 16px 32px hsl(var(--shadow-color) / 0.2);
-    --gradient: linear-gradient(312deg, rgba(99,69,177,1) 35%, rgba(203,135,173,1) 100%);
+[data-theme='dark'],
+[data-theme='light'] {
+  --box-shadow:
+    1px 2px 2px hsl(var(--shadow-color) / 0.2), 2px 4px 4px hsl(var(--shadow-color) / 0.2),
+    4px 8px 8px hsl(var(--shadow-color) / 0.2), 8px 8px 16px hsl(var(--shadow-color) / 0.2),
+    16px 16px 32px hsl(var(--shadow-color) / 0.2);
+  --gradient: linear-gradient(312deg, rgba(99, 69, 177, 1) 35%, rgba(203, 135, 173, 1) 100%);
 }
 .method {
   color: var(--method);
@@ -73,17 +72,13 @@
   box-sizing: border-box;
 }
 body {
-  background-color: var(--bg-color);
+  background-color: var(--bg-color-secondary);
   color: var(--font-color);
   cursor: default;
   overflow: hidden;
 }
 button {
   cursor: pointer;
-}
-input{
-  background: var(--bg-input);
-  box-shadow: var(--box-shadow);
 }
 
 /* Styles extracted from Yew components */
@@ -123,7 +118,7 @@ main > *:last-child {
   border-radius: 50%;
   height: 30px;
   width: 30px;
-  color: rgba(255, 255, 255, .8);
+  color: rgba(255, 255, 255, 0.8);
   border: none;
   background: var(--gradient);
   position: absolute;
@@ -212,8 +207,8 @@ main > *:last-child {
   width: 100vw;
   height: 100vh;
   background: var(--font-color);
-  opacity: .9;
-  content: "";
+  opacity: 0.9;
+  content: '';
   z-index: 99999;
 }
 
@@ -266,7 +261,7 @@ main > *:last-child {
   padding: 8px 0;
   width: 100%;
   margin: 0 5px;
-  font-size: .8rem;
+  font-size: 0.8rem;
   border-radius: 5px;
   font-weight: bold;
   border: 1px solid transparent;
@@ -386,26 +381,26 @@ main > *:last-child {
   position: absolute;
   inset: 0;
   background: var(--bg-input);
-  opacity: .9;
+  opacity: 0.9;
   animation: layerTr 1s linear infinite alternate;
 }
 
 @keyframes layers1 {
   0% {
-    box-shadow: 0px 0px 0 0px var(--bg-color-secondary)
+    box-shadow: 0px 0px 0 0px var(--bg-color-secondary);
   }
   90%,
   100% {
-    box-shadow: 20px 20px 0 -4px var(--bg-color-secondary)
+    box-shadow: 20px 20px 0 -4px var(--bg-color-secondary);
   }
 }
 
 @keyframes layerTr {
   0% {
-    transform: translate(0, 0) scale(1)
+    transform: translate(0, 0) scale(1);
   }
   100% {
-    transform: translate(-25px, -25px) scale(1)
+    transform: translate(-25px, -25px) scale(1);
   }
 }
 
@@ -425,14 +420,14 @@ main > *:last-child {
 
 .path .hide {
   max-height: 0;
-  transition: all .2s ease-in-out;
+  transition: all 0.2s ease-in-out;
   overflow: hidden;
   margin: 0;
 }
 
 .path:hover .hide {
   max-height: 500px;
-  transition: all .2s ease-in-out;
+  transition: all 0.2s ease-in-out;
 }
 
 .path .b {
@@ -448,7 +443,7 @@ main > *:last-child {
   pointer-events: none;
   padding-left: 10px;
   margin: 3px 0;
-  font-size: .7rem;
+  font-size: 0.7rem;
 }
 
 .path .headers:first-child {
@@ -475,7 +470,7 @@ main > *:last-child {
 }
 
 .tab-view .single_header {
-  font-size: .7rem;
+  font-size: 0.7rem;
   display: flex;
   justify-content: flex-start;
   border-bottom: 1px solid var(--little-contrast);
@@ -494,5 +489,5 @@ main > *:last-child {
 }
 
 .tab-view .container_body {
-  font-size: .7rem;
+  font-size: 0.7rem;
 }

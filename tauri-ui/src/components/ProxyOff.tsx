@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { startProxy } from '../api';
 import TextInput from './TextInput';
@@ -28,8 +27,8 @@ const ProxyOff: React.FC<ProxyOffProps> = ({ onStart }) => {
 
   const handleStartClick = async () => {
     if (!validateAddress(proxyAddr)) {
-        setError('Cannot start with an invalid address.');
-        return;
+      setError('Cannot start with an invalid address.');
+      return;
     }
     try {
       await startProxy(proxyAddr);
@@ -42,10 +41,15 @@ const ProxyOff: React.FC<ProxyOffProps> = ({ onStart }) => {
   };
 
   return (
-    <div className="proxy-off">
-      <TextInput value={proxyAddr} onChange={handleAddrChange} />
-      {error && <p className="error">{error}</p>}
-      <button onClick={handleStartClick} disabled={!!error}>▶</button>
+    <div className="h-full flex flex-col items-center justify-center gap-4">
+      <h1 className="text-3xl font-semibold">Cheolsu</h1>
+      <div className="flex gap-2">
+        <TextInput value={proxyAddr} onChange={handleAddrChange} />
+        {error && <p className="error">{error}</p>}
+        <button onClick={handleStartClick} disabled={!!error} className="bg-blue-500 w-12 h-12 rounded-xl text-white">
+          ▶
+        </button>
+      </div>
     </div>
   );
 };

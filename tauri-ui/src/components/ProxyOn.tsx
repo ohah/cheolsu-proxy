@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { stopProxy } from '../api';
 import { RequestTable } from '../features/network-table';
+import { Sidebar } from './sidebar';
 
 interface ProxyOnProps {
   onStop: () => void;
@@ -20,8 +21,9 @@ const ProxyOn: React.FC<ProxyOnProps> = ({ onStop }) => {
   };
 
   return (
-    <div className="proxy-on">
-      <div className="controls">
+    <div>
+      <Sidebar />
+      <div>
         <button type="button" onClick={() => setPaused(!paused)}>
           {paused ? '▶' : '⏸'}
         </button>
