@@ -108,7 +108,7 @@ impl HttpHandler for ProxyHandler {
         // 세션 응답인지 확인 (x-proxelar-session 헤더로 구분)
         let is_session_response = res
             .headers()
-            .get("x-proxelar-session")
+            .get("x-cheolsu-proxy-session")
             .and_then(|v| v.to_str().ok())
             .map(|s| s == "true")
             .unwrap_or(false);
