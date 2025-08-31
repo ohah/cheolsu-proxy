@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Cheolsu Proxy(Man In The Middle Proxy)",
+  "productName": "Cheolsu Proxy",
   "version": "1.0.0",
   "identifier": "com.cheolsu-proxy",
   "build": {
@@ -12,9 +12,9 @@
   "app": {
     "windows": [
       {
-        "title": "Cheolsu Proxy(Man In The Middle Proxy)",
-        "width": 800,
-        "height": 600
+        "title": "Cheolsu Proxy",
+        "width": 1024,
+        "height": 768
       }
     ],
     "security": {
