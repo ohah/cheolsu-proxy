@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 interface TextInputProps {
@@ -14,6 +13,7 @@ const TextInput: React.FC<TextInputProps> = ({ value, onChange, placeholder }) =
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
+      className="border border-neutral-300 p-3 bg-white rounded-xl"
     />
   );
 };

@@ -22,8 +22,8 @@ export default defineConfig({
         type: 'css',
       },
       {
-        test: /\.svg$/,
-        type: 'asset',
+        test: /\.(png|jpe?g|gif|svg)$/i,
+        type: 'asset/resource',
       },
       {
         test: /\.(jsx?|tsx?)$/,
