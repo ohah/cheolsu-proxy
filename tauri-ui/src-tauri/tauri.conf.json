@@ -24,7 +24,7 @@
   "bundle": {
     "active": true,
     "targets": ["msi", "nsis"],
-    "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.icns", "icons/icon.ico"],
+    "icon": ["icons/logo.png"],
     "windows": {
       "certificateThumbprint": "B00873577726B1BF928BCA45098267D64F0AD126",
       "digestAlgorithm": "sha256",
