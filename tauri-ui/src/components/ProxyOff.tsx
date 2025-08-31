@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { startProxy } from '../api';
 import TextInput from './TextInput';
+import { logo } from '../shared/assets';
 
 interface ProxyOffProps {
   onStart: () => void;
@@ -42,6 +43,7 @@ const ProxyOff: React.FC<ProxyOffProps> = ({ onStart }) => {
 
   return (
     <div className="h-full flex flex-col items-center justify-center gap-4">
+      <img src={logo} alt="Cheolsu" className="w-14 h-14 object-contain" />
       <h1 className="text-3xl font-semibold">Cheolsu</h1>
       <div className="flex gap-2">
         <TextInput value={proxyAddr} onChange={handleAddrChange} />
