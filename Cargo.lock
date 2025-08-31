@@ -617,6 +617,23 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "613afe47fcd5fac7ccf1db93babcb082c5994d996f20b8b159f2ad1658eb5724"
 
 [[package]]
+name = "cheolsu-proxy"
+version = "0.1.0"
+dependencies = [
+ "proxyapi",
+ "proxyapi_models",
+ "serde_json",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-devtools",
+ "tauri-plugin-fs",
+ "tauri-plugin-http",
+ "tauri-plugin-opener",
+ "tauri-plugin-store",
+ "tokio",
+]
+
+[[package]]
 name = "chrono"
 version = "0.4.38"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5153,23 +5170,6 @@ dependencies = [
  "webview2-com",
  "windows 0.61.3",
  "wry",
-]
-
-[[package]]
-name = "tauri-ui"
-version = "0.0.0"
-dependencies = [
- "proxyapi",
- "proxyapi_models",
- "serde_json",
- "tauri",
- "tauri-build",
- "tauri-plugin-devtools",
- "tauri-plugin-fs",
- "tauri-plugin-http",
- "tauri-plugin-opener",
- "tauri-plugin-store",
- "tokio",
 ]
 
 [[package]]

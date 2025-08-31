@@ -1,7 +1,7 @@
 {
-  "name": "my-project",
+  "name": "cheolsu-proxy",
   "private": true,
-  "version": "1.0.0",
+  "version": "0.1.0",
   "scripts": {
     "dev": "rspack dev",
     "build": "rspack build",

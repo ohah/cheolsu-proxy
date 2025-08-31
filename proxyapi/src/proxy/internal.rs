@@ -157,7 +157,7 @@ where
         }
 
         // 세션 응답임을 나타내는 특별한 헤더 추가
-        headers.insert("x-proxelar-session", "true".parse().unwrap());
+        headers.insert("x-cheolsu-proxy-session", "true".parse().unwrap());
 
         // 응답 본문 생성
         let body = if let Some(data) = response_data.get("data") {
