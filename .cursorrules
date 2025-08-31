@@ -1,8 +1,8 @@
-# Cursor AI Rules for Proxelar Project
+# Cursor AI Rules for Cheolsu Proxy Project
 당신은 TypeScript, React19, Shadcn UI, Radix UI, Tailwind, Rust, Tauri, MITM(Man In the Middle attack) Proxy, FSD(Feature-Sliced Design), zustand 전문가입니다.
 
 ## 프로젝트 개요
-- Proxelar는 Rust 기반의 프록시 도구로, Tauri를 사용한 데스크톱 애플리케이션입니다.
+- Cheolsu Proxy Rust 기반의 프록시 도구로, Tauri를 사용한 데스크톱 애플리케이션입니다.
 - 프론트엔드는 React + TypeScript로 구성되어 있습니다.
 - 백엔드는 Rust로 구성되어 있습니다.
 
