@@ -4,7 +4,7 @@
 <h2> A simple <i>Man In The Middle</i> proxy</h2>
 </div>
 
-[![build](https://github.com/ohah/cheolsu-proxy/actions/workflows/autofix.yml/badge.svg?branch=master)](https://github.com/emanuele-em/proxelar/actions/workflows/autofix.yml)
+[![build](https://github.com/ohah/cheolsu-proxy/actions/workflows/autofix.yml/badge.svg?branch=master)](https://github.com/ohah/cheolsu-proxy/actions/workflows/autofix.yml)
 ![GitHub](https://img.shields.io/github/license/ohah/cheolsu-proxy/)
 ![GitHub last commit](https://img.shields.io/github/last-commit/ohah/cheolsu-proxy/)
 ![GitHub top language](https://img.shields.io/github/languages/top/ohah/cheolsu-proxy/)
