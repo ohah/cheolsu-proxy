@@ -1,4 +1,4 @@
-use hudsucker::{
+use proxyapi_v2::{
     certificate_authority::RcgenAuthority,
     rcgen::{CertificateParams, KeyPair},
     rustls::crypto::aws_lc_rs,

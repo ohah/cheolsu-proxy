@@ -1,5 +1,6 @@
 use criterion::{Criterion, Throughput, criterion_group, criterion_main};
-use hudsucker::{
+
+use proxyapi_v2::{
     Body, Proxy,
     certificate_authority::{CertificateAuthority, RcgenAuthority},
     hyper::{Method, Request, Response, body::Incoming, service::service_fn},
@@ -137,7 +138,6 @@ fn native_tls_client() -> Client<hyper_tls::HttpsConnector<HttpConnector>, Body>
 
     Client::builder(TokioExecutor::new()).build(https)
 }
-
 async fn start_proxy(
     ca: impl CertificateAuthority,
 ) -> Result<(SocketAddr, Sender<()>), Box<dyn std::error::Error>> {

@@ -1,4 +1,4 @@
-use hudsucker::{
+use proxyapi_v2::{
     certificate_authority::OpensslAuthority,
     hyper::{Request, Response},
     openssl::{hash::MessageDigest, pkey::PKey, x509::X509},
