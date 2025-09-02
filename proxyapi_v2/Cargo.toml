@@ -1,5 +1,5 @@
 [package]
-name = "hudsucker"
+name = "proxyapi_v2"
 version = "0.23.0"
 edition = "2024"
 rust-version = "1.85.0"
@@ -62,6 +62,7 @@ native-tls-client = ["dep:hyper-tls", "dep:tokio-native-tls", "tokio-tungstenite
 openssl-ca = ["dep:openssl", "dep:moka"]
 rcgen-ca = ["dep:rcgen", "dep:moka", "dep:time", "dep:rand"]
 rustls-client = ["dep:hyper-rustls", "tokio-tungstenite/rustls-tls-webpki-roots"]
+hyper-tls = ["dep:hyper-tls"]
 
 [[example]]
 name = "log"
@@ -100,7 +101,7 @@ required-features = ["decoder"]
 [[bench]]
 name = "proxy"
 harness = false
-required-features = ["rcgen-ca", "rustls-client"]
+required-features = ["decoder", "rcgen-ca", "hyper-tls"]
 
 [profile.bench]
 lto = true

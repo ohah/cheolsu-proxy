@@ -1,6 +1,6 @@
 use async_compression::tokio::bufread::{BrotliEncoder, GzipEncoder};
 use criterion::{BatchSize, Criterion, criterion_group, criterion_main};
-use hudsucker::{
+use proxyapi_v2::{
     Body, decode_request, decode_response,
     hyper::{
         Request, Response,
