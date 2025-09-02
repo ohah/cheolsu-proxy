@@ -23,6 +23,13 @@ impl LoggingHandler {
     pub fn new(app_handle: tauri::AppHandle) -> Self {
         Self { app_handle }
     }
+
+    /// 에러 응답을 프론트엔드로 전송
+    fn emit_error(&self, error_type: &str, details: &str) {
+        let error_info = format!("{}: {}", error_type, details);
+        let _ = self.app_handle.emit("proxy_error", &error_info);
+        eprintln!("{}", error_info);
+    }
 }
 
 impl HttpHandler for LoggingHandler {
@@ -64,39 +71,69 @@ pub async fn start_proxy_v2(
     addr: SocketAddr,
 ) -> Result<(), String> {
     // CA 인증서 생성 (proxyapi_v2의 build_ca 함수 사용)
-    let ca = build_ca()?;
-    println!("기존 CA 인증서 로드 완료");
+    let ca = match build_ca() {
+        Ok(ca) => {
+            println!("기존 CA 인증서 로드 완료");
+            ca
+        }
+        Err(e) => {
+            let error_msg = format!("CA 인증서 생성 실패: {}", e);
+            eprintln!("{}", error_msg);
+            return Err(error_msg);
+        }
+    };
 
     // 로깅 핸들러 생성
     let handler = LoggingHandler::new(app.clone());
 
     // TCP 리스너 생성
-    let listener = TcpListener::bind(addr)
-        .await
-        .map_err(|e| format!("포트 {} 바인딩 실패: {}", addr.port(), e))?;
-
-    println!("포트 {}에서 TCP 리스너 시작됨", addr.port());
+    let listener = match TcpListener::bind(addr).await {
+        Ok(listener) => {
+            println!("포트 {}에서 TCP 리스너 시작됨", addr.port());
+            listener
+        }
+        Err(e) => {
+            let error_msg = format!("포트 {} 바인딩 실패: {}", addr.port(), e);
+            eprintln!("{}", error_msg);
+            return Err(error_msg);
+        }
+    };
 
     // 프록시 빌더로 프록시 구성
-    let proxy_builder = ProxyBuilder::new()
+    let proxy_builder = match ProxyBuilder::new()
         .with_listener(listener)
         .with_ca(ca)
         .with_rustls_client(aws_lc_rs::default_provider())
         .with_http_handler(handler.clone())
-        .with_websocket_handler(handler)
+        .with_websocket_handler(handler.clone())
         .build()
-        .map_err(|e| format!("프록시 빌드 실패: {}", e))?;
-
-    println!("프록시 빌더 구성 완료");
+    {
+        Ok(builder) => {
+            println!("프록시 빌더 구성 완료");
+            builder
+        }
+        Err(e) => {
+            let error_msg = format!("프록시 빌드 실패: {}", e);
+            eprintln!("{}", error_msg);
+            return Err(error_msg);
+        }
+    };
 
     // 종료 신호를 위한 채널 생성
     let (close_tx, _close_rx) = tokio::sync::oneshot::channel();
 
     // 프록시를 백그라운드에서 실행
+    let app_handle = app.clone();
     let thread = tauri::async_runtime::spawn(async move {
         println!("프록시 서버 시작 중...");
-        if let Err(e) = proxy_builder.start().await {
-            eprintln!("프록시 실행 오류: {}", e);
+        match proxy_builder.start().await {
+            Ok(_) => println!("프록시 서버가 정상적으로 종료되었습니다"),
+            Err(e) => {
+                let error_msg = format!("프록시 실행 오류: {}", e);
+                eprintln!("{}", error_msg);
+                // 에러를 프론트엔드로 전송
+                let _ = app_handle.emit("proxy_error", error_msg);
+            }
         }
     });
 
@@ -122,14 +159,35 @@ pub async fn stop_proxy_v2(proxy: tauri::State<'_, ProxyV2State>) -> Result<(), 
     let mut proxy_guard = proxy.lock().await;
 
     if let Some((close_tx, thread)) = proxy_guard.take() {
-        // 종료 신호 전송
-        let _ = close_tx.send(());
+        // 종료 신호 전송 (oneshot 채널은 한 번만 사용 가능)
+        match close_tx.send(()) {
+            Ok(_) => {
+                println!("프록시 종료 신호 전송 성공");
+            }
+            Err(_) => {
+                // 이미 사용된 채널이거나 수신자가 이미 종료된 경우
+                println!("프록시 종료 신호 전송 실패 (이미 종료 중이거나 완료됨)");
+            }
+        }
 
-        // 스레드 종료 대기
-        let _ = thread.await;
+        // 스레드 종료 대기 (타임아웃 설정)
+        match tokio::time::timeout(std::time::Duration::from_secs(5), thread).await {
+            Ok(result) => match result {
+                Ok(_) => println!("프록시 V2가 정상적으로 중지되었습니다"),
+                Err(e) => {
+                    let error_msg = format!("프록시 스레드 종료 실패: {}", e);
+                    eprintln!("{}", error_msg);
+                    return Err(error_msg);
+                }
+            },
+            Err(_) => {
+                println!("프록시 종료 타임아웃 (5초), 강제 종료");
+            }
+        }
 
-        println!("프록시 V2가 중지되었습니다");
         println!("시스템 프록시 설정을 해제하세요");
+    } else {
+        return Err("프록시가 실행 중이 아닙니다".to_string());
     }
 
     Ok(())
