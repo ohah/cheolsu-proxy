@@ -82,8 +82,13 @@ impl RcgenAuthority {
             Ia5String::try_from(authority.host()).expect("Failed to create Ia5String"),
         ));
 
+        // 에러 발생 시 더 자세한 정보 제공
         params
             .signed_by(&self.key_pair, &self.ca_cert, &self.key_pair)
+            .map_err(|e| {
+                eprintln!("Failed to sign certificate for '{}': {:?}", authority, e);
+                e
+            })
             .expect("Failed to sign certificate")
             .into()
     }
@@ -143,7 +148,9 @@ mod tests {
     fn unique_serial_numbers() {
         let ca = build_ca(0);
 
-        let authority1 = Authority::from_static("example.com");
+        let authority1 = Authority::from_static(
+            "https://media.adpnut.com/cgi-bin/PelicanC.dll?impr?pageid=02AZ&lang=utf-8&out=iframe",
+        );
         let authority2 = Authority::from_static("example2.com");
 
         let c1 = ca.gen_cert(&authority1);
