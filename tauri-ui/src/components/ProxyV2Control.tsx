@@ -10,7 +10,7 @@ interface ProxyEvent {
 
 export const ProxyV2Control: React.FC = () => {
   const [isRunning, setIsRunning] = useState(false);
-  const [port, setPort] = useState(3000);
+  const [port, setPort] = useState(8100);
   const [isLoading, setIsLoading] = useState(false);
   const [events, setEvents] = useState<ProxyEvent[]>([]);
 
