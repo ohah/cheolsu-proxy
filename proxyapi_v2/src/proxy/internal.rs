@@ -111,23 +111,40 @@ where
         } else if hyper_tungstenite::is_upgrade_request(&req) {
             Ok(self.upgrade_websocket(req))
         } else {
+            let normalized_req = normalize_request(req);
+            println!("🔄 업스트림 서버로 요청 전송 중...");
+            println!("   - 대상 서버: {}", normalized_req.uri());
+            println!("   - 요청 메서드: {}", normalized_req.method());
+
             let res = self
                 .client
-                .request(normalize_request(req))
+                .request(normalized_req)
                 .instrument(info_span!("proxy_request"))
                 .await;
 
             match res {
-                Ok(res) => Ok(self
-                    .http_handler
-                    .handle_response(&ctx, res.map(Body::from))
-                    .instrument(info_span!("handle_response"))
-                    .await),
-                Err(err) => Ok(self
-                    .http_handler
-                    .handle_error(&ctx, err)
-                    .instrument(info_span!("handle_error"))
-                    .await),
+                Ok(res) => {
+                    println!("✅ 업스트림 서버로부터 응답 수신 성공");
+                    println!("   - 응답 상태: {}", res.status());
+                    println!("   - 응답 헤더 수: {}", res.headers().len());
+
+                    Ok(self
+                        .http_handler
+                        .handle_response(&ctx, res.map(Body::from))
+                        .instrument(info_span!("handle_response"))
+                        .await)
+                }
+                Err(err) => {
+                    println!("❌ 업스트림 서버 연결 실패");
+                    println!("   - 오류: {}", err);
+                    println!("   - 오류 타입: {:?}", err);
+
+                    Ok(self
+                        .http_handler
+                        .handle_error(&ctx, err)
+                        .instrument(info_span!("handle_error"))
+                        .await)
+                }
             }
         }
     }
@@ -173,23 +190,46 @@ where
 
                                     return;
                                 } else if buffer[..2] == *b"\x16\x03" {
+                                    println!("🔐 HTTPS 연결 감지 - TLS 핸드셰이크 시작");
+                                    println!("   - 대상 서버: {}", authority);
+
                                     let server_config = self
                                         .ca
                                         .gen_server_config(&authority)
                                         .instrument(info_span!("gen_server_config"))
                                         .await;
 
+                                    println!("   - 서버 설정 생성 완료");
+
                                     let stream = match TlsAcceptor::from(server_config)
                                         .accept(upgraded)
                                         .await
                                     {
-                                        Ok(stream) => TokioIo::new(stream),
+                                        Ok(stream) => {
+                                            println!("   - TLS 연결 성공");
+                                            TokioIo::new(stream)
+                                        }
                                         Err(e) => {
                                             error!("Failed to establish TLS connection: {}", e);
+                                            println!("   - TLS 연결 실패: {}", e);
+                                            println!("   - 오류 타입: {:?}", e.kind());
+                                            println!("   - 오류 상세: {}", e);
+
+                                            // TLS 연결 실패 시 더 자세한 정보
+                                            if e.to_string().contains("eof") {
+                                                println!(
+                                                    "   - EOF 오류: 연결이 예기치 않게 끊어짐"
+                                                );
+                                                println!("   - 가능한 원인:");
+                                                println!("     * 인증서 생성 실패");
+                                                println!("     * TLS 설정 문제");
+                                                println!("     * 네트워크 연결 불안정");
+                                            }
                                             return;
                                         }
                                     };
 
+                                    println!("   - HTTPS 스트림 서비스 시작");
                                     if let Err(e) =
                                         self.serve_stream(stream, Scheme::HTTPS, authority).await
                                     {
@@ -198,9 +238,11 @@ where
                                             .starts_with("error shutting down connection")
                                         {
                                             error!("HTTPS connect error: {}", e);
+                                            println!("   - HTTPS 스트림 서비스 오류: {}", e);
                                         }
                                     }
 
+                                    println!("   - HTTPS 연결 처리 완료");
                                     return;
                                 } else {
                                     warn!(
@@ -344,6 +386,11 @@ where
         I: hyper::rt::Read + hyper::rt::Write + Unpin + Send + 'static,
     {
         let service = service_fn(|mut req| {
+            println!("🔄 serve_stream에서 요청 처리 중...");
+            println!("   - 원본 URI: {}", req.uri());
+            println!("   - 원본 메서드: {}", req.method());
+            println!("   - 원본 버전: {:?}", req.version());
+
             if req.version() == hyper::Version::HTTP_10 || req.version() == hyper::Version::HTTP_11
             {
                 let (mut parts, body) = req.into_parts();
@@ -356,8 +403,12 @@ where
                 };
 
                 req = Request::from_parts(parts, body);
+                println!("   - 수정된 URI: {}", req.uri());
+                println!("   - 스키마: {:?}", scheme);
+                println!("   - 권한: {}", authority);
             };
 
+            println!("   - 프록시로 요청 전달");
             self.clone().proxy(req)
         });
 

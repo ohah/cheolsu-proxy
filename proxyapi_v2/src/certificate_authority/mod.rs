@@ -20,8 +20,8 @@ const NOT_BEFORE_OFFSET: i64 = 60;
 #[cfg(feature = "rcgen-ca")]
 pub fn build_ca() -> Result<RcgenAuthority, String> {
     // 기존 인증서 파일에서 키 페어와 CA 인증서 로드
-    let private_key_bytes: &[u8] = include_bytes!("proxelar.key");
-    let ca_cert_bytes: &[u8] = include_bytes!("proxelar.cer");
+    let private_key_bytes: &[u8] = include_bytes!("cheolsu-proxy.key");
+    let ca_cert_bytes: &[u8] = include_bytes!("cheolsu-proxy.cer");
 
     // PEM 형식의 키 페어 파싱
     let key_pair = rcgen::KeyPair::from_pem(

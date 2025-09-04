@@ -1,8 +1,12 @@
+use hyper_rustls::HttpsConnectorBuilder;
+use hyper_util::{
+    client::legacy::{connect::HttpConnector, Client},
+    rt::TokioExecutor,
+};
 use proxyapi_v2::{
     builder::ProxyBuilder,
     certificate_authority::build_ca,
     hyper::{Request, Response},
-    rustls::crypto::aws_lc_rs,
     tokio_tungstenite::tungstenite::Message,
     Body, HttpContext, HttpHandler, RequestOrResponse, WebSocketContext, WebSocketHandler,
 };
@@ -12,6 +16,95 @@ use tauri::Emitter;
 use tokio::net::TcpListener;
 use tokio::sync::oneshot::Sender;
 use tokio::sync::Mutex;
+use tokio_rustls::rustls::{crypto::aws_lc_rs, ClientConfig};
+
+/// HTTP와 HTTPS를 모두 처리할 수 있는 커스텀 클라이언트 생성
+fn create_http_https_client(
+) -> Result<Client<hyper_rustls::HttpsConnector<HttpConnector>, Body>, Box<dyn std::error::Error>> {
+    // 모든 인증서를 허용하는 Rustls 설정 생성
+    let rustls_config =
+        ClientConfig::builder_with_provider(std::sync::Arc::new(aws_lc_rs::default_provider()))
+            .with_safe_default_protocol_versions()?
+            .dangerous()
+            .with_custom_certificate_verifier(std::sync::Arc::new(DangerousCertificateVerifier))
+            .with_no_client_auth();
+
+    // HTTP와 HTTPS를 모두 처리할 수 있는 커넥터 생성
+    let https = HttpsConnectorBuilder::new()
+        .with_tls_config(rustls_config)
+        .https_or_http() // HTTP와 HTTPS 모두 지원
+        .enable_http1() // HTTP/1.1 지원
+        .build();
+
+    Ok(Client::builder(TokioExecutor::new())
+        .http1_title_case_headers(true)
+        .http1_preserve_header_case(true)
+        .build(https))
+}
+
+/// 모든 인증서를 허용하는 위험한 인증서 검증기
+#[derive(Debug)]
+struct DangerousCertificateVerifier;
+
+impl tokio_rustls::rustls::client::danger::ServerCertVerifier for DangerousCertificateVerifier {
+    fn verify_server_cert(
+        &self,
+        _end_entity: &tokio_rustls::rustls::pki_types::CertificateDer<'_>,
+        _intermediates: &[tokio_rustls::rustls::pki_types::CertificateDer<'_>],
+        _server_name: &tokio_rustls::rustls::pki_types::ServerName<'_>,
+        _ocsp_response: &[u8],
+        _now: tokio_rustls::rustls::pki_types::UnixTime,
+    ) -> Result<tokio_rustls::rustls::client::danger::ServerCertVerified, tokio_rustls::rustls::Error>
+    {
+        // 모든 인증서를 허용
+        Ok(tokio_rustls::rustls::client::danger::ServerCertVerified::assertion())
+    }
+
+    fn verify_tls12_signature(
+        &self,
+        _message: &[u8],
+        _cert: &tokio_rustls::rustls::pki_types::CertificateDer<'_>,
+        _dss: &tokio_rustls::rustls::DigitallySignedStruct,
+    ) -> Result<
+        tokio_rustls::rustls::client::danger::HandshakeSignatureValid,
+        tokio_rustls::rustls::Error,
+    > {
+        // 모든 서명을 허용
+        Ok(tokio_rustls::rustls::client::danger::HandshakeSignatureValid::assertion())
+    }
+
+    fn verify_tls13_signature(
+        &self,
+        _message: &[u8],
+        _cert: &tokio_rustls::rustls::pki_types::CertificateDer<'_>,
+        _dss: &tokio_rustls::rustls::DigitallySignedStruct,
+    ) -> Result<
+        tokio_rustls::rustls::client::danger::HandshakeSignatureValid,
+        tokio_rustls::rustls::Error,
+    > {
+        // 모든 서명을 허용
+        Ok(tokio_rustls::rustls::client::danger::HandshakeSignatureValid::assertion())
+    }
+
+    fn supported_verify_schemes(&self) -> Vec<tokio_rustls::rustls::SignatureScheme> {
+        // 모든 서명 스키마 지원
+        vec![
+            tokio_rustls::rustls::SignatureScheme::RSA_PKCS1_SHA1,
+            tokio_rustls::rustls::SignatureScheme::ECDSA_SHA1_Legacy,
+            tokio_rustls::rustls::SignatureScheme::RSA_PKCS1_SHA256,
+            tokio_rustls::rustls::SignatureScheme::ECDSA_NISTP256_SHA256,
+            tokio_rustls::rustls::SignatureScheme::RSA_PKCS1_SHA384,
+            tokio_rustls::rustls::SignatureScheme::ECDSA_NISTP384_SHA384,
+            tokio_rustls::rustls::SignatureScheme::RSA_PKCS1_SHA512,
+            tokio_rustls::rustls::SignatureScheme::ECDSA_NISTP521_SHA512,
+            tokio_rustls::rustls::SignatureScheme::RSA_PSS_SHA256,
+            tokio_rustls::rustls::SignatureScheme::RSA_PSS_SHA384,
+            tokio_rustls::rustls::SignatureScheme::RSA_PSS_SHA512,
+            tokio_rustls::rustls::SignatureScheme::ED25519,
+            tokio_rustls::rustls::SignatureScheme::ED448,
+        ]
+    }
+}
 
 /// HTTP 및 WebSocket 요청/응답을 로깅하는 핸들러
 #[derive(Clone)]
@@ -41,21 +134,52 @@ impl HttpHandler for LoggingHandler {
         // 요청 정보를 프론트엔드로 전송
         let _ = self.app_handle.emit("proxy_request", format!("{:?}", req));
 
-        // 요청 상세 로깅
-        println!("=== HTTP 요청 상세 ===");
-        println!("Method: {}", req.method());
-        println!("URI: {}", req.uri());
-        println!("Headers: {:?}", req.headers());
+        // img.battlepage.com 관련 요청만 로깅
+        if let Some(authority) = req.uri().authority() {
+            if authority.host().contains("battlepage.com") {
+                println!("=== HTTP 요청 상세 (battlepage.com) ===");
+                println!("Method: {}", req.method());
+                println!("URI: {}", req.uri());
+                println!("Headers: {:?}", req.headers());
+
+                // 요청 타입별 추가 정보
+                match req.method().as_str() {
+                    "CONNECT" => {
+                        println!("🔗 CONNECT 요청 - 터널 연결 시도");
+                        println!("   - 대상 서버: {}", authority);
+                    }
+                    "GET" | "POST" | "PUT" | "DELETE" => {
+                        println!("📡 HTTP 요청 - 프록시 처리");
+                        println!("   - 대상 서버: {}", authority);
+                        println!("   - 요청 경로: {}", req.uri().path());
+                    }
+                    _ => {
+                        println!("❓ 기타 HTTP 메서드: {}", req.method());
+                    }
+                }
+            }
+        }
 
         req.into()
     }
 
     async fn handle_response(&mut self, _ctx: &HttpContext, res: Response<Body>) -> Response<Body> {
-        // 응답 정보를 프론트엔드로 전송
-        let _ = self.app_handle.emit("proxy_response", format!("{:?}", res));
+        // 응답 정보를 구조화된 형태로 프론트엔드에 전송
+        let response_info = serde_json::json!({
+            "status": res.status().as_u16(),
+            "status_text": res.status().canonical_reason().unwrap_or("Unknown"),
+            "headers": res.headers().iter().map(|(k, v)| {
+                (k.as_str(), v.to_str().unwrap_or(""))
+            }).collect::<std::collections::HashMap<_, _>>(),
+            "version": format!("{:?}", res.version())
+        });
 
-        // 응답 상태 상세 로깅
-        println!("=== HTTP 응답 상세 ===");
+        let _ = self
+            .app_handle
+            .emit("proxy_response", response_info.to_string());
+
+        // battlepage.com 관련 응답만 로깅 (URI 정보가 없으므로 항상 로깅)
+        println!("=== HTTP 응답 상세 (battlepage.com) ===");
         println!(
             "Status: {} ({})",
             res.status(),
@@ -63,11 +187,34 @@ impl HttpHandler for LoggingHandler {
         );
         println!("Headers: {:?}", res.headers());
 
+        // 응답 버전 정보 추가
+        println!("Response Version: {:?}", res.version());
+
         // 응답 본문 크기 확인
         if let Some(content_length) = res.headers().get("content-length") {
             if let Ok(len) = content_length.to_str() {
                 if let Ok(len_num) = len.parse::<usize>() {
                     println!("Response Content-Length: {} bytes", len_num);
+                }
+            }
+        }
+
+        // 응답 본문 타입 정보 로깅
+        if let Some(content_type) = res.headers().get("content-type") {
+            if let Ok(ct) = content_type.to_str() {
+                println!("Content-Type: {}", ct);
+
+                // 특정 타입의 응답에 대한 추가 정보
+                if ct.contains("text/html") {
+                    println!("📄 HTML 응답");
+                } else if ct.contains("application/json") {
+                    println!("📊 JSON 응답");
+                } else if ct.contains("image/") {
+                    println!("🖼️ 이미지 응답");
+                } else if ct.contains("text/css") {
+                    println!("🎨 CSS 응답");
+                } else if ct.contains("application/javascript") {
+                    println!("⚡ JavaScript 응답");
                 }
             }
         }
@@ -85,6 +232,11 @@ impl HttpHandler for LoggingHandler {
                 println!("     * 대상 서버 연결 실패");
                 println!("     * 네트워크 타임아웃");
                 println!("     * 프록시 설정 오류");
+                println!("     * 도메인별 인증서 생성 실패");
+                println!("     * 응답 스트림 처리 문제");
+
+                // 현재 요청 정보 출력
+                println!("   - 현재 요청 도메인: {}", _ctx.client_addr);
             }
             503 => {
                 let error_msg = "⚠️ 503 Service Unavailable: 서비스 일시적 사용 불가";
@@ -107,9 +259,25 @@ impl HttpHandler for LoggingHandler {
                     let _ = self.app_handle.emit("proxy_error", error_msg);
                 } else {
                     println!("✅ 정상 응답: {}", res.status());
+
+                    // 정상 응답의 경우 추가 정보 로깅
+                    if let Some(content_type) = res.headers().get("content-type") {
+                        if let Ok(ct) = content_type.to_str() {
+                            if ct.contains("image/") {
+                                println!("🖼️ 이미지 응답 - 브라우저에서 표시 가능해야 함");
+                            }
+                        }
+                    }
                 }
             }
         }
+
+        // 응답 처리 완료 로깅
+        println!("📤 응답을 클라이언트에게 전달 중...");
+        println!("   - 응답 상태: {}", res.status());
+        println!("   - 응답 헤더 수: {}", res.headers().len());
+        println!("   - 응답 버전: {:?}", res.version());
+        println!("==========================================");
 
         res
     }
@@ -164,11 +332,24 @@ pub async fn start_proxy_v2(
         }
     };
 
+    // HTTP와 HTTPS를 모두 처리할 수 있는 커스텀 클라이언트 생성
+    let custom_client = match create_http_https_client() {
+        Ok(client) => {
+            println!("✅ HTTP/HTTPS 모두 지원하는 커스텀 클라이언트 생성 완료");
+            client
+        }
+        Err(e) => {
+            let error_msg = format!("❌ 커스텀 클라이언트 생성 실패: {}", e);
+            eprintln!("{}", error_msg);
+            return Err(error_msg);
+        }
+    };
+
     // 프록시 빌더로 프록시 구성
     let proxy_builder = match ProxyBuilder::new()
         .with_listener(listener)
         .with_ca(ca)
-        .with_rustls_client(aws_lc_rs::default_provider())
+        .with_client(custom_client) // 커스텀 클라이언트 사용 (모든 인증서 허용)
         .with_http_handler(handler.clone())
         .with_websocket_handler(handler.clone())
         .build()
@@ -176,7 +357,7 @@ pub async fn start_proxy_v2(
         Ok(builder) => {
             println!("✅ 프록시 빌더 구성 완료");
             println!("   - CA 인증서: 로드됨");
-            println!("   - TLS 클라이언트: rustls (aws_lc_rs)");
+            println!("   - TLS 클라이언트: 커스텀 클라이언트 (모든 인증서 허용)");
             println!("   - HTTP 핸들러: 로깅 핸들러");
             println!("   - WebSocket 핸들러: 로깅 핸들러");
             builder

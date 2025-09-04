@@ -786,6 +786,10 @@ checksum = "613afe47fcd5fac7ccf1db93babcb082c5994d996f20b8b159f2ad1658eb5724"
 name = "cheolsu-proxy"
 version = "0.1.0"
 dependencies = [
+ "hyper-rustls 0.27.7",
+ "hyper-tls",
+ "hyper-util",
+ "native-tls",
  "proxyapi",
  "proxyapi_models",
  "proxyapi_v2",
@@ -798,6 +802,8 @@ dependencies = [
  "tauri-plugin-opener",
  "tauri-plugin-store",
  "tokio",
+ "tokio-native-tls",
+ "tokio-rustls 0.26.2",
 ]
 
 [[package]]
@@ -2413,6 +2419,7 @@ dependencies = [
  "hyper-util",
  "log",
  "rustls 0.23.31",
+ "rustls-native-certs 0.8.1",
  "rustls-pki-types",
  "tokio",
  "tokio-rustls 0.26.2",

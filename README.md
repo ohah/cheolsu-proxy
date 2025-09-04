@@ -34,7 +34,7 @@ Rust-based **Man in the Middle proxy**, an early-stage project aimed at providin
 sh install_cer.sh
 ```
 
-The just generated certificate is located in `./proxyapi/src/ca/proxelar.cer`
+The just generated certificate is located in `./proxyapi/src/ca/cheolsu-proxy.cer`
 
 2. Install `.cer` file locally and trust it.
 
