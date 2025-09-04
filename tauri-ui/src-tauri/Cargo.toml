@@ -28,9 +28,15 @@ tauri-plugin-devtools = "2"
 tokio = { version = "1", features = ["full"] }
 proxyapi = {path = "../../proxyapi"}
 proxyapi_models = {path = "../../proxyapi_models"}
-proxyapi_v2 = {path = "../../proxyapi_v2", features = ["decoder", "rcgen-ca", "rustls-client"] }
+proxyapi_v2 = {path = "../../proxyapi_v2", features = ["decoder", "rcgen-ca", "openssl-ca", "native-tls-client"] }
 serde_json = "1.0.142"
 tauri-plugin-fs = "2"
+hyper-util = "0.1"
+hyper-tls = "0.6"
+hyper-rustls = "0.27"
+tokio-native-tls = "0.3"
+native-tls = "0.2"
+tokio-rustls = "0.26"
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem
