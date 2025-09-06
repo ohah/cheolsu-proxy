@@ -4,9 +4,8 @@ import ProxyOff from './ProxyOff';
 import ProxyOn from './ProxyOn';
 import { useThemeProvider } from '../hooks/use-theme-provider';
 
-const App: React.FC = () => {
+export const App: React.FC = () => {
   const [isProxyOn, setIsProxyOn] = useState(false);
-
   useEffect(() => {
     const getStatus = async () => {
       try {
@@ -18,25 +17,18 @@ const App: React.FC = () => {
     };
     getStatus();
   }, []);
-
   const handleStart = () => {
     setIsProxyOn(true);
   };
-
   const handleStop = () => {
     setIsProxyOn(false);
   };
-
   useThemeProvider();
 
   return (
     <main>
       {/* <TitleBar /> */}
-      {isProxyOn ? (
-        <ProxyOn onStop={handleStop} />
-      ) : (
-        <ProxyOff onStart={handleStart} />
-      )}
+      {isProxyOn ? <ProxyOn onStop={handleStop} /> : <ProxyOff onStart={handleStart} />}
     </main>
   );
 };
