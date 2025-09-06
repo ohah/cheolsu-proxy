@@ -3,7 +3,9 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 mod proxy;
+mod proxy_v2;
 use proxy::{proxy_status, set_proxy, start_proxy, stop_proxy, store_changed, ProxyState};
+use proxy_v2::{proxy_v2_status, start_proxy_v2, stop_proxy_v2, ProxyV2State};
 use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -26,7 +28,11 @@ pub fn run() {
         builder
             .setup(|app_handle| {
                 use tauri::async_runtime::Mutex;
+                // 기존 프록시 상태
                 app_handle.manage(Mutex::new(None) as ProxyState);
+                // 새로운 proxyapi_v2 프록시 상태
+                app_handle.manage(ProxyV2State::default());
+
                 tauri::async_runtime::spawn(async {
                     if let Err(e) = set_proxy(true) {
                         eprintln!("프록시 설정 실패: {}", e);
@@ -47,7 +53,10 @@ pub fn run() {
                 start_proxy,
                 stop_proxy,
                 store_changed,
-                proxy_status
+                proxy_status,
+                start_proxy_v2,
+                stop_proxy_v2,
+                proxy_v2_status
             ])
             .run(tauri::generate_context!())
             .expect("error while running tauri application");

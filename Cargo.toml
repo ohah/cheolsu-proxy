@@ -3,12 +3,7 @@ resolver = "2"
 
 members = [
     "proxyapi",
+    "proxyapi_v2",
     "proxyapi_models",
     "tauri-ui/src-tauri",
 ]
-
-
-
-
-
-
