@@ -15,22 +15,22 @@ use std::{
 use tokio::io::{AsyncBufRead, AsyncRead, BufReader};
 use tokio_util::io::{ReaderStream, StreamReader};
 
-    struct IoStream<T>(T);
+struct IoStream<T>(T);
 
-    impl<T: HttpBody<Data = Bytes, Error = Error> + Unpin> Stream for IoStream<T> {
-        type Item = Result<Bytes, io::Error>;
+impl<T: HttpBody<Data = Bytes, Error = Error> + Unpin> Stream for IoStream<T> {
+    type Item = Result<Bytes, io::Error>;
 
-        fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<Option<Self::Item>> {
-            loop {
-                return match futures::ready!(Pin::new(&mut self.0).poll_frame(cx)) {
-                    Some(Ok(frame)) => match frame.into_data() {
-                        Ok(buf) => Poll::Ready(Some(Ok(buf))),
-                        Err(_) => continue,
-                    },
-                    Some(Err(Error::Io(err))) => Poll::Ready(Some(Err(err))),
-                    Some(Err(err)) => Poll::Ready(Some(Err(io::Error::other(err)))),
-                    None => Poll::Ready(None),
-                };
+    fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<Option<Self::Item>> {
+        loop {
+            return match futures::ready!(Pin::new(&mut self.0).poll_frame(cx)) {
+                Some(Ok(frame)) => match frame.into_data() {
+                    Ok(buf) => Poll::Ready(Some(Ok(buf))),
+                    Err(_) => continue,
+                },
+                Some(Err(Error::Io(err))) => Poll::Ready(Some(Err(err))),
+                Some(Err(err)) => Poll::Ready(Some(Err(io::Error::other(err)))),
+                None => Poll::Ready(None),
+            };
         }
     }
 }
