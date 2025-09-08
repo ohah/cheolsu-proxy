@@ -786,10 +786,14 @@ checksum = "613afe47fcd5fac7ccf1db93babcb082c5994d996f20b8b159f2ad1658eb5724"
 name = "cheolsu-proxy"
 version = "0.1.0"
 dependencies = [
+ "bytes",
+ "futures-util",
+ "http-body-util",
  "hyper-rustls 0.27.7",
  "hyper-tls",
  "hyper-util",
  "native-tls",
+ "proxy_v2_models",
  "proxyapi",
  "proxyapi_models",
  "proxyapi_v2",
@@ -2332,6 +2336,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6f560b665ad9f1572cfcaf034f7fb84338a7ce945216d64a90fd81f046a3caee"
 dependencies = [
  "http 0.2.12",
+ "serde",
+]
+
+[[package]]
+name = "http-serde"
+version = "2.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0f056c8559e3757392c8d091e796416e4649d8e49e88b8d76df6c002f05027fd"
+dependencies = [
+ "http 1.3.1",
  "serde",
 ]
 
@@ -4271,6 +4285,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "proxy_v2_models"
+version = "0.1.0"
+dependencies = [
+ "bytes",
+ "http 1.3.1",
+ "http-serde 2.1.1",
+ "serde",
+]
+
+[[package]]
 name = "proxyapi"
 version = "0.1.0"
 dependencies = [
@@ -4298,7 +4322,7 @@ version = "0.1.0"
 dependencies = [
  "bytes",
  "http 0.2.12",
- "http-serde",
+ "http-serde 1.1.3",
  "serde",
 ]
 
