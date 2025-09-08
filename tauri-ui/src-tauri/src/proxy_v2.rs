@@ -17,7 +17,6 @@ use proxyapi_v2::{
 use std::net::SocketAddr;
 use std::sync::mpsc;
 use std::sync::Arc;
-use std::time::{SystemTime, UNIX_EPOCH};
 use tauri::Emitter;
 use tokio::net::TcpListener;
 use tokio::sync::oneshot::Sender;
@@ -129,14 +128,6 @@ impl LoggingHandler {
         }
     }
 
-    /// 현재 시간을 Unix timestamp로 반환
-    fn current_timestamp() -> i64 {
-        SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_secs() as i64
-    }
-
     /// 요청과 응답을 묶어서 전송
     fn send_output(&self) {
         let request_info = RequestInfo(self.req.clone(), self.res.clone());
@@ -154,7 +145,9 @@ impl LoggingHandler {
             req.version(),
             req.headers().clone(),
             Bytes::new(), // TODO: 실제 body 읽기
-            Self::current_timestamp(),
+            chrono::Local::now()
+                .timestamp_nanos_opt()
+                .unwrap_or_default(),
         )
     }
 
@@ -182,7 +175,9 @@ impl LoggingHandler {
             res.version(),
             res.headers().clone(),
             body_bytes,
-            Self::current_timestamp(),
+            chrono::Local::now()
+                .timestamp_nanos_opt()
+                .unwrap_or_default(),
         );
 
         (proxied_response, res)
