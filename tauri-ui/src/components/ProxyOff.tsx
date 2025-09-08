@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { startProxy } from '../api';
+import { startProxy, startProxyV2 } from '../api';
 import TextInput from './TextInput';
 import { logo } from '../shared/assets';
 
@@ -32,7 +32,7 @@ const ProxyOff: React.FC<ProxyOffProps> = ({ onStart }) => {
       return;
     }
     try {
-      await startProxy(proxyAddr);
+      await startProxyV2(8100);
       onStart();
       setError(null);
     } catch (err) {
