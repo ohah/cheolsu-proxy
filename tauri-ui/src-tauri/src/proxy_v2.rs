@@ -1,8 +1,12 @@
+use bytes::Bytes;
+use futures_util::StreamExt;
+use http_body_util::BodyExt;
 use hyper_rustls::HttpsConnectorBuilder;
 use hyper_util::{
     client::legacy::{connect::HttpConnector, Client},
     rt::TokioExecutor,
 };
+use proxy_v2_models::{ProxiedRequest, ProxiedResponse, RequestInfo};
 use proxyapi_v2::{
     builder::ProxyBuilder,
     certificate_authority::build_ca,
@@ -11,6 +15,7 @@ use proxyapi_v2::{
     Body, HttpContext, HttpHandler, RequestOrResponse, WebSocketContext, WebSocketHandler,
 };
 use std::net::SocketAddr;
+use std::sync::mpsc;
 use std::sync::Arc;
 use tauri::Emitter;
 use tokio::net::TcpListener;
@@ -102,6 +107,9 @@ impl tokio_rustls::rustls::client::danger::ServerCertVerifier for DangerousCerti
             tokio_rustls::rustls::SignatureScheme::RSA_PSS_SHA512,
             tokio_rustls::rustls::SignatureScheme::ED25519,
             tokio_rustls::rustls::SignatureScheme::ED448,
+            tokio_rustls::rustls::SignatureScheme::ML_DSA_44,
+            tokio_rustls::rustls::SignatureScheme::ML_DSA_65,
+            tokio_rustls::rustls::SignatureScheme::ML_DSA_87,
         ]
     }
 }
@@ -109,19 +117,95 @@ impl tokio_rustls::rustls::client::danger::ServerCertVerifier for DangerousCerti
 /// HTTP 및 WebSocket 요청/응답을 로깅하는 핸들러
 #[derive(Clone)]
 pub struct LoggingHandler {
-    app_handle: tauri::AppHandle,
+    sender: mpsc::SyncSender<RequestInfo>,
+    req: Option<ProxiedRequest>,
+    res: Option<ProxiedResponse>,
 }
 
 impl LoggingHandler {
-    pub fn new(app_handle: tauri::AppHandle) -> Self {
-        Self { app_handle }
+    pub fn new(sender: mpsc::SyncSender<RequestInfo>) -> Self {
+        Self {
+            sender,
+            req: None,
+            res: None,
+        }
     }
 
-    /// 에러 응답을 프론트엔드로 전송
-    fn emit_error(&self, error_type: &str, details: &str) {
-        let error_info = format!("{}: {}", error_type, details);
-        let _ = self.app_handle.emit("proxy_error", &error_info);
-        eprintln!("{}", error_info);
+    /// 요청과 응답을 묶어서 전송
+    fn send_output(&self) {
+        let request_info = RequestInfo(self.req.clone(), self.res.clone());
+        if let Err(e) = self.sender.send(request_info) {
+            eprintln!("Error on sending RequestInfo to main thread: {}", e);
+        }
+    }
+
+    /// Request를 ProxiedRequest로 변환
+    fn request_to_proxied_request(&self, req: &Request<Body>) -> ProxiedRequest {
+        // 요청 body를 읽어서 Bytes로 변환 (비동기이므로 여기서는 빈 body로 설정)
+        ProxiedRequest::new(
+            req.method().clone(),
+            req.uri().clone(),
+            req.version(),
+            req.headers().clone(),
+            Bytes::new(), // TODO: 실제 body 읽기
+            chrono::Local::now()
+                .timestamp_nanos_opt()
+                .unwrap_or_default(),
+        )
+    }
+
+    /// Response를 ProxiedResponse로 변환하고 원본 응답을 복원
+    async fn response_to_proxied_response(
+        &self,
+        mut res: Response<Body>,
+    ) -> (ProxiedResponse, Response<Body>) {
+        // 응답 body를 읽어서 Bytes로 변환
+        let mut body_mut = res.body_mut();
+        let body_bytes = match Self::body_to_bytes_from_mut(&mut body_mut).await {
+            Ok(bytes) => bytes,
+            Err(e) => {
+                eprintln!("❌ 응답 body 읽기 실패: {}", e);
+                Bytes::new()
+            }
+        };
+
+        // 원본 body 복원
+        use http_body_util::Full;
+        *body_mut = Body::from(Full::new(body_bytes.clone()));
+
+        let proxied_response = ProxiedResponse::new(
+            res.status(),
+            res.version(),
+            res.headers().clone(),
+            body_bytes,
+            chrono::Local::now()
+                .timestamp_nanos_opt()
+                .unwrap_or_default(),
+        );
+
+        (proxied_response, res)
+    }
+
+    /// Body를 Bytes로 변환하는 헬퍼 함수
+    async fn body_to_bytes(body: Body) -> Result<Bytes, Box<dyn std::error::Error + Send + Sync>> {
+        let mut body_stream = body.into_data_stream();
+        let mut bytes = Vec::new();
+
+        while let Some(chunk_result) = body_stream.next().await {
+            let chunk: Bytes = chunk_result?;
+            bytes.extend_from_slice(&chunk);
+        }
+
+        Ok(Bytes::from(bytes))
+    }
+
+    /// BodyMut를 Bytes로 변환하는 헬퍼 함수 (기존 proxyapi 방식)
+    async fn body_to_bytes_from_mut(
+        body_mut: &mut Body,
+    ) -> Result<Bytes, Box<dyn std::error::Error + Send + Sync>> {
+        use http_body_util::BodyExt;
+        let body_bytes = body_mut.collect().await?.to_bytes();
+        Ok(body_bytes)
     }
 }
 
@@ -131,164 +215,30 @@ impl HttpHandler for LoggingHandler {
         _ctx: &HttpContext,
         req: Request<Body>,
     ) -> RequestOrResponse {
-        // 요청 정보를 프론트엔드로 전송
-        let _ = self.app_handle.emit("proxy_request", format!("{:?}", req));
-
-        // img.battlepage.com 관련 요청만 로깅
-        if let Some(authority) = req.uri().authority() {
-            if authority.host().contains("battlepage.com") {
-                println!("=== HTTP 요청 상세 (battlepage.com) ===");
-                println!("Method: {}", req.method());
-                println!("URI: {}", req.uri());
-                println!("Headers: {:?}", req.headers());
-
-                // 요청 타입별 추가 정보
-                match req.method().as_str() {
-                    "CONNECT" => {
-                        println!("🔗 CONNECT 요청 - 터널 연결 시도");
-                        println!("   - 대상 서버: {}", authority);
-                    }
-                    "GET" | "POST" | "PUT" | "DELETE" => {
-                        println!("📡 HTTP 요청 - 프록시 처리");
-                        println!("   - 대상 서버: {}", authority);
-                        println!("   - 요청 경로: {}", req.uri().path());
-                    }
-                    _ => {
-                        println!("❓ 기타 HTTP 메서드: {}", req.method());
-                    }
-                }
-            }
-        }
+        // 요청 정보를 ProxiedRequest로 변환하여 저장 (전송하지 않음)
+        let proxied_request = self.request_to_proxied_request(&req);
+        self.req = Some(proxied_request);
 
         req.into()
     }
 
     async fn handle_response(&mut self, _ctx: &HttpContext, res: Response<Body>) -> Response<Body> {
-        // 응답 정보를 구조화된 형태로 프론트엔드에 전송
-        let response_info = serde_json::json!({
-            "status": res.status().as_u16(),
-            "status_text": res.status().canonical_reason().unwrap_or("Unknown"),
-            "headers": res.headers().iter().map(|(k, v)| {
-                (k.as_str(), v.to_str().unwrap_or(""))
-            }).collect::<std::collections::HashMap<_, _>>(),
-            "version": format!("{:?}", res.version())
-        });
+        // 응답 정보를 ProxiedResponse로 변환하고 원본 응답을 복원
+        let (proxied_response, restored_res) = self.response_to_proxied_response(res).await;
+        self.res = Some(proxied_response);
 
-        let _ = self
-            .app_handle
-            .emit("proxy_response", response_info.to_string());
+        // 요청과 응답을 묶어서 전송
+        self.send_output();
 
-        // battlepage.com 관련 응답만 로깅 (URI 정보가 없으므로 항상 로깅)
-        println!("=== HTTP 응답 상세 (battlepage.com) ===");
-        println!(
-            "Status: {} ({})",
-            res.status(),
-            res.status().canonical_reason().unwrap_or("Unknown")
-        );
-        println!("Headers: {:?}", res.headers());
-
-        // 응답 버전 정보 추가
-        println!("Response Version: {:?}", res.version());
-
-        // 응답 본문 크기 확인
-        if let Some(content_length) = res.headers().get("content-length") {
-            if let Ok(len) = content_length.to_str() {
-                if let Ok(len_num) = len.parse::<usize>() {
-                    println!("Response Content-Length: {} bytes", len_num);
-                }
-            }
-        }
-
-        // 응답 본문 타입 정보 로깅
-        if let Some(content_type) = res.headers().get("content-type") {
-            if let Ok(ct) = content_type.to_str() {
-                println!("Content-Type: {}", ct);
-
-                // 특정 타입의 응답에 대한 추가 정보
-                if ct.contains("text/html") {
-                    println!("📄 HTML 응답");
-                } else if ct.contains("application/json") {
-                    println!("📊 JSON 응답");
-                } else if ct.contains("image/") {
-                    println!("🖼️ 이미지 응답");
-                } else if ct.contains("text/css") {
-                    println!("🎨 CSS 응답");
-                } else if ct.contains("application/javascript") {
-                    println!("⚡ JavaScript 응답");
-                }
-            }
-        }
-
-        // 특정 에러 상태 코드 상세 분석
-        match res.status().as_u16() {
-            502 => {
-                let error_msg = "🚨 502 Bad Gateway: 프록시가 업스트림 서버에 연결할 수 없음";
-                eprintln!("{}", error_msg);
-                let _ = self.app_handle.emit("proxy_error", error_msg);
-
-                // 502 에러 추가 정보
-                println!("   - 가능한 원인:");
-                println!("     * CA 인증서 문제");
-                println!("     * 대상 서버 연결 실패");
-                println!("     * 네트워크 타임아웃");
-                println!("     * 프록시 설정 오류");
-                println!("     * 도메인별 인증서 생성 실패");
-                println!("     * 응답 스트림 처리 문제");
-
-                // 현재 요청 정보 출력
-                println!("   - 현재 요청 도메인: {}", _ctx.client_addr);
-            }
-            503 => {
-                let error_msg = "⚠️ 503 Service Unavailable: 서비스 일시적 사용 불가";
-                eprintln!("{}", error_msg);
-                let _ = self.app_handle.emit("proxy_error", error_msg);
-            }
-            504 => {
-                let error_msg = "⏰ 504 Gateway Timeout: 프록시 연결 타임아웃";
-                eprintln!("{}", error_msg);
-                let _ = self.app_handle.emit("proxy_error", error_msg);
-            }
-            _ => {
-                if res.status().is_client_error() || res.status().is_server_error() {
-                    let error_msg = format!(
-                        "❌ HTTP 에러 {}: {}",
-                        res.status(),
-                        res.status().canonical_reason().unwrap_or("Unknown")
-                    );
-                    eprintln!("{}", error_msg);
-                    let _ = self.app_handle.emit("proxy_error", error_msg);
-                } else {
-                    println!("✅ 정상 응답: {}", res.status());
-
-                    // 정상 응답의 경우 추가 정보 로깅
-                    if let Some(content_type) = res.headers().get("content-type") {
-                        if let Ok(ct) = content_type.to_str() {
-                            if ct.contains("image/") {
-                                println!("🖼️ 이미지 응답 - 브라우저에서 표시 가능해야 함");
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        // 응답 처리 완료 로깅
-        println!("📤 응답을 클라이언트에게 전달 중...");
-        println!("   - 응답 상태: {}", res.status());
-        println!("   - 응답 헤더 수: {}", res.headers().len());
-        println!("   - 응답 버전: {:?}", res.version());
-        println!("==========================================");
-
-        res
+        // 원본 응답을 그대로 반환 (기존 proxyapi 방식)
+        restored_res
     }
 }
 
 impl WebSocketHandler for LoggingHandler {
     async fn handle_message(&mut self, _ctx: &WebSocketContext, msg: Message) -> Option<Message> {
-        // WebSocket 메시지를 프론트엔드로 전송
-        let _ = self
-            .app_handle
-            .emit("proxy_websocket", format!("{:?}", msg));
+        // WebSocket 메시지는 현재 RequestInfo 구조에 맞지 않으므로 로깅만 수행
+        println!("WebSocket Message: {:?}", msg);
         Some(msg)
     }
 }
@@ -316,8 +266,11 @@ pub async fn start_proxy_v2(
         }
     };
 
+    // 이벤트 전송을 위한 채널 생성 (proxy.rs와 동일한 구조)
+    let (tx, rx) = std::sync::mpsc::sync_channel(1);
+
     // 로깅 핸들러 생성
-    let handler = LoggingHandler::new(app.clone());
+    let handler = LoggingHandler::new(tx.clone());
 
     // TCP 리스너 생성
     let listener = match TcpListener::bind(addr).await {
@@ -390,6 +343,13 @@ pub async fn start_proxy_v2(
     // 프록시 상태 업데이트
     let mut proxy_guard = proxy.lock().await;
     proxy_guard.replace((close_tx, thread));
+
+    // 이벤트 전송을 위한 백그라운드 태스크 (proxy.rs와 동일한 구조)
+    tauri::async_runtime::spawn(async move {
+        for event in rx.iter() {
+            let _ = app.emit("proxy_event", event);
+        }
+    });
 
     println!(
         "🎉 프록시 V2가 포트 {}에서 성공적으로 시작되었습니다",
