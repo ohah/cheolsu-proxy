@@ -17,6 +17,7 @@ pub struct ProxiedRequest {
     headers: HeaderMap,
     body: Bytes,
     time: i64,
+    id: String, // 고유 ID 추가
 }
 
 impl ProxiedRequest {
@@ -28,6 +29,13 @@ impl ProxiedRequest {
         body: Bytes,
         time: i64,
     ) -> Self {
+        // 고유 ID 생성: 타임스탬프 + 랜덤 문자열
+        let id = format!(
+            "{}-{}",
+            time,
+            uuid::Uuid::new_v4().to_string().replace('-', "")
+        );
+
         Self {
             method,
             uri,
@@ -35,6 +43,7 @@ impl ProxiedRequest {
             headers,
             body,
             time,
+            id,
         }
     }
 
@@ -60,6 +69,10 @@ impl ProxiedRequest {
 
     pub fn time(&self) -> i64 {
         self.time
+    }
+
+    pub fn id(&self) -> &String {
+        &self.id
     }
 }
 
