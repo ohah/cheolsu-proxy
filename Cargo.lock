@@ -798,6 +798,7 @@ dependencies = [
  "proxyapi",
  "proxyapi_models",
  "proxyapi_v2",
+ "serde",
  "serde_json",
  "tauri",
  "tauri-build",

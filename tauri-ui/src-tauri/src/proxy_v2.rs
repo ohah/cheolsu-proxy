@@ -10,6 +10,7 @@ use proxy_v2_models::{ProxiedRequest, ProxiedResponse, RequestInfo};
 use proxyapi_v2::{
     builder::ProxyBuilder,
     certificate_authority::build_ca,
+    hyper::http::{HeaderMap, StatusCode},
     hyper::{Request, Response},
     tokio_tungstenite::tungstenite::Message,
     Body, HttpContext, HttpHandler, RequestOrResponse, WebSocketContext, WebSocketHandler,
@@ -140,60 +141,80 @@ impl LoggingHandler {
         *sessions_guard = sessions;
     }
 
-    /// 요청 URL이 세션에 있는지 확인하고 더미 데이터 반환 여부 결정
-    async fn should_return_dummy_data(&self, url: &str) -> bool {
+    /// 요청 URL이 세션에 있는지 확인하고 매칭되는 세션 반환
+    async fn find_matching_session(&self, url: &str, method: &str) -> Option<JsonValue> {
         let sessions_guard = self.sessions.lock().await;
         if let JsonValue::Array(sessions) = &*sessions_guard {
-            sessions.iter().any(|session| {
-                if let Some(session_url) = session.get("url").and_then(|v| v.as_str()) {
-                    url.contains(session_url) || session_url.contains(url)
-                } else {
-                    false
-                }
-            })
+            sessions
+                .iter()
+                .find(|session| {
+                    let session_url = session.get("url").and_then(|v| v.as_str()).unwrap_or("");
+                    let session_method = session
+                        .get("method")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("GET");
+
+                    // URL과 메서드가 모두 매칭되는지 확인
+                    (url.contains(session_url) || session_url.contains(url))
+                        && session_method.to_uppercase() == method.to_uppercase()
+                })
+                .cloned()
         } else {
-            false
+            None
         }
     }
 
-    /// 더미 응답 생성
-    fn create_dummy_response(&self, req: &Request<Body>) -> Response<Body> {
-        let mut response = Response::builder()
-            .status(200)
-            .header("Content-Type", "application/json")
-            .header("Access-Control-Allow-Origin", "*")
-            .header(
-                "Access-Control-Allow-Methods",
-                "GET, POST, PUT, DELETE, OPTIONS",
-            )
-            .header(
-                "Access-Control-Allow-Headers",
-                "Content-Type, Authorization",
-            );
+    /// 세션 데이터로부터 HTTP 응답을 생성하는 메서드 (proxyapi와 동일한 로직)
+    fn create_response_from_session(&self, response_data: &JsonValue) -> Response<Body> {
+        // 상태 코드 추출
+        let status_code = response_data
+            .get("status")
+            .and_then(|v| v.as_u64())
+            .unwrap_or(200) as u16;
 
-        // 요청의 헤더를 응답에 복사 (CORS 등)
-        for (key, value) in req.headers() {
-            if key.as_str().starts_with("access-control-") {
-                response = response.header(key, value);
-            }
+        // 헤더 추출
+        let mut headers: HeaderMap = response_data
+            .get("headers")
+            .and_then(JsonValue::as_object)
+            .map(|obj| {
+                obj.iter()
+                    .filter_map(|(k, v)| Some((k.parse().ok()?, v.as_str()?.parse().ok()?)))
+                    .collect()
+            })
+            .unwrap_or_default();
+
+        // 기본 Content-Type 헤더 설정 (없는 경우)
+        if !headers.contains_key("content-type") {
+            headers.insert("content-type", "application/json".parse().unwrap());
         }
 
-        let dummy_data = serde_json::json!({
-            "message": "더미 데이터입니다 (proxy_v2)",
-            "timestamp": chrono::Local::now().to_rfc3339(),
-            "url": req.uri().to_string(),
-            "method": req.method().to_string(),
-            "proxy_version": "v2"
-        });
+        // 세션 응답임을 나타내는 특별한 헤더 추가
+        headers.insert("x-cheolsu-proxy-session", "true".parse().unwrap());
+        headers.insert("x-cheolsu-proxy-version", "v2".parse().unwrap());
+
+        // 응답 본문 생성
+        let body = if let Some(data) = response_data.get("data") {
+            match data {
+                JsonValue::String(s) => Body::from(s.clone()),
+                JsonValue::Object(_) | JsonValue::Array(_) => {
+                    let json_string = serde_json::to_string(data).unwrap_or_default();
+                    Body::from(json_string)
+                }
+                _ => {
+                    let string_data = data.to_string();
+                    Body::from(string_data)
+                }
+            }
+        } else {
+            Body::empty()
+        };
+
+        // 응답 생성
+        let mut response = Response::new(body);
+        *response.status_mut() = StatusCode::from_u16(status_code).unwrap_or(StatusCode::OK);
+        *response.headers_mut() = headers;
 
         response
-            .body(Body::from(dummy_data.to_string()))
-            .unwrap_or_else(|_| {
-                Response::builder()
-                    .status(500)
-                    .body(Body::from("Internal Server Error"))
-                    .unwrap()
-            })
     }
 
     /// 요청과 응답을 묶어서 전송
@@ -284,28 +305,34 @@ impl HttpHandler for LoggingHandler {
         let proxied_request = self.request_to_proxied_request(&req);
         self.req = Some(proxied_request);
 
-        // 세션에 있는 URL인지 확인하고 더미 데이터 반환
+        // 세션에 있는 URL인지 확인하고 세션 응답 반환
         let url = req.uri().to_string();
-        if self.should_return_dummy_data(&url).await {
-            println!("🎭 더미 데이터 반환: {}", url);
-            let dummy_response = self.create_dummy_response(&req);
+        let method = req.method().to_string();
 
-            // 더미 응답을 ProxiedResponse로 변환하여 저장
-            let dummy_proxied_response = ProxiedResponse::new(
-                dummy_response.status(),
-                dummy_response.version(),
-                dummy_response.headers().clone(),
-                Bytes::from("더미 데이터입니다 (proxy_v2)"),
+        if let Some(session) = self.find_matching_session(&url, &method).await {
+            println!("🎭 세션 응답 반환: {} {}", method, url);
+
+            // 세션의 response 데이터 추출
+            let default_response = JsonValue::Object(serde_json::Map::new());
+            let response_data = session.get("response").unwrap_or(&default_response);
+            let session_response = self.create_response_from_session(response_data);
+
+            // 세션 응답을 ProxiedResponse로 변환하여 저장
+            let session_proxied_response = ProxiedResponse::new(
+                session_response.status(),
+                session_response.version(),
+                session_response.headers().clone(),
+                Bytes::from("세션 응답입니다 (proxy_v2)"),
                 chrono::Local::now()
                     .timestamp_nanos_opt()
                     .unwrap_or_default(),
             );
-            self.res = Some(dummy_proxied_response);
+            self.res = Some(session_proxied_response);
 
             // 요청과 응답을 묶어서 전송
             self.send_output();
 
-            return dummy_response.into();
+            return session_response.into();
         }
 
         req.into()
