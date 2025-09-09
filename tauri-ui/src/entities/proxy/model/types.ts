@@ -1,4 +1,3 @@
-// Request 엔티티 타입 정의
 export interface ProxiedRequest {
   method: string;
   uri: string;
@@ -16,6 +15,8 @@ export interface ProxiedResponse {
   body: Uint8Array;
   time: number;
 }
+
+export type ProxyEventRequestInfo = [ProxiedRequest | null, ProxiedResponse | null];
 
 export interface RequestInfo {
   request: ProxiedRequest | null;
