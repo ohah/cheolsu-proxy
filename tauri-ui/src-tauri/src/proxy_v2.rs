@@ -215,53 +215,9 @@ impl HttpHandler for LoggingHandler {
         _ctx: &HttpContext,
         req: Request<Body>,
     ) -> RequestOrResponse {
-        // 특정 URL 요청을 무조건 실패시키기
-        if let Some(authority) = req.uri().authority() {
-            if authority.host().contains("img.battlepage.com")
-                && req.uri().path().contains("/icon/3/3765.png")
-            {
-                println!("🚫 [BLOCKED] 특정 이미지 요청 차단: {}", req.uri());
-
-                // 404 Not Found 응답 생성
-                let error_response = Response::builder()
-                    .status(404)
-                    .header("content-type", "text/plain")
-                    .body(Body::from("Image not found - blocked by proxy"))
-                    .unwrap();
-
-                return error_response.into();
-            }
-        }
-
         // 요청 정보를 ProxiedRequest로 변환하여 저장 (전송하지 않음)
         let proxied_request = self.request_to_proxied_request(&req);
         self.req = Some(proxied_request);
-
-        // img.battlepage.com 관련 요청만 로깅
-        if let Some(authority) = req.uri().authority() {
-            if authority.host().contains("battlepage.com") {
-                println!("=== HTTP 요청 상세 (battlepage.com) ===");
-                println!("Method: {}", req.method());
-                println!("URI: {}", req.uri());
-                println!("Headers: {:?}", req.headers());
-
-                // 요청 타입별 추가 정보
-                match req.method().as_str() {
-                    "CONNECT" => {
-                        println!("🔗 CONNECT 요청 - 터널 연결 시도");
-                        println!("   - 대상 서버: {}", authority);
-                    }
-                    "GET" | "POST" | "PUT" | "DELETE" => {
-                        println!("📡 HTTP 요청 - 프록시 처리");
-                        println!("   - 대상 서버: {}", authority);
-                        println!("   - 요청 경로: {}", req.uri().path());
-                    }
-                    _ => {
-                        println!("❓ 기타 HTTP 메서드: {}", req.method());
-                    }
-                }
-            }
-        }
 
         req.into()
     }
