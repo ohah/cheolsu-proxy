@@ -6,6 +6,7 @@ export interface ProxiedRequest {
   headers: Record<string, string>;
   body: Uint8Array;
   time: number;
+  id: string; // 고유 ID 추가
 }
 
 export interface ProxiedResponse {
