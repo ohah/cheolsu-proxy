@@ -17,7 +17,8 @@ use proxyapi_v2::{
 use std::net::SocketAddr;
 use std::sync::mpsc;
 use std::sync::Arc;
-use tauri::Emitter;
+use tauri::{AppHandle, Emitter, Runtime, State};
+use tauri_plugin_store::{JsonValue, StoreExt};
 use tokio::net::TcpListener;
 use tokio::sync::oneshot::Sender;
 use tokio::sync::Mutex;
@@ -120,6 +121,7 @@ pub struct LoggingHandler {
     sender: mpsc::SyncSender<RequestInfo>,
     req: Option<ProxiedRequest>,
     res: Option<ProxiedResponse>,
+    sessions: Arc<Mutex<JsonValue>>,
 }
 
 impl LoggingHandler {
@@ -128,7 +130,70 @@ impl LoggingHandler {
             sender,
             req: None,
             res: None,
+            sessions: Arc::new(Mutex::new(JsonValue::Array(Vec::new()))),
         }
+    }
+
+    /// 세션 데이터 업데이트
+    pub async fn update_sessions(&self, sessions: JsonValue) {
+        let mut sessions_guard = self.sessions.lock().await;
+        *sessions_guard = sessions;
+    }
+
+    /// 요청 URL이 세션에 있는지 확인하고 더미 데이터 반환 여부 결정
+    async fn should_return_dummy_data(&self, url: &str) -> bool {
+        let sessions_guard = self.sessions.lock().await;
+        if let JsonValue::Array(sessions) = &*sessions_guard {
+            sessions.iter().any(|session| {
+                if let Some(session_url) = session.get("url").and_then(|v| v.as_str()) {
+                    url.contains(session_url) || session_url.contains(url)
+                } else {
+                    false
+                }
+            })
+        } else {
+            false
+        }
+    }
+
+    /// 더미 응답 생성
+    fn create_dummy_response(&self, req: &Request<Body>) -> Response<Body> {
+        let mut response = Response::builder()
+            .status(200)
+            .header("Content-Type", "application/json")
+            .header("Access-Control-Allow-Origin", "*")
+            .header(
+                "Access-Control-Allow-Methods",
+                "GET, POST, PUT, DELETE, OPTIONS",
+            )
+            .header(
+                "Access-Control-Allow-Headers",
+                "Content-Type, Authorization",
+            );
+
+        // 요청의 헤더를 응답에 복사 (CORS 등)
+        for (key, value) in req.headers() {
+            if key.as_str().starts_with("access-control-") {
+                response = response.header(key, value);
+            }
+        }
+
+        let dummy_data = serde_json::json!({
+            "message": "더미 데이터입니다 (proxy_v2)",
+            "timestamp": chrono::Local::now().to_rfc3339(),
+            "url": req.uri().to_string(),
+            "method": req.method().to_string(),
+            "proxy_version": "v2"
+        });
+
+        response
+            .body(Body::from(dummy_data.to_string()))
+            .unwrap_or_else(|_| {
+                Response::builder()
+                    .status(500)
+                    .body(Body::from("Internal Server Error"))
+                    .unwrap()
+            })
     }
 
     /// 요청과 응답을 묶어서 전송
@@ -219,6 +284,30 @@ impl HttpHandler for LoggingHandler {
         let proxied_request = self.request_to_proxied_request(&req);
         self.req = Some(proxied_request);
 
+        // 세션에 있는 URL인지 확인하고 더미 데이터 반환
+        let url = req.uri().to_string();
+        if self.should_return_dummy_data(&url).await {
+            println!("🎭 더미 데이터 반환: {}", url);
+            let dummy_response = self.create_dummy_response(&req);
+
+            // 더미 응답을 ProxiedResponse로 변환하여 저장
+            let dummy_proxied_response = ProxiedResponse::new(
+                dummy_response.status(),
+                dummy_response.version(),
+                dummy_response.headers().clone(),
+                Bytes::from("더미 데이터입니다 (proxy_v2)"),
+                chrono::Local::now()
+                    .timestamp_nanos_opt()
+                    .unwrap_or_default(),
+            );
+            self.res = Some(dummy_proxied_response);
+
+            // 요청과 응답을 묶어서 전송
+            self.send_output();
+
+            return dummy_response.into();
+        }
+
         req.into()
     }
 
@@ -244,13 +333,21 @@ impl WebSocketHandler for LoggingHandler {
 }
 
 /// hudsucker를 사용하는 프록시 상태 (proxy.rs와 유사한 구조)
-pub type ProxyV2State = Arc<Mutex<Option<(Sender<()>, tauri::async_runtime::JoinHandle<()>)>>>;
+pub type ProxyV2State = Arc<
+    Mutex<
+        Option<(
+            Sender<()>,
+            tauri::async_runtime::JoinHandle<()>,
+            LoggingHandler,
+        )>,
+    >,
+>;
 
 /// hudsucker 프록시 시작 (실제 프록시 서버 실행)
 #[tauri::command]
-pub async fn start_proxy_v2(
-    app: tauri::AppHandle,
-    proxy: tauri::State<'_, ProxyV2State>,
+pub async fn start_proxy_v2<R: Runtime>(
+    app: AppHandle<R>,
+    proxy: State<'_, ProxyV2State>,
     addr: SocketAddr,
 ) -> Result<(), String> {
     // CA 인증서 생성 (proxyapi_v2의 build_ca 함수 사용)
@@ -269,8 +366,15 @@ pub async fn start_proxy_v2(
     // 이벤트 전송을 위한 채널 생성 (proxy.rs와 동일한 구조)
     let (tx, rx) = std::sync::mpsc::sync_channel(1);
 
+    // 세션 데이터 로드 (proxy.rs와 동일한 방식)
+    let store = app.store("session.json").map_err(|e| e.to_string())?;
+    let sessions = store.get("sessions").unwrap_or_default();
+
     // 로깅 핸들러 생성
     let handler = LoggingHandler::new(tx.clone());
+
+    // 세션 데이터를 핸들러에 전달
+    handler.update_sessions(sessions).await;
 
     // TCP 리스너 생성
     let listener = match TcpListener::bind(addr).await {
@@ -342,7 +446,7 @@ pub async fn start_proxy_v2(
 
     // 프록시 상태 업데이트
     let mut proxy_guard = proxy.lock().await;
-    proxy_guard.replace((close_tx, thread));
+    proxy_guard.replace((close_tx, thread, handler.clone()));
 
     // 이벤트 전송을 위한 백그라운드 태스크 (proxy.rs와 동일한 구조)
     tauri::async_runtime::spawn(async move {
@@ -368,7 +472,7 @@ pub async fn start_proxy_v2(
 pub async fn stop_proxy_v2(proxy: tauri::State<'_, ProxyV2State>) -> Result<(), String> {
     let mut proxy_guard = proxy.lock().await;
 
-    if let Some((close_tx, thread)) = proxy_guard.take() {
+    if let Some((close_tx, thread, _handler)) = proxy_guard.take() {
         // 종료 신호 전송 (oneshot 채널은 한 번만 사용 가능)
         match close_tx.send(()) {
             Ok(_) => {
@@ -407,4 +511,41 @@ pub async fn stop_proxy_v2(proxy: tauri::State<'_, ProxyV2State>) -> Result<(), 
 #[tauri::command]
 pub async fn proxy_v2_status(proxy: tauri::State<'_, ProxyV2State>) -> Result<bool, String> {
     Ok(proxy.lock().await.is_some())
+}
+
+/// 세션 데이터 변경 시 호출되는 명령어 (proxy.rs와 동일한 기능)
+#[tauri::command]
+pub async fn store_changed_v2<R: Runtime>(
+    app: AppHandle<R>,
+    proxy: State<'_, ProxyV2State>,
+) -> Result<(), String> {
+    let mut proxy_guard = proxy.lock().await;
+
+    if proxy_guard.is_none() {
+        println!("store_changed_v2: Proxy V2가 실행 중이 아니므로 세션 업데이트를 무시합니다");
+        return Ok(());
+    }
+
+    // 세션 데이터 로드
+    let store = app.store("session.json").map_err(|e| e.to_string())?;
+    let sessions = store.get("sessions").unwrap_or_default();
+
+    let session_count = if let JsonValue::Array(arr) = &sessions {
+        arr.len()
+    } else {
+        0
+    };
+
+    println!(
+        "🔄 Proxy V2 세션 데이터 업데이트: {} 개의 세션",
+        session_count
+    );
+
+    // 핸들러에 세션 데이터 전달
+    if let Some((_close_tx, _thread, handler)) = proxy_guard.as_mut() {
+        handler.update_sessions(sessions).await;
+        println!("✅ Proxy V2 핸들러에 세션 데이터 업데이트 완료");
+    }
+
+    Ok(())
 }
