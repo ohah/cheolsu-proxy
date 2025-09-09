@@ -1,4 +1,4 @@
-import { logo } from '../shared/assets';
+import { logo } from '@/shared/assets';
 
 export const Sidebar = () => {
   return (

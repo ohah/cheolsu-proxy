@@ -1,4 +1,4 @@
-import type { RequestInfo } from '../../../entities/request';
+import type { RequestInfo } from '@/entities/proxy';
 
 // HTTP 메서드 필터 옵션
 export const HTTP_METHOD_OPTIONS = [
