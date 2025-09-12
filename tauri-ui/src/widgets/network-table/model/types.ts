@@ -1,14 +1,14 @@
-export const HTTP_METHOD_OPTIONS = [
-  'POST',
-  'GET',
-  'PUT',
-  'DELETE',
-  'PATCH',
-  'HEAD',
-  'OPTIONS',
-  'CONNECT',
-  'TRACE',
-  'OTHERS',
-] as const;
+import type { HttpTransaction } from "@/entities/proxy";
 
-export type HttpMethod = (typeof HTTP_METHOD_OPTIONS)[number];
+export interface TableRowData {
+  transaction: HttpTransaction;
+  index: number;
+  timeDiff: string | number;
+  authority: string;
+  pathname: string;
+  isSelected: boolean;
+}
+
+export interface TableCellProps {
+  data: TableRowData;
+}

@@ -1,4 +1,4 @@
-export interface ProxiedRequest {
+export interface HttpRequest {
   method: string;
   uri: string;
   version: string;
@@ -8,7 +8,7 @@ export interface ProxiedRequest {
   id: string; // 고유 ID 추가
 }
 
-export interface ProxiedResponse {
+export interface HttpResponse {
   status: number;
   version: string;
   headers: Record<string, string>;
@@ -16,9 +16,9 @@ export interface ProxiedResponse {
   time: number;
 }
 
-export type ProxyEventRequestInfo = [ProxiedRequest | null, ProxiedResponse | null];
-
-export interface RequestInfo {
-  request: ProxiedRequest | null;
-  response: ProxiedResponse | null;
+export interface HttpTransaction {
+  request: HttpRequest | null;
+  response: HttpResponse | null;
 }
+
+export type ProxyEventTuple = [HttpTransaction['request'], HttpTransaction['response']];

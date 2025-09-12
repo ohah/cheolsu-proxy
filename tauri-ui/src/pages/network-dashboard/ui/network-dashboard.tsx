@@ -1,114 +1,84 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback } from 'react';
 
-import type { ProxyEventRequestInfo, RequestInfo } from '@/entities/proxy';
+import { TransactionDetails } from '@/features/transaction-details';
+
 import { NetworkHeader } from '@/widgets/network-header';
 import { NetworkSidebar } from '@/widgets/network-sidebar';
-import { NetworkDetails } from '@/features/request-details';
-import { listen } from '@tauri-apps/api/event';
-import { startProxy } from '@/shared/api/proxy';
+import { NetworkTable } from '@/widgets/network-table';
+
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/shared/ui/resizable';
-import { getAuthority, NetworkTable } from '@/widgets/network-table';
+
+import { useProxyEventControl, useProxyInitialization, useTransactionFilters, useTransactions } from '../hooks';
 
 export const NetworkDashboard = () => {
-  const isInit = useRef(false);
+  const { isConnected } = useProxyInitialization();
 
-  const [requests, setRequests] = useState<RequestInfo[]>([]);
-  const [selectedRequest, setSelectedRequest] = useState<RequestInfo | null>(null);
+  const {
+    transactions,
+    addTransaction,
+    clearTransactions,
+    deleteTransaction,
+    selectedTransaction,
+    createTransactionSelectHandler,
+    clearSelectedTransaction,
+  } = useTransactions();
 
-  const [pathFilter, setPathFilter] = useState<string>('');
-  const [methodFilter, setMethodFilter] = useState<string[]>([]);
-  const [statusFilter, setStatusFilter] = useState<string[]>([]);
-  const [paused, setPaused] = useState<boolean>(false);
+  const { paused, togglePause } = useProxyEventControl({ onTransactionReceived: addTransaction });
 
-  console.log('methodFilter: ', methodFilter);
-  console.log('statusFilter: ', statusFilter);
+  const {
+    searchQuery,
+    setMethodFilter,
+    setStatusFilter,
+    filteredTransactions,
+    onSearchQueryChange,
+    filteredCount,
+    totalCount,
+  } = useTransactionFilters({ transactions });
 
-  // const filteredRequests = useMemo(() => {
-  //   return requests.filter((exchange) => {
-  //     const authority = getAuthority(exchange.request?.uri ?? '');
+  const createTransactionDeleteHandler = useCallback(
+    (id: number) => () => {
+      deleteTransaction(id);
 
-  //     const matchesPath = authority.includes(pathFilter);
-  //     const matchesMethod = methodFilter.length === 0 ? true : methodFilter.includes(exchange.request?.method ?? '');
-
-  //     return matchesPath && matchesMethod && matchesStatus;
-  //   }
-  // }, []);
-
-  useEffect(() => {
-    if (isInit.current) return;
-
-    const startProxyFn = async () => {
-      try {
-        await startProxy('127.0.0.1:8100');
-      } catch (error) {
-        console.log('error: ', error);
+      if (selectedTransaction?.request?.time === id) {
+        clearSelectedTransaction();
       }
-    };
-
-    isInit.current = true;
-    startProxyFn();
-  }, []);
-
-  useEffect(() => {
-    if (paused) return;
-
-    const unlisten = listen<ProxyEventRequestInfo>('proxy_event', (event) => {
-      const [request, response] = event.payload;
-      if (!requests.find((r) => r.request?.time === request?.time)) {
-        setRequests((prevRequests) => [...prevRequests, { request, response }]);
-      }
-    });
-
-    return () => {
-      unlisten.then((f) => f());
-    };
-  }, [paused]);
-
-  const clearRequests = () => {
-    setRequests([]);
-  };
-
-  const createRequestSelectHandler = (request: RequestInfo) => () => {
-    setSelectedRequest(request);
-  };
-
-  const handleDelete = (id: number) => {
-    setRequests((prev) => prev.filter((_, i) => i !== id));
-    if (selectedRequest?.request?.time === id) {
-      setSelectedRequest(null);
-    }
-  };
+    },
+    [],
+  );
 
   return (
     <div className="flex h-[100vh] w-full bg-background">
-      <NetworkSidebar />
+      <NetworkSidebar isConnected={isConnected} />
 
       <div className="flex-1 flex flex-col h-full">
         <NetworkHeader
+          searchQuery={searchQuery}
+          filteredCount={filteredCount}
+          totalCount={totalCount}
           paused={paused}
-          setPaused={setPaused}
-          clearRequests={clearRequests}
-          filter={pathFilter}
-          onFilterChange={setPathFilter}
-          statusFilter={statusFilter}
+          togglePause={togglePause}
+          onSearchQueryChange={onSearchQueryChange}
           onStatusFilterChange={setStatusFilter}
-          methodFilter={methodFilter}
           onMethodFilterChange={setMethodFilter}
-          requestCount={requests.length}
+          clearTransactions={clearTransactions}
         />
 
         <ResizablePanelGroup direction="horizontal" className="flex-1 flex overflow-hidden">
           <ResizablePanel className="flex-1 h-full overflow-hidden border-r border-border">
             <NetworkTable
-              requests={requests}
-              selectedRequest={selectedRequest}
-              onSelectRequest={createRequestSelectHandler}
+              transactions={filteredTransactions}
+              selectedTransaction={selectedTransaction}
+              createTransactionSelectHandler={createTransactionSelectHandler}
+              createTransactionDeleteHandler={createTransactionDeleteHandler}
             />
           </ResizablePanel>
           <ResizableHandle />
-          {selectedRequest && (
+          {selectedTransaction && (
             <ResizablePanel className="w-96 h-full overflow-y-auto">
-              <NetworkDetails exchange={selectedRequest} onClose={() => setSelectedRequest(null)} />
+              <TransactionDetails
+                transaction={selectedTransaction}
+                clearSelectedTransaction={clearSelectedTransaction}
+              />
             </ResizablePanel>
           )}
         </ResizablePanelGroup>
