@@ -13,6 +13,7 @@ export const useProxyInitialization = (port: number = 8100) => {
     const initializeProxy = async () => {
       try {
         const response = await startProxyV2(port);
+        // TODO: Implement logic to handle response @ohah
         console.log('response: ', response);
         setIsConnected(true);
         isInitialized.current = true;
