@@ -1,8 +1,3 @@
-import type { RequestInfo } from '@/entities/proxy';
-
-import { HTTP_METHOD_OPTIONS, HttpMethod } from '../model';
-
-// 상태 색상 유틸리티
 export const getStatusColor = (status: number): string => {
   if (status >= 200 && status < 300) return 'bg-green-100 text-green-800 border-green-200';
   if (status >= 300 && status < 400) return 'bg-blue-100 text-blue-800 border-blue-200';
@@ -26,33 +21,12 @@ export const getMethodColor = (method: string) => {
   }
 };
 
-// 바이트 포맷팅 유틸리티
-const formatBytes = (bytes: number): string => {
+export const formatBytes = (bytes: number): string => {
   if (bytes === 0) return '0 B';
   const k = 1024;
   const sizes = ['B', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return `${Number.parseFloat((bytes / k ** i).toFixed(1))} ${sizes[i]}`;
-};
-
-// 요청 정보 유틸리티 함수들
-export const getRequestSize = (request: RequestInfo): string => {
-  if (!request.request) return '0 B';
-  const size = request.request.body?.length || 0;
-  return formatBytes(size);
-};
-
-export const getResponseSize = (request: RequestInfo): string => {
-  if (!request.response) return '0 B';
-  const size = request.response.body?.length || 0;
-  return formatBytes(size);
-};
-
-// 필터링 로직
-export const filterRequest = (method: string, filters: string[]): boolean => {
-  return (
-    filters.includes(method) || (!HTTP_METHOD_OPTIONS.includes(method as HttpMethod) && filters.includes('OTHERS'))
-  );
 };
 
 export const getAuthority = (uri: string) => {
