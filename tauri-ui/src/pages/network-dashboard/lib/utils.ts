@@ -34,7 +34,6 @@ export const getFilteredTransactions = (
   return transactions.filter(transaction => {
     const status = transaction.response?.status ?? 0;
     const method = transaction.request?.method ?? "";
-    // TODO: how uri is passed @wontaezia
     const path = transaction.request?.uri ?? "";
 
     return matchesStatusFilter(status, statusRanges) &&

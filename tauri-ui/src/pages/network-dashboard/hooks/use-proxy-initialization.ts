@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { startProxyV2 } from '@/shared/api/proxy';
 
-export const useProxyInitialization = (address: number = 8100) => {
+export const useProxyInitialization = (port: number = 8100) => {
   const isInitialized = useRef(false);
 
   const [isConnected, setIsConnected] = useState(false);
@@ -12,7 +12,7 @@ export const useProxyInitialization = (address: number = 8100) => {
 
     const initializeProxy = async () => {
       try {
-        const response = await startProxyV2(address);
+        const response = await startProxyV2(port);
         console.log('response: ', response);
         setIsConnected(true);
         isInitialized.current = true;
@@ -23,7 +23,7 @@ export const useProxyInitialization = (address: number = 8100) => {
     };
 
     initializeProxy();
-  }, [address]);
+  }, [port]);
 
   return { isInitialized: isInitialized.current, isConnected };
 };

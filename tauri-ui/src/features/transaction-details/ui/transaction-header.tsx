@@ -1,4 +1,4 @@
-import { X } from 'lucide-react';
+import { Settings, X } from 'lucide-react';
 
 import type { HttpTransaction } from '@/entities/proxy';
 
@@ -24,9 +24,15 @@ export const TransactionHeader = ({ transaction, clearSelectedTransaction }: Tra
           {response.status}
         </Badge>
       </div>
-      <Button variant="ghost" size="sm" onClick={clearSelectedTransaction}>
-        <X className="w-4 h-4" />
-      </Button>
+      <div className="flex items-center">
+        {/* TODO: settings @ohah */}
+        <Button variant="ghost" size="sm" onClick={() => {}}>
+          <Settings className="w-4 h-4" />
+        </Button>
+        <Button variant="ghost" size="sm" onClick={clearSelectedTransaction}>
+          <X className="w-4 h-4" />
+        </Button>
+      </div>
     </div>
   );
 };
