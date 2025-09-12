@@ -33,12 +33,6 @@ export const SidebarNavigation = memo(({ activeSection, createSelectionChangeHan
           >
             <Icon className="w-4 h-4" />
             <span className="flex-1 text-left">{section.label}</span>
-            {/* TODO: count @wontaezia
-            {count > 0 && (
-              <Badge variant={isActive ? 'default' : 'secondary'} className="text-xs">
-                {count}
-              </Badge>
-            )}*/}
           </Button>
         );
       })}
