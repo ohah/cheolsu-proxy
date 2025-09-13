@@ -3,6 +3,32 @@ import { rspack } from '@rspack/core';
 import { ReactRefreshRspackPlugin } from '@rspack/plugin-react-refresh';
 import path from 'path';
 
+const reactDevToolsPlugin = () => {
+  return {
+    name: 'react-devtools-injector',
+    apply: (compiler: any) => {
+      if (compiler.options.mode === 'development') {
+        compiler.hooks.compilation.tap('ReactDevTools', (compilation: any) => {
+          const hooks = rspack.HtmlRspackPlugin.getCompilationHooks(compilation);
+          hooks.alterAssetTags.tapPromise('ReactDevTools', async (data) => {
+            data.assetTags.scripts.unshift({
+              tagName: 'script',
+              attributes: {
+                src: 'http://localhost:8097',
+                defer: false,
+                async: false,
+              },
+              voidTag: false,
+            });
+            console.log('React DevTools script tag added');
+            return data;
+          });
+        });
+      }
+    },
+  };
+};
+
 const isDev = process.env.NODE_ENV === 'development';
 
 // Target browsers, see: https://github.com/browserslist/browserslist
@@ -63,6 +89,7 @@ export default defineConfig({
       template: './index.html',
     }),
     isDev ? new ReactRefreshRspackPlugin() : null,
+    isDev ? reactDevToolsPlugin() : null,
   ].filter(Boolean),
   optimization: {
     minimizer: [
