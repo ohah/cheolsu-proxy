@@ -370,13 +370,20 @@ pub type ProxyV2State = Arc<
     >,
 >;
 
+/// 프록시 시작 결과를 나타내는 구조체
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct ProxyStartResult {
+    pub status: bool,
+    pub message: String,
+}
+
 /// hudsucker 프록시 시작 (실제 프록시 서버 실행)
 #[tauri::command]
 pub async fn start_proxy_v2<R: Runtime>(
     app: AppHandle<R>,
     proxy: State<'_, ProxyV2State>,
     addr: SocketAddr,
-) -> Result<(), String> {
+) -> Result<ProxyStartResult, ProxyStartResult> {
     // CA 인증서 생성 (proxyapi_v2의 build_ca 함수 사용)
     let ca = match build_ca() {
         Ok(ca) => {
@@ -384,9 +391,12 @@ pub async fn start_proxy_v2<R: Runtime>(
             ca
         }
         Err(e) => {
-            let error_msg = format!("❌ CA 인증서 생성 실패: {}", e);
-            eprintln!("{}", error_msg);
-            return Err(error_msg);
+            let error_msg = format!("CA 인증서 생성 실패: {}", e);
+            eprintln!("❌ {}", error_msg);
+            return Err(ProxyStartResult {
+                status: false,
+                message: error_msg,
+            });
         }
     };
 
@@ -394,7 +404,17 @@ pub async fn start_proxy_v2<R: Runtime>(
     let (tx, rx) = std::sync::mpsc::sync_channel(1);
 
     // 세션 데이터 로드 (proxy.rs와 동일한 방식)
-    let store = app.store("session.json").map_err(|e| e.to_string())?;
+    let store = match app.store("session.json") {
+        Ok(store) => store,
+        Err(e) => {
+            let error_msg = format!("세션 스토어 로드 실패: {}", e);
+            eprintln!("❌ {}", error_msg);
+            return Err(ProxyStartResult {
+                status: false,
+                message: error_msg,
+            });
+        }
+    };
     let sessions = store.get("sessions").unwrap_or_default();
 
     // 로깅 핸들러 생성
@@ -410,9 +430,12 @@ pub async fn start_proxy_v2<R: Runtime>(
             listener
         }
         Err(e) => {
-            let error_msg = format!("❌ 포트 {} 바인딩 실패: {}", addr.port(), e);
-            eprintln!("{}", error_msg);
-            return Err(error_msg);
+            let error_msg = format!("포트 {} 바인딩 실패: {}", addr.port(), e);
+            eprintln!("❌ {}", error_msg);
+            return Err(ProxyStartResult {
+                status: false,
+                message: error_msg,
+            });
         }
     };
 
@@ -423,9 +446,12 @@ pub async fn start_proxy_v2<R: Runtime>(
             client
         }
         Err(e) => {
-            let error_msg = format!("❌ 커스텀 클라이언트 생성 실패: {}", e);
-            eprintln!("{}", error_msg);
-            return Err(error_msg);
+            let error_msg = format!("커스텀 클라이언트 생성 실패: {}", e);
+            eprintln!("❌ {}", error_msg);
+            return Err(ProxyStartResult {
+                status: false,
+                message: error_msg,
+            });
         }
     };
 
@@ -447,9 +473,12 @@ pub async fn start_proxy_v2<R: Runtime>(
             builder
         }
         Err(e) => {
-            let error_msg = format!("❌ 프록시 빌드 실패: {}", e);
-            eprintln!("{}", error_msg);
-            return Err(error_msg);
+            let error_msg = format!("프록시 빌드 실패: {}", e);
+            eprintln!("❌ {}", error_msg);
+            return Err(ProxyStartResult {
+                status: false,
+                message: error_msg,
+            });
         }
     };
 
@@ -482,16 +511,17 @@ pub async fn start_proxy_v2<R: Runtime>(
         }
     });
 
-    println!(
-        "🎉 프록시 V2가 포트 {}에서 성공적으로 시작되었습니다",
-        addr.port()
-    );
-    println!(
-        "📋 시스템 프록시 설정을 127.0.0.1:{}로 변경하세요",
+    let success_message = format!(
+        "프록시 V2가 포트 {}에서 성공적으로 시작되었습니다. 시스템 프록시 설정을 127.0.0.1:{}로 변경하세요",
+        addr.port(),
         addr.port()
     );
 
-    Ok(())
+    println!("🎉 {}", success_message);
+    Ok(ProxyStartResult {
+        status: true,
+        message: success_message,
+    })
 }
 
 /// hudsucker 프록시 중지 (실제 프록시 서버 중지)
