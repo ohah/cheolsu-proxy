@@ -112,9 +112,6 @@ where
             Ok(self.upgrade_websocket(req))
         } else {
             let normalized_req = normalize_request(req);
-            println!("🔄 업스트림 서버로 요청 전송 중...");
-            println!("   - 대상 서버: {}", normalized_req.uri());
-            println!("   - 요청 메서드: {}", normalized_req.method());
 
             let res = self
                 .client
@@ -123,17 +120,11 @@ where
                 .await;
 
             match res {
-                Ok(res) => {
-                    println!("✅ 업스트림 서버로부터 응답 수신 성공");
-                    println!("   - 응답 상태: {}", res.status());
-                    println!("   - 응답 헤더 수: {}", res.headers().len());
-
-                    Ok(self
-                        .http_handler
-                        .handle_response(&ctx, res.map(Body::from))
-                        .instrument(info_span!("handle_response"))
-                        .await)
-                }
+                Ok(res) => Ok(self
+                    .http_handler
+                    .handle_response(&ctx, res.map(Body::from))
+                    .instrument(info_span!("handle_response"))
+                    .await),
                 Err(err) => {
                     println!("❌ 업스트림 서버 연결 실패");
                     println!("   - 오류: {}", err);
@@ -190,28 +181,22 @@ where
 
                                     return;
                                 } else if buffer[..2] == *b"\x16\x03" {
-                                    println!("🔐 HTTPS 연결 감지 - TLS 핸드셰이크 시작");
-                                    println!("   - 대상 서버: {}", authority);
-
                                     let server_config = self
                                         .ca
                                         .gen_server_config(&authority)
                                         .instrument(info_span!("gen_server_config"))
                                         .await;
 
-                                    println!("   - 서버 설정 생성 완료");
-
                                     let stream = match TlsAcceptor::from(server_config)
                                         .accept(upgraded)
                                         .await
                                     {
-                                        Ok(stream) => {
-                                            println!("   - TLS 연결 성공");
-                                            TokioIo::new(stream)
-                                        }
+                                        Ok(stream) => TokioIo::new(stream),
                                         Err(e) => {
                                             error!("Failed to establish TLS connection: {}", e);
-                                            println!("   - TLS 연결 실패: {}", e);
+                                            println!("❌ TLS 핸드셰이크 실패");
+                                            println!("   - 대상 서버: {}", authority);
+                                            println!("   - 오류: {}", e);
                                             println!("   - 오류 타입: {:?}", e.kind());
                                             println!("   - 오류 상세: {}", e);
 
@@ -229,20 +214,21 @@ where
                                         }
                                     };
 
-                                    println!("   - HTTPS 스트림 서비스 시작");
-                                    if let Err(e) =
-                                        self.serve_stream(stream, Scheme::HTTPS, authority).await
+                                    if let Err(e) = self
+                                        .serve_stream(stream, Scheme::HTTPS, authority.clone())
+                                        .await
                                     {
                                         if !e
                                             .to_string()
                                             .starts_with("error shutting down connection")
                                         {
                                             error!("HTTPS connect error: {}", e);
-                                            println!("   - HTTPS 스트림 서비스 오류: {}", e);
+                                            println!("❌ HTTPS 스트림 서비스 오류");
+                                            println!("   - 대상 서버: {}", authority);
+                                            println!("   - 오류: {}", e);
                                         }
                                     }
 
-                                    println!("   - HTTPS 연결 처리 완료");
                                     return;
                                 } else {
                                     warn!(
@@ -256,6 +242,9 @@ where
                                 Ok(server) => server,
                                 Err(e) => {
                                     error!("Failed to connect to {}: {}", authority, e);
+                                    println!("❌ 업스트림 서버 연결 실패");
+                                    println!("   - 대상 서버: {}", authority);
+                                    println!("   - 오류: {}", e);
                                     return;
                                 }
                             };
@@ -264,9 +253,16 @@ where
                                 tokio::io::copy_bidirectional(&mut upgraded, &mut server).await
                             {
                                 error!("Failed to tunnel to {}: {}", authority, e);
+                                println!("❌ 터널링 실패");
+                                println!("   - 대상 서버: {}", authority);
+                                println!("   - 오류: {}", e);
                             }
                         }
-                        Err(e) => error!("Upgrade error: {}", e),
+                        Err(e) => {
+                            error!("Upgrade error: {}", e);
+                            println!("❌ 연결 업그레이드 실패");
+                            println!("   - 오류: {}", e);
+                        }
                     };
                 };
 
@@ -386,11 +382,6 @@ where
         I: hyper::rt::Read + hyper::rt::Write + Unpin + Send + 'static,
     {
         let service = service_fn(|mut req| {
-            println!("🔄 serve_stream에서 요청 처리 중...");
-            println!("   - 원본 URI: {}", req.uri());
-            println!("   - 원본 메서드: {}", req.method());
-            println!("   - 원본 버전: {:?}", req.version());
-
             if req.version() == hyper::Version::HTTP_10 || req.version() == hyper::Version::HTTP_11
             {
                 let (mut parts, body) = req.into_parts();
@@ -403,12 +394,8 @@ where
                 };
 
                 req = Request::from_parts(parts, body);
-                println!("   - 수정된 URI: {}", req.uri());
-                println!("   - 스키마: {:?}", scheme);
-                println!("   - 권한: {}", authority);
             };
 
-            println!("   - 프록시로 요청 전달");
             self.clone().proxy(req)
         });
 
