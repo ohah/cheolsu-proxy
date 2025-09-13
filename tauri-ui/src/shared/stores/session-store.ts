@@ -9,7 +9,7 @@ const notifyStoreChange = async () => {
   try {
     const { invoke } = await import('@tauri-apps/api/core');
     console.log('notifyStoreChange');
-    await invoke('store_changed');
+    await invoke('store_changed_v2');
   } catch (error) {
     console.error('Failed to notify store change:', error);
   }
