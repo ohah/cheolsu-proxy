@@ -1,6 +1,4 @@
 use bytes::Bytes;
-use futures_util::StreamExt;
-use http_body_util::BodyExt;
 use hyper_rustls::HttpsConnectorBuilder;
 use hyper_util::{
     client::legacy::{connect::HttpConnector, Client},
@@ -225,19 +223,37 @@ impl LoggingHandler {
         }
     }
 
-    /// Request를 ProxiedRequest로 변환
-    fn request_to_proxied_request(&self, req: &Request<Body>) -> ProxiedRequest {
-        // 요청 body를 읽어서 Bytes로 변환 (비동기이므로 여기서는 빈 body로 설정)
-        ProxiedRequest::new(
+    /// Request를 ProxiedRequest로 변환하고 원본 요청을 복원 (비동기)
+    async fn request_to_proxied_request(
+        &self,
+        mut req: Request<Body>,
+    ) -> (ProxiedRequest, Request<Body>) {
+        // 요청 body를 읽어서 Bytes로 변환
+        let mut body_mut = req.body_mut();
+        let body_bytes = match Self::body_to_bytes_from_mut(&mut body_mut).await {
+            Ok(bytes) => bytes,
+            Err(e) => {
+                eprintln!("❌ 요청 body 읽기 실패: {}", e);
+                Bytes::new()
+            }
+        };
+
+        // 원본 body 복원
+        use http_body_util::Full;
+        *body_mut = Body::from(Full::new(body_bytes.clone()));
+
+        let proxied_request = ProxiedRequest::new(
             req.method().clone(),
             req.uri().clone(),
             req.version(),
             req.headers().clone(),
-            Bytes::new(), // TODO: 실제 body 읽기
+            body_bytes,
             chrono::Local::now()
                 .timestamp_nanos_opt()
                 .unwrap_or_default(),
-        )
+        );
+
+        (proxied_request, req)
     }
 
     /// Response를 ProxiedResponse로 변환하고 원본 응답을 복원
@@ -272,19 +288,6 @@ impl LoggingHandler {
         (proxied_response, res)
     }
 
-    /// Body를 Bytes로 변환하는 헬퍼 함수
-    async fn body_to_bytes(body: Body) -> Result<Bytes, Box<dyn std::error::Error + Send + Sync>> {
-        let mut body_stream = body.into_data_stream();
-        let mut bytes = Vec::new();
-
-        while let Some(chunk_result) = body_stream.next().await {
-            let chunk: Bytes = chunk_result?;
-            bytes.extend_from_slice(&chunk);
-        }
-
-        Ok(Bytes::from(bytes))
-    }
-
     /// BodyMut를 Bytes로 변환하는 헬퍼 함수 (기존 proxyapi 방식)
     async fn body_to_bytes_from_mut(
         body_mut: &mut Body,
@@ -301,13 +304,13 @@ impl HttpHandler for LoggingHandler {
         _ctx: &HttpContext,
         req: Request<Body>,
     ) -> RequestOrResponse {
-        // 요청 정보를 ProxiedRequest로 변환하여 저장 (전송하지 않음)
-        let proxied_request = self.request_to_proxied_request(&req);
+        // 요청 정보를 ProxiedRequest로 변환하고 원본 요청을 복원
+        let (proxied_request, restored_req) = self.request_to_proxied_request(req).await;
         self.req = Some(proxied_request);
 
         // 세션에 있는 URL인지 확인하고 세션 응답 반환
-        let url = req.uri().to_string();
-        let method = req.method().to_string();
+        let url = restored_req.uri().to_string();
+        let method = restored_req.method().to_string();
 
         if let Some(session) = self.find_matching_session(&url, &method).await {
             println!("🎭 세션 응답 반환: {} {}", method, url);
@@ -335,7 +338,7 @@ impl HttpHandler for LoggingHandler {
             return session_response.into();
         }
 
-        req.into()
+        restored_req.into()
     }
 
     async fn handle_response(&mut self, _ctx: &HttpContext, res: Response<Body>) -> Response<Body> {
