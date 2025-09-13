@@ -1,5 +1,6 @@
 // Shared UI Components - Public API
 export * from './input';
+export * from './textarea';
 export * from './button';
 export * from './badge';
 export * from './select';
