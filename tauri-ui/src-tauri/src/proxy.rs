@@ -83,6 +83,11 @@ pub async fn store_changed<R: Runtime>(
     Ok(())
 }
 
+#[tauri::command]
+pub async fn get_proxy_status_command() -> Result<ProxyStatus, String> {
+    get_proxy_status()
+}
+
 pub fn get_active_service() -> Option<String> {
     // 1. 기본 네트워크 인터페이스 이름 가져오기 (en0, en1 등)
     let route_output = Command::new("sh")
@@ -134,6 +139,14 @@ pub fn set_proxy(enable: bool) -> Result<(), String> {
                 .args(["-setsecurewebproxy", service, "127.0.0.1", "8100"])
                 .status()
                 .map_err(|e| e.to_string())?;
+
+            // SOCKS 프록시 켜기 (WebSocket 연결용)
+            Command::new("networksetup")
+                .args(["-setsocksfirewallproxy", service, "127.0.0.1", "8100"])
+                .status()
+                .map_err(|e| e.to_string())?;
+
+            println!("✅ 프록시 설정 완료 - HTTP, HTTPS, SOCKS(WebSocket) 프록시 활성화됨");
         } else {
             // HTTP 프록시 끄기
             Command::new("networksetup")
@@ -146,7 +159,60 @@ pub fn set_proxy(enable: bool) -> Result<(), String> {
                 .args(["-setsecurewebproxystate", service, "off"])
                 .status()
                 .map_err(|e| e.to_string())?;
+
+            // SOCKS 프록시 끄기 (WebSocket 연결용)
+            Command::new("networksetup")
+                .args(["-setsocksfirewallproxystate", service, "off"])
+                .status()
+                .map_err(|e| e.to_string())?;
+
+            println!("❌ 프록시 설정 해제 완료 - HTTP, HTTPS, SOCKS(WebSocket) 프록시 비활성화됨");
         }
     }
     Ok(())
+}
+
+/// 현재 프록시 설정 상태 확인
+pub fn get_proxy_status() -> Result<ProxyStatus, String> {
+    let service = get_active_service();
+    if let Some(service) = service {
+        let service = service.as_str();
+
+        // HTTP 프록시 상태 확인
+        let http_output = Command::new("networksetup")
+            .args(["-getwebproxy", service])
+            .output()
+            .map_err(|e| e.to_string())?;
+
+        // HTTPS 프록시 상태 확인
+        let https_output = Command::new("networksetup")
+            .args(["-getsecurewebproxy", service])
+            .output()
+            .map_err(|e| e.to_string())?;
+
+        // SOCKS 프록시 상태 확인
+        let socks_output = Command::new("networksetup")
+            .args(["-getsocksfirewallproxy", service])
+            .output()
+            .map_err(|e| e.to_string())?;
+
+        let http_enabled = String::from_utf8_lossy(&http_output.stdout).contains("Enabled: Yes");
+        let https_enabled = String::from_utf8_lossy(&https_output.stdout).contains("Enabled: Yes");
+        let socks_enabled = String::from_utf8_lossy(&socks_output.stdout).contains("Enabled: Yes");
+
+        Ok(ProxyStatus {
+            http: http_enabled,
+            https: https_enabled,
+            websocket: socks_enabled,
+        })
+    } else {
+        Err("활성 네트워크 서비스를 찾을 수 없습니다".to_string())
+    }
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct ProxyStatus {
+    pub http: bool,
+    pub https: bool,
+    pub websocket: bool,
 }
