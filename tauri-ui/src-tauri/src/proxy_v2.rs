@@ -321,12 +321,6 @@ impl HttpHandler for LoggingHandler {
         let (proxied_request, restored_req) = self.request_to_proxied_request(req).await;
         self.req = Some(proxied_request);
 
-        // 세션에 있는 URL인지 확인하고 세션 응답 반환
-        let url = restored_req.uri().to_string();
-        let method = restored_req.method().to_string();
-
-        // 세션 매칭은 handle_response에서 처리하므로 여기서는 원본 요청을 그대로 전달
-
         restored_req.into()
     }
 
