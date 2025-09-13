@@ -2,15 +2,26 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { z } from 'zod';
 
 import type { HttpTransaction } from '@/entities/proxy';
-import { formatBody } from '../lib';
 import { useAppForm } from '../context/form-context';
+import { formatBody } from '../lib';
+import { useSessionStore } from '@/shared/stores';
 
-// 편집 가능한 필드들에 대한 스키마 (Properties 제외)
+// 편집 가능한 필드들에 대한 스키마 (세션 스토어 타입과 일치)
 const transactionEditSchema = z.object({
-  headers: z.record(z.string(), z.string()),
-  body: z.string(),
-  responseStatus: z.number().min(100).max(599),
-  responseBody: z.string(),
+  request: z
+    .object({
+      headers: z.record(z.string(), z.string()).optional(),
+      data: z.union([z.record(z.string(), z.any()), z.string()]).optional(),
+      params: z.union([z.record(z.string(), z.any()), z.string()]).optional(),
+    })
+    .optional(),
+  response: z
+    .object({
+      status: z.number().min(100).max(599),
+      headers: z.record(z.string(), z.string()).optional(),
+      data: z.union([z.record(z.string(), z.any()), z.string()]).optional(),
+    })
+    .optional(),
 });
 
 export type TransactionEditFormData = z.infer<typeof transactionEditSchema>;
@@ -36,15 +47,22 @@ export const useTransactionEdit = (transaction: HttpTransaction) => {
     }
   }, [transaction.request?.id, transaction.request?.time]); // transaction이 변경될 때
 
-  // 폼 초기값 설정
+  // 폼 초기값 설정 (세션 스토어 타입과 일치)
   const getInitialValues = useCallback((): TransactionEditFormData => {
     const { request, response } = transaction;
 
     return {
-      headers: request?.headers || {},
-      body: request?.body ? formatBody(request.body) : '',
-      responseStatus: response?.status || 200,
-      responseBody: response?.body ? formatBody(response.body) : '',
+      request: {
+        ...request,
+        headers: request?.headers,
+        data: request?.body ? formatBody(request.body) : '',
+      },
+      response: {
+        ...response,
+        status: response?.status || 200,
+        headers: response?.headers,
+        data: response?.body ? formatBody(response.body) : '',
+      },
     };
   }, [transaction]);
 
@@ -61,28 +79,40 @@ export const useTransactionEdit = (transaction: HttpTransaction) => {
       // 변경된 필드만 추출
       const changedFields: Partial<TransactionEditFormData> = {};
 
-      if (!isEqual(value.headers, originalData.headers)) {
-        changedFields.headers = value.headers;
+      delete (changedFields.response as any)?.body;
+      delete (changedFields.request as any)?.body;
+
+      if (!isEqual(value.request, originalData.request)) {
+        changedFields.request = value.request;
       }
 
-      if (!isEqual(value.body, originalData.body)) {
-        changedFields.body = value.body;
+      if (!isEqual(value.response, originalData.response)) {
+        changedFields.response = value.response;
       }
 
-      if (!isEqual(value.responseStatus, originalData.responseStatus)) {
-        changedFields.responseStatus = value.responseStatus;
-      }
-
-      if (!isEqual(value.responseBody, originalData.responseBody)) {
-        changedFields.responseBody = value.responseBody;
-      }
+      const saveData = {
+        id: crypto.randomUUID(),
+        url: transaction.request?.uri || '',
+        method: transaction.request?.method || 'GET',
+        request: changedFields.request,
+        response: {
+          headers: changedFields.response?.headers,
+          status: changedFields.response?.status,
+          data: changedFields.response?.data,
+        },
+      };
 
       // 변경된 필드가 있는 경우에만 저장
       if (Object.keys(changedFields).length > 0) {
         console.log('변경된 필드들:', changedFields);
+        console.log('value', value);
+        console.log('실제 저장 로직 구현 - changedFields만 전송');
         // TODO: 실제 저장 로직 구현 - changedFields만 전송
+        console.log('saveData', saveData);
+        await useSessionStore.getState().addSession(saveData as any);
         setIsEditing(false);
       } else {
+        console.log('value', value);
         console.log('변경된 데이터가 없습니다.');
         setIsEditing(false);
       }
@@ -92,19 +122,15 @@ export const useTransactionEdit = (transaction: HttpTransaction) => {
   const startEditing = useCallback(() => {
     const initialValues = getInitialValues();
     originalDataRef.current = initialValues;
-    form.setFieldValue('headers', initialValues.headers);
-    form.setFieldValue('body', initialValues.body);
-    form.setFieldValue('responseStatus', initialValues.responseStatus);
-    form.setFieldValue('responseBody', initialValues.responseBody);
+    form.setFieldValue('request', initialValues.request);
+    form.setFieldValue('response', initialValues.response);
     setIsEditing(true);
   }, [form, getInitialValues]);
 
   const cancelEditing = useCallback(() => {
     if (originalDataRef.current) {
-      form.setFieldValue('headers', originalDataRef.current.headers);
-      form.setFieldValue('body', originalDataRef.current.body);
-      form.setFieldValue('responseStatus', originalDataRef.current.responseStatus);
-      form.setFieldValue('responseBody', originalDataRef.current.responseBody);
+      form.setFieldValue('request', originalDataRef.current.request);
+      form.setFieldValue('response', originalDataRef.current.response);
     }
     setIsEditing(false);
     originalDataRef.current = null;

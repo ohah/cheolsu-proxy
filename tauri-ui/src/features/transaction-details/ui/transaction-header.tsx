@@ -36,7 +36,7 @@ export const TransactionHeader = ({
         <h2 className="font-semibold text-card-foreground">Request Details</h2>
         {form && isEditing ? (
           <form.Field
-            name="responseStatus"
+            name="response.status"
             children={(field: any) => (
               <Input
                 type="number"
