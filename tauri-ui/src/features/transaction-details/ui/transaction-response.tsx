@@ -42,14 +42,17 @@ export const TransactionResponse = ({ transaction, isEditing = false, form }: Tr
       <CardContent>
         {form && isEditing ? (
           <form.Field
-            name="responseBody"
-            children={(field: any) => (
-              <Textarea
-                value={field.state.value || ''}
-                onChange={(e) => field.handleChange(e.target.value)}
-                placeholder="Enter response body content..."
-                className="min-h-[200px] font-mono text-xs"
-              />
+            name="response.data"
+            children={(field) => (
+              <>
+                {console.log('test', field.state.value)}
+                <Textarea
+                  value={(field.state.value as string) || ''}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  placeholder="Enter response body content..."
+                  className="min-h-[200px] font-mono text-xs"
+                />
+              </>
             )}
           />
         ) : (

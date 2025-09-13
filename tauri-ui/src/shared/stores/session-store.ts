@@ -15,15 +15,41 @@ const notifyStoreChange = async () => {
   }
 };
 
+const initialSessions = (await tauriStore.get('sessions')) as SessionStore[];
+
 const useSessionStore = create<SessionStoreState>()(
   subscribeWithSelector((set) => ({
-    sessions: (tauriStore.get('sessions') as never as SessionStore[]) ?? ([] as SessionStore[]),
+    sessions: (initialSessions as any) ?? ([] as any),
     setSessions: (sessions: SessionStore[]) => set({ sessions }),
-    addSession: (session: SessionStore) => set((state) => ({ sessions: [...(state.sessions ?? []), session] })),
+    addSession: (session: SessionStore) =>
+      set((state) => {
+        const sessions = Array.isArray(state.sessions) ? state.sessions : [];
+        const existingSessionIndex = sessions.findIndex((s) => s.url === session.url);
+
+        if (existingSessionIndex !== -1) {
+          // URL이 같으면 기존 세션을 업데이트
+          const updatedSessions = [...sessions];
+          updatedSessions[existingSessionIndex] = session;
+          return { sessions: updatedSessions };
+        } else {
+          return { sessions: [...sessions, session] };
+        }
+      }),
     updateSession: (session: SessionStore) =>
-      set((state) => ({ sessions: state.sessions.map((s) => (s.id === session.id ? session : s)) })),
-    deleteSession: (id: string) => set((state) => ({ sessions: state.sessions.filter((s) => s.id !== id) })),
-    deleteSessionByUrl: (url: string) => set((state) => ({ sessions: state.sessions.filter((s) => s.url !== url) })),
+      set((state) => {
+        const sessions = Array.isArray(state.sessions) ? state.sessions : [];
+        return { sessions: sessions.map((s) => (s.id === session.id ? session : s)) };
+      }),
+    deleteSession: (id: string) =>
+      set((state) => {
+        const sessions = Array.isArray(state.sessions) ? state.sessions : [];
+        return { sessions: sessions.filter((s) => s.id !== id) };
+      }),
+    deleteSessionByUrl: (url: string) =>
+      set((state) => {
+        const sessions = Array.isArray(state.sessions) ? state.sessions : [];
+        return { sessions: sessions.filter((s) => s.url !== url) };
+      }),
   })),
 );
 

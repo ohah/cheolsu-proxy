@@ -17,7 +17,7 @@ export const TransactionBody = ({ transaction, isEditing = false, form }: Transa
 
   const requestText = useMemo(() => {
     if (!request?.body || request.body.length === 0) {
-      return 'No body content';
+      return '';
     }
 
     return formatBody(request.body);
@@ -42,7 +42,7 @@ export const TransactionBody = ({ transaction, isEditing = false, form }: Transa
       <CardContent>
         {form && isEditing ? (
           <form.Field
-            name="body"
+            name="request.body"
             children={(field: any) => (
               <Textarea
                 value={field.state.value || ''}

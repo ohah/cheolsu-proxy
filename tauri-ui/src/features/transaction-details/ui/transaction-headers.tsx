@@ -17,7 +17,7 @@ export const TransactionHeaders = ({ transaction, isEditing = false, form }: Tra
   if (!request?.headers) return null;
 
   const handleCopy = () => {
-    const headers = form?.getFieldValue('headers') || request.headers;
+    const headers = form?.getFieldValue('request.headers') || request.headers;
     const headersText = Object.entries(headers)
       .map(([key, value]) => `${key}: ${value}`)
       .join('\n');
@@ -26,17 +26,17 @@ export const TransactionHeaders = ({ transaction, isEditing = false, form }: Tra
 
   const handleAddHeader = () => {
     if (!form) return;
-    const currentHeaders = form.getFieldValue('headers') || {};
+    const currentHeaders = form.getFieldValue('request.headers') || {};
     const newHeaders = { ...currentHeaders, '': '' };
-    form.setFieldValue('headers', newHeaders);
+    form.setFieldValue('request.headers', newHeaders);
   };
 
   const handleRemoveHeader = (key: string) => {
     if (!form) return;
-    const currentHeaders = form.getFieldValue('headers') || {};
+    const currentHeaders = form.getFieldValue('request.headers') || {};
     const newHeaders = { ...currentHeaders } as Record<string, string>;
     delete newHeaders[key];
-    form.setFieldValue('headers', newHeaders);
+    form.setFieldValue('request.headers', newHeaders);
   };
 
   return (
@@ -60,7 +60,7 @@ export const TransactionHeaders = ({ transaction, isEditing = false, form }: Tra
         <div className="space-y-2">
           {form && isEditing ? (
             <form.Field
-              name="headers"
+              name="request.headers"
               children={(field: any) => (
                 <>
                   {Object.entries(field.state.value || {}).map(([key, value], index) => (
