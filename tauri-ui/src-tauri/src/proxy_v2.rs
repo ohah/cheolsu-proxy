@@ -401,7 +401,7 @@ impl HttpHandler for LoggingHandler {
 impl WebSocketHandler for LoggingHandler {
     async fn handle_message(&mut self, _ctx: &WebSocketContext, msg: Message) -> Option<Message> {
         // WebSocket 메시지는 현재 RequestInfo 구조에 맞지 않으므로 로깅만 수행
-        println!("WebSocket Message: {:?}", msg);
+        // println!("WebSocket Message: {:?}", msg);
         Some(msg)
     }
 }
