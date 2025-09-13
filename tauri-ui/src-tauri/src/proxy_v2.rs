@@ -384,6 +384,22 @@ pub async fn start_proxy_v2<R: Runtime>(
     proxy: State<'_, ProxyV2State>,
     addr: SocketAddr,
 ) -> Result<ProxyStartResult, ProxyStartResult> {
+    // 이미 프록시가 실행 중인지 확인
+    let proxy_guard = proxy.lock().await;
+    if proxy_guard.is_some() {
+        let already_running_message = format!(
+            "프록시 V2가 이미 포트 {}에서 실행 중입니다. 시스템 프록시 설정을 127.0.0.1:{}로 변경하세요",
+            addr.port(),
+            addr.port()
+        );
+        println!("ℹ️ {}", already_running_message);
+        return Ok(ProxyStartResult {
+            status: true,
+            message: already_running_message,
+        });
+    }
+    drop(proxy_guard); // 락 해제
+
     // CA 인증서 생성 (proxyapi_v2의 build_ca 함수 사용)
     let ca = match build_ca() {
         Ok(ca) => {
