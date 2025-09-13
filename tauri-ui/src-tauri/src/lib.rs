@@ -4,8 +4,11 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 mod proxy;
 mod proxy_v2;
-use proxy::{proxy_status, set_proxy, start_proxy, stop_proxy, store_changed, ProxyState};
-use proxy_v2::{proxy_v2_status, start_proxy_v2, stop_proxy_v2, ProxyV2State};
+use proxy::{
+    get_proxy_status_command, proxy_status, set_proxy, start_proxy, stop_proxy, store_changed,
+    ProxyState,
+};
+use proxy_v2::{proxy_v2_status, start_proxy_v2, stop_proxy_v2, store_changed_v2, ProxyV2State};
 use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -40,7 +43,7 @@ pub fn run() {
                 });
                 Ok(())
             })
-            .on_window_event(|window, event| {
+            .on_window_event(|_window, event| {
                 // 앱 종료 시 프록시 해제
                 if let tauri::WindowEvent::CloseRequested { .. } = event {
                     println!("CloseRequested");
@@ -56,7 +59,9 @@ pub fn run() {
                 proxy_status,
                 start_proxy_v2,
                 stop_proxy_v2,
-                proxy_v2_status
+                proxy_v2_status,
+                store_changed_v2,
+                get_proxy_status_command
             ])
             .run(tauri::generate_context!())
             .expect("error while running tauri application");
