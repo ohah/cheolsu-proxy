@@ -170,13 +170,19 @@ impl LoggingHandler {
             .and_then(|v| v.as_u64())
             .unwrap_or(200) as u16;
 
-        // 헤더 추출
+        // 헤더 추출 (content-length 제외)
         let mut headers: HeaderMap = response_data
             .get("headers")
             .and_then(JsonValue::as_object)
             .map(|obj| {
                 obj.iter()
-                    .filter_map(|(k, v)| Some((k.parse().ok()?, v.as_str()?.parse().ok()?)))
+                    .filter_map(|(k, v)| {
+                        // content-length 헤더는 제외 (실제 본문 길이에 맞게 자동 설정됨)
+                        if k.to_lowercase() == "content-length" {
+                            return None;
+                        }
+                        Some((k.parse().ok()?, v.as_str()?.parse().ok()?))
+                    })
                     .collect()
             })
             .unwrap_or_default();
@@ -192,18 +198,25 @@ impl LoggingHandler {
 
         // 응답 본문 생성
         let body = if let Some(data) = response_data.get("data") {
+            println!("🎭 응답 본문 데이터 발견: {:?}", data);
             match data {
-                JsonValue::String(s) => Body::from(s.clone()),
+                JsonValue::String(s) => {
+                    println!("🎭 문자열 데이터: {}", s);
+                    Body::from(s.clone())
+                }
                 JsonValue::Object(_) | JsonValue::Array(_) => {
                     let json_string = serde_json::to_string(data).unwrap_or_default();
+                    println!("🎭 JSON 데이터: {}", json_string);
                     Body::from(json_string)
                 }
                 _ => {
                     let string_data = data.to_string();
+                    println!("🎭 기타 데이터: {}", string_data);
                     Body::from(string_data)
                 }
             }
         } else {
+            println!("🎭 응답 본문 데이터 없음 - 빈 응답 생성");
             Body::empty()
         };
 
@@ -312,37 +325,74 @@ impl HttpHandler for LoggingHandler {
         let url = restored_req.uri().to_string();
         let method = restored_req.method().to_string();
 
-        if let Some(session) = self.find_matching_session(&url, &method).await {
-            println!("🎭 세션 응답 반환: {} {}", method, url);
-
-            // 세션의 response 데이터 추출
-            let default_response = JsonValue::Object(serde_json::Map::new());
-            let response_data = session.get("response").unwrap_or(&default_response);
-            let session_response = self.create_response_from_session(response_data);
-
-            // 세션 응답을 ProxiedResponse로 변환하여 저장
-            let session_proxied_response = ProxiedResponse::new(
-                session_response.status(),
-                session_response.version(),
-                session_response.headers().clone(),
-                Bytes::from("세션 응답입니다 (proxy_v2)"),
-                chrono::Local::now()
-                    .timestamp_nanos_opt()
-                    .unwrap_or_default(),
-            );
-            self.res = Some(session_proxied_response);
-
-            // 요청과 응답을 묶어서 전송
-            self.send_output();
-
-            return session_response.into();
-        }
+        // 세션 매칭은 handle_response에서 처리하므로 여기서는 원본 요청을 그대로 전달
 
         restored_req.into()
     }
 
     async fn handle_response(&mut self, _ctx: &HttpContext, res: Response<Body>) -> Response<Body> {
-        // 응답 정보를 ProxiedResponse로 변환하고 원본 응답을 복원
+        // 세션 응답인지 확인 (x-cheolsu-proxy-session 헤더 체크)
+        let is_session_response = res
+            .headers()
+            .get("x-cheolsu-proxy-session")
+            .and_then(|h| h.to_str().ok())
+            .map(|s| s == "true")
+            .unwrap_or(false);
+
+        if is_session_response {
+            println!("🎭 세션 응답 감지됨 - 로깅만 수행");
+            // 세션 응답의 경우 로깅만 수행하고 원본 응답을 그대로 반환
+            let (proxied_response, restored_res) = self.response_to_proxied_response(res).await;
+            self.res = Some(proxied_response);
+            self.send_output();
+            return restored_res;
+        }
+
+        // 일반 응답 처리 - 세션 매칭 확인
+        if let Some(req) = &self.req {
+            let url = req.uri().to_string();
+            let method = req.method().to_string();
+
+            if let Some(session) = self.find_matching_session(&url, &method).await {
+                // 세션의 response 데이터 추출
+                let default_response = JsonValue::Object(serde_json::Map::new());
+                let response_data = session.get("response").unwrap_or(&default_response);
+                println!("🎭 응답 데이터: {:?}", response_data);
+                let mut session_response = self.create_response_from_session(response_data);
+
+                // 세션 응답의 실제 본문을 가져와서 Bytes로 변환
+                let session_body_bytes =
+                    match Self::body_to_bytes_from_mut(&mut session_response.body_mut()).await {
+                        Ok(bytes) => bytes,
+                        Err(e) => {
+                            eprintln!("❌ 세션 응답 body 읽기 실패: {}", e);
+                            Bytes::from("세션 응답 읽기 실패")
+                        }
+                    };
+
+                // 세션 응답을 ProxiedResponse로 변환하여 저장
+                let session_proxied_response = ProxiedResponse::new(
+                    session_response.status(),
+                    session_response.version(),
+                    session_response.headers().clone(),
+                    session_body_bytes.clone(),
+                    chrono::Local::now()
+                        .timestamp_nanos_opt()
+                        .unwrap_or_default(),
+                );
+                self.res = Some(session_proxied_response);
+
+                // 요청과 응답을 묶어서 전송
+                self.send_output();
+
+                // body를 다시 복원하여 반환
+                use http_body_util::Full;
+                *session_response.body_mut() = Body::from(Full::new(session_body_bytes));
+                return session_response;
+            }
+        }
+
+        // 일반 응답 처리
         let (proxied_response, restored_res) = self.response_to_proxied_response(res).await;
         self.res = Some(proxied_response);
 
