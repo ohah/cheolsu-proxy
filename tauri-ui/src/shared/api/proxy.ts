@@ -14,7 +14,12 @@ export async function stopProxy(): Promise<void> {
 }
 
 // proxyapi_v2를 사용하는 새로운 프록시 함수들
-export async function startProxyV2(port: number = 8100): Promise<void> {
+export interface ProxyStartResult {
+  status: boolean;
+  message: string;
+}
+
+export async function startProxyV2(port: number = 8100): Promise<ProxyStartResult> {
   return invoke('start_proxy_v2', { addr: `127.0.0.1:${port}` });
 }
 
