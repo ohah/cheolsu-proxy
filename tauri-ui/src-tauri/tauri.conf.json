@@ -13,8 +13,8 @@
     "windows": [
       {
         "title": "Cheolsu Proxy",
-        "width": 1024,
-        "height": 768
+        "width": 1440,
+        "height": 1080
       }
     ],
     "security": {
@@ -23,8 +23,13 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["msi", "nsis"],
-    "icon": ["icons/logo.png"],
+    "targets": [
+      "msi",
+      "nsis"
+    ],
+    "icon": [
+      "icons/logo.png"
+    ],
     "windows": {
       "wix": {
         "language": "ko-KR"
