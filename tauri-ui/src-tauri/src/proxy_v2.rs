@@ -106,7 +106,7 @@ fn create_hybrid_client(
         .with_tls_config(rustls_config)
         .https_or_http() // HTTP와 HTTPS 모두 지원
         .enable_http1() // HTTP/1.1 지원
-        .enable_http2() // HTTP/2 지원 추가
+        // .enable_http2() // HTTP/2 지원 추가
         .build();
 
     Ok(Client::builder(TokioExecutor::new())
