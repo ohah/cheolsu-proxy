@@ -1,4 +1,4 @@
-import { Edit, X, Save, XCircle } from 'lucide-react';
+import { Edit, X, Save, XCircle, Trash2 } from 'lucide-react';
 
 import type { HttpTransaction } from '@/entities/proxy';
 
@@ -14,6 +14,7 @@ interface TransactionHeaderProps {
   onStartEdit: () => void;
   onCancelEdit: () => void;
   onSaveEdit: () => void;
+  onDeleteSession: () => void;
   form?: AppFormInstance;
 }
 
@@ -24,6 +25,7 @@ export const TransactionHeader = ({
   onStartEdit,
   onCancelEdit,
   onSaveEdit,
+  onDeleteSession,
   form,
 }: TransactionHeaderProps) => {
   const { response } = transaction;
@@ -69,6 +71,9 @@ export const TransactionHeader = ({
             <Edit className="w-4 h-4" />
           </Button>
         )}
+        <Button variant="ghost" size="sm" onClick={onDeleteSession}>
+          <Trash2 className="w-4 h-4" />
+        </Button>
         <Button variant="ghost" size="sm" onClick={clearSelectedTransaction}>
           <X className="w-4 h-4" />
         </Button>
