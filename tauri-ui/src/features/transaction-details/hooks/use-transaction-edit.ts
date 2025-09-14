@@ -104,16 +104,9 @@ export const useTransactionEdit = (transaction: HttpTransaction) => {
 
       // 변경된 필드가 있는 경우에만 저장
       if (Object.keys(changedFields).length > 0) {
-        console.log('변경된 필드들:', changedFields);
-        console.log('value', value);
-        console.log('실제 저장 로직 구현 - changedFields만 전송');
-        // TODO: 실제 저장 로직 구현 - changedFields만 전송
-        console.log('saveData', saveData);
         await useSessionStore.getState().addSession(saveData as any);
         setIsEditing(false);
       } else {
-        console.log('value', value);
-        console.log('변경된 데이터가 없습니다.');
         setIsEditing(false);
       }
     },
