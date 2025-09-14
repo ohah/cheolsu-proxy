@@ -140,26 +140,8 @@ pub fn set_proxy(enable: bool) -> Result<(), String> {
                 .status()
                 .map_err(|e| e.to_string())?;
 
-            // WebSocket 연결 오류가 발생한 도메인들을 제외 처리
-            // TLS 서명 알고리즘 확장 문제가 있는 도메인들을 제외
-            let bypass_domains = "*.pusher.com,*.pusherapp.com,*.amazonaws.com,*.icloud.com,*.apple.com,localhost,127.0.0.1";
-
-            // WebSocket 포트(443, 80)를 사용하는 특정 도메인들을 추가로 제외
-            // localhost와 127.0.0.1은 모든 포트가 자동으로 제외됨
-            let bypass_with_ports = "ws-ap3.pusher.com:443,ws-ap3.pusher.com:80,gateway.icloud.com:443,gateway.icloud.com:80";
-
-            // 모든 제외 도메인을 하나로 합쳐서 설정
-            let all_bypass = format!("{},{}", bypass_domains, bypass_with_ports);
-            Command::new("networksetup")
-                .args(["-setproxybypassdomains", service, &all_bypass])
-                .status()
-                .map_err(|e| e.to_string())?;
-
             println!("✅ 프록시 설정 완료 - HTTP, HTTPS 프록시 활성화됨");
-            println!("   🔌 WebSocket 오류 도메인 제외: {}", bypass_domains);
-            println!("   🔌 WebSocket 포트별 제외: {}", bypass_with_ports);
-            println!("   🏠 localhost, 127.0.0.1: 모든 포트 제외됨");
-            println!("   💡 WebSocket 연결은 직접 연결로 처리됨");
+            println!("   🌐 프록시 주소: 127.0.0.1:8100");
         } else {
             // HTTP 프록시 끄기
             Command::new("networksetup")
@@ -173,14 +155,7 @@ pub fn set_proxy(enable: bool) -> Result<(), String> {
                 .status()
                 .map_err(|e| e.to_string())?;
 
-            // 프록시 제외 도메인도 정리
-            Command::new("networksetup")
-                .args(["-setproxybypassdomains", service, ""])
-                .status()
-                .map_err(|e| e.to_string())?;
-
             println!("✅ 프록시 설정 해제 완료 - HTTP, HTTPS 프록시 비활성화됨");
-            println!("   🔌 WebSocket 제외 도메인도 정리됨");
         }
     }
     Ok(())
