@@ -8,7 +8,7 @@ use proxy_v2_models::{ProxiedRequest, ProxiedResponse, RequestInfo};
 use proxyapi_v2::{
     builder::ProxyBuilder,
     certificate_authority::build_ca,
-    hyper::http::{HeaderMap, StatusCode},
+    hyper::http::{HeaderMap, HeaderValue, StatusCode},
     hyper::{Request, Response},
     Body, HttpContext, HttpHandler, RequestOrResponse,
 };
@@ -352,7 +352,6 @@ impl HttpHandler for LoggingHandler {
                 // 세션의 response 데이터 추출
                 let default_response = JsonValue::Object(serde_json::Map::new());
                 let response_data = session.get("response").unwrap_or(&default_response);
-                println!("🎭 응답 데이터: {:?}", response_data);
                 let mut session_response = self.create_response_from_session(response_data);
 
                 // 세션 응답의 실제 본문을 가져와서 Bytes로 변환
@@ -411,14 +410,154 @@ impl HttpHandler for LoggingHandler {
         // 에러 원인 분석
         if let Some(source) = err.source() {
             eprintln!("   - 원인: {}", source);
+
+            // UnexpectedEof 오류는 투명 프록시로 처리
+            let source_str = source.to_string();
+            if source_str.contains("UnexpectedEof") || source_str.contains("unexpected EOF") {
+                eprintln!("   - TLS close_notify 없이 연결 종료됨 (투명 프록시로 처리)");
+            }
         }
 
-        // 502 Bad Gateway 응답 반환
+        // 투명 프록시: curl로 직접 요청해서 원본 응답 가져오기
+        if let Some(req) = &self.req {
+            eprintln!("🔄 투명 프록시: curl로 직접 요청 시도 중...");
+            match fallback_with_curl(req).await {
+                Ok(response) => {
+                    eprintln!("✅ curl 직접 요청 성공 - 원본 응답 반환");
+                    return response;
+                }
+                Err(curl_err) => {
+                    eprintln!("❌ curl 직접 요청도 실패: {}", curl_err);
+                }
+            }
+        }
+
+        // curl도 실패한 경우 기본 에러 응답
         Response::builder()
             .status(StatusCode::BAD_GATEWAY)
             .body(Body::from(format!("Proxy Error: {}", err)))
             .expect("Failed to build error response")
     }
+}
+
+/// curl을 사용해서 직접 요청을 보내고 응답을 받는 함수
+async fn fallback_with_curl(
+    req: &ProxiedRequest,
+) -> Result<Response<Body>, Box<dyn std::error::Error>> {
+    use std::process::Command;
+    use std::str;
+
+    let url = req.uri().to_string();
+    let method = req.method().to_string();
+
+    // curl 명령어 구성
+    let mut curl_cmd = Command::new("curl");
+    curl_cmd
+        .arg("-s") // silent mode
+        .arg("-i") // include headers
+        .arg("-X")
+        .arg(&method) // HTTP method
+        .arg("--max-time")
+        .arg("10") // 10초 타임아웃
+        .arg("--connect-timeout")
+        .arg("5") // 5초 연결 타임아웃
+        .arg("--insecure"); // SSL 인증서 검증 무시
+
+    // 헤더 추가
+    for (name, value) in req.headers() {
+        let name_str = name.as_str();
+        if let Ok(value_str) = value.to_str() {
+            // Host 헤더는 URL에서 자동으로 설정되므로 제외
+            if name_str.to_lowercase() != "host" {
+                curl_cmd
+                    .arg("-H")
+                    .arg(format!("{}: {}", name_str, value_str));
+            }
+        }
+    }
+
+    // URL 추가
+    curl_cmd.arg(&url);
+
+    eprintln!("🔧 curl 명령어 실행: {:?}", curl_cmd);
+
+    // curl 실행
+    let output = curl_cmd.output()?;
+
+    if !output.status.success() {
+        return Err(format!("curl 실행 실패: {}", output.status).into());
+    }
+
+    let response_text = str::from_utf8(&output.stdout)?;
+    eprintln!("📥 curl 응답 길이: {} bytes", response_text.len());
+
+    // HTTP 응답 파싱
+    parse_curl_response(response_text)
+}
+
+/// curl 응답을 HTTP Response로 파싱하는 함수
+fn parse_curl_response(response_text: &str) -> Result<Response<Body>, Box<dyn std::error::Error>> {
+    let lines: Vec<&str> = response_text.lines().collect();
+    if lines.is_empty() {
+        return Err("빈 응답".into());
+    }
+
+    // 첫 번째 줄에서 상태 코드 파싱
+    let status_line = lines[0];
+    let parts: Vec<&str> = status_line.split_whitespace().collect();
+    if parts.len() < 2 {
+        return Err("잘못된 상태 라인".into());
+    }
+
+    let status_code = parts[1].parse::<u16>()?;
+    let status = StatusCode::from_u16(status_code)?;
+
+    // 헤더와 본문 분리
+    let mut header_end = 0;
+    for (i, line) in lines.iter().enumerate() {
+        if line.is_empty() {
+            header_end = i;
+            break;
+        }
+    }
+
+    // 헤더 파싱 (content-length 제외)
+    let mut headers = HeaderMap::new();
+    for line in &lines[1..header_end] {
+        if let Some(colon_pos) = line.find(':') {
+            let name = &line[..colon_pos].trim();
+            let value = &line[colon_pos + 1..].trim();
+
+            // content-length 헤더는 제외 (실제 본문 길이에 맞게 자동 설정됨)
+            if name.to_lowercase() == "content-length" {
+                continue;
+            }
+
+            if let (Ok(header_name), Ok(header_value)) = (
+                name.parse::<proxyapi_v2::hyper::http::HeaderName>(),
+                value.parse::<HeaderValue>(),
+            ) {
+                headers.insert(header_name, header_value);
+            }
+        }
+    }
+
+    // 본문 추출
+    let body_text = if header_end + 1 < lines.len() {
+        lines[header_end + 1..].join("\n")
+    } else {
+        String::new()
+    };
+
+    // Response 생성
+    let mut response = Response::builder()
+        .status(status)
+        .body(Body::from(body_text))?;
+
+    // 헤더 추가
+    *response.headers_mut() = headers;
+
+    Ok(response)
 }
 
 // WebSocket 핸들러 구현 (나중에 사용할 수 있도록 보존)
