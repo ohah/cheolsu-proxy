@@ -10,9 +10,9 @@ use proxyapi_v2::{
     certificate_authority::build_ca,
     hyper::http::{HeaderMap, StatusCode},
     hyper::{Request, Response},
-    tokio_tungstenite::tungstenite::Message,
-    Body, HttpContext, HttpHandler, RequestOrResponse, WebSocketContext, WebSocketHandler,
+    Body, HttpContext, HttpHandler, RequestOrResponse,
 };
+use std::error::Error;
 use std::net::SocketAddr;
 use std::sync::mpsc;
 use std::sync::Arc;
@@ -22,30 +22,6 @@ use tokio::net::TcpListener;
 use tokio::sync::oneshot::Sender;
 use tokio::sync::Mutex;
 use tokio_rustls::rustls::{crypto::aws_lc_rs, ClientConfig};
-
-/// HTTP와 HTTPS를 모두 처리할 수 있는 커스텀 클라이언트 생성
-fn create_http_https_client(
-) -> Result<Client<hyper_rustls::HttpsConnector<HttpConnector>, Body>, Box<dyn std::error::Error>> {
-    // 모든 인증서를 허용하는 Rustls 설정 생성
-    let rustls_config =
-        ClientConfig::builder_with_provider(std::sync::Arc::new(aws_lc_rs::default_provider()))
-            .with_safe_default_protocol_versions()?
-            .dangerous()
-            .with_custom_certificate_verifier(std::sync::Arc::new(DangerousCertificateVerifier))
-            .with_no_client_auth();
-
-    // HTTP와 HTTPS를 모두 처리할 수 있는 커넥터 생성
-    let https = HttpsConnectorBuilder::new()
-        .with_tls_config(rustls_config)
-        .https_or_http() // HTTP와 HTTPS 모두 지원
-        .enable_http1() // HTTP/1.1 지원
-        .build();
-
-    Ok(Client::builder(TokioExecutor::new())
-        .http1_title_case_headers(true)
-        .http1_preserve_header_case(true)
-        .build(https))
-}
 
 /// 모든 인증서를 허용하는 위험한 인증서 검증기
 #[derive(Debug)]
@@ -112,6 +88,31 @@ impl tokio_rustls::rustls::client::danger::ServerCertVerifier for DangerousCerti
             tokio_rustls::rustls::SignatureScheme::ML_DSA_87,
         ]
     }
+}
+
+/// 하이브리드 클라이언트 생성 (aws_lc_rs + 모든 인증서 허용)
+fn create_hybrid_client(
+) -> Result<Client<hyper_rustls::HttpsConnector<HttpConnector>, Body>, Box<dyn std::error::Error>> {
+    // aws_lc_rs 프로바이더를 사용하되 모든 인증서를 허용하는 설정
+    let rustls_config =
+        ClientConfig::builder_with_provider(std::sync::Arc::new(aws_lc_rs::default_provider()))
+            .with_safe_default_protocol_versions()?
+            .dangerous()
+            .with_custom_certificate_verifier(std::sync::Arc::new(DangerousCertificateVerifier))
+            .with_no_client_auth();
+
+    // HTTP와 HTTPS를 모두 처리할 수 있는 커넥터 생성
+    let https = HttpsConnectorBuilder::new()
+        .with_tls_config(rustls_config)
+        .https_or_http() // HTTP와 HTTPS 모두 지원
+        .enable_http1() // HTTP/1.1 지원
+        .enable_http2() // HTTP/2 지원 추가
+        .build();
+
+    Ok(Client::builder(TokioExecutor::new())
+        .http1_title_case_headers(true)
+        .http1_preserve_header_case(true)
+        .build(https))
 }
 
 /// HTTP 및 WebSocket 요청/응답을 로깅하는 핸들러
@@ -396,15 +397,40 @@ impl HttpHandler for LoggingHandler {
         // 원본 응답을 그대로 반환 (기존 proxyapi 방식)
         restored_res
     }
+
+    async fn handle_error(
+        &mut self,
+        _ctx: &HttpContext,
+        err: hyper_util::client::legacy::Error,
+    ) -> Response<Body> {
+        // 상세한 에러 정보 로깅
+        eprintln!("❌ 프록시 요청 오류 발생:");
+        eprintln!("   - 에러 타입: {:?}", err);
+        eprintln!("   - 에러 메시지: {}", err);
+
+        // 에러 원인 분석
+        if let Some(source) = err.source() {
+            eprintln!("   - 원인: {}", source);
+        }
+
+        // 502 Bad Gateway 응답 반환
+        Response::builder()
+            .status(StatusCode::BAD_GATEWAY)
+            .body(Body::from(format!("Proxy Error: {}", err)))
+            .expect("Failed to build error response")
+    }
 }
 
+// WebSocket 핸들러 구현 (나중에 사용할 수 있도록 보존)
+/*
 impl WebSocketHandler for LoggingHandler {
     async fn handle_message(&mut self, _ctx: &WebSocketContext, msg: Message) -> Option<Message> {
         // WebSocket 메시지는 현재 RequestInfo 구조에 맞지 않으므로 로깅만 수행
-        // println!("WebSocket Message: {:?}", msg);
+        println!("WebSocket Message: {:?}", msg);
         Some(msg)
     }
 }
+*/
 
 /// hudsucker를 사용하는 프록시 상태 (proxy.rs와 유사한 구조)
 pub type ProxyV2State = Arc<
@@ -448,14 +474,17 @@ pub async fn start_proxy_v2<R: Runtime>(
     drop(proxy_guard); // 락 해제
 
     // CA 인증서 생성 (proxyapi_v2의 build_ca 함수 사용)
+    println!("🔐 CA 인증서 생성/로드 시도 중...");
     let ca = match build_ca() {
         Ok(ca) => {
-            println!("✅ 기존 CA 인증서 로드 완료");
+            println!("✅ CA 인증서 로드 완료");
+            println!("   - CA 인증서가 성공적으로 생성/로드되었습니다");
             ca
         }
         Err(e) => {
             let error_msg = format!("CA 인증서 생성 실패: {}", e);
             eprintln!("❌ {}", error_msg);
+            eprintln!("   - 상세 오류: {:?}", e);
             return Err(ProxyStartResult {
                 status: false,
                 message: error_msg,
@@ -502,14 +531,17 @@ pub async fn start_proxy_v2<R: Runtime>(
         }
     };
 
-    // HTTP와 HTTPS를 모두 처리할 수 있는 커스텀 클라이언트 생성
-    let custom_client = match create_http_https_client() {
+    // 하이브리드 클라이언트 생성 (aws_lc_rs + 모든 인증서 허용)
+    let hybrid_client = match create_hybrid_client() {
         Ok(client) => {
-            println!("✅ HTTP/HTTPS 모두 지원하는 커스텀 클라이언트 생성 완료");
+            println!("✅ 하이브리드 클라이언트 생성 완료");
+            println!("   - aws_lc_rs 프로바이더 사용");
+            println!("   - 모든 인증서 허용 (DangerousCertificateVerifier)");
+            println!("   - HTTP/1.1 및 HTTP/2 지원");
             client
         }
         Err(e) => {
-            let error_msg = format!("커스텀 클라이언트 생성 실패: {}", e);
+            let error_msg = format!("하이브리드 클라이언트 생성 실패: {}", e);
             eprintln!("❌ {}", error_msg);
             return Err(ProxyStartResult {
                 status: false,
@@ -518,21 +550,21 @@ pub async fn start_proxy_v2<R: Runtime>(
         }
     };
 
-    // 프록시 빌더로 프록시 구성
+    // 프록시 빌더로 프록시 구성 (하이브리드 클라이언트 사용)
     let proxy_builder = match ProxyBuilder::new()
         .with_listener(listener)
         .with_ca(ca)
-        .with_client(custom_client) // 커스텀 클라이언트 사용 (모든 인증서 허용)
+        .with_client(hybrid_client) // 하이브리드 클라이언트 사용
         .with_http_handler(handler.clone())
-        .with_websocket_handler(handler.clone())
+        // .with_websocket_handler(handler.clone()) // WebSocket 핸들러 비활성화 (직접 통과)
         .build()
     {
         Ok(builder) => {
             println!("✅ 프록시 빌더 구성 완료");
             println!("   - CA 인증서: 로드됨");
-            println!("   - TLS 클라이언트: 커스텀 클라이언트 (모든 인증서 허용)");
+            println!("   - TLS 클라이언트: 하이브리드 클라이언트 (aws_lc_rs + 모든 인증서 허용)");
             println!("   - HTTP 핸들러: 로깅 핸들러");
-            println!("   - WebSocket 핸들러: 로깅 핸들러");
+            println!("   - WebSocket: 직접 통과 (핸들러 없음)");
             builder
         }
         Err(e) => {
