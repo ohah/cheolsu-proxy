@@ -1,6 +1,6 @@
 use async_compression::tokio::bufread::GzipEncoder;
 use futures::{SinkExt, StreamExt};
-use hudsucker::{
+use proxyapi_v2::{
     Body, HttpContext, HttpHandler, Proxy, RequestOrResponse, WebSocketContext, WebSocketHandler,
     certificate_authority::CertificateAuthority,
     decode_request, decode_response,
@@ -162,7 +162,8 @@ fn rustls_client_config() -> rustls::ClientConfig {
         roots.add(cert.clone()).unwrap();
     }
 
-    let mut ca_cert_bytes: &[u8] = include_bytes!("../../examples/ca/hudsucker.cer");
+    let mut ca_cert_bytes: &[u8] =
+        include_bytes!("../../src/certificate_authority/cheolsu-proxy.cer");
     let ca_cert = pemfile::certs(&mut ca_cert_bytes)
         .next()
         .unwrap()
@@ -193,9 +194,10 @@ pub fn rustls_client() -> Client<hyper_rustls::HttpsConnector<HttpConnector>, Bo
 }
 
 fn native_tls_connector() -> native_tls::TlsConnector {
-    let ca_cert =
-        native_tls::Certificate::from_pem(include_bytes!("../../examples/ca/hudsucker.cer"))
-            .unwrap();
+    let ca_cert = native_tls::Certificate::from_pem(include_bytes!(
+        "../../src/certificate_authority/cheolsu-proxy.cer"
+    ))
+    .unwrap();
 
     native_tls::TlsConnector::builder()
         .add_root_certificate(ca_cert)
@@ -294,7 +296,10 @@ pub async fn start_noop_proxy(
 
 pub fn build_client(proxy: &str) -> reqwest::Client {
     let proxy = reqwest::Proxy::all(proxy).unwrap();
-    let ca_cert = Certificate::from_pem(include_bytes!("../../examples/ca/hudsucker.cer")).unwrap();
+    let ca_cert = Certificate::from_pem(include_bytes!(
+        "../../src/certificate_authority/cheolsu-proxy.cer"
+    ))
+    .unwrap();
 
     reqwest::Client::builder()
         .proxy(proxy)

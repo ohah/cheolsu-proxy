@@ -90,7 +90,7 @@ impl tokio_rustls::rustls::client::danger::ServerCertVerifier for DangerousCerti
     }
 }
 
-/// 하이브리드 클라이언트 생성 (aws_lc_rs + 모든 인증서 허용)
+/// 하이브리드 클라이언트 생성 (모든 인증서 허용)
 fn create_hybrid_client(
 ) -> Result<Client<hyper_rustls::HttpsConnector<HttpConnector>, Body>, Box<dyn std::error::Error>> {
     // aws_lc_rs 프로바이더를 사용하되 모든 인증서를 허용하는 설정
@@ -312,20 +312,64 @@ impl LoggingHandler {
     }
 }
 
+impl LoggingHandler {
+    // 캐시된 응답 데이터로부터 Response 생성
+    fn create_response_from_cached_data(&self) -> Response<Body> {
+        if let Some(cached_response) = &self.res {
+            let mut response = Response::builder()
+                .status(*cached_response.status())
+                .version(*cached_response.version());
+
+            // 헤더 복사
+            for (key, value) in cached_response.headers() {
+                response = response.header(key, value);
+            }
+
+            // body 설정
+            use http_body_util::Full;
+            response
+                .body(Body::from(Full::new(cached_response.body().clone())))
+                .unwrap_or_else(|_| {
+                    Response::builder()
+                        .status(StatusCode::INTERNAL_SERVER_ERROR)
+                        .body(Body::from("Failed to create response from cached data"))
+                        .unwrap()
+                })
+        } else {
+            Response::builder()
+                .status(StatusCode::INTERNAL_SERVER_ERROR)
+                .body(Body::from("No cached response data available"))
+                .unwrap()
+        }
+    }
+}
+
 impl HttpHandler for LoggingHandler {
     async fn handle_request(
         &mut self,
         _ctx: &HttpContext,
         req: Request<Body>,
     ) -> RequestOrResponse {
+        eprintln!(
+            "🔄 [HANDLER] handle_request 시작 - {} {}",
+            req.method(),
+            req.uri()
+        );
+
         // 요청 정보를 ProxiedRequest로 변환하고 원본 요청을 복원
         let (proxied_request, restored_req) = self.request_to_proxied_request(req).await;
         self.req = Some(proxied_request);
 
+        eprintln!("✅ [HANDLER] handle_request 완료 - 요청을 upstream으로 전달");
         restored_req.into()
     }
 
     async fn handle_response(&mut self, _ctx: &HttpContext, res: Response<Body>) -> Response<Body> {
+        eprintln!(
+            "📥 [HANDLER] handle_response 시작 - Status: {}",
+            res.status()
+        );
+
         // 세션 응답인지 확인 (x-cheolsu-proxy-session 헤더 체크)
         let is_session_response = res
             .headers()
@@ -393,6 +437,7 @@ impl HttpHandler for LoggingHandler {
         // 요청과 응답을 묶어서 전송
         self.send_output();
 
+        eprintln!("✅ [HANDLER] handle_response 완료 - 응답을 클라이언트로 전달");
         // 원본 응답을 그대로 반환 (기존 proxyapi 방식)
         restored_res
     }
@@ -402,32 +447,75 @@ impl HttpHandler for LoggingHandler {
         _ctx: &HttpContext,
         err: hyper_util::client::legacy::Error,
     ) -> Response<Body> {
-        // 상세한 에러 정보 로깅
+        eprintln!("❌ [HANDLER] handle_error 호출됨 - 에러 발생!");
+        eprintln!("   - 에러 타입: {:?}", err);
+        eprintln!("   - 에러 메시지: {}", err);
+
+        // UnexpectedEof 에러인지 먼저 확인
+        if let Some(source) = err.source() {
+            let source_str = source.to_string();
+            if source_str.contains("UnexpectedEof") || source_str.contains("unexpected EOF") {
+                eprintln!("ℹ️  TLS close_notify 없이 연결 종료됨 - 정상 종료로 처리");
+
+                // UnexpectedEof는 정상적인 연결 종료로 처리
+                // 이미 받은 응답 데이터가 있는지 확인
+                if self.res.is_some() {
+                    eprintln!("   - ✅ 이미 받은 응답 데이터가 있음 - 해당 데이터 사용");
+                    eprintln!("   - 📊 응답 상태: {}", self.res.as_ref().unwrap().status());
+                    eprintln!(
+                        "   - 📏 응답 크기: {} bytes",
+                        self.res.as_ref().unwrap().body().len()
+                    );
+                    return self.create_response_from_cached_data();
+                } else {
+                    eprintln!("   - ⚠️  받은 응답 데이터가 없음 - 빈 응답 반환");
+                    return Response::builder()
+                        .status(StatusCode::OK)
+                        .body(Body::empty())
+                        .unwrap_or_else(|_| {
+                            Response::builder()
+                                .status(StatusCode::INTERNAL_SERVER_ERROR)
+                                .body(Body::from("Internal Server Error"))
+                                .unwrap()
+                        });
+                }
+            }
+        }
+
+        // 상세한 에러 정보 로깅 (UnexpectedEof가 아닌 경우만)
         eprintln!("❌ 프록시 요청 오류 발생:");
         eprintln!("   - 에러 타입: {:?}", err);
         eprintln!("   - 에러 메시지: {}", err);
 
-        // 에러 원인 분석
-        if let Some(source) = err.source() {
+        // 에러 원인 분석 및 curl 백업 사용 여부 결정
+        let should_use_curl = if let Some(source) = err.source() {
             eprintln!("   - 원인: {}", source);
 
-            // UnexpectedEof 오류는 투명 프록시로 처리
             let source_str = source.to_string();
-            if source_str.contains("UnexpectedEof") || source_str.contains("unexpected EOF") {
-                eprintln!("   - TLS close_notify 없이 연결 종료됨 (투명 프록시로 처리)");
+            if source_str.contains("HandshakeFailure") {
+                eprintln!("   - TLS 핸드셰이크 실패 (curl 백업 사용)");
+                true
+            } else {
+                eprintln!("   - 기타 연결 오류 (curl 백업 사용 안함)");
+                false
             }
-        }
+        } else {
+            eprintln!("   - 알 수 없는 오류 (curl 백업 사용 안함)");
+            false
+        };
 
-        // 투명 프록시: curl로 직접 요청해서 원본 응답 가져오기
-        if let Some(req) = &self.req {
-            eprintln!("🔄 투명 프록시: curl로 직접 요청 시도 중...");
-            match fallback_with_curl(req).await {
-                Ok(response) => {
-                    eprintln!("✅ curl 직접 요청 성공 - 원본 응답 반환");
-                    return response;
-                }
-                Err(curl_err) => {
-                    eprintln!("❌ curl 직접 요청도 실패: {}", curl_err);
+        // TLS 오류인 경우 curl 백업 사용
+        if should_use_curl {
+            if let Some(req) = &self.req {
+                eprintln!("🔄 TLS 오류: curl로 직접 요청 시도 중...");
+                match fallback_with_curl(req).await {
+                    Ok(response) => {
+                        eprintln!("✅ curl 직접 요청 성공 - 원본 응답 반환");
+                        return response;
+                    }
+                    Err(curl_err) => {
+                        eprintln!("❌ curl 직접 요청도 실패: {}", curl_err);
+                    }
                 }
             }
         }
@@ -670,13 +758,13 @@ pub async fn start_proxy_v2<R: Runtime>(
         }
     };
 
-    // 하이브리드 클라이언트 생성 (aws_lc_rs + 모든 인증서 허용)
+    // 하이브리드 클라이언트 생성 (모든 인증서 허용)
     let hybrid_client = match create_hybrid_client() {
         Ok(client) => {
             println!("✅ 하이브리드 클라이언트 생성 완료");
-            println!("   - aws_lc_rs 프로바이더 사용");
+            println!("   - 기본 프로바이더 사용");
             println!("   - 모든 인증서 허용 (DangerousCertificateVerifier)");
-            println!("   - HTTP/1.1 및 HTTP/2 지원");
+            println!("   - HTTP/1.1 지원");
             client
         }
         Err(e) => {
@@ -701,7 +789,7 @@ pub async fn start_proxy_v2<R: Runtime>(
         Ok(builder) => {
             println!("✅ 프록시 빌더 구성 완료");
             println!("   - CA 인증서: 로드됨");
-            println!("   - TLS 클라이언트: 하이브리드 클라이언트 (aws_lc_rs + 모든 인증서 허용)");
+            println!("   - TLS 클라이언트: 하이브리드 클라이언트 (모든 인증서 허용)");
             println!("   - HTTP 핸들러: 로깅 핸들러");
             println!("   - WebSocket: 직접 통과 (핸들러 없음)");
             builder
