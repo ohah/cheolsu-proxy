@@ -23,7 +23,8 @@ use tokio_tungstenite::{
     Connector, WebSocketStream,
     tungstenite::{self, Message},
 };
-use tracing::{Instrument, Span, error, info_span, instrument, warn};
+use tracing::{Instrument, Span, error, info, info_span, instrument, warn};
+use tungstenite::protocol::WebSocketConfig;
 
 fn bad_request() -> Response<Body> {
     Response::builder()
@@ -275,6 +276,7 @@ where
 
     #[instrument(skip_all)]
     fn upgrade_websocket(self, req: Request<Body>) -> Response<Body> {
+        // WebSocket 업그레이드 요청을 원본 핸들러로 전달
         let mut req = {
             let (mut parts, _) = req.into_parts();
 
@@ -298,14 +300,31 @@ where
             Request::from_parts(parts, ())
         };
 
-        match hyper_tungstenite::upgrade(&mut req, None) {
-            Ok((res, websocket)) => {
-                let span = info_span!("websocket");
+        // WebSocket 핸들러를 사용하여 터널링 구현
+        // Sec-WebSocket-Protocol 헤더를 수동으로 처리하여 프로토콜 협상 지원
+        let requested_protocol = req
+            .headers()
+            .get("sec-websocket-protocol")
+            .and_then(|h| h.to_str().ok())
+            .map(|s| s.to_string());
+
+        let config = WebSocketConfig::default();
+        match hyper_tungstenite::upgrade(&mut req, Some(config)) {
+            Ok((mut res, websocket)) => {
+                // 클라이언트가 요청한 프로토콜이 있으면 응답에 포함
+                if let Some(protocol) = requested_protocol {
+                    if let Ok(header_value) = protocol.parse() {
+                        res.headers_mut()
+                            .insert("sec-websocket-protocol", header_value);
+                    }
+                }
+
+                let span = info_span!("websocket_tunnel");
                 let fut = async move {
                     match websocket.await {
                         Ok(ws) => {
-                            if let Err(e) = self.handle_websocket(ws, req).await {
-                                error!("Failed to handle WebSocket: {}", e);
+                            if let Err(e) = self.handle_websocket_tunnel(ws, req).await {
+                                error!("Failed to handle WebSocket tunnel: {}", e);
                             }
                         }
                         Err(e) => {
@@ -317,8 +336,65 @@ where
                 spawn_with_trace(fut, span);
                 res.map(Body::from)
             }
-            Err(_) => bad_request(),
+            Err(e) => {
+                error!("WebSocket upgrade failed: {:?}", e);
+                bad_request()
+            }
         }
+    }
+
+    #[instrument(skip_all)]
+    async fn handle_websocket_tunnel(
+        self,
+        client_socket: WebSocketStream<TokioIo<Upgraded>>,
+        req: Request<()>,
+    ) -> Result<(), tungstenite::Error> {
+        // WebSocket 터널링 구현
+        let uri = req.uri().clone();
+
+        // 서버에 WebSocket 연결
+        #[cfg(any(feature = "rustls-client", feature = "native-tls-client"))]
+        let (server_socket, _) = tokio_tungstenite::connect_async_tls_with_config(
+            req,
+            None,
+            false,
+            self.websocket_connector,
+        )
+        .await?;
+
+        #[cfg(not(any(feature = "rustls-client", feature = "native-tls-client")))]
+        let (server_socket, _) = tokio_tungstenite::connect_async(req).await?;
+
+        // WebSocket 핸들러를 사용하여 터널링 구현
+        let (server_sink, server_stream) = server_socket.split();
+        let (client_sink, client_stream) = client_socket.split();
+
+        let InternalProxy {
+            websocket_handler, ..
+        } = self;
+
+        // WebSocket 핸들러를 사용하여 메시지 전달
+        spawn_message_forwarder(
+            server_stream,
+            client_sink,
+            websocket_handler.clone(),
+            WebSocketContext::ServerToClient {
+                src: uri.clone(),
+                dst: self.client_addr,
+            },
+        );
+
+        spawn_message_forwarder(
+            client_stream,
+            server_sink,
+            websocket_handler,
+            WebSocketContext::ClientToServer {
+                src: self.client_addr,
+                dst: uri,
+            },
+        );
+
+        Ok(())
     }
 
     #[instrument(skip_all)]
