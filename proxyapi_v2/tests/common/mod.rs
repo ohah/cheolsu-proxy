@@ -294,6 +294,37 @@ pub async fn start_noop_proxy(
     Ok((addr, tx))
 }
 
+/// WebSocket 핸들러 없이 프록시 시작 (실제 Tauri 환경과 동일)
+pub async fn start_proxy_without_websocket_handler<C>(
+    ca: impl CertificateAuthority,
+    client: Client<C, Body>,
+) -> Result<(SocketAddr, TestHandler, Sender<()>), Box<dyn std::error::Error>>
+where
+    C: Connect + Clone + Send + Sync + 'static,
+{
+    let listener = TcpListener::bind(SocketAddr::from(([127, 0, 0, 1], 8100))).await?;
+    let addr = listener.local_addr()?;
+    let (tx, rx) = tokio::sync::oneshot::channel();
+
+    let handler = TestHandler::new(true); // HTTP 핸들러만 사용
+
+    let proxy = Proxy::builder()
+        .with_listener(listener)
+        .with_ca(ca)
+        .with_client(client)
+        .with_http_handler(handler.clone())
+        .with_websocket_handler(handler.clone())
+        // WebSocket 핸들러 없음 (실제 Tauri 환경과 동일)
+        .with_graceful_shutdown(async {
+            rx.await.unwrap_or_default();
+        })
+        .build()
+        .expect("Failed to create proxy");
+
+    tokio::spawn(proxy.start());
+    Ok((addr, handler, tx))
+}
+
 pub fn build_client(proxy: &str) -> reqwest::Client {
     let proxy = reqwest::Proxy::all(proxy).unwrap();
     let ca_cert = Certificate::from_pem(include_bytes!(
