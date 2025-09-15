@@ -6,6 +6,7 @@ use proxyapi_v2::{
 };
 use std::error::Error;
 use std::net::SocketAddr;
+use std::process::Command;
 use std::sync::Arc;
 use std::sync::Mutex;
 use tokio::net::TcpListener;
@@ -435,6 +436,7 @@ fn create_hybrid_client() -> Result<
         }
 
         fn supported_verify_schemes(&self) -> Vec<tokio_rustls::rustls::SignatureScheme> {
+            // aws_lc_rs에서 지원하는 표준 서명 스키마들만 반환
             vec![
                 tokio_rustls::rustls::SignatureScheme::RSA_PKCS1_SHA1,
                 tokio_rustls::rustls::SignatureScheme::ECDSA_SHA1_Legacy,
@@ -449,14 +451,12 @@ fn create_hybrid_client() -> Result<
                 tokio_rustls::rustls::SignatureScheme::RSA_PSS_SHA512,
                 tokio_rustls::rustls::SignatureScheme::ED25519,
                 tokio_rustls::rustls::SignatureScheme::ED448,
-                tokio_rustls::rustls::SignatureScheme::ML_DSA_44,
-                tokio_rustls::rustls::SignatureScheme::ML_DSA_65,
-                tokio_rustls::rustls::SignatureScheme::ML_DSA_87,
             ]
         }
     }
 
-    // aws_lc_rs 프로바이더를 사용하되 모든 인증서를 허용하는 설정
+    // 실제 환경과 동일: aws_lc_rs + 모든 인증서 허용 (DangerousCertificateVerifier 사용)
+    // cheolsu-proxy CA는 프록시 서버에서 사용되고, 클라이언트는 모든 인증서를 허용
     let rustls_config =
         ClientConfig::builder_with_provider(std::sync::Arc::new(aws_lc_rs::default_provider()))
             .with_safe_default_protocol_versions()?
@@ -477,6 +477,61 @@ fn create_hybrid_client() -> Result<
             .http1_preserve_header_case(true)
             .build(https),
     )
+}
+
+/// macOS 시스템 프록시 설정 (실제 환경과 동일)
+fn set_system_proxy(enable: bool, port: u16) -> Result<(), Box<dyn std::error::Error>> {
+    // 활성 네트워크 서비스 가져오기
+    let output = Command::new("networksetup")
+        .args(["-listallnetworkservices"])
+        .output()?;
+
+    let services = String::from_utf8_lossy(&output.stdout);
+    let active_service = services
+        .lines()
+        .find(|line| !line.starts_with('*') && !line.is_empty())
+        .ok_or("활성 네트워크 서비스를 찾을 수 없습니다")?;
+
+    println!("🌐 활성 네트워크 서비스: {}", active_service);
+
+    if enable {
+        // HTTP 프록시 켜기
+        Command::new("networksetup")
+            .args([
+                "-setwebproxy",
+                active_service,
+                "127.0.0.1",
+                &port.to_string(),
+            ])
+            .status()?;
+
+        // HTTPS 프록시 켜기
+        Command::new("networksetup")
+            .args([
+                "-setsecurewebproxy",
+                active_service,
+                "127.0.0.1",
+                &port.to_string(),
+            ])
+            .status()?;
+
+        println!("✅ 시스템 프록시 설정 완료 - HTTP, HTTPS 프록시 활성화됨");
+        println!("   🌐 프록시 주소: 127.0.0.1:{}", port);
+    } else {
+        // HTTP 프록시 끄기
+        Command::new("networksetup")
+            .args(["-setwebproxystate", active_service, "off"])
+            .status()?;
+
+        // HTTPS 프록시 끄기
+        Command::new("networksetup")
+            .args(["-setsecurewebproxystate", active_service, "off"])
+            .status()?;
+
+        println!("✅ 시스템 프록시 설정 해제 완료 - HTTP, HTTPS 프록시 비활성화됨");
+    }
+
+    Ok(())
 }
 
 #[tokio::test]
@@ -619,11 +674,18 @@ async fn test_https_request_with_invalid_certificate() {
     let handler = TestLoggingHandler::new();
     let (proxy_addr, stop_proxy) = start_proxy_server(handler.clone()).await.unwrap();
 
-    // 클라이언트로 유효하지 않은 인증서를 가진 HTTPS 사이트에 요청 전송
+    // 시스템 프록시 설정 (실제 환경과 동일)
+    println!("🔧 시스템 프록시 설정 중...");
+    if let Err(e) = set_system_proxy(true, proxy_addr.port()) {
+        eprintln!("⚠️  시스템 프록시 설정 실패: {}", e);
+        eprintln!("   테스트를 계속 진행하지만 실제 환경과 다를 수 있습니다.");
+    }
+
+    // 클라이언트로 유효하지 않은 인증서를 가진 HTTPS 사이트에 요청 전송 (시스템 프록시 사용)
     let client = reqwest::Client::builder()
-        .proxy(reqwest::Proxy::all(format!("http://{}", proxy_addr)).unwrap())
-        .timeout(Duration::from_secs(10))
+        .timeout(Duration::from_secs(5)) // 더 짧은 타임아웃으로 실제 환경 시뮬레이션
         .danger_accept_invalid_certs(true) // 인증서 검증 무시
+        .user_agent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36") // 실제 브라우저 User-Agent
         .build()
         .unwrap();
 
@@ -631,6 +693,16 @@ async fn test_https_request_with_invalid_certificate() {
     let test_urls = vec![
         "https://media.adpnut.com/cgi-bin/PelicanC.dll?impr?pageid=02AZ&lang=utf-8&out=iframe",
         "https://ad.aceplanet.co.kr/cgi-bin/PelicanC.dll?impr?pageid=06P0&campaignid=01sL&gothrough=nextgrade&out=iframe",
+        "https://www.mediacategory.com/script/common/media/937106", // 실제 에러가 발생한 URL
+        "https://www.google.com/",                                  // Google.com 정상 응답 테스트
+        // 실제 에러가 발생한 도메인들 추가 (POST 요청으로 수정)
+        "POST:https://tpsc-ae1.doubleverify.com/event.png?impid=3aee2099f3d34f7980e40eef35420d83&flavor=0&gdpr=&gdpr_consent=&isbxdms=43471&b0=28102&b11=15444&lffb=28002&lftb=15544&sffb=28002&sftb=15544&tuums=43929&eoid=30&tmet=43929", // DoubleVerify 도메인 (POST)
+        "https://dt.adsafeprotected.com/dt?advEntityId=2184108", // AdsafeProtected 도메인
+        "https://img.mobon.net/", // Mobon 도메인 (UnexpectedEof 에러 발생)
+        // 에러를 유발할 수 있는 URL들 추가
+        "https://httpstat.us/500?sleep=10000", // 10초 지연 후 500 에러
+        "https://httpbin.org/delay/5",         // 5초 지연
+        "https://nonexistent-domain-12345.com/", // DNS 에러
     ];
 
     let mut success_count = 0;
@@ -638,7 +710,15 @@ async fn test_https_request_with_invalid_certificate() {
 
     for url in test_urls {
         println!("\n=== 테스트 URL: {} ===", url);
-        let result = client.get(url).send().await;
+
+        // POST 요청인지 확인
+        let result = if url.starts_with("POST:") {
+            let post_url = &url[5..]; // "POST:" 제거
+            println!("POST 요청으로 전송: {}", post_url);
+            client.post(post_url).send().await
+        } else {
+            client.get(url).send().await
+        };
 
         // 결과에 따라 에러가 발생할 수 있음
         if result.is_err() {
@@ -670,6 +750,43 @@ async fn test_https_request_with_invalid_certificate() {
     println!("에러: {} 개", error_count);
     println!("총 테스트: {} 개", success_count + error_count);
 
+    // 실제 환경과 유사한 동시 요청 테스트
+    println!("\n=== 동시 요청 테스트 (실제 환경 시뮬레이션) ===");
+    let concurrent_urls = vec![
+        "https://img.mobon.net/",
+        "https://tpsc-ae1.doubleverify.com/event.png?impid=test",
+        "https://dt.adsafeprotected.com/dt?advEntityId=2184108",
+    ];
+
+    let mut handles = Vec::new();
+    for url in concurrent_urls {
+        let client = client.clone();
+        let handle = tokio::spawn(async move {
+            let result = client.get(url).send().await;
+            match result {
+                Ok(response) => {
+                    println!("✅ 동시 요청 성공: {} - {}", url, response.status());
+                }
+                Err(e) => {
+                    println!("❌ 동시 요청 실패: {} - {:?}", url, e);
+                }
+            }
+        });
+        handles.push(handle);
+    }
+
+    // 모든 동시 요청 완료 대기
+    for handle in handles {
+        let _ = handle.await;
+    }
+
     // 정리
+    println!("🧹 테스트 정리 중...");
+
+    // 시스템 프록시 해제
+    if let Err(e) = set_system_proxy(false, proxy_addr.port()) {
+        eprintln!("⚠️  시스템 프록시 해제 실패: {}", e);
+    }
+
     let _ = stop_proxy.send(());
 }
