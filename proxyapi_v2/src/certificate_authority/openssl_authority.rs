@@ -165,8 +165,8 @@ mod tests {
     use tokio_rustls::rustls::crypto::aws_lc_rs;
 
     fn build_ca(cache_size: u64) -> OpensslAuthority {
-        let private_key_bytes: &[u8] = include_bytes!("../../examples/ca/hudsucker.key");
-        let ca_cert_bytes: &[u8] = include_bytes!("../../examples/ca/hudsucker.cer");
+        let private_key_bytes: &[u8] = include_bytes!("cheolsu-proxy.key");
+        let ca_cert_bytes: &[u8] = include_bytes!("cheolsu-proxy.cer");
         let private_key =
             PKey::private_key_from_pem(private_key_bytes).expect("Failed to parse private key");
         let ca_cert = X509::from_pem(ca_cert_bytes).expect("Failed to parse CA certificate");
