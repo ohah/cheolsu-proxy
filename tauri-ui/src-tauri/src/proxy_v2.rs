@@ -10,7 +10,8 @@ use proxyapi_v2::{
     certificate_authority::build_ca,
     hyper::http::{HeaderMap, HeaderValue, StatusCode},
     hyper::{Request, Response},
-    Body, HttpContext, HttpHandler, RequestOrResponse,
+    tokio_tungstenite::tungstenite::Message,
+    Body, HttpContext, HttpHandler, RequestOrResponse, WebSocketContext, WebSocketHandler,
 };
 use std::error::Error;
 use std::net::SocketAddr;
@@ -350,26 +351,14 @@ impl HttpHandler for LoggingHandler {
         _ctx: &HttpContext,
         req: Request<Body>,
     ) -> RequestOrResponse {
-        eprintln!(
-            "🔄 [HANDLER] handle_request 시작 - {} {}",
-            req.method(),
-            req.uri()
-        );
-
         // 요청 정보를 ProxiedRequest로 변환하고 원본 요청을 복원
         let (proxied_request, restored_req) = self.request_to_proxied_request(req).await;
         self.req = Some(proxied_request);
 
-        eprintln!("✅ [HANDLER] handle_request 완료 - 요청을 upstream으로 전달");
         restored_req.into()
     }
 
     async fn handle_response(&mut self, _ctx: &HttpContext, res: Response<Body>) -> Response<Body> {
-        eprintln!(
-            "📥 [HANDLER] handle_response 시작 - Status: {}",
-            res.status()
-        );
-
         // 세션 응답인지 확인 (x-cheolsu-proxy-session 헤더 체크)
         let is_session_response = res
             .headers()
@@ -437,7 +426,6 @@ impl HttpHandler for LoggingHandler {
         // 요청과 응답을 묶어서 전송
         self.send_output();
 
-        eprintln!("✅ [HANDLER] handle_response 완료 - 응답을 클라이언트로 전달");
         // 원본 응답을 그대로 반환 (기존 proxyapi 방식)
         restored_res
     }
@@ -649,7 +637,6 @@ fn parse_curl_response(response_text: &str) -> Result<Response<Body>, Box<dyn st
 }
 
 // WebSocket 핸들러 구현 (나중에 사용할 수 있도록 보존)
-/*
 impl WebSocketHandler for LoggingHandler {
     async fn handle_message(&mut self, _ctx: &WebSocketContext, msg: Message) -> Option<Message> {
         // WebSocket 메시지는 현재 RequestInfo 구조에 맞지 않으므로 로깅만 수행
@@ -657,7 +644,6 @@ impl WebSocketHandler for LoggingHandler {
         Some(msg)
     }
 }
-*/
 
 /// hudsucker를 사용하는 프록시 상태 (proxy.rs와 유사한 구조)
 pub type ProxyV2State = Arc<
@@ -783,7 +769,7 @@ pub async fn start_proxy_v2<R: Runtime>(
         .with_ca(ca)
         .with_client(hybrid_client) // 하이브리드 클라이언트 사용
         .with_http_handler(handler.clone())
-        // .with_websocket_handler(handler.clone()) // WebSocket 핸들러 비활성화 (직접 통과)
+        .with_websocket_handler(handler.clone())
         .build()
     {
         Ok(builder) => {
