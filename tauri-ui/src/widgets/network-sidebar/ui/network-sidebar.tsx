@@ -1,9 +1,10 @@
+import clsx from 'clsx';
+
 import { SidebarHeader } from './sidebar-header';
 import { SidebarNavigation } from './sidebar-navigation';
 import { SidebarStatus } from './sidebar-status';
 
 import { useSidebarCollapse, useSidebarNavigation } from '../hooks';
-import clsx from 'clsx';
 
 interface NetworkSidebarProps {
   isConnected?: boolean;
@@ -16,12 +17,12 @@ export function NetworkSidebar({ isConnected = true, version }: NetworkSidebarPr
 
   return (
     <div
-      className={`
-        ${collapsed ? 'w-18' : 'w-64'}
-        bg-sidebar border-r border-sidebar-border
-        flex flex-col shrink-0
-        transition-all duration-300 ease-in-out
-      `}
+      className={clsx(
+        collapsed ? 'w-18' : 'w-64',
+        'bg-sidebar border-r border-sidebar-border',
+        'flex flex-col shrink-0',
+        'transition-all duration-300 ease-in-out',
+      )}
     >
       <SidebarHeader collapsed={collapsed} toggleCollapse={toggleCollapse} />
 

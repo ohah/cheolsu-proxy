@@ -11,4 +11,4 @@ export * from './sidebar';
 export * from './multi-select';
 export * from './resizable';
 export * from './scroll-area';
-export * from './sonner'
+export * from './sonner';
