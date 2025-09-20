@@ -26,7 +26,7 @@ export function NetworkHeader({
   clearTransactions,
 }: NetworkHeaderProps) {
   return (
-    <div className="border-b border-border bg-card">
+    <div className="border-b border-border bg-sidebar">
       <div className="flex items-center justify-between p-4">
         <div className="flex items-center gap-4 flex-1">
           <NetworkControls paused={paused} onTogglePause={togglePause} onClearTransactions={clearTransactions} />

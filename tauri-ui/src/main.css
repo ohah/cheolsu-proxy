@@ -22,7 +22,8 @@
   --destructive: #dc2626;
   --destructive-foreground: #ffffff;
   --border: #e5e7eb;
-  --input: #f9fafb;
+  --input: #ffffff;
+  --input-border: #e5e7eb;
   --ring: rgba(237, 100, 100, 0.5);
   --chart-1: #45cbda;
   --chart-2: #5aab9f;
@@ -30,7 +31,8 @@
   --chart-4: #d97706;
   --chart-5: #f59e0b;
   --radius: 0.5rem;
-  --sidebar: #f0feff;
+  /* sidebar */
+  --sidebar: #faf9f7;
   --sidebar-foreground: #374151;
   --sidebar-primary: #45cbda;
   --sidebar-primary-foreground: #ffffff;
@@ -60,12 +62,14 @@
   --destructive-foreground: #ffffff;
   --border: #334155;
   --input: #1e293b;
+  --input-border: #e5e7eb;
   --ring: rgba(237, 100, 100, 0.5);
   --chart-1: #45cbda;
   --chart-2: #64748b;
   --chart-3: #5aab9f;
   --chart-4: #d97706;
   --chart-5: #f59e0b;
+  /* sidebar */
   --sidebar: #f0feff;
   --sidebar-foreground: #f1f5f9;
   --sidebar-primary: #45cbda;
