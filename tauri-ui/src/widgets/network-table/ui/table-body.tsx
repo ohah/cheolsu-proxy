@@ -1,4 +1,5 @@
 import type { HttpTransaction } from '@/entities/proxy';
+import { ScrollArea } from '@/shared/ui';
 
 import { TableRow } from './table-row';
 
@@ -20,7 +21,7 @@ export function TableBody({ data, createTransactionSelectHandler, createTransact
   }
 
   return (
-    <div className="flex-1 overflow-auto">
+    <ScrollArea className="flex-1 overflow-auto">
       {data.map((rowData) => {
         const id = rowData.transaction.request?.time ?? rowData.index;
 
@@ -29,6 +30,6 @@ export function TableBody({ data, createTransactionSelectHandler, createTransact
 
         return <TableRow key={id} data={rowData} onSelect={onSelect} onDelete={onDelete} />;
       })}
-    </div>
+    </ScrollArea>
   );
 }

@@ -1,10 +1,9 @@
 import type { HttpTransaction } from '@/entities/proxy';
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui';
+import { ScrollArea, Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui';
 import { useSessionStore } from '@/shared/stores';
 
 import { TransactionHeader } from './transaction-header';
-import { TransactionProperties } from './transaction-properties';
 import { TransactionHeaders } from './transaction-headers';
 import { TransactionBody } from './transaction-body';
 import { TransactionResponse } from './transaction-response';
@@ -48,10 +47,8 @@ export function TransactionDetails({ transaction, clearSelectedTransaction }: Tr
         form={form}
       />
 
-      <div className="flex-1 overflow-auto p-4">
+      <ScrollArea className="flex-1 overflow-auto p-4">
         <div className="space-y-4">
-          <TransactionProperties transaction={transaction} />
-
           <Tabs value={activeTab} onValueChange={onTabChange}>
             <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${tabs.length}, 1fr)` }}>
               {tabs.map((tab) => (
@@ -74,7 +71,7 @@ export function TransactionDetails({ transaction, clearSelectedTransaction }: Tr
             </TabsContent>
           </Tabs>
         </div>
-      </div>
+      </ScrollArea>
     </div>
   );
 }

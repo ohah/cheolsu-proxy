@@ -6,7 +6,7 @@ import { NetworkHeader } from '@/widgets/network-header';
 import { NetworkSidebar } from '@/widgets/network-sidebar';
 import { NetworkTable } from '@/widgets/network-table';
 
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/shared/ui/resizable';
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/shared/ui';
 
 import { useProxyEventControl, useProxyInitialization, useTransactionFilters, useTransactions } from '../hooks';
 
@@ -72,7 +72,7 @@ export const NetworkDashboard = () => {
               createTransactionDeleteHandler={createTransactionDeleteHandler}
             />
           </ResizablePanel>
-          <ResizableHandle />
+          <ResizableHandle withHandle />
           {selectedTransaction && (
             <ResizablePanel className="w-96 h-full overflow-y-auto">
               <TransactionDetails

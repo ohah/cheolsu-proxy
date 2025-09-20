@@ -1,6 +1,6 @@
 import { Badge } from '@/shared/ui';
 
-import { getStatusColor } from '../../lib';
+import { getStatusColor } from '@/entities/transaction';
 import type { TableCellProps } from '../../model';
 
 export const StatusCell = ({ data }: TableCellProps) => {
