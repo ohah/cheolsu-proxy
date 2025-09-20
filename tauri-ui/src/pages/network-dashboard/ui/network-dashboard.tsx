@@ -47,7 +47,7 @@ export const NetworkDashboard = () => {
   );
 
   return (
-    <div className="flex h-[100vh] w-full bg-background">
+    <div className="flex h-[100vh] w-full">
       <NetworkSidebar isConnected={isConnected} />
 
       <div className="flex-1 flex flex-col h-full">
@@ -63,8 +63,11 @@ export const NetworkDashboard = () => {
           clearTransactions={clearTransactions}
         />
 
-        <ResizablePanelGroup direction="horizontal" className="flex-1 flex overflow-hidden">
-          <ResizablePanel className="flex-1 h-full overflow-hidden border-r border-border">
+        <ResizablePanelGroup
+          direction="horizontal"
+          className="flex-1 flex border border-b-0 rounded-tl-lg shadow-[0_0_10px_0_rgba(0,0,0,0.05)] bg-background"
+        >
+          <ResizablePanel className="flex-1 h-full overflow-hidden">
             <NetworkTable
               transactions={filteredTransactions}
               selectedTransaction={selectedTransaction}
@@ -72,14 +75,16 @@ export const NetworkDashboard = () => {
               createTransactionDeleteHandler={createTransactionDeleteHandler}
             />
           </ResizablePanel>
-          <ResizableHandle withHandle />
           {selectedTransaction && (
-            <ResizablePanel className="w-96 h-full overflow-y-auto">
-              <TransactionDetails
-                transaction={selectedTransaction}
-                clearSelectedTransaction={clearSelectedTransaction}
-              />
-            </ResizablePanel>
+            <>
+              <ResizableHandle withHandle />
+              <ResizablePanel className="w-96 h-full overflow-y-auto">
+                <TransactionDetails
+                  transaction={selectedTransaction}
+                  clearSelectedTransaction={clearSelectedTransaction}
+                />
+              </ResizablePanel>
+            </>
           )}
         </ResizablePanelGroup>
       </div>

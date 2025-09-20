@@ -35,7 +35,7 @@ export function TransactionDetails({ transaction, clearSelectedTransaction }: Tr
   }
 
   return (
-    <div className="h-full bg-card border-l border-border flex flex-col">
+    <div className="h-full bg-card flex flex-col">
       <TransactionHeader
         transaction={transaction}
         clearSelectedTransaction={clearSelectedTransaction}
