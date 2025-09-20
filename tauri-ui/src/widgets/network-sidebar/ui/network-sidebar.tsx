@@ -26,7 +26,7 @@ export function NetworkSidebar({ isConnected = true, version }: NetworkSidebarPr
     >
       <SidebarHeader collapsed={collapsed} toggleCollapse={toggleCollapse} />
 
-      <div className="flex-1 p-4">
+      <div className="flex-1 px-4 py-2">
         <SidebarNavigation
           collapsed={collapsed}
           activeSection={activeSection}

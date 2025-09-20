@@ -5,19 +5,19 @@
 
 :root {
   /* Updated color tokens to match design brief */
-  --background: #ffffff;
-  --foreground: #475569;
-  --card: #f0feff;
-  --card-foreground: #374151;
+  --background: var(--color-white);
+  --foreground: #0d0d0d;
+  --card: #fbf9f7;
+  --card-foreground: #0d0d0d;
   --popover: #ffffff;
-  --popover-foreground: #475569;
-  --primary: #475569;
+  --popover-foreground: #0d0d0d;
+  --primary: #0d0d0d;
   --primary-foreground: #ffffff;
-  --secondary: #45cbda;
+  --secondary: #00bcd5;
   --secondary-foreground: #ffffff;
-  --muted: #f0feff;
-  --muted-foreground: #374151;
-  --accent: #45cbda;
+  --muted: #ffffff;
+  --muted-foreground: #0d0d0d;
+  --accent: #00bcd5;
   --accent-foreground: #ffffff;
   --destructive: #dc2626;
   --destructive-foreground: #ffffff;
@@ -32,12 +32,12 @@
   --chart-5: #f59e0b;
   --radius: 0.5rem;
   /* sidebar */
-  --sidebar: #faf9f7;
-  --sidebar-foreground: #374151;
-  --sidebar-primary: #45cbda;
+  --sidebar: #faf8f7;
+  --sidebar-foreground: #0d0d0d;
+  --sidebar-primary: #e74322;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #45cbda;
-  --sidebar-accent-foreground: #ffffff;
+  --sidebar-accent: #ffffff;
+  --sidebar-accent-foreground: #15869d;
   --sidebar-border: #e5e7eb;
   --sidebar-ring: rgba(237, 100, 100, 0.5);
   --font-jetbrains-mono: 'JetBrains Mono', 'Consolas', 'Monaco', 'Menlo', monospace;

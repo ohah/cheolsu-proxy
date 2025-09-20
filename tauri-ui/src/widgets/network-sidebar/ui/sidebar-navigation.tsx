@@ -27,7 +27,7 @@ export const SidebarNavigation = memo(
               variant={isActive ? 'secondary' : 'ghost'}
               className={`w-full justify-start gap-3 ${
                 isActive
-                  ? 'bg-sidebar-accent text-sidebar-accent-foreground'
+                  ? 'bg-sidebar-accent text-sidebar-accent-foreground hover:text-white'
                   : 'text-sidebar-foreground hover:bg-sidebar-accent/50'
               }`}
               onClick={onChange}

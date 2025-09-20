@@ -21,7 +21,7 @@ export const SidebarHeader = ({ collapsed, toggleCollapse }: SidebarHeaderProps)
   }
 
   return (
-    <div className="p-4 border-b border-sidebar-border flex items-center justify-between">
+    <div className="p-4 flex items-center justify-between">
       <div className="flex items-center gap-2 h-10 shrink-0">
         <div className="w-9 h-9 bg-sidebar-primary rounded-lg flex items-center justify-center">
           <img src={logo} alt="Cheolsu Proxy Logo" className="w-9 h-9 text-sidebar-primary-foreground" />
