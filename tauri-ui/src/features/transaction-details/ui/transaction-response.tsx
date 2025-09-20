@@ -2,21 +2,26 @@ import { Copy } from 'lucide-react';
 
 import type { HttpTransaction } from '@/entities/proxy';
 
-import { Button, Card, CardContent, CardHeader, CardTitle } from '@/shared/ui';
+import { Button, Card, CardContent, CardHeader, CardTitle, Textarea } from '@/shared/ui';
+import type { AppFormInstance } from '../context/form-context';
 
 import { formatBody } from '../lib';
 import { useMemo } from 'react';
 
 interface TransactionResponseProps {
   transaction: HttpTransaction;
+  isEditing?: boolean;
+  form?: AppFormInstance;
 }
 
-export const TransactionResponse = ({ transaction }: TransactionResponseProps) => {
+export const TransactionResponse = ({ transaction, isEditing = false, form }: TransactionResponseProps) => {
   const { response } = transaction;
 
   if (!response) return null;
 
-  const responseText = useMemo(() => formatBody(response.body), [response]);
+  const responseText = useMemo(() => {
+    return formatBody(response.body);
+  }, [response]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(responseText);
@@ -35,7 +40,21 @@ export const TransactionResponse = ({ transaction }: TransactionResponseProps) =
         </div>
       </CardHeader>
       <CardContent>
-        <pre className="text-xs bg-muted p-3 rounded-md overflow-auto whitespace-pre-wrap">{responseText}</pre>
+        {form && isEditing ? (
+          <form.Field
+            name="response.data"
+            children={(field) => (
+              <Textarea
+                value={(field.state.value as string) || ''}
+                onChange={(e) => field.handleChange(e.target.value)}
+                placeholder="Enter response body content..."
+                className="min-h-[200px] font-mono text-xs"
+              />
+            )}
+          />
+        ) : (
+          <pre className="text-xs bg-muted p-3 rounded-md overflow-auto whitespace-pre-wrap">{responseText}</pre>
+        )}
       </CardContent>
     </Card>
   );

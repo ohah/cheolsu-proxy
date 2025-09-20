@@ -1,6 +1,6 @@
 use async_compression::tokio::bufread::GzipEncoder;
 use futures::{SinkExt, StreamExt};
-use hudsucker::{
+use proxyapi_v2::{
     Body, HttpContext, HttpHandler, Proxy, RequestOrResponse, WebSocketContext, WebSocketHandler,
     certificate_authority::CertificateAuthority,
     decode_request, decode_response,
@@ -162,7 +162,8 @@ fn rustls_client_config() -> rustls::ClientConfig {
         roots.add(cert.clone()).unwrap();
     }
 
-    let mut ca_cert_bytes: &[u8] = include_bytes!("../../examples/ca/hudsucker.cer");
+    let mut ca_cert_bytes: &[u8] =
+        include_bytes!("../../src/certificate_authority/cheolsu-proxy.cer");
     let ca_cert = pemfile::certs(&mut ca_cert_bytes)
         .next()
         .unwrap()
@@ -193,9 +194,10 @@ pub fn rustls_client() -> Client<hyper_rustls::HttpsConnector<HttpConnector>, Bo
 }
 
 fn native_tls_connector() -> native_tls::TlsConnector {
-    let ca_cert =
-        native_tls::Certificate::from_pem(include_bytes!("../../examples/ca/hudsucker.cer"))
-            .unwrap();
+    let ca_cert = native_tls::Certificate::from_pem(include_bytes!(
+        "../../src/certificate_authority/cheolsu-proxy.cer"
+    ))
+    .unwrap();
 
     native_tls::TlsConnector::builder()
         .add_root_certificate(ca_cert)
@@ -292,9 +294,43 @@ pub async fn start_noop_proxy(
     Ok((addr, tx))
 }
 
+/// WebSocket 핸들러 없이 프록시 시작 (실제 Tauri 환경과 동일)
+pub async fn start_proxy_without_websocket_handler<C>(
+    ca: impl CertificateAuthority,
+    client: Client<C, Body>,
+) -> Result<(SocketAddr, TestHandler, Sender<()>), Box<dyn std::error::Error>>
+where
+    C: Connect + Clone + Send + Sync + 'static,
+{
+    let listener = TcpListener::bind(SocketAddr::from(([127, 0, 0, 1], 8100))).await?;
+    let addr = listener.local_addr()?;
+    let (tx, rx) = tokio::sync::oneshot::channel();
+
+    let handler = TestHandler::new(true); // HTTP 핸들러만 사용
+
+    let proxy = Proxy::builder()
+        .with_listener(listener)
+        .with_ca(ca)
+        .with_client(client)
+        .with_http_handler(handler.clone())
+        .with_websocket_handler(handler.clone())
+        // WebSocket 핸들러 없음 (실제 Tauri 환경과 동일)
+        .with_graceful_shutdown(async {
+            rx.await.unwrap_or_default();
+        })
+        .build()
+        .expect("Failed to create proxy");
+
+    tokio::spawn(proxy.start());
+    Ok((addr, handler, tx))
+}
+
 pub fn build_client(proxy: &str) -> reqwest::Client {
     let proxy = reqwest::Proxy::all(proxy).unwrap();
-    let ca_cert = Certificate::from_pem(include_bytes!("../../examples/ca/hudsucker.cer")).unwrap();
+    let ca_cert = Certificate::from_pem(include_bytes!(
+        "../../src/certificate_authority/cheolsu-proxy.cer"
+    ))
+    .unwrap();
 
     reqwest::Client::builder()
         .proxy(proxy)

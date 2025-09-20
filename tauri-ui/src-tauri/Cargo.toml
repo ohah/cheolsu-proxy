@@ -30,6 +30,7 @@ proxyapi = {path = "../../proxyapi"}
 proxyapi_models = {path = "../../proxyapi_models"}
 proxy_v2_models = {path = "../../proxy_v2_models"}
 proxyapi_v2 = {path = "../../proxyapi_v2", features = ["decoder", "rcgen-ca", "openssl-ca", "native-tls-client"] }
+serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0.142"
 tauri-plugin-fs = "2"
 hyper-util = "0.1"
