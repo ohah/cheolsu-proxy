@@ -75,14 +75,16 @@ export const NetworkDashboard = () => {
               createTransactionDeleteHandler={createTransactionDeleteHandler}
             />
           </ResizablePanel>
-          <ResizableHandle withHandle />
           {selectedTransaction && (
-            <ResizablePanel className="w-96 h-full overflow-y-auto">
-              <TransactionDetails
-                transaction={selectedTransaction}
-                clearSelectedTransaction={clearSelectedTransaction}
-              />
-            </ResizablePanel>
+            <>
+              <ResizableHandle withHandle />
+              <ResizablePanel className="w-96 h-full overflow-y-auto">
+                <TransactionDetails
+                  transaction={selectedTransaction}
+                  clearSelectedTransaction={clearSelectedTransaction}
+                />
+              </ResizablePanel>
+            </>
           )}
         </ResizablePanelGroup>
       </div>

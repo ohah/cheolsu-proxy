@@ -19,7 +19,7 @@ export function NetworkSidebar({ isConnected = true, version }: NetworkSidebarPr
     <div
       className={clsx(
         collapsed ? 'w-18' : 'w-64',
-        'bg-sidebar border-r border-sidebar-border',
+        'bg-sidebar',
         'flex flex-col shrink-0',
         'transition-all duration-300 ease-in-out',
       )}
