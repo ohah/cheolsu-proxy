@@ -20,7 +20,11 @@ export const formatDistanceToNowKr = (date: Date | number): string => {
 };
 
 export const formatTimestamp = (timestamp: number): string => {
-  return new Date(timestamp / 1_000_000).toISOString();
+  const date = new Date(timestamp / 1_000_000);
+
+  return date.toLocaleString('ko-KR', {
+    timeZone: 'Asia/Seoul',
+  });
 };
 
 // HTML 엔티티 디코딩 함수

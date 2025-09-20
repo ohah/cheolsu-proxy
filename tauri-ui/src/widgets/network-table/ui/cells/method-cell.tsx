@@ -1,6 +1,6 @@
 import { Badge } from '@/shared/ui';
 
-import { getMethodColor } from '../../lib';
+import { getMethodColor } from '@/entities/transaction';
 import type { TableCellProps } from '../../model';
 
 export const MethodCell = ({ data }: TableCellProps) => {
