@@ -359,23 +359,6 @@ impl HttpHandler for LoggingHandler {
     }
 
     async fn handle_response(&mut self, _ctx: &HttpContext, res: Response<Body>) -> Response<Body> {
-        // 세션 응답인지 확인 (x-cheolsu-proxy-session 헤더 체크)
-        let is_session_response = res
-            .headers()
-            .get("x-cheolsu-proxy-session")
-            .and_then(|h| h.to_str().ok())
-            .map(|s| s == "true")
-            .unwrap_or(false);
-
-        if is_session_response {
-            println!("🎭 세션 응답 감지됨 - 로깅만 수행");
-            // 세션 응답의 경우 로깅만 수행하고 원본 응답을 그대로 반환
-            let (proxied_response, restored_res) = self.response_to_proxied_response(res).await;
-            self.res = Some(proxied_response);
-            self.send_output();
-            return restored_res;
-        }
-
         // 일반 응답 처리 - 세션 매칭 확인
         if let Some(req) = &self.req {
             let url = req.uri().to_string();

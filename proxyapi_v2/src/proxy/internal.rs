@@ -21,10 +21,9 @@ use tokio::{io::AsyncReadExt, net::TcpStream, task::JoinHandle};
 use tokio_rustls::TlsAcceptor;
 use tokio_tungstenite::{
     Connector, WebSocketStream,
-    tungstenite::{self, Message},
+    tungstenite::{self, Message, protocol::WebSocketConfig},
 };
 use tracing::{Instrument, Span, error, info, info_span, instrument, warn};
-use tungstenite::protocol::WebSocketConfig;
 
 fn bad_request() -> Response<Body> {
     Response::builder()
