@@ -38,6 +38,7 @@
   --sidebar-accent-foreground: #ffffff;
   --sidebar-border: #e5e7eb;
   --sidebar-ring: rgba(237, 100, 100, 0.5);
+  --font-jetbrains-mono: 'JetBrains Mono', 'Consolas', 'Monaco', 'Menlo', monospace;
 }
 
 .dark {
@@ -77,7 +78,7 @@
 
 @theme inline {
   --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-mono: var(--font-jetbrains-mono);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -122,5 +123,11 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+  code,
+  pre,
+  .font-mono {
+    font-family: var(--font-jetbrains-mono), 'Consolas', 'Monaco', monospace;
+    line-height: 1.75;
   }
 }

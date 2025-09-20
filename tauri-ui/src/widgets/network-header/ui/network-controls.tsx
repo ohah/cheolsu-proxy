@@ -1,4 +1,4 @@
-import { Play, Square, Trash2 } from 'lucide-react';
+import { Pause, Play, Trash2 } from 'lucide-react';
 
 import { Button } from '@/shared/ui';
 
@@ -17,7 +17,7 @@ export const NetworkControls = ({ paused, onTogglePause, onClearTransactions }: 
         onClick={onTogglePause}
         title={paused ? 'Resume recording' : 'Pause recording'}
       >
-        {paused ? <Play className="w-4 h-4" /> : <Square className="w-4 h-4" />}
+        {paused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
       </Button>
 
       <Button size="sm" variant="outline" onClick={onClearTransactions} title="Clear all transactions">

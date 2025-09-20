@@ -2,7 +2,7 @@ import { Copy } from 'lucide-react';
 
 import type { HttpTransaction } from '@/entities/proxy';
 
-import { Button, Card, CardContent, CardHeader, CardTitle, Textarea } from '@/shared/ui';
+import { Button, Card, CardContent, CardHeader, Textarea } from '@/shared/ui';
 import type { AppFormInstance } from '../context/form-context';
 
 import { formatBody } from '../lib';
@@ -28,15 +28,12 @@ export const TransactionResponse = ({ transaction, isEditing = false, form }: Tr
   };
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-sm">Response</CardTitle>
-          <div className="flex gap-2">
-            <Button variant="ghost" size="sm" onClick={handleCopy}>
-              <Copy className="w-4 h-4" />
-            </Button>
-          </div>
+    <Card className="gap-0">
+      <CardHeader>
+        <div className="flex items-center justify-end">
+          <Button variant="ghost" size="sm" onClick={handleCopy}>
+            <Copy className="w-4 h-4" />
+          </Button>
         </div>
       </CardHeader>
       <CardContent>

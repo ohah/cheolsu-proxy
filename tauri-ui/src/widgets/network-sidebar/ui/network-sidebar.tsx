@@ -2,7 +2,8 @@ import { SidebarHeader } from './sidebar-header';
 import { SidebarNavigation } from './sidebar-navigation';
 import { SidebarStatus } from './sidebar-status';
 
-import { useSidebarNavigation } from '../hooks';
+import { useSidebarCollapse, useSidebarNavigation } from '../hooks';
+import clsx from 'clsx';
 
 interface NetworkSidebarProps {
   isConnected?: boolean;
@@ -11,16 +12,28 @@ interface NetworkSidebarProps {
 
 export function NetworkSidebar({ isConnected = true, version }: NetworkSidebarProps) {
   const { activeSection, createSelectionChangeHandler } = useSidebarNavigation();
+  const { collapsed, toggleCollapse } = useSidebarCollapse();
 
   return (
-    <div className="w-64 bg-sidebar border-r border-sidebar-border flex flex-col shrink-0">
-      <SidebarHeader />
+    <div
+      className={`
+        ${collapsed ? 'w-18' : 'w-64'}
+        bg-sidebar border-r border-sidebar-border
+        flex flex-col shrink-0
+        transition-all duration-300 ease-in-out
+      `}
+    >
+      <SidebarHeader collapsed={collapsed} toggleCollapse={toggleCollapse} />
 
-      <div className="flex-1 p-2">
-        <SidebarNavigation activeSection={activeSection} createSelectionChangeHandler={createSelectionChangeHandler} />
+      <div className="flex-1 p-4">
+        <SidebarNavigation
+          collapsed={collapsed}
+          activeSection={activeSection}
+          createSelectionChangeHandler={createSelectionChangeHandler}
+        />
       </div>
 
-      <SidebarStatus isConnected={isConnected} version={version} />
+      <SidebarStatus collapsed={collapsed} isConnected={isConnected} version={version} />
     </div>
   );
 }

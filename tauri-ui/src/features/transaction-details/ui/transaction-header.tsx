@@ -2,7 +2,7 @@ import { Edit, X, Save, XCircle, Trash2 } from 'lucide-react';
 
 import type { HttpTransaction } from '@/entities/proxy';
 
-import { getStatusColor } from '@/widgets/network-table';
+import { getStatusColor } from '@/entities/transaction';
 import type { AppFormInstance } from '../context/form-context';
 
 import { Badge, Button, Input } from '@/shared/ui';
