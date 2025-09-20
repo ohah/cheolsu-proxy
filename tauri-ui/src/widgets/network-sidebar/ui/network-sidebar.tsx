@@ -19,14 +19,14 @@ export function NetworkSidebar({ isConnected = true, version }: NetworkSidebarPr
     <div
       className={clsx(
         collapsed ? 'w-18' : 'w-64',
-        'bg-sidebar border-r border-sidebar-border',
+        'bg-sidebar',
         'flex flex-col shrink-0',
         'transition-all duration-300 ease-in-out',
       )}
     >
       <SidebarHeader collapsed={collapsed} toggleCollapse={toggleCollapse} />
 
-      <div className="flex-1 p-4">
+      <div className="flex-1 px-4 py-2">
         <SidebarNavigation
           collapsed={collapsed}
           activeSection={activeSection}
