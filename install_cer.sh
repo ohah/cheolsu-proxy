@@ -2,7 +2,7 @@
 
 echo "🔐 프록시용 CA 인증서 생성 시작..."
 
-cd ./proxyapi/src/ca/
+cd ./proxyapi_v2/src/certificate_authority/
 
 # 기존 인증서 파일 정리
 echo "🧹 기존 인증서 파일 정리 중..."

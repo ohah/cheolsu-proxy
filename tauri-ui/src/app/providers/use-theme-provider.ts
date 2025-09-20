@@ -15,6 +15,8 @@ export const useThemeProvider = () => {
   }, []);
 
   useEffect(() => {
-    document.body.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    // TODO: dark theme가 지원 되면 그때 주석 해제 @ohah
+    // document.body.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    document.body.setAttribute('data-theme', 'light');
   }, [isDark]);
 };

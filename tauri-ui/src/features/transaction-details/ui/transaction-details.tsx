@@ -1,6 +1,7 @@
 import type { HttpTransaction } from '@/entities/proxy';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui';
+import { useSessionStore } from '@/shared/stores';
 
 import { TransactionHeader } from './transaction-header';
 import { TransactionProperties } from './transaction-properties';
@@ -8,7 +9,7 @@ import { TransactionHeaders } from './transaction-headers';
 import { TransactionBody } from './transaction-body';
 import { TransactionResponse } from './transaction-response';
 
-import { useTransactionTabs } from '../hooks';
+import { useTransactionTabs, useTransactionEdit } from '../hooks';
 import { TRANSACTION_DETAILS_TAB_LABELS, TRANSACTION_DETAILS_TABS } from '../model';
 
 interface TransactionDetailsProps {
@@ -20,6 +21,15 @@ export function TransactionDetails({ transaction, clearSelectedTransaction }: Tr
   const { request, response } = transaction;
 
   const { activeTab, tabs, onTabChange } = useTransactionTabs();
+  const { isEditing, form, startEditing, cancelEditing, saveChanges } = useTransactionEdit(transaction);
+  const deleteSessionByUrl = useSessionStore((state) => state.deleteSessionByUrl);
+
+  const handleDeleteSession = () => {
+    if (request?.id) {
+      deleteSessionByUrl(request.uri);
+      clearSelectedTransaction();
+    }
+  };
 
   if (!request || !response) {
     return null;
@@ -27,7 +37,16 @@ export function TransactionDetails({ transaction, clearSelectedTransaction }: Tr
 
   return (
     <div className="h-full bg-card border-l border-border flex flex-col">
-      <TransactionHeader transaction={transaction} clearSelectedTransaction={clearSelectedTransaction} />
+      <TransactionHeader
+        transaction={transaction}
+        clearSelectedTransaction={clearSelectedTransaction}
+        isEditing={isEditing}
+        onStartEdit={startEditing}
+        onCancelEdit={cancelEditing}
+        onSaveEdit={saveChanges}
+        onDeleteSession={handleDeleteSession}
+        form={form}
+      />
 
       <div className="flex-1 overflow-auto p-4">
         <div className="space-y-4">
@@ -43,15 +62,15 @@ export function TransactionDetails({ transaction, clearSelectedTransaction }: Tr
             </TabsList>
 
             <TabsContent value={TRANSACTION_DETAILS_TABS.HEADERS} className="mt-4">
-              <TransactionHeaders transaction={transaction} />
+              <TransactionHeaders transaction={transaction} isEditing={isEditing} form={form as any} />
             </TabsContent>
 
             <TabsContent value={TRANSACTION_DETAILS_TABS.BODY} className="mt-4">
-              <TransactionBody transaction={transaction} />
+              <TransactionBody transaction={transaction} isEditing={isEditing} form={form as any} />
             </TabsContent>
 
             <TabsContent value={TRANSACTION_DETAILS_TABS.RESPONSE} className="mt-4">
-              <TransactionResponse transaction={transaction} />
+              <TransactionResponse transaction={transaction} isEditing={isEditing} form={form as any} />
             </TabsContent>
           </Tabs>
         </div>

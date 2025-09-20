@@ -10,15 +10,15 @@ export const useProxyInitialization = (port: number = 8100) => {
   useEffect(() => {
     if (isInitialized.current) return;
 
+    isInitialized.current = true;
+
     const initializeProxy = async () => {
       try {
-        const response = await startProxyV2(port);
-        // TODO: Implement logic to handle response @ohah
-        console.log('response: ', response);
+        await startProxyV2(port);
         setIsConnected(true);
-        isInitialized.current = true;
       } catch (error) {
         console.error('Failed to start proxy:', error);
+        isInitialized.current = false;
         setIsConnected(false);
       }
     };

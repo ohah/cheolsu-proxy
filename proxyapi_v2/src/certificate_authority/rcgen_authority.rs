@@ -133,8 +133,8 @@ mod tests {
     use tokio_rustls::rustls::crypto::aws_lc_rs;
 
     fn build_ca(cache_size: u64) -> RcgenAuthority {
-        let key_pair = include_str!("../../examples/ca/hudsucker.key");
-        let ca_cert = include_str!("../../examples/ca/hudsucker.cer");
+        let key_pair = include_str!("cheolsu-proxy.key");
+        let ca_cert = include_str!("cheolsu-proxy.cer");
         let key_pair = KeyPair::from_pem(key_pair).expect("Failed to parse private key");
         let ca_cert = CertificateParams::from_ca_cert_pem(ca_cert)
             .expect("Failed to parse CA certificate")
@@ -151,7 +151,9 @@ mod tests {
         let authority1 = Authority::from_static(
             "https://media.adpnut.com/cgi-bin/PelicanC.dll?impr?pageid=02AZ&lang=utf-8&out=iframe",
         );
-        let authority2 = Authority::from_static("example2.com");
+        let authority2 = Authority::from_static(
+            "https//ad.aceplanet.co.kr/cgi-bin/PelicanC.dll?impr?pageid=06P0&campaignid=01sL&gothrough=nextgrade&out=iframe",
+        );
 
         let c1 = ca.gen_cert(&authority1);
         let c2 = ca.gen_cert(&authority2);
