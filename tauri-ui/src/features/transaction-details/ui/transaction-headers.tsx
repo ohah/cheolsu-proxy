@@ -2,7 +2,7 @@ import { Copy, Plus, Trash2 } from 'lucide-react';
 
 import type { HttpTransaction } from '@/entities/proxy';
 
-import { Button, Card, CardContent, CardHeader, CardTitle, Input } from '@/shared/ui';
+import { Button, Card, CardContent, CardHeader, Input } from '@/shared/ui';
 import type { AppFormInstance } from '../context/form-context';
 
 interface TransactionHeadersProps {
@@ -40,20 +40,17 @@ export const TransactionHeaders = ({ transaction, isEditing = false, form }: Tra
   };
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-sm">Request Headers</CardTitle>
-          <div className="flex gap-2">
-            {isEditing && (
-              <Button variant="ghost" size="sm" onClick={handleAddHeader}>
-                <Plus className="w-4 h-4" />
-              </Button>
-            )}
-            <Button variant="ghost" size="sm" onClick={handleCopy}>
-              <Copy className="w-4 h-4" />
+    <Card className="gap-0">
+      <CardHeader>
+        <div className="flex items-center justify-end gap-2">
+          {isEditing && (
+            <Button variant="ghost" size="sm" onClick={handleAddHeader}>
+              <Plus className="w-4 h-4" />
             </Button>
-          </div>
+          )}
+          <Button variant="ghost" size="sm" onClick={handleCopy}>
+            <Copy className="w-4 h-4" />
+          </Button>
         </div>
       </CardHeader>
       <CardContent>
