@@ -67,7 +67,7 @@ export const NetworkDashboard = () => {
           direction="horizontal"
           className="flex-1 flex border border-b-0 rounded-tl-lg shadow-[0_0_10px_0_rgba(0,0,0,0.05)] bg-background"
         >
-          <ResizablePanel className="flex-1 h-full overflow-hidden border-r border-border">
+          <ResizablePanel className="flex-1 h-full overflow-hidden">
             <NetworkTable
               transactions={filteredTransactions}
               selectedTransaction={selectedTransaction}

@@ -21,7 +21,7 @@ export function TableBody({ data, createTransactionSelectHandler, createTransact
   }
 
   return (
-    <ScrollArea className="flex-1 overflow-auto">
+    <ScrollArea className="flex-1 overflow-y-scroll">
       {data.map((rowData) => {
         const id = rowData.transaction.request?.time ?? rowData.index;
 
