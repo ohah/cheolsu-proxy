@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 
 import { HttpTransaction } from '@/entities/proxy';
 
@@ -39,6 +39,10 @@ const TreeNodeComponent = ({
     onTransactionSelect,
   });
 
+  const sortedChildren = useMemo(() => {
+    return sortTreeNodes(Array.from(node.children.values()));
+  }, [node.children]);
+
   return (
     <div className="cursor-pointer">
       {node.name !== 'root' && (
@@ -65,7 +69,7 @@ const TreeNodeComponent = ({
 
       {hasChildren && shouldShowContent && (
         <div>
-          {sortTreeNodes(Array.from(node.children.values())).map((child) => (
+          {sortedChildren.map((child) => (
             <TreeNode
               key={child.path}
               node={child}
