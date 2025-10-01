@@ -9,7 +9,7 @@ export const useHostTree = (transactions: HttpTransaction[]) => {
 
   const tree = useMemo(() => {
     return buildHostTree(transactions);
-  }, [transactions, expandedPaths]);
+  }, [transactions]);
 
   const toggleExpanded = (path: string) => {
     const newExpanded = new Set(expandedPaths);
