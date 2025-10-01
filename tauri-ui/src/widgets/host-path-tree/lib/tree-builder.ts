@@ -8,11 +8,7 @@ const NODE_ORDER: Record<NodeType, number> = {
   endpoint: 2,
 } as const;
 
-function createHostNode(
-  name: string,
-  path: string,
-  type: NodeType,
-): HostNode {
+function createHostNode(name: string, path: string, type: NodeType): HostNode {
   return {
     name,
     path,
@@ -26,10 +22,7 @@ function createRootNode(): HostNode {
   return createHostNode('root', '', 'host');
 }
 
-function getOrCreateHostNode(
-  root: HostNode,
-  host: string,
-): HostNode {
+function getOrCreateHostNode(root: HostNode, host: string): HostNode {
   if (!root.children.has(host)) {
     root.children.set(host, createHostNode(host, host, 'host'));
   }
@@ -49,11 +42,7 @@ function getOrCreatePathNode(
   return parentNode.children.get(segment)!;
 }
 
-function addTransactionToTree(
-  transaction: HttpTransaction,
-  root: HostNode,
-  expandedPaths: Set<string>
-): void {
+function addTransactionToTree(transaction: HttpTransaction, root: HostNode): void {
   const request = transaction.request!;
 
   const host = extractHostFromRequest(request);
@@ -73,12 +62,7 @@ function addTransactionToTree(
     const isLastSegment = index === pathSegments.length - 1;
     const currentPath = `${host}/${pathSegments.slice(0, index + 1).join('/')}`;
 
-    currentNode = getOrCreatePathNode(
-      currentNode,
-      segment,
-      currentPath,
-      isLastSegment,
-    );
+    currentNode = getOrCreatePathNode(currentNode, segment, currentPath, isLastSegment);
 
     if (isLastSegment) {
       currentNode.transactions.push(transaction);
@@ -86,16 +70,13 @@ function addTransactionToTree(
   });
 }
 
-export const buildHostTree = (
-  transactions: HttpTransaction[],
-  expandedPaths: Set<string>
-): HostNode => {
+export const buildHostTree = (transactions: HttpTransaction[]): HostNode => {
   const root = createRootNode();
 
-  const completeTransactions = transactions.filter(t => t.request !== null);
+  const completeTransactions = transactions.filter((t) => t.request !== null);
 
-  completeTransactions.forEach(transaction => {
-    addTransactionToTree(transaction, root, expandedPaths);
+  completeTransactions.forEach((transaction) => {
+    addTransactionToTree(transaction, root);
   });
 
   return root;

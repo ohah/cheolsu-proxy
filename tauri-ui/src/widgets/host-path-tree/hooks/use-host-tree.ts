@@ -8,7 +8,7 @@ export const useHostTree = (transactions: HttpTransaction[]) => {
   const [expandedPaths, setExpandedPaths] = useState<Set<string>>(new Set());
 
   const tree = useMemo(() => {
-    return buildHostTree(transactions, expandedPaths);
+    return buildHostTree(transactions);
   }, [transactions, expandedPaths]);
 
   const toggleExpanded = (path: string) => {
@@ -24,6 +24,6 @@ export const useHostTree = (transactions: HttpTransaction[]) => {
   return {
     tree,
     expandedPaths,
-    toggleExpanded
+    toggleExpanded,
   };
 };
