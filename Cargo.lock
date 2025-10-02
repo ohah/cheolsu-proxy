@@ -4347,6 +4347,7 @@ dependencies = [
  "hyper-util",
  "moka 0.12.10",
  "openssl",
+ "pem",
  "rand 0.9.2",
  "rcgen",
  "reqwest",
