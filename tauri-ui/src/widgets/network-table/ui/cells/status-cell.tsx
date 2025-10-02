@@ -1,9 +1,11 @@
-import { Badge } from '@/shared/ui';
+import { memo } from 'react';
 
+import { Badge } from '@/shared/ui';
 import { getStatusColor } from '@/entities/transaction';
+
 import type { TableCellProps } from '../../model';
 
-export const StatusCell = ({ data }: TableCellProps) => {
+export const StatusCell = memo<TableCellProps>(({ data }) => {
   const status = data.transaction.response?.status || 0;
 
   return (
@@ -13,4 +15,6 @@ export const StatusCell = ({ data }: TableCellProps) => {
       </Badge>
     </div>
   );
-};
+});
+
+StatusCell.displayName = 'StatusCell';

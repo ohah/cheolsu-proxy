@@ -28,7 +28,7 @@ export const TransactionBody = ({ transaction, isEditing = false, form }: Transa
   };
 
   return (
-    <Card className="gap-0">
+    <Card className="gap-0 flex">
       <CardHeader>
         <div className="flex items-center justify-end">
           <Button variant="ghost" size="sm" onClick={handleCopy}>

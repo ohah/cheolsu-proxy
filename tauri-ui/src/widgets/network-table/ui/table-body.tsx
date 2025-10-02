@@ -1,9 +1,11 @@
-import type { HttpTransaction } from '@/entities/proxy';
-import { ScrollArea } from '@/shared/ui';
+import { useCallback, useMemo } from 'react';
 
-import { TableRow } from './table-row';
+import type { HttpTransaction } from '@/entities/proxy';
+import { VirtualizedScrollArea } from '@/shared/ui';
 
 import type { TableRowData } from '../model';
+
+import { TableRow } from './table-row';
 
 interface TableBodyProps {
   data: TableRowData[];
@@ -11,7 +13,27 @@ interface TableBodyProps {
   createTransactionDeleteHandler: (id: number) => () => void;
 }
 
-export function TableBody({ data, createTransactionSelectHandler, createTransactionDeleteHandler }: TableBodyProps) {
+export const TableBody = ({ data, createTransactionSelectHandler, createTransactionDeleteHandler }: TableBodyProps) => {
+  const rowHandlers = useMemo(() => {
+    return data.map((rowData, index) => {
+      const id = rowData.transaction.request?.time ?? index;
+      return {
+        onSelect: createTransactionSelectHandler(rowData.transaction),
+        onDelete: createTransactionDeleteHandler(id),
+      };
+    });
+  }, [data, createTransactionSelectHandler, createTransactionDeleteHandler]);
+
+  const renderItem = useCallback(
+    (index: number) => {
+      const rowData = data[index];
+      const handlers = rowHandlers[index];
+
+      return <TableRow data={rowData} onSelect={handlers.onSelect} onDelete={handlers.onDelete} />;
+    },
+    [data, rowHandlers],
+  );
+
   if (data.length === 0) {
     return (
       <div className="flex-1 flex items-center justify-center p-8">
@@ -21,15 +43,12 @@ export function TableBody({ data, createTransactionSelectHandler, createTransact
   }
 
   return (
-    <ScrollArea className="flex-1 overflow-auto">
-      {data.map((rowData) => {
-        const id = rowData.transaction.request?.time ?? rowData.index;
-
-        const onSelect = createTransactionSelectHandler(rowData.transaction);
-        const onDelete = createTransactionDeleteHandler(id);
-
-        return <TableRow key={id} data={rowData} onSelect={onSelect} onDelete={onDelete} />;
-      })}
-    </ScrollArea>
+    <VirtualizedScrollArea
+      itemCount={data.length}
+      itemSize={69}
+      className="flex-1 min-h-0"
+      renderItem={renderItem}
+      overscan={30}
+    />
   );
-}
+};

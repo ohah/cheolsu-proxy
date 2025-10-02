@@ -89,7 +89,7 @@ export const NetworkDashboard = () => {
           <ResizableHandle withHandle />
           <ResizablePanel
             maxSize={selectedTransaction ? 50 : 0}
-            minSize={selectedTransaction ? 35 : 0}
+            minSize={selectedTransaction ? 25 : 0}
             className="w-96 h-full overflow-y-auto"
           >
             {selectedTransaction && (

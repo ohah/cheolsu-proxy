@@ -47,8 +47,8 @@ export function TransactionDetails({ transaction, clearSelectedTransaction }: Tr
         form={form}
       />
 
-      <ScrollArea className="flex-1 overflow-auto p-4">
-        <div className="space-y-4">
+      <ScrollArea className="flex-1 overflow-auto p-4 [&>div>div]:!flex">
+        <div className="space-y-4 w-full">
           <Tabs value={activeTab} onValueChange={onTabChange}>
             <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${tabs.length}, 1fr)` }}>
               {tabs.map((tab) => (
