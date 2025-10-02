@@ -2,7 +2,6 @@ import type { HttpTransaction } from '@/entities/proxy';
 
 import { TableHeader } from './table-header';
 import { TableBody } from './table-body';
-
 import { useTableData } from '../hooks';
 
 interface NetworkTableProps {
@@ -21,7 +20,7 @@ export const NetworkTable = ({
   const { tableData } = useTableData({ transactions, selectedTransaction });
 
   return (
-    <div className="flex flex-col flex-1 h-full">
+    <div className="flex flex-col flex-1 h-full overflow-hidden">
       <TableHeader />
       <TableBody
         data={tableData}

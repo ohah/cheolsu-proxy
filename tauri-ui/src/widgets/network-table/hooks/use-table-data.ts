@@ -11,13 +11,13 @@ interface UseTableDataProps {
 }
 
 export const useTableData = ({ transactions, selectedTransaction }: UseTableDataProps) => {
-  const tableData = useMemo<TableRowData[]>(() => {
+  const selectedTime = useMemo(() => selectedTransaction?.request?.time, [selectedTransaction?.request?.time]);
+
+  const processedTransactions = useMemo(() => {
     return transactions.map((transaction, index) => {
       const { request, response } = transaction;
 
-      const timeDiff = response?.time && request?.time
-        ? Math.trunc((response.time - request.time) / 1e6)
-        : 'N/A';
+      const timeDiff = response?.time && request?.time ? Math.trunc((response.time - request.time) / 1e6) : 'N/A';
 
       let authority = '';
       let pathname = '';
@@ -39,10 +39,17 @@ export const useTableData = ({ transactions, selectedTransaction }: UseTableData
         timeDiff,
         authority,
         pathname,
-        isSelected: selectedTransaction?.request?.time === transaction.request?.time,
+        requestTime: request?.time,
       };
     });
-  }, [transactions, selectedTransaction]);
+  }, [transactions]);
+
+  const tableData = useMemo<TableRowData[]>(() => {
+    return processedTransactions.map((item) => ({
+      ...item,
+      isSelected: selectedTime === item.requestTime,
+    }));
+  }, [processedTransactions, selectedTime]);
 
   return { tableData };
 };
