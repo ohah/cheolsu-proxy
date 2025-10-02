@@ -16,6 +16,7 @@ use thiserror::Error;
 use tokio::net::TcpListener;
 use tokio_rustls::rustls::{ClientConfig, crypto::CryptoProvider};
 use tokio_tungstenite::Connector;
+use tracing::{debug, error, info};
 
 #[derive(Debug, Error)]
 #[non_exhaustive]
@@ -122,7 +123,7 @@ pub struct WantsClient<CA> {
     ca: CA,
 }
 
-impl<CA> ProxyBuilder<WantsClient<CA>> {
+impl<CA: CertificateAuthority> ProxyBuilder<WantsClient<CA>> {
     /// Use a hyper-rustls connector.
     #[cfg(feature = "rustls-client")]
     pub fn with_rustls_client(
@@ -132,11 +133,34 @@ impl<CA> ProxyBuilder<WantsClient<CA>> {
     {
         use hyper_rustls::ConfigBuilderExt;
 
+        info!("Building rustls client configuration");
+
+        // 기본 rustls 설정 생성 (webpki_roots 포함)
         let rustls_config = match ClientConfig::builder_with_provider(Arc::new(provider))
             .with_safe_default_protocol_versions()
         {
-            Ok(config) => config.with_webpki_roots().with_no_client_auth(),
+            Ok(config) => {
+                let mut client_config = config.with_webpki_roots().with_no_client_auth();
+
+                // 사설 CA 인증서 추가는 with_webpki_roots() 후에 별도로 처리
+                // 현재는 기본 webpki_roots만 사용하고, 사설 CA는 서버 측에서만 처리
+                debug!("Using default webpki_roots for client configuration");
+
+                // ALPN 프로토콜 설정 - HTTP/2 우선, HTTP/1.1 fallback
+                client_config.alpn_protocols = vec![
+                    #[cfg(feature = "http2")]
+                    b"h2".to_vec(),
+                    b"http/1.1".to_vec(),
+                ];
+
+                debug!(
+                    "Client config ALPN protocols: {:?}",
+                    client_config.alpn_protocols
+                );
+                client_config
+            }
             Err(e) => {
+                error!("Failed to build rustls client config: {}", e);
                 return ProxyBuilder(WantsHandlers {
                     al: self.0.al,
                     ca: self.0.ca,
