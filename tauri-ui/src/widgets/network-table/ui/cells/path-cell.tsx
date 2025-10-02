@@ -1,6 +1,8 @@
+import { memo } from 'react';
+
 import type { TableCellProps } from '../../model';
 
-export const PathCell = ({ data }: TableCellProps) => {
+export const PathCell = memo<TableCellProps>(({ data }) => {
   const { authority, pathname } = data;
 
   return (
@@ -13,4 +15,6 @@ export const PathCell = ({ data }: TableCellProps) => {
       </div>
     </div>
   );
-};
+});
+
+PathCell.displayName = 'PathCell';

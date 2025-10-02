@@ -1,4 +1,4 @@
-import type { HttpTransaction } from "@/entities/proxy";
+import type { HttpTransaction } from '@/entities/proxy';
 
 export interface TableRowData {
   transaction: HttpTransaction;
@@ -7,6 +7,7 @@ export interface TableRowData {
   authority: string;
   pathname: string;
   isSelected: boolean;
+  requestTime?: number;
 }
 
 export interface TableCellProps {

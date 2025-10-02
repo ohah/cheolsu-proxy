@@ -1,4 +1,7 @@
+import { memo, useMemo } from 'react';
+
 import { PathCell, MethodCell, StatusCell, SizeCell, TimeCell, ActionCell } from './cells';
+
 import { ROW_BASE_CLASSES, SELECTED_ROW_CLASSES, GRID_COLS_CLASS } from '../model';
 import type { TableRowData } from '../model';
 
@@ -8,10 +11,12 @@ interface TableRowProps {
   onDelete: () => void;
 }
 
-export function TableRow({ data, onSelect, onDelete }: TableRowProps) {
+export const TableRow = memo(function TableRow({ data, onSelect, onDelete }: TableRowProps) {
   const { isSelected } = data;
 
-  const rowClasses = `${ROW_BASE_CLASSES} ${GRID_COLS_CLASS} ${isSelected ? SELECTED_ROW_CLASSES : ''}`;
+  const rowClasses = useMemo(() => {
+    return `${ROW_BASE_CLASSES} ${GRID_COLS_CLASS} ${isSelected ? SELECTED_ROW_CLASSES : ''}`;
+  }, [isSelected]);
 
   return (
     <div className={rowClasses} onClick={onSelect}>
@@ -23,4 +28,6 @@ export function TableRow({ data, onSelect, onDelete }: TableRowProps) {
       <ActionCell onDelete={onDelete} />
     </div>
   );
-}
+});
+
+TableRow.displayName = 'TableRow';

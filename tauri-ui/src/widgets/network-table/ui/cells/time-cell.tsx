@@ -1,6 +1,8 @@
+import { memo } from 'react';
+
 import type { TableCellProps } from '../../model';
 
-export const TimeCell = ({ data }: TableCellProps) => {
+export const TimeCell = memo<TableCellProps>(({ data }) => {
   const { timeDiff } = data;
 
   const displayTime = typeof timeDiff === 'number' ? `${timeDiff}ms` : timeDiff;
@@ -10,4 +12,6 @@ export const TimeCell = ({ data }: TableCellProps) => {
       {displayTime}
     </div>
   );
-};
+});
+
+TimeCell.displayName = 'TimeCell';
