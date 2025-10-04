@@ -75,3 +75,17 @@ export const formatBodyToJson = (body: Uint8Array | any): Record<string, unknown
     return '';
   }
 };
+
+// JSON 타입 감지 함수
+export const detectContentType = (content: string): 'json' | 'text' => {
+  if (!content || content.trim().length === 0) {
+    return 'text';
+  }
+
+  try {
+    JSON.parse(content);
+    return 'json';
+  } catch {
+    return 'text';
+  }
+};
