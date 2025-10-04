@@ -132,7 +132,10 @@ impl RcgenAuthority {
                 debug!("Added IP SAN: {}", ip_addr);
             }
             Err(e) => {
-                warn!("Failed to parse IP address for SAN from host '{}': {}", host, e);
+                warn!(
+                    "Failed to parse IP address for SAN from host '{}': {}",
+                    host, e
+                );
             }
         }
 
