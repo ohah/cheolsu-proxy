@@ -1,4 +1,5 @@
-export { useSessionStore } from './session-store';
+export * from './session-store';
+export * from './proxy-store';
 export type {
   SessionStore,
   SessionStoreState,
