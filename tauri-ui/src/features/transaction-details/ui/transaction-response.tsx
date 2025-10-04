@@ -47,7 +47,7 @@ export const TransactionResponse = ({ transaction, isEditing = false, form }: Tr
               <div className="h-[calc(100vh-300px)] border rounded-md overflow-hidden">
                 <Editor
                   height="calc(100vh - 300px)"
-                  defaultLanguage={contentType}
+                  language={contentType}
                   value={(field.state.value as string) || ''}
                   onChange={(value) => field.handleChange(value || '')}
                   options={{
@@ -71,7 +71,7 @@ export const TransactionResponse = ({ transaction, isEditing = false, form }: Tr
           <div className="h-[calc(100vh-300px)] border rounded-md overflow-hidden">
             <Editor
               height="calc(100vh - 300px)"
-              defaultLanguage={contentType}
+              language={contentType}
               value={responseText}
               options={{
                 readOnly: true,

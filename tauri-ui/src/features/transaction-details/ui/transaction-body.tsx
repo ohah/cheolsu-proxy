@@ -50,7 +50,7 @@ export const TransactionBody = ({ transaction, isEditing = false, form }: Transa
               <div className="h-[calc(100vh-300px)] border rounded-md overflow-hidden">
                 <Editor
                   height="calc(100vh - 300px)"
-                  defaultLanguage={contentType}
+                  language={contentType}
                   value={(field.state.value as string) || ''}
                   onChange={(value) => field.handleChange(value || '')}
                   options={{
@@ -74,7 +74,7 @@ export const TransactionBody = ({ transaction, isEditing = false, form }: Transa
           <div className="h-[calc(100vh-300px)] border rounded-md overflow-hidden">
             <Editor
               height="calc(100vh - 300px)"
-              defaultLanguage={contentType}
+              language={contentType}
               value={requestText}
               options={{
                 readOnly: true,
