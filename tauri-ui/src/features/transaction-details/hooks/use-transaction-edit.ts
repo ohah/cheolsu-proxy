@@ -113,45 +113,24 @@ export const useTransactionEdit = (transaction: HttpTransaction) => {
   }) as any;
 
   const startEditing = useCallback(() => {
-    try {
-      const initialValues = getInitialValues();
-      originalDataRef.current = initialValues;
-
-      // 폼 필드 값 설정 시 안전성 검사
-      if (form && typeof form.setFieldValue === 'function') {
-        form.setFieldValue('request', initialValues.request);
-        form.setFieldValue('response', initialValues.response);
-      }
-
-      setIsEditing(true);
-    } catch (error) {
-      console.error('Failed to start editing:', error);
-    }
+    const initialValues = getInitialValues();
+    originalDataRef.current = initialValues;
+    form.setFieldValue('request', initialValues.request);
+    form.setFieldValue('response', initialValues.response);
+    setIsEditing(true);
   }, [form, getInitialValues]);
 
   const cancelEditing = useCallback(() => {
-    try {
-      if (originalDataRef.current && form && typeof form.setFieldValue === 'function') {
-        form.setFieldValue('request', originalDataRef.current.request);
-        form.setFieldValue('response', originalDataRef.current.response);
-      }
-      setIsEditing(false);
-      originalDataRef.current = null;
-    } catch (error) {
-      console.error('Failed to cancel editing:', error);
-      setIsEditing(false);
-      originalDataRef.current = null;
+    if (originalDataRef.current) {
+      form.setFieldValue('request', originalDataRef.current.request);
+      form.setFieldValue('response', originalDataRef.current.response);
     }
+    setIsEditing(false);
+    originalDataRef.current = null;
   }, [form]);
 
   const saveChanges = useCallback(() => {
-    try {
-      if (form && typeof form.handleSubmit === 'function') {
-        form.handleSubmit();
-      }
-    } catch (error) {
-      console.error('Failed to save changes:', error);
-    }
+    form.handleSubmit();
   }, [form]);
 
   return {
