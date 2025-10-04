@@ -126,9 +126,14 @@ impl RcgenAuthority {
         }
 
         // IP 주소인 경우 처리
-        if let Ok(ip_addr) = host.parse::<std::net::IpAddr>() {
-            params.subject_alt_names.push(SanType::IpAddress(ip_addr));
-            debug!("Added IP SAN: {}", ip_addr);
+        match host.parse::<std::net::IpAddr>() {
+            Ok(ip_addr) => {
+                params.subject_alt_names.push(SanType::IpAddress(ip_addr));
+                debug!("Added IP SAN: {}", ip_addr);
+            }
+            Err(e) => {
+                warn!("Failed to parse IP address for SAN from host '{}': {}", host, e);
+            }
         }
 
         // localhost 및 127.0.0.1 처리
