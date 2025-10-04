@@ -48,9 +48,12 @@ export function TransactionDetails({ transaction, clearSelectedTransaction }: Tr
       />
 
       <ScrollArea className="flex-1 overflow-auto p-4 [&>div>div]:!flex">
-        <div className="space-y-4 w-full">
-          <Tabs value={activeTab} onValueChange={onTabChange}>
-            <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${tabs.length}, 1fr)` }}>
+        <div className="h-full w-full">
+          <Tabs value={activeTab} onValueChange={onTabChange} className="h-full flex flex-col">
+            <TabsList
+              className="grid w-full flex-shrink-0"
+              style={{ gridTemplateColumns: `repeat(${tabs.length}, 1fr)` }}
+            >
               {tabs.map((tab) => (
                 <TabsTrigger key={tab} value={tab}>
                   {TRANSACTION_DETAILS_TAB_LABELS[tab]}
@@ -58,16 +61,16 @@ export function TransactionDetails({ transaction, clearSelectedTransaction }: Tr
               ))}
             </TabsList>
 
-            <TabsContent value={TRANSACTION_DETAILS_TABS.HEADERS} className="mt-4">
-              <TransactionHeaders transaction={transaction} isEditing={isEditing} form={form as any} />
+            <TabsContent value={TRANSACTION_DETAILS_TABS.HEADERS} className="flex-1 mt-4">
+              <TransactionHeaders transaction={transaction} isEditing={isEditing} form={form} />
             </TabsContent>
 
-            <TabsContent value={TRANSACTION_DETAILS_TABS.BODY} className="mt-4">
-              <TransactionBody transaction={transaction} isEditing={isEditing} form={form as any} />
+            <TabsContent value={TRANSACTION_DETAILS_TABS.BODY} className="flex-1 mt-4">
+              <TransactionBody transaction={transaction} isEditing={isEditing} form={form} />
             </TabsContent>
 
-            <TabsContent value={TRANSACTION_DETAILS_TABS.RESPONSE} className="mt-4">
-              <TransactionResponse transaction={transaction} isEditing={isEditing} form={form as any} />
+            <TabsContent value={TRANSACTION_DETAILS_TABS.RESPONSE} className="flex-1 mt-4">
+              <TransactionResponse transaction={transaction} isEditing={isEditing} form={form} />
             </TabsContent>
           </Tabs>
         </div>

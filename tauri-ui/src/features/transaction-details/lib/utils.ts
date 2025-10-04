@@ -75,3 +75,65 @@ export const formatBodyToJson = (body: Uint8Array | any): Record<string, unknown
     return '';
   }
 };
+
+// JSON 타입 감지 함수
+export const detectContentType = (content: string): 'json' | 'text' => {
+  if (!content || content.trim().length === 0) {
+    return 'text';
+  }
+
+  try {
+    JSON.parse(content);
+    return 'json';
+  } catch {
+    return 'text';
+  }
+};
+
+// curl 명령어 생성 함수
+export const generateCurlCommand = (transaction: any): string => {
+  const { request } = transaction;
+  if (!request) return '';
+
+  const method = request.method || 'GET';
+  const url = request.uri || '';
+  const headers = request.headers || {};
+  const body = request.body;
+
+  let curlCommand = `curl -X ${method}`;
+
+  // 헤더를 중요도 순으로 정렬하여 추가
+  const sortedHeaders = Object.entries(headers).sort(([keyA], [keyB]) => {
+    const priority = ['accept', 'authorization', 'content-type', 'user-agent'];
+    const indexA = priority.indexOf(keyA.toLowerCase());
+    const indexB = priority.indexOf(keyB.toLowerCase());
+
+    if (indexA === -1 && indexB === -1) return keyA.localeCompare(keyB);
+    if (indexA === -1) return 1;
+    if (indexB === -1) return -1;
+    return indexA - indexB;
+  });
+
+  // 헤더 추가
+  sortedHeaders.forEach(([key, value]) => {
+    curlCommand += ` \\\n  -H "${key}: ${value}"`;
+  });
+
+  // Body가 있는 경우에만 Content-Type 추가 (기본값이 없는 경우)
+  if (body && body.length > 0 && !headers['Content-Type'] && !headers['content-type']) {
+    curlCommand += ` \\\n  -H "Content-Type: application/json"`;
+  }
+
+  // URL 추가
+  curlCommand += ` \\\n  "${url}"`;
+
+  // Body 추가
+  if (body && body.length > 0) {
+    const bodyText = formatBody(body);
+    // JSON인 경우 한 줄로 압축
+    const compressedBody = bodyText.replace(/\s+/g, ' ').trim();
+    curlCommand += ` \\\n  -d '${compressedBody}'`;
+  }
+
+  return curlCommand;
+};

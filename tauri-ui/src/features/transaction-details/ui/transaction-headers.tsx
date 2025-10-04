@@ -4,6 +4,7 @@ import type { HttpTransaction } from '@/entities/proxy';
 
 import { Button, Card, CardContent, CardHeader, Input } from '@/shared/ui';
 import type { AppFormInstance } from '../context/form-context';
+import { toast } from 'sonner';
 
 interface TransactionHeadersProps {
   transaction: HttpTransaction;
@@ -22,6 +23,7 @@ export const TransactionHeaders = ({ transaction, isEditing = false, form }: Tra
       .map(([key, value]) => `${key}: ${value}`)
       .join('\n');
     navigator.clipboard.writeText(headersText);
+    toast.success('Request headers copied to clipboard');
   };
 
   const handleAddHeader = () => {
