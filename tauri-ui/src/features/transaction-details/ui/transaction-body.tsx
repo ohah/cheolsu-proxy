@@ -1,10 +1,12 @@
+import { Copy } from 'lucide-react';
+
 import type { HttpTransaction } from '@/entities/proxy';
+
 import { Button, Card, CardContent, CardHeader } from '@/shared/ui';
 import type { AppFormInstance } from '../context/form-context';
 import { Editor } from '@monaco-editor/react';
 
 import { formatBody, detectContentType } from '../lib';
-import { Copy } from 'lucide-react';
 
 interface TransactionBodyProps {
   transaction: HttpTransaction;
@@ -14,6 +16,8 @@ interface TransactionBodyProps {
 
 export const TransactionBody = ({ transaction, isEditing = false, form }: TransactionBodyProps) => {
   const { request } = transaction;
+
+  if (!request) return null;
 
   const getRequestText = () => {
     if (!request?.body || request.body.length === 0) {
@@ -41,13 +45,13 @@ export const TransactionBody = ({ transaction, isEditing = false, form }: Transa
       <CardContent className="flex-1 p-0 min-h-0">
         {form && isEditing ? (
           <form.Field
-            name="request.body"
-            children={(field: any) => (
+            name="request.data"
+            children={(field) => (
               <div className="h-[calc(100vh-300px)] border rounded-md overflow-hidden">
                 <Editor
                   height="calc(100vh - 300px)"
                   defaultLanguage={contentType}
-                  value={field.state.value || ''}
+                  value={(field.state.value as string) || ''}
                   onChange={(value) => field.handleChange(value || '')}
                   options={{
                     minimap: { enabled: false },
