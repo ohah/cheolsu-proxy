@@ -16,6 +16,7 @@ use thiserror::Error;
 use tokio::net::TcpListener;
 use tokio_rustls::rustls::{ClientConfig, crypto::CryptoProvider};
 use tokio_tungstenite::Connector;
+use tracing::{debug, error, info, warn};
 
 #[derive(Debug, Error)]
 #[non_exhaustive]
@@ -122,7 +123,7 @@ pub struct WantsClient<CA> {
     ca: CA,
 }
 
-impl<CA> ProxyBuilder<WantsClient<CA>> {
+impl<CA: CertificateAuthority> ProxyBuilder<WantsClient<CA>> {
     /// Use a hyper-rustls connector.
     #[cfg(feature = "rustls-client")]
     pub fn with_rustls_client(
@@ -132,11 +133,78 @@ impl<CA> ProxyBuilder<WantsClient<CA>> {
     {
         use hyper_rustls::ConfigBuilderExt;
 
+        info!("Building rustls client configuration");
+
+        // 기본 rustls 설정 생성 (webpki_roots 포함)
         let rustls_config = match ClientConfig::builder_with_provider(Arc::new(provider))
             .with_safe_default_protocol_versions()
         {
-            Ok(config) => config.with_webpki_roots().with_no_client_auth(),
+            Ok(config) => {
+                // 사설 CA 인증서가 있는 경우 커스텀 루트 저장소 생성
+                let mut client_config = if let Some(ca_cert_der) = self.0.ca.get_ca_cert_der() {
+                    debug!("Adding custom CA certificate to client trust store");
+
+                    // 루트 인증서 저장소 생성
+                    let mut root_store = tokio_rustls::rustls::RootCertStore::empty();
+
+                    // 기본 시스템 루트 인증서 추가
+                    let cert_result = rustls_native_certs::load_native_certs();
+                    let cert_count = cert_result.certs.len();
+                    for cert in cert_result.certs {
+                        if let Err(e) = root_store.add(cert) {
+                            warn!("Failed to add native certificate to root store: {:?}", e);
+                        }
+                    }
+                    if !cert_result.errors.is_empty() {
+                        warn!(
+                            "Some errors occurred while loading native certificates: {:?}",
+                            cert_result.errors
+                        );
+                    }
+                    debug!(
+                        "Added {} native certificates to client trust store",
+                        cert_count
+                    );
+
+                    // DER 형식의 CA 인증서를 rustls CertificateDer로 변환
+                    let ca_cert =
+                        tokio_rustls::rustls::pki_types::CertificateDer::from(ca_cert_der);
+
+                    // 루트 인증서 저장소에 CA 인증서 추가
+                    if let Err(e) = root_store.add(ca_cert) {
+                        warn!(
+                            "Failed to add custom CA certificate to client trust store: {:?}",
+                            e
+                        );
+                    } else {
+                        debug!("Successfully added custom CA certificate to client trust store");
+                    }
+
+                    // 커스텀 루트 저장소로 클라이언트 설정 생성
+                    config
+                        .with_root_certificates(root_store)
+                        .with_no_client_auth()
+                } else {
+                    debug!("No custom CA certificate available, using default webpki_roots only");
+                    // 기본 webpki_roots 사용
+                    config.with_webpki_roots().with_no_client_auth()
+                };
+
+                // ALPN 프로토콜 설정 - HTTP/2 우선, HTTP/1.1 fallback
+                client_config.alpn_protocols = vec![
+                    #[cfg(feature = "http2")]
+                    b"h2".to_vec(),
+                    b"http/1.1".to_vec(),
+                ];
+
+                debug!(
+                    "Client config ALPN protocols: {:?}",
+                    client_config.alpn_protocols
+                );
+                client_config
+            }
             Err(e) => {
+                error!("Failed to build rustls client config: {}", e);
                 return ProxyBuilder(WantsHandlers {
                     al: self.0.al,
                     ca: self.0.ca,
