@@ -1,4 +1,4 @@
-import clsx from 'clsx';
+import { cn } from '@/shared/lib';
 
 import { SidebarHeader } from './sidebar-header';
 import { SidebarNavigation } from './sidebar-navigation';
@@ -16,7 +16,7 @@ export function AppSidebar({ isConnected = true, version }: AppSidebarProps) {
 
   return (
     <div
-      className={clsx(
+      className={cn(
         collapsed ? 'w-18' : 'w-64',
         'bg-sidebar',
         'flex flex-col shrink-0',
