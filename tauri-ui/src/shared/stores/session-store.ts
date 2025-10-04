@@ -3,7 +3,7 @@ import { subscribeWithSelector } from 'zustand/middleware';
 import { load } from '@tauri-apps/plugin-store';
 import type { SessionStore, SessionStoreState } from './types';
 
-const tauriStore = await load('session.json', { autoSave: true });
+const tauriStore = await load('session.json');
 
 const notifyStoreChange = async () => {
   try {
