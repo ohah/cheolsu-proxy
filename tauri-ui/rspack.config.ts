@@ -83,6 +83,7 @@ export default defineConfig({
   },
   devServer: {
     port: 1420,
+    historyApiFallback: true,
   },
   plugins: [
     new rspack.HtmlRspackPlugin({
