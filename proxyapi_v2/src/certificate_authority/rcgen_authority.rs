@@ -12,7 +12,7 @@ use tokio_rustls::rustls::{
     crypto::CryptoProvider,
     pki_types::{CertificateDer, PrivateKeyDer, PrivatePkcs8KeyDer},
 };
-use tracing::{debug, error, info, warn};
+use tracing::{debug, info, warn};
 
 /// Issues certificates for use when communicating with clients.
 ///
@@ -90,7 +90,7 @@ impl RcgenAuthority {
         let cert = params
             .signed_by(&self.key_pair, &self.ca_cert, &self.key_pair)
             .map_err(|e| {
-                error!("Failed to sign certificate for '{}': {:?}", authority, e);
+                eprintln!("Failed to sign certificate for '{}': {:?}", authority, e);
                 e
             })
             .expect("Failed to sign certificate");
@@ -189,10 +189,13 @@ impl CertificateAuthority for RcgenAuthority {
     }
 
     fn get_ca_cert_der(&self) -> Option<Vec<u8>> {
-        // TODO: rcgen::Certificate에서 DER 형식으로 CA 인증서를 추출하는 방법을 찾아야 함
-        // 현재는 None을 반환하여 기본 webpki_roots만 사용
-        warn!("CA certificate DER extraction not implemented yet");
-        None
+        // rcgen::Certificate에서 DER 형식으로 CA 인증서를 추출
+        let der_bytes = self.ca_cert.der().to_vec();
+        debug!(
+            "Successfully extracted CA certificate DER ({} bytes)",
+            der_bytes.len()
+        );
+        Some(der_bytes)
     }
 }
 
