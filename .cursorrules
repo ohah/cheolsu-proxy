@@ -58,3 +58,9 @@
 
 ## 기술부채
 - styles.css는 기술 부채입니다.
+
+## 커밋 규칙
+- 최대 50자 이하로 작성합니다
+- 가능하면 파일별로 나눠서 커밋합니다.
+- feat, refacot, fix, chore, docs, style, test, perf, build, ci, revert, merge, etc. 등의 태그를 사용합니다
+- 커밋은 항상 하기전에 확인을 받습니다.

@@ -1,4 +1,4 @@
-import { Edit, X, Save, XCircle, Trash2 } from 'lucide-react';
+import { Edit, X, Save, XCircle, Trash2, Code } from 'lucide-react';
 
 import type { HttpTransaction } from '@/entities/proxy';
 
@@ -6,6 +6,8 @@ import { getStatusColor } from '@/entities/transaction';
 import type { AppFormInstance } from '../context/form-context';
 
 import { Badge, Button, Input } from '@/shared/ui';
+import { generateCurlCommand } from '../lib';
+import { toast } from 'sonner';
 
 interface TransactionHeaderProps {
   transaction: HttpTransaction;
@@ -32,6 +34,12 @@ export const TransactionHeader = ({
 
   if (!response) return null;
 
+  const handleCopyCurl = () => {
+    const curlCommand = generateCurlCommand(transaction);
+    navigator.clipboard.writeText(curlCommand);
+    toast.success('Curl command copied to clipboard');
+  };
+
   return (
     <div className="flex items-center justify-between p-4 border-b border-border">
       <div className="flex items-center gap-2">
@@ -41,12 +49,12 @@ export const TransactionHeader = ({
             name="response.status"
             children={(field: any) => (
               <Input
-                type="number"
+                type="text"
+                pattern="[0-9]*"
+                maxLength={3}
                 value={field.state.value || response.status}
                 onChange={(e) => field.handleChange(parseInt(e.target.value) || 200)}
                 className={`w-18 h-6 text-xs text-center font-mono ${getStatusColor(field.state.value || response.status)}`}
-                min="100"
-                max="599"
               />
             )}
           />
@@ -57,6 +65,9 @@ export const TransactionHeader = ({
         )}
       </div>
       <div className="flex items-center gap-2">
+        <Button variant="ghost" size="sm" onClick={handleCopyCurl}>
+          <Code className="w-4 h-4" />
+        </Button>
         {isEditing ? (
           <>
             <Button variant="ghost" size="sm" onClick={onSaveEdit}>
