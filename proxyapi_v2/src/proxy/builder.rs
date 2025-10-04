@@ -141,7 +141,7 @@ impl<CA: CertificateAuthority> ProxyBuilder<WantsClient<CA>> {
         {
             Ok(config) => {
                 // 사설 CA 인증서가 있는 경우 커스텀 루트 저장소 생성
-                let client_config = if let Some(ca_cert_der) = self.0.ca.get_ca_cert_der() {
+                let mut client_config = if let Some(ca_cert_der) = self.0.ca.get_ca_cert_der() {
                     debug!("Adding custom CA certificate to client trust store");
 
                     // 루트 인증서 저장소 생성
@@ -191,7 +191,6 @@ impl<CA: CertificateAuthority> ProxyBuilder<WantsClient<CA>> {
                 };
 
                 // ALPN 프로토콜 설정 - HTTP/2 우선, HTTP/1.1 fallback
-                let mut client_config = client_config;
                 client_config.alpn_protocols = vec![
                     #[cfg(feature = "http2")]
                     b"h2".to_vec(),
