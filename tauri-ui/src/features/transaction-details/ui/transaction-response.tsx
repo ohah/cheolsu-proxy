@@ -7,6 +7,7 @@ import type { AppFormInstance } from '../context/form-context';
 import { Editor } from '@monaco-editor/react';
 
 import { formatBody, detectContentType } from '../lib';
+import { toast } from 'sonner';
 
 interface TransactionResponseProps {
   transaction: HttpTransaction;
@@ -24,16 +25,20 @@ export const TransactionResponse = ({ transaction, isEditing = false, form }: Tr
   };
 
   const responseText = getResponseText();
+
+  console.log('responseText', responseText);
+  console.log('response.body', response.body);
   const contentType = detectContentType(responseText);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(responseText);
+    toast.success('Response body copied to clipboard');
   };
 
   return (
     <Card className="gap-0 flex flex-col min-h-0 flex-1">
       <CardHeader className="flex-shrink-0">
-        <div className="flex items-center justify-end">
+        <div className="flex items-center justify-end gap-2">
           <Button variant="ghost" size="sm" onClick={handleCopy}>
             <Copy className="w-4 h-4" />
           </Button>
