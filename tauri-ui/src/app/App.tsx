@@ -1,6 +1,4 @@
-import { NetworkDashboard } from '@/pages/network-dashboard';
-
-import { useThemeProvider } from './providers';
+import { useThemeProvider, RouterProvider } from './providers';
 import { Toaster } from '@/shared/ui';
 
 const App: React.FC = () => {
@@ -8,7 +6,7 @@ const App: React.FC = () => {
 
   return (
     <div className="App">
-      <NetworkDashboard />
+      <RouterProvider />
       <Toaster richColors />
     </div>
   );
