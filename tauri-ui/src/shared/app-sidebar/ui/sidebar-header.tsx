@@ -36,3 +36,4 @@ export const SidebarHeader = ({ collapsed, toggleCollapse }: SidebarHeaderProps)
     </div>
   );
 };
+
