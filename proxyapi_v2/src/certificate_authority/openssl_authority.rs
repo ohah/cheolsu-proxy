@@ -157,6 +157,11 @@ impl CertificateAuthority for OpensslAuthority {
 
         server_cfg
     }
+
+    fn get_ca_cert_der(&self) -> Option<Vec<u8>> {
+        // OpenSSL X509 인증서를 DER 형식으로 변환
+        self.ca_cert.to_der().ok()
+    }
 }
 
 #[cfg(test)]

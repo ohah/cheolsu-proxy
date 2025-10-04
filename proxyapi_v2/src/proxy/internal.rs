@@ -23,7 +23,7 @@ use tokio_tungstenite::{
     Connector, WebSocketStream,
     tungstenite::{self, Message, protocol::WebSocketConfig},
 };
-use tracing::{Instrument, Span, error, info, info_span, instrument, warn};
+use tracing::{Instrument, Span, error, info_span, instrument, warn};
 
 fn bad_request() -> Response<Body> {
     Response::builder()

@@ -12,7 +12,7 @@ use tokio_rustls::rustls::{
     crypto::CryptoProvider,
     pki_types::{CertificateDer, PrivateKeyDer, PrivatePkcs8KeyDer},
 };
-use tracing::debug;
+use tracing::{debug, info, warn};
 
 /// Issues certificates for use when communicating with clients.
 ///
@@ -67,6 +67,8 @@ impl RcgenAuthority {
     }
 
     fn gen_cert(&self, authority: &Authority) -> CertificateDer<'static> {
+        info!("Generating certificate for authority: {}", authority);
+
         let mut params = CertificateParams::default();
         params.serial_number = Some(rng().random::<u64>().into());
 
@@ -74,23 +76,85 @@ impl RcgenAuthority {
         params.not_before = not_before;
         params.not_after = not_before + Duration::seconds(TTL_SECS);
 
+        let host = authority.host();
+        debug!("Certificate host: {}", host);
+
         let mut distinguished_name = DistinguishedName::new();
-        distinguished_name.push(DnType::CommonName, authority.host());
+        distinguished_name.push(DnType::CommonName, host);
         params.distinguished_name = distinguished_name;
 
-        params.subject_alt_names.push(SanType::DnsName(
-            Ia5String::try_from(authority.host()).expect("Failed to create Ia5String"),
-        ));
+        // SAN에 여러 형태의 도메인 추가로 호환성 향상
+        self.add_san_entries(&mut params, host);
 
         // 에러 발생 시 더 자세한 정보 제공
-        params
+        let cert = params
             .signed_by(&self.key_pair, &self.ca_cert, &self.key_pair)
             .map_err(|e| {
                 eprintln!("Failed to sign certificate for '{}': {:?}", authority, e);
                 e
             })
-            .expect("Failed to sign certificate")
-            .into()
+            .expect("Failed to sign certificate");
+
+        info!("Successfully generated certificate for '{}'", authority);
+        cert.into()
+    }
+
+    /// SAN(Subject Alternative Name) 엔트리를 추가하여 호환성 향상
+    fn add_san_entries(&self, params: &mut CertificateParams, host: &str) {
+        debug!("Adding SAN entries for host: {}", host);
+
+        // 기본 도메인 추가
+        if let Ok(dns_name) = Ia5String::try_from(host) {
+            params.subject_alt_names.push(SanType::DnsName(dns_name));
+            debug!("Added DNS SAN: {}", host);
+        } else {
+            warn!("Failed to create DNS SAN for host: {}", host);
+        }
+
+        // 와일드카드 도메인 처리
+        if !host.starts_with("*.") {
+            // 서브도메인을 위한 와일드카드 추가
+            let wildcard = format!("*.{}", host);
+            if let Ok(wildcard_name) = Ia5String::try_from(wildcard.as_str()) {
+                params
+                    .subject_alt_names
+                    .push(SanType::DnsName(wildcard_name));
+                debug!("Added wildcard SAN: {}", wildcard);
+            } else {
+                warn!("Failed to create wildcard SAN for: {}", wildcard);
+            }
+        }
+
+        // IP 주소인 경우 처리
+        match host.parse::<std::net::IpAddr>() {
+            Ok(ip_addr) => {
+                params.subject_alt_names.push(SanType::IpAddress(ip_addr));
+                debug!("Added IP SAN: {}", ip_addr);
+            }
+            Err(e) => {
+                warn!(
+                    "Failed to parse IP address for SAN from host '{}': {}",
+                    host, e
+                );
+            }
+        }
+
+        // localhost 및 127.0.0.1 처리
+        if host == "localhost" {
+            if let Ok(localhost_ip) = "127.0.0.1".parse::<std::net::IpAddr>() {
+                params
+                    .subject_alt_names
+                    .push(SanType::IpAddress(localhost_ip));
+                debug!("Added localhost IP SAN: {}", localhost_ip);
+            }
+        }
+
+        info!(
+            "Generated {} SAN entries for host '{}'",
+            params.subject_alt_names.len(),
+            host
+        );
+        debug!("SAN entries: {:?}", params.subject_alt_names);
     }
 }
 
@@ -111,11 +175,17 @@ impl CertificateAuthority for RcgenAuthority {
             .with_single_cert(certs, self.private_key.clone_key())
             .expect("Failed to build ServerConfig");
 
+        // ALPN 프로토콜 설정 - HTTP/2 우선, HTTP/1.1 fallback
         server_cfg.alpn_protocols = vec![
             #[cfg(feature = "http2")]
             b"h2".to_vec(),
             b"http/1.1".to_vec(),
         ];
+
+        debug!(
+            "Server config ALPN protocols: {:?}",
+            server_cfg.alpn_protocols
+        );
 
         let server_cfg = Arc::new(server_cfg);
 
@@ -124,6 +194,16 @@ impl CertificateAuthority for RcgenAuthority {
             .await;
 
         server_cfg
+    }
+
+    fn get_ca_cert_der(&self) -> Option<Vec<u8>> {
+        // rcgen::Certificate에서 DER 형식으로 CA 인증서를 추출
+        let der_bytes = self.ca_cert.der().to_vec();
+        debug!(
+            "Successfully extracted CA certificate DER ({} bytes)",
+            der_bytes.len()
+        );
+        Some(der_bytes)
     }
 }
 
