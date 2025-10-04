@@ -1,11 +1,10 @@
-import { useSessionStore } from '@/shared/stores';
+import { useSessionStore, useProxyStore } from '@/shared/stores';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui';
 import { Badge } from '@/shared/ui';
 import { Trash2, Copy, ExternalLink } from 'lucide-react';
 import { Button } from '@/shared/ui';
 import { toast } from 'sonner';
 import { AppSidebar } from '@/shared/app-sidebar';
-import { useProxyInitialization } from '@/pages/network-dashboard/hooks';
 
 /**
  * 세션 데이터를 표시하는 페이지
@@ -13,7 +12,7 @@ import { useProxyInitialization } from '@/pages/network-dashboard/hooks';
  * NetworkDashboard와 동일한 레이아웃을 사용합니다.
  */
 export const SessionsPage = () => {
-  const { isConnected } = useProxyInitialization();
+  const { isConnected } = useProxyStore();
   const { sessions, deleteSession } = useSessionStore();
 
   const handleDeleteSession = (id: string) => {

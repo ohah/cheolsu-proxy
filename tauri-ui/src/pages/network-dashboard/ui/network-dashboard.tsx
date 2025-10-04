@@ -8,11 +8,12 @@ import { NetworkTable } from '@/widgets/network-table';
 
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/shared/ui';
 
-import { useProxyEventControl, useProxyInitialization, useTransactionFilters, useTransactions } from '../hooks';
+import { useProxyEventControl, useTransactionFilters, useTransactions } from '../hooks';
+import { useProxyStore } from '@/shared/stores';
 import { HostPathTree } from '@/widgets/host-path-tree/ui/host-path-tree';
 
 export const NetworkDashboard = () => {
-  const { isConnected } = useProxyInitialization();
+  const { isConnected } = useProxyStore();
 
   const {
     transactions,
