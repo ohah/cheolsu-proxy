@@ -131,7 +131,7 @@ impl DataType {
 }
 
 /// GZIP 압축 해제 함수
-fn decompress_gzip(data: &[u8]) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+pub fn decompress_gzip(data: &[u8]) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
     let mut decoder = GzDecoder::new(data);
     let mut decompressed = Vec::new();
     decoder.read_to_end(&mut decompressed)?;
