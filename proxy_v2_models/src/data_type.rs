@@ -233,6 +233,7 @@ pub fn detect_data_type(headers: &HeaderMap, body: &Bytes) -> DataType {
         }
 
         // XML 감지 (HTML이 아닌 경우)
+        // TODO @ohah: XML 감지를 확장자 기반으로 개선 필요
         if let Ok(body_str) = std::str::from_utf8(body) {
             let trimmed = body_str.trim();
             if trimmed.starts_with('<') {
@@ -247,6 +248,7 @@ pub fn detect_data_type(headers: &HeaderMap, body: &Bytes) -> DataType {
         }
 
         // CSS 감지
+        // TODO @ohah: CSS 감지를 확장자 기반으로 개선 필요
         if let Ok(body_str) = std::str::from_utf8(body) {
             let trimmed = body_str.trim();
             let has_css_at_rules = trimmed.contains("@import")
@@ -281,6 +283,7 @@ pub fn detect_data_type(headers: &HeaderMap, body: &Bytes) -> DataType {
         }
 
         // JavaScript/TypeScript 감지
+        // TODO @ohah: JavaScript 감지를 확장자 기반으로 개선 필요
         if let Ok(body_str) = std::str::from_utf8(body) {
             let trimmed = body_str.trim();
 
@@ -335,6 +338,7 @@ pub fn detect_data_type(headers: &HeaderMap, body: &Bytes) -> DataType {
         }
 
         // 이미지 파일 감지 (구체적인 형식)
+        // TODO @ohah: 이미지 파일 감지 로직 개선 필요
         if body.len() >= 2 {
             // PNG 시그니처
             if body.len() >= 8 && &body[0..8] == b"\x89PNG\r\n\x1a\n" {
@@ -355,6 +359,7 @@ pub fn detect_data_type(headers: &HeaderMap, body: &Bytes) -> DataType {
         }
 
         // 비디오 파일 감지 (통합)
+        // TODO @ohah: 비디오 파일 감지 로직 개선 필요
         if body.len() >= 4 {
             // MP4 시그니처
             if body.len() >= 8 && (&body[4..8] == b"ftyp" || &body[4..8] == b"moov") {
@@ -367,6 +372,7 @@ pub fn detect_data_type(headers: &HeaderMap, body: &Bytes) -> DataType {
         }
 
         // 오디오 파일 감지 (통합)
+        // TODO @ohah: 오디오 파일 감지 로직 개선 필요
         if body.len() >= 2 {
             // MP3 시그니처
             if body.len() >= 3 && (&body[0..3] == b"ID3" || &body[0..2] == b"\xff\xfb") {
