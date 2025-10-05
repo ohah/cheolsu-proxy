@@ -5,18 +5,31 @@ import { isTextBasedDataType, isBinaryDataType } from '@/entities/proxy/model/da
  * Uint8Array를 문자열로 변환 (UTF-8 디코딩)
  * 러스트에서 이미 GZIP 압축 해제와 데이터 타입 감지를 완료했으므로 단순한 UTF-8 디코딩만 수행
  */
-export const uint8ArrayToString = (uint8Array: Uint8Array): string => {
+export const uint8ArrayToString = (uint8Array: Uint8Array, dataType: DataType): string => {
   if (!uint8Array || uint8Array.length === 0) {
     return '';
   }
 
   try {
     // 러스트에서 이미 처리된 데이터이므로 단순한 UTF-8 디코딩
-    const decoder = new TextDecoder('utf-8');
-    return decoder.decode(uint8Array);
+    const decoder = new TextDecoder('utf-8', { fatal: false });
+    const result = decoder.decode(uint8Array);
+    
+    // 디코딩 결과가 비어있거나 이상한 경우 fallback
+    if (!result || result.length === 0) {
+      // ASCII 범위의 바이트들을 문자열로 변환
+      return Array.from(uint8Array)
+        .map(byte => byte >= 32 && byte <= 126 ? String.fromCharCode(byte) : '.')
+        .join('');
+    }
+    
+    return result;
   } catch (error) {
     console.error('UTF-8 디코딩 실패:', error);
-    return '디코딩 실패';
+    // ASCII 범위의 바이트들을 문자열로 변환 (fallback)
+    return Array.from(uint8Array)
+      .map(byte => byte >= 32 && byte <= 126 ? String.fromCharCode(byte) : '.')
+      .join('');
   }
 };
 
@@ -44,7 +57,7 @@ export const formatBodyContent = (body: Uint8Array, dataType: DataType, bodyJson
   }
 
   if (isTextBasedDataType(dataType)) {
-    const text = uint8ArrayToString(body);
+    const text = uint8ArrayToString(body, dataType);
 
     // JSON 타입인 경우 포맷팅 시도 (fallback)
     if (dataType === 'Json') {
@@ -64,7 +77,7 @@ export const formatBodyContent = (body: Uint8Array, dataType: DataType, bodyJson
     return `[${dataType} - ${body.length} bytes]`;
   }
 
-  return uint8ArrayToString(body);
+  return uint8ArrayToString(body, dataType);
 };
 
 /**
@@ -107,7 +120,7 @@ export const generateCurlCommand = (request: {
 
   // 바디 추가 (텍스트 기반 데이터인 경우)
   if (body && body.length > 0 && data_type && isTextBasedDataType(data_type)) {
-    const bodyText = uint8ArrayToString(body);
+    const bodyText = uint8ArrayToString(body, data_type);
     if (bodyText.trim()) {
       curlCommand += ` \\\n  -d '${bodyText.replace(/'/g, "\\'")}'`;
     }
