@@ -17,7 +17,8 @@ pub struct ProxiedRequest {
     headers: HeaderMap,
     body: Bytes,
     time: i64,
-    id: String, // 고유 ID 추가
+    id: String,           // 고유 ID 추가
+    content_type: String, // Content-Type 정보 추가
 }
 
 impl ProxiedRequest {
@@ -36,6 +37,8 @@ impl ProxiedRequest {
             uuid::Uuid::new_v4().to_string().replace('-', "")
         );
 
+        let content_type = Self::detect_content_type(&headers, &body);
+
         Self {
             method,
             uri,
@@ -44,6 +47,7 @@ impl ProxiedRequest {
             body,
             time,
             id,
+            content_type,
         }
     }
 
@@ -74,6 +78,73 @@ impl ProxiedRequest {
     pub fn id(&self) -> &String {
         &self.id
     }
+
+    pub fn content_type(&self) -> &str {
+        &self.content_type
+    }
+
+    /// Content-Type을 감지하는 함수
+    fn detect_content_type(headers: &HeaderMap, body: &Bytes) -> String {
+        // 1. Content-Type 헤더에서 먼저 확인
+        if let Some(content_type_header) = headers.get("content-type") {
+            if let Ok(content_type_str) = content_type_header.to_str() {
+                return content_type_str.to_string();
+            }
+        }
+
+        // 2. body 내용을 분석해서 타입 추론
+        if body.is_empty() {
+            return "empty".to_string();
+        }
+
+        // JSON 감지
+        if let Ok(body_str) = std::str::from_utf8(body) {
+            if body_str.trim().starts_with('{') || body_str.trim().starts_with('[') {
+                if serde_json::from_str::<serde_json::Value>(body_str).is_ok() {
+                    return "application/json".to_string();
+                }
+            }
+        }
+
+        // XML 감지
+        if let Ok(body_str) = std::str::from_utf8(body) {
+            if body_str.trim().starts_with('<') {
+                return "application/xml".to_string();
+            }
+        }
+
+        // HTML 감지
+        if let Ok(body_str) = std::str::from_utf8(body) {
+            if body_str.trim().to_lowercase().starts_with("<!doctype html")
+                || body_str.trim().to_lowercase().starts_with("<html")
+            {
+                return "text/html".to_string();
+            }
+        }
+
+        // 바이너리 데이터 감지 (이미지, 파일 등)
+        if body.len() > 0 {
+            // PNG 시그니처
+            if body.len() >= 8 && &body[0..8] == b"\x89PNG\r\n\x1a\n" {
+                return "image/png".to_string();
+            }
+            // JPEG 시그니처
+            if body.len() >= 2 && &body[0..2] == b"\xff\xd8" {
+                return "image/jpeg".to_string();
+            }
+            // GIF 시그니처
+            if body.len() >= 6 && &body[0..6] == b"GIF87a" || &body[0..6] == b"GIF89a" {
+                return "image/gif".to_string();
+            }
+            // PDF 시그니처
+            if body.len() >= 4 && &body[0..4] == b"%PDF" {
+                return "application/pdf".to_string();
+            }
+        }
+
+        // 기본값: 바이너리 데이터로 추정
+        "application/octet-stream".to_string()
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -86,6 +157,7 @@ pub struct ProxiedResponse {
     headers: HeaderMap,
     body: Bytes,
     time: i64,
+    content_type: String, // Content-Type 정보 추가
 }
 
 impl ProxiedResponse {
@@ -96,12 +168,14 @@ impl ProxiedResponse {
         body: Bytes,
         time: i64,
     ) -> Self {
+        let content_type = Self::detect_content_type(&headers, &body);
         Self {
             status,
             version,
             headers,
             body,
             time,
+            content_type,
         }
     }
 
@@ -123,6 +197,73 @@ impl ProxiedResponse {
 
     pub fn time(&self) -> i64 {
         self.time
+    }
+
+    pub fn content_type(&self) -> &str {
+        &self.content_type
+    }
+
+    /// Content-Type을 감지하는 함수
+    fn detect_content_type(headers: &HeaderMap, body: &Bytes) -> String {
+        // 1. Content-Type 헤더에서 먼저 확인
+        if let Some(content_type_header) = headers.get("content-type") {
+            if let Ok(content_type_str) = content_type_header.to_str() {
+                return content_type_str.to_string();
+            }
+        }
+
+        // 2. body 내용을 분석해서 타입 추론
+        if body.is_empty() {
+            return "empty".to_string();
+        }
+
+        // JSON 감지
+        if let Ok(body_str) = std::str::from_utf8(body) {
+            if body_str.trim().starts_with('{') || body_str.trim().starts_with('[') {
+                if serde_json::from_str::<serde_json::Value>(body_str).is_ok() {
+                    return "application/json".to_string();
+                }
+            }
+        }
+
+        // XML 감지
+        if let Ok(body_str) = std::str::from_utf8(body) {
+            if body_str.trim().starts_with('<') {
+                return "application/xml".to_string();
+            }
+        }
+
+        // HTML 감지
+        if let Ok(body_str) = std::str::from_utf8(body) {
+            if body_str.trim().to_lowercase().starts_with("<!doctype html")
+                || body_str.trim().to_lowercase().starts_with("<html")
+            {
+                return "text/html".to_string();
+            }
+        }
+
+        // 바이너리 데이터 감지 (이미지, 파일 등)
+        if body.len() > 0 {
+            // PNG 시그니처
+            if body.len() >= 8 && &body[0..8] == b"\x89PNG\r\n\x1a\n" {
+                return "image/png".to_string();
+            }
+            // JPEG 시그니처
+            if body.len() >= 2 && &body[0..2] == b"\xff\xd8" {
+                return "image/jpeg".to_string();
+            }
+            // GIF 시그니처
+            if body.len() >= 6 && &body[0..6] == b"GIF87a" || &body[0..6] == b"GIF89a" {
+                return "image/gif".to_string();
+            }
+            // PDF 시그니처
+            if body.len() >= 4 && &body[0..4] == b"%PDF" {
+                return "application/pdf".to_string();
+            }
+        }
+
+        // 기본값: 바이너리 데이터로 추정
+        "application/octet-stream".to_string()
     }
 }
 

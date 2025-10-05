@@ -6,7 +6,7 @@ import { Button, Card, CardContent, CardHeader } from '@/shared/ui';
 import type { AppFormInstance } from '../context/form-context';
 import { Editor } from '@monaco-editor/react';
 
-import { formatBody, detectContentType } from '../lib';
+import { formatBody, detectContentType, contentTypeToMonacoLanguage } from '../lib';
 import { toast } from 'sonner';
 
 interface TransactionBodyProps {
@@ -28,7 +28,9 @@ export const TransactionBody = ({ transaction, isEditing = false, form }: Transa
   };
 
   const requestText = getRequestText();
-  const contentType = detectContentType(requestText);
+
+  // Rust에서 전달받은 content_type을 우선 사용하고, 없으면 기존 방식으로 감지
+  const detectedContentType = request.content_type || detectContentType(requestText);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(requestText);
@@ -52,7 +54,7 @@ export const TransactionBody = ({ transaction, isEditing = false, form }: Transa
               <div className="h-[calc(100vh-300px)] border rounded-md overflow-hidden">
                 <Editor
                   height="calc(100vh - 300px)"
-                  language={contentType}
+                  language={contentTypeToMonacoLanguage(detectedContentType)}
                   value={(field.state.value as string) || ''}
                   onChange={(value) => field.handleChange(value || '')}
                   options={{
@@ -76,7 +78,7 @@ export const TransactionBody = ({ transaction, isEditing = false, form }: Transa
           <div className="h-[calc(100vh-300px)] border rounded-md overflow-hidden">
             <Editor
               height="calc(100vh - 300px)"
-              language={contentType}
+              language={contentTypeToMonacoLanguage(detectedContentType)}
               value={requestText}
               options={{
                 readOnly: true,
