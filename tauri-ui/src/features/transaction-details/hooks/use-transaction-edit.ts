@@ -3,7 +3,7 @@ import { z } from 'zod';
 
 import type { HttpTransaction } from '@/entities/proxy';
 import { useAppForm } from '../context/form-context';
-import { formatBody } from '../lib';
+import { formatBodyContent } from '../lib';
 import { useSessionStore } from '@/shared/stores';
 
 // 편집 가능한 필드들에 대한 스키마 (세션 스토어 타입과 일치)
@@ -55,13 +55,13 @@ export const useTransactionEdit = (transaction: HttpTransaction) => {
       request: {
         ...request,
         headers: request?.headers,
-        data: request?.body ? formatBody(request.body) : '',
+        data: request?.body ? formatBodyContent(request.body, request.data_type) : '',
       },
       response: {
         ...response,
         status: response?.status || 200,
         headers: response?.headers,
-        data: response?.body ? formatBody(response.body) : '',
+        data: response?.body ? formatBodyContent(response.body, response.data_type) : '',
       },
     };
   }, [transaction]);

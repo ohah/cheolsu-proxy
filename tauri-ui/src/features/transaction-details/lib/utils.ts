@@ -1,184 +1,136 @@
-export const formatDistanceToNowKr = (date: Date | number): string => {
-  const now = new Date();
-  const target = typeof date === 'number' ? new Date(date) : date;
-  const diff = now.getTime() - target.getTime();
+import { DataType } from '@/entities/proxy/model/types';
+import { isTextBasedDataType, isBinaryDataType } from '@/entities/proxy/model/data-type';
 
-  const seconds = Math.floor(diff / 1000);
-  const minutes = Math.floor(diff / (1000 * 60));
-  const hours = Math.floor(diff / (1000 * 60 * 60));
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-  const months = Math.floor(days / 30);
-  const years = Math.floor(days / 365);
+/**
+ * Uint8Array를 문자열로 변환 (UTF-8 디코딩)
+ * 러스트에서 이미 GZIP 압축 해제와 데이터 타입 감지를 완료했으므로 단순한 UTF-8 디코딩만 수행
+ */
+export const uint8ArrayToString = (uint8Array: Uint8Array): string => {
+  if (!uint8Array || uint8Array.length === 0) {
+    return '';
+  }
 
-  if (seconds < 5) return '방금 전';
-  if (seconds < 60) return `${seconds}초 전`;
-  if (minutes < 60) return `${minutes}분 전`;
-  if (hours < 24) return `${hours}시간 전`;
-  if (days < 30) return `${days}일 전`;
-  if (months < 12) return `${months}개월 전`;
-  return `${years}년 전`;
+  try {
+    // 러스트에서 이미 처리된 데이터이므로 단순한 UTF-8 디코딩
+    const decoder = new TextDecoder('utf-8');
+    return decoder.decode(uint8Array);
+  } catch (error) {
+    console.error('UTF-8 디코딩 실패:', error);
+    return '디코딩 실패';
+  }
 };
 
-export const formatTimestamp = (timestamp: number): string => {
-  const date = new Date(timestamp / 1_000_000);
-
-  return date.toLocaleString('ko-KR', {
-    timeZone: 'Asia/Seoul',
-  });
-};
-
-// HTML 엔티티 디코딩 함수
-const decodeHtmlEntities = (text: string): string => {
+/**
+ * HTML 엔티티 디코딩
+ */
+export const decodeHtmlEntities = (text: string): string => {
   const textarea = document.createElement('textarea');
   textarea.innerHTML = text;
   return textarea.value;
 };
 
-export const formatBody = (body: Uint8Array | number[]): string => {
-  try {
-    const uint8Array = Array.isArray(body) ? new Uint8Array(body) : body;
-    const text = new TextDecoder('utf-8', { fatal: true }).decode(uint8Array);
-
-    // HTML 엔티티 디코딩
-    const decodedText = decodeHtmlEntities(text);
-
-    // JSON 포맷팅 시도
-    try {
-      const json = JSON.parse(decodedText);
-      return JSON.stringify(json, null, 2);
-    } catch {
-      return decodedText;
-    }
-  } catch {
-    const bytes = Array.isArray(body) ? body : Array.from(body);
-    return `Binary data (${bytes.length} bytes): ${bytes.join(', ')}`;
-  }
-};
-
-export const formatBodyToJson = (body: Uint8Array | any): Record<string, unknown> | string => {
-  try {
-    const uint8Array = Array.isArray(body) ? new Uint8Array(body) : body;
-    const text = new TextDecoder('utf-8', { fatal: true }).decode(uint8Array);
-
-    // HTML 엔티티 디코딩
-    const decodedText = decodeHtmlEntities(text);
-
-    // JSON 포맷팅 시도
-    try {
-      const json = JSON.parse(decodedText);
-      return json;
-    } catch {
-      return decodedText;
-    }
-  } catch {
-    // TODO 바이너리 데이터는 우선 편집 불가능함. @ohah
+/**
+ * 요청/응답 본문을 포맷팅된 문자열로 변환
+ * 러스트에서 이미 데이터 타입 감지와 압축 해제를 완료했으므로 단순한 포맷팅만 수행
+ */
+export const formatBodyContent = (body: Uint8Array, dataType: DataType, bodyJson?: any): string => {
+  if (dataType === 'Empty') {
     return '';
   }
+
+  console.log('dataType', dataType, body, 'bodyJson', bodyJson);
+
+  // JSON 타입이고 body_json이 있으면 바로 포맷팅
+  if (dataType === 'Json' && bodyJson) {
+    return JSON.stringify(bodyJson, null, 2);
+  }
+
+  if (isTextBasedDataType(dataType)) {
+    const text = uint8ArrayToString(body);
+
+    // JSON 타입인 경우 포맷팅 시도 (fallback)
+    if (dataType === 'Json') {
+      try {
+        const parsed = JSON.parse(text);
+        return JSON.stringify(parsed, null, 2);
+      } catch (error) {
+        console.warn('JSON 파싱 실패, 원본 텍스트 반환:', error);
+        return decodeHtmlEntities(text);
+      }
+    }
+
+    return decodeHtmlEntities(text);
+  }
+
+  if (isBinaryDataType(dataType)) {
+    return `[${dataType} - ${body.length} bytes]`;
+  }
+
+  return uint8ArrayToString(body);
 };
 
-// JSON 타입 감지 함수 (반환값을 content-type 헤더 형식으로 변경)
-export const detectContentType = (content: string): string => {
-  if (!content || content.trim().length === 0) {
-    return 'text/plain';
+/**
+ * 요청/응답 본문을 표시용으로 변환 (Monaco Editor용)
+ */
+export const getBodyForDisplay = (body: Uint8Array, dataType: DataType, bodyJson?: any): string => {
+  if (dataType === 'Empty') {
+    return '';
   }
 
-  try {
-    JSON.parse(content);
-    return 'application/json';
-  } catch {
-    return 'text/plain';
+  if (isTextBasedDataType(dataType)) {
+    return formatBodyContent(body, dataType, bodyJson);
   }
+
+  if (isBinaryDataType(dataType)) {
+    return `// ${dataType} 파일 (${body.length} bytes)\n// 이 파일은 바이너리 형식이므로 텍스트로 표시할 수 없습니다.`;
+  }
+
+  return formatBodyContent(body, dataType, bodyJson);
 };
 
-// Content-Type을 Monaco Editor 언어 모드로 변환하는 함수
-export const contentTypeToMonacoLanguage = (contentType: string): string => {
-  const type = contentType.toLowerCase();
+/**
+ * HTTP 요청을 cURL 명령어로 변환
+ */
+export const generateCurlCommand = (request: {
+  method: string;
+  uri: string;
+  headers?: Record<string, string>;
+  body?: Uint8Array;
+  data_type?: DataType;
+}): string => {
+  const { method, uri, headers = {}, body, data_type } = request;
 
-  if (type.includes('json')) {
-    return 'json';
-  }
-  if (type.includes('xml')) {
-    return 'xml';
-  }
-  if (type.includes('html')) {
-    return 'html';
-  }
-  if (type.includes('css')) {
-    return 'css';
-  }
-  if (type.includes('javascript') || type.includes('js')) {
-    return 'javascript';
-  }
-  if (type.includes('typescript') || type.includes('ts')) {
-    return 'typescript';
-  }
-  if (type.includes('yaml') || type.includes('yml')) {
-    return 'yaml';
-  }
-  if (type.includes('markdown') || type.includes('md')) {
-    return 'markdown';
-  }
-  if (type.includes('sql')) {
-    return 'sql';
-  }
-  if (type.includes('python') || type.includes('py')) {
-    return 'python';
-  }
-  if (type.includes('shell') || type.includes('bash') || type.includes('sh')) {
-    return 'shell';
-  }
-  if (type.includes('plain') || type.includes('text')) {
-    return 'plaintext';
-  }
-
-  // 기본값
-  return 'plaintext';
-};
-
-// curl 명령어 생성 함수
-export const generateCurlCommand = (transaction: any): string => {
-  const { request } = transaction;
-  if (!request) return '';
-
-  const method = request.method || 'GET';
-  const url = request.uri || '';
-  const headers = request.headers || {};
-  const body = request.body;
-
-  let curlCommand = `curl -X ${method}`;
-
-  // 헤더를 중요도 순으로 정렬하여 추가
-  const sortedHeaders = Object.entries(headers).sort(([keyA], [keyB]) => {
-    const priority = ['accept', 'authorization', 'content-type', 'user-agent'];
-    const indexA = priority.indexOf(keyA.toLowerCase());
-    const indexB = priority.indexOf(keyB.toLowerCase());
-
-    if (indexA === -1 && indexB === -1) return keyA.localeCompare(keyB);
-    if (indexA === -1) return 1;
-    if (indexB === -1) return -1;
-    return indexA - indexB;
-  });
+  let curlCommand = `curl -X ${method.toUpperCase()}`;
 
   // 헤더 추가
-  sortedHeaders.forEach(([key, value]) => {
+  Object.entries(headers).forEach(([key, value]) => {
     curlCommand += ` \\\n  -H "${key}: ${value}"`;
   });
 
-  // Body가 있는 경우에만 Content-Type 추가 (기본값이 없는 경우)
-  if (body && body.length > 0 && !headers['Content-Type'] && !headers['content-type']) {
-    curlCommand += ` \\\n  -H "Content-Type: application/json"`;
+  // 바디 추가 (텍스트 기반 데이터인 경우)
+  if (body && body.length > 0 && data_type && isTextBasedDataType(data_type)) {
+    const bodyText = uint8ArrayToString(body);
+    if (bodyText.trim()) {
+      curlCommand += ` \\\n  -d '${bodyText.replace(/'/g, "\\'")}'`;
+    }
   }
 
   // URL 추가
-  curlCommand += ` \\\n  "${url}"`;
-
-  // Body 추가
-  if (body && body.length > 0) {
-    const bodyText = formatBody(body);
-    // JSON인 경우 한 줄로 압축
-    const compressedBody = bodyText.replace(/\s+/g, ' ').trim();
-    curlCommand += ` \\\n  -d '${compressedBody}'`;
-  }
+  curlCommand += ` \\\n  "${uri}"`;
 
   return curlCommand;
 };
+
+// Re-export data type utilities for convenience
+export {
+  dataTypeToMonacoLanguage,
+  dataTypeToMimeType,
+  dataTypeToDisplayName,
+  dataTypeToIcon,
+  isTextBasedDataType,
+  isImageDataType,
+  isVideoDataType,
+  isAudioDataType,
+  isCompressedDataType,
+  isBinaryDataType,
+} from '@/entities/proxy/model/data-type';
