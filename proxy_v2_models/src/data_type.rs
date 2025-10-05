@@ -257,58 +257,13 @@ pub fn detect_data_type(headers: &HeaderMap, body: &Bytes) -> DataType {
             }
         }
 
-        // JavaScript/TypeScript 감지
-        // TODO @ohah: JavaScript 감지를 확장자 기반으로 개선 필요
-        if let Ok(body_str) = std::str::from_utf8(body) {
-            let trimmed = body_str.trim();
-
-            let has_js_patterns = trimmed.contains("function ")
-                || trimmed.contains("const ")
-                || trimmed.contains("let ")
-                || trimmed.contains("var ")
-                || trimmed.contains("=>")
-                || trimmed.contains("() =>")
-                || trimmed.contains("async ")
-                || trimmed.contains("await ")
-                || trimmed.contains("import ")
-                || trimmed.contains("export ")
-                || trimmed.contains("require(")
-                || trimmed.contains("module.exports")
-                || trimmed.contains("class ")
-                || trimmed.contains("new ")
-                || trimmed.contains("this.")
-                || trimmed.contains("console.log")
-                || trimmed.contains("setTimeout")
-                || trimmed.contains("setInterval")
-                || trimmed.contains("addEventListener")
-                || trimmed.contains("document.")
-                || trimmed.contains("window.")
-                || trimmed.contains("JSON.")
-                || trimmed.contains("Array.")
-                || trimmed.contains("Object.")
-                || trimmed.contains("Math.")
-                || trimmed.contains("Date.")
-                || trimmed.contains("Promise.")
-                || trimmed.contains("fetch(")
-                || trimmed.contains("XMLHttpRequest")
-                || trimmed.contains("interface ")
-                || trimmed.contains("type ")
-                || trimmed.contains(": string")
-                || trimmed.contains(": number")
-                || trimmed.contains(": boolean")
-                || trimmed.contains(": any")
-                || trimmed.contains(": void")
-                || trimmed.contains(": object")
-                || trimmed.contains("enum ")
-                || trimmed.contains("namespace ")
-                || trimmed.contains("declare ");
-
-            if has_js_patterns
-                && !trimmed.starts_with('<')
-                && !trimmed.starts_with('{')
-                && !trimmed.starts_with('[')
-            {
-                return DataType::Javascript;
+        // JavaScript/TypeScript 감지 (Content-Type 헤더 기반)
+        if let Some(content_type) = headers.get("content-type") {
+            if let Ok(content_type_str) = content_type.to_str() {
+                let content_type_lower = content_type_str.to_lowercase();
+                if content_type_lower.contains("javascript") || content_type_lower.contains("typescript") {
+                    return DataType::Javascript;
+                }
             }
         }
 
