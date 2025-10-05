@@ -10,3 +10,4 @@ export interface SidebarSection {
 export interface SidebarCounts {
   [sectionId: string]: number;
 }
+

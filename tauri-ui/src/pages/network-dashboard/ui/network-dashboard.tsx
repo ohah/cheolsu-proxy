@@ -3,16 +3,17 @@ import { useCallback } from 'react';
 import { TransactionDetails } from '@/features/transaction-details';
 
 import { NetworkHeader } from '@/widgets/network-header';
-import { NetworkSidebar } from '@/widgets/network-sidebar';
+import { AppSidebar } from '@/shared/app-sidebar';
 import { NetworkTable } from '@/widgets/network-table';
 
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/shared/ui';
 
-import { useProxyEventControl, useProxyInitialization, useTransactionFilters, useTransactions } from '../hooks';
+import { useProxyEventControl, useTransactionFilters, useTransactions } from '../hooks';
+import { useProxyStore } from '@/shared/stores';
 import { HostPathTree } from '@/widgets/host-path-tree/ui/host-path-tree';
 
 export const NetworkDashboard = () => {
-  const { isConnected } = useProxyInitialization();
+  const { isConnected } = useProxyStore();
 
   const {
     transactions,
@@ -49,7 +50,7 @@ export const NetworkDashboard = () => {
 
   return (
     <div className="flex h-[100vh] w-full">
-      <NetworkSidebar isConnected={isConnected} />
+      <AppSidebar isConnected={isConnected} />
 
       <div className="flex-1 flex flex-col h-full">
         <NetworkHeader

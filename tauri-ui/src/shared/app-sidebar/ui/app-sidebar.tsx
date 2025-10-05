@@ -1,23 +1,22 @@
-import clsx from 'clsx';
+import { cn } from '@/shared/lib';
 
 import { SidebarHeader } from './sidebar-header';
 import { SidebarNavigation } from './sidebar-navigation';
 import { SidebarStatus } from './sidebar-status';
 
-import { useSidebarCollapse, useSidebarNavigation } from '../hooks';
+import { useSidebarCollapse } from '../hooks';
 
-interface NetworkSidebarProps {
+interface AppSidebarProps {
   isConnected?: boolean;
   version?: string;
 }
 
-export function NetworkSidebar({ isConnected = true, version }: NetworkSidebarProps) {
-  const { activeSection, createSelectionChangeHandler } = useSidebarNavigation();
+export function AppSidebar({ isConnected = true, version }: AppSidebarProps) {
   const { collapsed, toggleCollapse } = useSidebarCollapse();
 
   return (
     <div
-      className={clsx(
+      className={cn(
         collapsed ? 'w-18' : 'w-64',
         'bg-sidebar',
         'flex flex-col shrink-0',
@@ -27,11 +26,7 @@ export function NetworkSidebar({ isConnected = true, version }: NetworkSidebarPr
       <SidebarHeader collapsed={collapsed} toggleCollapse={toggleCollapse} />
 
       <div className="flex-1 px-4 py-2">
-        <SidebarNavigation
-          collapsed={collapsed}
-          activeSection={activeSection}
-          createSelectionChangeHandler={createSelectionChangeHandler}
-        />
+        <SidebarNavigation collapsed={collapsed} />
       </div>
 
       <SidebarStatus collapsed={collapsed} isConnected={isConnected} version={version} />
