@@ -1,3 +1,5 @@
+import { DataType } from './data-type';
+
 // HTTP 메서드 타입
 export type HttpMethod =
   | 'GET'
@@ -36,7 +38,8 @@ export interface HttpRequest {
   body: Uint8Array;
   time: number;
   id: string; // 고유 ID 추가
-  content_type: string; // Content-Type 정보 추가
+  data_type: DataType; // 데이터 타입 정보 추가
+  body_json?: any; // JSON 파싱된 데이터 (JSON 타입인 경우)
 }
 
 export interface HttpResponse {
@@ -45,7 +48,8 @@ export interface HttpResponse {
   headers: Record<string, string>;
   body: Uint8Array;
   time: number;
-  content_type: string; // Content-Type 정보 추가
+  data_type: DataType; // 데이터 타입 정보 추가
+  body_json?: any; // JSON 파싱된 데이터 (JSON 타입인 경우)
 }
 
 export interface HttpTransaction {
@@ -54,3 +58,6 @@ export interface HttpTransaction {
 }
 
 export type ProxyEventTuple = [HttpTransaction['request'], HttpTransaction['response']];
+
+// Re-export DataType for convenience
+export { DataType } from './data-type';
