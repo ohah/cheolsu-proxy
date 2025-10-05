@@ -6,7 +6,7 @@ import { Button, Card, CardContent, CardHeader } from '@/shared/ui';
 import type { AppFormInstance } from '../context/form-context';
 import { Editor } from '@monaco-editor/react';
 
-import { formatBody, detectContentType } from '../lib';
+import { formatBody, detectContentType, contentTypeToMonacoLanguage } from '../lib';
 import { toast } from 'sonner';
 
 interface TransactionResponseProps {
@@ -26,9 +26,7 @@ export const TransactionResponse = ({ transaction, isEditing = false, form }: Tr
 
   const responseText = getResponseText();
 
-  console.log('responseText', responseText);
-  console.log('response.body', response.body);
-  const contentType = detectContentType(responseText);
+  const detectedContentType = response.content_type || detectContentType(responseText);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(responseText);
@@ -52,7 +50,7 @@ export const TransactionResponse = ({ transaction, isEditing = false, form }: Tr
               <div className="h-[calc(100vh-300px)] border rounded-md overflow-hidden">
                 <Editor
                   height="calc(100vh - 300px)"
-                  language={contentType}
+                  language={contentTypeToMonacoLanguage(detectedContentType)}
                   value={(field.state.value as string) || ''}
                   onChange={(value) => field.handleChange(value || '')}
                   options={{
@@ -76,7 +74,7 @@ export const TransactionResponse = ({ transaction, isEditing = false, form }: Tr
           <div className="h-[calc(100vh-300px)] border rounded-md overflow-hidden">
             <Editor
               height="calc(100vh - 300px)"
-              language={contentType}
+              language={contentTypeToMonacoLanguage(detectedContentType)}
               value={responseText}
               options={{
                 readOnly: true,

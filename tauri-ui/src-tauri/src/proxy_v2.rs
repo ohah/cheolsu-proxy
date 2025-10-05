@@ -262,7 +262,7 @@ impl LoggingHandler {
             req.uri().clone(),
             req.version(),
             req.headers().clone(),
-            body_bytes,
+            body_bytes.clone(),
             chrono::Local::now()
                 .timestamp_nanos_opt()
                 .unwrap_or_default(),
@@ -294,7 +294,7 @@ impl LoggingHandler {
             res.status(),
             res.version(),
             res.headers().clone(),
-            body_bytes,
+            body_bytes.clone(),
             chrono::Local::now()
                 .timestamp_nanos_opt()
                 .unwrap_or_default(),
@@ -389,6 +389,15 @@ impl HttpHandler for LoggingHandler {
                     chrono::Local::now()
                         .timestamp_nanos_opt()
                         .unwrap_or_default(),
+                );
+
+                println!(
+                    "🔍 [SESSION RESPONSE] Content-Type 감지됨: {}",
+                    session_proxied_response.content_type()
+                );
+                println!(
+                    "🔍 [SESSION RESPONSE] Body 크기: {} bytes",
+                    session_body_bytes.len()
                 );
                 self.res = Some(session_proxied_response);
 

@@ -76,18 +76,63 @@ export const formatBodyToJson = (body: Uint8Array | any): Record<string, unknown
   }
 };
 
-// JSON 타입 감지 함수
-export const detectContentType = (content: string): 'json' | 'text' => {
+// JSON 타입 감지 함수 (반환값을 content-type 헤더 형식으로 변경)
+export const detectContentType = (content: string): string => {
   if (!content || content.trim().length === 0) {
-    return 'text';
+    return 'text/plain';
   }
 
   try {
     JSON.parse(content);
-    return 'json';
+    return 'application/json';
   } catch {
-    return 'text';
+    return 'text/plain';
   }
+};
+
+// Content-Type을 Monaco Editor 언어 모드로 변환하는 함수
+export const contentTypeToMonacoLanguage = (contentType: string): string => {
+  const type = contentType.toLowerCase();
+
+  if (type.includes('json')) {
+    return 'json';
+  }
+  if (type.includes('xml')) {
+    return 'xml';
+  }
+  if (type.includes('html')) {
+    return 'html';
+  }
+  if (type.includes('css')) {
+    return 'css';
+  }
+  if (type.includes('javascript') || type.includes('js')) {
+    return 'javascript';
+  }
+  if (type.includes('typescript') || type.includes('ts')) {
+    return 'typescript';
+  }
+  if (type.includes('yaml') || type.includes('yml')) {
+    return 'yaml';
+  }
+  if (type.includes('markdown') || type.includes('md')) {
+    return 'markdown';
+  }
+  if (type.includes('sql')) {
+    return 'sql';
+  }
+  if (type.includes('python') || type.includes('py')) {
+    return 'python';
+  }
+  if (type.includes('shell') || type.includes('bash') || type.includes('sh')) {
+    return 'shell';
+  }
+  if (type.includes('plain') || type.includes('text')) {
+    return 'plaintext';
+  }
+
+  // 기본값
+  return 'plaintext';
 };
 
 // curl 명령어 생성 함수

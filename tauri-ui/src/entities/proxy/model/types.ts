@@ -36,6 +36,7 @@ export interface HttpRequest {
   body: Uint8Array;
   time: number;
   id: string; // 고유 ID 추가
+  content_type: string; // Content-Type 정보 추가
 }
 
 export interface HttpResponse {
@@ -44,6 +45,7 @@ export interface HttpResponse {
   headers: Record<string, string>;
   body: Uint8Array;
   time: number;
+  content_type: string; // Content-Type 정보 추가
 }
 
 export interface HttpTransaction {
