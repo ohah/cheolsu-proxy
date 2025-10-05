@@ -1,6 +1,6 @@
+use brotli::Decompressor;
 use bytes::Bytes;
 use flate2::read::GzDecoder;
-use brotli::Decompressor;
 use http::HeaderMap;
 use serde::{Deserialize, Serialize};
 use std::io::Read;
