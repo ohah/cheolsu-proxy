@@ -38,7 +38,6 @@ export const formatBodyContent = (body: Uint8Array, dataType: DataType, bodyJson
     return '';
   }
 
-  console.log('dataType', dataType, body, 'bodyJson', bodyJson);
 
   // JSON 타입이고 body_json이 있으면 바로 포맷팅
   if (dataType === 'Json' && bodyJson) {
