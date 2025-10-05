@@ -50,7 +50,6 @@ export interface HttpResponse {
   time: number;
   data_type: DataType; // 데이터 타입 정보 추가
   body_json?: any; // JSON 파싱된 데이터 (JSON 타입인 경우)
-  decompressed_body?: Uint8Array; // 압축 해제된 데이터 (타우리 UI용)
 }
 
 export interface HttpTransaction {

@@ -36,7 +36,7 @@ export const decodeHtmlEntities = (text: string): string => {
  * 요청/응답 본문을 포맷팅된 문자열로 변환
  * 러스트에서 이미 데이터 타입 감지와 압축 해제를 완료했으므로 단순한 포맷팅만 수행
  */
-export const formatBodyContent = (body: Uint8Array, dataType: DataType, bodyJson?: any, decompressedBody?: Uint8Array): string => {
+export const formatBodyContent = (body: Uint8Array, dataType: DataType, bodyJson?: any): string => {
   if (dataType === 'Empty') {
     return '';
   }
@@ -47,9 +47,7 @@ export const formatBodyContent = (body: Uint8Array, dataType: DataType, bodyJson
   }
 
   if (isTextBasedDataType(dataType)) {
-    // 압축 해제된 데이터가 있으면 우선 사용
-    const bodyToUse = decompressedBody || body;
-    const text = uint8ArrayToString(bodyToUse, dataType);
+    const text = uint8ArrayToString(body, dataType);
 
     // JSON 타입인 경우 포맷팅 시도 (fallback)
     if (dataType === 'Json') {
@@ -75,13 +73,13 @@ export const formatBodyContent = (body: Uint8Array, dataType: DataType, bodyJson
 /**
  * 요청/응답 본문을 표시용으로 변환 (Monaco Editor용)
  */
-export const getBodyForDisplay = (body: Uint8Array, dataType: DataType, bodyJson?: any, decompressedBody?: Uint8Array): string => {
+export const getBodyForDisplay = (body: Uint8Array, dataType: DataType, bodyJson?: any): string => {
   if (dataType === 'Empty') {
     return '';
   }
 
   if (isTextBasedDataType(dataType)) {
-    return formatBodyContent(body, dataType, bodyJson, decompressedBody);
+    return formatBodyContent(body, dataType, bodyJson);
   }
 
   if (isBinaryDataType(dataType)) {
