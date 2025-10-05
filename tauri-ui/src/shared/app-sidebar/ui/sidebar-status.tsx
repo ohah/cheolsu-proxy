@@ -1,3 +1,6 @@
+import { Circle } from 'lucide-react';
+import { cn } from '@/shared/lib';
+
 interface SidebarStatusProps {
   collapsed: boolean;
   isConnected: boolean;
@@ -6,7 +9,15 @@ interface SidebarStatusProps {
 
 export const SidebarStatus = ({ collapsed, isConnected, version }: SidebarStatusProps) => {
   if (collapsed) {
-    return null;
+    return (
+      <div className="p-2 border-t border-sidebar-border flex justify-center">
+        <div title={isConnected ? 'Connected' : 'Disconnected'}>
+          <Circle
+            className={cn('w-3 h-3', isConnected ? 'text-green-500 fill-green-500' : 'text-red-500 fill-red-500')}
+          />
+        </div>
+      </div>
+    );
   }
 
   return (

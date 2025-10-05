@@ -1,4 +1,4 @@
-import { Network } from 'lucide-react';
+import { Network, Database } from 'lucide-react';
 
 import type { SidebarSection } from './types';
 
@@ -9,7 +9,13 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
     id: 'network',
     label: 'Network',
     icon: Network,
-    description: 'HTTP requests and responses'
+    description: 'HTTP requests and responses',
+  },
+  {
+    id: 'sessions',
+    label: 'Sessions',
+    icon: Database,
+    description: 'Saved HTTP sessions and data',
   },
   // {
   //   id: 'performance',
@@ -42,3 +48,4 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
   //   description: 'Request analytics and insights'
   // },
 ];
+
