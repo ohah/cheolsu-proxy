@@ -302,6 +302,13 @@ impl LoggingHandler {
         // 원본 body 복원 (압축 해제된 데이터로)
         use http_body_util::Full;
         *body_mut = Body::from(Full::new(processed_body_bytes.clone()));
+        
+        // GZIP 압축을 해제했다면 Content-Encoding 헤더도 제거
+        if is_gzip_compressed(&body_bytes) {
+            let mut headers = res.headers().clone();
+            headers.remove("content-encoding");
+            *res.headers_mut() = headers;
+        }
 
         let proxied_response = ProxiedResponse::new(
             res.status(),
