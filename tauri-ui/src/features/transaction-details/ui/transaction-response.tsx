@@ -1,99 +1,82 @@
-import { Copy } from 'lucide-react';
-
-import type { HttpTransaction } from '@/entities/proxy';
-
-import { Button, Card, CardContent, CardHeader } from '@/shared/ui';
-import type { AppFormInstance } from '../context/form-context';
 import { Editor } from '@monaco-editor/react';
-
-import { formatBody, detectContentType, contentTypeToMonacoLanguage } from '../lib';
-import { toast } from 'sonner';
+import { HttpResponse } from '@/entities/proxy/model/types';
+import { dataTypeToMonacoLanguage } from '@/entities/proxy/model/data-type';
+import { getBodyForDisplay } from '../lib/utils';
 
 interface TransactionResponseProps {
-  transaction: HttpTransaction;
+  response?: HttpResponse;
   isEditing?: boolean;
-  form?: AppFormInstance;
+  form?: any;
 }
 
-export const TransactionResponse = ({ transaction, isEditing = false, form }: TransactionResponseProps) => {
-  const { response } = transaction;
+export const TransactionResponse = ({ response, isEditing, form }: TransactionResponseProps) => {
+  // TODO: isEditing과 form을 사용한 편집 기능 구현
+  console.log('TransactionResponse props:', { isEditing, form });
+  // response가 없으면 빈 컴포넌트 반환
+  if (!response) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold">Response Body</h3>
+          <span className="text-sm text-muted-foreground">No response data</span>
+        </div>
+        <div className="border rounded-lg p-4 text-center text-muted-foreground">Response data is not available</div>
+      </div>
+    );
+  }
 
-  if (!response) return null;
-
-  const getResponseText = () => {
-    return formatBody(response.body);
-  };
-
-  const responseText = getResponseText();
-
-  const detectedContentType = response.content_type || detectContentType(responseText);
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(responseText);
-    toast.success('Response body copied to clipboard');
-  };
+  const bodyContent = getBodyForDisplay(response.body, response.data_type, response.body_json);
+  const language = dataTypeToMonacoLanguage(response.data_type);
 
   return (
-    <Card className="gap-0 flex flex-col min-h-0 flex-1">
-      <CardHeader className="flex-shrink-0">
-        <div className="flex items-center justify-end gap-2">
-          <Button variant="ghost" size="sm" onClick={handleCopy}>
-            <Copy className="w-4 h-4" />
-          </Button>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold">Response Body</h3>
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">
+            Data Type: <span className="font-mono bg-green-100 px-2 py-1 rounded">{response.data_type}</span> •{' '}
+            {(response.body || new Uint8Array()).length} bytes
+          </span>
         </div>
-      </CardHeader>
-      <CardContent className="flex-1 p-0 min-h-0">
-        {form && isEditing ? (
-          <form.Field
-            name="response.data"
-            children={(field) => (
-              <div className="h-[calc(100vh-300px)] border rounded-md overflow-hidden">
-                <Editor
-                  height="calc(100vh - 300px)"
-                  language={contentTypeToMonacoLanguage(detectedContentType)}
-                  value={(field.state.value as string) || ''}
-                  onChange={(value) => field.handleChange(value || '')}
-                  options={{
-                    minimap: { enabled: false },
-                    scrollBeyondLastLine: false,
-                    fontSize: 12,
-                    lineNumbers: 'on',
-                    wordWrap: 'on',
-                    automaticLayout: true,
-                    padding: { top: 8, bottom: 8 },
-                    scrollbar: {
-                      vertical: 'auto',
-                      horizontal: 'auto',
-                    },
-                  }}
-                />
-              </div>
-            )}
-          />
-        ) : (
-          <div className="h-[calc(100vh-300px)] border rounded-md overflow-hidden">
-            <Editor
-              height="calc(100vh - 300px)"
-              language={contentTypeToMonacoLanguage(detectedContentType)}
-              value={responseText}
-              options={{
-                readOnly: true,
-                minimap: { enabled: false },
-                scrollBeyondLastLine: false,
-                fontSize: 12,
-                lineNumbers: 'on',
-                wordWrap: 'on',
-                automaticLayout: true,
-                padding: { top: 8, bottom: 8 },
-                scrollbar: {
-                  vertical: 'auto',
-                  horizontal: 'auto',
-                },
-              }}
-            />
-          </div>
-        )}
-      </CardContent>
-    </Card>
+      </div>
+
+      {/* 디버깅 정보 */}
+      <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
+        <div>Status: {response.status || 'N/A'}</div>
+        <div>Version: {response.version || 'N/A'}</div>
+        <div>Body exists: {response.body ? 'Yes' : 'No'}</div>
+        <div>Body length: {(response.body || new Uint8Array()).length}</div>
+        <div>Data type: {response.data_type || 'N/A'}</div>
+      </div>
+
+      <div className="border rounded-lg overflow-hidden">
+        <Editor
+          height="400px"
+          language={language}
+          value={bodyContent}
+          options={{
+            readOnly: true,
+            minimap: { enabled: false },
+            scrollBeyondLastLine: false,
+            wordWrap: 'on',
+            fontSize: 14,
+            lineNumbers: 'on',
+            folding: true,
+            lineDecorationsWidth: 0,
+            lineNumbersMinChars: 0,
+            renderLineHighlight: 'none',
+            overviewRulerBorder: false,
+            hideCursorInOverviewRuler: true,
+            overviewRulerLanes: 0,
+            scrollbar: {
+              vertical: 'auto',
+              horizontal: 'auto',
+              verticalScrollbarSize: 8,
+              horizontalScrollbarSize: 8,
+            },
+          }}
+        />
+      </div>
+    </div>
   );
 };
