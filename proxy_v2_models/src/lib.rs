@@ -177,9 +177,16 @@ impl ProxiedResponse {
         let data_type = detect_data_type(&headers, &body);
 
         // 압축 해제된 데이터 생성 (타우리 UI용)
-        let decompressed_body = if data_type == data_type::DataType::Json || 
-            headers.get("content-encoding").map(|h| h.to_str().unwrap_or("").to_lowercase().contains("gzip")).unwrap_or(false) ||
-            headers.get("content-encoding").map(|h| h.to_str().unwrap_or("").to_lowercase().contains("br")).unwrap_or(false) {
+        let decompressed_body = if data_type == data_type::DataType::Json
+            || headers
+                .get("content-encoding")
+                .map(|h| h.to_str().unwrap_or("").to_lowercase().contains("gzip"))
+                .unwrap_or(false)
+            || headers
+                .get("content-encoding")
+                .map(|h| h.to_str().unwrap_or("").to_lowercase().contains("br"))
+                .unwrap_or(false)
+        {
             let decompressed = decompress_body_if_needed(&headers, &body);
             if decompressed != body.to_vec() {
                 Some(Bytes::from(decompressed))
@@ -258,6 +265,14 @@ impl ProxiedResponse {
     /// 압축 해제된 데이터 반환 (타우리 UI용)
     pub fn decompressed_body(&self) -> &Option<Bytes> {
         &self.decompressed_body
+    }
+
+    /// 타우리 UI용으로 변환 (body를 압축 해제된 데이터로 교체)
+    pub fn for_tauri(mut self) -> Self {
+        if let Some(decompressed) = self.decompressed_body.take() {
+            self.body = decompressed;
+        }
+        self
     }
 }
 
