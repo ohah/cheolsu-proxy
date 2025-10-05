@@ -24,7 +24,6 @@ use tokio::sync::oneshot::Sender;
 use tokio::sync::Mutex;
 use tokio_rustls::rustls::{crypto::aws_lc_rs, ClientConfig};
 
-
 /// 모든 인증서를 허용하는 위험한 인증서 검증기
 #[derive(Debug)]
 struct DangerousCertificateVerifier;

@@ -163,6 +163,7 @@ pub struct ProxiedResponse {
     time: i64,
     data_type: DataType,                  // 데이터 타입 정보 추가
     body_json: Option<serde_json::Value>, // JSON 파싱된 데이터 (JSON 타입인 경우)
+    decompressed_body: Option<Bytes>,     // 압축 해제된 데이터 (타우리 UI용)
 }
 
 impl ProxiedResponse {
@@ -174,6 +175,20 @@ impl ProxiedResponse {
         time: i64,
     ) -> Self {
         let data_type = detect_data_type(&headers, &body);
+
+        // 압축 해제된 데이터 생성 (타우리 UI용)
+        let decompressed_body = if data_type == data_type::DataType::Json || 
+            headers.get("content-encoding").map(|h| h.to_str().unwrap_or("").to_lowercase().contains("gzip")).unwrap_or(false) ||
+            headers.get("content-encoding").map(|h| h.to_str().unwrap_or("").to_lowercase().contains("br")).unwrap_or(false) {
+            let decompressed = decompress_body_if_needed(&headers, &body);
+            if decompressed != body.to_vec() {
+                Some(Bytes::from(decompressed))
+            } else {
+                None
+            }
+        } else {
+            None
+        };
 
         // JSON 타입인 경우 파싱 시도
         let body_json = if data_type == data_type::DataType::Json {
@@ -197,6 +212,7 @@ impl ProxiedResponse {
             time,
             data_type,
             body_json,
+            decompressed_body,
         }
     }
 
@@ -237,6 +253,11 @@ impl ProxiedResponse {
     /// JSON 파싱된 데이터 반환 (JSON 타입인 경우)
     pub fn body_json(&self) -> &Option<serde_json::Value> {
         &self.body_json
+    }
+
+    /// 압축 해제된 데이터 반환 (타우리 UI용)
+    pub fn decompressed_body(&self) -> &Option<Bytes> {
+        &self.decompressed_body
     }
 }
 
