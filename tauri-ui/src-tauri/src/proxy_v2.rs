@@ -212,6 +212,9 @@ impl LoggingHandler {
         // 세션 응답임을 나타내는 특별한 헤더 추가
         headers.insert("x-cheolsu-proxy-session", "true".parse().unwrap());
         headers.insert("x-cheolsu-proxy-version", "v2".parse().unwrap());
+        
+        // Transfer-Encoding: chunked 추가 (Content-Length 대신 사용)
+        headers.insert("transfer-encoding", "chunked".parse().unwrap());
 
         // 응답 본문 생성
         let body = if let Some(data) = response_data.get("data") {
@@ -303,6 +306,11 @@ impl LoggingHandler {
         // 원본 body 복원 (압축 해제된 데이터로)
         use http_body_util::Full;
         *body_mut = Body::from(Full::new(processed_body_bytes.clone()));
+        
+        // Transfer-Encoding: chunked 추가 (Content-Length 대신 사용)
+        let mut headers = res.headers().clone();
+        headers.insert("transfer-encoding", "chunked".parse().unwrap());
+        *res.headers_mut() = headers;
 
         let proxied_response = ProxiedResponse::new(
             res.status(),
