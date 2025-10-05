@@ -1,4 +1,5 @@
 use bytes::Bytes;
+use flate2::read::GzDecoder;
 use hyper_rustls::HttpsConnectorBuilder;
 use hyper_util::{
     client::legacy::{connect::HttpConnector, Client},
@@ -14,6 +15,7 @@ use proxyapi_v2::{
     Body, HttpContext, HttpHandler, RequestOrResponse, WebSocketContext, WebSocketHandler,
 };
 use std::error::Error;
+use std::io::Read;
 use std::net::SocketAddr;
 use std::sync::mpsc;
 use std::sync::Arc;
@@ -23,6 +25,19 @@ use tokio::net::TcpListener;
 use tokio::sync::oneshot::Sender;
 use tokio::sync::Mutex;
 use tokio_rustls::rustls::{crypto::aws_lc_rs, ClientConfig};
+
+/// GZIP 압축 감지 함수
+fn is_gzip_compressed(data: &[u8]) -> bool {
+    data.len() >= 2 && data[0] == 0x1f && data[1] == 0x8b
+}
+
+/// GZIP 압축 해제 함수
+fn decompress_gzip(data: &[u8]) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+    let mut decoder = GzDecoder::new(data);
+    let mut decompressed = Vec::new();
+    decoder.read_to_end(&mut decompressed)?;
+    Ok(decompressed)
+}
 
 /// 모든 인증서를 허용하는 위험한 인증서 검증기
 #[derive(Debug)]
@@ -268,6 +283,12 @@ impl LoggingHandler {
                 .unwrap_or_default(),
         );
 
+        println!(
+            "🔍 [REQUEST] Content-Type 감지됨: {}",
+            proxied_request.mime_type()
+        );
+        println!("🔍 [REQUEST] Body 크기: {} bytes", body_bytes.len());
+
         (proxied_request, req)
     }
 
@@ -286,18 +307,48 @@ impl LoggingHandler {
             }
         };
 
-        // 원본 body 복원
+        // GZIP 압축 해제 시도
+        let processed_body_bytes = if is_gzip_compressed(&body_bytes) {
+            println!("🔍 [RESPONSE] GZIP 압축된 데이터 감지됨, 압축 해제 시도 중...");
+            match decompress_gzip(&body_bytes) {
+                Ok(decompressed) => {
+                    println!(
+                        "✅ [RESPONSE] GZIP 압축 해제 성공: {} bytes -> {} bytes",
+                        body_bytes.len(),
+                        decompressed.len()
+                    );
+                    Bytes::from(decompressed)
+                }
+                Err(e) => {
+                    println!("❌ [RESPONSE] GZIP 압축 해제 실패: {}, 원본 데이터 사용", e);
+                    body_bytes.clone()
+                }
+            }
+        } else {
+            body_bytes.clone()
+        };
+
+        // 원본 body 복원 (압축 해제된 데이터로)
         use http_body_util::Full;
-        *body_mut = Body::from(Full::new(body_bytes.clone()));
+        *body_mut = Body::from(Full::new(processed_body_bytes.clone()));
 
         let proxied_response = ProxiedResponse::new(
             res.status(),
             res.version(),
             res.headers().clone(),
-            body_bytes.clone(),
+            processed_body_bytes.clone(),
             chrono::Local::now()
                 .timestamp_nanos_opt()
                 .unwrap_or_default(),
+        );
+
+        println!(
+            "🔍 [RESPONSE] Content-Type 감지됨: {}",
+            proxied_response.mime_type()
+        );
+        println!(
+            "🔍 [RESPONSE] Body 크기: {} bytes",
+            processed_body_bytes.len()
         );
 
         (proxied_response, res)
@@ -393,7 +444,7 @@ impl HttpHandler for LoggingHandler {
 
                 println!(
                     "🔍 [SESSION RESPONSE] Content-Type 감지됨: {}",
-                    session_proxied_response.content_type()
+                    session_proxied_response.mime_type()
                 );
                 println!(
                     "🔍 [SESSION RESPONSE] Body 크기: {} bytes",
