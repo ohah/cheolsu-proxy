@@ -13,20 +13,10 @@ export const uint8ArrayToString = (data: Uint8Array | number[], dataType: DataTy
   try {
     // 일반 배열인 경우 Uint8Array로 변환
     const uint8Array = data instanceof Uint8Array ? data : new Uint8Array(data);
-    
+
     // 러스트에서 이미 처리된 데이터이므로 단순한 UTF-8 디코딩
     const decoder = new TextDecoder('utf-8', { fatal: false });
-    const result = decoder.decode(uint8Array);
-
-    // 디코딩 결과가 비어있거나 이상한 경우 fallback
-    if (!result || result.length === 0) {
-      // ASCII 범위의 바이트들을 문자열로 변환
-      return Array.from(uint8Array)
-        .map((byte) => (byte >= 32 && byte <= 126 ? String.fromCharCode(byte) : '.'))
-        .join('');
-    }
-
-    return result;
+    return decoder.decode(uint8Array);
   } catch (error) {
     console.error('UTF-8 디코딩 실패:', error);
     // ASCII 범위의 바이트들을 문자열로 변환 (fallback)
