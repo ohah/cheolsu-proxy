@@ -7,7 +7,7 @@ pub use http::{HeaderMap, Method, StatusCode, Uri, Version};
 
 // Re-export data type module
 pub mod data_type;
-pub use data_type::{detect_data_type, DataType};
+pub use data_type::{detect_data_type, DataType, decompress_gzip};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct ProxiedRequest {
@@ -46,7 +46,18 @@ impl ProxiedRequest {
 
         // JSON 타입인 경우 파싱 시도
         let body_json = if data_type == data_type::DataType::Json {
-            if let Ok(body_str) = std::str::from_utf8(&body) {
+            // GZIP 압축된 경우 압축 해제 후 파싱 시도
+            let body_to_parse = if body.len() >= 2 && body[0] == 0x1f && body[1] == 0x8b {
+                // GZIP 압축된 데이터 - 압축 해제 시도
+                match data_type::decompress_gzip(&body) {
+                    Ok(decompressed) => decompressed,
+                    Err(_) => body.to_vec(), // 압축 해제 실패 시 원본 사용
+                }
+            } else {
+                body.to_vec() // 압축되지 않은 데이터
+            };
+            
+            if let Ok(body_str) = std::str::from_utf8(&body_to_parse) {
                 serde_json::from_str(body_str).ok()
             } else {
                 None
@@ -142,7 +153,18 @@ impl ProxiedResponse {
 
         // JSON 타입인 경우 파싱 시도
         let body_json = if data_type == data_type::DataType::Json {
-            if let Ok(body_str) = std::str::from_utf8(&body) {
+            // GZIP 압축된 경우 압축 해제 후 파싱 시도
+            let body_to_parse = if body.len() >= 2 && body[0] == 0x1f && body[1] == 0x8b {
+                // GZIP 압축된 데이터 - 압축 해제 시도
+                match data_type::decompress_gzip(&body) {
+                    Ok(decompressed) => decompressed,
+                    Err(_) => body.to_vec(), // 압축 해제 실패 시 원본 사용
+                }
+            } else {
+                body.to_vec() // 압축되지 않은 데이터
+            };
+            
+            if let Ok(body_str) = std::str::from_utf8(&body_to_parse) {
                 serde_json::from_str(body_str).ok()
             } else {
                 None
