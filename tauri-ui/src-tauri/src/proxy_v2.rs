@@ -215,25 +215,18 @@ impl LoggingHandler {
 
         // 응답 본문 생성
         let body = if let Some(data) = response_data.get("data") {
-            println!("🎭 응답 본문 데이터 발견: {:?}", data);
             match data {
-                JsonValue::String(s) => {
-                    println!("🎭 문자열 데이터: {}", s);
-                    Body::from(s.clone())
-                }
+                JsonValue::String(s) => Body::from(s.clone()),
                 JsonValue::Object(_) | JsonValue::Array(_) => {
                     let json_string = serde_json::to_string(data).unwrap_or_default();
-                    println!("🎭 JSON 데이터: {}", json_string);
                     Body::from(json_string)
                 }
                 _ => {
                     let string_data = data.to_string();
-                    println!("🎭 기타 데이터: {}", string_data);
                     Body::from(string_data)
                 }
             }
         } else {
-            println!("🎭 응답 본문 데이터 없음 - 빈 응답 생성");
             Body::empty()
         };
 
@@ -249,7 +242,8 @@ impl LoggingHandler {
     fn send_output(&self) {
         let request_info = RequestInfo(self.req.clone(), self.res.clone());
         if let Err(e) = self.sender.send(request_info) {
-            eprintln!("Error on sending RequestInfo to main thread: {}", e);
+            // RequestInfo 전송 실패 (무시)
+            let _ = e;
         }
     }
 
@@ -262,10 +256,7 @@ impl LoggingHandler {
         let mut body_mut = req.body_mut();
         let body_bytes = match Self::body_to_bytes_from_mut(&mut body_mut).await {
             Ok(bytes) => bytes,
-            Err(e) => {
-                eprintln!("❌ 요청 body 읽기 실패: {}", e);
-                Bytes::new()
-            }
+            Err(_) => Bytes::new()
         };
 
         // 원본 body 복원
@@ -283,11 +274,6 @@ impl LoggingHandler {
                 .unwrap_or_default(),
         );
 
-        println!(
-            "🔍 [REQUEST] Content-Type 감지됨: {}",
-            proxied_request.mime_type()
-        );
-        println!("🔍 [REQUEST] Body 크기: {} bytes", body_bytes.len());
 
         (proxied_request, req)
     }
@@ -301,28 +287,14 @@ impl LoggingHandler {
         let mut body_mut = res.body_mut();
         let body_bytes = match Self::body_to_bytes_from_mut(&mut body_mut).await {
             Ok(bytes) => bytes,
-            Err(e) => {
-                eprintln!("❌ 응답 body 읽기 실패: {}", e);
-                Bytes::new()
-            }
+            Err(_) => Bytes::new()
         };
 
         // GZIP 압축 해제 시도
         let processed_body_bytes = if is_gzip_compressed(&body_bytes) {
-            println!("🔍 [RESPONSE] GZIP 압축된 데이터 감지됨, 압축 해제 시도 중...");
             match decompress_gzip(&body_bytes) {
-                Ok(decompressed) => {
-                    println!(
-                        "✅ [RESPONSE] GZIP 압축 해제 성공: {} bytes -> {} bytes",
-                        body_bytes.len(),
-                        decompressed.len()
-                    );
-                    Bytes::from(decompressed)
-                }
-                Err(e) => {
-                    println!("❌ [RESPONSE] GZIP 압축 해제 실패: {}, 원본 데이터 사용", e);
-                    body_bytes.clone()
-                }
+                Ok(decompressed) => Bytes::from(decompressed),
+                Err(_) => body_bytes.clone()
             }
         } else {
             body_bytes.clone()
@@ -342,14 +314,6 @@ impl LoggingHandler {
                 .unwrap_or_default(),
         );
 
-        println!(
-            "🔍 [RESPONSE] Content-Type 감지됨: {}",
-            proxied_response.mime_type()
-        );
-        println!(
-            "🔍 [RESPONSE] Body 크기: {} bytes",
-            processed_body_bytes.len()
-        );
 
         (proxied_response, res)
     }
@@ -425,10 +389,7 @@ impl HttpHandler for LoggingHandler {
                 let session_body_bytes =
                     match Self::body_to_bytes_from_mut(&mut session_response.body_mut()).await {
                         Ok(bytes) => bytes,
-                        Err(e) => {
-                            eprintln!("❌ 세션 응답 body 읽기 실패: {}", e);
-                            Bytes::from("세션 응답 읽기 실패")
-                        }
+                        Err(_) => Bytes::from("세션 응답 읽기 실패")
                     };
 
                 // 세션 응답을 ProxiedResponse로 변환하여 저장
@@ -442,14 +403,6 @@ impl HttpHandler for LoggingHandler {
                         .unwrap_or_default(),
                 );
 
-                println!(
-                    "🔍 [SESSION RESPONSE] Content-Type 감지됨: {}",
-                    session_proxied_response.mime_type()
-                );
-                println!(
-                    "🔍 [SESSION RESPONSE] Body 크기: {} bytes",
-                    session_body_bytes.len()
-                );
                 self.res = Some(session_proxied_response);
 
                 // 요청과 응답을 묶어서 전송

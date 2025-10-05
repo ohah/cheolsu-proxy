@@ -261,7 +261,9 @@ pub fn detect_data_type(headers: &HeaderMap, body: &Bytes) -> DataType {
         if let Some(content_type) = headers.get("content-type") {
             if let Ok(content_type_str) = content_type.to_str() {
                 let content_type_lower = content_type_str.to_lowercase();
-                if content_type_lower.contains("javascript") || content_type_lower.contains("typescript") {
+                if content_type_lower.contains("javascript")
+                    || content_type_lower.contains("typescript")
+                {
                     return DataType::Javascript;
                 }
             }
