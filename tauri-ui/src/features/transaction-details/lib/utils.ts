@@ -19,11 +19,7 @@ export const uint8ArrayToString = (data: Uint8Array | number[], dataType: DataTy
     return decoder.decode(uint8Array);
   } catch (error) {
     console.error('UTF-8 디코딩 실패:', error);
-    // ASCII 범위의 바이트들을 문자열로 변환 (fallback)
-    const uint8Array = data instanceof Uint8Array ? data : new Uint8Array(data);
-    return Array.from(uint8Array)
-      .map((byte) => (byte >= 32 && byte <= 126 ? String.fromCharCode(byte) : '.'))
-      .join('');
+    return `디코딩 실패 (${dataType})`;
   }
 };
 
