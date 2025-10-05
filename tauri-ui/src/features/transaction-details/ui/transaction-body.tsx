@@ -9,9 +9,8 @@ interface TransactionBodyProps {
   form?: any;
 }
 
-export const TransactionBody = ({ request, isEditing, form }: TransactionBodyProps) => {
+export const TransactionBody = ({ request }: TransactionBodyProps) => {
   // TODO: isEditing과 form을 사용한 편집 기능 구현
-  console.log('TransactionBody props:', { isEditing, form });
   // request가 없으면 빈 컴포넌트 반환
   if (!request) {
     return (
@@ -40,16 +39,6 @@ export const TransactionBody = ({ request, isEditing, form }: TransactionBodyPro
         </div>
       </div>
 
-      {/* 디버깅 정보 */}
-      <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
-        <div>Request ID: {request.id || 'N/A'}</div>
-        <div>Method: {request.method || 'N/A'}</div>
-        <div>URI: {request.uri || 'N/A'}</div>
-        <div>Body exists: {request.body ? 'Yes' : 'No'}</div>
-        <div>Body length: {(request.body || new Uint8Array()).length}</div>
-        <div>Data type: {request.data_type || 'N/A'}</div>
-      </div>
-
       <div className="border rounded-lg overflow-hidden">
         <Editor
           height="300px"
@@ -60,21 +49,6 @@ export const TransactionBody = ({ request, isEditing, form }: TransactionBodyPro
             minimap: { enabled: false },
             scrollBeyondLastLine: false,
             wordWrap: 'on',
-            fontSize: 14,
-            lineNumbers: 'on',
-            folding: true,
-            lineDecorationsWidth: 0,
-            lineNumbersMinChars: 0,
-            renderLineHighlight: 'none',
-            overviewRulerBorder: false,
-            hideCursorInOverviewRuler: true,
-            overviewRulerLanes: 0,
-            scrollbar: {
-              vertical: 'auto',
-              horizontal: 'auto',
-              verticalScrollbarSize: 8,
-              horizontalScrollbarSize: 8,
-            },
           }}
         />
       </div>

@@ -9,9 +9,8 @@ interface TransactionResponseProps {
   form?: any;
 }
 
-export const TransactionResponse = ({ response, isEditing, form }: TransactionResponseProps) => {
+export const TransactionResponse = ({ response }: TransactionResponseProps) => {
   // TODO: isEditing과 form을 사용한 편집 기능 구현
-  console.log('TransactionResponse props:', { isEditing, form });
   // response가 없으면 빈 컴포넌트 반환
   if (!response) {
     return (
@@ -40,15 +39,6 @@ export const TransactionResponse = ({ response, isEditing, form }: TransactionRe
         </div>
       </div>
 
-      {/* 디버깅 정보 */}
-      <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
-        <div>Status: {response.status || 'N/A'}</div>
-        <div>Version: {response.version || 'N/A'}</div>
-        <div>Body exists: {response.body ? 'Yes' : 'No'}</div>
-        <div>Body length: {(response.body || new Uint8Array()).length}</div>
-        <div>Data type: {response.data_type || 'N/A'}</div>
-      </div>
-
       <div className="border rounded-lg overflow-hidden">
         <Editor
           height="400px"
@@ -59,21 +49,6 @@ export const TransactionResponse = ({ response, isEditing, form }: TransactionRe
             minimap: { enabled: false },
             scrollBeyondLastLine: false,
             wordWrap: 'on',
-            fontSize: 14,
-            lineNumbers: 'on',
-            folding: true,
-            lineDecorationsWidth: 0,
-            lineNumbersMinChars: 0,
-            renderLineHighlight: 'none',
-            overviewRulerBorder: false,
-            hideCursorInOverviewRuler: true,
-            overviewRulerLanes: 0,
-            scrollbar: {
-              vertical: 'auto',
-              horizontal: 'auto',
-              verticalScrollbarSize: 8,
-              horizontalScrollbarSize: 8,
-            },
           }}
         />
       </div>
