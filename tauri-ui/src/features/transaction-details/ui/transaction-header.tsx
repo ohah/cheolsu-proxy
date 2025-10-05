@@ -54,7 +54,7 @@ export const TransactionHeader = ({
                 maxLength={3}
                 value={field.state.value || response.status}
                 onChange={(e) => field.handleChange(parseInt(e.target.value) || 200)}
-                className={`w-12 h-6 text-xs text-center font-mono ${getStatusColor(field.state.value || response.status)}`}
+                className={`w-16 h-6 text-xs text-center font-mono px-2 py-1 ${getStatusColor(field.state.value || response.status)}`}
               />
             )}
           />
