@@ -55,7 +55,7 @@ export const SidebarNavigation = memo(({ collapsed }: SidebarNavigationProps) =>
           <Button
             key={section.id}
             variant="ghost"
-            className={`w-full justify-start gap-3 ${
+            className={`w-full justify-start gap-3 hover:!bg-accent text-accent-foreground hover:!text-accent-foreground ${
               isActive
                 ? 'bg-accent text-accent-foreground dark:hover:bg-accent/50'
                 : 'text-sidebar-foreground hover:bg-sidebar-accent/50'
