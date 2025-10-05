@@ -5,30 +5,34 @@ import { isTextBasedDataType, isBinaryDataType } from '@/entities/proxy/model/da
  * Uint8Array를 문자열로 변환 (UTF-8 디코딩)
  * 러스트에서 이미 GZIP 압축 해제와 데이터 타입 감지를 완료했으므로 단순한 UTF-8 디코딩만 수행
  */
-export const uint8ArrayToString = (uint8Array: Uint8Array, dataType: DataType): string => {
-  if (!uint8Array || uint8Array.length === 0) {
+export const uint8ArrayToString = (data: Uint8Array | number[], dataType: DataType): string => {
+  if (!data || data.length === 0) {
     return '';
   }
 
   try {
+    // 일반 배열인 경우 Uint8Array로 변환
+    const uint8Array = data instanceof Uint8Array ? data : new Uint8Array(data);
+    
     // 러스트에서 이미 처리된 데이터이므로 단순한 UTF-8 디코딩
     const decoder = new TextDecoder('utf-8', { fatal: false });
     const result = decoder.decode(uint8Array);
-    
+
     // 디코딩 결과가 비어있거나 이상한 경우 fallback
     if (!result || result.length === 0) {
       // ASCII 범위의 바이트들을 문자열로 변환
       return Array.from(uint8Array)
-        .map(byte => byte >= 32 && byte <= 126 ? String.fromCharCode(byte) : '.')
+        .map((byte) => (byte >= 32 && byte <= 126 ? String.fromCharCode(byte) : '.'))
         .join('');
     }
-    
+
     return result;
   } catch (error) {
     console.error('UTF-8 디코딩 실패:', error);
     // ASCII 범위의 바이트들을 문자열로 변환 (fallback)
+    const uint8Array = data instanceof Uint8Array ? data : new Uint8Array(data);
     return Array.from(uint8Array)
-      .map(byte => byte >= 32 && byte <= 126 ? String.fromCharCode(byte) : '.')
+      .map((byte) => (byte >= 32 && byte <= 126 ? String.fromCharCode(byte) : '.'))
       .join('');
   }
 };
