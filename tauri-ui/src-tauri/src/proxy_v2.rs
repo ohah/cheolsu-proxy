@@ -212,9 +212,6 @@ impl LoggingHandler {
         // 세션 응답임을 나타내는 특별한 헤더 추가
         headers.insert("x-cheolsu-proxy-session", "true".parse().unwrap());
         headers.insert("x-cheolsu-proxy-version", "v2".parse().unwrap());
-        
-        // Transfer-Encoding: chunked 추가 (Content-Length 대신 사용)
-        headers.insert("transfer-encoding", "chunked".parse().unwrap());
 
         // 응답 본문 생성
         let body = if let Some(data) = response_data.get("data") {
@@ -259,7 +256,7 @@ impl LoggingHandler {
         let mut body_mut = req.body_mut();
         let body_bytes = match Self::body_to_bytes_from_mut(&mut body_mut).await {
             Ok(bytes) => bytes,
-            Err(_) => Bytes::new()
+            Err(_) => Bytes::new(),
         };
 
         // 원본 body 복원
@@ -277,7 +274,6 @@ impl LoggingHandler {
                 .unwrap_or_default(),
         );
 
-
         (proxied_request, req)
     }
 
@@ -290,14 +286,14 @@ impl LoggingHandler {
         let mut body_mut = res.body_mut();
         let body_bytes = match Self::body_to_bytes_from_mut(&mut body_mut).await {
             Ok(bytes) => bytes,
-            Err(_) => Bytes::new()
+            Err(_) => Bytes::new(),
         };
 
         // GZIP 압축 해제 시도
         let processed_body_bytes = if is_gzip_compressed(&body_bytes) {
             match decompress_gzip(&body_bytes) {
                 Ok(decompressed) => Bytes::from(decompressed),
-                Err(_) => body_bytes.clone()
+                Err(_) => body_bytes.clone(),
             }
         } else {
             body_bytes.clone()
@@ -306,11 +302,6 @@ impl LoggingHandler {
         // 원본 body 복원 (압축 해제된 데이터로)
         use http_body_util::Full;
         *body_mut = Body::from(Full::new(processed_body_bytes.clone()));
-        
-        // Transfer-Encoding: chunked 추가 (Content-Length 대신 사용)
-        let mut headers = res.headers().clone();
-        headers.insert("transfer-encoding", "chunked".parse().unwrap());
-        *res.headers_mut() = headers;
 
         let proxied_response = ProxiedResponse::new(
             res.status(),
@@ -321,7 +312,6 @@ impl LoggingHandler {
                 .timestamp_nanos_opt()
                 .unwrap_or_default(),
         );
-
 
         (proxied_response, res)
     }
@@ -397,7 +387,7 @@ impl HttpHandler for LoggingHandler {
                 let session_body_bytes =
                     match Self::body_to_bytes_from_mut(&mut session_response.body_mut()).await {
                         Ok(bytes) => bytes,
-                        Err(_) => Bytes::from("세션 응답 읽기 실패")
+                        Err(_) => Bytes::from("세션 응답 읽기 실패"),
                     };
 
                 // 세션 응답을 ProxiedResponse로 변환하여 저장
