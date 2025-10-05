@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use std::io::Read;
 
 /// 데이터 타입을 나타내는 열거형 (MITM 프록시에 최적화)
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub enum DataType {
     /// JSON 데이터
     Json,
@@ -35,6 +35,7 @@ pub enum DataType {
     /// 빈 데이터
     Empty,
     /// 알 수 없는 타입
+    #[default]
     Unknown,
 }
 
