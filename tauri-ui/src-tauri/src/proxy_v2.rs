@@ -225,9 +225,10 @@ impl LoggingHandler {
 
     /// 요청과 응답을 묶어서 전송
     fn send_output(&self) {
-        // 응답을 타우리 UI용으로 변환 (압축 해제된 데이터 사용)
-        let tauri_response = self.res.as_ref().map(|res| res.clone().for_tauri());
-        let request_info = RequestInfo(self.req.clone(), tauri_response);
+        // 클라이언트(타우리 UI)용으로 변환
+        let client_request = self.req.as_ref().map(|req| req.clone().for_client());
+        let client_response = self.res.as_ref().map(|res| res.clone().for_client());
+        let request_info = RequestInfo(client_request, client_response);
         if let Err(e) = self.sender.send(request_info) {
             // RequestInfo 전송 실패 (무시)
             let _ = e;

@@ -53,9 +53,12 @@ pub struct ProxiedRequest {
     headers: HeaderMap,
     body: Bytes,
     time: i64,
-    id: String,                           // 고유 ID 추가
-    data_type: DataType,                  // 데이터 타입 정보 추가
-    body_json: Option<serde_json::Value>, // JSON 파싱된 데이터 (JSON 타입인 경우)
+    id: String, // 고유 ID 추가
+    // 내부 처리용 필드들 (직렬화되지 않음)
+    #[serde(skip)]
+    data_type: DataType,
+    #[serde(skip)]
+    body_json: Option<serde_json::Value>,
 }
 
 impl ProxiedRequest {
@@ -149,6 +152,88 @@ impl ProxiedRequest {
     pub fn body_json(&self) -> &Option<serde_json::Value> {
         &self.body_json
     }
+
+    /// 클라이언트(타우리 UI)용으로 변환
+    pub fn for_client(self) -> ClientRequest {
+        ClientRequest {
+            method: self.method,
+            uri: self.uri,
+            version: self.version,
+            headers: self.headers,
+            body: self.body,
+            time: self.time,
+            id: self.id,
+            data_type: self.data_type,
+            body_json: self.body_json,
+        }
+    }
+}
+
+/// 클라이언트(타우리 UI)용 요청 구조체
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct ClientRequest {
+    #[serde(with = "http_serde::method")]
+    method: Method,
+    #[serde(with = "http_serde::uri")]
+    uri: Uri,
+    #[serde(with = "http_serde::version")]
+    version: Version,
+    #[serde(with = "http_serde::header_map")]
+    headers: HeaderMap,
+    body: Bytes,
+    time: i64,
+    id: String,
+    data_type: DataType,
+    body_json: Option<serde_json::Value>,
+}
+
+impl ClientRequest {
+    pub fn method(&self) -> &Method {
+        &self.method
+    }
+
+    pub fn uri(&self) -> &Uri {
+        &self.uri
+    }
+
+    pub fn version(&self) -> &Version {
+        &self.version
+    }
+
+    pub fn headers(&self) -> &HeaderMap {
+        &self.headers
+    }
+
+    pub fn body(&self) -> &Bytes {
+        &self.body
+    }
+
+    pub fn time(&self) -> i64 {
+        self.time
+    }
+
+    pub fn id(&self) -> &str {
+        &self.id
+    }
+
+    pub fn data_type(&self) -> &DataType {
+        &self.data_type
+    }
+
+    /// MIME 타입 문자열 반환
+    pub fn mime_type(&self) -> &'static str {
+        self.data_type.to_mime_type()
+    }
+
+    /// Monaco Editor 언어 모드 반환
+    pub fn monaco_language(&self) -> &'static str {
+        self.data_type.to_monaco_language()
+    }
+
+    /// JSON 파싱된 데이터 반환 (JSON 타입인 경우)
+    pub fn body_json(&self) -> &Option<serde_json::Value> {
+        &self.body_json
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -161,9 +246,13 @@ pub struct ProxiedResponse {
     headers: HeaderMap,
     body: Bytes,
     time: i64,
-    data_type: DataType,                  // 데이터 타입 정보 추가
-    body_json: Option<serde_json::Value>, // JSON 파싱된 데이터 (JSON 타입인 경우)
-    decompressed_body: Option<Bytes>,     // 압축 해제된 데이터 (타우리 UI용)
+    // 내부 처리용 필드들 (직렬화되지 않음)
+    #[serde(skip)]
+    data_type: DataType,
+    #[serde(skip)]
+    body_json: Option<serde_json::Value>,
+    #[serde(skip)]
+    decompressed_body: Option<Bytes>,
 }
 
 impl ProxiedResponse {
@@ -267,12 +356,73 @@ impl ProxiedResponse {
         &self.decompressed_body
     }
 
-    /// 타우리 UI용으로 변환 (body를 압축 해제된 데이터로 교체)
-    pub fn for_tauri(mut self) -> Self {
-        if let Some(decompressed) = self.decompressed_body.take() {
-            self.body = decompressed;
+    /// 클라이언트(타우리 UI)용으로 변환
+    pub fn for_client(self) -> ClientResponse {
+        ClientResponse {
+            status: self.status,
+            version: self.version,
+            headers: self.headers,
+            body: self.decompressed_body.unwrap_or(self.body),
+            time: self.time,
+            data_type: self.data_type,
+            body_json: self.body_json,
         }
-        self
+    }
+}
+
+/// 클라이언트(타우리 UI)용 응답 구조체
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct ClientResponse {
+    #[serde(with = "http_serde::status_code")]
+    status: StatusCode,
+    #[serde(with = "http_serde::version")]
+    version: Version,
+    #[serde(with = "http_serde::header_map")]
+    headers: HeaderMap,
+    body: Bytes,
+    time: i64,
+    data_type: DataType,
+    body_json: Option<serde_json::Value>,
+}
+
+impl ClientResponse {
+    pub fn status(&self) -> &StatusCode {
+        &self.status
+    }
+
+    pub fn version(&self) -> &Version {
+        &self.version
+    }
+
+    pub fn headers(&self) -> &HeaderMap {
+        &self.headers
+    }
+
+    pub fn body(&self) -> &Bytes {
+        &self.body
+    }
+
+    pub fn time(&self) -> i64 {
+        self.time
+    }
+
+    pub fn data_type(&self) -> &DataType {
+        &self.data_type
+    }
+
+    /// MIME 타입 문자열 반환
+    pub fn mime_type(&self) -> &'static str {
+        self.data_type.to_mime_type()
+    }
+
+    /// Monaco Editor 언어 모드 반환
+    pub fn monaco_language(&self) -> &'static str {
+        self.data_type.to_monaco_language()
+    }
+
+    /// JSON 파싱된 데이터 반환 (JSON 타입인 경우)
+    pub fn body_json(&self) -> &Option<serde_json::Value> {
+        &self.body_json
     }
 }
 
@@ -311,4 +461,4 @@ impl ToString for Version {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-pub struct RequestInfo(pub Option<ProxiedRequest>, pub Option<ProxiedResponse>);
+pub struct RequestInfo(pub Option<ClientRequest>, pub Option<ClientResponse>);
