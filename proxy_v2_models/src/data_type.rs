@@ -247,38 +247,13 @@ pub fn detect_data_type(headers: &HeaderMap, body: &Bytes) -> DataType {
             }
         }
 
-        // CSS 감지
-        // TODO @ohah: CSS 감지를 확장자 기반으로 개선 필요
-        if let Ok(body_str) = std::str::from_utf8(body) {
-            let trimmed = body_str.trim();
-            let has_css_at_rules = trimmed.contains("@import")
-                || trimmed.contains("@media")
-                || trimmed.contains("@keyframes")
-                || trimmed.contains("@font-face")
-                || trimmed.contains("@supports");
-
-            let has_css_selectors = trimmed.contains("body {")
-                || trimmed.contains("div {")
-                || trimmed.contains(".class")
-                || trimmed.contains("#id")
-                || trimmed.contains(":hover")
-                || trimmed.contains(":focus");
-
-            let has_css_properties = trimmed.contains("color:")
-                || trimmed.contains("background:")
-                || trimmed.contains("margin:")
-                || trimmed.contains("padding:")
-                || trimmed.contains("font-size:")
-                || trimmed.contains("display:");
-
-            if (has_css_at_rules || has_css_selectors || has_css_properties)
-                && trimmed.contains("{")
-                && trimmed.contains("}")
-                && !trimmed.starts_with('<')
-                && !trimmed.starts_with('{')
-                && !trimmed.starts_with('[')
-            {
-                return DataType::Css;
+        // CSS 감지 (Content-Type 헤더 기반)
+        if let Some(content_type) = headers.get("content-type") {
+            if let Ok(content_type_str) = content_type.to_str() {
+                let content_type_lower = content_type_str.to_lowercase();
+                if content_type_lower.contains("css") {
+                    return DataType::Css;
+                }
             }
         }
 
