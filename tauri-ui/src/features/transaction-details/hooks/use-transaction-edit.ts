@@ -55,13 +55,13 @@ export const useTransactionEdit = (transaction: HttpTransaction) => {
       request: {
         ...request,
         headers: request?.headers,
-        data: request?.body ? formatBodyContent(request.body, request.data_type) : '',
+        data: request?.body ? formatBodyContent(request.body, request.data_type, request.body_json) : '',
       },
       response: {
         ...response,
         status: response?.status || 200,
         headers: response?.headers,
-        data: response?.body ? formatBodyContent(response.body, response.data_type) : '',
+        data: response?.body ? formatBodyContent(response.body, response.data_type, response.body_json) : '',
       },
     };
   }, [transaction]);
