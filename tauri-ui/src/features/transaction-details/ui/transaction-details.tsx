@@ -66,11 +66,11 @@ export function TransactionDetails({ transaction, clearSelectedTransaction }: Tr
             </TabsContent>
 
             <TabsContent value={TRANSACTION_DETAILS_TABS.BODY} className="flex-1 mt-4">
-              <TransactionBody request={request} isEditing={isEditing} form={form} />
+              <TransactionBody transaction={transaction} isEditing={isEditing} form={form} />
             </TabsContent>
 
             <TabsContent value={TRANSACTION_DETAILS_TABS.RESPONSE} className="flex-1 mt-4">
-              <TransactionResponse response={response} isEditing={isEditing} form={form} />
+              <TransactionResponse transaction={transaction} isEditing={isEditing} form={form} />
             </TabsContent>
           </Tabs>
         </div>
