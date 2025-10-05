@@ -1,57 +1,98 @@
+import { Copy } from 'lucide-react';
+
+import type { HttpTransaction } from '@/entities/proxy';
+
+import { Button, Card, CardContent, CardHeader } from '@/shared/ui';
+import type { AppFormInstance } from '../context/form-context';
 import { Editor } from '@monaco-editor/react';
-import { HttpResponse } from '@/entities/proxy/model/types';
-import { dataTypeToMonacoLanguage } from '@/entities/proxy/model/data-type';
+
 import { getBodyForDisplay } from '../lib/utils';
+import { dataTypeToMonacoLanguage } from '@/entities/proxy/model/data-type';
+import { toast } from 'sonner';
 
 interface TransactionResponseProps {
-  response?: HttpResponse;
+  transaction: HttpTransaction;
   isEditing?: boolean;
-  form?: any;
+  form?: AppFormInstance;
 }
 
-export const TransactionResponse = ({ response }: TransactionResponseProps) => {
-  // TODO: isEditing과 form을 사용한 편집 기능 구현
-  // response가 없으면 빈 컴포넌트 반환
-  if (!response) {
-    return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">Response Body</h3>
-          <span className="text-sm text-muted-foreground">No response data</span>
-        </div>
-        <div className="border rounded-lg p-4 text-center text-muted-foreground">Response data is not available</div>
-      </div>
-    );
-  }
+export const TransactionResponse = ({ transaction, isEditing = false, form }: TransactionResponseProps) => {
+  const { response } = transaction;
 
-  const bodyContent = getBodyForDisplay(response.body, response.data_type, response.body_json);
-  const language = dataTypeToMonacoLanguage(response.data_type);
+  if (!response) return null;
+
+  const getResponseText = () => {
+    return getBodyForDisplay(response.body, response.data_type, response.body_json);
+  };
+
+  const responseText = getResponseText();
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(responseText);
+    toast.success('Response body copied to clipboard');
+  };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Response Body</h3>
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">
-            Data Type: <span className="font-mono bg-green-100 px-2 py-1 rounded">{response.data_type}</span> •{' '}
-            {(response.body || new Uint8Array()).length} bytes
-          </span>
+    <Card className="gap-0 flex flex-col min-h-0 flex-1">
+      <CardHeader className="flex-shrink-0">
+        <div className="flex items-center justify-end gap-2">
+          <Button variant="ghost" size="sm" onClick={handleCopy}>
+            <Copy className="w-4 h-4" />
+          </Button>
         </div>
-      </div>
-
-      <div className="border rounded-lg overflow-hidden">
-        <Editor
-          height="400px"
-          language={language}
-          value={bodyContent}
-          options={{
-            readOnly: true,
-            minimap: { enabled: false },
-            scrollBeyondLastLine: false,
-            wordWrap: 'on',
-          }}
-        />
-      </div>
-    </div>
+      </CardHeader>
+      <CardContent className="flex-1 p-0 min-h-0">
+        {form && isEditing ? (
+          <form.Field
+            name="response.data"
+            children={(field) => (
+              <div className="h-[calc(100vh-300px)] border rounded-md overflow-hidden">
+                <Editor
+                  height="calc(100vh - 300px)"
+                  language={dataTypeToMonacoLanguage(response.data_type)}
+                  value={(field.state.value as string) || ''}
+                  onChange={(value) => field.handleChange(value || '')}
+                  options={{
+                    minimap: { enabled: false },
+                    scrollBeyondLastLine: false,
+                    fontSize: 12,
+                    lineNumbers: 'on',
+                    wordWrap: 'on',
+                    automaticLayout: true,
+                    padding: { top: 8, bottom: 8 },
+                    scrollbar: {
+                      vertical: 'auto',
+                      horizontal: 'auto',
+                    },
+                  }}
+                />
+              </div>
+            )}
+          />
+        ) : (
+          <div className="h-[calc(100vh-300px)] border rounded-md overflow-hidden">
+            <Editor
+              height="calc(100vh - 300px)"
+              language={dataTypeToMonacoLanguage(response.data_type)}
+              value={responseText}
+              options={{
+                readOnly: true,
+                minimap: { enabled: false },
+                scrollBeyondLastLine: false,
+                fontSize: 12,
+                lineNumbers: 'on',
+                wordWrap: 'on',
+                automaticLayout: true,
+                padding: { top: 8, bottom: 8 },
+                scrollbar: {
+                  vertical: 'auto',
+                  horizontal: 'auto',
+                },
+              }}
+            />
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
