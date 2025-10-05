@@ -1,5 +1,4 @@
 use bytes::Bytes;
-use flate2::read::GzDecoder;
 use hyper_rustls::HttpsConnectorBuilder;
 use hyper_util::{
     client::legacy::{connect::HttpConnector, Client},
@@ -15,7 +14,6 @@ use proxyapi_v2::{
     Body, HttpContext, HttpHandler, RequestOrResponse, WebSocketContext, WebSocketHandler,
 };
 use std::error::Error;
-use std::io::Read;
 use std::net::SocketAddr;
 use std::sync::mpsc;
 use std::sync::Arc;
@@ -26,18 +24,6 @@ use tokio::sync::oneshot::Sender;
 use tokio::sync::Mutex;
 use tokio_rustls::rustls::{crypto::aws_lc_rs, ClientConfig};
 
-/// GZIP 압축 감지 함수
-fn is_gzip_compressed(data: &[u8]) -> bool {
-    data.len() >= 2 && data[0] == 0x1f && data[1] == 0x8b
-}
-
-/// GZIP 압축 해제 함수
-fn decompress_gzip(data: &[u8]) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
-    let mut decoder = GzDecoder::new(data);
-    let mut decompressed = Vec::new();
-    decoder.read_to_end(&mut decompressed)?;
-    Ok(decompressed)
-}
 
 /// 모든 인증서를 허용하는 위험한 인증서 검증기
 #[derive(Debug)]
@@ -297,7 +283,7 @@ impl LoggingHandler {
             res.status(),
             res.version(),
             res.headers().clone(),
-            processed_body_bytes.clone(),
+            body_bytes.clone(),
             chrono::Local::now()
                 .timestamp_nanos_opt()
                 .unwrap_or_default(),
