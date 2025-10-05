@@ -1,5 +1,6 @@
 use bytes::Bytes;
 use flate2::read::GzDecoder;
+use brotli::Decompressor;
 use http::HeaderMap;
 use serde::{Deserialize, Serialize};
 use std::io::Read;
@@ -138,6 +139,14 @@ pub fn decompress_gzip(data: &[u8]) -> Result<Vec<u8>, Box<dyn std::error::Error
     Ok(decompressed)
 }
 
+/// Brotli 압축 해제 함수
+pub fn decompress_brotli(data: &[u8]) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+    let mut decoder = Decompressor::new(data, 4096);
+    let mut decompressed = Vec::new();
+    decoder.read_to_end(&mut decompressed)?;
+    Ok(decompressed)
+}
+
 /// GZIP 압축된 데이터의 실제 내용 타입 감지
 fn detect_gzip_content_type(data: &[u8]) -> DataType {
     match decompress_gzip(data) {
@@ -153,11 +162,41 @@ fn detect_gzip_content_type(data: &[u8]) -> DataType {
     }
 }
 
+/// Brotli 압축된 데이터의 실제 내용 타입 감지
+fn detect_brotli_content_type(data: &[u8]) -> DataType {
+    match decompress_brotli(data) {
+        Ok(decompressed) => {
+            // 압축 해제된 데이터로 타입 감지
+            let headers = HeaderMap::new();
+            detect_data_type(&headers, &Bytes::from(decompressed))
+        }
+        Err(_) => {
+            // 압축 해제 실패 시 Binary로 반환
+            DataType::Binary
+        }
+    }
+}
+
 /// 데이터 타입 감지 유틸리티 함수 (MITM 프록시에 최적화)
 pub fn detect_data_type(headers: &HeaderMap, body: &Bytes) -> DataType {
+    // 0. Content-Encoding 헤더 확인 (가장 우선순위 높음)
+    if let Some(content_encoding) = headers.get("content-encoding") {
+        if let Ok(encoding) = content_encoding.to_str() {
+            let encoding_lower = encoding.to_lowercase();
+            // Brotli 압축 감지
+            if encoding_lower.contains("br") {
+                return detect_brotli_content_type(body);
+            }
+            // GZIP 압축 감지 (헤더로 확인)
+            if encoding_lower.contains("gzip") {
+                return detect_gzip_content_type(body);
+            }
+        }
+    }
+
     // 1. body 내용을 먼저 분석해서 타입 추론 (우선순위 높음)
     if !body.is_empty() {
-        // GZIP 압축 파일 감지 및 내용 분석
+        // GZIP 압축 파일 감지 및 내용 분석 (magic number로 확인)
         if body.len() >= 2 && body[0] == 0x1f && body[1] == 0x8b {
             // GZIP 압축 파일 - 압축 해제 후 실제 내용 타입 감지
             return detect_gzip_content_type(body);
