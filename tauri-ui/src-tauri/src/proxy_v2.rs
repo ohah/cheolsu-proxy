@@ -200,25 +200,18 @@ impl LoggingHandler {
 
         // 응답 본문 생성
         let body = if let Some(data) = response_data.get("data") {
-            println!("🎭 응답 본문 데이터 발견: {:?}", data);
             match data {
-                JsonValue::String(s) => {
-                    println!("🎭 문자열 데이터: {}", s);
-                    Body::from(s.clone())
-                }
+                JsonValue::String(s) => Body::from(s.clone()),
                 JsonValue::Object(_) | JsonValue::Array(_) => {
                     let json_string = serde_json::to_string(data).unwrap_or_default();
-                    println!("🎭 JSON 데이터: {}", json_string);
                     Body::from(json_string)
                 }
                 _ => {
                     let string_data = data.to_string();
-                    println!("🎭 기타 데이터: {}", string_data);
                     Body::from(string_data)
                 }
             }
         } else {
-            println!("🎭 응답 본문 데이터 없음 - 빈 응답 생성");
             Body::empty()
         };
 
@@ -232,9 +225,13 @@ impl LoggingHandler {
 
     /// 요청과 응답을 묶어서 전송
     fn send_output(&self) {
-        let request_info = RequestInfo(self.req.clone(), self.res.clone());
+        // 클라이언트(타우리 UI)용으로 변환
+        let client_request = self.req.as_ref().map(|req| req.clone().for_client());
+        let client_response = self.res.as_ref().map(|res| res.clone().for_client());
+        let request_info = RequestInfo(client_request, client_response);
         if let Err(e) = self.sender.send(request_info) {
-            eprintln!("Error on sending RequestInfo to main thread: {}", e);
+            // RequestInfo 전송 실패 (무시)
+            let _ = e;
         }
     }
 
@@ -247,10 +244,7 @@ impl LoggingHandler {
         let mut body_mut = req.body_mut();
         let body_bytes = match Self::body_to_bytes_from_mut(&mut body_mut).await {
             Ok(bytes) => bytes,
-            Err(e) => {
-                eprintln!("❌ 요청 body 읽기 실패: {}", e);
-                Bytes::new()
-            }
+            Err(_) => Bytes::new(),
         };
 
         // 원본 body 복원
@@ -262,7 +256,7 @@ impl LoggingHandler {
             req.uri().clone(),
             req.version(),
             req.headers().clone(),
-            body_bytes,
+            body_bytes.clone(),
             chrono::Local::now()
                 .timestamp_nanos_opt()
                 .unwrap_or_default(),
@@ -280,13 +274,10 @@ impl LoggingHandler {
         let mut body_mut = res.body_mut();
         let body_bytes = match Self::body_to_bytes_from_mut(&mut body_mut).await {
             Ok(bytes) => bytes,
-            Err(e) => {
-                eprintln!("❌ 응답 body 읽기 실패: {}", e);
-                Bytes::new()
-            }
+            Err(_) => Bytes::new(),
         };
 
-        // 원본 body 복원
+        // 원본 body 복원 (압축된 데이터 그대로)
         use http_body_util::Full;
         *body_mut = Body::from(Full::new(body_bytes.clone()));
 
@@ -294,7 +285,7 @@ impl LoggingHandler {
             res.status(),
             res.version(),
             res.headers().clone(),
-            body_bytes,
+            body_bytes.clone(),
             chrono::Local::now()
                 .timestamp_nanos_opt()
                 .unwrap_or_default(),
@@ -374,10 +365,7 @@ impl HttpHandler for LoggingHandler {
                 let session_body_bytes =
                     match Self::body_to_bytes_from_mut(&mut session_response.body_mut()).await {
                         Ok(bytes) => bytes,
-                        Err(e) => {
-                            eprintln!("❌ 세션 응답 body 읽기 실패: {}", e);
-                            Bytes::from("세션 응답 읽기 실패")
-                        }
+                        Err(_) => Bytes::from("세션 응답 읽기 실패"),
                     };
 
                 // 세션 응답을 ProxiedResponse로 변환하여 저장
@@ -390,6 +378,7 @@ impl HttpHandler for LoggingHandler {
                         .timestamp_nanos_opt()
                         .unwrap_or_default(),
                 );
+
                 self.res = Some(session_proxied_response);
 
                 // 요청과 응답을 묶어서 전송

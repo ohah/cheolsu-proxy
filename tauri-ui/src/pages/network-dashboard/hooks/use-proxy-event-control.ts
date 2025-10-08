@@ -9,13 +9,10 @@ interface UseProxyEventControlProps {
   initialPaused?: boolean;
 }
 
-export const useProxyEventControl = ({
-  onTransactionReceived,
-  initialPaused = false
-}: UseProxyEventControlProps) => {
+export const useProxyEventControl = ({ onTransactionReceived, initialPaused = false }: UseProxyEventControlProps) => {
   const [paused, setPaused] = useState<boolean>(initialPaused);
 
-  const togglePause = useCallback(() => setPaused(prev => !prev), []);
+  const togglePause = useCallback(() => setPaused((prev) => !prev), []);
   const pause = useCallback(() => setPaused(true), []);
   const resume = useCallback(() => setPaused(false), []);
 

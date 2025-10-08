@@ -963,14 +963,21 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
                     >
                       <div
                         className={cn(
-                          'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary',
+                          'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border-2',
                           selectedValues.length === getAllOptions().filter((opt) => !opt.disabled).length
-                            ? 'bg-primary text-primary-foreground'
-                            : 'opacity-50 [&_svg]:invisible',
+                            ? 'bg-primary text-primary-foreground border-primary'
+                            : 'border-muted-foreground/30 bg-background',
                         )}
                         aria-hidden="true"
                       >
-                        <CheckIcon className="h-4 w-4" />
+                        <CheckIcon
+                          className={cn(
+                            'h-4 w-4',
+                            selectedValues.length === getAllOptions().filter((opt) => !opt.disabled).length
+                              ? 'text-primary-foreground'
+                              : 'invisible',
+                          )}
+                        />
                       </div>
                       <span>
                         (Select All
@@ -999,12 +1006,16 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
                           >
                             <div
                               className={cn(
-                                'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary',
-                                isSelected ? 'bg-primary text-primary-foreground' : 'opacity-50 [&_svg]:invisible',
+                                'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border-2',
+                                isSelected
+                                  ? 'bg-primary text-primary-foreground border-primary'
+                                  : 'border-muted-foreground/30 bg-background',
                               )}
                               aria-hidden="true"
                             >
-                              <CheckIcon className="h-4 w-4" />
+                              <CheckIcon
+                                className={cn('h-4 w-4', isSelected ? 'text-primary-foreground' : 'invisible')}
+                              />
                             </div>
                             {option.icon && (
                               <option.icon className="mr-2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
@@ -1034,12 +1045,16 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
                         >
                           <div
                             className={cn(
-                              'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary',
-                              isSelected ? 'bg-primary text-primary-foreground' : 'opacity-50 [&_svg]:invisible',
+                              'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border-2',
+                              isSelected
+                                ? 'bg-primary text-primary-foreground border-primary'
+                                : 'border-muted-foreground/30 bg-background',
                             )}
                             aria-hidden="true"
                           >
-                            <CheckIcon className="h-4 w-4" />
+                            <CheckIcon
+                              className={cn('h-4 w-4', isSelected ? 'text-primary-foreground' : 'invisible')}
+                            />
                           </div>
                           {option.icon && (
                             <option.icon className="mr-2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
