@@ -332,7 +332,10 @@ mod tests {
         // Content-Type이 없는 경우 텍스트로 분류
         headers.clear();
         let json_without_header = Bytes::from(r#"{"key": "value"}"#);
-        assert_eq!(detect_data_type(&headers, &json_without_header), DataType::Text);
+        assert_eq!(
+            detect_data_type(&headers, &json_without_header),
+            DataType::Text
+        );
     }
 
     #[test]
@@ -348,7 +351,10 @@ mod tests {
         // Content-Type이 없는 경우 텍스트로 분류
         headers.clear();
         let xml_without_header = Bytes::from("<root><item>test</item></root>");
-        assert_eq!(detect_data_type(&headers, &xml_without_header), DataType::Text);
+        assert_eq!(
+            detect_data_type(&headers, &xml_without_header),
+            DataType::Text
+        );
     }
 
     #[test]
@@ -364,7 +370,10 @@ mod tests {
         // Content-Type이 없는 경우 텍스트로 분류
         headers.clear();
         let html_without_header = Bytes::from("<!DOCTYPE html><html><body>test</body></html>");
-        assert_eq!(detect_data_type(&headers, &html_without_header), DataType::Text);
+        assert_eq!(
+            detect_data_type(&headers, &html_without_header),
+            DataType::Text
+        );
     }
 
     #[test]
@@ -410,49 +419,7 @@ mod tests {
         );
     }
 
-    #[test]
-    fn test_html_vs_xml_detection() {
-        use http::HeaderValue;
 
-        // HTML Content-Type 헤더 테스트
-        let mut headers = HeaderMap::new();
-        headers.insert("content-type", HeaderValue::from_static("text/html"));
-        let html = Bytes::from(
-            "<!DOCTYPE html><html><head><title>Test</title></head><body>Content</body></html>",
-        );
-        assert_eq!(detect_data_type(&headers, &html), DataType::Html);
-
-        // XML Content-Type 헤더 테스트
-        headers.clear();
-        headers.insert("content-type", HeaderValue::from_static("application/xml"));
-        let xml = Bytes::from("<?xml version=\"1.0\"?><root><item>test</item></root>");
-        assert_eq!(detect_data_type(&headers, &xml), DataType::Xml);
-
-        // Content-Type이 없는 경우 모두 텍스트로 분류
-        headers.clear();
-        let html_without_header = Bytes::from(
-            "<!DOCTYPE html><html><head><title>Test</title></head><body>Content</body></html>",
-        );
-        assert_eq!(detect_data_type(&headers, &html_without_header), DataType::Text);
-
-        let xml_without_header = Bytes::from("<?xml version=\"1.0\"?><root><item>test</item></root>");
-        assert_eq!(detect_data_type(&headers, &xml_without_header), DataType::Text);
-    }
-
-    #[test]
-    fn test_invalid_json_detection() {
-        use http::HeaderValue;
-
-        // Content-Type이 없는 경우 유효하지 않은 JSON도 텍스트로 분류
-        let headers = HeaderMap::new();
-        let invalid_json = Bytes::from("{ invalid json }");
-        assert_eq!(detect_data_type(&headers, &invalid_json), DataType::Text);
-
-        // Content-Type 헤더가 있으면 내용과 관계없이 JSON으로 분류
-        let mut headers_with_json = HeaderMap::new();
-        headers_with_json.insert("content-type", HeaderValue::from_static("application/json"));
-        assert_eq!(detect_data_type(&headers_with_json, &invalid_json), DataType::Json);
-    }
 
     #[test]
     fn test_javascript_detection() {

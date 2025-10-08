@@ -66,9 +66,4 @@ useSessionStore.subscribe(
   },
 );
 
-setTimeout(() => {
-  useSessionStore.setState({
-    sessions: [],
-  });
-}, 1000);
 export { useSessionStore };
