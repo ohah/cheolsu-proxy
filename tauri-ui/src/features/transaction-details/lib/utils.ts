@@ -1,4 +1,4 @@
-import { DataType } from '@/entities/proxy/model/types';
+import { DataType, HttpTransaction } from '@/entities/proxy/model/types';
 import { isTextBasedDataType, isBinaryDataType } from '@/entities/proxy/model/data-type';
 
 /**
@@ -92,13 +92,13 @@ export const getBodyForDisplay = (body: Uint8Array, dataType: DataType, bodyJson
 /**
  * HTTP 요청을 cURL 명령어로 변환
  */
-export const generateCurlCommand = (request: {
-  method: string;
-  uri: string;
-  headers?: Record<string, string>;
-  body?: Uint8Array;
-  data_type?: DataType;
-}): string => {
+export const generateCurlCommand = (transaction: HttpTransaction): string => {
+  const { request } = transaction;
+
+  if (!request) {
+    return 'curl -X GET "http://localhost"';
+  }
+
   const { method, uri, headers = {}, body, data_type } = request;
 
   let curlCommand = `curl -X ${method.toUpperCase()}`;
