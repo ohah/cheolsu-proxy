@@ -419,8 +419,6 @@ mod tests {
         );
     }
 
-
-
     #[test]
     fn test_javascript_detection() {
         use http::HeaderValue;
