@@ -195,7 +195,39 @@ pub fn detect_data_type(headers: &HeaderMap, body: &Bytes) -> DataType {
         }
     }
 
-    // 1. body 내용을 먼저 분석해서 타입 추론 (우선순위 높음)
+    // 1. Content-Type 헤더 확인 (우선순위 높음 - 내용 분석보다 먼저)
+    if let Some(content_type_header) = headers.get("content-type") {
+        if let Ok(content_type_str) = content_type_header.to_str() {
+            let content_type = content_type_str.to_lowercase();
+            if content_type.contains("json") {
+                return DataType::Json;
+            } else if content_type.contains("xml") {
+                return DataType::Xml;
+            } else if content_type.contains("html") {
+                return DataType::Html;
+            } else if content_type.contains("css") {
+                return DataType::Css;
+            } else if content_type.contains("javascript") {
+                return DataType::Javascript;
+            } else if content_type.contains("typescript") {
+                return DataType::Javascript;
+            } else if content_type.contains("image/") {
+                return DataType::Image;
+            } else if content_type.contains("video/") {
+                return DataType::Video;
+            } else if content_type.contains("audio/") {
+                return DataType::Audio;
+            } else if content_type.contains("pdf") {
+                return DataType::Document;
+            } else if content_type.contains("zip") || content_type.contains("gzip") {
+                return DataType::Archive;
+            } else if content_type.contains("text") {
+                return DataType::Text;
+            }
+        }
+    }
+
+    // 2. body 내용 분석 (Content-Type 헤더로 구분할 수 없는 경우에만)
     if !body.is_empty() {
         // GZIP 압축 파일 감지 및 내용 분석 (magic number로 확인)
         if body.len() >= 2 && body[0] == 0x1f && body[1] == 0x8b {
@@ -257,16 +289,23 @@ pub fn detect_data_type(headers: &HeaderMap, body: &Bytes) -> DataType {
                 }
             }
         }
-        
+
         // CSS 내용 패턴 감지 (Content-Type이 없는 경우)
         if let Ok(body_str) = std::str::from_utf8(body) {
             let trimmed = body_str.trim();
-            if trimmed.contains("@import") || trimmed.contains("@media") || 
-               trimmed.contains("{") && trimmed.contains("}") && 
-               (trimmed.contains("color:") || trimmed.contains("background:") || 
-                trimmed.contains("margin:") || trimmed.contains("padding:") ||
-                trimmed.contains("font-size:") || trimmed.contains("width:") ||
-                trimmed.contains("height:") || trimmed.contains("display:")) {
+            if trimmed.contains("@import")
+                || trimmed.contains("@media")
+                || trimmed.contains("{")
+                    && trimmed.contains("}")
+                    && (trimmed.contains("color:")
+                        || trimmed.contains("background:")
+                        || trimmed.contains("margin:")
+                        || trimmed.contains("padding:")
+                        || trimmed.contains("font-size:")
+                        || trimmed.contains("width:")
+                        || trimmed.contains("height:")
+                        || trimmed.contains("display:"))
+            {
                 return DataType::Css;
             }
         }
@@ -282,17 +321,25 @@ pub fn detect_data_type(headers: &HeaderMap, body: &Bytes) -> DataType {
                 }
             }
         }
-        
+
         // JavaScript/TypeScript 내용 패턴 감지 (Content-Type이 없는 경우)
         if let Ok(body_str) = std::str::from_utf8(body) {
             let trimmed = body_str.trim();
-            if trimmed.contains("function ") || trimmed.contains("const ") || 
-               trimmed.contains("let ") || trimmed.contains("var ") ||
-               trimmed.contains("=>") || trimmed.contains("console.log") ||
-               trimmed.contains("async ") || trimmed.contains("await ") ||
-               trimmed.contains("interface ") || trimmed.contains("type ") ||
-               trimmed.contains("class ") || trimmed.contains("import ") ||
-               trimmed.contains("export ") || trimmed.contains("require(") {
+            if trimmed.contains("function ")
+                || trimmed.contains("const ")
+                || trimmed.contains("let ")
+                || trimmed.contains("var ")
+                || trimmed.contains("=>")
+                || trimmed.contains("console.log")
+                || trimmed.contains("async ")
+                || trimmed.contains("await ")
+                || trimmed.contains("interface ")
+                || trimmed.contains("type ")
+                || trimmed.contains("class ")
+                || trimmed.contains("import ")
+                || trimmed.contains("export ")
+                || trimmed.contains("require(")
+            {
                 return DataType::Javascript;
             }
         }
@@ -355,43 +402,16 @@ pub fn detect_data_type(headers: &HeaderMap, body: &Bytes) -> DataType {
         }
     }
 
-    // 2. body가 비어있거나 분석 실패 시 Content-Type 헤더 확인
-    if let Some(content_type_header) = headers.get("content-type") {
-        if let Ok(content_type_str) = content_type_header.to_str() {
-            let content_type = content_type_str.to_lowercase();
-            if content_type.contains("json") {
-                return DataType::Json;
-            } else if content_type.contains("xml") {
-                return DataType::Xml;
-            } else if content_type.contains("html") {
-                return DataType::Html;
-            } else if content_type.contains("css") {
-                return DataType::Css;
-            } else if content_type.contains("javascript") {
-                return DataType::Javascript;
-            } else if content_type.contains("typescript") {
-                return DataType::Javascript;
-            } else if content_type.contains("image/") {
-                return DataType::Image;
-            } else if content_type.contains("video/") {
-                return DataType::Video;
-            } else if content_type.contains("audio/") {
-                return DataType::Audio;
-            } else if content_type.contains("pdf") {
-                return DataType::Document;
-            } else if content_type.contains("zip") || content_type.contains("gzip") {
-                return DataType::Archive;
-            } else if content_type.contains("text") {
-                return DataType::Text;
-            }
-        }
-    }
-
-    // 3. 기본값
+    // 3. 기본값 (Content-Type 헤더로 구분할 수 없고 내용 분석도 실패한 경우)
     if body.is_empty() {
         DataType::Empty
     } else {
-        DataType::Binary
+        // 간단한 텍스트/바이너리 구분만 수행
+        if let Ok(_) = std::str::from_utf8(body) {
+            DataType::Text
+        } else {
+            DataType::Binary
+        }
     }
 }
 
@@ -646,5 +666,37 @@ mod tests {
             detect_data_type(&headers, &Bytes::from(compressed)),
             DataType::Html
         );
+    }
+
+    #[test]
+    fn test_content_type_header_priority() {
+        use http::HeaderValue;
+
+        // Content-Type 헤더가 있으면 내용 분석보다 우선
+        let mut headers = HeaderMap::new();
+        headers.insert("content-type", HeaderValue::from_static("application/json"));
+        
+        // JSON이 아닌 내용이어도 헤더를 우선시
+        let non_json_body = Bytes::from("this is not json");
+        assert_eq!(detect_data_type(&headers, &non_json_body), DataType::Json);
+
+        // CSS 헤더 테스트
+        headers.clear();
+        headers.insert("content-type", HeaderValue::from_static("text/css"));
+        let non_css_body = Bytes::from("this is not css");
+        assert_eq!(detect_data_type(&headers, &non_css_body), DataType::Css);
+    }
+
+    #[test]
+    fn test_fallback_to_text_or_binary() {
+        let headers = HeaderMap::new();
+
+        // Content-Type이 없고 내용 분석도 실패하는 경우 텍스트로 분류
+        let unknown_text = Bytes::from("some random text that doesn't match any pattern");
+        assert_eq!(detect_data_type(&headers, &unknown_text), DataType::Text);
+
+        // 바이너리 데이터는 바이너리로 분류
+        let binary_data = Bytes::from(vec![0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF0]);
+        assert_eq!(detect_data_type(&headers, &binary_data), DataType::Binary);
     }
 }
