@@ -195,40 +195,18 @@ pub fn detect_data_type(headers: &HeaderMap, body: &Bytes) -> DataType {
         }
     }
 
-    // 1. Content-Type 헤더 확인 (우선순위 높음 - 내용 분석보다 먼저)
-    if let Some(content_type_header) = headers.get("content-type") {
-        if let Ok(content_type_str) = content_type_header.to_str() {
-            let content_type = content_type_str.to_lowercase();
-            if content_type.contains("json") {
-                return DataType::Json;
-            } else if content_type.contains("xml") {
-                return DataType::Xml;
-            } else if content_type.contains("html") {
-                return DataType::Html;
-            } else if content_type.contains("css") {
-                return DataType::Css;
-            } else if content_type.contains("javascript") {
-                return DataType::Javascript;
-            } else if content_type.contains("typescript") {
-                return DataType::Javascript;
-            } else if content_type.contains("image/") {
-                return DataType::Image;
-            } else if content_type.contains("video/") {
-                return DataType::Video;
-            } else if content_type.contains("audio/") {
-                return DataType::Audio;
-            } else if content_type.contains("pdf") {
-                return DataType::Document;
-            } else if content_type.contains("zip") || content_type.contains("gzip") {
-                return DataType::Archive;
-            } else if content_type.contains("text") {
-                return DataType::Text;
+    // 1. 내용 분석 (JSON 감지 포함)
+    if !body.is_empty() {
+        // JSON 감지 (가장 정확한 방법)
+        if let Ok(body_str) = std::str::from_utf8(body) {
+            let trimmed = body_str.trim();
+            if trimmed.starts_with('{') || trimmed.starts_with('[') {
+                if serde_json::from_str::<serde_json::Value>(trimmed).is_ok() {
+                    return DataType::Json;
+                }
             }
         }
-    }
 
-    // 2. 바이너리 파일 내용 분석 (이미지, 동영상, 오디오, 문서, 아카이브만)
-    if !body.is_empty() {
         // GZIP 압축 파일 감지 및 내용 분석 (magic number로 확인)
         if body.len() >= 2 && body[0] == 0x1f && body[1] == 0x8b {
             // GZIP 압축 파일 - 압축 해제 후 실제 내용 타입 감지
@@ -242,6 +220,8 @@ pub fn detect_data_type(headers: &HeaderMap, body: &Bytes) -> DataType {
                 return DataType::Image;
             }
         }
+
+        // 바이너리 파일 내용 분석 (이미지, 동영상, 오디오, 문서, 아카이브만)
 
         // 이미지 파일 감지 (구체적인 형식)
         // TODO @ohah: Improve image file detection logic
@@ -301,7 +281,39 @@ pub fn detect_data_type(headers: &HeaderMap, body: &Bytes) -> DataType {
         }
     }
 
-    // 3. 기본값 (Content-Type 헤더로 구분할 수 없고 내용 분석도 실패한 경우)
+    // 2. Content-Type 헤더 확인 (내용 분석 다음)
+    if let Some(content_type_header) = headers.get("content-type") {
+        if let Ok(content_type_str) = content_type_header.to_str() {
+            let content_type = content_type_str.to_lowercase();
+            if content_type.contains("json") {
+                return DataType::Json;
+            } else if content_type.contains("xml") {
+                return DataType::Xml;
+            } else if content_type.contains("html") {
+                return DataType::Html;
+            } else if content_type.contains("css") {
+                return DataType::Css;
+            } else if content_type.contains("javascript") {
+                return DataType::Javascript;
+            } else if content_type.contains("typescript") {
+                return DataType::Javascript;
+            } else if content_type.contains("image/") {
+                return DataType::Image;
+            } else if content_type.contains("video/") {
+                return DataType::Video;
+            } else if content_type.contains("audio/") {
+                return DataType::Audio;
+            } else if content_type.contains("pdf") {
+                return DataType::Document;
+            } else if content_type.contains("zip") || content_type.contains("gzip") {
+                return DataType::Archive;
+            } else if content_type.contains("text") {
+                return DataType::Text;
+            }
+        }
+    }
+
+    // 3. 기본값 (내용 분석과 Content-Type 헤더로 구분할 수 없는 경우)
     if body.is_empty() {
         DataType::Empty
     } else {
@@ -323,19 +335,20 @@ mod tests {
     fn test_json_detection() {
         use http::HeaderValue;
 
-        // Content-Type 헤더로 JSON 감지
-        let mut headers = HeaderMap::new();
-        headers.insert("content-type", HeaderValue::from_static("application/json"));
+        // 내용 분석으로 JSON 감지 (Content-Type 헤더 없이)
+        let headers = HeaderMap::new();
         let body = Bytes::from(r#"{"key": "value"}"#);
         assert_eq!(detect_data_type(&headers, &body), DataType::Json);
 
-        // Content-Type이 없는 경우 텍스트로 분류
-        headers.clear();
-        let json_without_header = Bytes::from(r#"{"key": "value"}"#);
-        assert_eq!(
-            detect_data_type(&headers, &json_without_header),
-            DataType::Text
-        );
+        // Content-Type 헤더로도 JSON 감지
+        let mut headers_with_json = HeaderMap::new();
+        headers_with_json.insert("content-type", HeaderValue::from_static("application/json"));
+        let body = Bytes::from(r#"{"key": "value"}"#);
+        assert_eq!(detect_data_type(&headers_with_json, &body), DataType::Json);
+
+        // 유효하지 않은 JSON은 텍스트로 분류
+        let invalid_json = Bytes::from("{ invalid json }");
+        assert_eq!(detect_data_type(&headers, &invalid_json), DataType::Text);
     }
 
     #[test]
@@ -537,10 +550,10 @@ mod tests {
         encoder.write_all(json_data.as_bytes()).unwrap();
         let compressed = encoder.finish().unwrap();
 
-        // 압축 해제된 데이터는 Content-Type 헤더가 없으므로 텍스트로 분류
+        // 압축 해제된 JSON 데이터는 JSON으로 감지
         assert_eq!(
             detect_data_type(&headers, &Bytes::from(compressed)),
-            DataType::Text
+            DataType::Json
         );
 
         // HTML 데이터를 GZIP으로 압축
@@ -550,7 +563,7 @@ mod tests {
         encoder.write_all(html_data.as_bytes()).unwrap();
         let compressed = encoder.finish().unwrap();
 
-        // 압축 해제된 데이터는 Content-Type 헤더가 없으므로 텍스트로 분류
+        // 압축 해제된 HTML 데이터는 텍스트로 분류 (HTML 패턴 감지 없음)
         assert_eq!(
             detect_data_type(&headers, &Bytes::from(compressed)),
             DataType::Text
