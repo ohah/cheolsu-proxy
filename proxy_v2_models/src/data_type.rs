@@ -280,69 +280,9 @@ pub fn detect_data_type(headers: &HeaderMap, body: &Bytes) -> DataType {
             }
         }
 
-        // CSS 감지 (Content-Type 헤더 기반 또는 내용 패턴 기반)
-        if let Some(content_type) = headers.get("content-type") {
-            if let Ok(content_type_str) = content_type.to_str() {
-                let content_type_lower = content_type_str.to_lowercase();
-                if content_type_lower.contains("css") {
-                    return DataType::Css;
-                }
-            }
-        }
 
-        // CSS 내용 패턴 감지 (Content-Type이 없는 경우)
-        if let Ok(body_str) = std::str::from_utf8(body) {
-            let trimmed = body_str.trim();
-            if trimmed.contains("@import")
-                || trimmed.contains("@media")
-                || trimmed.contains("{")
-                    && trimmed.contains("}")
-                    && (trimmed.contains("color:")
-                        || trimmed.contains("background:")
-                        || trimmed.contains("margin:")
-                        || trimmed.contains("padding:")
-                        || trimmed.contains("font-size:")
-                        || trimmed.contains("width:")
-                        || trimmed.contains("height:")
-                        || trimmed.contains("display:"))
-            {
-                return DataType::Css;
-            }
-        }
 
-        // JavaScript/TypeScript 감지 (Content-Type 헤더 기반 또는 내용 패턴 기반)
-        if let Some(content_type) = headers.get("content-type") {
-            if let Ok(content_type_str) = content_type.to_str() {
-                let content_type_lower = content_type_str.to_lowercase();
-                if content_type_lower.contains("javascript")
-                    || content_type_lower.contains("typescript")
-                {
-                    return DataType::Javascript;
-                }
-            }
-        }
 
-        // JavaScript/TypeScript 내용 패턴 감지 (Content-Type이 없는 경우)
-        if let Ok(body_str) = std::str::from_utf8(body) {
-            let trimmed = body_str.trim();
-            if trimmed.contains("function ")
-                || trimmed.contains("const ")
-                || trimmed.contains("let ")
-                || trimmed.contains("var ")
-                || trimmed.contains("=>")
-                || trimmed.contains("console.log")
-                || trimmed.contains("async ")
-                || trimmed.contains("await ")
-                || trimmed.contains("interface ")
-                || trimmed.contains("type ")
-                || trimmed.contains("class ")
-                || trimmed.contains("import ")
-                || trimmed.contains("export ")
-                || trimmed.contains("require(")
-            {
-                return DataType::Javascript;
-            }
-        }
 
         // 이미지 파일 감지 (구체적인 형식)
         // TODO @ohah: Improve image file detection logic
@@ -466,27 +406,19 @@ mod tests {
 
     #[test]
     fn test_css_detection() {
-        let headers = HeaderMap::new();
+        use http::HeaderValue;
 
-        // CSS @import 테스트
-        let css_import = Bytes::from("@import url('style.css'); body { color: red; }");
-        assert_eq!(detect_data_type(&headers, &css_import), DataType::Css);
+        // Content-Type 헤더로 CSS 감지
+        let mut headers = HeaderMap::new();
+        headers.insert("content-type", HeaderValue::from_static("text/css"));
+        
+        let css_content = Bytes::from("@import url('style.css'); body { color: red; }");
+        assert_eq!(detect_data_type(&headers, &css_content), DataType::Css);
 
-        // CSS 클래스 선택자 테스트
-        let css_class = Bytes::from(".my-class { background: blue; }");
-        assert_eq!(detect_data_type(&headers, &css_class), DataType::Css);
-
-        // CSS ID 선택자 테스트
-        let css_id = Bytes::from("#my-id { margin: 10px; }");
-        assert_eq!(detect_data_type(&headers, &css_id), DataType::Css);
-
-        // CSS 속성 테스트
-        let css_property = Bytes::from("div { font-size: 16px; padding: 5px; }");
-        assert_eq!(detect_data_type(&headers, &css_property), DataType::Css);
-
-        // CSS가 아닌 경우 (JSON과 유사하지만 CSS가 아님)
-        let not_css = Bytes::from("{ \"key\": \"value\" }");
-        assert_eq!(detect_data_type(&headers, &not_css), DataType::Json);
+        // Content-Type이 없는 경우 텍스트로 분류
+        headers.clear();
+        let css_without_header = Bytes::from(".my-class { background: blue; }");
+        assert_eq!(detect_data_type(&headers, &css_without_header), DataType::Text);
     }
 
     #[test]
@@ -531,38 +463,25 @@ mod tests {
 
     #[test]
     fn test_javascript_detection() {
-        let headers = HeaderMap::new();
+        use http::HeaderValue;
 
-        // JavaScript 감지 테스트
+        // Content-Type 헤더로 JavaScript 감지
+        let mut headers = HeaderMap::new();
+        headers.insert("content-type", HeaderValue::from_static("application/javascript"));
+        
         let js_code = Bytes::from("function hello() { console.log('Hello World'); }");
         assert_eq!(detect_data_type(&headers, &js_code), DataType::Javascript);
 
-        let js_arrow = Bytes::from("const add = (a, b) => a + b;");
-        assert_eq!(detect_data_type(&headers, &js_arrow), DataType::Javascript);
-
-        let js_async = Bytes::from("async function fetchData() { await fetch('/api'); }");
-        assert_eq!(detect_data_type(&headers, &js_async), DataType::Javascript);
-
         // TypeScript도 JavaScript로 감지
+        headers.clear();
+        headers.insert("content-type", HeaderValue::from_static("application/typescript"));
         let ts_interface = Bytes::from("interface User { name: string; age: number; }");
-        assert_eq!(
-            detect_data_type(&headers, &ts_interface),
-            DataType::Javascript
-        );
+        assert_eq!(detect_data_type(&headers, &ts_interface), DataType::Javascript);
 
-        let ts_type = Bytes::from("type Status = 'loading' | 'success' | 'error';");
-        assert_eq!(detect_data_type(&headers, &ts_type), DataType::Javascript);
-
-        let ts_class = Bytes::from("class MyClass { private value: string; }");
-        assert_eq!(detect_data_type(&headers, &ts_class), DataType::Javascript);
-
-        let ts_generic = Bytes::from(
-            "function process<T>(data: T): Promise<T> { return Promise.resolve(data); }",
-        );
-        assert_eq!(
-            detect_data_type(&headers, &ts_generic),
-            DataType::Javascript
-        );
+        // Content-Type이 없는 경우 텍스트로 분류
+        headers.clear();
+        let js_without_header = Bytes::from("const add = (a, b) => a + b;");
+        assert_eq!(detect_data_type(&headers, &js_without_header), DataType::Text);
     }
 
     #[test]
@@ -675,7 +594,7 @@ mod tests {
         // Content-Type 헤더가 있으면 내용 분석보다 우선
         let mut headers = HeaderMap::new();
         headers.insert("content-type", HeaderValue::from_static("application/json"));
-        
+
         // JSON이 아닌 내용이어도 헤더를 우선시
         let non_json_body = Bytes::from("this is not json");
         assert_eq!(detect_data_type(&headers, &non_json_body), DataType::Json);
