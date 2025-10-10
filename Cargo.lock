@@ -4394,6 +4394,8 @@ dependencies = [
  "reqwest",
  "rustls-native-certs 0.8.1",
  "rustls-pemfile 2.2.0",
+ "serde",
+ "serde_json",
  "thiserror 2.0.14",
  "time",
  "tokio",
