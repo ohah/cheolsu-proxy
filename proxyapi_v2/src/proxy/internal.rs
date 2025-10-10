@@ -114,6 +114,12 @@ where
         } else {
             let normalized_req = normalize_request(req);
 
+            // 요청 정보 미리 추출 (에러 로깅용)
+            let req_uri = normalized_req.uri().clone();
+            let req_method = normalized_req.method().clone();
+            let req_host = normalized_req.headers().get("host").cloned();
+            let req_user_agent = normalized_req.headers().get("user-agent").cloned();
+
             let res = self
                 .client
                 .request(normalized_req)
@@ -127,7 +133,12 @@ where
                     .instrument(info_span!("handle_response"))
                     .await),
                 Err(err) => {
-                    println!("❌ 업스트림 서버 연결 실패");
+                    // 실패한 요청 정보 로깅
+                    println!("❌ 프록시 요청 실패");
+                    println!("   - URL: {}", req_uri);
+                    println!("   - 메서드: {}", req_method);
+                    println!("   - 호스트: {:?}", req_host);
+                    println!("   - User-Agent: {:?}", req_user_agent);
                     println!("   - 오류: {}", err);
                     println!("   - 오류 타입: {:?}", err);
 
@@ -238,9 +249,9 @@ where
                                                     }
                                                 }
                                                 Err(e) => {
-                                                    error!("❌ 하이브리드 TLS 연결 실패: {}", e);
-                                                    println!("   - TLS 버전: {}", version);
+                                                    println!("❌ 하이브리드 TLS 연결 실패");
                                                     println!("   - 대상 서버: {}", authority);
+                                                    println!("   - TLS 버전: {}", version);
                                                     println!("   - 오류: {}", e);
                                                     return;
                                                 }
@@ -264,10 +275,6 @@ where
                                             {
                                                 Ok(stream) => TokioIo::new(stream),
                                                 Err(e) => {
-                                                    error!(
-                                                        "Failed to establish TLS connection: {}",
-                                                        e
-                                                    );
                                                     println!("❌ TLS 핸드셰이크 실패");
                                                     println!("   - 대상 서버: {}", authority);
                                                     println!("   - 오류: {}", e);
@@ -305,7 +312,6 @@ where
                             let mut server = match TcpStream::connect(authority.as_ref()).await {
                                 Ok(server) => server,
                                 Err(e) => {
-                                    error!("Failed to connect to {}: {}", authority, e);
                                     println!("❌ 업스트림 서버 연결 실패");
                                     println!("   - 대상 서버: {}", authority);
                                     println!("   - 오류: {}", e);
@@ -316,14 +322,12 @@ where
                             if let Err(e) =
                                 tokio::io::copy_bidirectional(&mut upgraded, &mut server).await
                             {
-                                error!("Failed to tunnel to {}: {}", authority, e);
                                 println!("❌ 터널링 실패");
                                 println!("   - 대상 서버: {}", authority);
                                 println!("   - 오류: {}", e);
                             }
                         }
                         Err(e) => {
-                            error!("Upgrade error: {}", e);
                             println!("❌ 연결 업그레이드 실패");
                             println!("   - 오류: {}", e);
                         }
