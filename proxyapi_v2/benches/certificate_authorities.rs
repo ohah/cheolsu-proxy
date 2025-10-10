@@ -14,8 +14,8 @@ fn runtime() -> tokio::runtime::Runtime {
 }
 
 fn build_rcgen_ca(cache_size: u64) -> RcgenAuthority {
-    let key_pair = include_str!("../examples/ca/hudsucker.key");
-    let ca_cert = include_str!("../examples/ca/hudsucker.cer");
+    let key_pair = include_str!("../src/certificate_authority/cheolsu-proxy.key");
+    let ca_cert = include_str!("../src/certificate_authority/cheolsu-proxy.cer");
     let key_pair = KeyPair::from_pem(key_pair).expect("Failed to parse private key");
     let ca_cert = CertificateParams::from_ca_cert_pem(ca_cert)
         .expect("Failed to parse CA certificate")
@@ -26,8 +26,8 @@ fn build_rcgen_ca(cache_size: u64) -> RcgenAuthority {
 }
 
 fn build_openssl_ca(cache_size: u64) -> OpensslAuthority {
-    let private_key: &[u8] = include_bytes!("../examples/ca/hudsucker.key");
-    let ca_cert: &[u8] = include_bytes!("../examples/ca/hudsucker.cer");
+    let private_key: &[u8] = include_bytes!("../src/certificate_authority/cheolsu-proxy.key");
+    let ca_cert: &[u8] = include_bytes!("../src/certificate_authority/cheolsu-proxy.cer");
     let private_key = PKey::private_key_from_pem(private_key).expect("Failed to parse private key");
     let ca_cert = X509::from_pem(ca_cert).expect("Failed to parse CA certificate");
 

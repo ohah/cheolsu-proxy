@@ -67,4 +67,12 @@ pub trait CertificateAuthority: Send + Sync + 'static {
     /// Get the CA certificate in DER format for adding to client trust store.
     /// Returns None if the CA certificate is not available in DER format.
     fn get_ca_cert_der(&self) -> Option<Vec<u8>>;
+
+    /// Generate PKCS12 identity for use with native-tls (TLS 1.0/1.1 support).
+    /// Returns None if PKCS12 generation is not supported.
+    #[cfg(feature = "native-tls-client")]
+    fn gen_pkcs12_identity(
+        &self,
+        authority: &Authority,
+    ) -> impl Future<Output = Option<Vec<u8>>> + Send;
 }
