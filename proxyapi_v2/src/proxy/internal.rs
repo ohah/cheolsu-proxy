@@ -1,6 +1,7 @@
 use crate::{
     HttpContext, HttpHandler, RequestOrResponse, WebSocketContext, WebSocketHandler, body::Body,
-    certificate_authority::CertificateAuthority, rewind::Rewind,
+    certificate_authority::CertificateAuthority, hybrid_tls_handler::HybridTlsHandler,
+    rewind::Rewind, tls_version_detector::TlsVersionDetector,
 };
 use futures::{Sink, Stream, StreamExt};
 use http::uri::{Authority, Scheme};
@@ -23,7 +24,7 @@ use tokio_tungstenite::{
     Connector, WebSocketStream,
     tungstenite::{self, Message, protocol::WebSocketConfig},
 };
-use tracing::{Instrument, Span, error, info_span, instrument, warn};
+use tracing::{Instrument, Span, error, info, info_span, instrument, warn};
 
 fn bad_request() -> Response<Body> {
     Response::builder()
@@ -181,51 +182,114 @@ where
 
                                     return;
                                 } else if buffer[..2] == *b"\x16\x03" {
-                                    let server_config = self
-                                        .ca
-                                        .gen_server_config(&authority)
-                                        .instrument(info_span!("gen_server_config"))
-                                        .await;
+                                    // TLS 버전 감지
+                                    let tls_version =
+                                        TlsVersionDetector::detect_tls_version(&buffer);
 
-                                    let stream = match TlsAcceptor::from(server_config)
-                                        .accept(upgraded)
-                                        .await
-                                    {
-                                        Ok(stream) => TokioIo::new(stream),
-                                        Err(e) => {
-                                            error!("Failed to establish TLS connection: {}", e);
-                                            println!("❌ TLS 핸드셰이크 실패");
-                                            println!("   - 대상 서버: {}", authority);
-                                            println!("   - 오류: {}", e);
-                                            println!("   - 오류 타입: {:?}", e.kind());
-                                            println!("   - 오류 상세: {}", e);
+                                    match tls_version {
+                                        Some(version) => {
+                                            info!(
+                                                "🔍 TLS 버전 감지: {} - 하이브리드 핸들러 사용",
+                                                version
+                                            );
 
-                                            // TLS 연결 실패 시 더 자세한 정보
-                                            if e.to_string().contains("eof") {
-                                                println!(
-                                                    "   - EOF 오류: 연결이 예기치 않게 끊어짐"
-                                                );
-                                                println!("   - 가능한 원인:");
-                                                println!("     * 인증서 생성 실패");
-                                                println!("     * TLS 설정 문제");
-                                                println!("     * 네트워크 연결 불안정");
+                                            // HybridTlsHandler 생성
+                                            let hybrid_handler =
+                                                match HybridTlsHandler::new(Arc::clone(&self.ca))
+                                                    .await
+                                                {
+                                                    Ok(handler) => handler,
+                                                    Err(e) => {
+                                                        error!(
+                                                            "❌ HybridTlsHandler 생성 실패: {}",
+                                                            e
+                                                        );
+                                                        return;
+                                                    }
+                                                };
+
+                                            // 하이브리드 TLS 연결 처리
+                                            match hybrid_handler
+                                                .handle_tls_connection_upgraded(
+                                                    &authority, upgraded, &buffer,
+                                                )
+                                                .await
+                                            {
+                                                Ok(hybrid_stream) => {
+                                                    info!(
+                                                        "✅ 하이브리드 TLS 연결 성공: {}",
+                                                        version
+                                                    );
+                                                    let stream = TokioIo::new(hybrid_stream);
+
+                                                    if let Err(e) = self
+                                                        .serve_stream(
+                                                            stream,
+                                                            Scheme::HTTPS,
+                                                            authority.clone(),
+                                                        )
+                                                        .await
+                                                    {
+                                                        if !e.to_string().starts_with(
+                                                            "error shutting down connection",
+                                                        ) {
+                                                            error!("HTTPS connect error: {}", e);
+                                                        }
+                                                    }
+                                                }
+                                                Err(e) => {
+                                                    error!("❌ 하이브리드 TLS 연결 실패: {}", e);
+                                                    println!("   - TLS 버전: {}", version);
+                                                    println!("   - 대상 서버: {}", authority);
+                                                    println!("   - 오류: {}", e);
+                                                    return;
+                                                }
                                             }
-                                            return;
                                         }
-                                    };
+                                        None => {
+                                            warn!(
+                                                "⚠️ TLS 버전을 감지할 수 없음, 기존 rustls로 시도"
+                                            );
 
-                                    if let Err(e) = self
-                                        .serve_stream(stream, Scheme::HTTPS, authority.clone())
-                                        .await
-                                    {
-                                        if !e
-                                            .to_string()
-                                            .starts_with("error shutting down connection")
-                                        {
-                                            error!("HTTPS connect error: {}", e);
-                                            println!("❌ HTTPS 스트림 서비스 오류");
-                                            println!("   - 대상 서버: {}", authority);
-                                            println!("   - 오류: {}", e);
+                                            // 기존 rustls 로직 사용
+                                            let server_config = self
+                                                .ca
+                                                .gen_server_config(&authority)
+                                                .instrument(info_span!("gen_server_config"))
+                                                .await;
+
+                                            let stream = match TlsAcceptor::from(server_config)
+                                                .accept(upgraded)
+                                                .await
+                                            {
+                                                Ok(stream) => TokioIo::new(stream),
+                                                Err(e) => {
+                                                    error!(
+                                                        "Failed to establish TLS connection: {}",
+                                                        e
+                                                    );
+                                                    println!("❌ TLS 핸드셰이크 실패");
+                                                    println!("   - 대상 서버: {}", authority);
+                                                    println!("   - 오류: {}", e);
+                                                    return;
+                                                }
+                                            };
+
+                                            if let Err(e) = self
+                                                .serve_stream(
+                                                    stream,
+                                                    Scheme::HTTPS,
+                                                    authority.clone(),
+                                                )
+                                                .await
+                                            {
+                                                if !e
+                                                    .to_string()
+                                                    .starts_with("error shutting down connection")
+                                                {
+                                                    error!("HTTPS connect error: {}", e);
+                                                }
+                                            }
                                         }
                                     }
 
