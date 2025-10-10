@@ -25,6 +25,8 @@ mod proxy;
 mod rewind;
 
 pub mod certificate_authority;
+pub mod hybrid_tls_handler;
+pub mod tls_version_detector;
 
 use futures::{Sink, SinkExt, Stream, StreamExt};
 use hyper::{Request, Response, StatusCode, Uri};
@@ -46,8 +48,10 @@ pub use body::Body;
 #[cfg(feature = "decoder")]
 pub use decoder::{decode_request, decode_response};
 pub use error::Error;
+pub use hybrid_tls_handler::*;
 pub use noop::*;
 pub use proxy::*;
+pub use tls_version_detector::*;
 
 /// Enum representing either an HTTP request or response.
 #[derive(Debug)]
