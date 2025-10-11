@@ -1,4 +1,6 @@
 use bytes::Bytes;
+use futures_util::stream::StreamExt;
+use http_body_util::{BodyExt, StreamBody};
 use hyper_rustls::HttpsConnectorBuilder;
 use hyper_util::{
     client::legacy::{connect::HttpConnector, Client},
@@ -13,9 +15,6 @@ use proxyapi_v2::{
     tokio_tungstenite::tungstenite::Message,
     Body, HttpContext, HttpHandler, RequestOrResponse, WebSocketContext, WebSocketHandler,
 };
-use futures_util::stream::StreamExt;
-use http_body_util::{BodyExt, StreamBody};
-use tokio_stream::wrappers::ReceiverStream;
 use std::error::Error;
 use std::net::SocketAddr;
 use std::sync::mpsc;
@@ -26,6 +25,7 @@ use tokio::net::TcpListener;
 use tokio::sync::oneshot::Sender;
 use tokio::sync::Mutex;
 use tokio_rustls::rustls::{crypto::aws_lc_rs, ClientConfig};
+use tokio_stream::wrappers::ReceiverStream;
 
 /// 모든 인증서를 허용하는 위험한 인증서 검증기
 #[derive(Debug)]
@@ -648,9 +648,12 @@ impl HttpHandler for LoggingHandler {
         }
 
         // SSE (Server-Sent Events) 응답인지 Content-Type 헤더로 확인합니다.
-        let is_sse = res.headers()
+        let is_sse = res
+            .headers()
             .get(proxyapi_v2::hyper::header::CONTENT_TYPE)
-            .map_or(false, |v| v.to_str().unwrap_or("").contains("text/event-stream"));
+            .map_or(false, |v| {
+                v.to_str().unwrap_or("").contains("text/event-stream")
+            });
 
         if !is_sse {
             // SSE가 아닌 일반 응답은 기존 방식대로 전체 본문을 읽어 처리합니다.
@@ -665,7 +668,7 @@ impl HttpHandler for LoggingHandler {
 
         // 1. 응답 객체를 헤더(parts)와 본문(body)으로 분리합니다.
         let (parts, body) = res.into_parts();
-        
+
         // 2. 스트리밍 데이터를 전달할 비동기 채널을 생성합니다.
         // tx (송신자)는 원본 응답 본문에서 청크를 읽어 여기로 보내고,
         // rx (수신자)는 이 채널에서 청크를 받아 클라이언트에게 전달될 새 본문을 구성합니다.
@@ -698,7 +701,7 @@ impl HttpHandler for LoggingHandler {
                         if let Some(data) = frame.data_ref() {
                             collected_chunks.extend_from_slice(data);
                         }
-                        
+
                         // 원본 프레임(데이터 또는 트레일러)을 채널(tx)을 통해 클라이언트 응답 스트림으로 보냅니다.
                         // 만약 수신자(rx)가 사라지면 (예: 클라이언트 연결 종료), 에러가 발생하며 루프를 탈출합니다.
                         if tx.send(frame).await.is_err() {
@@ -719,7 +722,9 @@ impl HttpHandler for LoggingHandler {
                 parts.version,
                 parts.headers,
                 Bytes::from(collected_chunks),
-                chrono::Local::now().timestamp_nanos_opt().unwrap_or_default(),
+                chrono::Local::now()
+                    .timestamp_nanos_opt()
+                    .unwrap_or_default(),
             );
 
             // 8. 완성된 응답 정보를 UI로 전송하여 로깅합니다.
@@ -1111,7 +1116,8 @@ pub async fn start_proxy_v2<R: Runtime>(
     let thread = tauri::async_runtime::spawn(async move {
         // println!("🚀 프록시 서버 시작 중...");
         match proxy_builder.start().await {
-            Ok(_) => { /* println!("✅ 프록시 서버가 정상적으로 종료되었습니다") */ }
+            Ok(_) => { /* println!("✅ 프록시 서버가 정상적으로 종료되었습니다") */
+            }
             Err(e) => {
                 let error_msg = format!("❌ 프록시 실행 오류: {}", e);
                 eprintln!("{}", error_msg);
