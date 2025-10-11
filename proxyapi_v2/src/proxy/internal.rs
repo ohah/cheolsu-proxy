@@ -254,19 +254,35 @@ where
                                                     println!("   - TLS 버전: {}", version);
                                                     println!("   - 오류: {}", e);
                                                     println!("   - 오류 타입: {:?}", e);
-                                                    
+
                                                     // TLS 관련 상세 정보
-                                                    if e.to_string().contains("SignatureAlgorithmsExtensionRequired") {
-                                                        println!("   - TLS 문제: 서버가 SignatureAlgorithmsExtension을 요구함");
-                                                        println!("   - 해결방법: TLS 1.2+ 클라이언트 사용 또는 서버 설정 확인");
-                                                    } else if e.to_string().contains("peer is incompatible") {
-                                                        println!("   - TLS 문제: 클라이언트-서버 호환성 문제");
-                                                        println!("   - 가능한 원인: 지원하지 않는 TLS 버전, 암호화 스위트, 또는 확장");
-                                                    } else if e.to_string().contains("certificate") {
+                                                    if e.to_string().contains(
+                                                        "SignatureAlgorithmsExtensionRequired",
+                                                    ) {
+                                                        println!(
+                                                            "   - TLS 문제: 서버가 SignatureAlgorithmsExtension을 요구함"
+                                                        );
+                                                        println!(
+                                                            "   - 해결방법: TLS 1.2+ 클라이언트 사용 또는 서버 설정 확인"
+                                                        );
+                                                    } else if e
+                                                        .to_string()
+                                                        .contains("peer is incompatible")
+                                                    {
+                                                        println!(
+                                                            "   - TLS 문제: 클라이언트-서버 호환성 문제"
+                                                        );
+                                                        println!(
+                                                            "   - 가능한 원인: 지원하지 않는 TLS 버전, 암호화 스위트, 또는 확장"
+                                                        );
+                                                    } else if e.to_string().contains("certificate")
+                                                    {
                                                         println!("   - TLS 문제: 인증서 관련 오류");
-                                                        println!("   - 가능한 원인: 인증서 검증 실패, 만료된 인증서, 또는 CA 신뢰 문제");
+                                                        println!(
+                                                            "   - 가능한 원인: 인증서 검증 실패, 만료된 인증서, 또는 CA 신뢰 문제"
+                                                        );
                                                     }
-                                                    
+
                                                     return;
                                                 }
                                             }
@@ -293,26 +309,48 @@ where
                                                     println!("   - 대상 서버: {}", authority);
                                                     println!("   - 오류: {}", e);
                                                     println!("   - 오류 타입: {:?}", e);
-                                                    
+
                                                     // TLS 관련 상세 정보
                                                     let error_str = e.to_string();
-                                                    if error_str.contains("SignatureAlgorithmsExtensionRequired") {
-                                                        println!("   - TLS 문제: 서버가 SignatureAlgorithmsExtension을 요구함");
-                                                        println!("   - 해결방법: TLS 1.2+ 클라이언트 사용 또는 서버 설정 확인");
-                                                    } else if error_str.contains("peer is incompatible") {
-                                                        println!("   - TLS 문제: 클라이언트-서버 호환성 문제");
-                                                        println!("   - 가능한 원인: 지원하지 않는 TLS 버전, 암호화 스위트, 또는 확장");
+                                                    if error_str.contains(
+                                                        "SignatureAlgorithmsExtensionRequired",
+                                                    ) {
+                                                        println!(
+                                                            "   - TLS 문제: 서버가 SignatureAlgorithmsExtension을 요구함"
+                                                        );
+                                                        println!(
+                                                            "   - 해결방법: TLS 1.2+ 클라이언트 사용 또는 서버 설정 확인"
+                                                        );
+                                                    } else if error_str
+                                                        .contains("peer is incompatible")
+                                                    {
+                                                        println!(
+                                                            "   - TLS 문제: 클라이언트-서버 호환성 문제"
+                                                        );
+                                                        println!(
+                                                            "   - 가능한 원인: 지원하지 않는 TLS 버전, 암호화 스위트, 또는 확장"
+                                                        );
                                                     } else if error_str.contains("certificate") {
                                                         println!("   - TLS 문제: 인증서 관련 오류");
-                                                        println!("   - 가능한 원인: 인증서 검증 실패, 만료된 인증서, 또는 CA 신뢰 문제");
+                                                        println!(
+                                                            "   - 가능한 원인: 인증서 검증 실패, 만료된 인증서, 또는 CA 신뢰 문제"
+                                                        );
                                                     } else if error_str.contains("handshake") {
-                                                        println!("   - TLS 문제: 핸드셰이크 프로토콜 오류");
-                                                        println!("   - 가능한 원인: 프로토콜 버전 불일치, 암호화 스위트 협상 실패");
+                                                        println!(
+                                                            "   - TLS 문제: 핸드셰이크 프로토콜 오류"
+                                                        );
+                                                        println!(
+                                                            "   - 가능한 원인: 프로토콜 버전 불일치, 암호화 스위트 협상 실패"
+                                                        );
                                                     } else if error_str.contains("timeout") {
-                                                        println!("   - TLS 문제: 핸드셰이크 타임아웃");
-                                                        println!("   - 가능한 원인: 네트워크 지연, 서버 과부하, 또는 방화벽 차단");
+                                                        println!(
+                                                            "   - TLS 문제: 핸드셰이크 타임아웃"
+                                                        );
+                                                        println!(
+                                                            "   - 가능한 원인: 네트워크 지연, 서버 과부하, 또는 방화벽 차단"
+                                                        );
                                                     }
-                                                    
+
                                                     return;
                                                 }
                                             };
@@ -621,11 +659,11 @@ mod tests {
         async fn gen_server_config(&self, _authority: &Authority) -> Arc<ServerConfig> {
             unimplemented!();
         }
-        
+
         fn get_ca_cert_der(&self) -> Option<Vec<u8>> {
             None
         }
-        
+
         #[cfg(feature = "native-tls-client")]
         async fn gen_pkcs12_identity(&self, _authority: &Authority) -> Option<Vec<u8>> {
             None
