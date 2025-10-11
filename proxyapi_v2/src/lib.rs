@@ -93,7 +93,6 @@ impl SseHandler {
             .unwrap()
             .as_millis();
 
-
         let (mut parts, body) = res.into_parts();
 
         // SSE 최적화된 헤더 설정
@@ -109,7 +108,6 @@ impl SseHandler {
         parts
             .headers
             .insert("Transfer-Encoding", "chunked".parse().unwrap());
-
 
         // Body를 그대로 전달 (proxy/internal.rs에서 이미 chunk 단위로 처리됨)
         Response::from_parts(parts, body)
@@ -180,7 +178,6 @@ pub trait HttpHandler: Clone + Send + Sync + 'static {
                     .duration_since(std::time::UNIX_EPOCH)
                     .unwrap()
                     .as_millis();
-
 
                 // SSE 응답인 경우 헤더 최적화
                 let (mut parts, body) = res.into_parts();
@@ -272,19 +269,19 @@ pub trait WebSocketHandler: Clone + Send + Sync + 'static {
 
                                 // Reserved bits 에러인 경우 연결을 끊지 않고 계속 진행
                                 if e.to_string().contains("Reserved bits are non-zero") {
-                                    println!("⚠️ Reserved bits 에러 감지 - 메시지를 건너뛰고 계속 대기");
+                                    println!(
+                                        "⚠️ Reserved bits 에러 감지 - 메시지를 건너뛰고 계속 대기"
+                                    );
                                     // 이 메시지만 건너뛰고 다음 메시지 계속 처리
                                     continue;
                                 }
 
                                 match sink.send(Message::Close(None)).await {
-                                    Err(tungstenite::Error::ConnectionClosed) => {
-                                    }
+                                    Err(tungstenite::Error::ConnectionClosed) => {}
                                     Err(e) => {
                                         println!("❌ WebSocket Close 전송 에러: {}", e);
                                     }
-                                    Ok(_) => {
-                                    }
+                                    Ok(_) => {}
                                 };
 
                                 break;
@@ -292,7 +289,6 @@ pub trait WebSocketHandler: Clone + Send + Sync + 'static {
                         }
                     }
                     None => {
-
                         break;
                     }
                 }
@@ -310,7 +306,6 @@ pub trait WebSocketHandler: Clone + Send + Sync + 'static {
         async move {
             match &message {
                 Message::Text(text) => {
-
                     // SockJS 프레이밍 제거 (다양한 형태 지원)
                     let cleaned_text = if text.starts_with("a[\"") && text.ends_with("\"]") {
                         let inner = &text[3..text.len() - 2]; // a[" 와 "] 제거
