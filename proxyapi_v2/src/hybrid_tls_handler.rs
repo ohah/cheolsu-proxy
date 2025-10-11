@@ -5,7 +5,7 @@ use http::uri::Authority;
 use hyper::upgrade::Upgraded;
 use hyper_util::rt::TokioIo;
 use std::sync::Arc;
-use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite};
+use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 use tokio_rustls::TlsAcceptor;
 use tracing::{error, info, warn};
 
@@ -166,7 +166,7 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
         &self,
         authority: &Authority,
         stream: (R, W),
-        _initial_data: &[u8],
+        initial_data: &[u8],
     ) -> Result<HybridTlsStream, Box<dyn std::error::Error + Send + Sync>>
     where
         R: AsyncRead + Unpin + Send + 'static,
@@ -174,16 +174,36 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
     {
         let (_read_stream, _write_stream) = stream;
 
-        // TODO: 초기 데이터를 다시 스트림에 써넣는 로직 구현 필요
-        // 현재는 단순히 rustls로 처리
+        // 내부 버퍼를 사용하여 초기 데이터를 다시 읽을 수 있게 함
+        let (client_read, client_write) = tokio::io::duplex(8192);
 
+        // 초기 데이터를 내부 버퍼에 써넣기
+        let mut client_write = client_write;
+        client_write.write_all(initial_data).await?;
+        client_write.flush().await?;
+        drop(client_write);
+
+        // Rewind 스트림 생성 - 초기 데이터를 먼저 읽을 수 있게 함
+        let rewind_stream =
+            Rewind::new(client_read, hyper::body::Bytes::from(initial_data.to_vec()));
+
+        // 서버 설정 생성
         let server_config = self.ca.gen_server_config(authority).await;
-        let _acceptor = TlsAcceptor::from(server_config);
+        let acceptor = TlsAcceptor::from(server_config);
 
-        // TODO: 실제 구현에서는 스트림을 TcpStream으로 변환하는 로직이 필요
-        // 현재는 에러를 반환하여 기존 로직을 사용하도록 함
-        error!("하이브리드 TLS 핸들러는 아직 완전히 구현되지 않음");
-        Err("Hybrid TLS handler not fully implemented yet".into())
+        // TLS 핸드셰이크 수행
+        match acceptor.accept(rewind_stream).await {
+            Ok(tls_stream) => {
+                info!("✅ rustls 핸드셰이크 성공: {}", authority);
+                Ok(HybridTlsStream::RustlsGeneric(
+                    tokio_rustls::TlsStream::Server(tls_stream),
+                ))
+            }
+            Err(e) => {
+                error!("❌ rustls 핸드셰이크 실패: {} - {}", authority, e);
+                Err(format!("rustls handshake failed: {}", e).into())
+            }
+        }
     }
 
     /// OpenSSL을 사용하여 TLS 연결을 처리합니다
@@ -290,7 +310,10 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
             Err(e) => {
                 error!("❌ native-tls Identity 생성 실패: {}", e);
                 error!("❌ PKCS12 데이터 크기: {} bytes", pkcs12_data.len());
-                error!("❌ PKCS12 데이터 헥스 (처음 32 bytes): {:02X?}", &pkcs12_data[..pkcs12_data.len().min(32)]);
+                error!(
+                    "❌ PKCS12 데이터 헥스 (처음 32 bytes): {:02X?}",
+                    &pkcs12_data[..pkcs12_data.len().min(32)]
+                );
                 return Err(format!("Failed to create native-tls identity: {}", e).into());
             }
         };
@@ -347,6 +370,7 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
 /// 하이브리드 TLS 스트림 - rustls 또는 native-tls 스트림을 래핑
 pub enum HybridTlsStream {
     Rustls(tokio_rustls::TlsStream<Rewind<TokioIo<Upgraded>>>),
+    RustlsGeneric(tokio_rustls::TlsStream<Rewind<tokio::io::DuplexStream>>),
     #[cfg(feature = "native-tls-client")]
     NativeTls(NativeTlsStream<Rewind<TokioIo<Upgraded>>>),
 }
@@ -359,6 +383,7 @@ impl AsyncRead for HybridTlsStream {
     ) -> std::task::Poll<std::io::Result<()>> {
         match self.get_mut() {
             HybridTlsStream::Rustls(stream) => std::pin::Pin::new(stream).poll_read(cx, buf),
+            HybridTlsStream::RustlsGeneric(stream) => std::pin::Pin::new(stream).poll_read(cx, buf),
             #[cfg(feature = "native-tls-client")]
             HybridTlsStream::NativeTls(stream) => std::pin::Pin::new(stream).poll_read(cx, buf),
         }
@@ -373,6 +398,9 @@ impl AsyncWrite for HybridTlsStream {
     ) -> std::task::Poll<Result<usize, std::io::Error>> {
         match self.get_mut() {
             HybridTlsStream::Rustls(stream) => std::pin::Pin::new(stream).poll_write(cx, buf),
+            HybridTlsStream::RustlsGeneric(stream) => {
+                std::pin::Pin::new(stream).poll_write(cx, buf)
+            }
             #[cfg(feature = "native-tls-client")]
             HybridTlsStream::NativeTls(stream) => std::pin::Pin::new(stream).poll_write(cx, buf),
         }
@@ -384,6 +412,7 @@ impl AsyncWrite for HybridTlsStream {
     ) -> std::task::Poll<Result<(), std::io::Error>> {
         match self.get_mut() {
             HybridTlsStream::Rustls(stream) => std::pin::Pin::new(stream).poll_flush(cx),
+            HybridTlsStream::RustlsGeneric(stream) => std::pin::Pin::new(stream).poll_flush(cx),
             #[cfg(feature = "native-tls-client")]
             HybridTlsStream::NativeTls(stream) => std::pin::Pin::new(stream).poll_flush(cx),
         }
@@ -395,6 +424,7 @@ impl AsyncWrite for HybridTlsStream {
     ) -> std::task::Poll<Result<(), std::io::Error>> {
         match self.get_mut() {
             HybridTlsStream::Rustls(stream) => std::pin::Pin::new(stream).poll_shutdown(cx),
+            HybridTlsStream::RustlsGeneric(stream) => std::pin::Pin::new(stream).poll_shutdown(cx),
             #[cfg(feature = "native-tls-client")]
             HybridTlsStream::NativeTls(stream) => std::pin::Pin::new(stream).poll_shutdown(cx),
         }
