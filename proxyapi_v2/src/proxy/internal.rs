@@ -160,7 +160,7 @@ where
                     match hyper::upgrade::on(&mut req).await {
                         Ok(upgraded) => {
                             let mut upgraded = TokioIo::new(upgraded);
-                            let mut buffer = [0; 4];
+                            let mut buffer = [0; 11]; // ClientHello 헤더를 위해 11 bytes 필요
                             let bytes_read = match upgraded.read(&mut buffer).await {
                                 Ok(bytes_read) => bytes_read,
                                 Err(e) => {
@@ -179,7 +179,7 @@ where
                                 .should_intercept(&self.context(), &req)
                                 .await
                             {
-                                if buffer == *b"GET " {
+                                if buffer[..4] == *b"GET " {
                                     if let Err(e) = self
                                         .serve_stream(
                                             TokioIo::new(upgraded),
@@ -620,6 +620,15 @@ mod tests {
     impl CertificateAuthority for CA {
         async fn gen_server_config(&self, _authority: &Authority) -> Arc<ServerConfig> {
             unimplemented!();
+        }
+        
+        fn get_ca_cert_der(&self) -> Option<Vec<u8>> {
+            None
+        }
+        
+        #[cfg(feature = "native-tls-client")]
+        async fn gen_pkcs12_identity(&self, _authority: &Authority) -> Option<Vec<u8>> {
+            None
         }
     }
 
