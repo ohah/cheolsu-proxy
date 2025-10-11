@@ -334,6 +334,72 @@ impl LoggingHandler {
                 .unwrap()
         }
     }
+
+    /// 에러 메시지에서 TLS 버전과 백엔드 정보를 추출합니다
+    fn extract_tls_info_from_error(&self, err: &hyper_util::client::legacy::Error) -> Option<(String, String)> {
+        let err_str = err.to_string();
+        
+        // TLS 버전 추출 (더 정확한 패턴 매칭)
+        let tls_version = if err_str.contains("TLS 1.0") || err_str.contains("TLS/1.0") {
+            "TLS 1.0"
+        } else if err_str.contains("TLS 1.1") || err_str.contains("TLS/1.1") {
+            "TLS 1.1"
+        } else if err_str.contains("TLS 1.2") || err_str.contains("TLS/1.2") {
+            "TLS 1.2"
+        } else if err_str.contains("TLS 1.3") || err_str.contains("TLS/1.3") {
+            "TLS 1.3"
+        } else if err_str.contains("SSL 3.0") || err_str.contains("SSL/3.0") {
+            "SSL 3.0"
+        } else if err_str.contains("handshake") || err_str.contains("TLS") {
+            "TLS (버전 미확인)"
+        } else {
+            "알 수 없음"
+        };
+        
+        // TLS 백엔드 추출 (하이브리드 핸들러 로그 패턴 인식)
+        let tls_backend = if err_str.contains("[RUSTLS]") || err_str.contains("rustls handshake") {
+            "RUSTLS"
+        } else if err_str.contains("[NATIVE-TLS]") || err_str.contains("native-tls handshake") || err_str.contains("PKCS12") {
+            "NATIVE-TLS"
+        } else if err_str.contains("rustls") || err_str.contains("RUSTLS") {
+            "RUSTLS"
+        } else if err_str.contains("native-tls") || err_str.contains("NATIVE-TLS") || err_str.contains("OpenSSL") {
+            "NATIVE-TLS"
+        } else if err_str.contains("handshake") || err_str.contains("TLS") {
+            "TLS (백엔드 미확인)"
+        } else {
+            "알 수 없음"
+        };
+        
+        Some((tls_version.to_string(), tls_backend.to_string()))
+    }
+
+    /// 에러 메시지에서 대상 서버 정보를 추출합니다
+    fn extract_target_server_from_error(&self, err: &hyper_util::client::legacy::Error) -> Option<String> {
+        let err_str = err.to_string();
+        
+        // 하이브리드 TLS 핸들러 로그에서 서버 정보 추출
+        // 예: "❌ [RUSTLS] TLS 연결 실패: TLS 1.1 - gateway.icloud.com:443 - 오류: ..."
+        if let Some(start) = err_str.find(" - ") {
+            if let Some(end) = err_str[start + 3..].find(" - 오류:") {
+                let server_info = &err_str[start + 3..start + 3 + end];
+                if !server_info.is_empty() && server_info.contains(':') {
+                    return Some(server_info.trim().to_string());
+                }
+            }
+        }
+        
+        // 다른 패턴으로 서버 정보 추출 시도
+        if let Some(start) = err_str.find("gateway.icloud.com") {
+            if let Some(end) = err_str[start..].find(' ') {
+                return Some(err_str[start..start + end].to_string());
+            } else {
+                return Some("gateway.icloud.com:443".to_string());
+            }
+        }
+        
+        None
+    }
 }
 
 impl HttpHandler for LoggingHandler {
@@ -410,6 +476,18 @@ impl HttpHandler for LoggingHandler {
         eprintln!("❌ [HANDLER] handle_error 호출됨 - 에러 발생!");
         eprintln!("   - 에러 타입: {:?}", err);
         eprintln!("   - 에러 메시지: {}", err);
+        
+        // TLS 버전과 백엔드 정보 추출
+        let tls_info = self.extract_tls_info_from_error(&err);
+        if let Some((tls_version, tls_backend)) = tls_info {
+            eprintln!("   - TLS 버전: {}", tls_version);
+            eprintln!("   - TLS 백엔드: {}", tls_backend);
+        }
+        
+        // 대상 서버 정보 추출 (가능한 경우)
+        if let Some(target_server) = self.extract_target_server_from_error(&err) {
+            eprintln!("   - 대상 서버: {}", target_server);
+        }
 
         // UnexpectedEof 에러인지 먼저 확인
         if let Some(source) = err.source() {
