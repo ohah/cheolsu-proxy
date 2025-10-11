@@ -1,5 +1,6 @@
 use std::io;
 use tokio::io::{AsyncRead, AsyncReadExt};
+use tracing::debug;
 
 /// TLS 버전을 감지하는 유틸리티
 pub struct TlsVersionDetector;
@@ -8,27 +9,62 @@ impl TlsVersionDetector {
     /// TLS ClientHello에서 TLS 버전을 감지합니다
     pub fn detect_tls_version(buffer: &[u8]) -> Option<TlsVersion> {
         if buffer.len() < 11 {
+            debug!(
+                "TLS 버전 감지 실패: 버퍼 크기 부족 ({} bytes, 최소 11 bytes 필요)",
+                buffer.len()
+            );
             return None;
         }
 
         // TLS 레코드 헤더 확인
         if buffer[0] != 0x16 {
+            debug!(
+                "TLS 버전 감지 실패: TLS 레코드 타입이 Handshake가 아님 (0x{:02x}, 예상: 0x16)",
+                buffer[0]
+            );
             return None; // Handshake가 아님
         }
 
         // ClientHello 타입 확인
         if buffer[5] != 0x01 {
+            debug!(
+                "TLS 버전 감지 실패: Handshake 타입이 ClientHello가 아님 (0x{:02x}, 예상: 0x01)",
+                buffer[5]
+            );
             return None; // ClientHello가 아님
         }
 
         // TLS 버전 확인 (9-10번째 바이트 - 클라이언트 버전)
         let version_bytes = [buffer[9], buffer[10]];
+        debug!(
+            "TLS 버전 바이트: 0x{:02x}{:02x}",
+            version_bytes[0], version_bytes[1]
+        );
+
         match version_bytes {
-            [0x03, 0x00] => Some(TlsVersion::Tls10), // SSL 3.0 / TLS 1.0
-            [0x03, 0x01] => Some(TlsVersion::Tls11), // TLS 1.1
-            [0x03, 0x02] => Some(TlsVersion::Tls12), // TLS 1.2
-            [0x03, 0x03] => Some(TlsVersion::Tls13), // TLS 1.3
-            _ => None,
+            [0x03, 0x00] => {
+                debug!("TLS 버전 감지: TLS 1.0 (SSL 3.0)");
+                Some(TlsVersion::Tls10)
+            }
+            [0x03, 0x01] => {
+                debug!("TLS 버전 감지: TLS 1.1");
+                Some(TlsVersion::Tls11)
+            }
+            [0x03, 0x02] => {
+                debug!("TLS 버전 감지: TLS 1.2");
+                Some(TlsVersion::Tls12)
+            }
+            [0x03, 0x03] => {
+                debug!("TLS 버전 감지: TLS 1.3");
+                Some(TlsVersion::Tls13)
+            }
+            _ => {
+                debug!(
+                    "TLS 버전 감지 실패: 알 수 없는 버전 (0x{:02x}{:02x})",
+                    version_bytes[0], version_bytes[1]
+                );
+                None
+            }
         }
     }
 
