@@ -211,14 +211,29 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
     async fn handle_with_openssl<R, W>(
         &self,
         authority: &Authority,
-        _stream: (R, W),
-        _initial_data: &[u8],
+        stream: (R, W),
+        initial_data: &[u8],
     ) -> Result<HybridTlsStream, Box<dyn std::error::Error + Send + Sync>>
     where
         R: AsyncRead + Unpin + Send + 'static,
         W: AsyncWrite + Unpin + Send + 'static,
     {
         info!("🔧 native-tls로 TLS 연결 처리 시작: {}", authority);
+
+        let (_read_stream, _write_stream) = stream;
+
+        // 내부 버퍼를 사용하여 초기 데이터를 다시 읽을 수 있게 함
+        let (client_read, client_write) = tokio::io::duplex(8192);
+
+        // 초기 데이터를 내부 버퍼에 써넣기
+        let mut client_write = client_write;
+        client_write.write_all(initial_data).await?;
+        client_write.flush().await?;
+        drop(client_write);
+
+        // Rewind 스트림 생성 - 초기 데이터를 먼저 읽을 수 있게 함
+        let rewind_stream =
+            Rewind::new(client_read, hyper::body::Bytes::from(initial_data.to_vec()));
 
         // PKCS12 인증서 생성
         let pkcs12_data = match self.ca.gen_pkcs12_identity(authority).await {
@@ -247,12 +262,19 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
             }
         };
 
-        let _tokio_acceptor = tokio_native_tls::TlsAcceptor::from(acceptor);
+        let tokio_acceptor = tokio_native_tls::TlsAcceptor::from(acceptor);
 
-        // 직접 TLS 핸드셰이크 수행 (generic stream은 native-tls에서 지원하지 않음)
-        // TODO: generic 스트림을 TcpStream으로 변환하는 로직 필요
-        error!("generic 스트림은 native-tls에서 지원하지 않습니다");
-        Err("generic stream not supported by native-tls".into())
+        // TLS 핸드셰이크 수행
+        match tokio_acceptor.accept(rewind_stream).await {
+            Ok(tls_stream) => {
+                info!("✅ native-tls 핸드셰이크 성공: {}", authority);
+                Ok(HybridTlsStream::NativeTlsGeneric(tls_stream))
+            }
+            Err(e) => {
+                error!("❌ native-tls 핸드셰이크 실패: {} - {}", authority, e);
+                Err(format!("native-tls handshake failed: {}", e).into())
+            }
+        }
     }
 
     /// rustls로 Upgraded 스트림을 처리합니다
@@ -373,6 +395,8 @@ pub enum HybridTlsStream {
     RustlsGeneric(tokio_rustls::TlsStream<Rewind<tokio::io::DuplexStream>>),
     #[cfg(feature = "native-tls-client")]
     NativeTls(NativeTlsStream<Rewind<TokioIo<Upgraded>>>),
+    #[cfg(feature = "native-tls-client")]
+    NativeTlsGeneric(NativeTlsStream<Rewind<tokio::io::DuplexStream>>),
 }
 
 impl AsyncRead for HybridTlsStream {
@@ -386,6 +410,10 @@ impl AsyncRead for HybridTlsStream {
             HybridTlsStream::RustlsGeneric(stream) => std::pin::Pin::new(stream).poll_read(cx, buf),
             #[cfg(feature = "native-tls-client")]
             HybridTlsStream::NativeTls(stream) => std::pin::Pin::new(stream).poll_read(cx, buf),
+            #[cfg(feature = "native-tls-client")]
+            HybridTlsStream::NativeTlsGeneric(stream) => {
+                std::pin::Pin::new(stream).poll_read(cx, buf)
+            }
         }
     }
 }
@@ -403,6 +431,10 @@ impl AsyncWrite for HybridTlsStream {
             }
             #[cfg(feature = "native-tls-client")]
             HybridTlsStream::NativeTls(stream) => std::pin::Pin::new(stream).poll_write(cx, buf),
+            #[cfg(feature = "native-tls-client")]
+            HybridTlsStream::NativeTlsGeneric(stream) => {
+                std::pin::Pin::new(stream).poll_write(cx, buf)
+            }
         }
     }
 
@@ -415,6 +447,8 @@ impl AsyncWrite for HybridTlsStream {
             HybridTlsStream::RustlsGeneric(stream) => std::pin::Pin::new(stream).poll_flush(cx),
             #[cfg(feature = "native-tls-client")]
             HybridTlsStream::NativeTls(stream) => std::pin::Pin::new(stream).poll_flush(cx),
+            #[cfg(feature = "native-tls-client")]
+            HybridTlsStream::NativeTlsGeneric(stream) => std::pin::Pin::new(stream).poll_flush(cx),
         }
     }
 
@@ -427,6 +461,10 @@ impl AsyncWrite for HybridTlsStream {
             HybridTlsStream::RustlsGeneric(stream) => std::pin::Pin::new(stream).poll_shutdown(cx),
             #[cfg(feature = "native-tls-client")]
             HybridTlsStream::NativeTls(stream) => std::pin::Pin::new(stream).poll_shutdown(cx),
+            #[cfg(feature = "native-tls-client")]
+            HybridTlsStream::NativeTlsGeneric(stream) => {
+                std::pin::Pin::new(stream).poll_shutdown(cx)
+            }
         }
     }
 }
