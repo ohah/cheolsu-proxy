@@ -67,33 +67,48 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
                             Ok(stream)
                         }
                         Err(e) => {
-                            error!("❌ [RUSTLS] TLS 연결 실패: {} - {} - 오류: {}", version, authority, e);
+                            error!(
+                                "❌ [RUSTLS] TLS 연결 실패: {} - {} - 오류: {}",
+                                version, authority, e
+                            );
                             Err(e)
                         }
                     }
                 } else {
                     info!("🔧 [NATIVE-TLS] TLS 연결 시작: {} - {}", version, authority);
-                    match self.handle_with_native_tls_upgraded(authority, upgraded).await {
+                    match self
+                        .handle_with_native_tls_upgraded(authority, upgraded)
+                        .await
+                    {
                         Ok(stream) => {
                             info!("✅ [NATIVE-TLS] TLS 연결 성공: {} - {}", version, authority);
                             Ok(stream)
                         }
                         Err(e) => {
-                            error!("❌ [NATIVE-TLS] TLS 연결 실패: {} - {} - 오류: {}", version, authority, e);
+                            error!(
+                                "❌ [NATIVE-TLS] TLS 연결 실패: {} - {} - 오류: {}",
+                                version, authority, e
+                            );
                             Err(e)
                         }
                     }
                 }
             }
             None => {
-                warn!("⚠️ [RUSTLS] TLS 버전을 감지할 수 없음, rustls로 시도: {}", authority);
+                warn!(
+                    "⚠️ [RUSTLS] TLS 버전을 감지할 수 없음, rustls로 시도: {}",
+                    authority
+                );
                 match self.handle_with_rustls_upgraded(authority, upgraded).await {
                     Ok(stream) => {
                         info!("✅ [RUSTLS] TLS 연결 성공 (버전 감지 실패): {}", authority);
                         Ok(stream)
                     }
                     Err(e) => {
-                        error!("❌ [RUSTLS] TLS 연결 실패 (버전 감지 실패): {} - 오류: {}", authority, e);
+                        error!(
+                            "❌ [RUSTLS] TLS 연결 실패 (버전 감지 실패): {} - 오류: {}",
+                            authority, e
+                        );
                         Err(e)
                     }
                 }
@@ -253,8 +268,12 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
         info!("🔧 native-tls로 TLS 연결 처리 시작: {}", authority);
 
         // PKCS12 인증서 생성
+        info!("🔧 PKCS12 인증서 생성 시작: {}", authority);
         let pkcs12_data = match self.ca.gen_pkcs12_identity(authority).await {
-            Some(data) => data,
+            Some(data) => {
+                info!("✅ PKCS12 인증서 생성 성공: {} bytes", data.len());
+                data
+            }
             None => {
                 error!("❌ PKCS12 인증서 생성 실패");
                 return Err("Failed to generate PKCS12 certificate".into());
@@ -262,10 +281,16 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
         };
 
         // native-tls Identity 생성
+        info!("🔧 native-tls Identity 생성 시작 (패스워드 없음)");
         let identity = match tokio_native_tls::native_tls::Identity::from_pkcs12(&pkcs12_data, "") {
-            Ok(identity) => identity,
+            Ok(identity) => {
+                info!("✅ native-tls Identity 생성 성공");
+                identity
+            }
             Err(e) => {
                 error!("❌ native-tls Identity 생성 실패: {}", e);
+                error!("❌ PKCS12 데이터 크기: {} bytes", pkcs12_data.len());
+                error!("❌ PKCS12 데이터 헥스 (처음 32 bytes): {:02X?}", &pkcs12_data[..pkcs12_data.len().min(32)]);
                 return Err(format!("Failed to create native-tls identity: {}", e).into());
             }
         };

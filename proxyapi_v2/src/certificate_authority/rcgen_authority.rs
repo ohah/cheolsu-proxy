@@ -236,7 +236,7 @@ impl CertificateAuthority for RcgenAuthority {
                 }
             };
 
-            // PKCS12 생성
+            // PKCS12 생성 (패스워드 없음)
             match Pkcs12::builder()
                 .name("")
                 .pkey(&private_key)
