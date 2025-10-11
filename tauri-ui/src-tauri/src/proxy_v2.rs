@@ -336,9 +336,12 @@ impl LoggingHandler {
     }
 
     /// 에러 메시지에서 TLS 버전과 백엔드 정보를 추출합니다
-    fn extract_tls_info_from_error(&self, err: &hyper_util::client::legacy::Error) -> Option<(String, String)> {
+    fn extract_tls_info_from_error(
+        &self,
+        err: &hyper_util::client::legacy::Error,
+    ) -> Option<(String, String)> {
         let err_str = err.to_string();
-        
+
         // TLS 버전 추출 (더 정확한 패턴 매칭)
         let tls_version = if err_str.contains("TLS 1.0") || err_str.contains("TLS/1.0") {
             "TLS 1.0"
@@ -355,29 +358,38 @@ impl LoggingHandler {
         } else {
             "알 수 없음"
         };
-        
+
         // TLS 백엔드 추출 (하이브리드 핸들러 로그 패턴 인식)
         let tls_backend = if err_str.contains("[RUSTLS]") || err_str.contains("rustls handshake") {
             "RUSTLS"
-        } else if err_str.contains("[NATIVE-TLS]") || err_str.contains("native-tls handshake") || err_str.contains("PKCS12") {
+        } else if err_str.contains("[NATIVE-TLS]")
+            || err_str.contains("native-tls handshake")
+            || err_str.contains("PKCS12")
+        {
             "NATIVE-TLS"
         } else if err_str.contains("rustls") || err_str.contains("RUSTLS") {
             "RUSTLS"
-        } else if err_str.contains("native-tls") || err_str.contains("NATIVE-TLS") || err_str.contains("OpenSSL") {
+        } else if err_str.contains("native-tls")
+            || err_str.contains("NATIVE-TLS")
+            || err_str.contains("OpenSSL")
+        {
             "NATIVE-TLS"
         } else if err_str.contains("handshake") || err_str.contains("TLS") {
             "TLS (백엔드 미확인)"
         } else {
             "알 수 없음"
         };
-        
+
         Some((tls_version.to_string(), tls_backend.to_string()))
     }
 
     /// 에러 메시지에서 대상 서버 정보를 추출합니다
-    fn extract_target_server_from_error(&self, err: &hyper_util::client::legacy::Error) -> Option<String> {
+    fn extract_target_server_from_error(
+        &self,
+        err: &hyper_util::client::legacy::Error,
+    ) -> Option<String> {
         let err_str = err.to_string();
-        
+
         // 하이브리드 TLS 핸들러 로그에서 서버 정보 추출
         // 예: "❌ [RUSTLS] TLS 연결 실패: TLS 1.1 - gateway.icloud.com:443 - 오류: ..."
         if let Some(start) = err_str.find(" - ") {
@@ -388,16 +400,186 @@ impl LoggingHandler {
                 }
             }
         }
-        
-        // 다른 패턴으로 서버 정보 추출 시도
-        if let Some(start) = err_str.find("gateway.icloud.com") {
-            if let Some(end) = err_str[start..].find(' ') {
-                return Some(err_str[start..start + end].to_string());
-            } else {
-                return Some("gateway.icloud.com:443".to_string());
+
+        // 범용적인 도메인:포트 패턴 추출
+        // 정규표현식 대신 간단한 패턴 매칭 사용
+        let patterns = [
+            // 도메인:포트 패턴 (예: example.com:443, api.service.com:8080)
+            (r"([a-zA-Z0-9.-]+\.[a-zA-Z]{2,}:\d+)", "도메인:포트"),
+            // IP:포트 패턴 (예: 192.168.1.1:443, 127.0.0.1:8080)
+            (r"(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d+)", "IP:포트"),
+            // 도메인만 있는 경우 (예: example.com)
+            (r"([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})", "도메인"),
+        ];
+
+        for (pattern, _description) in &patterns {
+            if let Some(server_info) = Self::extract_pattern(&err_str, pattern) {
+                if !server_info.is_empty() {
+                    return Some(server_info);
+                }
             }
         }
+
+        // URL 패턴에서 호스트 추출 시도
+        if let Some(host) = Self::extract_host_from_url(&err_str) {
+            return Some(host);
+        }
+
+        None
+    }
+
+    /// 문자열에서 패턴을 추출하는 헬퍼 메서드
+    fn extract_pattern(text: &str, pattern: &str) -> Option<String> {
+        // 간단한 패턴 매칭 (정규표현식 없이)
+        if pattern.contains(r"([a-zA-Z0-9.-]+\.[a-zA-Z]{2,}:\d+)") {
+            // 도메인:포트 패턴
+            let mut chars = text.chars().peekable();
+            let mut result = String::new();
+            let mut in_domain = false;
+            let mut dot_count = 0;
+            let mut colon_found = false;
+
+            while let Some(ch) = chars.next() {
+                if ch.is_alphanumeric() || ch == '.' || ch == '-' {
+                    if !in_domain && ch.is_alphanumeric() {
+                        in_domain = true;
+                        result.clear();
+                    }
+                    if in_domain {
+                        if ch == '.' {
+                            dot_count += 1;
+                        }
+                        result.push(ch);
+                    }
+                } else if ch == ':' && in_domain && dot_count > 0 {
+                    colon_found = true;
+                    result.push(ch);
+                } else if ch.is_ascii_digit() && colon_found {
+                    result.push(ch);
+                } else if in_domain && (ch.is_whitespace() || ch == ' ' || ch == '\n' || ch == '\r') {
+                    if colon_found && result.contains(':') {
+                        return Some(result);
+                    }
+                    in_domain = false;
+                    dot_count = 0;
+                    colon_found = false;
+                    result.clear();
+                } else {
+                    in_domain = false;
+                    dot_count = 0;
+                    colon_found = false;
+                    result.clear();
+                }
+            }
+
+            if !result.is_empty() && result.contains(':') && result.contains('.') {
+                return Some(result);
+            }
+        } else if pattern.contains(r"(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d+)") {
+            // IP:포트 패턴
+            let mut chars = text.chars().peekable();
+            let mut result = String::new();
+            let mut in_ip = false;
+            let mut dot_count = 0;
+            let mut colon_found = false;
+
+            while let Some(ch) = chars.next() {
+                if ch.is_ascii_digit() {
+                    if !in_ip {
+                        in_ip = true;
+                        result.clear();
+                        dot_count = 0;
+                        colon_found = false;
+                    }
+                    result.push(ch);
+                } else if ch == '.' && in_ip && dot_count < 3 {
+                    dot_count += 1;
+                    result.push(ch);
+                } else if ch == ':' && in_ip && dot_count == 3 {
+                    colon_found = true;
+                    result.push(ch);
+                } else if ch.is_ascii_digit() && colon_found {
+                    result.push(ch);
+                } else if in_ip && (ch.is_whitespace() || ch == ' ' || ch == '\n' || ch == '\r') {
+                    if colon_found && result.contains(':') {
+                        return Some(result);
+                    }
+                    in_ip = false;
+                    dot_count = 0;
+                    colon_found = false;
+                    result.clear();
+                } else {
+                    in_ip = false;
+                    dot_count = 0;
+                    colon_found = false;
+                    result.clear();
+                }
+            }
+
+            if !result.is_empty() && result.contains(':') && dot_count == 3 {
+                return Some(result);
+            }
+        } else if pattern.contains(r"([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})") {
+            // 도메인만 있는 패턴
+            let mut chars = text.chars().peekable();
+            let mut result = String::new();
+            let mut in_domain = false;
+            let mut dot_count = 0;
+
+            while let Some(ch) = chars.next() {
+                if ch.is_alphanumeric() || ch == '.' || ch == '-' {
+                    if !in_domain && ch.is_alphanumeric() {
+                        in_domain = true;
+                        result.clear();
+                        dot_count = 0;
+                    }
+                    if in_domain {
+                        if ch == '.' {
+                            dot_count += 1;
+                        }
+                        result.push(ch);
+                    }
+                } else if in_domain && (ch.is_whitespace() || ch == ' ' || ch == '\n' || ch == '\r') {
+                    if dot_count > 0 && result.len() > 3 {
+                        return Some(result);
+                    }
+                    in_domain = false;
+                    dot_count = 0;
+                    result.clear();
+                } else {
+                    in_domain = false;
+                    dot_count = 0;
+                    result.clear();
+                }
+            }
+
+            if !result.is_empty() && dot_count > 0 && result.len() > 3 {
+                return Some(result);
+            }
+        }
+
+        None
+    }
+
+    /// URL에서 호스트 정보를 추출하는 헬퍼 메서드
+    fn extract_host_from_url(text: &str) -> Option<String> {
+        // HTTP/HTTPS URL 패턴에서 호스트 추출
+        let url_patterns = ["https://", "http://"];
         
+        for pattern in &url_patterns {
+            if let Some(start) = text.find(pattern) {
+                let after_protocol = &text[start + pattern.len()..];
+                if let Some(end) = after_protocol.find('/') {
+                    let host_part = &after_protocol[..end];
+                    if !host_part.is_empty() && (host_part.contains('.') || host_part.contains(':')) {
+                        return Some(host_part.to_string());
+                    }
+                } else if !after_protocol.is_empty() && (after_protocol.contains('.') || after_protocol.contains(':')) {
+                    return Some(after_protocol.to_string());
+                }
+            }
+        }
+
         None
     }
 }
@@ -476,14 +658,14 @@ impl HttpHandler for LoggingHandler {
         eprintln!("❌ [HANDLER] handle_error 호출됨 - 에러 발생!");
         eprintln!("   - 에러 타입: {:?}", err);
         eprintln!("   - 에러 메시지: {}", err);
-        
+
         // TLS 버전과 백엔드 정보 추출
         let tls_info = self.extract_tls_info_from_error(&err);
         if let Some((tls_version, tls_backend)) = tls_info {
             eprintln!("   - TLS 버전: {}", tls_version);
             eprintln!("   - TLS 백엔드: {}", tls_backend);
         }
-        
+
         // 대상 서버 정보 추출 (가능한 경우)
         if let Some(target_server) = self.extract_target_server_from_error(&err) {
             eprintln!("   - 대상 서버: {}", target_server);
