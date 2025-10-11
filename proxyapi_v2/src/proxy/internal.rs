@@ -282,7 +282,7 @@ where
                                 .should_intercept(&self.context(), &req)
                                 .await
                             {
-                                if buffer[..4] == *b"GET " {
+                                if buffer.len() >= 4 && buffer[..4] == *b"GET " {
                                     if let Err(e) = self
                                         .serve_stream(
                                             TokioIo::new(upgraded),
