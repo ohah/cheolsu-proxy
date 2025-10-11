@@ -52,12 +52,37 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
         upgraded: Rewind<TokioIo<Upgraded>>,
         initial_buffer: &[u8],
     ) -> Result<HybridTlsStream, Box<dyn std::error::Error + Send + Sync>> {
+        // TLS 버전 감지 상세 로그
+        info!("🔍 TLS 버전 감지 시작: {}", authority);
+        info!("📊 초기 버퍼 크기: {} bytes", initial_buffer.len());
+
+        // 초기 버퍼의 첫 16바이트를 hex로 로그
+        let hex_preview = if initial_buffer.len() >= 16 {
+            format!("{:02x?}", &initial_buffer[..16])
+        } else {
+            format!("{:02x?}", initial_buffer)
+        };
+        info!("🔢 초기 버퍼 (hex): {}", hex_preview);
+
         // TLS 버전 감지
         let tls_version = TlsVersionDetector::detect_tls_version(initial_buffer);
 
         match tls_version {
             Some(version) => {
-                info!("🔍 TLS 버전 감지: {}", version);
+                info!(
+                    "✅ TLS 버전 감지 성공: {} ({} bytes)",
+                    version,
+                    initial_buffer.len()
+                );
+                info!("🔧 버전별 지원 상태:");
+                info!(
+                    "  - rustls 지원: {}",
+                    TlsVersionDetector::is_rustls_supported(version)
+                );
+                info!(
+                    "  - OpenSSL 지원: {}",
+                    TlsVersionDetector::is_openssl_supported(version)
+                );
 
                 if TlsVersionDetector::is_rustls_supported(version) {
                     info!("✅ [RUSTLS] TLS 연결 시작: {} - {}", version, authority);
@@ -95,6 +120,23 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
                 }
             }
             None => {
+                warn!("⚠️ TLS 버전을 감지할 수 없음: {}", authority);
+                warn!("📊 버퍼 분석:");
+                warn!("  - 버퍼 크기: {} bytes", initial_buffer.len());
+                warn!(
+                    "  - 첫 바이트: 0x{:02x}",
+                    initial_buffer.get(0).unwrap_or(&0)
+                );
+                if initial_buffer.len() >= 5 {
+                    warn!("  - 5번째 바이트: 0x{:02x}", initial_buffer[4]);
+                }
+                if initial_buffer.len() >= 9 {
+                    warn!(
+                        "  - 9-10번째 바이트 (TLS 버전): 0x{:02x}{:02x}",
+                        initial_buffer[8], initial_buffer[9]
+                    );
+                }
+
                 warn!(
                     "⚠️ [RUSTLS] TLS 버전을 감지할 수 없음, rustls로 시도: {}",
                     authority
