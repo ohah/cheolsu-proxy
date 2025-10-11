@@ -244,12 +244,64 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
             }
         };
 
-        // native-tls Identity 생성
+        // native-tls Identity 생성 - PKCS12 대신 PEM 형식 사용 시도
         let identity = match tokio_native_tls::native_tls::Identity::from_pkcs12(&pkcs12_data, "") {
             Ok(identity) => identity,
             Err(e) => {
-                error!("❌ native-tls Identity 생성 실패: {}", e);
-                return Err(format!("Failed to create native-tls identity: {}", e).into());
+                error!("❌ native-tls Identity 생성 실패 (PKCS12): {}", e);
+
+                // PKCS12 데이터 디버깅 정보 출력
+                error!("❌ PKCS12 데이터 크기: {} bytes", pkcs12_data.len());
+                error!(
+                    "❌ PKCS12 데이터 헥스 (처음 32 bytes): {:02X?}",
+                    &pkcs12_data[..pkcs12_data.len().min(32)]
+                );
+
+                // PKCS12 형식이 올바른지 확인
+                if pkcs12_data.len() < 4 {
+                    error!("❌ PKCS12 데이터가 너무 짧음");
+                    return Err("PKCS12 data too short".into());
+                }
+
+                // PKCS12 매직 넘버 확인 (0x30 0x82 또는 0x30 0x81)
+                let magic = &pkcs12_data[0..2];
+                if magic != [0x30, 0x82] && magic != [0x30, 0x81] {
+                    error!("❌ PKCS12 매직 넘버가 올바르지 않음: {:02X?}", magic);
+                    return Err("Invalid PKCS12 magic number".into());
+                }
+
+                // PKCS12 실패 시 다른 방법으로 대체 시도
+                info!("🔧 PKCS12 실패, 다른 방법으로 대체 시도");
+
+                // native-tls에서 PKCS12 대신 다른 형식 사용 시도
+                // 먼저 PKCS12 데이터를 다시 생성해보기 (패스워드 없음)
+                info!("🔧 PKCS12 재생성 시도 (패스워드 없음)");
+
+                // CA에서 새로운 PKCS12 생성
+                let new_pkcs12_data = match self.ca.gen_pkcs12_identity(authority).await {
+                    Some(data) => data,
+                    None => {
+                        error!("❌ PKCS12 재생성 실패");
+                        return Err("Failed to regenerate PKCS12 certificate".into());
+                    }
+                };
+
+                // 새로운 PKCS12로 다시 시도
+                match tokio_native_tls::native_tls::Identity::from_pkcs12(&new_pkcs12_data, "") {
+                    Ok(identity) => {
+                        info!("✅ PKCS12 재생성으로 native-tls Identity 생성 성공");
+                        identity
+                    }
+                    Err(e2) => {
+                        error!("❌ PKCS12 재생성으로도 실패: {}", e2);
+                        error!("❌ 원본 오류: {}", e);
+                        return Err(format!(
+                            "Failed to create native-tls identity: original={}, retry={}",
+                            e, e2
+                        )
+                        .into());
+                    }
+                }
             }
         };
 
@@ -322,7 +374,7 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
             }
         };
 
-        // native-tls Identity 생성
+        // native-tls Identity 생성 - 패스워드 없음으로 시도
         info!("🔧 native-tls Identity 생성 시작 (패스워드 없음)");
         let identity = match tokio_native_tls::native_tls::Identity::from_pkcs12(&pkcs12_data, "") {
             Ok(identity) => {
@@ -330,13 +382,60 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
                 identity
             }
             Err(e) => {
-                error!("❌ native-tls Identity 생성 실패: {}", e);
+                error!("❌ native-tls Identity 생성 실패 (빈 패스워드): {}", e);
+
+                // PKCS12 데이터 디버깅 정보 출력
                 error!("❌ PKCS12 데이터 크기: {} bytes", pkcs12_data.len());
                 error!(
                     "❌ PKCS12 데이터 헥스 (처음 32 bytes): {:02X?}",
                     &pkcs12_data[..pkcs12_data.len().min(32)]
                 );
-                return Err(format!("Failed to create native-tls identity: {}", e).into());
+
+                // PKCS12 형식이 올바른지 확인
+                if pkcs12_data.len() < 4 {
+                    error!("❌ PKCS12 데이터가 너무 짧음");
+                    return Err("PKCS12 data too short".into());
+                }
+
+                // PKCS12 매직 넘버 확인 (0x30 0x82 또는 0x30 0x81)
+                let magic = &pkcs12_data[0..2];
+                if magic != [0x30, 0x82] && magic != [0x30, 0x81] {
+                    error!("❌ PKCS12 매직 넘버가 올바르지 않음: {:02X?}", magic);
+                    return Err("Invalid PKCS12 magic number".into());
+                }
+
+                // PKCS12 실패 시 다른 방법으로 대체 시도
+                info!("🔧 PKCS12 실패, 다른 방법으로 대체 시도");
+
+                // native-tls에서 PKCS12 대신 다른 형식 사용 시도
+                // 먼저 PKCS12 데이터를 다시 생성해보기 (패스워드 없음)
+                info!("🔧 PKCS12 재생성 시도 (패스워드 없음)");
+
+                // CA에서 새로운 PKCS12 생성
+                let new_pkcs12_data = match self.ca.gen_pkcs12_identity(authority).await {
+                    Some(data) => data,
+                    None => {
+                        error!("❌ PKCS12 재생성 실패");
+                        return Err("Failed to regenerate PKCS12 certificate".into());
+                    }
+                };
+
+                // 새로운 PKCS12로 다시 시도
+                match tokio_native_tls::native_tls::Identity::from_pkcs12(&new_pkcs12_data, "") {
+                    Ok(identity) => {
+                        info!("✅ PKCS12 재생성으로 native-tls Identity 생성 성공");
+                        identity
+                    }
+                    Err(e2) => {
+                        error!("❌ PKCS12 재생성으로도 실패: {}", e2);
+                        error!("❌ 원본 오류: {}", e);
+                        return Err(format!(
+                            "Failed to create native-tls identity: original={}, retry={}",
+                            e, e2
+                        )
+                        .into());
+                    }
+                }
             }
         };
 
