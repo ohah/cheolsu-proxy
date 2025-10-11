@@ -456,7 +456,8 @@ impl LoggingHandler {
                     result.push(ch);
                 } else if ch.is_ascii_digit() && colon_found {
                     result.push(ch);
-                } else if in_domain && (ch.is_whitespace() || ch == ' ' || ch == '\n' || ch == '\r') {
+                } else if in_domain && (ch.is_whitespace() || ch == ' ' || ch == '\n' || ch == '\r')
+                {
                     if colon_found && result.contains(':') {
                         return Some(result);
                     }
@@ -539,7 +540,8 @@ impl LoggingHandler {
                         }
                         result.push(ch);
                     }
-                } else if in_domain && (ch.is_whitespace() || ch == ' ' || ch == '\n' || ch == '\r') {
+                } else if in_domain && (ch.is_whitespace() || ch == ' ' || ch == '\n' || ch == '\r')
+                {
                     if dot_count > 0 && result.len() > 3 {
                         return Some(result);
                     }
@@ -565,16 +567,19 @@ impl LoggingHandler {
     fn extract_host_from_url(text: &str) -> Option<String> {
         // HTTP/HTTPS URL 패턴에서 호스트 추출
         let url_patterns = ["https://", "http://"];
-        
+
         for pattern in &url_patterns {
             if let Some(start) = text.find(pattern) {
                 let after_protocol = &text[start + pattern.len()..];
                 if let Some(end) = after_protocol.find('/') {
                     let host_part = &after_protocol[..end];
-                    if !host_part.is_empty() && (host_part.contains('.') || host_part.contains(':')) {
+                    if !host_part.is_empty() && (host_part.contains('.') || host_part.contains(':'))
+                    {
                         return Some(host_part.to_string());
                     }
-                } else if !after_protocol.is_empty() && (after_protocol.contains('.') || after_protocol.contains(':')) {
+                } else if !after_protocol.is_empty()
+                    && (after_protocol.contains('.') || after_protocol.contains(':'))
+                {
                     return Some(after_protocol.to_string());
                 }
             }
