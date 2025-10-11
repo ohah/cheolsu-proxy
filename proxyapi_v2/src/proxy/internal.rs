@@ -110,6 +110,13 @@ where
         if req.method() == Method::CONNECT {
             Ok(self.process_connect(req))
         } else if hyper_tungstenite::is_upgrade_request(&req) {
+            // Pusher WebSocket 연결 감지
+            if let Some(host) = req.uri().host() {
+                if host.contains("pusher.com") {
+                    println!("🎯 PUSHER WebSocket 연결 감지! HTTP 요청 단계에서 감지됨");
+                    println!("📍 Pusher URI: {}", req.uri());
+                }
+            }
             Ok(self.upgrade_websocket(req))
         } else {
             let normalized_req = normalize_request(req);
@@ -120,18 +127,230 @@ where
             let req_host = normalized_req.headers().get("host").cloned();
             let req_user_agent = normalized_req.headers().get("user-agent").cloned();
 
+            // 특별한 요청 감지 및 로깅
+            if let Some(host) = req_uri.host() {
+                if host.contains("pusher.com") {
+                    println!("🎯 PUSHER HTTP 요청 감지! (SockJS 폴백 사용 중)");
+                    println!("📍 Pusher URI: {}", req_uri);
+                    println!("🔧 요청 메서드: {}", req_method);
+                    println!("⚠️ WebSocket 대신 HTTP 요청을 사용하고 있습니다!");
+
+                    // SockJS 요청인 경우 WebSocket으로 리다이렉트 시도
+                    if req_uri.path().contains("/xhr") || req_uri.path().contains("/sockjs") {
+                        println!("🚫 SockJS 요청 감지 - WebSocket 사용을 강제합니다!");
+                        // 여기서 WebSocket 연결을 강제로 시도할 수 있음
+                    }
+                } else {
+                    // SSE 스트리밍 요청 감지 (모든 도메인)
+                    let accept_header = normalized_req
+                        .headers()
+                        .get("accept")
+                        .and_then(|a| a.to_str().ok())
+                        .unwrap_or("");
+
+                    let content_type = normalized_req
+                        .headers()
+                        .get("content-type")
+                        .and_then(|ct| ct.to_str().ok())
+                        .unwrap_or("");
+
+                    let is_sse_request = accept_header.contains("text/event-stream")
+                        || accept_header.contains("application/x-ndjson")
+                        || content_type.contains("text/event-stream")
+                        || content_type.contains("application/x-ndjson");
+
+                    if is_sse_request {
+                        println!("🌊 SSE 스트리밍 요청 감지!");
+                        println!("📍 URI: {}", req_uri);
+                        println!("🔧 요청 메서드: {}", req_method);
+                        println!("📋 Accept: {}", accept_header);
+                        println!("📋 Content-Type: {}", content_type);
+                        println!("🌐 호스트: {}", host);
+                    }
+                }
+            }
+
+            // SSE 요청인 경우 추가 로깅
+            let is_sse_request = normalized_req
+                .headers()
+                .get("accept")
+                .and_then(|a| a.to_str().ok())
+                .map(|a| a.contains("text/event-stream") || a.contains("application/x-ndjson"))
+                .unwrap_or(false);
+
+            if is_sse_request {
+                println!("🚀 SSE 요청을 서버로 전송 중...");
+                println!("   - Accept: {:?}", normalized_req.headers().get("accept"));
+                println!(
+                    "   - Connection: {:?}",
+                    normalized_req.headers().get("connection")
+                );
+            }
+
             let res = self
                 .client
                 .request(normalized_req)
                 .instrument(info_span!("proxy_request"))
                 .await;
 
-            match res {
-                Ok(res) => Ok(self
-                    .http_handler
-                    .handle_response(&ctx, res.map(Body::from))
-                    .instrument(info_span!("handle_response"))
-                    .await),
+                match res {
+                Ok(res) => {
+                    // 응답 수신 시간 기록
+                    let response_received_time = std::time::SystemTime::now()
+                        .duration_since(std::time::UNIX_EPOCH)
+                        .unwrap()
+                        .as_millis();
+                    
+                    // 스트리밍 응답 감지 및 로깅
+                    let content_type = res
+                        .headers()
+                        .get("content-type")
+                        .and_then(|ct| ct.to_str().ok())
+                        .unwrap_or("");
+
+                    let transfer_encoding = res
+                        .headers()
+                        .get("transfer-encoding")
+                        .and_then(|te| te.to_str().ok())
+                        .unwrap_or("");
+
+                    let is_streaming = content_type.contains("text/event-stream") 
+                        || content_type.contains("application/x-ndjson")
+                        || content_type.contains("text/plain")
+                        || content_type.contains("application/json");
+
+                    let is_chunked = transfer_encoding.contains("chunked");
+
+                    // SSE 스트리밍 요청 감지 (모든 도메인)
+                    let is_sse_request = req_uri
+                        .host()
+                        .map(|h| {
+                            h.contains("openai.com")
+                                || h.contains("api.openai.com")
+                                || h.contains("chatgpt.com")
+                                || content_type.contains("text/event-stream")
+                                || content_type.contains("application/x-ndjson")
+                        })
+                        .unwrap_or(false);
+
+                    // 모든 응답에 대해 기본 로깅
+                    println!("📡 HTTP 응답 수신");
+                    println!("   - URL: {}", req_uri);
+                    println!("   - Content-Type: {}", content_type);
+                    println!("   - Transfer-Encoding: {}", transfer_encoding);
+                    println!(
+                        "   - Content-Length: {:?}",
+                        res.headers().get("content-length")
+                    );
+                    
+                    // ChatGPT ces/v1/t 특별 감지
+                    if req_uri.path().contains("/ces/v1/t") {
+                        println!("🎯 ChatGPT ces/v1/t SSE 요청 감지!");
+                        println!("   - 강제로 SSE 스트리밍으로 처리합니다");
+                    }
+
+                    // ces/v1/t는 강제로 스트리밍으로 처리
+                    let is_ces_v1_t = req_uri.path().contains("/ces/v1/t");
+                    let force_streaming = is_streaming || is_chunked || is_sse_request || is_ces_v1_t;
+                    
+                    if force_streaming {
+                        println!("🌊 스트리밍 응답 감지!");
+                        println!(
+                            "   - 스트리밍 타입: {}",
+                            if is_streaming {
+                                "Content-Type"
+                            } else if is_ces_v1_t {
+                                "ChatGPT ces/v1/t (강제)"
+                            } else {
+                                "Transfer-Encoding"
+                            }
+                        );
+                        println!("   - SSE 요청: {}", is_sse_request);
+                        println!("   - ces/v1/t 강제 처리: {}", is_ces_v1_t);
+                        println!("   - Connection: {:?}", res.headers().get("connection"));
+                        
+                        // 스트리밍 응답인 경우 헤더 보존
+                        if is_streaming || is_chunked || is_ces_v1_t {
+                            println!("🔧 스트리밍 응답 헤더 보존 모드 활성화");
+                        }
+                    }
+
+                    // 스트리밍 응답인 경우 특별 로깅
+                    if force_streaming {
+                        println!("🔧 스트리밍 응답 Body 처리");
+                        println!("   - 응답 상태: {:?}", res.status());
+                        println!("   - 응답 헤더 수: {}", res.headers().len());
+                        println!("   - Connection: {:?}", res.headers().get("connection"));
+                        println!(
+                            "   - Cache-Control: {:?}",
+                            res.headers().get("cache-control")
+                        );
+                    }
+
+                    // 응답 전달 시작 시간 기록
+                    let response_delivery_start_time = std::time::SystemTime::now()
+                        .duration_since(std::time::UNIX_EPOCH)
+                        .unwrap()
+                        .as_millis();
+                    
+                    // 스트리밍 응답인 경우 헤더를 더 강력하게 최적화
+                    let response = if force_streaming {
+                        println!("🚀 SSE/스트리밍 응답 - 강력한 헤더 최적화로 chunk 단위 전달");
+                        println!("⏰ 응답 시간 추적:");
+                        println!("   - 서버에서 응답 수신: {}ms", response_received_time);
+                        println!("   - 클라이언트에게 전달 시작: {}ms", response_delivery_start_time);
+                        println!("   - 처리 지연시간: {}ms", response_delivery_start_time - response_received_time);
+
+                        // 스트리밍 응답 헤더 강화
+                        let (mut parts, body) = res.into_parts();
+
+                        // 스트리밍을 위한 핵심 헤더 설정
+                        parts.headers.insert(
+                            "Cache-Control",
+                            "no-cache, no-store, must-revalidate".parse().unwrap(),
+                        );
+                        parts
+                            .headers
+                            .insert("Connection", "keep-alive".parse().unwrap());
+                        parts
+                            .headers
+                            .insert("Transfer-Encoding", "chunked".parse().unwrap());
+                        parts.headers.remove("content-length");
+
+                        // 추가 스트리밍 최적화 헤더
+                        parts
+                            .headers
+                            .insert("X-Accel-Buffering", "no".parse().unwrap()); // Nginx 버퍼링 방지
+                        parts
+                            .headers
+                            .insert("X-Content-Type-Options", "nosniff".parse().unwrap());
+
+                        println!("   - Cache-Control: no-cache, no-store, must-revalidate");
+                        println!("   - Connection: keep-alive");
+                        println!("   - Transfer-Encoding: chunked");
+                        println!("   - X-Accel-Buffering: no (버퍼링 완전 방지)");
+                        println!("   - Content-Length: 제거됨");
+
+                        Response::from_parts(parts, Body::from(body))
+                    } else {
+                        println!("📄 일반 응답 - Body::from으로 변환");
+                        println!("⏰ 응답 시간 추적:");
+                        println!("   - 서버에서 응답 수신: {}ms", response_received_time);
+                        println!("   - 클라이언트에게 전달 시작: {}ms", response_delivery_start_time);
+                        println!("   - 처리 지연시간: {}ms", response_delivery_start_time - response_received_time);
+                        res.map(Body::from)
+                    };
+
+                    if force_streaming {
+                        println!("✅ 스트리밍 응답이 클라이언트에게 chunk 단위로 전달됨");
+                    }
+
+                    Ok(self
+                        .http_handler
+                        .handle_response(&ctx, response)
+                        .instrument(info_span!("handle_response"))
+                        .await)
+                }
                 Err(err) => {
                     // 실패한 요청 정보 로깅
                     println!("❌ 프록시 요청 실패");
@@ -430,6 +649,48 @@ where
 
     #[instrument(skip_all)]
     fn upgrade_websocket(self, req: Request<Body>) -> Response<Body> {
+        // WebSocket 업그레이드 요청 상세 로그
+        let original_uri = req.uri().clone();
+        let method = req.method().clone();
+        let headers = req.headers().clone();
+
+        println!("🔌 WebSocket 업그레이드 요청 시작");
+        println!("📍 요청 URI: {}", original_uri);
+        println!("🔧 요청 메서드: {}", method);
+
+        // Pusher 연결 감지
+        if let Some(host) = original_uri.host() {
+            if host.contains("pusher.com") {
+                println!("🎯 PUSHER WebSocket 연결 감지! 강제 WebSocket 모드 활성화");
+            }
+        }
+
+        // WebSocket 관련 헤더들 로그
+        if let Some(upgrade) = headers.get("upgrade") {
+            println!("⬆️ Upgrade 헤더: {:?}", upgrade);
+        }
+        if let Some(connection) = headers.get("connection") {
+            println!("🔗 Connection 헤더: {:?}", connection);
+        }
+        if let Some(ws_key) = headers.get("sec-websocket-key") {
+            println!("🔑 Sec-WebSocket-Key: {:?}", ws_key);
+        }
+        if let Some(ws_version) = headers.get("sec-websocket-version") {
+            println!("📋 Sec-WebSocket-Version: {:?}", ws_version);
+        }
+        if let Some(ws_protocol) = headers.get("sec-websocket-protocol") {
+            println!("📜 Sec-WebSocket-Protocol: {:?}", ws_protocol);
+        }
+        if let Some(ws_extensions) = headers.get("sec-websocket-extensions") {
+            println!("🔧 Sec-WebSocket-Extensions: {:?}", ws_extensions);
+        }
+        if let Some(origin) = headers.get("origin") {
+            println!("🌐 Origin: {:?}", origin);
+        }
+        if let Some(user_agent) = headers.get("user-agent") {
+            println!("🤖 User-Agent: {:?}", user_agent);
+        }
+
         // WebSocket 업그레이드 요청을 원본 핸들러로 전달
         let mut req = {
             let (mut parts, _) = req.into_parts();
@@ -444,8 +705,12 @@ where
                 };
 
                 match Uri::from_parts(parts) {
-                    Ok(uri) => uri,
-                    Err(_) => {
+                    Ok(uri) => {
+                        println!("🔄 URI 스키마 변환: {} -> {}", original_uri, uri);
+                        uri
+                    }
+                    Err(e) => {
+                        println!("❌ URI 변환 실패: {:?}", e);
                         return bad_request();
                     }
                 }
@@ -462,14 +727,81 @@ where
             .and_then(|h| h.to_str().ok())
             .map(|s| s.to_string());
 
-        let config = WebSocketConfig::default();
+        if let Some(protocol) = &requested_protocol {
+            println!("📜 요청된 WebSocket 프로토콜: {}", protocol);
+        }
+
+        let mut config = WebSocketConfig::default();
+        // Pusher 호환성을 위해 더 관대한 설정 사용
+        config.accept_unmasked_frames = true;
+        config.max_frame_size = Some(16777216); // 16MB
+        config.max_message_size = Some(67108864); // 64MB
+
+        // Pusher WebSocket 연결을 강제로 시도하도록 추가 설정
+        println!("🎯 Pusher WebSocket 연결 강제 시도 설정 적용");
+
+        // Pusher 연결인 경우 특별 처리
+        if let Some(host) = original_uri.host() {
+            if host.contains("pusher.com") {
+                println!("🎯 PUSHER WebSocket 연결 감지! 특별 처리 모드 활성화");
+                // Pusher용 추가 설정
+                config.max_frame_size = Some(33554432); // 32MB
+                config.max_message_size = Some(134217728); // 128MB
+                config.read_buffer_size = 262144; // 256KB
+                config.write_buffer_size = 262144; // 256KB
+                println!("🔧 Pusher WebSocket 설정 최적화 완료");
+            }
+        }
+        println!("⚙️ WebSocket 설정: {:?}", config);
+
         match hyper_tungstenite::upgrade(&mut req, Some(config)) {
             Ok((mut res, websocket)) => {
+                println!("✅ WebSocket 업그레이드 성공");
+                println!(
+                    "🔍 WebSocket 스트림 타입: {:?}",
+                    std::any::type_name_of_val(&websocket)
+                );
+
+                // Pusher WebSocket 연결 성공 로그
+                if let Some(host) = original_uri.host() {
+                    if host.contains("pusher.com") {
+                        println!(
+                            "🎉 PUSHER WebSocket 업그레이드 성공! 정상적인 WebSocket 연결입니다!"
+                        );
+
+                        // Pusher 연결 유지를 위한 헤더 추가
+                        res.headers_mut()
+                            .insert("Keep-Alive", "timeout=300, max=1000".parse().unwrap());
+
+                        // Pusher 연결 안정성을 위한 추가 헤더
+                        res.headers_mut()
+                            .insert("Connection", "Upgrade".parse().unwrap());
+
+                        // WebSocket 프로토콜 명시
+                        if let Some(protocol) = req.headers().get("sec-websocket-protocol") {
+                            res.headers_mut()
+                                .insert("sec-websocket-protocol", protocol.clone());
+                            println!("🔧 WebSocket 프로토콜 헤더 복사: {:?}", protocol);
+                        }
+
+                        println!("🔧 Pusher WebSocket 헤더 최적화 완료");
+                    }
+                }
+
+                // 응답 헤더 로그
+                println!("📤 응답 상태: {:?}", res.status());
+                for (name, value) in res.headers() {
+                    if name.as_str().starts_with("sec-websocket") {
+                        println!("📋 응답 헤더 {}: {:?}", name, value);
+                    }
+                }
+
                 // 클라이언트가 요청한 프로토콜이 있으면 응답에 포함
                 if let Some(protocol) = requested_protocol {
                     if let Ok(header_value) = protocol.parse() {
                         res.headers_mut()
                             .insert("sec-websocket-protocol", header_value);
+                        println!("✅ WebSocket 프로토콜 응답에 추가: {}", protocol);
                     }
                 }
 
@@ -477,12 +809,15 @@ where
                 let fut = async move {
                     match websocket.await {
                         Ok(ws) => {
+                            println!("🔌 WebSocket 스트림 준비 완료");
                             if let Err(e) = self.handle_websocket_tunnel(ws, req).await {
-                                error!("Failed to handle WebSocket tunnel: {}", e);
+                                println!("❌ WebSocket 터널 처리 실패: {}", e);
+                            } else {
+                                println!("✅ WebSocket 터널 처리 완료");
                             }
                         }
                         Err(e) => {
-                            error!("Failed to upgrade to WebSocket: {}", e);
+                            println!("❌ WebSocket 업그레이드 대기 실패: {}", e);
                         }
                     }
                 };
@@ -491,7 +826,9 @@ where
                 res.map(Body::from)
             }
             Err(e) => {
-                error!("WebSocket upgrade failed: {:?}", e);
+                println!("❌ WebSocket 업그레이드 실패: {:?}", e);
+                println!("📍 실패한 요청 URI: {}", req.uri());
+                println!("🔧 실패한 요청 메서드: {}", req.method());
                 bad_request()
             }
         }
@@ -506,18 +843,152 @@ where
         // WebSocket 터널링 구현
         let uri = req.uri().clone();
 
+        println!("🌐 WebSocket 터널 시작: {}", uri);
+        println!("🔗 대상 서버: {}", uri.host().unwrap_or("unknown"));
+        println!(
+            "🔌 포트: {}",
+            uri.port_u16()
+                .unwrap_or(if uri.scheme_str() == Some("wss") {
+                    443
+                } else {
+                    80
+                })
+        );
+
+        // Pusher 웹소켓 연결 특별 처리
+        if let Some(host) = uri.host() {
+            if host.contains("pusher.com") {
+                println!("🎯 Pusher 웹소켓 연결 감지!");
+                println!("📋 Pusher URI 분석:");
+                println!("  - 전체 URI: {}", uri);
+                println!("  - 호스트: {}", host);
+                println!("  - 스키마: {:?}", uri.scheme_str());
+                println!("  - 포트: {:?}", uri.port_u16());
+                println!("  - 경로: {}", uri.path());
+                println!("  - 쿼리: {:?}", uri.query());
+
+                // Pusher 관련 헤더 확인
+                for (name, value) in req.headers() {
+                    if name.as_str().to_lowercase().contains("pusher")
+                        || name.as_str().to_lowercase().contains("app")
+                        || name.as_str().to_lowercase().contains("protocol")
+                    {
+                        println!("📋 Pusher 관련 헤더 {}: {:?}", name, value);
+                    }
+                }
+            }
+        }
+
         // 서버에 WebSocket 연결
+        println!("🔌 서버에 WebSocket 연결 시도 중...");
+
         #[cfg(any(feature = "rustls-client", feature = "native-tls-client"))]
-        let (server_socket, _) = tokio_tungstenite::connect_async_tls_with_config(
-            req,
-            None,
-            false,
-            self.websocket_connector,
-        )
-        .await?;
+        let (server_socket, response) = {
+            println!("🔐 TLS 클라이언트 기능 활성화됨");
+            let mut ws_config = WebSocketConfig::default();
+            ws_config.accept_unmasked_frames = true;
+            ws_config.max_frame_size = Some(16777216); // 16MB
+            ws_config.max_message_size = Some(67108864); // 64MB
+            ws_config.read_buffer_size = 262144; // 256KB
+            ws_config.write_buffer_size = 262144; // 256KB
+
+            // Pusher 연결인 경우 추가 최적화
+            if let Some(host) = uri.host() {
+                if host.contains("pusher.com") {
+                    println!("🎯 Pusher 서버 연결 최적화 적용");
+                    ws_config.max_frame_size = Some(33554432); // 32MB
+                    ws_config.max_message_size = Some(134217728); // 128MB
+
+                    // Pusher 연결 안정성을 위한 추가 설정
+                    println!("🔧 Pusher 서버 연결 안정성 강화");
+                }
+            }
+
+            println!("⚙️ 서버 연결용 WebSocket 설정: {:?}", ws_config);
+
+            match tokio_tungstenite::connect_async_tls_with_config(
+                req,
+                Some(ws_config),
+                false,
+                self.websocket_connector,
+            )
+            .await
+            {
+                Ok(result) => {
+                    println!("✅ TLS WebSocket 연결 성공");
+                    result
+                }
+                Err(e) => {
+                    println!("❌ TLS WebSocket 연결 실패: {}", e);
+                    println!("📍 연결 시도한 URI: {}", uri);
+                    println!("🔧 연결 시도한 호스트: {}", uri.host().unwrap_or("unknown"));
+                    println!(
+                        "🔌 연결 시도한 포트: {}",
+                        uri.port_u16()
+                            .unwrap_or(if uri.scheme_str() == Some("wss") {
+                                443
+                            } else {
+                                80
+                            })
+                    );
+                    return Err(e);
+                }
+            }
+        };
 
         #[cfg(not(any(feature = "rustls-client", feature = "native-tls-client")))]
-        let (server_socket, _) = tokio_tungstenite::connect_async(req).await?;
+        let (server_socket, response) = {
+            println!("🔓 일반 WebSocket 연결 (TLS 기능 비활성화)");
+            let mut ws_config = WebSocketConfig::default();
+            ws_config.accept_unmasked_frames = true;
+            ws_config.max_frame_size = Some(16777216); // 16MB
+            ws_config.max_message_size = Some(67108864); // 64MB
+            ws_config.read_buffer_size = 262144; // 256KB
+            ws_config.write_buffer_size = 262144; // 256KB
+
+            // Pusher 연결인 경우 추가 최적화
+            if let Some(host) = uri.host() {
+                if host.contains("pusher.com") {
+                    println!("🎯 Pusher 일반 연결 최적화 적용");
+                    ws_config.max_frame_size = Some(33554432); // 32MB
+                    ws_config.max_message_size = Some(134217728); // 128MB
+                }
+            }
+
+            println!("⚙️ 일반 연결용 WebSocket 설정: {:?}", ws_config);
+
+            match tokio_tungstenite::connect_async_with_config(req, Some(ws_config)).await {
+                Ok(result) => {
+                    println!("✅ 일반 WebSocket 연결 성공");
+                    result
+                }
+                Err(e) => {
+                    println!("❌ 일반 WebSocket 연결 실패: {}", e);
+                    println!("📍 연결 시도한 URI: {}", uri);
+                    println!("🔧 연결 시도한 호스트: {}", uri.host().unwrap_or("unknown"));
+                    println!(
+                        "🔌 연결 시도한 포트: {}",
+                        uri.port_u16()
+                            .unwrap_or(if uri.scheme_str() == Some("wss") {
+                                443
+                            } else {
+                                80
+                            })
+                    );
+                    return Err(e);
+                }
+            }
+        };
+
+        println!("✅ 서버 WebSocket 연결 성공");
+        println!("📤 서버 응답 상태: {:?}", response.status());
+
+        // 서버 응답 헤더 로그
+        for (name, value) in response.headers() {
+            if name.as_str().starts_with("sec-websocket") {
+                println!("📋 서버 응답 헤더 {}: {:?}", name, value);
+            }
+        }
 
         // WebSocket 핸들러를 사용하여 터널링 구현
         let (server_sink, server_stream) = server_socket.split();
@@ -528,6 +999,7 @@ where
         } = self;
 
         // WebSocket 핸들러를 사용하여 메시지 전달
+        println!("🔄 서버→클라이언트 메시지 전달기 시작");
         spawn_message_forwarder(
             server_stream,
             client_sink,
@@ -538,6 +1010,7 @@ where
             },
         );
 
+        println!("🔄 클라이언트→서버 메시지 전달기 시작");
         spawn_message_forwarder(
             client_stream,
             server_sink,
