@@ -140,7 +140,6 @@ where
                         || accept_header.contains("application/x-ndjson")
                         || content_type.contains("text/event-stream")
                         || content_type.contains("application/x-ndjson");
-
                 }
             }
 
@@ -151,7 +150,6 @@ where
                 .and_then(|a| a.to_str().ok())
                 .map(|a| a.contains("text/event-stream") || a.contains("application/x-ndjson"))
                 .unwrap_or(false);
-
 
             let res = self
                 .client
@@ -189,14 +187,10 @@ where
                     let is_sse_request = content_type.contains("text/event-stream")
                         || content_type.contains("application/x-ndjson");
 
-
-
                     // ces/v1/t는 강제로 스트리밍으로 처리
                     let is_ces_v1_t = req_uri.path().contains("/ces/v1/t");
                     let force_streaming =
                         is_streaming || is_chunked || is_sse_request || is_ces_v1_t;
-
-
 
                     // 응답 전달 시작 시간 기록
                     let _response_delivery_start_time = std::time::SystemTime::now()
@@ -206,7 +200,6 @@ where
 
                     // 스트리밍 응답인 경우 헤더를 더 강력하게 최적화
                     let response = if force_streaming {
-
                         // 스트리밍 응답 헤더 강화
                         let (mut parts, body) = res.into_parts();
 
@@ -231,12 +224,10 @@ where
                             .headers
                             .insert("X-Content-Type-Options", "nosniff".parse().unwrap());
 
-
                         Response::from_parts(parts, Body::from(body))
                     } else {
                         res.map(Body::from)
                     };
-
 
                     Ok(self
                         .http_handler
@@ -581,18 +572,14 @@ where
             .and_then(|h| h.to_str().ok())
             .map(|s| s.to_string());
 
-
         let mut config = WebSocketConfig::default();
         // WebSocket 설정
         config.accept_unmasked_frames = true;
         config.max_frame_size = Some(16777216); // 16MB
         config.max_message_size = Some(67108864); // 64MB
 
-
         match hyper_tungstenite::upgrade(&mut req, Some(config)) {
             Ok((mut res, websocket)) => {
-
-
                 // 클라이언트가 요청한 프로토콜이 있으면 응답에 포함
                 if let Some(protocol) = requested_protocol {
                     if let Ok(header_value) = protocol.parse() {
