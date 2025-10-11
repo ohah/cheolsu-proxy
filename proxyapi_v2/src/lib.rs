@@ -82,6 +82,38 @@ pub struct HttpContext {
     pub client_addr: SocketAddr,
 }
 
+/// SSE 전용 핸들러 - chunk 단위로 실시간 전달
+pub struct SseHandler;
+
+impl SseHandler {
+    /// SSE 응답을 chunk 단위로 실시간 전달
+    pub async fn handle_sse_response(&self, res: Response<Body>) -> Response<Body> {
+        let _sse_processing_time = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_millis();
+
+        let (mut parts, body) = res.into_parts();
+
+        // SSE 최적화된 헤더 설정
+        parts
+            .headers
+            .insert("Cache-Control", "no-cache".parse().unwrap());
+        parts
+            .headers
+            .insert("Connection", "keep-alive".parse().unwrap());
+        parts.headers.remove("content-length");
+
+        // Transfer-Encoding: chunked 명시적 설정
+        parts
+            .headers
+            .insert("Transfer-Encoding", "chunked".parse().unwrap());
+
+        // Body를 그대로 전달 (proxy/internal.rs에서 이미 chunk 단위로 처리됨)
+        Response::from_parts(parts, body)
+    }
+}
+
 /// Context for websocket messages.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum WebSocketContext {
@@ -123,7 +155,52 @@ pub trait HttpHandler: Clone + Send + Sync + 'static {
         _ctx: &HttpContext,
         res: Response<Body>,
     ) -> impl Future<Output = Response<Body>> + Send {
-        async { res }
+        async {
+            // SSE 스트리밍 응답 감지 및 로깅
+            let content_type = res
+                .headers()
+                .get("content-type")
+                .and_then(|ct| ct.to_str().ok())
+                .unwrap_or("");
+
+            let transfer_encoding = res
+                .headers()
+                .get("transfer-encoding")
+                .and_then(|te| te.to_str().ok())
+                .unwrap_or("");
+
+            let is_sse = content_type.contains("text/event-stream")
+                || content_type.contains("application/x-ndjson")
+                || transfer_encoding.contains("chunked");
+
+            if is_sse {
+                let _sse_handler_time = std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap()
+                    .as_millis();
+
+                // SSE 응답인 경우 헤더 최적화
+                let (mut parts, body) = res.into_parts();
+
+                // 스트리밍을 위한 헤더 설정
+                parts
+                    .headers
+                    .insert("Cache-Control", "no-cache".parse().unwrap());
+                parts
+                    .headers
+                    .insert("Connection", "keep-alive".parse().unwrap());
+
+                // Content-Length가 있다면 제거 (스트리밍에서는 불필요)
+                parts.headers.remove("content-length");
+
+                // SSE 전용 핸들러로 chunk 단위 전달
+                return SseHandler
+                    .handle_sse_response(Response::from_parts(parts, body))
+                    .await;
+            }
+
+            res
+        }
     }
 
     /// This handler will be called if a proxy request fails. Default response is a 502 Bad Gateway.
@@ -164,28 +241,54 @@ pub trait WebSocketHandler: Clone + Send + Sync + 'static {
         mut sink: impl Sink<Message, Error = tungstenite::Error> + Unpin + Send + 'static,
     ) -> impl Future<Output = ()> + Send {
         async move {
-            while let Some(message) = stream.next().await {
-                match message {
-                    Ok(message) => {
-                        let Some(message) = self.handle_message(&ctx, message).await else {
-                            continue;
-                        };
+            let mut _message_count = 0;
 
-                        match sink.send(message).await {
-                            Err(tungstenite::Error::ConnectionClosed) => (),
-                            Err(e) => error!("WebSocket send error: {}", e),
-                            _ => (),
+            loop {
+                match stream.next().await {
+                    Some(message) => {
+                        _message_count += 1;
+                        match message {
+                            Ok(message) => {
+                                let Some(message) = self.handle_message(&ctx, message).await else {
+                                    continue;
+                                };
+
+                                match sink.send(message).await {
+                                    Err(tungstenite::Error::ConnectionClosed) => {
+                                        break;
+                                    }
+                                    Err(e) => {
+                                        println!("❌ WebSocket 전송 에러: {}", e);
+                                        break;
+                                    }
+                                    Ok(_) => {}
+                                }
+                            }
+                            Err(e) => {
+                                println!("❌ WebSocket 메시지 에러: {}", e);
+
+                                // Reserved bits 에러인 경우 연결을 끊지 않고 계속 진행
+                                if e.to_string().contains("Reserved bits are non-zero") {
+                                    println!(
+                                        "⚠️ Reserved bits 에러 감지 - 메시지를 건너뛰고 계속 대기"
+                                    );
+                                    // 이 메시지만 건너뛰고 다음 메시지 계속 처리
+                                    continue;
+                                }
+
+                                match sink.send(Message::Close(None)).await {
+                                    Err(tungstenite::Error::ConnectionClosed) => {}
+                                    Err(e) => {
+                                        println!("❌ WebSocket Close 전송 에러: {}", e);
+                                    }
+                                    Ok(_) => {}
+                                };
+
+                                break;
+                            }
                         }
                     }
-                    Err(e) => {
-                        error!("WebSocket message error: {}", e);
-
-                        match sink.send(Message::Close(None)).await {
-                            Err(tungstenite::Error::ConnectionClosed) => (),
-                            Err(e) => error!("WebSocket close error: {}", e),
-                            _ => (),
-                        };
-
+                    None => {
                         break;
                     }
                 }
@@ -200,6 +303,35 @@ pub trait WebSocketHandler: Clone + Send + Sync + 'static {
         _ctx: &WebSocketContext,
         message: Message,
     ) -> impl Future<Output = Option<Message>> + Send {
-        async { Some(message) }
+        async move {
+            match &message {
+                Message::Text(text) => {
+                    // SockJS 프레이밍 제거 (다양한 형태 지원)
+                    let cleaned_text = if text.starts_with("a[\"") && text.ends_with("\"]") {
+                        let inner = &text[3..text.len() - 2]; // a[" 와 "] 제거
+                        inner.to_string()
+                    } else if text.starts_with("a[") && text.ends_with("]") {
+                        // a[...] 형태 (따옴표 없음)
+                        let inner = &text[2..text.len() - 1]; // a[ 와 ] 제거
+                        inner.to_string()
+                    } else if text.starts_with("a\"") && text.ends_with("\"") {
+                        // a"..." 형태
+                        let inner = &text[2..text.len() - 1]; // a" 와 " 제거
+                        inner.to_string()
+                    } else {
+                        text.to_string()
+                    };
+
+                    // 정리된 메시지로 교체
+                    return Some(Message::Text(cleaned_text.into()));
+                }
+                Message::Binary(_data) => {}
+                Message::Ping(_data) => {}
+                Message::Pong(_data) => {}
+                Message::Close(_frame) => {}
+                Message::Frame(_) => {}
+            }
+            Some(message)
+        }
     }
 }

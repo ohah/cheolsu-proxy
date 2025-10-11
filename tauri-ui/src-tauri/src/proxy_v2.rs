@@ -1,4 +1,6 @@
 use bytes::Bytes;
+use futures_util::stream::StreamExt;
+use http_body_util::{BodyExt, StreamBody};
 use hyper_rustls::HttpsConnectorBuilder;
 use hyper_util::{
     client::legacy::{connect::HttpConnector, Client},
@@ -23,6 +25,7 @@ use tokio::net::TcpListener;
 use tokio::sync::oneshot::Sender;
 use tokio::sync::Mutex;
 use tokio_rustls::rustls::{crypto::aws_lc_rs, ClientConfig};
+use tokio_stream::wrappers::ReceiverStream;
 
 /// 모든 인증서를 허용하는 위험한 인증서 검증기
 #[derive(Debug)]
@@ -334,6 +337,259 @@ impl LoggingHandler {
                 .unwrap()
         }
     }
+
+    /// 에러 메시지에서 TLS 버전과 백엔드 정보를 추출합니다
+    fn extract_tls_info_from_error(
+        &self,
+        err: &hyper_util::client::legacy::Error,
+    ) -> Option<(String, String)> {
+        let err_str = err.to_string();
+
+        // TLS 버전 추출 (더 정확한 패턴 매칭)
+        let tls_version = if err_str.contains("TLS 1.0") || err_str.contains("TLS/1.0") {
+            "TLS 1.0"
+        } else if err_str.contains("TLS 1.1") || err_str.contains("TLS/1.1") {
+            "TLS 1.1"
+        } else if err_str.contains("TLS 1.2") || err_str.contains("TLS/1.2") {
+            "TLS 1.2"
+        } else if err_str.contains("TLS 1.3") || err_str.contains("TLS/1.3") {
+            "TLS 1.3"
+        } else if err_str.contains("SSL 3.0") || err_str.contains("SSL/3.0") {
+            "SSL 3.0"
+        } else if err_str.contains("handshake") || err_str.contains("TLS") {
+            "TLS (버전 미확인)"
+        } else {
+            "알 수 없음"
+        };
+
+        // TLS 백엔드 추출 (하이브리드 핸들러 로그 패턴 인식)
+        let tls_backend = if err_str.contains("[RUSTLS]") || err_str.contains("rustls handshake") {
+            "RUSTLS"
+        } else if err_str.contains("[NATIVE-TLS]")
+            || err_str.contains("native-tls handshake")
+            || err_str.contains("PKCS12")
+        {
+            "NATIVE-TLS"
+        } else if err_str.contains("rustls") || err_str.contains("RUSTLS") {
+            "RUSTLS"
+        } else if err_str.contains("native-tls")
+            || err_str.contains("NATIVE-TLS")
+            || err_str.contains("OpenSSL")
+        {
+            "NATIVE-TLS"
+        } else if err_str.contains("handshake") || err_str.contains("TLS") {
+            "TLS (백엔드 미확인)"
+        } else {
+            "알 수 없음"
+        };
+
+        Some((tls_version.to_string(), tls_backend.to_string()))
+    }
+
+    /// 에러 메시지에서 대상 서버 정보를 추출합니다
+    fn extract_target_server_from_error(
+        &self,
+        err: &hyper_util::client::legacy::Error,
+    ) -> Option<String> {
+        let err_str = err.to_string();
+
+        // 하이브리드 TLS 핸들러 로그에서 서버 정보 추출
+        // 예: "❌ [RUSTLS] TLS 연결 실패: TLS 1.1 - gateway.icloud.com:443 - 오류: ..."
+        if let Some(start) = err_str.find(" - ") {
+            if let Some(end) = err_str[start + 3..].find(" - 오류:") {
+                let server_info = &err_str[start + 3..start + 3 + end];
+                if !server_info.is_empty() && server_info.contains(':') {
+                    return Some(server_info.trim().to_string());
+                }
+            }
+        }
+
+        // 범용적인 도메인:포트 패턴 추출
+        // 정규표현식 대신 간단한 패턴 매칭 사용
+        let patterns = [
+            // 도메인:포트 패턴 (예: example.com:443, api.service.com:8080)
+            (r"([a-zA-Z0-9.-]+\.[a-zA-Z]{2,}:\d+)", "도메인:포트"),
+            // IP:포트 패턴 (예: 192.168.1.1:443, 127.0.0.1:8080)
+            (r"(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d+)", "IP:포트"),
+            // 도메인만 있는 경우 (예: example.com)
+            (r"([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})", "도메인"),
+        ];
+
+        for (pattern, _description) in &patterns {
+            if let Some(server_info) = Self::extract_pattern(&err_str, pattern) {
+                if !server_info.is_empty() {
+                    return Some(server_info);
+                }
+            }
+        }
+
+        // URL 패턴에서 호스트 추출 시도
+        if let Some(host) = Self::extract_host_from_url(&err_str) {
+            return Some(host);
+        }
+
+        None
+    }
+
+    /// 문자열에서 패턴을 추출하는 헬퍼 메서드
+    fn extract_pattern(text: &str, pattern: &str) -> Option<String> {
+        // 간단한 패턴 매칭 (정규표현식 없이)
+        if pattern.contains(r"([a-zA-Z0-9.-]+\.[a-zA-Z]{2,}:\d+)") {
+            // 도메인:포트 패턴
+            let mut chars = text.chars().peekable();
+            let mut result = String::new();
+            let mut in_domain = false;
+            let mut dot_count = 0;
+            let mut colon_found = false;
+
+            while let Some(ch) = chars.next() {
+                if ch.is_alphanumeric() || ch == '.' || ch == '-' {
+                    if !in_domain && ch.is_alphanumeric() {
+                        in_domain = true;
+                        result.clear();
+                    }
+                    if in_domain {
+                        if ch == '.' {
+                            dot_count += 1;
+                        }
+                        result.push(ch);
+                    }
+                } else if ch == ':' && in_domain && dot_count > 0 {
+                    colon_found = true;
+                    result.push(ch);
+                } else if ch.is_ascii_digit() && colon_found {
+                    result.push(ch);
+                } else if in_domain && (ch.is_whitespace() || ch == ' ' || ch == '\n' || ch == '\r')
+                {
+                    if colon_found && result.contains(':') {
+                        return Some(result);
+                    }
+                    in_domain = false;
+                    dot_count = 0;
+                    colon_found = false;
+                    result.clear();
+                } else {
+                    in_domain = false;
+                    dot_count = 0;
+                    colon_found = false;
+                    result.clear();
+                }
+            }
+
+            if !result.is_empty() && result.contains(':') && result.contains('.') {
+                return Some(result);
+            }
+        } else if pattern.contains(r"(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d+)") {
+            // IP:포트 패턴
+            let mut chars = text.chars().peekable();
+            let mut result = String::new();
+            let mut in_ip = false;
+            let mut dot_count = 0;
+            let mut colon_found = false;
+
+            while let Some(ch) = chars.next() {
+                if ch.is_ascii_digit() {
+                    if !in_ip {
+                        in_ip = true;
+                        result.clear();
+                        dot_count = 0;
+                        colon_found = false;
+                    }
+                    result.push(ch);
+                } else if ch == '.' && in_ip && dot_count < 3 {
+                    dot_count += 1;
+                    result.push(ch);
+                } else if ch == ':' && in_ip && dot_count == 3 {
+                    colon_found = true;
+                    result.push(ch);
+                } else if ch.is_ascii_digit() && colon_found {
+                    result.push(ch);
+                } else if in_ip && (ch.is_whitespace() || ch == ' ' || ch == '\n' || ch == '\r') {
+                    if colon_found && result.contains(':') {
+                        return Some(result);
+                    }
+                    in_ip = false;
+                    dot_count = 0;
+                    colon_found = false;
+                    result.clear();
+                } else {
+                    in_ip = false;
+                    dot_count = 0;
+                    colon_found = false;
+                    result.clear();
+                }
+            }
+
+            if !result.is_empty() && result.contains(':') && dot_count == 3 {
+                return Some(result);
+            }
+        } else if pattern.contains(r"([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})") {
+            // 도메인만 있는 패턴
+            let mut chars = text.chars().peekable();
+            let mut result = String::new();
+            let mut in_domain = false;
+            let mut dot_count = 0;
+
+            while let Some(ch) = chars.next() {
+                if ch.is_alphanumeric() || ch == '.' || ch == '-' {
+                    if !in_domain && ch.is_alphanumeric() {
+                        in_domain = true;
+                        result.clear();
+                        dot_count = 0;
+                    }
+                    if in_domain {
+                        if ch == '.' {
+                            dot_count += 1;
+                        }
+                        result.push(ch);
+                    }
+                } else if in_domain && (ch.is_whitespace() || ch == ' ' || ch == '\n' || ch == '\r')
+                {
+                    if dot_count > 0 && result.len() > 3 {
+                        return Some(result);
+                    }
+                    in_domain = false;
+                    dot_count = 0;
+                    result.clear();
+                } else {
+                    in_domain = false;
+                    dot_count = 0;
+                    result.clear();
+                }
+            }
+
+            if !result.is_empty() && dot_count > 0 && result.len() > 3 {
+                return Some(result);
+            }
+        }
+
+        None
+    }
+
+    /// URL에서 호스트 정보를 추출하는 헬퍼 메서드
+    fn extract_host_from_url(text: &str) -> Option<String> {
+        // HTTP/HTTPS URL 패턴에서 호스트 추출
+        let url_patterns = ["https://", "http://"];
+
+        for pattern in &url_patterns {
+            if let Some(start) = text.find(pattern) {
+                let after_protocol = &text[start + pattern.len()..];
+                if let Some(end) = after_protocol.find('/') {
+                    let host_part = &after_protocol[..end];
+                    if !host_part.is_empty() && (host_part.contains('.') || host_part.contains(':'))
+                    {
+                        return Some(host_part.to_string());
+                    }
+                } else if !after_protocol.is_empty()
+                    && (after_protocol.contains('.') || after_protocol.contains(':'))
+                {
+                    return Some(after_protocol.to_string());
+                }
+            }
+        }
+
+        None
+    }
 }
 
 impl HttpHandler for LoggingHandler {
@@ -391,15 +647,93 @@ impl HttpHandler for LoggingHandler {
             }
         }
 
-        // 일반 응답 처리
-        let (proxied_response, restored_res) = self.response_to_proxied_response(res).await;
-        self.res = Some(proxied_response);
+        // SSE (Server-Sent Events) 응답인지 Content-Type 헤더로 확인합니다.
+        let is_sse = res
+            .headers()
+            .get(proxyapi_v2::hyper::header::CONTENT_TYPE)
+            .map_or(false, |v| {
+                v.to_str().unwrap_or("").contains("text/event-stream")
+            });
 
-        // 요청과 응답을 묶어서 전송
-        self.send_output();
+        if !is_sse {
+            // SSE가 아닌 일반 응답은 기존 방식대로 전체 본문을 읽어 처리합니다.
+            let (proxied_response, restored_res) = self.response_to_proxied_response(res).await;
+            self.res = Some(proxied_response);
+            self.send_output();
+            return restored_res;
+        }
 
-        // 원본 응답을 그대로 반환 (기존 proxyapi 방식)
-        restored_res
+        // --- SSE 스트리밍 처리 로직 ---
+        // 목표: 클라이언트에게는 응답을 실시간으로 스트리밍하면서, 동시에 전체 응답 내용을 로깅하기 위해 백그라운드에서 본문을 수집합니다.
+
+        // 1. 응답 객체를 헤더(parts)와 본문(body)으로 분리합니다.
+        let (parts, body) = res.into_parts();
+
+        // 2. 스트리밍 데이터를 전달할 비동기 채널을 생성합니다.
+        // tx (송신자)는 원본 응답 본문에서 청크를 읽어 여기로 보내고,
+        // rx (수신자)는 이 채널에서 청크를 받아 클라이언트에게 전달될 새 본문을 구성합니다.
+        let (tx, rx) = tokio::sync::mpsc::channel(4);
+
+        // 3. 수신자(rx)로부터 스트림을 생성하고, 이를 StreamBody로 감싸 새로운 응답 본문을 만듭니다.
+        // 이 `stream_body`는 클라이언트로 즉시 반환될 응답에 포함됩니다.
+        let stream = ReceiverStream::new(rx).map(Ok::<_, proxyapi_v2::Error>);
+        let stream_body = StreamBody::new(stream);
+
+        // 4. 클라이언트로 보낼 최종 응답 객체를 생성합니다.
+        // 헤더는 원본 응답의 것을 그대로 사용하고, 본문은 위에서 만든 스트리밍 본문으로 교체합니다.
+        let response_for_client = Response::from_parts(parts.clone(), Body::from(stream_body));
+
+        // 5. 로깅을 위해 핸들러 상태를 복제하여 백그라운드 태스크로 넘깁니다.
+        // `self.clone()`은 `req` 필드를 포함한 핸들러의 모든 상태를 복제합니다.
+        let mut handler_clone = self.clone();
+
+        // 6. 별도의 비동기 태스크를 실행하여 원본 본문 스트림을 처리합니다.
+        // 이 태스크는 `handle_response` 함수가 클라이언트에 응답을 반환하는 것을 막지 않고 동시에 실행됩니다.
+        tauri::async_runtime::spawn(async move {
+            let mut body_stream = body;
+            let mut collected_chunks = Vec::new();
+
+            // 원본 본문 스트림이 끝날 때까지 청크를 하나씩 읽습니다.
+            while let Some(frame_result) = body_stream.frame().await {
+                match frame_result {
+                    Ok(frame) => {
+                        // 데이터가 포함된 프레임인 경우, 로깅을 위해 `collected_chunks`에 데이터를 복사합니다.
+                        if let Some(data) = frame.data_ref() {
+                            collected_chunks.extend_from_slice(data);
+                        }
+
+                        // 원본 프레임(데이터 또는 트레일러)을 채널(tx)을 통해 클라이언트 응답 스트림으로 보냅니다.
+                        // 만약 수신자(rx)가 사라지면 (예: 클라이언트 연결 종료), 에러가 발생하며 루프를 탈출합니다.
+                        if tx.send(frame).await.is_err() {
+                            break;
+                        }
+                    }
+                    Err(e) => {
+                        // 원본 스트림에서 에러 발생 시 로깅하고 루프를 탈출합니다.
+                        eprintln!("[SSE Stream] Error reading from upstream: {:?}", e);
+                        break;
+                    }
+                }
+            }
+
+            // 7. 스트림이 모두 끝나면, 수집된 전체 본문 데이터로 `ProxiedResponse`를 생성합니다.
+            let proxied_response = ProxiedResponse::new(
+                parts.status,
+                parts.version,
+                parts.headers,
+                Bytes::from(collected_chunks),
+                chrono::Local::now()
+                    .timestamp_nanos_opt()
+                    .unwrap_or_default(),
+            );
+
+            // 8. 완성된 응답 정보를 UI로 전송하여 로깅합니다.
+            handler_clone.res = Some(proxied_response);
+            handler_clone.send_output();
+        });
+
+        // 9. 스트리밍 본문이 포함된 응답을 즉시 클라이언트로 반환합니다.
+        response_for_client
     }
 
     async fn handle_error(
@@ -410,6 +744,18 @@ impl HttpHandler for LoggingHandler {
         eprintln!("❌ [HANDLER] handle_error 호출됨 - 에러 발생!");
         eprintln!("   - 에러 타입: {:?}", err);
         eprintln!("   - 에러 메시지: {}", err);
+
+        // TLS 버전과 백엔드 정보 추출
+        let tls_info = self.extract_tls_info_from_error(&err);
+        if let Some((tls_version, tls_backend)) = tls_info {
+            eprintln!("   - TLS 버전: {}", tls_version);
+            eprintln!("   - TLS 백엔드: {}", tls_backend);
+        }
+
+        // 대상 서버 정보 추출 (가능한 경우)
+        if let Some(target_server) = self.extract_target_server_from_error(&err) {
+            eprintln!("   - 대상 서버: {}", target_server);
+        }
 
         // UnexpectedEof 에러인지 먼저 확인
         if let Some(source) = err.source() {
@@ -650,7 +996,7 @@ pub async fn start_proxy_v2<R: Runtime>(
             addr.port(),
             addr.port()
         );
-        println!("ℹ️ {}", already_running_message);
+        // println!("ℹ️ {}", already_running_message);
         return Ok(ProxyStartResult {
             status: true,
             message: already_running_message,
@@ -659,11 +1005,11 @@ pub async fn start_proxy_v2<R: Runtime>(
     drop(proxy_guard); // 락 해제
 
     // CA 인증서 생성 (proxyapi_v2의 build_ca 함수 사용)
-    println!("🔐 CA 인증서 생성/로드 시도 중...");
+    // println!("🔐 CA 인증서 생성/로드 시도 중...");
     let ca = match build_ca() {
         Ok(ca) => {
-            println!("✅ CA 인증서 로드 완료");
-            println!("   - CA 인증서가 성공적으로 생성/로드되었습니다");
+            // println!("✅ CA 인증서 로드 완료");
+            // println!("   - CA 인증서가 성공적으로 생성/로드되었습니다");
             ca
         }
         Err(e) => {
@@ -703,7 +1049,7 @@ pub async fn start_proxy_v2<R: Runtime>(
     // TCP 리스너 생성
     let listener = match TcpListener::bind(addr).await {
         Ok(listener) => {
-            println!("✅ 포트 {}에서 TCP 리스너 시작됨", addr.port());
+            // println!("✅ 포트 {}에서 TCP 리스너 시작됨", addr.port());
             listener
         }
         Err(e) => {
@@ -719,10 +1065,10 @@ pub async fn start_proxy_v2<R: Runtime>(
     // 하이브리드 클라이언트 생성 (모든 인증서 허용)
     let hybrid_client = match create_hybrid_client() {
         Ok(client) => {
-            println!("✅ 하이브리드 클라이언트 생성 완료");
-            println!("   - 기본 프로바이더 사용");
-            println!("   - 모든 인증서 허용 (DangerousCertificateVerifier)");
-            println!("   - HTTP/1.1 지원");
+            // println!("✅ 하이브리드 클라이언트 생성 완료");
+            // println!("   - 기본 프로바이더 사용");
+            // println!("   - 모든 인증서 허용 (DangerousCertificateVerifier)");
+            // println!("   - HTTP/1.1 지원");
             client
         }
         Err(e) => {
@@ -745,11 +1091,11 @@ pub async fn start_proxy_v2<R: Runtime>(
         .build()
     {
         Ok(builder) => {
-            println!("✅ 프록시 빌더 구성 완료");
-            println!("   - CA 인증서: 로드됨");
-            println!("   - TLS 클라이언트: 하이브리드 클라이언트 (모든 인증서 허용)");
-            println!("   - HTTP 핸들러: 로깅 핸들러");
-            println!("   - WebSocket: 직접 통과 (핸들러 없음)");
+            // println!("✅ 프록시 빌더 구성 완료");
+            // println!("   - CA 인증서: 로드됨");
+            // println!("   - TLS 클라이언트: 하이브리드 클라이언트 (모든 인증서 허용)");
+            // println!("   - HTTP 핸들러: 로깅 핸들러");
+            // println!("   - WebSocket: 직접 통과 (핸들러 없음)");
             builder
         }
         Err(e) => {
@@ -768,9 +1114,10 @@ pub async fn start_proxy_v2<R: Runtime>(
     // 프록시를 백그라운드에서 실행
     let app_handle = app.clone();
     let thread = tauri::async_runtime::spawn(async move {
-        println!("🚀 프록시 서버 시작 중...");
+        // println!("🚀 프록시 서버 시작 중...");
         match proxy_builder.start().await {
-            Ok(_) => println!("✅ 프록시 서버가 정상적으로 종료되었습니다"),
+            Ok(_) => { /* println!("✅ 프록시 서버가 정상적으로 종료되었습니다") */
+            }
             Err(e) => {
                 let error_msg = format!("❌ 프록시 실행 오류: {}", e);
                 eprintln!("{}", error_msg);
