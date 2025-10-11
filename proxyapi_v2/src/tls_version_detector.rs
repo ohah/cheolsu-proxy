@@ -47,14 +47,18 @@ impl TlsVersionDetector {
                 Some(TlsVersion::Tls10)
             }
             [0x03, 0x01] => {
+                debug!("TLS 버전 감지: TLS 1.0");
+                Some(TlsVersion::Tls10)
+            }
+            [0x03, 0x02] => {
                 debug!("TLS 버전 감지: TLS 1.1");
                 Some(TlsVersion::Tls11)
             }
-            [0x03, 0x02] => {
+            [0x03, 0x03] => {
                 debug!("TLS 버전 감지: TLS 1.2");
                 Some(TlsVersion::Tls12)
             }
-            [0x03, 0x03] => {
+            [0x03, 0x04] => {
                 debug!("TLS 버전 감지: TLS 1.3");
                 Some(TlsVersion::Tls13)
             }
@@ -152,7 +156,7 @@ mod tests {
     #[test]
     fn test_detect_tls11() {
         let tls11_hello = [
-            0x16, 0x03, 0x01, 0x00, 0x98, 0x01, 0x00, 0x00, 0x94, 0x03, 0x01,
+            0x16, 0x03, 0x01, 0x00, 0x98, 0x01, 0x00, 0x00, 0x94, 0x03, 0x02,
         ];
         assert_eq!(
             TlsVersionDetector::detect_tls_version(&tls11_hello),
@@ -163,7 +167,7 @@ mod tests {
     #[test]
     fn test_detect_tls12() {
         let tls12_hello = [
-            0x16, 0x03, 0x01, 0x00, 0x98, 0x01, 0x00, 0x00, 0x94, 0x03, 0x02,
+            0x16, 0x03, 0x01, 0x00, 0x98, 0x01, 0x00, 0x00, 0x94, 0x03, 0x03,
         ];
         assert_eq!(
             TlsVersionDetector::detect_tls_version(&tls12_hello),
@@ -174,7 +178,7 @@ mod tests {
     #[test]
     fn test_detect_tls13() {
         let tls13_hello = [
-            0x16, 0x03, 0x01, 0x00, 0x98, 0x01, 0x00, 0x00, 0x94, 0x03, 0x03,
+            0x16, 0x03, 0x01, 0x00, 0x98, 0x01, 0x00, 0x00, 0x94, 0x03, 0x04,
         ];
         assert_eq!(
             TlsVersionDetector::detect_tls_version(&tls13_hello),
