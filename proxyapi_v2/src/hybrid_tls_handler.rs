@@ -60,17 +60,43 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
                 info!("🔍 TLS 버전 감지: {}", version);
 
                 if TlsVersionDetector::is_rustls_supported(version) {
-                    info!("✅ rustls 사용: {}", version);
-                    self.handle_with_rustls_upgraded(authority, upgraded).await
+                    info!("✅ [RUSTLS] TLS 연결 시작: {} - {}", version, authority);
+                    match self.handle_with_rustls_upgraded(authority, upgraded).await {
+                        Ok(stream) => {
+                            info!("✅ [RUSTLS] TLS 연결 성공: {} - {}", version, authority);
+                            Ok(stream)
+                        }
+                        Err(e) => {
+                            error!("❌ [RUSTLS] TLS 연결 실패: {} - {} - 오류: {}", version, authority, e);
+                            Err(e)
+                        }
+                    }
                 } else {
-                    info!("🔧 native-tls 사용: {} (TLS 1.0/1.1)", version);
-                    self.handle_with_native_tls_upgraded(authority, upgraded)
-                        .await
+                    info!("🔧 [NATIVE-TLS] TLS 연결 시작: {} - {}", version, authority);
+                    match self.handle_with_native_tls_upgraded(authority, upgraded).await {
+                        Ok(stream) => {
+                            info!("✅ [NATIVE-TLS] TLS 연결 성공: {} - {}", version, authority);
+                            Ok(stream)
+                        }
+                        Err(e) => {
+                            error!("❌ [NATIVE-TLS] TLS 연결 실패: {} - {} - 오류: {}", version, authority, e);
+                            Err(e)
+                        }
+                    }
                 }
             }
             None => {
-                warn!("⚠️ TLS 버전을 감지할 수 없음, rustls로 시도");
-                self.handle_with_rustls_upgraded(authority, upgraded).await
+                warn!("⚠️ [RUSTLS] TLS 버전을 감지할 수 없음, rustls로 시도: {}", authority);
+                match self.handle_with_rustls_upgraded(authority, upgraded).await {
+                    Ok(stream) => {
+                        info!("✅ [RUSTLS] TLS 연결 성공 (버전 감지 실패): {}", authority);
+                        Ok(stream)
+                    }
+                    Err(e) => {
+                        error!("❌ [RUSTLS] TLS 연결 실패 (버전 감지 실패): {} - 오류: {}", authority, e);
+                        Err(e)
+                    }
+                }
             }
         }
     }

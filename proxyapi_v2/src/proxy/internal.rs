@@ -249,9 +249,20 @@ where
                                                     }
                                                 }
                                                 Err(e) => {
+                                                    // 오류 메시지에서 TLS 백엔드 확인
+                                                    let error_str = e.to_string();
+                                                    let tls_backend = if error_str.contains("rustls") {
+                                                        "RUSTLS"
+                                                    } else if error_str.contains("native-tls") || error_str.contains("openssl") {
+                                                        "NATIVE-TLS"
+                                                    } else {
+                                                        "UNKNOWN"
+                                                    };
+                                                    
                                                     println!("❌ 하이브리드 TLS 연결 실패");
                                                     println!("   - 대상 서버: {}", authority);
                                                     println!("   - TLS 버전: {}", version);
+                                                    println!("   - TLS 백엔드: {}", tls_backend);
                                                     println!("   - 오류: {}", e);
                                                     println!("   - 오류 타입: {:?}", e);
 
