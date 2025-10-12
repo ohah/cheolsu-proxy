@@ -475,8 +475,21 @@ impl HttpHandler for LoggingHandler {
     async fn handle_request(
         &mut self,
         _ctx: &HttpContext,
-        req: Request<Body>,
+        mut req: Request<Body>,
     ) -> RequestOrResponse {
+        // WebSocket 핸드셰이크 시 압축 확장(permessage-deflate) 헤더를 제거합니다.
+        // 이는 "Reserved bits are non-zero" 오류를 방지하기 위함입니다.
+        // 이 오류는 서버가 압축된 메시지를 보내지만 클라이언트(프록시)가 이를 처리하지 못할 때 발생합니다.
+        if req
+            .headers()
+            .get(proxyapi_v2::hyper::header::UPGRADE)
+            .and_then(|v| v.to_str().ok())
+            .map_or(false, |s| s.to_lowercase() == "websocket")
+        {
+            req.headers_mut()
+                .remove(proxyapi_v2::hyper::header::SEC_WEBSOCKET_EXTENSIONS);
+        }
+
         // 요청 정보를 ProxiedRequest로 변환하고 원본 요청을 복원
         let (proxied_request, restored_req) = self.request_to_proxied_request(req).await;
         self.req = Some(proxied_request);
@@ -485,6 +498,12 @@ impl HttpHandler for LoggingHandler {
     }
 
     async fn handle_response(&mut self, _ctx: &HttpContext, res: Response<Body>) -> Response<Body> {
+        // 웹소켓 업그레이드 응답(101)은 본문을 읽지 않고 즉시 반환해야 합니다.
+        // 그렇지 않으면 업그레이드가 중단됩니다.
+        if res.status() == StatusCode::SWITCHING_PROTOCOLS {
+            return res;
+        }
+
         // 일반 응답 처리 - 세션 매칭 확인
         if let Some(req) = &self.req {
             let url = req.uri().to_string();
