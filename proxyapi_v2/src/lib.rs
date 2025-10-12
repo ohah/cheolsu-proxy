@@ -305,26 +305,7 @@ pub trait WebSocketHandler: Clone + Send + Sync + 'static {
     ) -> impl Future<Output = Option<Message>> + Send {
         async move {
             match &message {
-                Message::Text(text) => {
-                    // SockJS 프레이밍 제거 (모든 WebSocket 메시지에 적용)
-                    let cleaned_text = if text.starts_with("a[\"") && text.ends_with("\"]") {
-                        let inner = &text[3..text.len() - 2]; // a[" 와 "] 제거
-                        inner.to_string()
-                    } else if text.starts_with("a[") && text.ends_with("]") {
-                        // a[...] 형태 (따옴표 없음)
-                        let inner = &text[2..text.len() - 1]; // a[ 와 ] 제거
-                        inner.to_string()
-                    } else if text.starts_with("a\"") && text.ends_with("\"") {
-                        // a"..." 형태
-                        let inner = &text[2..text.len() - 1]; // a" 와 " 제거
-                        inner.to_string()
-                    } else {
-                        text.to_string()
-                    };
-
-                    // 정리된 메시지로 교체
-                    return Some(Message::Text(cleaned_text.into()));
-                }
+                Message::Text(_text) => {}
                 Message::Binary(_data) => {}
                 Message::Ping(_data) => {}
                 Message::Pong(_data) => {}
