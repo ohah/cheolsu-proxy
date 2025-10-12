@@ -120,28 +120,6 @@ where
             let req_host = normalized_req.headers().get("host").cloned();
             let req_user_agent = normalized_req.headers().get("user-agent").cloned();
 
-            // 특별한 요청 감지 및 로깅
-            if let Some(_host) = req_uri.host() {
-                if false {
-                    // SSE 스트리밍 요청 감지 (모든 도메인)
-                    let accept_header = normalized_req
-                        .headers()
-                        .get("accept")
-                        .and_then(|a| a.to_str().ok())
-                        .unwrap_or("");
-
-                    let content_type = normalized_req
-                        .headers()
-                        .get("content-type")
-                        .and_then(|ct| ct.to_str().ok())
-                        .unwrap_or("");
-
-                    let _is_sse_request = accept_header.contains("text/event-stream")
-                        || accept_header.contains("application/x-ndjson")
-                        || content_type.contains("text/event-stream")
-                        || content_type.contains("application/x-ndjson");
-                }
-            }
 
             // SSE 요청인 경우 추가 로깅
             let _is_sse_request = normalized_req

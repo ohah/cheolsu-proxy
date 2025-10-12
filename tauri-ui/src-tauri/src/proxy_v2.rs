@@ -7,6 +7,7 @@ use hyper_util::{
     rt::TokioExecutor,
 };
 use proxy_v2_models::{ProxiedRequest, ProxiedResponse, RequestInfo};
+use regex::Regex;
 use proxyapi_v2::{
     builder::ProxyBuilder,
     certificate_authority::build_ca,
@@ -431,138 +432,16 @@ impl LoggingHandler {
         None
     }
 
-    /// 문자열에서 패턴을 추출하는 헬퍼 메서드
+    /// 문자열에서 패턴을 추출하는 헬퍼 메서드 (regex 사용)
     fn extract_pattern(text: &str, pattern: &str) -> Option<String> {
-        // 간단한 패턴 매칭 (정규표현식 없이)
-        if pattern.contains(r"([a-zA-Z0-9.-]+\.[a-zA-Z]{2,}:\d+)") {
-            // 도메인:포트 패턴
-            let mut chars = text.chars().peekable();
-            let mut result = String::new();
-            let mut in_domain = false;
-            let mut dot_count = 0;
-            let mut colon_found = false;
-
-            while let Some(ch) = chars.next() {
-                if ch.is_alphanumeric() || ch == '.' || ch == '-' {
-                    if !in_domain && ch.is_alphanumeric() {
-                        in_domain = true;
-                        result.clear();
-                    }
-                    if in_domain {
-                        if ch == '.' {
-                            dot_count += 1;
-                        }
-                        result.push(ch);
-                    }
-                } else if ch == ':' && in_domain && dot_count > 0 {
-                    colon_found = true;
-                    result.push(ch);
-                } else if ch.is_ascii_digit() && colon_found {
-                    result.push(ch);
-                } else if in_domain && (ch.is_whitespace() || ch == ' ' || ch == '\n' || ch == '\r')
-                {
-                    if colon_found && result.contains(':') {
-                        return Some(result);
-                    }
-                    in_domain = false;
-                    dot_count = 0;
-                    colon_found = false;
-                    result.clear();
-                } else {
-                    in_domain = false;
-                    dot_count = 0;
-                    colon_found = false;
-                    result.clear();
+        // 정규표현식으로 패턴 매칭
+        if let Ok(regex) = Regex::new(pattern) {
+            if let Some(captures) = regex.captures(text) {
+                if let Some(matched) = captures.get(1) {
+                    return Some(matched.as_str().to_string());
                 }
-            }
-
-            if !result.is_empty() && result.contains(':') && result.contains('.') {
-                return Some(result);
-            }
-        } else if pattern.contains(r"(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d+)") {
-            // IP:포트 패턴
-            let mut chars = text.chars().peekable();
-            let mut result = String::new();
-            let mut in_ip = false;
-            let mut dot_count = 0;
-            let mut colon_found = false;
-
-            while let Some(ch) = chars.next() {
-                if ch.is_ascii_digit() {
-                    if !in_ip {
-                        in_ip = true;
-                        result.clear();
-                        dot_count = 0;
-                        colon_found = false;
-                    }
-                    result.push(ch);
-                } else if ch == '.' && in_ip && dot_count < 3 {
-                    dot_count += 1;
-                    result.push(ch);
-                } else if ch == ':' && in_ip && dot_count == 3 {
-                    colon_found = true;
-                    result.push(ch);
-                } else if ch.is_ascii_digit() && colon_found {
-                    result.push(ch);
-                } else if in_ip && (ch.is_whitespace() || ch == ' ' || ch == '\n' || ch == '\r') {
-                    if colon_found && result.contains(':') {
-                        return Some(result);
-                    }
-                    in_ip = false;
-                    dot_count = 0;
-                    colon_found = false;
-                    result.clear();
-                } else {
-                    in_ip = false;
-                    dot_count = 0;
-                    colon_found = false;
-                    result.clear();
-                }
-            }
-
-            if !result.is_empty() && result.contains(':') && dot_count == 3 {
-                return Some(result);
-            }
-        } else if pattern.contains(r"([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})") {
-            // 도메인만 있는 패턴
-            let mut chars = text.chars().peekable();
-            let mut result = String::new();
-            let mut in_domain = false;
-            let mut dot_count = 0;
-
-            while let Some(ch) = chars.next() {
-                if ch.is_alphanumeric() || ch == '.' || ch == '-' {
-                    if !in_domain && ch.is_alphanumeric() {
-                        in_domain = true;
-                        result.clear();
-                        dot_count = 0;
-                    }
-                    if in_domain {
-                        if ch == '.' {
-                            dot_count += 1;
-                        }
-                        result.push(ch);
-                    }
-                } else if in_domain && (ch.is_whitespace() || ch == ' ' || ch == '\n' || ch == '\r')
-                {
-                    if dot_count > 0 && result.len() > 3 {
-                        return Some(result);
-                    }
-                    in_domain = false;
-                    dot_count = 0;
-                    result.clear();
-                } else {
-                    in_domain = false;
-                    dot_count = 0;
-                    result.clear();
-                }
-            }
-
-            if !result.is_empty() && dot_count > 0 && result.len() > 3 {
-                return Some(result);
             }
         }
-
         None
     }
 
