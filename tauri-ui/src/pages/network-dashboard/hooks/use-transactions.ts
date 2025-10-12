@@ -1,40 +1,28 @@
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
 
 import type { HttpTransaction } from '@/entities/proxy';
+import { useTransactionStore } from '@/shared/stores';
 
 export const useTransactions = () => {
-  const [transactions, setTransactions] = useState<HttpTransaction[]>([]);
-  const [selectedTransaction, setSelectedTransaction] = useState<HttpTransaction | null>(null);
+  const {
+    transactions,
+    selectedTransaction,
+    addTransaction,
+    clearTransactions,
+    deleteTransaction,
+    setSelectedTransaction,
+  } = useTransactionStore();
 
-  const addTransaction = useCallback((transaction: HttpTransaction) => {
-    setTransactions(prev => {
-      const existingTransaction = prev.find(t => t.request?.time === transaction.request?.time);
-
-      if (existingTransaction) {
-        return prev;
-      }
-
-      return [...prev, transaction];
-    });
-  }, []);
-
-  const clearTransactions = useCallback(() => {
-    setTransactions([]);
-    setSelectedTransaction(null)
-  }, []);
-
-  const deleteTransaction = useCallback((id: number) => {
-    setTransactions(prev => prev.filter((transaction) => transaction?.request?.time !== id));
-  }, []);
-
-
-  const createTransactionSelectHandler = useCallback((transaction: HttpTransaction) => () => {
-    setSelectedTransaction(transaction);
-  }, []);
+  const createTransactionSelectHandler = useCallback(
+    (transaction: HttpTransaction) => () => {
+      setSelectedTransaction(transaction);
+    },
+    [setSelectedTransaction],
+  );
 
   const clearSelectedTransaction = useCallback(() => {
-    setSelectedTransaction(null)
-  }, [])
+    setSelectedTransaction(null);
+  }, [setSelectedTransaction]);
 
   return {
     transactions,
@@ -43,6 +31,6 @@ export const useTransactions = () => {
     deleteTransaction,
     selectedTransaction,
     createTransactionSelectHandler,
-    clearSelectedTransaction
+    clearSelectedTransaction,
   };
 };
