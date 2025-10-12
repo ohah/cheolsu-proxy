@@ -120,7 +120,6 @@ where
             let req_host = normalized_req.headers().get("host").cloned();
             let req_user_agent = normalized_req.headers().get("user-agent").cloned();
 
-
             // SSE 요청인 경우 추가 로깅
             let _is_sse_request = normalized_req
                 .headers()

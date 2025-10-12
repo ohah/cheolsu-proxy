@@ -7,7 +7,6 @@ use hyper_util::{
     rt::TokioExecutor,
 };
 use proxy_v2_models::{ProxiedRequest, ProxiedResponse, RequestInfo};
-use regex::Regex;
 use proxyapi_v2::{
     builder::ProxyBuilder,
     certificate_authority::build_ca,
@@ -16,6 +15,7 @@ use proxyapi_v2::{
     tokio_tungstenite::tungstenite::Message,
     Body, HttpContext, HttpHandler, RequestOrResponse, WebSocketContext, WebSocketHandler,
 };
+use regex::Regex;
 use std::error::Error;
 use std::net::SocketAddr;
 use std::sync::mpsc;
