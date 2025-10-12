@@ -8,7 +8,7 @@ import { NetworkTable } from '@/widgets/network-table';
 
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/shared/ui';
 
-import { useProxyEventControl, useTransactionFilters, useTransactions } from '../hooks';
+import { useTransactionFilters, useTransactions } from '../hooks';
 import { useProxyStore } from '@/shared/stores';
 import { HostPathTree } from '@/widgets/host-path-tree/ui/host-path-tree';
 
@@ -22,9 +22,9 @@ export const NetworkDashboard = () => {
     selectedTransaction,
     createTransactionSelectHandler,
     clearSelectedTransaction,
+    paused,
+    togglePause,
   } = useTransactions();
-
-  const { paused, togglePause } = useProxyEventControl();
 
   const {
     searchQuery,
