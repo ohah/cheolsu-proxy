@@ -17,7 +17,6 @@ export const NetworkDashboard = () => {
 
   const {
     transactions,
-    addTransaction,
     clearTransactions,
     deleteTransaction,
     selectedTransaction,
@@ -25,7 +24,7 @@ export const NetworkDashboard = () => {
     clearSelectedTransaction,
   } = useTransactions();
 
-  const { paused, togglePause } = useProxyEventControl({ onTransactionReceived: addTransaction });
+  const { paused, togglePause } = useProxyEventControl();
 
   const {
     searchQuery,
@@ -38,14 +37,14 @@ export const NetworkDashboard = () => {
   } = useTransactionFilters({ transactions });
 
   const createTransactionDeleteHandler = useCallback(
-    (id: number) => () => {
+    (id: string) => () => {
       deleteTransaction(id);
 
-      if (selectedTransaction?.request?.time === id) {
+      if (selectedTransaction?.request?.id === id) {
         clearSelectedTransaction();
       }
     },
-    [],
+    [deleteTransaction, selectedTransaction, clearSelectedTransaction],
   );
 
   return (
