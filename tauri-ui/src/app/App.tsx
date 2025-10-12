@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useThemeProvider, RouterProvider } from './providers';
+import { useThemeProvider, RouterProvider, ProxyEventProvider } from './providers';
 import { Toaster } from '@/shared/ui';
 import { useProxyStore } from '@/shared/stores';
 
@@ -14,8 +14,10 @@ const App: React.FC = () => {
 
   return (
     <div className="App">
-      <RouterProvider />
-      <Toaster richColors />
+      <ProxyEventProvider>
+        <RouterProvider />
+        <Toaster richColors />
+      </ProxyEventProvider>
     </div>
   );
 };
