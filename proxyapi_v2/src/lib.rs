@@ -306,36 +306,24 @@ pub trait WebSocketHandler: Clone + Send + Sync + 'static {
         async move {
             match &message {
                 Message::Text(text) => {
-                    // SockJS 연결인지 확인 (URI에 sockjs가 포함된 경우만)
-                    let is_sockjs_connection = match &_ctx {
-                        WebSocketContext::ClientToServer { dst, .. } => {
-                            dst.path().contains("sockjs") || dst.host().map(|h| h.contains("sockjs")).unwrap_or(false)
-                        }
-                        WebSocketContext::ServerToClient { src, .. } => {
-                            src.path().contains("sockjs") || src.host().map(|h| h.contains("sockjs")).unwrap_or(false)
-                        }
+                    // SockJS 프레이밍 제거 (모든 WebSocket 메시지에 적용)
+                    let cleaned_text = if text.starts_with("a[\"") && text.ends_with("\"]") {
+                        let inner = &text[3..text.len() - 2]; // a[" 와 "] 제거
+                        inner.to_string()
+                    } else if text.starts_with("a[") && text.ends_with("]") {
+                        // a[...] 형태 (따옴표 없음)
+                        let inner = &text[2..text.len() - 1]; // a[ 와 ] 제거
+                        inner.to_string()
+                    } else if text.starts_with("a\"") && text.ends_with("\"") {
+                        // a"..." 형태
+                        let inner = &text[2..text.len() - 1]; // a" 와 " 제거
+                        inner.to_string()
+                    } else {
+                        text.to_string()
                     };
 
-                    // SockJS 연결인 경우에만 프레이밍 제거
-                    if is_sockjs_connection {
-                        let cleaned_text = if text.starts_with("a[\"") && text.ends_with("\"]") {
-                            let inner = &text[3..text.len() - 2]; // a[" 와 "] 제거
-                            inner.to_string()
-                        } else if text.starts_with("a[") && text.ends_with("]") {
-                            // a[...] 형태 (따옴표 없음)
-                            let inner = &text[2..text.len() - 1]; // a[ 와 ] 제거
-                            inner.to_string()
-                        } else if text.starts_with("a\"") && text.ends_with("\"") {
-                            // a"..." 형태
-                            let inner = &text[2..text.len() - 1]; // a" 와 " 제거
-                            inner.to_string()
-                        } else {
-                            text.to_string()
-                        };
-
-                        // 정리된 메시지로 교체
-                        return Some(Message::Text(cleaned_text.into()));
-                    }
+                    // 정리된 메시지로 교체
+                    return Some(Message::Text(cleaned_text.into()));
                 }
                 Message::Binary(_data) => {}
                 Message::Ping(_data) => {}
