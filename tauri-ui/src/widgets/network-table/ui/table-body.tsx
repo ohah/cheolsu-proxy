@@ -10,13 +10,13 @@ import { TableRow } from './table-row';
 interface TableBodyProps {
   data: TableRowData[];
   createTransactionSelectHandler: (request: HttpTransaction) => () => void;
-  createTransactionDeleteHandler: (id: number) => () => void;
+  createTransactionDeleteHandler: (id: string) => () => void;
 }
 
 export const TableBody = ({ data, createTransactionSelectHandler, createTransactionDeleteHandler }: TableBodyProps) => {
   const rowHandlers = useMemo(() => {
     return data.map((rowData, index) => {
-      const id = rowData.transaction.request?.time ?? index;
+      const id = rowData.transaction.request?.id ?? index.toString();
       return {
         onSelect: createTransactionSelectHandler(rowData.transaction),
         onDelete: createTransactionDeleteHandler(id),
