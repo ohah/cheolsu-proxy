@@ -28,7 +28,7 @@ const NOT_BEFORE_OFFSET: i64 = 60;
 fn get_ca_storage_dir() -> Result<PathBuf, String> {
     #[cfg(target_os = "macos")]
     {
-        let home = std::env::var("HOME").map_err(|_| "HOME 환경변수를 찾을 수 없습니다")?;
+        let home = std::env::var("HOME").map_err(|_| "Could not find HOME environment variable")?;
 
         // 앱 identifier (고정값)
         let identifier = "com.cheolsu-proxy";
@@ -39,14 +39,14 @@ fn get_ca_storage_dir() -> Result<PathBuf, String> {
             .join(identifier);
 
         // 디렉토리 생성
-        fs::create_dir_all(&dir).map_err(|e| format!("디렉토리 생성 실패: {}", e))?;
+        fs::create_dir_all(&dir).map_err(|e| format!("Failed to create directory: {}", e))?;
 
         Ok(dir)
     }
 
     #[cfg(not(target_os = "macos"))]
     {
-        Err("현재는 macOS만 지원됩니다".to_string())
+        Err("Currently only macOS is supported".to_string())
     }
 }
 
@@ -74,19 +74,19 @@ fn load_ca_from_storage(
     key_path: &std::path::Path,
     cer_path: &std::path::Path,
 ) -> Result<RcgenAuthority, String> {
-    let key_pem = fs::read_to_string(key_path).map_err(|e| format!("키 파일 읽기 실패: {}", e))?;
-    let cert_der = fs::read(cer_path).map_err(|e| format!("인증서 파일 읽기 실패: {}", e))?;
+    let key_pem = fs::read_to_string(key_path).map_err(|e| format!("Failed to read key file: {}", e))?;
+    let cert_der = fs::read(cer_path).map_err(|e| format!("Failed to read certificate file: {}", e))?;
 
     let key_pair =
-        rcgen::KeyPair::from_pem(&key_pem).map_err(|e| format!("키 파싱 실패: {}", e))?;
+        rcgen::KeyPair::from_pem(&key_pem).map_err(|e| format!("Failed to parse key: {}", e))?;
 
     let cert_der = CertificateDer::from(cert_der);
     let ca_cert_params = rcgen::CertificateParams::from_ca_cert_der(&cert_der)
-        .map_err(|e| format!("인증서 파싱 실패: {}", e))?;
+        .map_err(|e| format!("Failed to parse certificate: {}", e))?;
 
     let ca_cert = ca_cert_params
         .self_signed(&key_pair)
-        .map_err(|e| format!("인증서 서명 실패: {}", e))?;
+        .map_err(|e| format!("Failed to sign certificate: {}", e))?;
 
     Ok(RcgenAuthority::new(
         key_pair,
@@ -100,7 +100,7 @@ fn load_ca_from_storage(
 #[cfg(feature = "rcgen-ca")]
 fn generate_and_save_ca(storage_dir: &std::path::Path) -> Result<RcgenAuthority, String> {
     // 키 생성
-    let key_pair = rcgen::KeyPair::generate().map_err(|e| format!("키 생성 실패: {}", e))?;
+    let key_pair = rcgen::KeyPair::generate().map_err(|e| format!("Failed to generate key: {}", e))?;
 
     // CA 인증서 파라미터 설정
     let mut params = rcgen::CertificateParams::default();
@@ -122,21 +122,21 @@ fn generate_and_save_ca(storage_dir: &std::path::Path) -> Result<RcgenAuthority,
     // 자체 서명된 CA 인증서 생성
     let ca_cert = params
         .self_signed(&key_pair)
-        .map_err(|e| format!("자체 서명 실패: {}", e))?;
+        .map_err(|e| format!("Failed to self-sign: {}", e))?;
 
     // 파일로 저장
     let key_path = storage_dir.join("cheolsu-proxy.key");
     let cer_path = storage_dir.join("cheolsu-proxy.cer");
 
-    fs::write(&key_path, key_pair.serialize_pem()).map_err(|e| format!("키 저장 실패: {}", e))?;
-    fs::write(&cer_path, ca_cert.der()).map_err(|e| format!("인증서(.cer) 저장 실패: {}", e))?;
+    fs::write(&key_path, key_pair.serialize_pem()).map_err(|e| format!("Failed to save key: {}", e))?;
+    fs::write(&cer_path, ca_cert.der()).map_err(|e| format!("Failed to save certificate (.cer): {}", e))?;
 
     // 권한 설정 (macOS/Linux)
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
         fs::set_permissions(&key_path, fs::Permissions::from_mode(0o600))
-            .map_err(|e| format!("키 권한 설정 실패: {}", e))?;
+            .map_err(|e| format!("Failed to set key permissions: {}", e))?;
     }
 
     println!("✅ CA 인증서 생성 완료:");
@@ -191,21 +191,21 @@ fn build_ca_embedded() -> Result<RcgenAuthority, String> {
     // PEM 형식의 키 페어 파싱
     let key_pair = rcgen::KeyPair::from_pem(
         std::str::from_utf8(private_key_bytes)
-            .map_err(|e| format!("키 파일 인코딩 오류: {}", e))?,
+            .map_err(|e| format!("Key file encoding error: {}", e))?,
     )
-    .map_err(|e| format!("키 페어 파싱 실패: {}", e))?;
+    .map_err(|e| format!("Failed to parse key pair: {}", e))?;
 
     // PEM 형식의 CA 인증서 파싱
     let ca_cert_params = rcgen::CertificateParams::from_ca_cert_pem(
         std::str::from_utf8(ca_cert_bytes)
-            .map_err(|e| format!("인증서 파일 인코딩 오류: {}", e))?,
+            .map_err(|e| format!("Certificate file encoding error: {}", e))?,
     )
-    .map_err(|e| format!("CA 인증서 파싱 실패: {}", e))?;
+    .map_err(|e| format!("Failed to parse CA certificate: {}", e))?;
 
     // CertificateParams를 Certificate로 변환
     let ca_cert = ca_cert_params
         .self_signed(&key_pair)
-        .map_err(|e| format!("CA 인증서 서명 실패: {}", e))?;
+        .map_err(|e| format!("Failed to sign CA certificate: {}", e))?;
 
     // RcgenAuthority 생성
     let ca = RcgenAuthority::new(
