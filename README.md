@@ -26,24 +26,40 @@ Rust-based **Man in the Middle proxy**, an early-stage project aimed at providin
 - ❌ Deleting a single request from the list
 - 🚫 Clear all requests and clean the table
 - 🌌 Dark / light theme
+- 🔐 **보안**: 사용자별 고유 CA 인증서 자동 생성 (개인키는 바이너리에 포함되지 않음)
 
 ## Getting Started
 
-1. Generate a Certificate:
+### 1. 인증서 자동 생성 및 설치
 
-```bash
-sh install_cer.sh
-```
+Cheolsu Proxy는 첫 실행 시 자동으로 고유한 CA 인증서를 생성합니다.
 
-The just generated certificate is located in `./proxyapi/src/ca/cheolsu-proxy.cer`
+**macOS에서 인증서 수동 설치:**
 
-2. Install `.cer` file locally and trust it.
+1. 앱을 실행하면 콘솔에 인증서 파일 경로가 표시됩니다:
 
-- [MacOS guide](https://support.apple.com/guide/keychain-access/change-the-trust-settings-of-a-certificate-kyca11871/mac#:~:text=In%20the%20Keychain%20Access%20app,from%20the%20pop%2Dup%20menus.)
+   ```
+   📁 경로: ~/Library/Application Support/com.cheolsu-proxy/cheolsu-proxy.cer
+   ```
+
+2. Keychain Access 앱을 실행하세요
+
+3. 'login' 키체인을 선택하세요
+
+4. File > Import Items... 메뉴를 선택하세요
+
+5. 위 경로의 `cheolsu-proxy.cer` 파일을 선택하세요
+
+6. 인증서를 더블클릭하고 '항상 신뢰'로 설정하세요
+
+**다른 OS 가이드:**
+
 - [Ubuntu guide](https://ubuntu.com/server/docs/security-trust-store)
 - [Windows guide](https://learn.microsoft.com/en-us/skype-sdk/sdn/articles/installing-the-trusted-root-certificate)
 
-3. Configure your local system proxy on `127.0.0.1:8100`.
+### 2. 시스템 프록시 설정
+
+로컬 시스템 프록시를 `127.0.0.1:8100`으로 설정하세요.
 
 - [MacOS guide](https://support.apple.com/it-it/guide/mac-help/mchlp2591/mac)
 - [Ubuntu guide](https://help.ubuntu.com/stable/ubuntu-help/net-proxy.html.en)
@@ -57,9 +73,17 @@ The just generated certificate is located in `./proxyapi/src/ca/cheolsu-proxy.ce
 
 ## Start Development
 
+### 기본 개발 실행
+
 ```bash
 cargo tauri dev
 ```
+
+### 인증서 파일 위치
+
+- **macOS**: `~/Library/Application Support/com.cheolsu-proxy/`
+- **Windows**: `%APPDATA%/com.cheolsu-proxy/` (향후 지원)
+- **Linux**: `~/.config/com.cheolsu-proxy/` (향후 지원)
 
 ## Documentation and Help
 
