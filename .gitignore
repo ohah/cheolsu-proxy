@@ -52,6 +52,7 @@ dd-flag
 # RSPress build artifacts
 docs/dist/
 docs/.rspress/
+docs/doc_build/
 
 # Log files
 logs/
