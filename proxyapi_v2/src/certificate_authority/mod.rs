@@ -74,8 +74,10 @@ fn load_ca_from_storage(
     key_path: &std::path::Path,
     cer_path: &std::path::Path,
 ) -> Result<RcgenAuthority, String> {
-    let key_pem = fs::read_to_string(key_path).map_err(|e| format!("Failed to read key file: {}", e))?;
-    let cert_der = fs::read(cer_path).map_err(|e| format!("Failed to read certificate file: {}", e))?;
+    let key_pem =
+        fs::read_to_string(key_path).map_err(|e| format!("Failed to read key file: {}", e))?;
+    let cert_der =
+        fs::read(cer_path).map_err(|e| format!("Failed to read certificate file: {}", e))?;
 
     let key_pair =
         rcgen::KeyPair::from_pem(&key_pem).map_err(|e| format!("Failed to parse key: {}", e))?;
@@ -100,7 +102,8 @@ fn load_ca_from_storage(
 #[cfg(feature = "rcgen-ca")]
 fn generate_and_save_ca(storage_dir: &std::path::Path) -> Result<RcgenAuthority, String> {
     // 키 생성
-    let key_pair = rcgen::KeyPair::generate().map_err(|e| format!("Failed to generate key: {}", e))?;
+    let key_pair =
+        rcgen::KeyPair::generate().map_err(|e| format!("Failed to generate key: {}", e))?;
 
     // CA 인증서 파라미터 설정
     let mut params = rcgen::CertificateParams::default();
@@ -128,8 +131,10 @@ fn generate_and_save_ca(storage_dir: &std::path::Path) -> Result<RcgenAuthority,
     let key_path = storage_dir.join("cheolsu-proxy.key");
     let cer_path = storage_dir.join("cheolsu-proxy.cer");
 
-    fs::write(&key_path, key_pair.serialize_pem()).map_err(|e| format!("Failed to save key: {}", e))?;
-    fs::write(&cer_path, ca_cert.der()).map_err(|e| format!("Failed to save certificate (.cer): {}", e))?;
+    fs::write(&key_path, key_pair.serialize_pem())
+        .map_err(|e| format!("Failed to save key: {}", e))?;
+    fs::write(&cer_path, ca_cert.der())
+        .map_err(|e| format!("Failed to save certificate (.cer): {}", e))?;
 
     // 권한 설정 (macOS/Linux)
     #[cfg(unix)]
