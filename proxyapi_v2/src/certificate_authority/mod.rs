@@ -229,24 +229,6 @@ fn build_ca_embedded() -> Result<RcgenAuthority, String> {
 ///    - Release 빌드: 런타임 인증서 생성
 #[cfg(feature = "rcgen-ca")]
 pub fn build_ca() -> Result<RcgenAuthority, String> {
-    // 1순위: 환경 변수 체크
-    if let Ok(mode) = std::env::var("CHEOLSU_PROXY_CERT_MODE") {
-        match mode.as_str() {
-            "embedded" => {
-                println!("🔧 환경변수: 고정 인증서 사용");
-                return build_ca_embedded();
-            }
-            "runtime" => {
-                println!("🔧 환경변수: 런타임 인증서 생성");
-                return load_or_generate_ca();
-            }
-            _ => {
-                println!("⚠️ 알 수 없는 CHEOLSU_PROXY_CERT_MODE: {}", mode);
-            }
-        }
-    }
-
-    // 2순위: 기본값은 런타임 인증서 생성
     println!("✅ 런타임 인증서 생성");
     load_or_generate_ca()
 }
