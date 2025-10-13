@@ -1,0 +1,22 @@
+{
+  "name": "cheolsu-proxy-docs",
+  "version": "1.0.0",
+  "description": "Cheolsu Proxy Documentation",
+  "type": "module",
+  "scripts": {
+    "dev": "rspress dev",
+    "build": "rspress build",
+    "preview": "rspress preview"
+  },
+  "devDependencies": {
+    "rspress": "^1.45.6"
+  },
+  "keywords": [
+    "proxy",
+    "mitm",
+    "documentation",
+    "rspress"
+  ],
+  "author": "Cheolsu Proxy Team",
+  "license": "MIT"
+}
