@@ -219,14 +219,7 @@ fn build_ca_embedded() -> Result<RcgenAuthority, String> {
 }
 
 /// CA 인증서를 빌드합니다.
-///
-/// 우선순위:
-/// 1. 환경 변수 `CHEOLSU_PROXY_CERT_MODE` (최우선)
-///    - `embedded`: 고정 인증서 강제 사용
-///    - `runtime`: 런타임 생성 강제 사용
-/// 2. 빌드 타입 (환경 변수 없을 때)
-///    - Debug 빌드: 고정 인증서 사용
-///    - Release 빌드: 런타임 인증서 생성
+
 #[cfg(feature = "rcgen-ca")]
 pub fn build_ca() -> Result<RcgenAuthority, String> {
     println!("✅ 런타임 인증서 생성");
