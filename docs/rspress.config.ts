@@ -15,63 +15,63 @@ export default defineConfig({
     nav: [
       {
         text: "가이드",
-        link: "/ko/guide/getting-started",
+        link: "/guide/getting-started",
       },
       {
         text: "기여하기",
-        link: "/ko/contributing/",
+        link: "/contributing/",
       },
     ],
     sidebar: {
-      "/ko/guide/": [
+      "/guide/": [
         {
           text: "시작하기",
           items: [
             {
               text: "소개",
-              link: "/ko/guide/getting-started",
+              link: "/guide/getting-started",
             },
             {
               text: "주요 기능",
-              link: "/ko/guide/features",
+              link: "/guide/features",
             },
             {
               text: "인증서 설정",
-              link: "/ko/guide/certificate-setup",
+              link: "/guide/certificate-setup",
             },
           ],
         },
       ],
-      "/ko/contributing/": [
+      "/contributing/": [
         {
           text: "기여하기",
           items: [
             {
               text: "기여 방법",
-              link: "/ko/contributing/",
+              link: "/contributing/",
             },
             {
               text: "개발 환경 설정",
-              link: "/ko/contributing/development-setup",
+              link: "/contributing/development-setup",
             },
             {
               text: "프로젝트 구조",
-              link: "/ko/contributing/code-structure",
+              link: "/contributing/code-structure",
             },
             {
               text: "테스트",
-              link: "/ko/contributing/testing",
+              link: "/contributing/testing",
             },
           ],
         },
       ],
-      "/ko/features/": [
+      "/features/": [
         {
           text: "기능",
           items: [
             {
               text: "TLS 1.0/1.1 지원",
-              link: "/ko/features/tls-support",
+              link: "/features/tls-support",
             },
           ],
         },
