@@ -27,7 +27,6 @@ Rust-based **Man in the Middle proxy**, an early-stage project aimed at providin
 - 🚫 Clear all requests and clean the table
 - 🌌 Dark / light theme
 - 🔐 **보안**: 사용자별 고유 CA 인증서 자동 생성 (개인키는 바이너리에 포함되지 않음)
-- 🏗️ **환경 분리**: 개발/스테이징/프로덕션 환경별 인증서 분리 지원
 
 ## Getting Started
 
@@ -82,9 +81,9 @@ cargo tauri dev
 
 ### 인증서 파일 위치
 
-- **macOS**: `~/Library/Application Support/cheolsu-proxy/`
-- **Windows**: `%APPDATA%/cheolsu-proxy/` (향후 지원)
-- **Linux**: `~/.config/cheolsu-proxy/` (향후 지원)
+- **macOS**: `~/Library/Application Support/com.cheolsu-proxy/`
+- **Windows**: `%APPDATA%/com.cheolsu-proxy/` (향후 지원)
+- **Linux**: `~/.config/com.cheolsu-proxy/` (향후 지원)
 
 ## Documentation and Help
 

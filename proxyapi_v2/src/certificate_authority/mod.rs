@@ -22,15 +22,15 @@ const NOT_BEFORE_OFFSET: i64 = 60;
 /// 앱 데이터 디렉토리 경로를 반환합니다.
 ///
 /// # Returns
-/// - macOS: `~/Library/Application Support/{빌드시_설정된_identifier}/`
-/// - Windows: `%APPDATA%/{빌드시_설정된_identifier}/` (향후 구현)
-/// - Linux: `~/.config/{빌드시_설정된_identifier}/` (향후 구현)
+/// - macOS: `~/Library/Application Support/com.cheolsu-proxy/`
+/// - Windows: `%APPDATA%/com.cheolsu-proxy/` (향후 구현)
+/// - Linux: `~/.config/com.cheolsu-proxy/` (향후 구현)
 fn get_ca_storage_dir() -> Result<PathBuf, String> {
     #[cfg(target_os = "macos")]
     {
         let home = std::env::var("HOME").map_err(|_| "HOME 환경변수를 찾을 수 없습니다")?;
 
-        // 빌드 시 생성된 identifier 파일에서 앱 identifier 읽기
+        // 앱 identifier (고정값)
         let identifier = "com.cheolsu-proxy";
 
         let dir = PathBuf::from(home)
