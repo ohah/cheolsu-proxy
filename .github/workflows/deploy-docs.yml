@@ -41,7 +41,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install
       - name: Build with Rspress
-        run: pnpm run build
+        run: pnpm --filter cheolsu-proxy-docs build
 
   # Deployment job
   deploy:
@@ -70,11 +70,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install
       - name: Build with Rspress
-        run: pnpm run build
+        run: pnpm --filter cheolsu-proxy-docs build
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: doc_build
+          path: docs/doc_build
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
