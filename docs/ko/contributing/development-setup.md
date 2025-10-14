@@ -7,6 +7,16 @@ description: Cheolsu Proxy 개발을 위한 환경 설정 가이드
 
 Cheolsu Proxy 개발을 위한 완전한 환경 설정 가이드입니다.
 
+## 기술 스택
+
+이 프로젝트는 다음 도구와 기술을 사용합니다:
+
+- **Rust**: Cargo 패키지 매니저를 사용하는 핵심 백엔드 언어
+- **Tauri**: 데스크톱 애플리케이션 프레임워크
+- **pnpm**: Node.js용 빠르고 디스크 공간 효율적인 패키지 매니저
+- **oxc**: 파싱 및 린팅을 위한 JavaScript/TypeScript 도구체인
+- **Rspress**: 문서 사이트 생성기
+
 ## 시스템 요구사항
 
 ### 운영체제
@@ -70,7 +80,7 @@ nvm use --lts
 3. PowerShell에서 확인:
    ```powershell
    node --version
-   npm --version
+   pnpm --version
    ```
 
 #### Linux (Ubuntu/Debian)
@@ -84,7 +94,7 @@ sudo apt-get install -y nodejs
 
 # 확인
 node --version
-npm --version
+pnpm --version
 ```
 
 ### 3. Tauri CLI 설치
@@ -161,11 +171,11 @@ cargo build --workspace
 cd tauri-ui
 
 # 의존성 설치
-npm install
+pnpm install
 
 # 또는 pnpm 사용 (권장)
-npm install -g pnpm
-pnpm install
+pnpm install -g pnpm
+ppnpm install
 ```
 
 ### 3. 개발 서버 실행
@@ -173,7 +183,7 @@ pnpm install
 ```bash
 # Tauri 개발 서버 실행
 cd tauri-ui
-npm run tauri dev
+pnpm run tauri dev
 
 # 또는 pnpm 사용
 pnpm tauri dev
@@ -285,20 +295,20 @@ cargo outdated
 ```bash
 # Tauri UI 개발 서버
 cd tauri-ui
-npm run dev
+pnpm run dev
 
 # Tauri 앱과 함께 실행
-npm run tauri dev
+pnpm run tauri dev
 ```
 
 ### 2. 빌드
 
 ```bash
 # 웹 빌드
-npm run build
+pnpm run build
 
 # Tauri 앱 빌드
-npm run tauri build
+pnpm run tauri build
 ```
 
 ### 3. 테스트
@@ -308,7 +318,7 @@ npm run tauri build
 npm test
 
 # E2E 테스트
-npm run tauri test
+pnpm run tauri test
 ```
 
 ## 디버깅
@@ -352,7 +362,7 @@ npm run tauri test
 ```bash
 # 개발 서버 실행
 cd tauri-ui
-npm run dev
+pnpm run dev
 
 # 브라우저에서 http://localhost:1420 접속
 ```
@@ -362,7 +372,7 @@ npm run dev
 ```bash
 # 디버그 모드로 실행
 cd tauri-ui
-RUST_LOG=debug npm run tauri dev
+RUST_LOG=debug pnpm run tauri dev
 ```
 
 ## 성능 분석
@@ -384,7 +394,7 @@ cargo valgrind --bin cheolsu-proxy
 ```bash
 # 번들 분석
 cd tauri-ui
-npm run build
+pnpm run build
 npx webpack-bundle-analyzer dist/main.js
 ```
 
@@ -411,11 +421,11 @@ rustup update
 # node_modules 삭제 후 재설치
 cd tauri-ui
 rm -rf node_modules package-lock.json
-npm install
+pnpm install
 
 # 또는 pnpm 사용
 rm -rf node_modules pnpm-lock.yaml
-pnpm install
+ppnpm install
 ```
 
 #### Tauri 빌드 오류
