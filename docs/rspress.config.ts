@@ -7,6 +7,7 @@ export default defineConfig({
   description: "A simple Man In The Middle proxy built with Rust and Tauri",
   lang: "ko",
   logo: "/logo.png",
+  logoText: "Cheolsu Proxy",
   locales: [
     {
       lang: "ko",
@@ -25,12 +26,14 @@ export default defineConfig({
     locales: [
       {
         lang: "ko",
+        label: "한국어",
         outlineTitle: "이 페이지에서",
         prevPageText: "이전 페이지",
         nextPageText: "다음 페이지",
       },
       {
         lang: "en",
+        label: "English",
         outlineTitle: "ON THIS PAGE",
         prevPageText: "Previous Page",
         nextPageText: "Next Page",
