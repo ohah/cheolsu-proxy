@@ -21,6 +21,20 @@ export default defineConfig({
     },
   ],
   themeConfig: {
+    locales: [
+      {
+        lang: "ko",
+        outlineTitle: "이 페이지에서",
+        prevPageText: "이전 페이지",
+        nextPageText: "다음 페이지",
+      },
+      {
+        lang: "en",
+        outlineTitle: "ON THIS PAGE",
+        prevPageText: "Previous Page",
+        nextPageText: "Next Page",
+      },
+    ],
     socialLinks: [
       {
         icon: "github",
@@ -30,29 +44,29 @@ export default defineConfig({
     ],
     nav: [
       {
-        text: "가이드",
+        text: "guide",
         link: "/guide/getting-started",
       },
       {
-        text: "기여하기",
+        text: "contributing",
         link: "/contributing/",
       },
     ],
     sidebar: {
       "/guide/": [
         {
-          text: "시작하기",
+          text: "gettingStarted",
           items: [
             {
-              text: "소개",
+              text: "introduction",
               link: "/guide/getting-started",
             },
             {
-              text: "주요 기능",
+              text: "features",
               link: "/guide/features",
             },
             {
-              text: "인증서 설정",
+              text: "certificateSetup",
               link: "/guide/certificate-setup",
             },
           ],
@@ -60,22 +74,22 @@ export default defineConfig({
       ],
       "/contributing/": [
         {
-          text: "기여하기",
+          text: "contributing",
           items: [
             {
-              text: "기여 방법",
+              text: "contributingGuide",
               link: "/contributing/",
             },
             {
-              text: "개발 환경 설정",
+              text: "developmentSetup",
               link: "/contributing/development-setup",
             },
             {
-              text: "프로젝트 구조",
+              text: "codeStructure",
               link: "/contributing/code-structure",
             },
             {
-              text: "테스트",
+              text: "testing",
               link: "/contributing/testing",
             },
           ],
@@ -83,10 +97,10 @@ export default defineConfig({
       ],
       "/features/": [
         {
-          text: "기능",
+          text: "featureSection",
           items: [
             {
-              text: "TLS 1.0/1.1 지원",
+              text: "tlsSupport",
               link: "/features/tls-support",
             },
           ],
