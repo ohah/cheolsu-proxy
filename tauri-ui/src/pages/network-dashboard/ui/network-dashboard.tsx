@@ -8,7 +8,7 @@ import { NetworkTable } from '@/widgets/network-table';
 
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/shared/ui';
 
-import { useProxyEventControl, useTransactionFilters, useTransactions } from '../hooks';
+import { useTransactionFilters, useTransactions } from '../hooks';
 import { useProxyStore } from '@/shared/stores';
 import { HostPathTree } from '@/widgets/host-path-tree/ui/host-path-tree';
 
@@ -17,15 +17,14 @@ export const NetworkDashboard = () => {
 
   const {
     transactions,
-    addTransaction,
     clearTransactions,
     deleteTransaction,
     selectedTransaction,
     createTransactionSelectHandler,
     clearSelectedTransaction,
+    paused,
+    togglePause,
   } = useTransactions();
-
-  const { paused, togglePause } = useProxyEventControl({ onTransactionReceived: addTransaction });
 
   const {
     searchQuery,
@@ -38,14 +37,14 @@ export const NetworkDashboard = () => {
   } = useTransactionFilters({ transactions });
 
   const createTransactionDeleteHandler = useCallback(
-    (id: number) => () => {
+    (id: string) => () => {
       deleteTransaction(id);
 
-      if (selectedTransaction?.request?.time === id) {
+      if (selectedTransaction?.request?.id === id) {
         clearSelectedTransaction();
       }
     },
-    [],
+    [deleteTransaction, selectedTransaction, clearSelectedTransaction],
   );
 
   return (

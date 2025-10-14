@@ -8,7 +8,7 @@ interface NetworkTableProps {
   transactions: HttpTransaction[];
   selectedTransaction: HttpTransaction | null;
   createTransactionSelectHandler: (transaction: HttpTransaction) => () => void;
-  createTransactionDeleteHandler: (id: number) => () => void;
+  createTransactionDeleteHandler: (id: string) => () => void;
 }
 
 export const NetworkTable = ({
