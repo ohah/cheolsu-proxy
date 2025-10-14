@@ -21,7 +21,11 @@ export default defineConfig({
     },
   ],
   themeConfig: {
-    logo: "/logo.png",
+    logo: {
+      src: "/logo.png",
+      alt: "Cheolsu Proxy",
+    },
+    logoText: "Cheolsu Proxy",
     locales: [
       {
         lang: "ko",
