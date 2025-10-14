@@ -9,6 +9,7 @@
     "preview": "rspress preview"
   },
   "devDependencies": {
+    "@rsbuild/plugin-node-polyfill": "^1.4.2",
     "rspress": "^1.45.6",
     "rspress-plugin-mermaid": "^0.3.0"
   },
