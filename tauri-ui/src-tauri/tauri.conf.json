@@ -25,11 +25,20 @@
     "active": true,
     "targets": [
       "msi",
-      "nsis"
+      "nsis",
+      "dmg",
+      "app"
     ],
     "icon": [
       "icons/logo.png"
     ],
+    "macOS": {
+      "entitlements": null,
+      "exceptionDomain": "",
+      "frameworks": [],
+      "providerShortName": null,
+      "signingIdentity": null
+    },
     "windows": {
       "wix": {
         "language": "ko-KR"
