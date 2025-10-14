@@ -94,4 +94,11 @@ export default defineConfig({
       ],
     },
   },
+  builderConfig: {
+    output: {
+      distPath: {
+        root: "doc_build",
+      },
+    },
+  },
 });
