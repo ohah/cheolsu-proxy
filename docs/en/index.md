@@ -2,6 +2,8 @@
 
 A simple Man In The Middle proxy built with Rust and Tauri.
 
+> This project was forked from [Proxelar](https://github.com/emanuele-em/proxelar).
+
 ## Key Features
 
 - **TLS Support**: HTTPS traffic interception and analysis
