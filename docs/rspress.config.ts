@@ -1,5 +1,5 @@
 import { defineConfig } from "rspress/config";
-import pluginMermaid from "rspress-plugin-mermaid";
+import pluginMermaid from "@rspress-theme-anatole/rspress-plugin-mermaid";
 import { pluginNodePolyfill } from "@rsbuild/plugin-node-polyfill";
 
 export default defineConfig({
@@ -10,7 +10,7 @@ export default defineConfig({
   lang: "ko",
   logo: "/logo.png",
   logoText: "Cheolsu Proxy",
-  plugins: [pluginMermaid, pluginNodePolyfill()],
+  plugins: [pluginMermaid(), pluginNodePolyfill()],
   locales: [
     {
       lang: "ko",
