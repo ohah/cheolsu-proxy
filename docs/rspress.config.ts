@@ -1,6 +1,5 @@
 import { defineConfig } from "rspress/config";
 import pluginMermaid from "rspress-plugin-mermaid";
-import { pluginNodePolyfill } from "@rsbuild/plugin-node-polyfill";
 
 export default defineConfig({
   root: ".",
@@ -10,16 +9,6 @@ export default defineConfig({
   lang: "ko",
   logo: "/logo.png",
   logoText: "Cheolsu Proxy",
-  plugins: [
-    pluginMermaid(),
-    pluginNodePolyfill({
-      globals: {
-        process: true,
-        Buffer: true,
-        path: true,
-      },
-    }),
-  ],
   locales: [
     {
       lang: "ko",
@@ -177,10 +166,31 @@ export default defineConfig({
       ],
     },
   },
+  plugins: [
+    pluginMermaid(),
+  ],
   builderConfig: {
     output: {
       distPath: {
         root: "doc_build",
+      },
+    },
+    dev: {
+      client: {
+        overlay: false,
+      },
+    },
+    tools: {
+      rspack(config) {
+        config.resolve = config.resolve || {};
+        config.resolve.fallback = {
+          ...config.resolve.fallback,
+          "path": "path-browserify",
+        };
+        config.resolve.alias = {
+          ...config.resolve.alias,
+          "node:path": "path-browserify",
+        };
       },
     },
   },
