@@ -80,7 +80,7 @@ nvm use --lts
 3. Verify in PowerShell:
    ```powershell
    node --version
-   ppnpm --version
+   pnpm --version
    ```
 
 #### Linux (Ubuntu/Debian)
@@ -425,7 +425,7 @@ pnpm install
 
 # Or use pnpm
 rm -rf node_modules pnpm-lock.yaml
-ppnpm install
+pnpm install
 ```
 
 #### Tauri Build Errors

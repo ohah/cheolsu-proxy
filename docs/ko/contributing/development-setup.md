@@ -175,7 +175,7 @@ pnpm install
 
 # 또는 pnpm 사용 (권장)
 pnpm install -g pnpm
-ppnpm install
+pnpm install
 ```
 
 ### 3. 개발 서버 실행
@@ -425,7 +425,7 @@ pnpm install
 
 # 또는 pnpm 사용
 rm -rf node_modules pnpm-lock.yaml
-ppnpm install
+pnpm install
 ```
 
 #### Tauri 빌드 오류
