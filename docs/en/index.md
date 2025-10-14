@@ -28,3 +28,10 @@ If you want to contribute to the project, please refer to the [Contributing Guid
 ## Feature Documentation
 
 - [TLS 1.0/1.1 Support](/en/features/tls-support) - Legacy TLS client support
+
+## License
+
+This project is distributed under the MIT and Apache 2.0 licenses.
+
+- [MIT License](https://github.com/ohah/cheolsu-proxy/blob/master/LICENSE-MIT)
+- [Apache 2.0 License](https://github.com/ohah/cheolsu-proxy/blob/master/LICENSE-APACHE)

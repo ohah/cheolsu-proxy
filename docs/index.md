@@ -28,3 +28,10 @@ Rust와 Tauri로 구축된 간단한 Man In The Middle 프록시입니다.
 ## 기능 문서
 
 - [TLS 1.0/1.1 지원](/features/tls-support) - 레거시 TLS 클라이언트 지원
+
+## 라이센스
+
+이 프로젝트는 MIT 및 Apache 2.0 라이센스 하에 배포됩니다.
+
+- [MIT 라이센스](https://github.com/ohah/cheolsu-proxy/blob/master/LICENSE-MIT)
+- [Apache 2.0 라이센스](https://github.com/ohah/cheolsu-proxy/blob/master/LICENSE-APACHE)

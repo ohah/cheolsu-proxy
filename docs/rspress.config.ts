@@ -46,6 +46,9 @@ export default defineConfig({
         content: "https://github.com/ohah/cheolsu-proxy",
       },
     ],
+    footer: {
+      message: "MIT & Apache 2.0 Licensed | Copyright © 2023 emanuele-em, 2024 ohah",
+    },
     nav: [
       {
         text: "guide",
