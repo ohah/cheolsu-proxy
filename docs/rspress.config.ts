@@ -6,6 +6,7 @@ export default defineConfig({
   title: "Cheolsu Proxy",
   description: "A simple Man In The Middle proxy built with Rust and Tauri",
   lang: "ko",
+  logo: "/logo.png",
   locales: [
     {
       lang: "ko",
@@ -21,11 +22,6 @@ export default defineConfig({
     },
   ],
   themeConfig: {
-    logo: {
-      src: "/logo.png",
-      alt: "Cheolsu Proxy",
-    },
-    logoText: "Cheolsu Proxy",
     locales: [
       {
         lang: "ko",
