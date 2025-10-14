@@ -72,6 +72,25 @@ export default defineConfig({
           ],
         },
       ],
+      "/en/guide/": [
+        {
+          text: "gettingStarted",
+          items: [
+            {
+              text: "introduction",
+              link: "/en/guide/getting-started",
+            },
+            {
+              text: "features",
+              link: "/en/guide/features",
+            },
+            {
+              text: "certificateSetup",
+              link: "/en/guide/certificate-setup",
+            },
+          ],
+        },
+      ],
       "/contributing/": [
         {
           text: "contributing",
@@ -95,6 +114,29 @@ export default defineConfig({
           ],
         },
       ],
+      "/en/contributing/": [
+        {
+          text: "contributing",
+          items: [
+            {
+              text: "contributingGuide",
+              link: "/en/contributing/",
+            },
+            {
+              text: "developmentSetup",
+              link: "/en/contributing/development-setup",
+            },
+            {
+              text: "codeStructure",
+              link: "/en/contributing/code-structure",
+            },
+            {
+              text: "testing",
+              link: "/en/contributing/testing",
+            },
+          ],
+        },
+      ],
       "/features/": [
         {
           text: "featureSection",
@@ -102,6 +144,17 @@ export default defineConfig({
             {
               text: "tlsSupport",
               link: "/features/tls-support",
+            },
+          ],
+        },
+      ],
+      "/en/features/": [
+        {
+          text: "featureSection",
+          items: [
+            {
+              text: "tlsSupport",
+              link: "/en/features/tls-support",
             },
           ],
         },
