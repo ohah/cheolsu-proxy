@@ -5,6 +5,7 @@
 - Cheolsu Proxy Rust 기반의 프록시 도구로, Tauri를 사용한 데스크톱 애플리케이션입니다.
 - 프론트엔드는 React + TypeScript로 구성되어 있습니다.
 - 백엔드는 Rust로 구성되어 있습니다.
+- 문서(github-pages)는 Rspress로 구성되어 있습니다.
 
 ## 프로젝트 구조
 - 프론트엔드는 tauri-ui/src 디렉토리에 배치됩니다.
@@ -14,6 +15,7 @@
   - proxyapi_models (Legacy)
   - proxyapi_v2
   - proxyapi_v2_models
+- 문서는 docs/ 디렉토리에 배치됩니다.
 
 
 ## 코딩 스타일 및 규칙(Rust)
