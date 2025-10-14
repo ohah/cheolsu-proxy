@@ -8,7 +8,7 @@ Rust와 Tauri로 구축된 간단한 Man In The Middle 프록시입니다.
 
 - **TLS 지원**: HTTPS 트래픽 가로채기 및 분석
 - **인증서 관리**: 자동 인증서 생성 및 설치
-- **크로스 플랫폼**: Windows, macOS 지원 (Linux 지원 예정)
+- **크로스 플랫폼**: macOS 지원 (Windows 지원 예정)
 - **사용자 친화적**: 직관적인 GUI 인터페이스
 
 ## 빠른 시작
