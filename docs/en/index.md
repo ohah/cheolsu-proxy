@@ -8,7 +8,7 @@ A simple Man In The Middle proxy built with Rust and Tauri.
 
 - **TLS Support**: HTTPS traffic interception and analysis
 - **Certificate Management**: Automatic certificate generation and installation
-- **Cross Platform**: Windows, macOS support (Linux support planned)
+- **Cross Platform**: macOS support (Windows support planned)
 - **User Friendly**: Intuitive GUI interface
 
 ## Quick Start
