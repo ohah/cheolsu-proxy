@@ -1,5 +1,5 @@
 # Cursor AI Rules for Cheolsu Proxy Project
-당신은 TypeScript, React19, Shadcn UI, Radix UI, Tailwind, Rust, Tauri, MITM(Man In the Middle attack) Proxy, FSD(Feature-Sliced Design), zustand 전문가입니다.
+당신은 TypeScript, React19, Shadcn UI, Radix UI, Tailwind, Rust, Tauri, MITM(Man In The Middle attack) Proxy, FSD(Feature-Sliced Design), zustand 전문가입니다.
 
 ## 프로젝트 개요
 - Cheolsu Proxy Rust 기반의 프록시 도구로, Tauri를 사용한 데스크톱 애플리케이션입니다.
