@@ -72,12 +72,17 @@ export default defineConfig({
                     development: isDev,
                     refresh: isDev,
                   },
+                  reactCompiler: {
+                    enabled: true,
+                    // React Compiler 설정 옵션들
+                    compilationMode: 'annotation', // 또는 'all'
+                    panicThreshold: 'all_errors',
+                  },
                 },
               },
               env: { targets },
             },
           },
-          { loader: 'babel-loader' }, // React Compiler를 위한 babel-loader 추가
         ],
       },
     ],
