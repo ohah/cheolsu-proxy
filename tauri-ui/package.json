@@ -49,13 +49,16 @@
     "zustand": "^5.0.8"
   },
   "devDependencies": {
+    "@babel/core": "^7.28.4",
+    "@babel/plugin-syntax-jsx": "^7.27.1",
     "@rspack/cli": "^1.4.11",
     "@rspack/core": "^1.4.11",
     "@rspack/plugin-react-refresh": "^1.4.3",
-    "@swc/react-compiler": "^1.13.20",
     "@tauri-apps/cli": "^2.7.0",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
+    "babel-loader": "^10.0.0",
+    "babel-plugin-react-compiler": "^1.0.0",
     "react-refresh": "^0.17.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
