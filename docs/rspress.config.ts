@@ -21,6 +21,7 @@ export default defineConfig({
     },
   ],
   themeConfig: {
+    logo: "/logo.png",
     locales: [
       {
         lang: "ko",
