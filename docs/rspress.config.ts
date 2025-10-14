@@ -1,4 +1,5 @@
 import { defineConfig } from "rspress/config";
+import { pluginMermaid } from "rspress-plugin-mermaid";
 
 export default defineConfig({
   root: ".",
@@ -8,6 +9,7 @@ export default defineConfig({
   lang: "ko",
   logo: "/logo.png",
   logoText: "Cheolsu Proxy",
+  plugins: [pluginMermaid()],
   locales: [
     {
       lang: "ko",

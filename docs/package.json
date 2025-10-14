@@ -9,7 +9,8 @@
     "preview": "rspress preview"
   },
   "devDependencies": {
-    "rspress": "^1.45.6"
+    "rspress": "^1.45.6",
+    "rspress-plugin-mermaid": "^0.3.0"
   },
   "keywords": [
     "proxy",
