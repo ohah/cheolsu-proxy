@@ -51,6 +51,9 @@
   "devDependencies": {
     "@babel/core": "^7.28.4",
     "@babel/plugin-syntax-jsx": "^7.27.1",
+    "@babel/preset-env": "^7.28.3",
+    "@babel/preset-react": "^7.27.1",
+    "@babel/preset-typescript": "^7.27.1",
     "@rspack/cli": "^1.4.11",
     "@rspack/core": "^1.4.11",
     "@rspack/plugin-react-refresh": "^1.4.3",
