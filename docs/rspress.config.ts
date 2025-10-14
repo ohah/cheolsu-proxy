@@ -1,5 +1,4 @@
 import { defineConfig } from "rspress/config";
-import pluginMermaid from "rspress-plugin-mermaid";
 
 export default defineConfig({
   root: ".",
@@ -166,9 +165,6 @@ export default defineConfig({
       ],
     },
   },
-  plugins: [
-    pluginMermaid(),
-  ],
   builderConfig: {
     output: {
       distPath: {
@@ -178,19 +174,6 @@ export default defineConfig({
     dev: {
       client: {
         overlay: false,
-      },
-    },
-    tools: {
-      rspack(config) {
-        config.resolve = config.resolve || {};
-        config.resolve.fallback = {
-          ...config.resolve.fallback,
-          "path": "path-browserify",
-        };
-        config.resolve.alias = {
-          ...config.resolve.alias,
-          "node:path": "path-browserify",
-        };
       },
     },
   },
