@@ -4,6 +4,7 @@ import Editor from '@monaco-editor/react';
 import type { SessionStore } from '@/entities/session';
 import { Button, Input, Badge, Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui';
 import { useSessionEdit } from '../hooks/use-session-edit';
+import { formatValueToJsonString, handleEditorChange } from '../utils';
 import { toast } from 'sonner';
 import { Save, X } from 'lucide-react';
 
@@ -114,7 +115,7 @@ export const SessionEditor = ({ session, isEditing, onSave, onCancel }: SessionE
                   <Input
                     type="number"
                     value={field.state.value || ''}
-                    onChange={(e) => field.handleChange(parseInt(e.target.value) || 200)}
+                    onChange={(e) => field.handleChange(Number.parseInt(e.target.value) || 200)}
                     placeholder="200"
                     disabled={!isEditing}
                     className={`mt-1 ${isEditing ? '' : 'bg-muted/50 cursor-not-allowed'}`}
@@ -143,45 +144,8 @@ export const SessionEditor = ({ session, isEditing, onSave, onCancel }: SessionE
                     <Editor
                       height="200px"
                       defaultLanguage="json" // TODO: 데이터 타입에 따라 동적으로 설정 (json, text, binary, image 등)
-                      value={(() => {
-                        // TODO 데이터 타입에 따라 바꿔야 할 부분
-                        if (!field.state.value) return '';
-
-                        // 이미 문자열인 경우 파싱 시도
-                        if (typeof field.state.value === 'string') {
-                          try {
-                            const parsed = JSON.parse(field.state.value);
-                            return JSON.stringify(parsed, null, 2);
-                          } catch {
-                            return field.state.value;
-                          }
-                        }
-
-                        // 객체인 경우 그대로 문자열화
-                        return JSON.stringify(field.state.value, null, 2);
-                      })()}
-                      onChange={(value) => {
-                        if (isEditing && value !== undefined) {
-                          // 빈 텍스트인 경우 undefined로 저장
-                          if (value.trim() === '') {
-                            field.handleChange(undefined as any);
-                            return;
-                          }
-
-                          try {
-                            const parsed = JSON.parse(value);
-                            // 빈 객체인 경우 undefined로 저장
-                            if (parsed && typeof parsed === 'object' && Object.keys(parsed).length === 0) {
-                              field.handleChange(undefined as any);
-                            } else {
-                              field.handleChange(parsed);
-                            }
-                          } catch {
-                            // Invalid JSON, save as string
-                            field.handleChange(value as any);
-                          }
-                        }
-                      }}
+                      value={formatValueToJsonString(field.state.value)}
+                      onChange={(value) => handleEditorChange(value, isEditing, field.handleChange)}
                       options={{
                         minimap: { enabled: false },
                         scrollBeyondLastLine: false,
@@ -214,43 +178,8 @@ export const SessionEditor = ({ session, isEditing, onSave, onCancel }: SessionE
                     <Editor
                       height="200px"
                       defaultLanguage="json" // TODO: 데이터 타입에 따라 동적으로 설정 (json, text, binary, image 등)
-                      value={(() => {
-                        // TODO 데이터 타입에 따라 바꿔야 할 부분
-                        if (!field.state.value) return '';
-
-                        if (typeof field.state.value === 'string') {
-                          try {
-                            const parsed = JSON.parse(field.state.value);
-                            return JSON.stringify(parsed, null, 2);
-                          } catch {
-                            return field.state.value;
-                          }
-                        }
-
-                        return JSON.stringify(field.state.value, null, 2);
-                      })()}
-                      onChange={(value) => {
-                        if (isEditing && value !== undefined) {
-                          // 빈 텍스트인 경우 undefined로 저장
-                          if (value.trim() === '') {
-                            field.handleChange(undefined as any);
-                            return;
-                          }
-
-                          try {
-                            const parsed = JSON.parse(value);
-                            // 빈 객체인 경우 undefined로 저장
-                            if (parsed && typeof parsed === 'object' && Object.keys(parsed).length === 0) {
-                              field.handleChange(undefined as any);
-                            } else {
-                              field.handleChange(parsed);
-                            }
-                          } catch {
-                            // Invalid JSON, save as string
-                            field.handleChange(value as any);
-                          }
-                        }
-                      }}
+                      value={formatValueToJsonString(field.state.value)}
+                      onChange={(value) => handleEditorChange(value, isEditing, field.handleChange)}
                       options={{
                         minimap: { enabled: false },
                         scrollBeyondLastLine: false,
@@ -283,45 +212,8 @@ export const SessionEditor = ({ session, isEditing, onSave, onCancel }: SessionE
                     <Editor
                       height="200px"
                       defaultLanguage="json" // TODO: 데이터 타입에 따라 동적으로 설정 (json, text, binary, image 등)
-                      value={(() => {
-                        // TODO 데이터 타입에 따라 바꿔야 할 부분
-                        if (!field.state.value) return '';
-
-                        // 이미 문자열인 경우 파싱 시도
-                        if (typeof field.state.value === 'string') {
-                          try {
-                            const parsed = JSON.parse(field.state.value);
-                            return JSON.stringify(parsed, null, 2);
-                          } catch {
-                            return field.state.value;
-                          }
-                        }
-
-                        // 객체인 경우 그대로 문자열화
-                        return JSON.stringify(field.state.value, null, 2);
-                      })()}
-                      onChange={(value) => {
-                        if (isEditing && value !== undefined) {
-                          // 빈 텍스트인 경우 undefined로 저장
-                          if (value.trim() === '') {
-                            field.handleChange(undefined as any);
-                            return;
-                          }
-
-                          try {
-                            const parsed = JSON.parse(value);
-                            // 빈 객체인 경우 undefined로 저장
-                            if (parsed && typeof parsed === 'object' && Object.keys(parsed).length === 0) {
-                              field.handleChange(undefined as any);
-                            } else {
-                              field.handleChange(parsed);
-                            }
-                          } catch {
-                            // Invalid JSON, save as string
-                            field.handleChange(value as any);
-                          }
-                        }
-                      }}
+                      value={formatValueToJsonString(field.state.value)}
+                      onChange={(value) => handleEditorChange(value, isEditing, field.handleChange)}
                       options={{
                         minimap: { enabled: false },
                         scrollBeyondLastLine: false,
@@ -354,45 +246,8 @@ export const SessionEditor = ({ session, isEditing, onSave, onCancel }: SessionE
                     <Editor
                       height="200px"
                       defaultLanguage="json" // TODO: 데이터 타입에 따라 동적으로 설정 (json, text, binary, image 등)
-                      value={(() => {
-                        // TODO 데이터 타입에 따라 바꿔야 할 부분
-                        if (!field.state.value) return '';
-
-                        // 이미 문자열인 경우 파싱 시도
-                        if (typeof field.state.value === 'string') {
-                          try {
-                            const parsed = JSON.parse(field.state.value);
-                            return JSON.stringify(parsed, null, 2);
-                          } catch {
-                            return field.state.value;
-                          }
-                        }
-
-                        // 객체인 경우 그대로 문자열화
-                        return JSON.stringify(field.state.value, null, 2);
-                      })()}
-                      onChange={(value) => {
-                        if (isEditing && value !== undefined) {
-                          // 빈 텍스트인 경우 undefined로 저장
-                          if (value.trim() === '') {
-                            field.handleChange(undefined as any);
-                            return;
-                          }
-
-                          try {
-                            const parsed = JSON.parse(value);
-                            // 빈 객체인 경우 undefined로 저장
-                            if (parsed && typeof parsed === 'object' && Object.keys(parsed).length === 0) {
-                              field.handleChange(undefined as any);
-                            } else {
-                              field.handleChange(parsed);
-                            }
-                          } catch {
-                            // Invalid JSON, save as string
-                            field.handleChange(value as any);
-                          }
-                        }
-                      }}
+                      value={formatValueToJsonString(field.state.value)}
+                      onChange={(value) => handleEditorChange(value, isEditing, field.handleChange)}
                       options={{
                         minimap: { enabled: false },
                         scrollBeyondLastLine: false,
