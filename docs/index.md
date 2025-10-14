@@ -2,6 +2,8 @@
 
 Rust와 Tauri로 구축된 간단한 Man In The Middle 프록시입니다.
 
+> 이 프로젝트는 [Proxelar](https://github.com/emanuele-em/proxelar)에서 포크하여 시작되었습니다.
+
 ## 주요 기능
 
 - **TLS 지원**: HTTPS 트래픽 가로채기 및 분석
