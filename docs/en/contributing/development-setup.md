@@ -7,6 +7,16 @@ description: Complete environment setup guide for Cheolsu Proxy development
 
 Complete environment setup guide for Cheolsu Proxy development.
 
+## Technology Stack
+
+This project uses the following tools and technologies:
+
+- **Rust**: Core backend language with Cargo package manager
+- **Tauri**: Desktop application framework
+- **pnpm**: Fast, disk space efficient package manager for Node.js
+- **oxc**: JavaScript/TypeScript toolchain for parsing and linting
+- **Rspress**: Documentation site generator
+
 ## System Requirements
 
 ### Operating System
@@ -70,7 +80,7 @@ nvm use --lts
 3. Verify in PowerShell:
    ```powershell
    node --version
-   npm --version
+   pnpm --version
    ```
 
 #### Linux (Ubuntu/Debian)
@@ -84,7 +94,7 @@ sudo apt-get install -y nodejs
 
 # Verify
 node --version
-npm --version
+pnpm --version
 ```
 
 ### 3. Tauri CLI Installation
@@ -161,7 +171,7 @@ cargo build --workspace
 cd tauri-ui
 
 # Install dependencies
-npm install
+pnpm install
 
 # Or use pnpm (recommended)
 npm install -g pnpm
@@ -173,7 +183,7 @@ pnpm install
 ```bash
 # Run Tauri development server
 cd tauri-ui
-npm run tauri dev
+pnpm run tauri dev
 
 # Or use pnpm
 pnpm tauri dev
@@ -285,20 +295,20 @@ cargo outdated
 ```bash
 # Tauri UI development server
 cd tauri-ui
-npm run dev
+pnpm run dev
 
 # Run with Tauri app
-npm run tauri dev
+pnpm run tauri dev
 ```
 
 ### 2. Build
 
 ```bash
 # Web build
-npm run build
+pnpm run build
 
 # Tauri app build
-npm run tauri build
+pnpm run tauri build
 ```
 
 ### 3. Test
@@ -308,7 +318,7 @@ npm run tauri build
 npm test
 
 # E2E tests
-npm run tauri test
+pnpm run tauri test
 ```
 
 ## Debugging
@@ -352,7 +362,7 @@ npm run tauri test
 ```bash
 # Run development server
 cd tauri-ui
-npm run dev
+pnpm run dev
 
 # Access in browser at http://localhost:1420
 ```
@@ -362,7 +372,7 @@ npm run dev
 ```bash
 # Run in debug mode
 cd tauri-ui
-RUST_LOG=debug npm run tauri dev
+RUST_LOG=debug pnpm run tauri dev
 ```
 
 ## Performance Analysis
@@ -384,7 +394,7 @@ cargo valgrind --bin cheolsu-proxy
 ```bash
 # Bundle analysis
 cd tauri-ui
-npm run build
+pnpm run build
 npx webpack-bundle-analyzer dist/main.js
 ```
 
@@ -411,7 +421,7 @@ rustup update
 # Delete node_modules and reinstall
 cd tauri-ui
 rm -rf node_modules package-lock.json
-npm install
+pnpm install
 
 # Or use pnpm
 rm -rf node_modules pnpm-lock.yaml

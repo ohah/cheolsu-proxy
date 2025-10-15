@@ -6,6 +6,8 @@ export default defineConfig({
   title: "Cheolsu Proxy",
   description: "A simple Man In The Middle proxy built with Rust and Tauri",
   lang: "ko",
+  logo: "/logo.png",
+  logoText: "Cheolsu Proxy",
   locales: [
     {
       lang: "ko",
@@ -21,6 +23,22 @@ export default defineConfig({
     },
   ],
   themeConfig: {
+    locales: [
+      {
+        lang: "ko",
+        label: "한국어",
+        outlineTitle: "이 페이지에서",
+        prevPageText: "이전 페이지",
+        nextPageText: "다음 페이지",
+      },
+      {
+        lang: "en",
+        label: "English",
+        outlineTitle: "ON THIS PAGE",
+        prevPageText: "Previous Page",
+        nextPageText: "Next Page",
+      },
+    ],
     socialLinks: [
       {
         icon: "github",
@@ -30,64 +48,117 @@ export default defineConfig({
     ],
     nav: [
       {
-        text: "가이드",
+        text: "guide",
         link: "/guide/getting-started",
       },
       {
-        text: "기여하기",
+        text: "contributing",
         link: "/contributing/",
       },
     ],
     sidebar: {
       "/guide/": [
         {
-          text: "시작하기",
+          text: "gettingStarted",
           items: [
             {
-              text: "소개",
+              text: "introduction",
               link: "/guide/getting-started",
             },
             {
-              text: "주요 기능",
+              text: "features",
               link: "/guide/features",
             },
             {
-              text: "인증서 설정",
+              text: "certificateSetup",
               link: "/guide/certificate-setup",
+            },
+          ],
+        },
+      ],
+      "/en/guide/": [
+        {
+          text: "gettingStarted",
+          items: [
+            {
+              text: "introduction",
+              link: "/en/guide/getting-started",
+            },
+            {
+              text: "features",
+              link: "/en/guide/features",
+            },
+            {
+              text: "certificateSetup",
+              link: "/en/guide/certificate-setup",
             },
           ],
         },
       ],
       "/contributing/": [
         {
-          text: "기여하기",
+          text: "contributing",
           items: [
             {
-              text: "기여 방법",
+              text: "contributingGuide",
               link: "/contributing/",
             },
             {
-              text: "개발 환경 설정",
+              text: "developmentSetup",
               link: "/contributing/development-setup",
             },
             {
-              text: "프로젝트 구조",
+              text: "codeStructure",
               link: "/contributing/code-structure",
             },
             {
-              text: "테스트",
+              text: "testing",
               link: "/contributing/testing",
+            },
+          ],
+        },
+      ],
+      "/en/contributing/": [
+        {
+          text: "contributing",
+          items: [
+            {
+              text: "contributingGuide",
+              link: "/en/contributing/",
+            },
+            {
+              text: "developmentSetup",
+              link: "/en/contributing/development-setup",
+            },
+            {
+              text: "codeStructure",
+              link: "/en/contributing/code-structure",
+            },
+            {
+              text: "testing",
+              link: "/en/contributing/testing",
             },
           ],
         },
       ],
       "/features/": [
         {
-          text: "기능",
+          text: "featureSection",
           items: [
             {
-              text: "TLS 1.0/1.1 지원",
+              text: "tlsSupport",
               link: "/features/tls-support",
+            },
+          ],
+        },
+      ],
+      "/en/features/": [
+        {
+          text: "featureSection",
+          items: [
+            {
+              text: "tlsSupport",
+              link: "/en/features/tls-support",
             },
           ],
         },
@@ -98,6 +169,11 @@ export default defineConfig({
     output: {
       distPath: {
         root: "doc_build",
+      },
+    },
+    dev: {
+      client: {
+        overlay: false,
       },
     },
   },
