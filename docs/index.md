@@ -2,11 +2,13 @@
 
 Rust와 Tauri로 구축된 간단한 Man In The Middle 프록시입니다.
 
+> 이 프로젝트는 [Proxelar](https://github.com/emanuele-em/proxelar)에서 포크하여 시작되었습니다.
+
 ## 주요 기능
 
 - **TLS 지원**: HTTPS 트래픽 가로채기 및 분석
 - **인증서 관리**: 자동 인증서 생성 및 설치
-- **크로스 플랫폼**: Windows, macOS, Linux 지원
+- **크로스 플랫폼**: macOS 지원 (Windows 지원 예정)
 - **사용자 친화적**: 직관적인 GUI 인터페이스
 
 ## 빠른 시작
@@ -26,3 +28,10 @@ Rust와 Tauri로 구축된 간단한 Man In The Middle 프록시입니다.
 ## 기능 문서
 
 - [TLS 1.0/1.1 지원](/features/tls-support) - 레거시 TLS 클라이언트 지원
+
+## 라이센스
+
+이 프로젝트는 MIT 및 Apache 2.0 라이센스 하에 배포됩니다.
+
+- [MIT 라이센스](https://github.com/ohah/cheolsu-proxy/blob/master/LICENSE-MIT)
+- [Apache 2.0 라이센스](https://github.com/ohah/cheolsu-proxy/blob/master/LICENSE-APACHE)
