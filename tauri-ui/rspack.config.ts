@@ -77,6 +77,7 @@ export default defineConfig({
               env: { targets },
             },
           },
+          { loader: 'babel-loader' }, // React Compiler를 위한 babel-loader 추가
         ],
       },
     ],
