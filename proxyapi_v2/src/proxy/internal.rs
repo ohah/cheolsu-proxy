@@ -240,26 +240,80 @@ where
                     match hyper::upgrade::on(&mut req).await {
                         Ok(upgraded) => {
                             let mut upgraded = TokioIo::new(upgraded);
-                            let mut buffer = [0; 11]; // ClientHello 헤더를 위해 11 bytes 필요
-                            let bytes_read = match upgraded.read(&mut buffer).await {
+
+                            // 먼저 TLS 레코드 헤더를 읽어서 전체 길이를 파악
+                            let mut header_buffer = [0; 5]; // TLS 레코드 헤더 (5 bytes)
+                            let header_bytes_read = match upgraded.read(&mut header_buffer).await {
                                 Ok(bytes_read) => bytes_read,
                                 Err(e) => {
-                                    error!("Failed to read from upgraded connection: {}", e);
+                                    error!(
+                                        "Failed to read TLS header from upgraded connection: {}",
+                                        e
+                                    );
                                     return;
                                 }
                             };
 
-                            let mut upgraded = Rewind::new(
-                                upgraded,
-                                Bytes::copy_from_slice(buffer[..bytes_read].as_ref()),
+                            if header_bytes_read < 5 {
+                                error!("TLS header too short: {} bytes", header_bytes_read);
+                                return;
+                            }
+
+                            // 레코드 길이 계산 (bytes 3-4)
+                            let record_length =
+                                u16::from_be_bytes([header_buffer[3], header_buffer[4]]) as usize;
+                            let total_expected_length = 5 + record_length; // 헤더(5) + 레코드 길이
+
+                            info!("🔍 [BUFFER-READ] TLS 레코드 분석:");
+                            info!("  - 레코드 타입: 0x{:02x}", header_buffer[0]);
+                            info!(
+                                "  - 레코드 버전: 0x{:02x}{:02x}",
+                                header_buffer[1], header_buffer[2]
                             );
+                            info!("  - 레코드 길이: {} bytes", record_length);
+                            info!("  - 예상 전체 길이: {} bytes", total_expected_length);
+
+                            // 전체 ClientHello 메시지를 읽기 위한 버퍼 생성
+                            let mut full_buffer = vec![0; total_expected_length];
+                            full_buffer[..5].copy_from_slice(&header_buffer);
+
+                            // 나머지 데이터 읽기
+                            let remaining_bytes = total_expected_length - 5;
+                            if remaining_bytes > 0 {
+                                let remaining_bytes_read =
+                                    match upgraded.read(&mut full_buffer[5..]).await {
+                                        Ok(bytes_read) => bytes_read,
+                                        Err(e) => {
+                                            error!("Failed to read remaining TLS data: {}", e);
+                                            return;
+                                        }
+                                    };
+
+                                info!("🔍 [BUFFER-READ] 데이터 읽기 완료:");
+                                info!("  - 헤더 읽음: 5 bytes");
+                                info!(
+                                    "  - 나머지 읽음: {} bytes (예상: {} bytes)",
+                                    remaining_bytes_read, remaining_bytes
+                                );
+                                info!("  - 총 읽음: {} bytes", 5 + remaining_bytes_read);
+
+                                if remaining_bytes_read < remaining_bytes {
+                                    warn!(
+                                        "⚠️  전체 ClientHello가 완전히 읽히지 않음: {} < {}",
+                                        remaining_bytes_read, remaining_bytes
+                                    );
+                                }
+                            }
+
+                            let mut upgraded =
+                                Rewind::new(upgraded, Bytes::copy_from_slice(&full_buffer));
 
                             if self
                                 .http_handler
                                 .should_intercept(&self.context(), &req)
                                 .await
                             {
-                                if buffer.len() >= 4 && buffer[..4] == *b"GET " {
+                                if full_buffer.len() >= 4 && full_buffer[..4] == *b"GET " {
                                     if let Err(e) = self
                                         .serve_stream(
                                             TokioIo::new(upgraded),
@@ -272,10 +326,11 @@ where
                                     }
 
                                     return;
-                                } else if buffer[..2] == *b"\x16\x03" {
+                                } else if full_buffer.len() >= 2 && full_buffer[..2] == *b"\x16\x03"
+                                {
                                     // TLS 버전 감지
                                     let tls_version =
-                                        TlsVersionDetector::detect_tls_version(&buffer);
+                                        TlsVersionDetector::detect_tls_version(&full_buffer);
 
                                     match tls_version {
                                         Some(version) => {
@@ -302,7 +357,9 @@ where
                                             // 하이브리드 TLS 연결 처리
                                             match hybrid_handler
                                                 .handle_tls_connection_upgraded(
-                                                    &authority, upgraded, &buffer,
+                                                    &authority,
+                                                    upgraded,
+                                                    &full_buffer,
                                                 )
                                                 .await
                                             {
@@ -471,7 +528,7 @@ where
                                 } else {
                                     warn!(
                                         "Unknown protocol, read '{:02X?}' from upgraded connection",
-                                        &buffer[..bytes_read]
+                                        &full_buffer[..full_buffer.len().min(16)]
                                     );
                                 }
                             }
