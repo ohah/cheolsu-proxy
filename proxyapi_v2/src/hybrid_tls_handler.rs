@@ -67,6 +67,117 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
         // TLS 버전 감지
         let tls_version = TlsVersionDetector::detect_tls_version(initial_buffer);
 
+        // ClientHello 메시지 상세 분석
+        if initial_buffer.len() >= 11 {
+            info!("🔍 [CLIENT-HELLO] 상세 분석:");
+            info!(
+                "  - 레코드 타입: 0x{:02x} ({})",
+                initial_buffer[0],
+                if initial_buffer[0] == 0x16 {
+                    "Handshake"
+                } else {
+                    "Unknown"
+                }
+            );
+            info!(
+                "  - 레코드 버전: 0x{:02x}{:02x}",
+                initial_buffer[1], initial_buffer[2]
+            );
+            info!(
+                "  - 레코드 길이: {} bytes",
+                u16::from_be_bytes([initial_buffer[3], initial_buffer[4]])
+            );
+            info!(
+                "  - 핸드셰이크 타입: 0x{:02x} ({})",
+                initial_buffer[5],
+                if initial_buffer[5] == 0x01 {
+                    "ClientHello"
+                } else {
+                    "Unknown"
+                }
+            );
+            info!(
+                "  - 핸드셰이크 길이: {} bytes",
+                u32::from_be_bytes([0, initial_buffer[6], initial_buffer[7], initial_buffer[8]])
+            );
+            info!(
+                "  - 클라이언트 버전: 0x{:02x}{:02x} ({})",
+                initial_buffer[9],
+                initial_buffer[10],
+                match [initial_buffer[9], initial_buffer[10]] {
+                    [0x03, 0x00] => "SSL 3.0",
+                    [0x03, 0x01] => "TLS 1.0",
+                    [0x03, 0x02] => "TLS 1.1",
+                    [0x03, 0x03] => "TLS 1.2",
+                    [0x03, 0x04] => "TLS 1.3",
+                    _ => "Unknown",
+                }
+            );
+
+            // ClientHello의 추가 정보 분석 (가능한 경우)
+            if initial_buffer.len() >= 43 {
+                // Random (32 bytes) + Session ID Length (1 byte)
+                let session_id_length = initial_buffer[43] as usize;
+                info!("  - 세션 ID 길이: {} bytes", session_id_length);
+
+                if initial_buffer.len() >= 44 + session_id_length + 2 {
+                    let cipher_suites_start = 44 + session_id_length;
+                    let cipher_suites_length = u16::from_be_bytes([
+                        initial_buffer[cipher_suites_start],
+                        initial_buffer[cipher_suites_start + 1],
+                    ]) as usize;
+                    info!("  - 암호화 스위트 길이: {} bytes", cipher_suites_length);
+                    info!("  - 암호화 스위트 개수: {}", cipher_suites_length / 2);
+
+                    // 암호화 스위트 목록 분석 (처음 10개만)
+                    if initial_buffer.len() >= cipher_suites_start + 2 + cipher_suites_length {
+                        let cipher_suites_end = cipher_suites_start + 2 + cipher_suites_length;
+                        let mut cipher_suites = Vec::new();
+                        for i in (cipher_suites_start + 2..cipher_suites_end).step_by(2) {
+                            if i + 1 < initial_buffer.len() {
+                                let suite =
+                                    u16::from_be_bytes([initial_buffer[i], initial_buffer[i + 1]]);
+                                cipher_suites.push(format!("0x{:04x}", suite));
+                                if cipher_suites.len() >= 10 {
+                                    break;
+                                }
+                            }
+                        }
+                        info!("  - 암호화 스위트 (처음 10개): {:?}", cipher_suites);
+                    }
+                }
+            }
+
+            // 전체 ClientHello 메시지 분석을 위한 추가 로깅
+            if initial_buffer.len() >= 5 {
+                let record_length =
+                    u16::from_be_bytes([initial_buffer[3], initial_buffer[4]]) as usize;
+                let total_expected_length = 5 + record_length; // 헤더(5) + 레코드 길이
+
+                info!("🔍 [CLIENT-HELLO] 전체 메시지 분석:");
+                info!(
+                    "  - 예상 전체 길이: {} bytes (헤더 5 + 레코드 {})",
+                    total_expected_length, record_length
+                );
+                info!("  - 현재 읽은 길이: {} bytes", initial_buffer.len());
+
+                if initial_buffer.len() < total_expected_length {
+                    info!("  - ⚠️  전체 ClientHello가 아직 완전히 읽히지 않음");
+                    info!(
+                        "  - 추가로 읽어야 할 바이트: {} bytes",
+                        total_expected_length - initial_buffer.len()
+                    );
+                } else {
+                    info!("  - ✅ 전체 ClientHello 메시지 완전히 읽힘");
+
+                    // Extensions 분석
+                    if let Some(extensions_info) = analyze_extensions(&initial_buffer) {
+                        info!("  - Extensions: {}", extensions_info);
+                    }
+                }
+            }
+        }
+
         match tls_version {
             Some(version) => {
                 info!(
@@ -377,18 +488,53 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
         authority: &Authority,
         upgraded: Rewind<TokioIo<Upgraded>>,
     ) -> Result<HybridTlsStream, Box<dyn std::error::Error + Send + Sync>> {
+        info!("🔧 [RUSTLS] 서버 설정 생성 시작: {}", authority);
         let server_config = self.ca.gen_server_config(authority).await;
         let acceptor = TlsAcceptor::from(server_config);
+        info!("🔧 [RUSTLS] TlsAcceptor 생성 완료: {}", authority);
+
+        info!("🔧 [RUSTLS] TLS 핸드셰이크 시작: {}", authority);
+        let start_time = std::time::Instant::now();
 
         match acceptor.accept(upgraded).await {
             Ok(tls_stream) => {
-                info!("✅ rustls 핸드셰이크 성공: {}", authority);
+                let duration = start_time.elapsed();
+                info!(
+                    "✅ [RUSTLS] 핸드셰이크 성공: {} (소요시간: {:?})",
+                    authority, duration
+                );
+
+                // TLS 연결 정보 로깅
+                if let Some(peer_cert) = tls_stream.get_ref().1.peer_certificates() {
+                    info!("🔍 [RUSTLS] 피어 인증서 개수: {}", peer_cert.len());
+                }
+
                 Ok(HybridTlsStream::Rustls(tokio_rustls::TlsStream::Server(
                     tls_stream,
                 )))
             }
             Err(e) => {
-                error!("❌ rustls 핸드셰이크 실패: {}", e);
+                let duration = start_time.elapsed();
+                error!(
+                    "❌ [RUSTLS] 핸드셰이크 실패: {} (소요시간: {:?})",
+                    authority, duration
+                );
+                error!("❌ [RUSTLS] 오류 상세: {}", e);
+
+                // 오류 타입별 상세 분석
+                let error_str = e.to_string();
+                if error_str.contains("eof") {
+                    error!("🔍 [RUSTLS] EOF 오류 - 클라이언트가 연결을 끊었거나 예상치 못한 종료");
+                } else if error_str.contains("alert") {
+                    error!("🔍 [RUSTLS] TLS Alert 오류 - 프로토콜 위반 또는 보안 문제");
+                } else if error_str.contains("certificate") {
+                    error!("🔍 [RUSTLS] 인증서 관련 오류");
+                } else if error_str.contains("cipher") {
+                    error!("🔍 [RUSTLS] 암호화 스위트 관련 오류");
+                } else {
+                    error!("🔍 [RUSTLS] 기타 TLS 오류: {}", error_str);
+                }
+
                 Err(format!("rustls handshake failed: {}", e).into())
             }
         }
@@ -607,5 +753,135 @@ impl AsyncWrite for HybridTlsStream {
                 std::pin::Pin::new(stream).poll_shutdown(cx)
             }
         }
+    }
+}
+
+/// TLS Extensions 정보를 분석합니다
+fn analyze_extensions(buffer: &[u8]) -> Option<String> {
+    if buffer.len() < 5 {
+        return None;
+    }
+
+    let record_length = u16::from_be_bytes([buffer[3], buffer[4]]) as usize;
+    if buffer.len() < 5 + record_length {
+        return None;
+    }
+
+    // ClientHello 메시지 시작 (헤더 5 bytes 건너뛰기)
+    let handshake_start = 5;
+    if buffer.len() < handshake_start + 9 {
+        return None;
+    }
+
+    // Handshake 메시지 구조: [type(1), length(3), version(2), random(32), session_id_length(1)]
+    let session_id_length = buffer[handshake_start + 4 + 32] as usize;
+    let cipher_suites_start = handshake_start + 4 + 32 + 1 + session_id_length;
+
+    if buffer.len() < cipher_suites_start + 2 {
+        return None;
+    }
+
+    let cipher_suites_length =
+        u16::from_be_bytes([buffer[cipher_suites_start], buffer[cipher_suites_start + 1]]) as usize;
+
+    let compression_methods_start = cipher_suites_start + 2 + cipher_suites_length;
+    if buffer.len() < compression_methods_start + 1 {
+        return None;
+    }
+
+    let compression_methods_length = buffer[compression_methods_start] as usize;
+    let extensions_start = compression_methods_start + 1 + compression_methods_length;
+
+    if buffer.len() < extensions_start + 2 {
+        return None;
+    }
+
+    let extensions_length =
+        u16::from_be_bytes([buffer[extensions_start], buffer[extensions_start + 1]]) as usize;
+
+    // Extensions 파싱
+    let mut pos = extensions_start + 2;
+    let extensions_end = extensions_start + 2 + extensions_length;
+    let mut extensions = Vec::new();
+
+    while pos + 4 <= extensions_end && pos + 4 <= buffer.len() {
+        let extension_type = u16::from_be_bytes([buffer[pos], buffer[pos + 1]]);
+        let extension_length = u16::from_be_bytes([buffer[pos + 2], buffer[pos + 3]]) as usize;
+
+        let extension_name = match extension_type {
+            0x0000 => "SNI",
+            0x0001 => "max_fragment_length",
+            0x0002 => "client_certificate_url",
+            0x0003 => "trusted_ca_keys",
+            0x0004 => "truncated_hmac",
+            0x0005 => "status_request",
+            0x0006 => "user_mapping",
+            0x0007 => "client_authz",
+            0x0008 => "server_authz",
+            0x0009 => "cert_type",
+            0x000a => "supported_groups",
+            0x000b => "ec_point_formats",
+            0x000c => "srp",
+            0x000d => "signature_algorithms",
+            0x000e => "use_srtp",
+            0x000f => "heartbeat",
+            0x0010 => "application_layer_protocol_negotiation",
+            0x0011 => "status_request_v2",
+            0x0012 => "signed_certificate_timestamp",
+            0x0013 => "client_certificate_type",
+            0x0014 => "server_certificate_type",
+            0x0015 => "padding",
+            0x0016 => "encrypt_then_mac",
+            0x0017 => "extended_master_secret",
+            0x0018 => "token_binding",
+            0x0019 => "cached_info",
+            0x001a => "tls_lts",
+            0x001b => "compress_certificate",
+            0x001c => "record_size_limit",
+            0x001d => "pwd_protect",
+            0x001e => "pwd_clear",
+            0x001f => "password_salt",
+            0x0020 => "ticket_pinning",
+            0x0021 => "tls_cert_with_extern_psk",
+            0x0022 => "delegated_credentials",
+            0x0023 => "session_ticket",
+            0x0024 => "TLMSP",
+            0x0025 => "TLMSP_proxying",
+            0x0026 => "TLMSP_delegate",
+            0x0027 => "supported_ekt_ciphers",
+            0x0028 => "pre_shared_key",
+            0x0029 => "early_data",
+            0x002a => "supported_versions",
+            0x002b => "cookie",
+            0x002c => "psk_key_exchange_modes",
+            0x002d => "certificate_authorities",
+            0x002e => "oid_filters",
+            0x002f => "post_handshake_auth",
+            0x0030 => "signature_algorithms_cert",
+            0x0031 => "key_share",
+            _ => "unknown",
+        };
+
+        extensions.push(format!(
+            "{} (0x{:04x}, {} bytes)",
+            extension_name, extension_type, extension_length
+        ));
+
+        pos += 4 + extension_length;
+
+        // 최대 10개까지만 표시
+        if extensions.len() >= 10 {
+            break;
+        }
+    }
+
+    if extensions.is_empty() {
+        None
+    } else {
+        Some(format!(
+            "{}개 - {}",
+            extensions.len(),
+            extensions.join(", ")
+        ))
     }
 }
