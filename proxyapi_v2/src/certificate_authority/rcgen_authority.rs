@@ -161,19 +161,29 @@ impl RcgenAuthority {
 impl CertificateAuthority for RcgenAuthority {
     async fn gen_server_config(&self, authority: &Authority) -> Arc<ServerConfig> {
         if let Some(server_cfg) = self.cache.get(authority).await {
-            debug!("Using cached server config");
+            debug!("Using cached server config for {}", authority);
             return server_cfg;
         }
-        debug!("Generating server config");
 
+        info!("🔧 [SERVER-CONFIG] 서버 설정 생성 시작: {}", authority);
+        let start_time = std::time::Instant::now();
+
+        info!("🔧 [SERVER-CONFIG] 인증서 생성 중: {}", authority);
         let certs = vec![self.gen_cert(authority)];
+        info!(
+            "🔧 [SERVER-CONFIG] 인증서 생성 완료: {} bytes",
+            certs[0].len()
+        );
 
+        info!("🔧 [SERVER-CONFIG] ServerConfig 빌더 생성 중");
         let mut server_cfg = ServerConfig::builder_with_provider(Arc::clone(&self.provider))
             .with_safe_default_protocol_versions()
             .expect("Failed to specify protocol versions")
             .with_no_client_auth()
             .with_single_cert(certs, self.private_key.clone_key())
             .expect("Failed to build ServerConfig");
+
+        info!("🔧 [SERVER-CONFIG] ServerConfig 빌더 생성 완료");
 
         // ALPN 프로토콜 설정 - HTTP/2 우선, HTTP/1.1 fallback
         server_cfg.alpn_protocols = vec![
@@ -182,12 +192,21 @@ impl CertificateAuthority for RcgenAuthority {
             b"http/1.1".to_vec(),
         ];
 
-        debug!(
-            "Server config ALPN protocols: {:?}",
+        info!(
+            "🔧 [SERVER-CONFIG] ALPN 프로토콜 설정: {:?}",
             server_cfg.alpn_protocols
         );
 
+        // 지원되는 TLS 버전 로깅 (rustls 0.23+에서는 다른 방법으로 확인)
+        info!("🔧 [SERVER-CONFIG] rustls ServerConfig 생성 완료");
+
         let server_cfg = Arc::new(server_cfg);
+        let duration = start_time.elapsed();
+
+        info!(
+            "✅ [SERVER-CONFIG] 서버 설정 생성 완료: {} (소요시간: {:?})",
+            authority, duration
+        );
 
         self.cache
             .insert(authority.clone(), Arc::clone(&server_cfg))
