@@ -6,9 +6,12 @@
     "dev": "rspack dev",
     "build": "rspack build",
     "preview": "rspack preview",
-    "tauri-dev": "tauri dev",
+    "tauri-dev": "npm run log:backup && tauri dev",
     "tauri:local": "IS_PROXY=false tauri",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "log:backup": "cd src-tauri/logs && if [ -f proxy.log.2025-10-16 ]; then for i in {20..100}; do if [ ! -f proxy.log.2025-10-16.old$i ]; then mv proxy.log.2025-10-16 proxy.log.2025-10-16.old$i; break; fi; done; fi",
+    "log:generate": "npm run log:backup && cd /Users/yoon/Documents/workspace/proxelar && timeout 20s cargo run -p proxyapi_v2 --example log",
+    "log:clean": "cd src-tauri/logs && rm -f proxy.log.2025-10-16.old*"
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
