@@ -49,6 +49,9 @@ chrono = { version = "0.4", features = ["serde"] }
 flate2 = "1.1.2"  # 최신 버전으로 GZIP 압축 해제
 tokio-stream = "0.1.17"
 regex = "1.0"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["fmt", "registry", "env-filter"] }
+tracing-appender = "0.2"
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem
