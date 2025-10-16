@@ -14,7 +14,7 @@ use tauri::Manager;
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     #[cfg(debug_assertions)]
-    let devtools = tauri_plugin_devtools::init();
+    // let devtools = tauri_plugin_devtools::init();
     {
         let mut builder = tauri::Builder::default()
             .plugin(tauri_plugin_http::init())
@@ -23,10 +23,10 @@ pub fn run() {
             .plugin(tauri_plugin_store::Builder::default().build());
 
         // DevTools 플러그인 추가 (개발 빌드에서만)
-        #[cfg(debug_assertions)]
-        {
-            builder = builder.plugin(devtools);
-        }
+        // #[cfg(debug_assertions)]
+        // {
+        //     builder = builder.plugin(devtools);
+        // }
 
         builder
             .setup(|app_handle| {
