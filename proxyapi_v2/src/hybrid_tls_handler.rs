@@ -5,8 +5,9 @@ use hyper::upgrade::Upgraded;
 use hyper_util::rt::TokioIo;
 use std::sync::Arc;
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
+use tokio_openssl::SslStream;
 use tokio_rustls::TlsAcceptor;
-use tracing::{error, info, warn};
+use tracing::{error, info};
 
 /// TLS 핸들러 - rustls 사용 (Hudsucker 방식으로 단순화)
 pub struct HybridTlsHandler<CA: CertificateAuthority> {
@@ -161,15 +162,84 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
         }
 
         if is_tls {
-            info!("✅ TLS 감지됨, rustls로 처리: {}", authority);
-            match self.handle_with_rustls_upgraded(authority, upgraded).await {
-                Ok(stream) => {
-                    info!("✅ [RUSTLS] TLS 연결 성공: {}", authority);
-                    Ok(stream)
+            // TLS 버전에 따라 적절한 핸들러 선택
+            let tls_version = if initial_buffer.len() >= 11 {
+                match [initial_buffer[9], initial_buffer[10]] {
+                    [0x03, 0x00] => "SSL 3.0",
+                    [0x03, 0x01] => "TLS 1.0",
+                    [0x03, 0x02] => "TLS 1.1",
+                    [0x03, 0x03] => "TLS 1.2",
+                    [0x03, 0x04] => "TLS 1.3",
+                    _ => "Unknown",
                 }
-                Err(e) => {
-                    error!("❌ [RUSTLS] TLS 연결 실패: {} - 오류: {}", authority, e);
-                    Err(e)
+            } else {
+                "Unknown"
+            };
+
+            // TLS 1.0/1.1은 openssl로 처리, TLS 1.2+는 rustls로 처리
+            match tls_version {
+                #[cfg(feature = "openssl-ca")]
+                "TLS 1.0" | "TLS 1.1" => {
+                    info!(
+                        "🔧 TLS {} 감지됨, openssl로 처리: {}",
+                        tls_version, authority
+                    );
+                    match self
+                        .handle_with_openssl_upgraded(authority, upgraded, initial_buffer)
+                        .await
+                    {
+                        Ok(stream) => {
+                            info!("✅ [OPENSSL] TLS 연결 성공: {}", authority);
+                            Ok(stream)
+                        }
+                        Err(e) => {
+                            error!("❌ [OPENSSL] TLS 연결 실패: {} - 오류: {}", authority, e);
+                            Err(e)
+                        }
+                    }
+                }
+                #[cfg(not(feature = "openssl-ca"))]
+                "TLS 1.0" | "TLS 1.1" => {
+                    error!(
+                        "❌ TLS 1.0/1.1은 openssl-ca feature가 필요합니다: {}",
+                        authority
+                    );
+                    Err("TLS 1.0/1.1 requires openssl-ca feature".into())
+                }
+                "TLS 1.2" | "TLS 1.3" => {
+                    info!(
+                        "🔧 TLS {} 감지됨, rustls로 처리: {}",
+                        tls_version, authority
+                    );
+                    match self
+                        .handle_with_rustls_upgraded(authority, upgraded, initial_buffer)
+                        .await
+                    {
+                        Ok(stream) => {
+                            info!("✅ [RUSTLS] TLS 연결 성공: {}", authority);
+                            Ok(stream)
+                        }
+                        Err(e) => {
+                            error!("❌ [RUSTLS] TLS 연결 실패: {} - 오류: {}", authority, e);
+                            Err(e)
+                        }
+                    }
+                }
+                _ => {
+                    info!("🔧 알 수 없는 TLS 버전, rustls로 처리: {}", authority);
+                    match self
+                        .handle_with_rustls_upgraded(authority, upgraded, initial_buffer)
+                        .await
+                    {
+                        Ok(stream) => {
+                            info!("✅ [RUSTLS] TLS 연결 성공: {}", authority);
+                            Ok(stream)
+                        }
+                        Err(e) => {
+                            error!("❌ [RUSTLS] TLS 연결 실패: {} - 오류: {}", authority, e);
+                            Err(e)
+                        }
+                    }
                 }
             }
         } else {
@@ -261,6 +331,7 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
         &self,
         authority: &Authority,
         upgraded: Rewind<TokioIo<Upgraded>>,
+        initial_buffer: &[u8],
     ) -> Result<HybridTlsStream, Box<dyn std::error::Error + Send + Sync>> {
         info!("🔧 [RUSTLS] 서버 설정 생성 시작: {}", authority);
         let server_config = self.ca.gen_server_config(authority).await;
@@ -270,6 +341,7 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
         info!("🔧 [RUSTLS] TLS 핸드셰이크 시작: {}", authority);
         let start_time = std::time::Instant::now();
 
+        // rustls는 Rewind가 필요하므로 그대로 사용
         match acceptor.accept(upgraded).await {
             Ok(tls_stream) => {
                 let duration = start_time.elapsed();
@@ -313,12 +385,44 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
             }
         }
     }
+
+    /// OpenSSL로 Upgraded 스트림을 처리합니다 (TLS 1.0/1.1 지원)
+    #[cfg(feature = "openssl-ca")]
+    async fn handle_with_openssl_upgraded(
+        &self,
+        authority: &Authority,
+        upgraded: Rewind<TokioIo<Upgraded>>,
+        _initial_buffer: &[u8],
+    ) -> Result<HybridTlsStream, Box<dyn std::error::Error + Send + Sync>> {
+        info!("🔧 [OPENSSL] 서버 설정 생성 시작: {}", authority);
+
+        // CA에서 OpenSSL 컨텍스트 생성
+        let ctx = self.ca.gen_openssl_context(authority).await?;
+
+        // OpenSSL Ssl 객체 생성
+        let ssl = openssl::ssl::Ssl::new(&ctx)?;
+
+        info!("🔧 [OPENSSL] TLS 핸드셰이크 시작: {}", authority);
+        let start_time = std::time::Instant::now();
+
+        // SslStream 생성 (tokio_openssl의 SslStream은 자동으로 핸드셰이크 수행)
+        let stream = SslStream::new(ssl, upgraded)?;
+
+        let duration = start_time.elapsed();
+        info!(
+            "✅ [OPENSSL] 핸드셰이크 성공: {} (소요시간: {:?})",
+            authority, duration
+        );
+
+        Ok(HybridTlsStream::OpenSsl(stream))
+    }
 }
 
-/// TLS 스트림 - rustls 스트림을 래핑 (Hudsucker 방식으로 단순화)
+/// TLS 스트림 - rustls와 openssl 스트림을 래핑
 pub enum HybridTlsStream {
     Rustls(tokio_rustls::TlsStream<Rewind<TokioIo<Upgraded>>>),
     RustlsGeneric(tokio_rustls::TlsStream<Rewind<tokio::io::DuplexStream>>),
+    OpenSsl(SslStream<Rewind<TokioIo<Upgraded>>>),
 }
 
 impl AsyncRead for HybridTlsStream {
@@ -330,6 +434,7 @@ impl AsyncRead for HybridTlsStream {
         match self.get_mut() {
             HybridTlsStream::Rustls(stream) => std::pin::Pin::new(stream).poll_read(cx, buf),
             HybridTlsStream::RustlsGeneric(stream) => std::pin::Pin::new(stream).poll_read(cx, buf),
+            HybridTlsStream::OpenSsl(stream) => std::pin::Pin::new(stream).poll_read(cx, buf),
         }
     }
 }
@@ -345,6 +450,7 @@ impl AsyncWrite for HybridTlsStream {
             HybridTlsStream::RustlsGeneric(stream) => {
                 std::pin::Pin::new(stream).poll_write(cx, buf)
             }
+            HybridTlsStream::OpenSsl(stream) => std::pin::Pin::new(stream).poll_write(cx, buf),
         }
     }
 
@@ -355,6 +461,7 @@ impl AsyncWrite for HybridTlsStream {
         match self.get_mut() {
             HybridTlsStream::Rustls(stream) => std::pin::Pin::new(stream).poll_flush(cx),
             HybridTlsStream::RustlsGeneric(stream) => std::pin::Pin::new(stream).poll_flush(cx),
+            HybridTlsStream::OpenSsl(stream) => std::pin::Pin::new(stream).poll_flush(cx),
         }
     }
 
@@ -365,6 +472,7 @@ impl AsyncWrite for HybridTlsStream {
         match self.get_mut() {
             HybridTlsStream::Rustls(stream) => std::pin::Pin::new(stream).poll_shutdown(cx),
             HybridTlsStream::RustlsGeneric(stream) => std::pin::Pin::new(stream).poll_shutdown(cx),
+            HybridTlsStream::OpenSsl(stream) => std::pin::Pin::new(stream).poll_shutdown(cx),
         }
     }
 }

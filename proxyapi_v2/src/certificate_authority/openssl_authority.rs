@@ -136,12 +136,12 @@ impl CertificateAuthority for OpensslAuthority {
                 .unwrap_or_else(|_| panic!("Failed to generate certificate for {}", authority)),
         ];
 
-        // TLS 버전 설정: TLS 1.2부터 TLS 1.3까지 허용 (TLS 1.0/1.1은 보안상 제외)
+        // TLS 버전 설정: TLS 1.2부터 TLS 1.3까지 허용 (rustls 지원 범위)
         let supported_versions = vec![
             &tokio_rustls::rustls::version::TLS12,
             &tokio_rustls::rustls::version::TLS13,
         ];
-        
+
         let mut server_cfg = ServerConfig::builder_with_provider(Arc::clone(&self.provider))
             .with_protocol_versions(&supported_versions)
             .expect("Failed to specify protocol versions")
@@ -167,6 +167,46 @@ impl CertificateAuthority for OpensslAuthority {
     fn get_ca_cert_der(&self) -> Option<Vec<u8>> {
         // OpenSSL X509 인증서를 DER 형식으로 변환
         self.ca_cert.to_der().ok()
+    }
+
+    #[cfg(feature = "openssl-ca")]
+    async fn gen_openssl_context(
+        &self,
+        authority: &Authority,
+    ) -> Result<openssl::ssl::SslContext, Box<dyn std::error::Error + Send + Sync>> {
+        info!(
+            "🔧 [OPENSSL-CONTEXT] OpenSSL 컨텍스트 생성 시작: {}",
+            authority
+        );
+
+        // OpenSSL 컨텍스트 생성
+        let mut ctx = openssl::ssl::SslContext::builder(openssl::ssl::SslMethod::tls_server())?;
+
+        // TLS 버전 설정: TLS 1.0부터 TLS 1.3까지 지원
+        ctx.set_min_proto_version(Some(openssl::ssl::SslVersion::TLS1))?;
+        ctx.set_max_proto_version(Some(openssl::ssl::SslVersion::TLS1_3))?;
+
+        // 서버 인증서 생성 (CertificateDer -> X509 변환)
+        let server_cert_der = self.gen_cert(authority)?;
+        let server_cert = openssl::x509::X509::from_der(&server_cert_der)?;
+
+        // 인증서 체인 설정 (서버 인증서 + CA 인증서)
+        ctx.set_certificate(&server_cert)?;
+
+        // CA 인증서를 중간 인증서로 추가
+        ctx.add_extra_chain_cert(self.ca_cert.clone())?;
+
+        // 개인키 설정
+        ctx.set_private_key(&self.pkey)?;
+
+        // 컨텍스트 빌드
+        let ctx = ctx.build();
+
+        info!(
+            "✅ [OPENSSL-CONTEXT] OpenSSL 컨텍스트 생성 완료: {}",
+            authority
+        );
+        Ok(ctx)
     }
 }
 

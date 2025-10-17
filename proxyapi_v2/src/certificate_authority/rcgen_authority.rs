@@ -176,13 +176,13 @@ impl CertificateAuthority for RcgenAuthority {
         );
 
         info!("🔧 [SERVER-CONFIG] ServerConfig 빌더 생성 중");
-        
-        // TLS 버전 설정: TLS 1.0부터 TLS 1.3까지 모든 버전 허용
+
+        // TLS 버전 설정: TLS 1.2부터 TLS 1.3까지 허용 (rustls 지원 범위)
         let supported_versions = vec![
             &tokio_rustls::rustls::version::TLS12,
             &tokio_rustls::rustls::version::TLS13,
         ];
-        
+
         let mut server_cfg = ServerConfig::builder_with_provider(Arc::clone(&self.provider))
             .with_protocol_versions(&supported_versions)
             .expect("Failed to specify protocol versions")
@@ -230,6 +230,58 @@ impl CertificateAuthority for RcgenAuthority {
             der_bytes.len()
         );
         Some(der_bytes)
+    }
+
+    #[cfg(feature = "openssl-ca")]
+    async fn gen_openssl_context(
+        &self,
+        authority: &Authority,
+    ) -> Result<openssl::ssl::SslContext, Box<dyn std::error::Error + Send + Sync>> {
+        info!(
+            "🔧 [OPENSSL-CONTEXT] OpenSSL 컨텍스트 생성 시작: {}",
+            authority
+        );
+
+        // OpenSSL 컨텍스트 생성
+        let mut ctx = openssl::ssl::SslContext::builder(openssl::ssl::SslMethod::tls_server())?;
+
+        // TLS 버전 설정: TLS 1.0부터 TLS 1.3까지 지원
+        ctx.set_min_proto_version(Some(openssl::ssl::SslVersion::TLS1))?;
+        ctx.set_max_proto_version(Some(openssl::ssl::SslVersion::TLS1_3))?;
+
+        // 서버 인증서 생성
+        let server_cert_der = self.gen_cert(authority);
+        let server_cert = openssl::x509::X509::from_der(&server_cert_der)?;
+
+        // CA 인증서를 PEM 형식으로 변환
+        let ca_cert_pem = self.ca_cert.pem();
+        let ca_cert = openssl::x509::X509::from_pem(ca_cert_pem.as_bytes())?;
+
+        // CA 개인키를 PEM 형식으로 변환
+        let ca_key_pem = self.key_pair.serialize_pem();
+        let ca_key = openssl::pkey::PKey::private_key_from_pem(ca_key_pem.as_bytes())?;
+
+        // 인증서 체인 설정 (서버 인증서 + CA 인증서)
+        let mut cert_chain = vec![server_cert];
+        cert_chain.push(ca_cert);
+        ctx.set_certificate(&cert_chain[0])?;
+
+        // CA 인증서를 중간 인증서로 추가
+        for cert in cert_chain.iter().skip(1) {
+            ctx.add_extra_chain_cert(cert.to_owned())?;
+        }
+
+        // 개인키 설정
+        ctx.set_private_key(&ca_key)?;
+
+        // 컨텍스트 빌드
+        let ctx = ctx.build();
+
+        info!(
+            "✅ [OPENSSL-CONTEXT] OpenSSL 컨텍스트 생성 완료: {}",
+            authority
+        );
+        Ok(ctx)
     }
 }
 

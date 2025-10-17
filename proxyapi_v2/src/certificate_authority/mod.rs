@@ -11,6 +11,9 @@ use tokio_rustls::rustls::ServerConfig;
 use tokio_rustls::rustls::pki_types::CertificateDer;
 
 #[cfg(feature = "openssl-ca")]
+use openssl::ssl::SslContext;
+
+#[cfg(feature = "openssl-ca")]
 pub use openssl_authority::*;
 #[cfg(feature = "rcgen-ca")]
 pub use rcgen_authority::*;
@@ -457,4 +460,11 @@ pub trait CertificateAuthority: Send + Sync + 'static {
     /// Get the CA certificate in DER format for adding to client trust store.
     /// Returns None if the CA certificate is not available in DER format.
     fn get_ca_cert_der(&self) -> Option<Vec<u8>>;
+
+    #[cfg(feature = "openssl-ca")]
+    /// Generate OpenSSL SslContext for use with openssl.
+    fn gen_openssl_context(
+        &self,
+        authority: &Authority,
+    ) -> impl Future<Output = Result<SslContext, Box<dyn std::error::Error + Send + Sync>>> + Send;
 }
