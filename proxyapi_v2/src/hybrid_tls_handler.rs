@@ -677,10 +677,11 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
         let target_addr = format!("{}:{}", authority.host(), port);
         info!("🚇 [TUNNEL-MODE] 대상 서버 연결 시도: {}", target_addr);
 
-        // 대상 서버 연결 확인 (실제 연결은 하지 않음)
-        match TcpStream::connect(&target_addr).await {
-            Ok(_stream) => {
-                info!("✅ [TUNNEL-MODE] 대상 서버 연결 가능: {}", target_addr);
+        // 대상 서버에 실제 연결
+        let mut server_stream = match TcpStream::connect(&target_addr).await {
+            Ok(stream) => {
+                info!("✅ [TUNNEL-MODE] 대상 서버 연결 성공: {}", target_addr);
+                stream
             }
             Err(e) => {
                 error!(
@@ -689,18 +690,43 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
                 );
                 return Err(format!("Failed to connect to target server: {}", e).into());
             }
-        }
+        };
 
         // Rewind에서 실제 스트림 추출
-        let client_stream = upgraded.into_inner();
+        let mut client_stream = upgraded.into_inner();
 
-        // 터널 모드에서는 클라이언트 스트림을 그대로 반환
-        // 실제 터널은 백그라운드에서 실행됨
-        info!("🚇 [TUNNEL-MODE] 터널 모드 활성화, 클라이언트 스트림 반환");
+        // 실제 터널 생성 - 클라이언트와 서버 간 양방향 데이터 전달
+        info!("🚇 [TUNNEL-MODE] 양방향 터널 생성 시작");
 
-        // 터널 모드에서는 클라이언트 스트림을 그대로 반환
-        // 실제 터널은 백그라운드에서 실행됨
-        Ok(HybridTlsStream::Tunnel(client_stream))
+        // 실제 터널 작업 실행 - 클라이언트와 서버 간 양방향 데이터 전달
+        let start_time = std::time::Instant::now();
+        info!(
+            "🚇 [TUNNEL-TASK] 터널 작업 시작: {} ↔ {}",
+            target_addr, "클라이언트"
+        );
+
+        // 터널 모드에서는 실제 터널 작업을 수행하고 완료될 때까지 대기
+        match tokio::io::copy_bidirectional(&mut client_stream, &mut server_stream).await {
+            Ok((client_to_server, server_to_client)) => {
+                let duration = start_time.elapsed();
+                info!(
+                    "🚇 [TUNNEL-TASK] 터널 완료 - 클라이언트→서버: {} bytes, 서버→클라이언트: {} bytes (소요시간: {:?})",
+                    client_to_server, server_to_client, duration
+                );
+                
+                // 터널이 성공적으로 완료되었으므로 성공으로 처리
+                // 실제로는 터널이 완료되었으므로 더 이상 스트림을 사용할 수 없음
+                Ok(HybridTlsStream::Tunnel(client_stream))
+            }
+            Err(e) => {
+                let duration = start_time.elapsed();
+                error!(
+                    "❌ [TUNNEL-TASK] 터널 오류: {} (소요시간: {:?})",
+                    e, duration
+                );
+                Err(format!("Tunnel failed: {}", e).into())
+            }
+        }
     }
 
     /// rustls로 Upgraded 스트림을 처리합니다
