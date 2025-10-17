@@ -225,67 +225,6 @@ impl CertificateAuthority for RcgenAuthority {
         Some(der_bytes)
     }
 
-    #[cfg(feature = "native-tls-client")]
-    async fn gen_pkcs12_identity(&self, authority: &Authority) -> Option<Vec<u8>> {
-        #[cfg(feature = "openssl-ca")]
-        {
-            use openssl::{pkcs12::Pkcs12, pkey::PKey, x509::X509};
-
-            info!("🔧 PKCS12 인증서 생성 시작: {}", authority);
-
-            // rcgen 인증서를 DER 형식으로 생성
-            let cert_der = self.gen_cert(authority);
-
-            // DER 형식의 인증서를 OpenSSL X509 객체로 변환
-            let cert = match X509::from_der(&cert_der) {
-                Ok(cert) => cert,
-                Err(e) => {
-                    error!("❌ X509 인증서 변환 실패: {}", e);
-                    return None;
-                }
-            };
-
-            // rcgen 개인키를 DER 형식으로 변환
-            let private_key_der = self.key_pair.serialize_der();
-            let private_key = match PKey::private_key_from_der(&private_key_der) {
-                Ok(key) => key,
-                Err(e) => {
-                    error!("❌ 개인키 변환 실패: {}", e);
-                    return None;
-                }
-            };
-
-            // PKCS12 생성 (패스워드 없음)
-            match Pkcs12::builder()
-                .name("")
-                .pkey(&private_key)
-                .cert(&cert)
-                .build2("")
-            {
-                Ok(pkcs12) => {
-                    let pkcs12_der = match pkcs12.to_der() {
-                        Ok(der) => der,
-                        Err(e) => {
-                            error!("❌ PKCS12 DER 변환 실패: {}", e);
-                            return None;
-                        }
-                    };
-
-                    info!("✅ PKCS12 인증서 생성 성공: {} bytes", pkcs12_der.len());
-                    Some(pkcs12_der)
-                }
-                Err(e) => {
-                    error!("❌ PKCS12 생성 실패: {}", e);
-                    None
-                }
-            }
-        }
-        #[cfg(not(feature = "openssl-ca"))]
-        {
-            warn!("PKCS12 생성은 openssl-ca feature가 필요합니다");
-            None
-        }
-    }
 }
 
 #[cfg(test)]

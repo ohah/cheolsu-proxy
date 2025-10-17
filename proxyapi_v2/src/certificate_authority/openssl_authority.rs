@@ -162,59 +162,6 @@ impl CertificateAuthority for OpensslAuthority {
         // OpenSSL X509 인증서를 DER 형식으로 변환
         self.ca_cert.to_der().ok()
     }
-
-    #[cfg(feature = "native-tls-client")]
-    async fn gen_pkcs12_identity(&self, authority: &Authority) -> Option<Vec<u8>> {
-        use openssl::pkcs12::Pkcs12;
-
-        info!("🔧 OpenSSL PKCS12 인증서 생성 시작: {}", authority);
-
-        // OpenSSL 인증서 생성
-        let cert = match self.gen_cert(authority) {
-            Ok(cert) => cert,
-            Err(e) => {
-                error!("❌ OpenSSL 인증서 생성 실패: {}", e);
-                return None;
-            }
-        };
-
-        // DER 형식의 인증서를 OpenSSL X509 객체로 변환
-        let x509_cert = match openssl::x509::X509::from_der(&cert) {
-            Ok(cert) => cert,
-            Err(e) => {
-                error!("❌ X509 인증서 변환 실패: {}", e);
-                return None;
-            }
-        };
-
-        // PKCS12 생성 (패스워드 없음)
-        match Pkcs12::builder()
-            .name("")
-            .pkey(&self.pkey)
-            .cert(&x509_cert)
-            .build2("")
-        {
-            Ok(pkcs12) => {
-                let pkcs12_der = match pkcs12.to_der() {
-                    Ok(der) => der,
-                    Err(e) => {
-                        error!("❌ PKCS12 DER 변환 실패: {}", e);
-                        return None;
-                    }
-                };
-
-                info!(
-                    "✅ OpenSSL PKCS12 인증서 생성 성공: {} bytes",
-                    pkcs12_der.len()
-                );
-                Some(pkcs12_der)
-            }
-            Err(e) => {
-                error!("❌ OpenSSL PKCS12 생성 실패: {}", e);
-                None
-            }
-        }
-    }
 }
 
 #[cfg(test)]
