@@ -9,6 +9,7 @@ use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 use tokio_openssl::SslStream;
 use tokio_rustls::TlsAcceptor;
 use tracing::{error, info};
+use openssl::error::ErrorStack;
 
 /// TLS 핸들러 - rustls 사용 (Hudsucker 방식으로 단순화)
 pub struct HybridTlsHandler<CA: CertificateAuthority> {
@@ -484,8 +485,17 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
         // 핸드셰이크 수행
         info!("🔧 [OPENSSL] 핸드셰이크 시작...");
         info!("🔧 [OPENSSL] 인증서 정보:");
-        info!("  - 서버 인증서: {:?}", stream.ssl().certificate().is_some());
+        info!(
+            "  - 서버 인증서: {:?}",
+            stream.ssl().certificate().is_some()
+        );
         
+        // 핸드셰이크 전 상태 상세 로깅
+        info!("🔧 [OPENSSL] 핸드셰이크 전 상세 상태:");
+        info!("  - SSL 상태: {:?}", stream.ssl().state_string());
+        info!("  - 핸드셰이크 완료 여부: {}", stream.ssl().is_init_finished());
+        
+        info!("🔧 [OPENSSL] accept() 호출 시작...");
         match Pin::new(&mut stream).accept().await {
             Ok(()) => {
                 info!("✅ [OPENSSL] 핸드셰이크 성공!");
@@ -501,6 +511,19 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
                 error!("  - 실패 시 SSL 상태: {:?}", stream.ssl().state_string());
                 error!("  - 에러 코드: {:?}", e.code());
                 error!("  - 에러 상세: {}", e);
+                
+                // 추가 진단 정보
+                error!("🔍 [OPENSSL] 실패 진단 정보:");
+                error!("  - 핸드셰이크 완료 여부: {}", stream.ssl().is_init_finished());
+                error!("  - 현재 TLS 버전: {:?}", stream.ssl().version_str());
+                error!("  - 암호화 스위트: {:?}", stream.ssl().current_cipher());
+                
+                // OpenSSL 에러 큐 확인
+                let error_stack = openssl::error::ErrorStack::get();
+                if error_stack.errors().len() > 0 {
+                    error!("  - OpenSSL 에러 큐: {:?}", error_stack);
+                }
+                
                 return Err(e.into());
             }
         }

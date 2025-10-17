@@ -252,7 +252,7 @@ impl CertificateAuthority for RcgenAuthority {
         // 프록시를 위한 인증서 검증 비활성화
         ctx.set_verify(openssl::ssl::SslVerifyMode::NONE);
         ctx.set_verify_depth(10);
-        
+
         // 클라이언트 호환성을 위한 추가 설정
         ctx.set_options(openssl::ssl::SslOptions::NO_COMPRESSION);
         ctx.set_options(openssl::ssl::SslOptions::SINGLE_DH_USE);
