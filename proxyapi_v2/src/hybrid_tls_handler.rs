@@ -759,26 +759,38 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
     #[cfg(feature = "openssl-ca")]
     fn configure_ssl_for_connection(
         &self,
-        _ssl: &openssl::ssl::Ssl,
+        ssl: &openssl::ssl::Ssl,
         tls_info: &TlsConnectionInfo,
         authority: &Authority,
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         info!("🔧 [SSL-CONFIG] SSL 객체 설정 시작: {}", authority);
 
-        // TLS 버전별 설정
+        // 클라이언트가 요청한 TLS 버전에 맞춰 설정
         match tls_info.version.as_str() {
             "TLS 1.0" | "SSL 3.0" => {
-                info!("🔧 [SSL-CONFIG] 레거시 TLS 버전 감지, 호환성 모드 활성화");
-                // 레거시 버전을 위한 특별한 설정
+                info!("🔧 [SSL-CONFIG] 레거시 TLS 버전 감지, TLS 1.0 고정");
+                ssl.set_min_proto_version(Some(openssl::ssl::SslVersion::TLS1))?;
+                ssl.set_max_proto_version(Some(openssl::ssl::SslVersion::TLS1))?;
             }
             "TLS 1.1" => {
-                info!("🔧 [SSL-CONFIG] TLS 1.1 감지, 중간 호환성 모드 활성화");
+                info!("🔧 [SSL-CONFIG] TLS 1.1 감지, TLS 1.1 고정");
+                ssl.set_min_proto_version(Some(openssl::ssl::SslVersion::TLS1_1))?;
+                ssl.set_max_proto_version(Some(openssl::ssl::SslVersion::TLS1_1))?;
             }
-            "TLS 1.2" | "TLS 1.3" => {
-                info!("🔧 [SSL-CONFIG] 최신 TLS 버전 감지, 최적화 모드 활성화");
+            "TLS 1.2" => {
+                info!("🔧 [SSL-CONFIG] TLS 1.2 감지, TLS 1.2 고정 (1.3 업그레이드 방지)");
+                ssl.set_min_proto_version(Some(openssl::ssl::SslVersion::TLS1_2))?;
+                ssl.set_max_proto_version(Some(openssl::ssl::SslVersion::TLS1_2))?;
+            }
+            "TLS 1.3" => {
+                info!("🔧 [SSL-CONFIG] TLS 1.3 감지, TLS 1.3 고정");
+                ssl.set_min_proto_version(Some(openssl::ssl::SslVersion::TLS1_3))?;
+                ssl.set_max_proto_version(Some(openssl::ssl::SslVersion::TLS1_3))?;
             }
             _ => {
-                warn!("⚠️ [SSL-CONFIG] 알 수 없는 TLS 버전: {}", tls_info.version);
+                warn!("⚠️ [SSL-CONFIG] 알 수 없는 TLS 버전: {}, TLS 1.2로 제한", tls_info.version);
+                ssl.set_min_proto_version(Some(openssl::ssl::SslVersion::TLS1_2))?;
+                ssl.set_max_proto_version(Some(openssl::ssl::SslVersion::TLS1_2))?;
             }
         }
 
@@ -792,7 +804,7 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
             info!("🔧 [SSL-CONFIG] SNI 없음 감지, SNI 비활성화 모드 활성화");
         }
 
-        info!("✅ [SSL-CONFIG] SSL 객체 설정 완료: {}", authority);
+        info!("✅ [SSL-CONFIG] SSL 객체 설정 완료: {} (버전: {})", authority, tls_info.version);
         Ok(())
     }
 
