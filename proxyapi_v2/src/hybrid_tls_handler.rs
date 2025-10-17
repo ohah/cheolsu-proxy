@@ -3,6 +3,7 @@ use crate::rewind::Rewind;
 use http::uri::Authority;
 use hyper::upgrade::Upgraded;
 use hyper_util::rt::TokioIo;
+use std::pin::Pin;
 use std::sync::Arc;
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 use tokio_openssl::SslStream;
@@ -26,6 +27,25 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
             ca,
             rustls_acceptor,
         })
+    }
+
+    /// 특정 도메인이 openssl을 필요로 하는지 확인합니다
+    fn is_openssl_required_domain(&self, authority: &Authority) -> bool {
+        let host = authority.host();
+
+        // rustls에서 문제가 있는 도메인들
+        let openssl_required_domains = [
+            "api2.cursor.sh",
+            "wps.apple.com",
+            "gdmf.apple.com",
+            "fbs.smoot.apple.com",
+            "gateway.icloud.com",
+            "jamf.payhere.in",
+        ];
+
+        openssl_required_domains
+            .iter()
+            .any(|&domain| host == domain)
     }
 
     /// TLS 버전을 감지하고 적절한 TLS 핸들러를 선택합니다 (Upgraded 스트림 전용)
@@ -176,6 +196,43 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
                 "Unknown"
             };
 
+            // 특정 도메인들은 openssl로 강제 처리
+            if self.is_openssl_required_domain(authority) {
+                info!("🔧 특정 도메인 감지됨, openssl로 강제 처리: {}", authority);
+                #[cfg(feature = "openssl-ca")]
+                {
+                    return match self
+                        .handle_with_openssl_upgraded(authority, upgraded, initial_buffer)
+                        .await
+                    {
+                        Ok(stream) => {
+                            info!("✅ [OPENSSL] 강제 처리 성공: {}", authority);
+                            Ok(stream)
+                        }
+                        Err(e) => {
+                            error!("❌ [OPENSSL] 강제 처리 실패: {} - 오류: {}", authority, e);
+                            Err(e)
+                        }
+                    };
+                }
+                #[cfg(not(feature = "openssl-ca"))]
+                {
+                    error!(
+                        "❌ 특정 도메인은 openssl-ca feature가 필요합니다: {}",
+                        authority
+                    );
+                    return Err("Specific domain requires openssl-ca feature".into());
+                }
+            }
+
+            // TLS 버전별 라이브러리 선택 로깅
+            info!("🔍 [TLS-DECISION] 라이브러리 선택 분석:");
+            info!("  - 감지된 TLS 버전: {}", tls_version);
+            info!(
+                "  - OpenSSL 강제 도메인 여부: {}",
+                self.is_openssl_required_domain(authority)
+            );
+
             // TLS 1.0/1.1은 openssl로 처리, TLS 1.2+는 rustls로 처리
             match tls_version {
                 #[cfg(feature = "openssl-ca")]
@@ -184,7 +241,7 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
                         "🔧 TLS {} 감지됨, openssl로 처리: {}",
                         tls_version, authority
                     );
-                    match self
+                    return match self
                         .handle_with_openssl_upgraded(authority, upgraded, initial_buffer)
                         .await
                     {
@@ -196,7 +253,7 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
                             error!("❌ [OPENSSL] TLS 연결 실패: {} - 오류: {}", authority, e);
                             Err(e)
                         }
-                    }
+                    };
                 }
                 #[cfg(not(feature = "openssl-ca"))]
                 "TLS 1.0" | "TLS 1.1" => {
@@ -399,14 +456,48 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
         // CA에서 OpenSSL 컨텍스트 생성
         let ctx = self.ca.gen_openssl_context(authority).await?;
 
-        // OpenSSL Ssl 객체 생성
-        let ssl = openssl::ssl::Ssl::new(&ctx)?;
+        // OpenSSL 컨텍스트 준비 완료
 
         info!("🔧 [OPENSSL] TLS 핸드셰이크 시작: {}", authority);
         let start_time = std::time::Instant::now();
 
-        // SslStream 생성 (tokio_openssl의 SslStream은 자동으로 핸드셰이크 수행)
-        let stream = SslStream::new(ssl, upgraded)?;
+        // SslStream 생성 및 핸드셰이크 수행
+        let ssl = openssl::ssl::Ssl::new(&ctx)?;
+
+        // OpenSSL SSL 객체 설정 로깅
+        info!("🔧 [OPENSSL] SSL 객체 설정:");
+        info!("  - 현재 TLS 버전: {:?}", ssl.version_str());
+        info!("  - 암호화 스위트: {:?}", ssl.current_cipher());
+
+        let mut stream = SslStream::new(ssl, upgraded)?;
+
+        // 핸드셰이크 전 상태 로깅
+        info!("🔧 [OPENSSL] 핸드셰이크 전 상태:");
+        info!("  - SSL 상태: {:?}", stream.ssl().state_string());
+        info!(
+            "  - 핸드셰이크 완료 여부: {}",
+            stream.ssl().is_init_finished()
+        );
+
+        // 핸드셰이크 수행
+        match Pin::new(&mut stream).accept().await {
+            Ok(()) => {
+                info!("✅ [OPENSSL] 핸드셰이크 성공!");
+                info!("  - 최종 SSL 상태: {:?}", stream.ssl().state_string());
+                info!("  - 협상된 TLS 버전: {:?}", stream.ssl().version_str());
+                info!(
+                    "  - 선택된 암호화 스위트: {:?}",
+                    stream.ssl().current_cipher()
+                );
+            }
+            Err(e) => {
+                error!("❌ [OPENSSL] 핸드셰이크 실패: {}", e);
+                error!("  - 실패 시 SSL 상태: {:?}", stream.ssl().state_string());
+                error!("  - 에러 코드: {:?}", e.code());
+                error!("  - 에러 상세: {}", e);
+                return Err(e.into());
+            }
+        }
 
         let duration = start_time.elapsed();
         info!(
