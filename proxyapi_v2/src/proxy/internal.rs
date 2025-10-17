@@ -18,7 +18,12 @@ use hyper_util::{
     server,
 };
 use std::{convert::Infallible, net::SocketAddr, sync::Arc};
-use tokio::{io::AsyncReadExt, net::TcpStream, task::JoinHandle};
+use tokio::{
+    io::AsyncReadExt,
+    net::TcpStream,
+    task::JoinHandle,
+    time::{Duration, timeout},
+};
 use tokio_rustls::TlsAcceptor;
 use tokio_tungstenite::{
     Connector, WebSocketStream,
@@ -235,6 +240,40 @@ where
     fn process_connect(mut self, mut req: Request<Body>) -> Response<Body> {
         match req.uri().authority().cloned() {
             Some(authority) => {
+                // 터널 모드 도메인 확인 (CONNECT 요청 처리 전에 먼저 확인)
+                if self.is_tunnel_mode_domain(&authority) {
+                    info!("🚇 [TUNNEL-MODE] 터널 모드 도메인 감지: {}", authority);
+
+                    // CONNECT 요청에 대한 200 Connection Established 응답 생성
+                    let response = Response::builder()
+                        .status(200)
+                        .header("Connection", "keep-alive")
+                        .body(Body::empty())
+                        .unwrap();
+
+                    // 백그라운드에서 터널 모드 처리
+                    let self_clone = self.clone();
+                    tokio::spawn(async move {
+                        match hyper::upgrade::on(&mut req).await {
+                            Ok(upgraded) => {
+                                let upgraded = TokioIo::new(upgraded);
+                                let upgraded = Rewind::new(upgraded, Bytes::new());
+
+                                if let Err(e) =
+                                    self_clone.handle_tunnel_mode(&authority, upgraded).await
+                                {
+                                    error!("❌ [TUNNEL-MODE] 터널 모드 처리 실패: {}", e);
+                                }
+                            }
+                            Err(e) => {
+                                error!("❌ [TUNNEL-MODE] CONNECT 업그레이드 실패: {}", e);
+                            }
+                        }
+                    });
+
+                    return response;
+                }
+
                 let span = info_span!("process_connect");
                 let fut = async move {
                     match hyper::upgrade::on(&mut req).await {
@@ -844,6 +883,83 @@ where
     }
 
     #[instrument(skip_all)]
+    /// 터널 모드가 필요한 도메인인지 확인합니다
+    fn is_tunnel_mode_domain(&self, authority: &Authority) -> bool {
+        let host = authority.host();
+
+        // 터널 모드가 필요한 도메인들
+        let tunnel_domains = [
+            "wps.apple.com",
+            "gdmf.apple.com",
+            "fbs.smoot.apple.com",
+            "gateway.icloud.com",
+            "icloud.com",
+            "apple.com",
+        ];
+
+        tunnel_domains.iter().any(|&domain| host.contains(domain))
+    }
+
+    /// 터널 모드를 처리합니다
+    async fn handle_tunnel_mode(
+        &self,
+        authority: &Authority,
+        upgraded: Rewind<TokioIo<Upgraded>>,
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        info!("🚇 [TUNNEL-MODE] 터널 모드 처리 시작: {}", authority);
+
+        // 대상 서버에 직접 연결
+        let port = authority
+            .port()
+            .map(|p| p.to_string())
+            .unwrap_or_else(|| "443".to_string());
+        let target_addr = format!("{}:{}", authority.host(), port);
+        info!("🚇 [TUNNEL-MODE] 대상 서버 연결 시도: {}", target_addr);
+
+        let mut server_stream = match tokio::net::TcpStream::connect(&target_addr).await {
+            Ok(stream) => {
+                info!("✅ [TUNNEL-MODE] 대상 서버 연결 성공: {}", target_addr);
+                stream
+            }
+            Err(e) => {
+                error!(
+                    "❌ [TUNNEL-MODE] 대상 서버 연결 실패: {} - {}",
+                    target_addr, e
+                );
+                return Err(format!("Failed to connect to target server: {}", e).into());
+            }
+        };
+
+        // 클라이언트 스트림 추출
+        let mut client_stream = upgraded.into_inner();
+
+        // 실제 터널 생성 - 클라이언트와 서버 간 양방향 데이터 전달
+        let start_time = std::time::Instant::now();
+        info!(
+            "🚇 [TUNNEL-TASK] 터널 작업 시작: {} ↔ {}",
+            target_addr, "클라이언트"
+        );
+
+        match tokio::io::copy_bidirectional(&mut client_stream, &mut server_stream).await {
+            Ok((client_to_server, server_to_client)) => {
+                let duration = start_time.elapsed();
+                info!(
+                    "🚇 [TUNNEL-TASK] 터널 완료 - 클라이언트→서버: {} bytes, 서버→클라이언트: {} bytes (소요시간: {:?})",
+                    client_to_server, server_to_client, duration
+                );
+                Ok(())
+            }
+            Err(e) => {
+                let duration = start_time.elapsed();
+                error!(
+                    "❌ [TUNNEL-TASK] 터널 오류: {} (소요시간: {:?})",
+                    e, duration
+                );
+                Err(format!("Tunnel failed: {}", e).into())
+            }
+        }
+    }
+
     async fn serve_stream<I>(
         self,
         stream: I,
@@ -853,27 +969,73 @@ where
     where
         I: hyper::rt::Read + hyper::rt::Write + Unpin + Send + 'static,
     {
-        let service = service_fn(|mut req| {
-            if req.version() == hyper::Version::HTTP_10 || req.version() == hyper::Version::HTTP_11
-            {
-                let (mut parts, body) = req.into_parts();
+        info!(
+            "🔧 [SERVE-STREAM] 스트림 서빙 시작: {} (scheme: {:?})",
+            authority, scheme
+        );
 
-                parts.uri = {
-                    let mut parts = parts.uri.into_parts();
-                    parts.scheme = Some(scheme.clone());
-                    parts.authority = Some(authority.clone());
-                    Uri::from_parts(parts).expect("Failed to build URI")
+        let proxy_clone = self.clone();
+        let service = service_fn({
+            let authority = authority.clone();
+            let scheme = scheme.clone();
+            move |mut req| {
+                info!(
+                    "🔧 [SERVE-STREAM] HTTP 요청 수신: {} {} (version: {:?})",
+                    req.method(),
+                    req.uri(),
+                    req.version()
+                );
+
+                if req.version() == hyper::Version::HTTP_10
+                    || req.version() == hyper::Version::HTTP_11
+                {
+                    let (mut parts, body) = req.into_parts();
+
+                    parts.uri = {
+                        let mut parts = parts.uri.into_parts();
+                        parts.scheme = Some(scheme.clone());
+                        parts.authority = Some(authority.clone());
+                        Uri::from_parts(parts).expect("Failed to build URI")
+                    };
+
+                    req = Request::from_parts(parts, body);
+                    info!("🔧 [SERVE-STREAM] URI 재구성 완료: {}", req.uri());
                 };
 
-                req = Request::from_parts(parts, body);
-            };
-
-            self.clone().proxy(req)
+                info!("🔧 [SERVE-STREAM] 프록시 요청 전달 시작");
+                proxy_clone.clone().proxy(req)
+            }
         });
 
-        self.server
-            .serve_connection_with_upgrades(stream, service)
-            .await
+        info!(
+            "🔧 [SERVE-STREAM] 서버 연결 시작 - serve_connection_with_upgrades 호출 (타임아웃: 30초)"
+        );
+        let result = timeout(
+            Duration::from_secs(30),
+            self.server.serve_connection_with_upgrades(stream, service),
+        )
+        .await;
+
+        match result {
+            Ok(Ok(_)) => {
+                info!("✅ [SERVE-STREAM] 스트림 서빙 완료: {}", authority);
+                Ok(())
+            }
+            Ok(Err(e)) => {
+                error!(
+                    "❌ [SERVE-STREAM] 스트림 서빙 실패: {} - 에러: {}",
+                    authority, e
+                );
+                Err(e)
+            }
+            Err(_timeout_error) => {
+                error!(
+                    "⏰ [SERVE-STREAM] 스트림 서빙 타임아웃: {} (30초 후 종료)",
+                    authority
+                );
+                Err("Connection timeout after 30 seconds".into())
+            }
+        }
     }
 }
 
