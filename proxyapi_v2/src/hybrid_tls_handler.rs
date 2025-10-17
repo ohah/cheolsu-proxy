@@ -478,8 +478,11 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
             "  - 핸드셰이크 완료 여부: {}",
             stream.ssl().is_init_finished()
         );
+        info!("  - 지원되는 TLS 버전: TLS 1.0 ~ TLS 1.3");
+        info!("  - 인증서 검증: 비활성화 (프록시 모드)");
 
         // 핸드셰이크 수행
+        info!("🔧 [OPENSSL] 핸드셰이크 시작...");
         match Pin::new(&mut stream).accept().await {
             Ok(()) => {
                 info!("✅ [OPENSSL] 핸드셰이크 성공!");

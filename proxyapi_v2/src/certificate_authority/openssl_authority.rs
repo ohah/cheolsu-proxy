@@ -182,19 +182,13 @@ impl CertificateAuthority for OpensslAuthority {
         // OpenSSL 컨텍스트 생성
         let mut ctx = openssl::ssl::SslContext::builder(openssl::ssl::SslMethod::tls_server())?;
 
-        // TLS 버전 설정: TLS 1.2부터 TLS 1.3까지 지원 (더 안정적)
-        ctx.set_min_proto_version(Some(openssl::ssl::SslVersion::TLS1_2))?;
+        // TLS 버전 설정: 모든 TLS 버전 지원 (프록시 목적)
+        ctx.set_min_proto_version(Some(openssl::ssl::SslVersion::TLS1))?;
         ctx.set_max_proto_version(Some(openssl::ssl::SslVersion::TLS1_3))?;
         
-        // 클라이언트 호환성을 위한 추가 설정
-        ctx.set_options(openssl::ssl::SslOptions::NO_SSL_MASK);
-        ctx.set_options(openssl::ssl::SslOptions::NO_TLSV1_1);
-        ctx.set_options(openssl::ssl::SslOptions::NO_TLSV1);
-        ctx.set_options(openssl::ssl::SslOptions::NO_SSLV3);
-        
-        // 추가 호환성 설정
-        ctx.set_verify_depth(10);
+        // 프록시를 위한 인증서 검증 비활성화
         ctx.set_verify(openssl::ssl::SslVerifyMode::NONE);
+        ctx.set_verify_depth(10);
 
         // 서버 인증서 생성 (CertificateDer -> X509 변환)
         let server_cert_der = self.gen_cert(authority)?;
