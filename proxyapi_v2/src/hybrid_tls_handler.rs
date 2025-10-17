@@ -33,9 +33,8 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
     fn is_openssl_required_domain(&self, authority: &Authority) -> bool {
         let host = authority.host();
 
-        // rustls에서 문제가 있는 도메인들
+        // rustls에서 문제가 있는 도메인들 (api2.cursor.sh는 rustls로 처리)
         let openssl_required_domains = [
-            "api2.cursor.sh",
             "wps.apple.com",
             "gdmf.apple.com",
             "fbs.smoot.apple.com",

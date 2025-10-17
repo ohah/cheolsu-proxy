@@ -248,7 +248,7 @@ impl CertificateAuthority for RcgenAuthority {
         // TLS 버전 설정: 모든 TLS 버전 지원 (프록시 목적)
         ctx.set_min_proto_version(Some(openssl::ssl::SslVersion::TLS1))?;
         ctx.set_max_proto_version(Some(openssl::ssl::SslVersion::TLS1_3))?;
-        
+
         // 프록시를 위한 인증서 검증 비활성화
         ctx.set_verify(openssl::ssl::SslVerifyMode::NONE);
         ctx.set_verify_depth(10);
