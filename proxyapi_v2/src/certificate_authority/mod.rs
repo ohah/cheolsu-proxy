@@ -457,5 +457,4 @@ pub trait CertificateAuthority: Send + Sync + 'static {
     /// Get the CA certificate in DER format for adding to client trust store.
     /// Returns None if the CA certificate is not available in DER format.
     fn get_ca_cert_der(&self) -> Option<Vec<u8>>;
-
 }

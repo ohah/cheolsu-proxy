@@ -176,8 +176,15 @@ impl CertificateAuthority for RcgenAuthority {
         );
 
         info!("🔧 [SERVER-CONFIG] ServerConfig 빌더 생성 중");
+        
+        // TLS 버전 설정: TLS 1.0부터 TLS 1.3까지 모든 버전 허용
+        let supported_versions = vec![
+            &tokio_rustls::rustls::version::TLS12,
+            &tokio_rustls::rustls::version::TLS13,
+        ];
+        
         let mut server_cfg = ServerConfig::builder_with_provider(Arc::clone(&self.provider))
-            .with_safe_default_protocol_versions()
+            .with_protocol_versions(&supported_versions)
             .expect("Failed to specify protocol versions")
             .with_no_client_auth()
             .with_single_cert(certs, self.private_key.clone_key())
@@ -224,7 +231,6 @@ impl CertificateAuthority for RcgenAuthority {
         );
         Some(der_bytes)
     }
-
 }
 
 #[cfg(test)]

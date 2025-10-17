@@ -136,8 +136,14 @@ impl CertificateAuthority for OpensslAuthority {
                 .unwrap_or_else(|_| panic!("Failed to generate certificate for {}", authority)),
         ];
 
+        // TLS 버전 설정: TLS 1.2부터 TLS 1.3까지 허용 (TLS 1.0/1.1은 보안상 제외)
+        let supported_versions = vec![
+            &tokio_rustls::rustls::version::TLS12,
+            &tokio_rustls::rustls::version::TLS13,
+        ];
+        
         let mut server_cfg = ServerConfig::builder_with_provider(Arc::clone(&self.provider))
-            .with_safe_default_protocol_versions()
+            .with_protocol_versions(&supported_versions)
             .expect("Failed to specify protocol versions")
             .with_no_client_auth()
             .with_single_cert(certs, self.private_key.clone_key())
