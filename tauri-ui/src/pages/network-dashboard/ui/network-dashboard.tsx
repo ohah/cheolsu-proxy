@@ -8,7 +8,7 @@ import { NetworkTable } from '@/widgets/network-table';
 
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/shared/ui';
 
-import { useProxyEventControl, useTransactionFilters, useTransactions } from '../hooks';
+import { useProxyEventControl, useTransactionFilters, useTransactions, useResizablePanelController } from '../hooks';
 import { useProxyStore } from '@/shared/stores';
 import { HostPathTree } from '@/widgets/host-path-tree/ui/host-path-tree';
 
@@ -21,11 +21,12 @@ export const NetworkDashboard = () => {
     clearTransactions,
     deleteTransaction,
     selectedTransaction,
+    createTransactionToggleHandler,
     createTransactionSelectHandler,
     clearSelectedTransaction,
+    togglePinTransaction,
+    pinnedTransactionIds,
   } = useTransactions();
-
-  const { paused, togglePause } = useProxyEventControl({ onTransactionReceived: addTransaction });
 
   const {
     searchQuery,
@@ -37,15 +38,26 @@ export const NetworkDashboard = () => {
     totalCount,
   } = useTransactionFilters({ transactions });
 
+  const detailsPanelRef = useResizablePanelController({ isExpanded: !!selectedTransaction });
+
+  const { paused, togglePause } = useProxyEventControl({ onTransactionReceived: addTransaction });
+
   const createTransactionDeleteHandler = useCallback(
-    (id: number) => () => {
+    (id: string) => () => {
       deleteTransaction(id);
 
-      if (selectedTransaction?.request?.time === id) {
+      if (selectedTransaction?.request?.id === id) {
         clearSelectedTransaction();
       }
     },
     [],
+  );
+
+  const createTransactionPinHandler = useCallback(
+    (id: string) => () => {
+      togglePinTransaction(id);
+    },
+    [togglePinTransaction],
   );
 
   return (
@@ -67,9 +79,16 @@ export const NetworkDashboard = () => {
 
         <ResizablePanelGroup
           direction="horizontal"
+          autoSaveId="network-dashboard-layout"
           className="flex-1 flex border border-b-0 rounded-tl-lg shadow-[0_0_10px_0_rgba(0,0,0,0.05)] bg-background"
         >
-          <ResizablePanel className="h-full overflow-hidden" maxSize={40} minSize={20} defaultSize={25}>
+          <ResizablePanel
+            id="host-path-tree"
+            className="h-full overflow-hidden"
+            maxSize={40}
+            minSize={10}
+            defaultSize={25}
+          >
             <HostPathTree
               transactions={filteredTransactions}
               selectedTransaction={selectedTransaction}
@@ -79,27 +98,33 @@ export const NetworkDashboard = () => {
 
           <ResizableHandle withHandle />
 
-          <ResizablePanel defaultSize={75} className="flex flex-1 h-full overflow-hidden">
+          <ResizablePanel id="network-table" defaultSize={75} className="flex flex-1 h-full overflow-hidden">
             <NetworkTable
               transactions={filteredTransactions}
+              pinnedTransactionIds={pinnedTransactionIds}
               selectedTransaction={selectedTransaction}
-              createTransactionSelectHandler={createTransactionSelectHandler}
+              createTransactionSelectHandler={createTransactionToggleHandler}
               createTransactionDeleteHandler={createTransactionDeleteHandler}
+              createTransactionPinHandler={createTransactionPinHandler}
             />
           </ResizablePanel>
+
           <ResizableHandle withHandle />
           <ResizablePanel
-            maxSize={selectedTransaction ? 50 : 0}
-            minSize={selectedTransaction ? 25 : 0}
+            ref={detailsPanelRef}
+            id="transaction-details"
+            defaultSize={25}
+            maxSize={50}
+            minSize={25}
+            collapsible
+            collapsedSize={0}
             className="w-96 h-full overflow-y-auto"
           >
             {selectedTransaction && (
-              <>
-                <TransactionDetails
-                  transaction={selectedTransaction}
-                  clearSelectedTransaction={clearSelectedTransaction}
-                />
-              </>
+              <TransactionDetails
+                transaction={selectedTransaction}
+                clearSelectedTransaction={clearSelectedTransaction}
+              />
             )}
           </ResizablePanel>
         </ResizablePanelGroup>
