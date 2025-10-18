@@ -75,7 +75,7 @@ sequenceDiagram
 
     Client->>Proxy: CONNECT request
     Proxy->>Proxy: Check if tunnel mode required
-    
+
     alt Tunnel Mode (Apple services)
         Proxy->>Client: 200 Connection Established
         Proxy->>Server: Direct TCP connection
@@ -267,13 +267,6 @@ match version_bytes {
 2. 터널 이벤트 로그 확인 (`🚇 [TUNNEL-EVENT]` 로그)
 3. `tunnel_event_sender`가 올바르게 설정되었는지 확인
 4. 터널 모드 타임아웃 설정 확인 (기본 5분)
-
-**로그 예시**:
-```
-🚇 [TUNNEL-MODE] 터널 모드 시작: gateway.icloud.com:443
-✅ [TUNNEL-MODE] 대상 서버 연결 성공: gateway.icloud.com:443
-🚇 [TUNNEL-DATA] 데이터 전송 완료: gateway.icloud.com:443 (클라이언트→서버: 2366 bytes, 서버→클라이언트: 4975 bytes)
-```
 
 ### TLS 핸드셰이크 실패
 

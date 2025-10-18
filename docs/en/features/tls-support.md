@@ -75,7 +75,7 @@ sequenceDiagram
 
     Client->>Proxy: CONNECT request
     Proxy->>Proxy: Check if tunnel mode required
-    
+
     alt Tunnel Mode (Apple services)
         Proxy->>Client: 200 Connection Established
         Proxy->>Server: Direct TCP connection
@@ -267,13 +267,6 @@ match version_bytes {
 2. Verify tunnel event logs (`🚇 [TUNNEL-EVENT]` logs)
 3. Ensure `tunnel_event_sender` is properly configured
 4. Check tunnel mode timeout settings (default 5 minutes)
-
-**Log Example**:
-```
-🚇 [TUNNEL-MODE] Tunnel mode started: gateway.icloud.com:443
-✅ [TUNNEL-MODE] Target server connection successful: gateway.icloud.com:443
-🚇 [TUNNEL-DATA] Data transfer completed: gateway.icloud.com:443 (client→server: 2366 bytes, server→client: 4975 bytes)
-```
 
 ### TLS Handshake Failure
 
