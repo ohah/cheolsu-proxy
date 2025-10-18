@@ -13,26 +13,6 @@ Simple guide for first-time users of Cheolsu Proxy.
 - Browser configuration
 - Using HTTPS sites
 
-## ⚙️ Configuration & Management
-
-### [Proxy Setup](./proxy-setup.md)
-
-Guide on changing basic proxy settings.
-
-- Change port
-- Network settings
-- Auto-start settings
-- Mobile connection
-
-### [Certificate Setup](./certificate-setup.md)
-
-Guide on installing certificates for using HTTPS sites.
-
-- Automatic/manual installation
-- Installation by operating system
-- Mobile device installation
-- Troubleshooting
-
 ## 🛠️ Troubleshooting
 
 ### [Troubleshooting](./troubleshooting.md)
@@ -43,6 +23,31 @@ Guide on resolving common issues during use.
 - Website access issues
 - HTTPS site issues
 - Performance issues
+
+## 🔒 Security Considerations
+
+### Important Security Rules
+
+**1. Prohibition of Malicious Use**
+
+- Never use Cheolsu Proxy for malicious purposes such as data tampering or unauthorized interception
+- Use Cheolsu Proxy only for development and testing purposes
+
+**2. Corporate Environment Usage**
+
+- When using in a corporate environment, ensure compliance with company policies and regulations
+- Obtain approval from your IT department before use
+- Be mindful not to violate company policies
+
+**3. Privacy Protection**
+
+- Do not intercept traffic containing sensitive personal information
+- Be careful not to log sensitive information
+
+**4. Legal Responsibility**
+
+- Users are responsible for all legal consequences of using Cheolsu Proxy
+- Do not use for illegal activities
 
 ## 📚 Additional Resources
 
