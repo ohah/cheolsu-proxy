@@ -113,6 +113,10 @@ export default defineConfig({
               text: "릴리즈 노트",
               link: "/releases/",
             },
+            {
+              text: "지원 예정",
+              link: "/releases/roadmap",
+            },
           ],
         },
       ],
@@ -123,6 +127,10 @@ export default defineConfig({
             {
               text: "Release Notes",
               link: "/en/releases/",
+            },
+            {
+              text: "Planned Features",
+              link: "/en/releases/roadmap",
             },
           ],
         },
