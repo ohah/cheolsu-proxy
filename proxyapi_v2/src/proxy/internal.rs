@@ -22,7 +22,7 @@ use proxy_v2_models::RequestInfo;
 use std::{convert::Infallible, net::SocketAddr, sync::Arc};
 use tokio::sync::mpsc;
 use tokio::{
-    io::AsyncReadExt,
+    io::{AsyncReadExt, AsyncWriteExt},
     net::TcpStream,
     task::JoinHandle,
     time::{Duration, timeout},
@@ -905,6 +905,109 @@ where
         tunnel_domains.iter().any(|&domain| host.contains(domain))
     }
 
+    /// 터널 모드에서 데이터를 모니터링하면서 양방향 복사를 수행합니다
+    async fn copy_bidirectional_with_monitoring(
+        client_stream: &mut TokioIo<Upgraded>,
+        server_stream: &mut TcpStream,
+        target_addr: &str,
+    ) -> Result<(u64, u64), std::io::Error> {
+        // 데이터 버퍼
+        let mut client_to_server_buffer = [0u8; 8192];
+        let mut server_to_client_buffer = [0u8; 8192];
+
+        let mut client_to_server_bytes = 0u64;
+        let mut server_to_client_bytes = 0u64;
+
+        let mut client_read_done = false;
+        let mut server_read_done = false;
+
+        loop {
+            tokio::select! {
+                // 클라이언트 → 서버 데이터 읽기
+                result = client_stream.read(&mut client_to_server_buffer), if !client_read_done => {
+                    match result {
+                        Ok(0) => {
+                            client_read_done = true;
+                            info!("🚇 [TUNNEL-DATA] 클라이언트 연결 종료: {}", target_addr);
+                        }
+                        Ok(n) => {
+                            client_to_server_bytes += n as u64;
+
+                            // 데이터 로깅 (처음 1024바이트만)
+                            if client_to_server_bytes <= 1024 {
+                                let data_preview = &client_to_server_buffer[..n];
+                                if let Ok(data_str) = std::str::from_utf8(data_preview) {
+                                    info!("🚇 [TUNNEL-DATA] 클라이언트→서버 ({}): {}", target_addr,
+                                        data_str.chars().take(200).collect::<String>());
+                                } else {
+                                    info!("🚇 [TUNNEL-DATA] 클라이언트→서버 ({}): [바이너리 데이터 {} bytes]",
+                                        target_addr, n);
+                                }
+                            }
+
+                            // 서버로 데이터 전송
+                            if let Err(e) = server_stream.write_all(&client_to_server_buffer[..n]).await {
+                                error!("🚇 [TUNNEL-DATA] 서버로 데이터 전송 실패: {}", e);
+                                return Err(e);
+                            }
+                        }
+                        Err(e) => {
+                            error!("🚇 [TUNNEL-DATA] 클라이언트에서 데이터 읽기 실패: {}", e);
+                            return Err(e);
+                        }
+                    }
+                }
+
+                // 서버 → 클라이언트 데이터 읽기
+                result = server_stream.read(&mut server_to_client_buffer), if !server_read_done => {
+                    match result {
+                        Ok(0) => {
+                            server_read_done = true;
+                            info!("🚇 [TUNNEL-DATA] 서버 연결 종료: {}", target_addr);
+                        }
+                        Ok(n) => {
+                            server_to_client_bytes += n as u64;
+
+                            // 데이터 로깅 (처음 1024바이트만)
+                            if server_to_client_bytes <= 1024 {
+                                let data_preview = &server_to_client_buffer[..n];
+                                if let Ok(data_str) = std::str::from_utf8(data_preview) {
+                                    info!("🚇 [TUNNEL-DATA] 서버→클라이언트 ({}): {}", target_addr,
+                                        data_str.chars().take(200).collect::<String>());
+                                } else {
+                                    info!("🚇 [TUNNEL-DATA] 서버→클라이언트 ({}): [바이너리 데이터 {} bytes]",
+                                        target_addr, n);
+                                }
+                            }
+
+                            // 클라이언트로 데이터 전송
+                            if let Err(e) = client_stream.write_all(&server_to_client_buffer[..n]).await {
+                                error!("🚇 [TUNNEL-DATA] 클라이언트로 데이터 전송 실패: {}", e);
+                                return Err(e);
+                            }
+                        }
+                        Err(e) => {
+                            error!("🚇 [TUNNEL-DATA] 서버에서 데이터 읽기 실패: {}", e);
+                            return Err(e);
+                        }
+                    }
+                }
+            }
+
+            // 양쪽 모두 연결이 종료되면 루프 종료
+            if client_read_done && server_read_done {
+                break;
+            }
+        }
+
+        info!(
+            "🚇 [TUNNEL-DATA] 데이터 전송 완료: {} (클라이언트→서버: {} bytes, 서버→클라이언트: {} bytes)",
+            target_addr, client_to_server_bytes, server_to_client_bytes
+        );
+
+        Ok((client_to_server_bytes, server_to_client_bytes))
+    }
+
     /// 터널 모드를 처리합니다
     async fn handle_tunnel_mode(
         &self,
@@ -927,7 +1030,20 @@ where
         if let Some(ref sender) = self.tunnel_event_sender {
             let start_event = TunnelEvent::started(target_addr.clone(), client_addr.clone());
             let request_info = start_event.to_request_info();
-            let _ = sender.send(request_info);
+            info!("🚇 [TUNNEL-EVENT] 터널 시작 이벤트 전송: {}", target_addr);
+            if let Err(e) = sender.send(request_info).await {
+                error!("❌ [TUNNEL-EVENT] 터널 시작 이벤트 전송 실패: {}", e);
+            } else {
+                info!(
+                    "✅ [TUNNEL-EVENT] 터널 시작 이벤트 전송 성공: {}",
+                    target_addr
+                );
+            }
+        } else {
+            warn!(
+                "⚠️ [TUNNEL-EVENT] tunnel_event_sender가 None입니다: {}",
+                target_addr
+            );
         }
 
         let mut server_stream = match tokio::net::TcpStream::connect(&target_addr).await {
@@ -954,8 +1070,18 @@ where
             target_addr, "클라이언트"
         );
 
-        match tokio::io::copy_bidirectional(&mut client_stream, &mut server_stream).await {
-            Ok((client_to_server, server_to_client)) => {
+        // 터널 작업에 타임아웃 추가 (5분) - 데이터 모니터링 포함
+        match tokio::time::timeout(
+            std::time::Duration::from_secs(300),
+            Self::copy_bidirectional_with_monitoring(
+                &mut client_stream,
+                &mut server_stream,
+                &target_addr,
+            ),
+        )
+        .await
+        {
+            Ok(Ok((client_to_server, server_to_client))) => {
                 let duration = start_time.elapsed();
                 info!(
                     "🚇 [TUNNEL-TASK] 터널 완료 - 클라이언트→서버: {} bytes, 서버→클라이언트: {} bytes (소요시간: {:?})",
@@ -965,19 +1091,32 @@ where
                 // 터널 완료 이벤트 전송
                 if let Some(ref sender) = self.tunnel_event_sender {
                     let completed_event = TunnelEvent::completed(
-                        target_addr,
+                        target_addr.clone(),
                         client_addr,
                         client_to_server,
                         server_to_client,
                         duration,
                     );
                     let request_info = completed_event.to_request_info();
-                    let _ = sender.send(request_info);
+                    info!("🚇 [TUNNEL-EVENT] 터널 완료 이벤트 전송: {}", target_addr);
+                    if let Err(e) = sender.send(request_info).await {
+                        error!("❌ [TUNNEL-EVENT] 터널 완료 이벤트 전송 실패: {}", e);
+                    } else {
+                        info!(
+                            "✅ [TUNNEL-EVENT] 터널 완료 이벤트 전송 성공: {}",
+                            target_addr
+                        );
+                    }
+                } else {
+                    warn!(
+                        "⚠️ [TUNNEL-EVENT] tunnel_event_sender가 None입니다 (완료): {}",
+                        target_addr
+                    );
                 }
 
                 Ok(())
             }
-            Err(e) => {
+            Ok(Err(e)) => {
                 let duration = start_time.elapsed();
                 error!(
                     "❌ [TUNNEL-TASK] 터널 오류: {} (소요시간: {:?})",
@@ -986,13 +1125,67 @@ where
 
                 // 터널 오류 이벤트 전송
                 if let Some(ref sender) = self.tunnel_event_sender {
-                    let error_event =
-                        TunnelEvent::error(target_addr, client_addr, e.to_string(), duration);
+                    let error_event = TunnelEvent::error(
+                        target_addr.clone(),
+                        client_addr,
+                        e.to_string(),
+                        duration,
+                    );
                     let request_info = error_event.to_request_info();
-                    let _ = sender.send(request_info);
+                    info!("🚇 [TUNNEL-EVENT] 터널 오류 이벤트 전송: {}", target_addr);
+                    if let Err(e) = sender.send(request_info).await {
+                        error!("❌ [TUNNEL-EVENT] 터널 오류 이벤트 전송 실패: {}", e);
+                    } else {
+                        info!(
+                            "✅ [TUNNEL-EVENT] 터널 오류 이벤트 전송 성공: {}",
+                            target_addr
+                        );
+                    }
+                } else {
+                    warn!(
+                        "⚠️ [TUNNEL-EVENT] tunnel_event_sender가 None입니다 (오류): {}",
+                        target_addr
+                    );
                 }
 
                 Err(format!("Tunnel failed: {}", e).into())
+            }
+            Err(_timeout) => {
+                let duration = start_time.elapsed();
+                error!(
+                    "⏰ [TUNNEL-TASK] 터널 타임아웃: 5분 후 종료 (소요시간: {:?})",
+                    duration
+                );
+
+                // 터널 타임아웃 이벤트 전송
+                if let Some(ref sender) = self.tunnel_event_sender {
+                    let error_event = TunnelEvent::error(
+                        target_addr.clone(),
+                        client_addr,
+                        "Tunnel timeout after 5 minutes".to_string(),
+                        duration,
+                    );
+                    let request_info = error_event.to_request_info();
+                    info!(
+                        "🚇 [TUNNEL-EVENT] 터널 타임아웃 이벤트 전송: {}",
+                        target_addr
+                    );
+                    if let Err(e) = sender.send(request_info).await {
+                        error!("❌ [TUNNEL-EVENT] 터널 타임아웃 이벤트 전송 실패: {}", e);
+                    } else {
+                        info!(
+                            "✅ [TUNNEL-EVENT] 터널 타임아웃 이벤트 전송 성공: {}",
+                            target_addr
+                        );
+                    }
+                } else {
+                    warn!(
+                        "⚠️ [TUNNEL-EVENT] tunnel_event_sender가 None입니다 (타임아웃): {}",
+                        target_addr
+                    );
+                }
+
+                Err("Tunnel timeout after 5 minutes".into())
             }
         }
     }
