@@ -19,8 +19,8 @@ use hyper_util::{
     server,
 };
 use proxy_v2_models::RequestInfo;
-use std::sync::mpsc;
 use std::{convert::Infallible, net::SocketAddr, sync::Arc};
+use tokio::sync::mpsc;
 use tokio::{
     io::AsyncReadExt,
     net::TcpStream,

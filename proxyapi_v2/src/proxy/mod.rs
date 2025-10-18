@@ -14,8 +14,10 @@ use hyper_util::{
     server::conn::auto::{self, Builder},
 };
 use internal::InternalProxy;
+use proxy_v2_models::RequestInfo;
 use std::sync::Arc;
 use tokio::net::TcpListener;
+use tokio::sync::mpsc;
 use tokio_graceful::Shutdown;
 use tokio_tungstenite::Connector;
 use tracing::error;
@@ -78,6 +80,7 @@ pub struct Proxy<C, CA, H, W, F> {
     websocket_connector: Option<Connector>,
     server: Option<Builder<TokioExecutor>>,
     graceful_shutdown: F,
+    tunnel_event_sender: Option<mpsc::Sender<RequestInfo>>,
 }
 
 impl Proxy<(), (), (), (), ()> {
@@ -135,6 +138,7 @@ where
                     let http_handler = self.http_handler.clone();
                     let websocket_handler = self.websocket_handler.clone();
                     let websocket_connector = self.websocket_connector.clone();
+                    let tunnel_event_sender = self.tunnel_event_sender.clone();
 
                     shutdown.spawn_task_fn(move |guard| async move {
                         let conn = server.serve_connection_with_upgrades(
@@ -148,7 +152,7 @@ where
                                     websocket_handler: websocket_handler.clone(),
                                     websocket_connector: websocket_connector.clone(),
                                     client_addr,
-                                    tunnel_event_sender: None, // TODO: 터널 이벤트 채널 연결
+                                    tunnel_event_sender: tunnel_event_sender.clone(),
                                 }
                                 .proxy(req)
                             }),
