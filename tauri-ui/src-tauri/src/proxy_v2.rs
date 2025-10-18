@@ -979,6 +979,10 @@ pub async fn start_proxy_v2<R: Runtime>(
         }
     };
 
+    // 터널 이벤트 채널 생성
+    let (tunnel_tx, mut tunnel_rx) =
+        tokio::sync::mpsc::channel::<proxy_v2_models::RequestInfo>(100);
+
     // 프록시 빌더로 프록시 구성 (하이브리드 클라이언트 사용)
     let proxy_builder = match ProxyBuilder::new()
         .with_listener(listener)
@@ -986,6 +990,7 @@ pub async fn start_proxy_v2<R: Runtime>(
         .with_client(hybrid_client) // 하이브리드 클라이언트 사용
         .with_http_handler(handler.clone())
         .with_websocket_handler(handler.clone())
+        .with_tunnel_event_sender(tunnel_tx) // 터널 이벤트 채널 연결
         .build()
     {
         Ok(builder) => {
@@ -1030,9 +1035,18 @@ pub async fn start_proxy_v2<R: Runtime>(
     proxy_guard.replace((close_tx, thread, handler.clone()));
 
     // 이벤트 전송을 위한 백그라운드 태스크 (proxy.rs와 동일한 구조)
+    let app_clone1 = app.clone();
     tauri::async_runtime::spawn(async move {
         for event in rx.iter() {
-            let _ = app.emit("proxy_event", event);
+            let _ = app_clone1.emit("proxy_event", event);
+        }
+    });
+
+    // 터널 이벤트 전송을 위한 백그라운드 태스크
+    let app_clone2 = app.clone();
+    tauri::async_runtime::spawn(async move {
+        while let Some(tunnel_event) = tunnel_rx.recv().await {
+            let _ = app_clone2.emit("proxy_event", tunnel_event);
         }
     });
 

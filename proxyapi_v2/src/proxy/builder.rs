@@ -7,6 +7,7 @@ use hyper_util::{
     rt::TokioExecutor,
     server::conn::auto::Builder,
 };
+use proxy_v2_models::RequestInfo;
 use std::{
     future::{Pending, pending},
     net::SocketAddr,
@@ -14,6 +15,7 @@ use std::{
 };
 use thiserror::Error;
 use tokio::net::TcpListener;
+use tokio::sync::mpsc;
 use tokio_rustls::rustls::{ClientConfig, crypto::CryptoProvider};
 use tokio_tungstenite::Connector;
 use tracing::{debug, error, info, warn};
@@ -214,6 +216,7 @@ impl<CA: CertificateAuthority> ProxyBuilder<WantsClient<CA>> {
                     websocket_connector: None,
                     server: None,
                     graceful_shutdown: pending(),
+                    tunnel_event_sender: None,
                 });
             }
         };
@@ -240,6 +243,7 @@ impl<CA: CertificateAuthority> ProxyBuilder<WantsClient<CA>> {
             websocket_connector: Some(Connector::Rustls(Arc::new(rustls_config))),
             server: None,
             graceful_shutdown: pending(),
+            tunnel_event_sender: None,
         })
     }
 
@@ -263,6 +267,7 @@ impl<CA: CertificateAuthority> ProxyBuilder<WantsClient<CA>> {
                     websocket_connector: None,
                     server: None,
                     graceful_shutdown: pending(),
+                    tunnel_event_sender: None,
                 });
             }
         };
@@ -282,6 +287,7 @@ impl<CA: CertificateAuthority> ProxyBuilder<WantsClient<CA>> {
             websocket_connector: Some(Connector::NativeTls(tls_connector)),
             server: None,
             graceful_shutdown: pending(),
+            tunnel_event_sender: None,
         })
     }
 
@@ -302,6 +308,7 @@ impl<CA: CertificateAuthority> ProxyBuilder<WantsClient<CA>> {
             websocket_connector: None,
             server: None,
             graceful_shutdown: pending(),
+            tunnel_event_sender: None,
         })
     }
 }
@@ -316,6 +323,7 @@ pub struct WantsHandlers<CA, C, H, W, F> {
     websocket_connector: Option<Connector>,
     server: Option<Builder<TokioExecutor>>,
     graceful_shutdown: F,
+    tunnel_event_sender: Option<mpsc::Sender<RequestInfo>>,
 }
 
 impl<CA, C, H, W, F> ProxyBuilder<WantsHandlers<CA, C, H, W, F>> {
@@ -333,6 +341,7 @@ impl<CA, C, H, W, F> ProxyBuilder<WantsHandlers<CA, C, H, W, F>> {
             websocket_connector: self.0.websocket_connector,
             server: self.0.server,
             graceful_shutdown: self.0.graceful_shutdown,
+            tunnel_event_sender: self.0.tunnel_event_sender,
         })
     }
 
@@ -350,6 +359,7 @@ impl<CA, C, H, W, F> ProxyBuilder<WantsHandlers<CA, C, H, W, F>> {
             websocket_connector: self.0.websocket_connector,
             server: self.0.server,
             graceful_shutdown: self.0.graceful_shutdown,
+            tunnel_event_sender: self.0.tunnel_event_sender,
         })
     }
 
@@ -383,6 +393,15 @@ impl<CA, C, H, W, F> ProxyBuilder<WantsHandlers<CA, C, H, W, F>> {
             websocket_connector: self.0.websocket_connector,
             server: self.0.server,
             graceful_shutdown,
+            tunnel_event_sender: self.0.tunnel_event_sender,
+        })
+    }
+
+    /// Set the tunnel event sender for tunnel mode events.
+    pub fn with_tunnel_event_sender(self, tunnel_event_sender: mpsc::Sender<RequestInfo>) -> Self {
+        ProxyBuilder(WantsHandlers {
+            tunnel_event_sender: Some(tunnel_event_sender),
+            ..self.0
         })
     }
 
@@ -397,6 +416,7 @@ impl<CA, C, H, W, F> ProxyBuilder<WantsHandlers<CA, C, H, W, F>> {
             websocket_connector: self.0.websocket_connector,
             server: self.0.server,
             graceful_shutdown: self.0.graceful_shutdown,
+            tunnel_event_sender: self.0.tunnel_event_sender,
         })
     }
 }

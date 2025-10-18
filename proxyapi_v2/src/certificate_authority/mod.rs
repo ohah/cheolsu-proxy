@@ -11,6 +11,9 @@ use tokio_rustls::rustls::ServerConfig;
 use tokio_rustls::rustls::pki_types::CertificateDer;
 
 #[cfg(feature = "openssl-ca")]
+use openssl::ssl::SslContext;
+
+#[cfg(feature = "openssl-ca")]
 pub use openssl_authority::*;
 #[cfg(feature = "rcgen-ca")]
 pub use rcgen_authority::*;
@@ -231,6 +234,218 @@ pub fn build_ca() -> Result<RcgenAuthority, String> {
     load_or_generate_ca()
 }
 
+/// OpenSSL Authority를 빌드합니다.
+#[cfg(feature = "openssl-ca")]
+pub fn build_openssl_ca() -> Result<OpensslAuthority, String> {
+    println!("✅ OpenSSL Authority 생성");
+    load_or_generate_openssl_ca()
+}
+
+/// OpenSSL Authority를 로드하거나 생성합니다.
+#[cfg(feature = "openssl-ca")]
+fn load_or_generate_openssl_ca() -> Result<OpensslAuthority, String> {
+    let storage_dir = get_ca_storage_dir()?;
+    let key_path = storage_dir.join("cheolsu-proxy.key");
+    let cer_path = storage_dir.join("cheolsu-proxy.cer");
+
+    if key_path.exists() && cer_path.exists() {
+        println!(
+            "📁 기존 OpenSSL 인증서 파일 사용: {}",
+            storage_dir.display()
+        );
+        return load_openssl_ca_from_storage(&key_path, &cer_path);
+    }
+
+    println!("🔧 새로운 OpenSSL 인증서 생성");
+    generate_openssl_ca(&storage_dir)
+}
+
+/// OpenSSL Authority를 스토리지에서 로드합니다.
+#[cfg(feature = "openssl-ca")]
+fn load_openssl_ca_from_storage(
+    key_path: &PathBuf,
+    cer_path: &PathBuf,
+) -> Result<OpensslAuthority, String> {
+    use openssl::hash::MessageDigest;
+    use openssl::pkey::PKey;
+    use openssl::x509::X509;
+    use tracing::info;
+    let private_key_pem =
+        fs::read_to_string(key_path).map_err(|e| format!("Failed to read private key: {}", e))?;
+
+    // CA 인증서는 텍스트로 읽고 PEM로 파싱
+    let ca_cert_pem = fs::read_to_string(cer_path)
+        .map_err(|e| format!("Failed to read CA certificate: {}", e))?;
+
+    info!(
+        "🔧 CA 인증서 파일 로드: {} bytes (PEM 형식)",
+        ca_cert_pem.len()
+    );
+
+    // PEM을 X509로 파싱
+    let ca_cert = X509::from_pem(ca_cert_pem.as_bytes())
+        .map_err(|e| format!("Failed to parse CA certificate from PEM: {}", e))?;
+
+    // X509를 PEM으로 변환 (로깅용)
+    let ca_cert_pem_converted = ca_cert
+        .to_pem()
+        .map_err(|e| format!("Failed to convert CA certificate to PEM: {}", e))?;
+
+    info!(
+        "✅ CA 인증서 PEM 파싱 성공: {} bytes",
+        ca_cert_pem_converted.len()
+    );
+
+    // PEM을 PKey로 변환
+    let pkey = PKey::private_key_from_pem(private_key_pem.as_bytes())
+        .map_err(|e| format!("Failed to parse private key from PEM: {}", e))?;
+
+    // OpensslAuthority 생성
+    Ok(OpensslAuthority::new(
+        pkey,
+        ca_cert,
+        MessageDigest::sha256(),
+        1_000,
+        tokio_rustls::rustls::crypto::aws_lc_rs::default_provider(),
+    ))
+}
+
+/// 새로운 OpenSSL Authority를 생성합니다.
+#[cfg(feature = "openssl-ca")]
+fn generate_openssl_ca(storage_dir: &PathBuf) -> Result<OpensslAuthority, String> {
+    use openssl::asn1::Asn1Time;
+    use openssl::bn::BigNum;
+    use openssl::hash::MessageDigest;
+    use openssl::pkey::PKey;
+    use openssl::rsa::Rsa;
+    use openssl::x509::X509;
+    use openssl::x509::X509Name;
+    use openssl::x509::extension::*;
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    // RSA 키 페어 생성
+    let rsa = Rsa::generate(2048).map_err(|e| format!("Failed to generate RSA key: {}", e))?;
+    let pkey = PKey::from_rsa(rsa).map_err(|e| format!("Failed to create PKey from RSA: {}", e))?;
+
+    // X509Name 생성
+    let mut name =
+        X509Name::builder().map_err(|e| format!("Failed to create X509Name builder: {}", e))?;
+    name.append_entry_by_nid(openssl::nid::Nid::COUNTRYNAME, "KR")
+        .map_err(|e| format!("Failed to set country: {}", e))?;
+    name.append_entry_by_nid(openssl::nid::Nid::STATEORPROVINCENAME, "Seoul")
+        .map_err(|e| format!("Failed to set state: {}", e))?;
+    name.append_entry_by_nid(openssl::nid::Nid::ORGANIZATIONNAME, "Cheolsu Proxy")
+        .map_err(|e| format!("Failed to set organization: {}", e))?;
+    name.append_entry_by_nid(openssl::nid::Nid::ORGANIZATIONALUNITNAME, "Development")
+        .map_err(|e| format!("Failed to set organizational unit: {}", e))?;
+    name.append_entry_by_nid(openssl::nid::Nid::COMMONNAME, "Cheolsu Proxy CA")
+        .map_err(|e| format!("Failed to set common name: {}", e))?;
+    let name = name.build();
+
+    // X509 인증서 빌더 생성
+    let mut cert_builder =
+        X509::builder().map_err(|e| format!("Failed to create X509 builder: {}", e))?;
+
+    // 버전 설정 (v3)
+    cert_builder
+        .set_version(2)
+        .map_err(|e| format!("Failed to set version: {}", e))?;
+
+    // 시리얼 번호 설정
+    let serial =
+        BigNum::from_u32(1).map_err(|e| format!("Failed to create serial number: {}", e))?;
+    let serial_integer = serial
+        .to_asn1_integer()
+        .map_err(|e| format!("Failed to convert serial to Asn1Integer: {}", e))?;
+    cert_builder
+        .set_serial_number(&serial_integer)
+        .map_err(|e| format!("Failed to set serial number: {}", e))?;
+
+    // 유효 기간 설정
+    let now = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map_err(|e| format!("Failed to get current time: {}", e))?;
+    let not_before = Asn1Time::from_unix(now.as_secs() as i64)
+        .map_err(|e| format!("Failed to create not_before time: {}", e))?;
+    let not_after = Asn1Time::from_unix(now.as_secs() as i64 + TTL_SECS)
+        .map_err(|e| format!("Failed to create not_after time: {}", e))?;
+
+    cert_builder
+        .set_not_before(&not_before)
+        .map_err(|e| format!("Failed to set not_before: {}", e))?;
+    cert_builder
+        .set_not_after(&not_after)
+        .map_err(|e| format!("Failed to set not_after: {}", e))?;
+
+    // 주체와 발급자 설정
+    cert_builder
+        .set_subject_name(&name)
+        .map_err(|e| format!("Failed to set subject name: {}", e))?;
+    cert_builder
+        .set_issuer_name(&name)
+        .map_err(|e| format!("Failed to set issuer name: {}", e))?;
+
+    // 공개키 설정
+    cert_builder
+        .set_pubkey(&pkey)
+        .map_err(|e| format!("Failed to set public key: {}", e))?;
+
+    // CA 확장 추가
+    let basic_constraints = BasicConstraints::new()
+        .critical()
+        .ca()
+        .pathlen(0)
+        .build()
+        .map_err(|e| format!("Failed to create basic constraints: {}", e))?;
+    cert_builder
+        .append_extension(basic_constraints)
+        .map_err(|e| format!("Failed to add basic constraints: {}", e))?;
+
+    let key_usage = KeyUsage::new()
+        .critical()
+        .key_cert_sign()
+        .crl_sign()
+        .build()
+        .map_err(|e| format!("Failed to create key usage: {}", e))?;
+    cert_builder
+        .append_extension(key_usage)
+        .map_err(|e| format!("Failed to add key usage: {}", e))?;
+
+    // 인증서 서명
+    cert_builder
+        .sign(&pkey, MessageDigest::sha256())
+        .map_err(|e| format!("Failed to sign certificate: {}", e))?;
+
+    let ca_cert = cert_builder.build();
+
+    // 파일로 저장
+    fs::create_dir_all(storage_dir)
+        .map_err(|e| format!("Failed to create storage directory: {}", e))?;
+
+    let private_key_pem = pkey
+        .private_key_to_pem_pkcs8()
+        .map_err(|e| format!("Failed to convert private key to PEM: {}", e))?;
+    let ca_cert_pem = ca_cert
+        .to_pem()
+        .map_err(|e| format!("Failed to convert certificate to PEM: {}", e))?;
+
+    fs::write(&storage_dir.join("cheolsu-proxy.key"), &private_key_pem)
+        .map_err(|e| format!("Failed to write private key: {}", e))?;
+    fs::write(&storage_dir.join("cheolsu-proxy.cer"), &ca_cert_pem)
+        .map_err(|e| format!("Failed to write CA certificate: {}", e))?;
+
+    println!("✅ OpenSSL CA 인증서 생성 완료: {}", storage_dir.display());
+
+    // OpensslAuthority 생성
+    Ok(OpensslAuthority::new(
+        pkey,
+        ca_cert,
+        MessageDigest::sha256(),
+        1_000,
+        tokio_rustls::rustls::crypto::aws_lc_rs::default_provider(),
+    ))
+}
+
 /// Issues certificates for use when communicating with clients.
 ///
 /// Clients should be configured to either trust the provided root certificate, or to ignore
@@ -246,11 +461,10 @@ pub trait CertificateAuthority: Send + Sync + 'static {
     /// Returns None if the CA certificate is not available in DER format.
     fn get_ca_cert_der(&self) -> Option<Vec<u8>>;
 
-    /// Generate PKCS12 identity for use with native-tls (TLS 1.0/1.1 support).
-    /// Returns None if PKCS12 generation is not supported.
-    #[cfg(feature = "native-tls-client")]
-    fn gen_pkcs12_identity(
+    #[cfg(feature = "openssl-ca")]
+    /// Generate OpenSSL SslContext for use with openssl.
+    fn gen_openssl_context(
         &self,
         authority: &Authority,
-    ) -> impl Future<Output = Option<Vec<u8>>> + Send;
+    ) -> impl Future<Output = Result<SslContext, Box<dyn std::error::Error + Send + Sync>>> + Send;
 }

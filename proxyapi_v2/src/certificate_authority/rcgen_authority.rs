@@ -161,19 +161,36 @@ impl RcgenAuthority {
 impl CertificateAuthority for RcgenAuthority {
     async fn gen_server_config(&self, authority: &Authority) -> Arc<ServerConfig> {
         if let Some(server_cfg) = self.cache.get(authority).await {
-            debug!("Using cached server config");
+            debug!("Using cached server config for {}", authority);
             return server_cfg;
         }
-        debug!("Generating server config");
 
+        info!("🔧 [SERVER-CONFIG] 서버 설정 생성 시작: {}", authority);
+        let start_time = std::time::Instant::now();
+
+        info!("🔧 [SERVER-CONFIG] 인증서 생성 중: {}", authority);
         let certs = vec![self.gen_cert(authority)];
+        info!(
+            "🔧 [SERVER-CONFIG] 인증서 생성 완료: {} bytes",
+            certs[0].len()
+        );
+
+        info!("🔧 [SERVER-CONFIG] ServerConfig 빌더 생성 중");
+
+        // TLS 버전 설정: TLS 1.2부터 TLS 1.3까지 허용 (rustls 지원 범위)
+        let supported_versions = vec![
+            &tokio_rustls::rustls::version::TLS12,
+            &tokio_rustls::rustls::version::TLS13,
+        ];
 
         let mut server_cfg = ServerConfig::builder_with_provider(Arc::clone(&self.provider))
-            .with_safe_default_protocol_versions()
+            .with_protocol_versions(&supported_versions)
             .expect("Failed to specify protocol versions")
             .with_no_client_auth()
             .with_single_cert(certs, self.private_key.clone_key())
             .expect("Failed to build ServerConfig");
+
+        info!("🔧 [SERVER-CONFIG] ServerConfig 빌더 생성 완료");
 
         // ALPN 프로토콜 설정 - HTTP/2 우선, HTTP/1.1 fallback
         server_cfg.alpn_protocols = vec![
@@ -182,12 +199,21 @@ impl CertificateAuthority for RcgenAuthority {
             b"http/1.1".to_vec(),
         ];
 
-        debug!(
-            "Server config ALPN protocols: {:?}",
+        info!(
+            "🔧 [SERVER-CONFIG] ALPN 프로토콜 설정: {:?}",
             server_cfg.alpn_protocols
         );
 
+        // 지원되는 TLS 버전 로깅 (rustls 0.23+에서는 다른 방법으로 확인)
+        info!("🔧 [SERVER-CONFIG] rustls ServerConfig 생성 완료");
+
         let server_cfg = Arc::new(server_cfg);
+        let duration = start_time.elapsed();
+
+        info!(
+            "✅ [SERVER-CONFIG] 서버 설정 생성 완료: {} (소요시간: {:?})",
+            authority, duration
+        );
 
         self.cache
             .insert(authority.clone(), Arc::clone(&server_cfg))
@@ -206,66 +232,65 @@ impl CertificateAuthority for RcgenAuthority {
         Some(der_bytes)
     }
 
-    #[cfg(feature = "native-tls-client")]
-    async fn gen_pkcs12_identity(&self, authority: &Authority) -> Option<Vec<u8>> {
-        #[cfg(feature = "openssl-ca")]
-        {
-            use openssl::{pkcs12::Pkcs12, pkey::PKey, x509::X509};
+    #[cfg(feature = "openssl-ca")]
+    async fn gen_openssl_context(
+        &self,
+        authority: &Authority,
+    ) -> Result<openssl::ssl::SslContext, Box<dyn std::error::Error + Send + Sync>> {
+        info!(
+            "🔧 [OPENSSL-CONTEXT] OpenSSL 컨텍스트 생성 시작: {}",
+            authority
+        );
 
-            info!("🔧 PKCS12 인증서 생성 시작: {}", authority);
+        // OpenSSL 컨텍스트 생성
+        let mut ctx = openssl::ssl::SslContext::builder(openssl::ssl::SslMethod::tls_server())?;
 
-            // rcgen 인증서를 DER 형식으로 생성
-            let cert_der = self.gen_cert(authority);
+        // TLS 버전 설정: 모든 TLS 버전 지원 (프록시 목적)
+        ctx.set_min_proto_version(Some(openssl::ssl::SslVersion::TLS1))?;
+        ctx.set_max_proto_version(Some(openssl::ssl::SslVersion::TLS1_3))?;
 
-            // DER 형식의 인증서를 OpenSSL X509 객체로 변환
-            let cert = match X509::from_der(&cert_der) {
-                Ok(cert) => cert,
-                Err(e) => {
-                    error!("❌ X509 인증서 변환 실패: {}", e);
-                    return None;
-                }
-            };
+        // 프록시를 위한 인증서 검증 비활성화
+        ctx.set_verify(openssl::ssl::SslVerifyMode::NONE);
+        ctx.set_verify_depth(10);
 
-            // rcgen 개인키를 DER 형식으로 변환
-            let private_key_der = self.key_pair.serialize_der();
-            let private_key = match PKey::private_key_from_der(&private_key_der) {
-                Ok(key) => key,
-                Err(e) => {
-                    error!("❌ 개인키 변환 실패: {}", e);
-                    return None;
-                }
-            };
+        // 클라이언트 호환성을 위한 추가 설정
+        ctx.set_options(openssl::ssl::SslOptions::NO_COMPRESSION);
+        ctx.set_options(openssl::ssl::SslOptions::SINGLE_DH_USE);
+        ctx.set_options(openssl::ssl::SslOptions::SINGLE_ECDH_USE);
 
-            // PKCS12 생성 (패스워드 없음)
-            match Pkcs12::builder()
-                .name("")
-                .pkey(&private_key)
-                .cert(&cert)
-                .build2("")
-            {
-                Ok(pkcs12) => {
-                    let pkcs12_der = match pkcs12.to_der() {
-                        Ok(der) => der,
-                        Err(e) => {
-                            error!("❌ PKCS12 DER 변환 실패: {}", e);
-                            return None;
-                        }
-                    };
+        // 서버 인증서 생성
+        let server_cert_der = self.gen_cert(authority);
+        let server_cert = openssl::x509::X509::from_der(&server_cert_der)?;
 
-                    info!("✅ PKCS12 인증서 생성 성공: {} bytes", pkcs12_der.len());
-                    Some(pkcs12_der)
-                }
-                Err(e) => {
-                    error!("❌ PKCS12 생성 실패: {}", e);
-                    None
-                }
-            }
+        // CA 인증서를 PEM 형식으로 변환
+        let ca_cert_pem = self.ca_cert.pem();
+        let ca_cert = openssl::x509::X509::from_pem(ca_cert_pem.as_bytes())?;
+
+        // CA 개인키를 PEM 형식으로 변환
+        let ca_key_pem = self.key_pair.serialize_pem();
+        let ca_key = openssl::pkey::PKey::private_key_from_pem(ca_key_pem.as_bytes())?;
+
+        // 인증서 체인 설정 (서버 인증서 + CA 인증서)
+        let mut cert_chain = vec![server_cert];
+        cert_chain.push(ca_cert);
+        ctx.set_certificate(&cert_chain[0])?;
+
+        // CA 인증서를 중간 인증서로 추가
+        for cert in cert_chain.iter().skip(1) {
+            ctx.add_extra_chain_cert(cert.to_owned())?;
         }
-        #[cfg(not(feature = "openssl-ca"))]
-        {
-            warn!("PKCS12 생성은 openssl-ca feature가 필요합니다");
-            None
-        }
+
+        // 개인키 설정
+        ctx.set_private_key(&ca_key)?;
+
+        // 컨텍스트 빌드
+        let ctx = ctx.build();
+
+        info!(
+            "✅ [OPENSSL-CONTEXT] OpenSSL 컨텍스트 생성 완료: {}",
+            authority
+        );
+        Ok(ctx)
     }
 }
 

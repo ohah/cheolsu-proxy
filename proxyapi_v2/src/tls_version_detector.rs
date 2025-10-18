@@ -43,8 +43,8 @@ impl TlsVersionDetector {
 
         match version_bytes {
             [0x03, 0x00] => {
-                debug!("TLS 버전 감지: TLS 1.0 (SSL 3.0)");
-                Some(TlsVersion::Tls10)
+                debug!("TLS 버전 감지: SSL 3.0");
+                Some(TlsVersion::Ssl30)
             }
             [0x03, 0x01] => {
                 debug!("TLS 버전 감지: TLS 1.0");
@@ -55,12 +55,8 @@ impl TlsVersionDetector {
                 Some(TlsVersion::Tls11)
             }
             [0x03, 0x03] => {
-                debug!("TLS 버전 감지: TLS 1.2");
-                Some(TlsVersion::Tls12)
-            }
-            [0x03, 0x04] => {
-                debug!("TLS 버전 감지: TLS 1.3");
-                Some(TlsVersion::Tls13)
+                debug!("TLS 버전 감지: TLS 1.2 또는 TLS 1.3 (레코드 레이어에서는 동일)");
+                Some(TlsVersion::Tls12) // TLS 1.3은 레코드 레이어에서 TLS 1.2와 동일
             }
             _ => {
                 debug!(
@@ -95,7 +91,11 @@ impl TlsVersionDetector {
     pub fn is_openssl_supported(version: TlsVersion) -> bool {
         matches!(
             version,
-            TlsVersion::Tls10 | TlsVersion::Tls11 | TlsVersion::Tls12 | TlsVersion::Tls13
+            TlsVersion::Ssl30
+                | TlsVersion::Tls10
+                | TlsVersion::Tls11
+                | TlsVersion::Tls12
+                | TlsVersion::Tls13
         )
     }
 }
@@ -103,6 +103,7 @@ impl TlsVersionDetector {
 /// 지원되는 TLS 버전
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TlsVersion {
+    Ssl30,
     Tls10,
     Tls11,
     Tls12,
@@ -113,20 +114,11 @@ impl TlsVersion {
     /// TLS 버전을 문자열로 반환합니다
     pub fn as_str(&self) -> &'static str {
         match self {
+            TlsVersion::Ssl30 => "SSL 3.0",
             TlsVersion::Tls10 => "TLS 1.0",
             TlsVersion::Tls11 => "TLS 1.1",
             TlsVersion::Tls12 => "TLS 1.2",
             TlsVersion::Tls13 => "TLS 1.3",
-        }
-    }
-
-    /// TLS 버전을 바이트 배열로 반환합니다
-    pub fn as_bytes(&self) -> [u8; 2] {
-        match self {
-            TlsVersion::Tls10 => [0x03, 0x00],
-            TlsVersion::Tls11 => [0x03, 0x01],
-            TlsVersion::Tls12 => [0x03, 0x02],
-            TlsVersion::Tls13 => [0x03, 0x03],
         }
     }
 }
@@ -142,10 +134,22 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_detect_ssl30() {
+        // 올바른 ClientHello 형식: [record_type, record_version, record_length, handshake_type, handshake_length, client_version]
+        let ssl30_hello = [
+            0x16, 0x03, 0x01, 0x00, 0x98, 0x01, 0x00, 0x00, 0x94, 0x03, 0x00,
+        ];
+        assert_eq!(
+            TlsVersionDetector::detect_tls_version(&ssl30_hello),
+            Some(TlsVersion::Ssl30)
+        );
+    }
+
+    #[test]
     fn test_detect_tls10() {
         // 올바른 ClientHello 형식: [record_type, record_version, record_length, handshake_type, handshake_length, client_version]
         let tls10_hello = [
-            0x16, 0x03, 0x01, 0x00, 0x98, 0x01, 0x00, 0x00, 0x94, 0x03, 0x00,
+            0x16, 0x03, 0x01, 0x00, 0x98, 0x01, 0x00, 0x00, 0x94, 0x03, 0x01,
         ];
         assert_eq!(
             TlsVersionDetector::detect_tls_version(&tls10_hello),
@@ -177,17 +181,19 @@ mod tests {
 
     #[test]
     fn test_detect_tls13() {
+        // TLS 1.3은 레코드 레이어에서 TLS 1.2와 동일한 버전 바이트를 사용
         let tls13_hello = [
-            0x16, 0x03, 0x01, 0x00, 0x98, 0x01, 0x00, 0x00, 0x94, 0x03, 0x04,
+            0x16, 0x03, 0x01, 0x00, 0x98, 0x01, 0x00, 0x00, 0x94, 0x03, 0x03,
         ];
         assert_eq!(
             TlsVersionDetector::detect_tls_version(&tls13_hello),
-            Some(TlsVersion::Tls13)
+            Some(TlsVersion::Tls12) // TLS 1.3은 레코드 레이어에서 TLS 1.2로 감지됨
         );
     }
 
     #[test]
     fn test_rustls_support() {
+        assert!(!TlsVersionDetector::is_rustls_supported(TlsVersion::Ssl30));
         assert!(!TlsVersionDetector::is_rustls_supported(TlsVersion::Tls10));
         assert!(!TlsVersionDetector::is_rustls_supported(TlsVersion::Tls11));
         assert!(TlsVersionDetector::is_rustls_supported(TlsVersion::Tls12));
@@ -196,6 +202,7 @@ mod tests {
 
     #[test]
     fn test_openssl_support() {
+        assert!(TlsVersionDetector::is_openssl_supported(TlsVersion::Ssl30));
         assert!(TlsVersionDetector::is_openssl_supported(TlsVersion::Tls10));
         assert!(TlsVersionDetector::is_openssl_supported(TlsVersion::Tls11));
         assert!(TlsVersionDetector::is_openssl_supported(TlsVersion::Tls12));

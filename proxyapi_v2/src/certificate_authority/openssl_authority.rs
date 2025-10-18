@@ -136,8 +136,14 @@ impl CertificateAuthority for OpensslAuthority {
                 .unwrap_or_else(|_| panic!("Failed to generate certificate for {}", authority)),
         ];
 
+        // TLS 버전 설정: TLS 1.2부터 TLS 1.3까지 허용 (rustls 지원 범위)
+        let supported_versions = vec![
+            &tokio_rustls::rustls::version::TLS12,
+            &tokio_rustls::rustls::version::TLS13,
+        ];
+
         let mut server_cfg = ServerConfig::builder_with_provider(Arc::clone(&self.provider))
-            .with_safe_default_protocol_versions()
+            .with_protocol_versions(&supported_versions)
             .expect("Failed to specify protocol versions")
             .with_no_client_auth()
             .with_single_cert(certs, self.private_key.clone_key())
@@ -163,57 +169,53 @@ impl CertificateAuthority for OpensslAuthority {
         self.ca_cert.to_der().ok()
     }
 
-    #[cfg(feature = "native-tls-client")]
-    async fn gen_pkcs12_identity(&self, authority: &Authority) -> Option<Vec<u8>> {
-        use openssl::pkcs12::Pkcs12;
+    #[cfg(feature = "openssl-ca")]
+    async fn gen_openssl_context(
+        &self,
+        authority: &Authority,
+    ) -> Result<openssl::ssl::SslContext, Box<dyn std::error::Error + Send + Sync>> {
+        info!(
+            "🔧 [OPENSSL-CONTEXT] OpenSSL 컨텍스트 생성 시작: {}",
+            authority
+        );
 
-        info!("🔧 OpenSSL PKCS12 인증서 생성 시작: {}", authority);
+        // OpenSSL 컨텍스트 생성
+        let mut ctx = openssl::ssl::SslContext::builder(openssl::ssl::SslMethod::tls_server())?;
 
-        // OpenSSL 인증서 생성
-        let cert = match self.gen_cert(authority) {
-            Ok(cert) => cert,
-            Err(e) => {
-                error!("❌ OpenSSL 인증서 생성 실패: {}", e);
-                return None;
-            }
-        };
+        // TLS 버전 설정: 모든 TLS 버전 지원 (프록시 목적)
+        ctx.set_min_proto_version(Some(openssl::ssl::SslVersion::TLS1))?;
+        ctx.set_max_proto_version(Some(openssl::ssl::SslVersion::TLS1_3))?;
 
-        // DER 형식의 인증서를 OpenSSL X509 객체로 변환
-        let x509_cert = match openssl::x509::X509::from_der(&cert) {
-            Ok(cert) => cert,
-            Err(e) => {
-                error!("❌ X509 인증서 변환 실패: {}", e);
-                return None;
-            }
-        };
+        // 프록시를 위한 인증서 검증 비활성화
+        ctx.set_verify(openssl::ssl::SslVerifyMode::NONE);
+        ctx.set_verify_depth(10);
 
-        // PKCS12 생성 (패스워드 없음)
-        match Pkcs12::builder()
-            .name("")
-            .pkey(&self.pkey)
-            .cert(&x509_cert)
-            .build2("")
-        {
-            Ok(pkcs12) => {
-                let pkcs12_der = match pkcs12.to_der() {
-                    Ok(der) => der,
-                    Err(e) => {
-                        error!("❌ PKCS12 DER 변환 실패: {}", e);
-                        return None;
-                    }
-                };
+        // 클라이언트 호환성을 위한 추가 설정
+        ctx.set_options(openssl::ssl::SslOptions::NO_COMPRESSION);
+        ctx.set_options(openssl::ssl::SslOptions::SINGLE_DH_USE);
+        ctx.set_options(openssl::ssl::SslOptions::SINGLE_ECDH_USE);
 
-                info!(
-                    "✅ OpenSSL PKCS12 인증서 생성 성공: {} bytes",
-                    pkcs12_der.len()
-                );
-                Some(pkcs12_der)
-            }
-            Err(e) => {
-                error!("❌ OpenSSL PKCS12 생성 실패: {}", e);
-                None
-            }
-        }
+        // 서버 인증서 생성 (CertificateDer -> X509 변환)
+        let server_cert_der = self.gen_cert(authority)?;
+        let server_cert = openssl::x509::X509::from_der(&server_cert_der)?;
+
+        // 인증서 체인 설정 (서버 인증서 + CA 인증서)
+        ctx.set_certificate(&server_cert)?;
+
+        // CA 인증서를 중간 인증서로 추가
+        ctx.add_extra_chain_cert(self.ca_cert.clone())?;
+
+        // 개인키 설정
+        ctx.set_private_key(&self.pkey)?;
+
+        // 컨텍스트 빌드
+        let ctx = ctx.build();
+
+        info!(
+            "✅ [OPENSSL-CONTEXT] OpenSSL 컨텍스트 생성 완료: {}",
+            authority
+        );
+        Ok(ctx)
     }
 }
 

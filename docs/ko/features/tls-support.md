@@ -13,6 +13,7 @@ Cheolsu Proxy는 최신 TLS 버전뿐만 아니라 레거시 TLS 1.0/1.1 클라�
 - **하이브리드 TLS 처리**: TLS 1.0/1.1은 native-tls, TLS 1.2+는 rustls 사용
 - **크로스 플랫폼 호환성**: macOS, Windows, Linux에서 모두 동작
 - **PKCS12 인증서 지원**: native-tls용 PKCS12 인증서 자동 생성
+- **터널 모드**: 특정 호스트의 TLS 문제 해결을 위한 직접 터널링
 
 ## 🔧 구현 방식
 
@@ -21,16 +22,42 @@ Cheolsu Proxy는 최신 TLS 버전뿐만 아니라 레거시 TLS 1.0/1.1 클라�
 ```
 TLS 1.0/1.1 → native-tls (OpenSSL 기반)
 TLS 1.2/1.3 → rustls (순수 Rust)
+특정 호스트 → 터널 모드 (직접 연결)
 ```
+
+### 터널 모드 (Tunnel Mode)
+
+일부 호스트(특히 Apple 서비스)는 엄격한 TLS 요구사항으로 인해 프록시를 통한 TLS 핸드셰이크가 실패할 수 있습니다. 이러한 경우 터널 모드를 사용하여 프록시가 TLS 처리를 우회하고 클라이언트와 서버 간의 직접적인 TCP 터널을 생성합니다.
+
+#### 터널 모드 대상 호스트
+
+- `gateway.icloud.com`
+- `p112-contacts.icloud.com`
+- `p112-caldav.icloud.com`
+- `wps.apple.com`
+- 기타 Apple 서비스 도메인
+
+#### 터널 모드 동작 방식
+
+1. **CONNECT 요청 수신**: 클라이언트가 특정 호스트로 CONNECT 요청
+2. **터널 모드 감지**: 호스트가 터널 모드 대상인지 확인
+3. **200 Connection Established 응답**: 즉시 터널 설정 완료 응답 전송
+4. **직접 TCP 연결**: 클라이언트와 대상 서버 간 직접 TCP 스트림 생성
+5. **양방향 데이터 전송**: `tokio::io::copy_bidirectional`로 데이터 중계
+6. **이벤트 로깅**: 터널 시작/완료/오류 이벤트를 Tauri UI로 전송
 
 ### 핵심 플로우
 
-1. **ClientHello 수신** → TLS 버전 감지 (buffer[3..5])
-2. **버전별 핸들러 선택**:
+1. **CONNECT 요청 수신** → 호스트 확인
+2. **터널 모드 확인**: 대상 호스트가 터널 모드 대상인지 확인
+3. **처리 방식 선택**:
+   - 터널 모드: 직접 TCP 터널 생성
+   - 일반 모드: TLS 버전 감지 후 적절한 핸들러 선택
+4. **TLS 처리** (일반 모드):
    - TLS 1.0/1.1: `HybridTlsHandler::handle_with_native_tls_upgraded()`
    - TLS 1.2+: `HybridTlsHandler::handle_with_rustls_upgraded()`
-3. **인증서 생성**: PKCS12 형식으로 native-tls용 인증서 생성
-4. **TLS 핸드셰이크**: 선택된 라이브러리로 핸드셰이크 수행
+5. **인증서 생성**: PKCS12 형식으로 native-tls용 인증서 생성
+6. **TLS 핸드셰이크**: 선택된 라이브러리로 핸드셰이크 수행
 
 ## 📊 아키텍처
 
@@ -44,32 +71,43 @@ sequenceDiagram
     participant Hybrid as HybridTlsHandler
     participant Rustls as rustls
     participant Native as native-tls
+    participant Server as Target Server
 
     Client->>Proxy: CONNECT request
-    Proxy->>Client: 200 Connection Established
-    Client->>Proxy: ClientHello (TLS handshake)
+    Proxy->>Proxy: Check if tunnel mode required
 
-    Proxy->>Detector: detect_tls_version(buffer)
-    Detector-->>Proxy: TLS version (1.0/1.1/1.2/1.3)
+    alt Tunnel Mode (Apple services)
+        Proxy->>Client: 200 Connection Established
+        Proxy->>Server: Direct TCP connection
+        Proxy->>Proxy: Spawn tunnel task
+        Note over Proxy: copy_bidirectional()
+        Note over Client,Server: Direct data flow through tunnel
+    else Normal TLS Mode
+        Proxy->>Client: 200 Connection Established
+        Client->>Proxy: ClientHello (TLS handshake)
 
-    alt TLS 1.0 or 1.1
-        Proxy->>Hybrid: handle_with_native_tls_upgraded()
-        Hybrid->>Native: Generate PKCS12 certificate
-        Native-->>Hybrid: PKCS12 identity
-        Hybrid->>Native: TlsAcceptor.accept()
-        Native-->>Hybrid: TLS stream
-        Hybrid-->>Proxy: NativeTls stream
-    else TLS 1.2 or 1.3
-        Proxy->>Hybrid: handle_with_rustls_upgraded()
-        Hybrid->>Rustls: Generate rustls certificate
-        Rustls-->>Hybrid: ServerConfig
-        Hybrid->>Rustls: TlsAcceptor.accept()
-        Rustls-->>Hybrid: TLS stream
-        Hybrid-->>Proxy: Rustls stream
+        Proxy->>Detector: detect_tls_version(buffer)
+        Detector-->>Proxy: TLS version (1.0/1.1/1.2/1.3)
+
+        alt TLS 1.0 or 1.1
+            Proxy->>Hybrid: handle_with_native_tls_upgraded()
+            Hybrid->>Native: Generate PKCS12 certificate
+            Native-->>Hybrid: PKCS12 identity
+            Hybrid->>Native: TlsAcceptor.accept()
+            Native-->>Hybrid: TLS stream
+            Hybrid-->>Proxy: NativeTls stream
+        else TLS 1.2 or 1.3
+            Proxy->>Hybrid: handle_with_rustls_upgraded()
+            Hybrid->>Rustls: Generate rustls certificate
+            Rustls-->>Hybrid: ServerConfig
+            Hybrid->>Rustls: TlsAcceptor.accept()
+            Rustls-->>Hybrid: TLS stream
+            Hybrid-->>Proxy: Rustls stream
+        end
+
+        Proxy->>Client: TLS handshake complete
+        Note over Client,Proxy: Secure communication established
     end
-
-    Proxy->>Client: TLS handshake complete
-    Note over Client,Proxy: Secure communication established
 ```
 
 ### PKCS12 인증서 생성 플로우
@@ -218,6 +256,17 @@ match version_bytes {
 3. **보안 정책 수립**: 레거시 TLS 사용에 대한 명확한 정책 수립
 
 ## 🔧 문제 해결
+
+### 터널 모드 관련 문제
+
+**증상**: Apple 서비스나 특정 호스트에 연결 실패
+
+**해결방법**:
+
+1. 터널 모드 대상 호스트 목록 확인
+2. 터널 이벤트 로그 확인 (`🚇 [TUNNEL-EVENT]` 로그)
+3. `tunnel_event_sender`가 올바르게 설정되었는지 확인
+4. 터널 모드 타임아웃 설정 확인 (기본 5분)
 
 ### TLS 핸드셰이크 실패
 

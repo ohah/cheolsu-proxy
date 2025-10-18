@@ -1,3 +1,4 @@
+use crate::tunnel_event::TunnelEvent;
 use crate::{
     HttpContext, HttpHandler, RequestOrResponse, WebSocketContext, WebSocketHandler, body::Body,
     certificate_authority::CertificateAuthority, hybrid_tls_handler::HybridTlsHandler,
@@ -17,8 +18,15 @@ use hyper_util::{
     rt::{TokioExecutor, TokioIo},
     server,
 };
+use proxy_v2_models::RequestInfo;
 use std::{convert::Infallible, net::SocketAddr, sync::Arc};
-use tokio::{io::AsyncReadExt, net::TcpStream, task::JoinHandle};
+use tokio::sync::mpsc;
+use tokio::{
+    io::{AsyncReadExt, AsyncWriteExt},
+    net::TcpStream,
+    task::JoinHandle,
+    time::{Duration, timeout},
+};
 use tokio_rustls::TlsAcceptor;
 use tokio_tungstenite::{
     Connector, WebSocketStream,
@@ -48,6 +56,7 @@ pub(crate) struct InternalProxy<C, CA, H, W> {
     pub websocket_handler: W,
     pub websocket_connector: Option<Connector>,
     pub client_addr: SocketAddr,
+    pub tunnel_event_sender: Option<mpsc::Sender<RequestInfo>>,
 }
 
 impl<C, CA, H, W> Clone for InternalProxy<C, CA, H, W>
@@ -65,6 +74,7 @@ where
             websocket_handler: self.websocket_handler.clone(),
             websocket_connector: self.websocket_connector.clone(),
             client_addr: self.client_addr,
+            tunnel_event_sender: self.tunnel_event_sender.clone(),
         }
     }
 }
@@ -235,31 +245,119 @@ where
     fn process_connect(mut self, mut req: Request<Body>) -> Response<Body> {
         match req.uri().authority().cloned() {
             Some(authority) => {
+                // 터널 모드 도메인 확인 (CONNECT 요청 처리 전에 먼저 확인)
+                if self.is_tunnel_mode_domain(&authority) {
+                    info!("🚇 [TUNNEL-MODE] 터널 모드 도메인 감지: {}", authority);
+
+                    // CONNECT 요청에 대한 200 Connection Established 응답 생성
+                    let response = Response::builder()
+                        .status(200)
+                        .header("Connection", "keep-alive")
+                        .body(Body::empty())
+                        .unwrap();
+
+                    // 백그라운드에서 터널 모드 처리
+                    let self_clone = self.clone();
+                    tokio::spawn(async move {
+                        match hyper::upgrade::on(&mut req).await {
+                            Ok(upgraded) => {
+                                let upgraded = TokioIo::new(upgraded);
+                                let upgraded = Rewind::new(upgraded, Bytes::new());
+
+                                if let Err(e) =
+                                    self_clone.handle_tunnel_mode(&authority, upgraded).await
+                                {
+                                    error!("❌ [TUNNEL-MODE] 터널 모드 처리 실패: {}", e);
+                                }
+                            }
+                            Err(e) => {
+                                error!("❌ [TUNNEL-MODE] CONNECT 업그레이드 실패: {}", e);
+                            }
+                        }
+                    });
+
+                    return response;
+                }
+
                 let span = info_span!("process_connect");
                 let fut = async move {
                     match hyper::upgrade::on(&mut req).await {
                         Ok(upgraded) => {
                             let mut upgraded = TokioIo::new(upgraded);
-                            let mut buffer = [0; 11]; // ClientHello 헤더를 위해 11 bytes 필요
-                            let bytes_read = match upgraded.read(&mut buffer).await {
+
+                            // 먼저 TLS 레코드 헤더를 읽어서 전체 길이를 파악
+                            let mut header_buffer = [0; 5]; // TLS 레코드 헤더 (5 bytes)
+                            let header_bytes_read = match upgraded.read(&mut header_buffer).await {
                                 Ok(bytes_read) => bytes_read,
                                 Err(e) => {
-                                    error!("Failed to read from upgraded connection: {}", e);
+                                    error!(
+                                        "Failed to read TLS header from upgraded connection: {}",
+                                        e
+                                    );
                                     return;
                                 }
                             };
 
-                            let mut upgraded = Rewind::new(
-                                upgraded,
-                                Bytes::copy_from_slice(buffer[..bytes_read].as_ref()),
+                            if header_bytes_read < 5 {
+                                error!("TLS header too short: {} bytes", header_bytes_read);
+                                return;
+                            }
+
+                            // 레코드 길이 계산 (bytes 3-4)
+                            let record_length =
+                                u16::from_be_bytes([header_buffer[3], header_buffer[4]]) as usize;
+                            let total_expected_length = 5 + record_length; // 헤더(5) + 레코드 길이
+
+                            info!("🔍 [BUFFER-READ] TLS 레코드 분석:");
+                            info!("  - 레코드 타입: 0x{:02x}", header_buffer[0]);
+                            info!(
+                                "  - 레코드 버전: 0x{:02x}{:02x}",
+                                header_buffer[1], header_buffer[2]
                             );
+                            info!("  - 레코드 길이: {} bytes", record_length);
+                            info!("  - 예상 전체 길이: {} bytes", total_expected_length);
+
+                            // 전체 ClientHello 메시지를 읽기 위한 버퍼 생성
+                            let mut full_buffer = vec![0; total_expected_length];
+                            full_buffer[..5].copy_from_slice(&header_buffer);
+
+                            // 나머지 데이터 읽기
+                            let remaining_bytes = total_expected_length - 5;
+                            if remaining_bytes > 0 {
+                                let remaining_bytes_read =
+                                    match upgraded.read(&mut full_buffer[5..]).await {
+                                        Ok(bytes_read) => bytes_read,
+                                        Err(e) => {
+                                            error!("Failed to read remaining TLS data: {}", e);
+                                            return;
+                                        }
+                                    };
+
+                                info!("🔍 [BUFFER-READ] 데이터 읽기 완료:");
+                                info!("  - 헤더 읽음: 5 bytes");
+                                info!(
+                                    "  - 나머지 읽음: {} bytes (예상: {} bytes)",
+                                    remaining_bytes_read, remaining_bytes
+                                );
+                                info!("  - 총 읽음: {} bytes", 5 + remaining_bytes_read);
+
+                                if remaining_bytes_read < remaining_bytes {
+                                    warn!(
+                                        "⚠️  전체 ClientHello가 완전히 읽히지 않음: {} < {}",
+                                        remaining_bytes_read, remaining_bytes
+                                    );
+                                }
+                            }
+
+                            let mut upgraded =
+                                Rewind::new(upgraded, Bytes::copy_from_slice(&full_buffer));
 
                             if self
                                 .http_handler
                                 .should_intercept(&self.context(), &req)
                                 .await
                             {
-                                if buffer.len() >= 4 && buffer[..4] == *b"GET " {
+                                if full_buffer.len() >= 4 && full_buffer[..4] == *b"GET " {
                                     if let Err(e) = self
                                         .serve_stream(
                                             TokioIo::new(upgraded),
@@ -272,10 +370,11 @@ where
                                     }
 
                                     return;
-                                } else if buffer[..2] == *b"\x16\x03" {
+                                } else if full_buffer.len() >= 2 && full_buffer[..2] == *b"\x16\x03"
+                                {
                                     // TLS 버전 감지
                                     let tls_version =
-                                        TlsVersionDetector::detect_tls_version(&buffer);
+                                        TlsVersionDetector::detect_tls_version(&full_buffer);
 
                                     match tls_version {
                                         Some(version) => {
@@ -302,7 +401,9 @@ where
                                             // 하이브리드 TLS 연결 처리
                                             match hybrid_handler
                                                 .handle_tls_connection_upgraded(
-                                                    &authority, upgraded, &buffer,
+                                                    &authority,
+                                                    upgraded,
+                                                    &full_buffer,
                                                 )
                                                 .await
                                             {
@@ -471,7 +572,7 @@ where
                                 } else {
                                     warn!(
                                         "Unknown protocol, read '{:02X?}' from upgraded connection",
-                                        &buffer[..bytes_read]
+                                        &full_buffer[..full_buffer.len().min(16)]
                                     );
                                 }
                             }
@@ -787,6 +888,308 @@ where
     }
 
     #[instrument(skip_all)]
+    /// 터널 모드가 필요한 도메인인지 확인합니다
+    fn is_tunnel_mode_domain(&self, authority: &Authority) -> bool {
+        let host = authority.host();
+
+        // 터널 모드가 필요한 도메인들
+        let tunnel_domains = [
+            "wps.apple.com",
+            "gdmf.apple.com",
+            "fbs.smoot.apple.com",
+            "gateway.icloud.com",
+            "icloud.com",
+            "apple.com",
+        ];
+
+        tunnel_domains.iter().any(|&domain| host.contains(domain))
+    }
+
+    /// 터널 모드에서 데이터를 모니터링하면서 양방향 복사를 수행합니다
+    async fn copy_bidirectional_with_monitoring(
+        client_stream: &mut TokioIo<Upgraded>,
+        server_stream: &mut TcpStream,
+        target_addr: &str,
+    ) -> Result<(u64, u64), std::io::Error> {
+        // 데이터 버퍼
+        let mut client_to_server_buffer = [0u8; 8192];
+        let mut server_to_client_buffer = [0u8; 8192];
+
+        let mut client_to_server_bytes = 0u64;
+        let mut server_to_client_bytes = 0u64;
+
+        let mut client_read_done = false;
+        let mut server_read_done = false;
+
+        loop {
+            tokio::select! {
+                // 클라이언트 → 서버 데이터 읽기
+                result = client_stream.read(&mut client_to_server_buffer), if !client_read_done => {
+                    match result {
+                        Ok(0) => {
+                            client_read_done = true;
+                            info!("🚇 [TUNNEL-DATA] 클라이언트 연결 종료: {}", target_addr);
+                        }
+                        Ok(n) => {
+                            client_to_server_bytes += n as u64;
+
+                            // 데이터 로깅 (처음 1024바이트만)
+                            if client_to_server_bytes <= 1024 {
+                                let data_preview = &client_to_server_buffer[..n];
+                                if let Ok(data_str) = std::str::from_utf8(data_preview) {
+                                    info!("🚇 [TUNNEL-DATA] 클라이언트→서버 ({}): {}", target_addr,
+                                        data_str.chars().take(200).collect::<String>());
+                                } else {
+                                    info!("🚇 [TUNNEL-DATA] 클라이언트→서버 ({}): [바이너리 데이터 {} bytes]",
+                                        target_addr, n);
+                                }
+                            }
+
+                            // 서버로 데이터 전송
+                            if let Err(e) = server_stream.write_all(&client_to_server_buffer[..n]).await {
+                                error!("🚇 [TUNNEL-DATA] 서버로 데이터 전송 실패: {}", e);
+                                return Err(e);
+                            }
+                        }
+                        Err(e) => {
+                            error!("🚇 [TUNNEL-DATA] 클라이언트에서 데이터 읽기 실패: {}", e);
+                            return Err(e);
+                        }
+                    }
+                }
+
+                // 서버 → 클라이언트 데이터 읽기
+                result = server_stream.read(&mut server_to_client_buffer), if !server_read_done => {
+                    match result {
+                        Ok(0) => {
+                            server_read_done = true;
+                            info!("🚇 [TUNNEL-DATA] 서버 연결 종료: {}", target_addr);
+                        }
+                        Ok(n) => {
+                            server_to_client_bytes += n as u64;
+
+                            // 데이터 로깅 (처음 1024바이트만)
+                            if server_to_client_bytes <= 1024 {
+                                let data_preview = &server_to_client_buffer[..n];
+                                if let Ok(data_str) = std::str::from_utf8(data_preview) {
+                                    info!("🚇 [TUNNEL-DATA] 서버→클라이언트 ({}): {}", target_addr,
+                                        data_str.chars().take(200).collect::<String>());
+                                } else {
+                                    info!("🚇 [TUNNEL-DATA] 서버→클라이언트 ({}): [바이너리 데이터 {} bytes]",
+                                        target_addr, n);
+                                }
+                            }
+
+                            // 클라이언트로 데이터 전송
+                            if let Err(e) = client_stream.write_all(&server_to_client_buffer[..n]).await {
+                                error!("🚇 [TUNNEL-DATA] 클라이언트로 데이터 전송 실패: {}", e);
+                                return Err(e);
+                            }
+                        }
+                        Err(e) => {
+                            error!("🚇 [TUNNEL-DATA] 서버에서 데이터 읽기 실패: {}", e);
+                            return Err(e);
+                        }
+                    }
+                }
+            }
+
+            // 양쪽 모두 연결이 종료되면 루프 종료
+            if client_read_done && server_read_done {
+                break;
+            }
+        }
+
+        info!(
+            "🚇 [TUNNEL-DATA] 데이터 전송 완료: {} (클라이언트→서버: {} bytes, 서버→클라이언트: {} bytes)",
+            target_addr, client_to_server_bytes, server_to_client_bytes
+        );
+
+        Ok((client_to_server_bytes, server_to_client_bytes))
+    }
+
+    /// 터널 모드를 처리합니다
+    async fn handle_tunnel_mode(
+        &self,
+        authority: &Authority,
+        upgraded: Rewind<TokioIo<Upgraded>>,
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        info!("🚇 [TUNNEL-MODE] 터널 모드 처리 시작: {}", authority);
+
+        // 대상 서버에 직접 연결
+        let port = authority
+            .port()
+            .map(|p| p.to_string())
+            .unwrap_or_else(|| "443".to_string());
+        let target_addr = format!("{}:{}", authority.host(), port);
+        let client_addr = self.client_addr.to_string();
+
+        info!("🚇 [TUNNEL-MODE] 대상 서버 연결 시도: {}", target_addr);
+
+        // 터널 시작 이벤트 전송
+        if let Some(ref sender) = self.tunnel_event_sender {
+            let start_event = TunnelEvent::started(target_addr.clone(), client_addr.clone());
+            let request_info = start_event.to_request_info();
+            info!("🚇 [TUNNEL-EVENT] 터널 시작 이벤트 전송: {}", target_addr);
+            if let Err(e) = sender.send(request_info).await {
+                error!("❌ [TUNNEL-EVENT] 터널 시작 이벤트 전송 실패: {}", e);
+            } else {
+                info!(
+                    "✅ [TUNNEL-EVENT] 터널 시작 이벤트 전송 성공: {}",
+                    target_addr
+                );
+            }
+        } else {
+            warn!(
+                "⚠️ [TUNNEL-EVENT] tunnel_event_sender가 None입니다: {}",
+                target_addr
+            );
+        }
+
+        let mut server_stream = match tokio::net::TcpStream::connect(&target_addr).await {
+            Ok(stream) => {
+                info!("✅ [TUNNEL-MODE] 대상 서버 연결 성공: {}", target_addr);
+                stream
+            }
+            Err(e) => {
+                error!(
+                    "❌ [TUNNEL-MODE] 대상 서버 연결 실패: {} - {}",
+                    target_addr, e
+                );
+                return Err(format!("Failed to connect to target server: {}", e).into());
+            }
+        };
+
+        // 클라이언트 스트림 추출
+        let mut client_stream = upgraded.into_inner();
+
+        // 실제 터널 생성 - 클라이언트와 서버 간 양방향 데이터 전달
+        let start_time = std::time::Instant::now();
+        info!(
+            "🚇 [TUNNEL-TASK] 터널 작업 시작: {} ↔ {}",
+            target_addr, "클라이언트"
+        );
+
+        // 터널 작업에 타임아웃 추가 (5분) - 데이터 모니터링 포함
+        match tokio::time::timeout(
+            std::time::Duration::from_secs(300),
+            Self::copy_bidirectional_with_monitoring(
+                &mut client_stream,
+                &mut server_stream,
+                &target_addr,
+            ),
+        )
+        .await
+        {
+            Ok(Ok((client_to_server, server_to_client))) => {
+                let duration = start_time.elapsed();
+                info!(
+                    "🚇 [TUNNEL-TASK] 터널 완료 - 클라이언트→서버: {} bytes, 서버→클라이언트: {} bytes (소요시간: {:?})",
+                    client_to_server, server_to_client, duration
+                );
+
+                // 터널 완료 이벤트 전송
+                if let Some(ref sender) = self.tunnel_event_sender {
+                    let completed_event = TunnelEvent::completed(
+                        target_addr.clone(),
+                        client_addr,
+                        client_to_server,
+                        server_to_client,
+                        duration,
+                    );
+                    let request_info = completed_event.to_request_info();
+                    info!("🚇 [TUNNEL-EVENT] 터널 완료 이벤트 전송: {}", target_addr);
+                    if let Err(e) = sender.send(request_info).await {
+                        error!("❌ [TUNNEL-EVENT] 터널 완료 이벤트 전송 실패: {}", e);
+                    } else {
+                        info!(
+                            "✅ [TUNNEL-EVENT] 터널 완료 이벤트 전송 성공: {}",
+                            target_addr
+                        );
+                    }
+                } else {
+                    warn!(
+                        "⚠️ [TUNNEL-EVENT] tunnel_event_sender가 None입니다 (완료): {}",
+                        target_addr
+                    );
+                }
+
+                Ok(())
+            }
+            Ok(Err(e)) => {
+                let duration = start_time.elapsed();
+                error!(
+                    "❌ [TUNNEL-TASK] 터널 오류: {} (소요시간: {:?})",
+                    e, duration
+                );
+
+                // 터널 오류 이벤트 전송
+                if let Some(ref sender) = self.tunnel_event_sender {
+                    let error_event = TunnelEvent::error(
+                        target_addr.clone(),
+                        client_addr,
+                        e.to_string(),
+                        duration,
+                    );
+                    let request_info = error_event.to_request_info();
+                    info!("🚇 [TUNNEL-EVENT] 터널 오류 이벤트 전송: {}", target_addr);
+                    if let Err(e) = sender.send(request_info).await {
+                        error!("❌ [TUNNEL-EVENT] 터널 오류 이벤트 전송 실패: {}", e);
+                    } else {
+                        info!(
+                            "✅ [TUNNEL-EVENT] 터널 오류 이벤트 전송 성공: {}",
+                            target_addr
+                        );
+                    }
+                } else {
+                    warn!(
+                        "⚠️ [TUNNEL-EVENT] tunnel_event_sender가 None입니다 (오류): {}",
+                        target_addr
+                    );
+                }
+
+                Err(format!("Tunnel failed: {}", e).into())
+            }
+            Err(_timeout) => {
+                let duration = start_time.elapsed();
+                error!(
+                    "⏰ [TUNNEL-TASK] 터널 타임아웃: 5분 후 종료 (소요시간: {:?})",
+                    duration
+                );
+
+                // 터널 타임아웃 이벤트 전송
+                if let Some(ref sender) = self.tunnel_event_sender {
+                    let error_event = TunnelEvent::error(
+                        target_addr.clone(),
+                        client_addr,
+                        "Tunnel timeout after 5 minutes".to_string(),
+                        duration,
+                    );
+                    let request_info = error_event.to_request_info();
+                    info!(
+                        "🚇 [TUNNEL-EVENT] 터널 타임아웃 이벤트 전송: {}",
+                        target_addr
+                    );
+                    if let Err(e) = sender.send(request_info).await {
+                        error!("❌ [TUNNEL-EVENT] 터널 타임아웃 이벤트 전송 실패: {}", e);
+                    } else {
+                        info!(
+                            "✅ [TUNNEL-EVENT] 터널 타임아웃 이벤트 전송 성공: {}",
+                            target_addr
+                        );
+                    }
+                } else {
+                    warn!(
+                        "⚠️ [TUNNEL-EVENT] tunnel_event_sender가 None입니다 (타임아웃): {}",
+                        target_addr
+                    );
+                }
+
+                Err("Tunnel timeout after 5 minutes".into())
+            }
+        }
+    }
+
     async fn serve_stream<I>(
         self,
         stream: I,
@@ -796,27 +1199,73 @@ where
     where
         I: hyper::rt::Read + hyper::rt::Write + Unpin + Send + 'static,
     {
-        let service = service_fn(|mut req| {
-            if req.version() == hyper::Version::HTTP_10 || req.version() == hyper::Version::HTTP_11
-            {
-                let (mut parts, body) = req.into_parts();
+        info!(
+            "🔧 [SERVE-STREAM] 스트림 서빙 시작: {} (scheme: {:?})",
+            authority, scheme
+        );
 
-                parts.uri = {
-                    let mut parts = parts.uri.into_parts();
-                    parts.scheme = Some(scheme.clone());
-                    parts.authority = Some(authority.clone());
-                    Uri::from_parts(parts).expect("Failed to build URI")
+        let proxy_clone = self.clone();
+        let service = service_fn({
+            let authority = authority.clone();
+            let scheme = scheme.clone();
+            move |mut req| {
+                info!(
+                    "🔧 [SERVE-STREAM] HTTP 요청 수신: {} {} (version: {:?})",
+                    req.method(),
+                    req.uri(),
+                    req.version()
+                );
+
+                if req.version() == hyper::Version::HTTP_10
+                    || req.version() == hyper::Version::HTTP_11
+                {
+                    let (mut parts, body) = req.into_parts();
+
+                    parts.uri = {
+                        let mut parts = parts.uri.into_parts();
+                        parts.scheme = Some(scheme.clone());
+                        parts.authority = Some(authority.clone());
+                        Uri::from_parts(parts).expect("Failed to build URI")
+                    };
+
+                    req = Request::from_parts(parts, body);
+                    info!("🔧 [SERVE-STREAM] URI 재구성 완료: {}", req.uri());
                 };
 
-                req = Request::from_parts(parts, body);
-            };
-
-            self.clone().proxy(req)
+                info!("🔧 [SERVE-STREAM] 프록시 요청 전달 시작");
+                proxy_clone.clone().proxy(req)
+            }
         });
 
-        self.server
-            .serve_connection_with_upgrades(stream, service)
-            .await
+        info!(
+            "🔧 [SERVE-STREAM] 서버 연결 시작 - serve_connection_with_upgrades 호출 (타임아웃: 30초)"
+        );
+        let result = timeout(
+            Duration::from_secs(30),
+            self.server.serve_connection_with_upgrades(stream, service),
+        )
+        .await;
+
+        match result {
+            Ok(Ok(_)) => {
+                info!("✅ [SERVE-STREAM] 스트림 서빙 완료: {}", authority);
+                Ok(())
+            }
+            Ok(Err(e)) => {
+                error!(
+                    "❌ [SERVE-STREAM] 스트림 서빙 실패: {} - 에러: {}",
+                    authority, e
+                );
+                Err(e)
+            }
+            Err(_timeout_error) => {
+                error!(
+                    "⏰ [SERVE-STREAM] 스트림 서빙 타임아웃: {} (30초 후 종료)",
+                    authority
+                );
+                Err("Connection timeout after 30 seconds".into())
+            }
+        }
     }
 }
 
