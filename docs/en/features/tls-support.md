@@ -13,6 +13,7 @@ Cheolsu Proxy supports not only modern TLS versions but also legacy TLS 1.0/1.1 
 - **Hybrid TLS Processing**: Uses native-tls for TLS 1.0/1.1, rustls for TLS 1.2+
 - **Cross-platform Compatibility**: Works on macOS, Windows, and Linux
 - **PKCS12 Certificate Support**: Automatic generation of PKCS12 certificates for native-tls
+- **Tunnel Mode**: Direct tunneling for specific hosts with TLS compatibility issues
 
 ## 🔧 Implementation Approach
 
@@ -21,16 +22,42 @@ Cheolsu Proxy supports not only modern TLS versions but also legacy TLS 1.0/1.1 
 ```
 TLS 1.0/1.1 → native-tls (OpenSSL-based)
 TLS 1.2/1.3 → rustls (Pure Rust)
+Specific hosts → Tunnel mode (Direct connection)
 ```
+
+### Tunnel Mode
+
+Some hosts (especially Apple services) may fail TLS handshakes through a proxy due to strict TLS requirements. In such cases, tunnel mode is used to bypass proxy TLS processing and create a direct TCP tunnel between client and server.
+
+#### Tunnel Mode Target Hosts
+
+- `gateway.icloud.com`
+- `p112-contacts.icloud.com`
+- `p112-caldav.icloud.com`
+- `wps.apple.com`
+- Other Apple service domains
+
+#### Tunnel Mode Operation
+
+1. **CONNECT Request Reception**: Client sends CONNECT request to specific host
+2. **Tunnel Mode Detection**: Check if host is in tunnel mode target list
+3. **200 Connection Established Response**: Immediately send tunnel setup completion response
+4. **Direct TCP Connection**: Create direct TCP stream between client and target server
+5. **Bidirectional Data Transfer**: Relay data using `tokio::io::copy_bidirectional`
+6. **Event Logging**: Send tunnel start/complete/error events to Tauri UI
 
 ### Core Flow
 
-1. **ClientHello Reception** → TLS version detection (buffer[3..5])
-2. **Version-Specific Handler Selection**:
+1. **CONNECT Request Reception** → Host verification
+2. **Tunnel Mode Check**: Verify if target host requires tunnel mode
+3. **Processing Method Selection**:
+   - Tunnel mode: Create direct TCP tunnel
+   - Normal mode: TLS version detection and appropriate handler selection
+4. **TLS Processing** (Normal mode):
    - TLS 1.0/1.1: `HybridTlsHandler::handle_with_native_tls_upgraded()`
    - TLS 1.2+: `HybridTlsHandler::handle_with_rustls_upgraded()`
-3. **Certificate Generation**: Generate PKCS12 format certificates for native-tls
-4. **TLS Handshake**: Perform handshake with selected library
+5. **Certificate Generation**: Generate PKCS12 format certificates for native-tls
+6. **TLS Handshake**: Perform handshake with selected library
 
 ## 📊 Architecture
 
@@ -44,32 +71,43 @@ sequenceDiagram
     participant Hybrid as HybridTlsHandler
     participant Rustls as rustls
     participant Native as native-tls
+    participant Server as Target Server
 
     Client->>Proxy: CONNECT request
-    Proxy->>Client: 200 Connection Established
-    Client->>Proxy: ClientHello (TLS handshake)
+    Proxy->>Proxy: Check if tunnel mode required
+    
+    alt Tunnel Mode (Apple services)
+        Proxy->>Client: 200 Connection Established
+        Proxy->>Server: Direct TCP connection
+        Proxy->>Proxy: Spawn tunnel task
+        Note over Proxy: copy_bidirectional()
+        Note over Client,Server: Direct data flow through tunnel
+    else Normal TLS Mode
+        Proxy->>Client: 200 Connection Established
+        Client->>Proxy: ClientHello (TLS handshake)
 
-    Proxy->>Detector: detect_tls_version(buffer)
-    Detector-->>Proxy: TLS version (1.0/1.1/1.2/1.3)
+        Proxy->>Detector: detect_tls_version(buffer)
+        Detector-->>Proxy: TLS version (1.0/1.1/1.2/1.3)
 
-    alt TLS 1.0 or 1.1
-        Proxy->>Hybrid: handle_with_native_tls_upgraded()
-        Hybrid->>Native: Generate PKCS12 certificate
-        Native-->>Hybrid: PKCS12 identity
-        Hybrid->>Native: TlsAcceptor.accept()
-        Native-->>Hybrid: TLS stream
-        Hybrid-->>Proxy: NativeTls stream
-    else TLS 1.2 or 1.3
-        Proxy->>Hybrid: handle_with_rustls_upgraded()
-        Hybrid->>Rustls: Generate rustls certificate
-        Rustls-->>Hybrid: ServerConfig
-        Hybrid->>Rustls: TlsAcceptor.accept()
-        Rustls-->>Hybrid: TLS stream
-        Hybrid-->>Proxy: Rustls stream
+        alt TLS 1.0 or 1.1
+            Proxy->>Hybrid: handle_with_native_tls_upgraded()
+            Hybrid->>Native: Generate PKCS12 certificate
+            Native-->>Hybrid: PKCS12 identity
+            Hybrid->>Native: TlsAcceptor.accept()
+            Native-->>Hybrid: TLS stream
+            Hybrid-->>Proxy: NativeTls stream
+        else TLS 1.2 or 1.3
+            Proxy->>Hybrid: handle_with_rustls_upgraded()
+            Hybrid->>Rustls: Generate rustls certificate
+            Rustls-->>Hybrid: ServerConfig
+            Hybrid->>Rustls: TlsAcceptor.accept()
+            Rustls-->>Hybrid: TLS stream
+            Hybrid-->>Proxy: Rustls stream
+        end
+
+        Proxy->>Client: TLS handshake complete
+        Note over Client,Proxy: Secure communication established
     end
-
-    Proxy->>Client: TLS handshake complete
-    Note over Client,Proxy: Secure communication established
 ```
 
 ### PKCS12 Certificate Generation Flow
@@ -218,6 +256,24 @@ match version_bytes {
 3. **Establish Security Policies**: Clear policies for legacy TLS usage
 
 ## 🔧 Troubleshooting
+
+### Tunnel Mode Related Issues
+
+**Symptoms**: Connection failures to Apple services or specific hosts
+
+**Solutions**:
+
+1. Check tunnel mode target host list
+2. Verify tunnel event logs (`🚇 [TUNNEL-EVENT]` logs)
+3. Ensure `tunnel_event_sender` is properly configured
+4. Check tunnel mode timeout settings (default 5 minutes)
+
+**Log Example**:
+```
+🚇 [TUNNEL-MODE] Tunnel mode started: gateway.icloud.com:443
+✅ [TUNNEL-MODE] Target server connection successful: gateway.icloud.com:443
+🚇 [TUNNEL-DATA] Data transfer completed: gateway.icloud.com:443 (client→server: 2366 bytes, server→client: 4975 bytes)
+```
 
 ### TLS Handshake Failure
 
