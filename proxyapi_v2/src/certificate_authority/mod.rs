@@ -273,27 +273,27 @@ fn load_openssl_ca_from_storage(
     let private_key_pem =
         fs::read_to_string(key_path).map_err(|e| format!("Failed to read private key: {}", e))?;
 
-    // CA 인증서는 바이너리로 읽고 DER로 파싱
-    let ca_cert_der =
-        fs::read(cer_path).map_err(|e| format!("Failed to read CA certificate: {}", e))?;
+    // CA 인증서는 텍스트로 읽고 PEM로 파싱
+    let ca_cert_pem = fs::read_to_string(cer_path)
+        .map_err(|e| format!("Failed to read CA certificate: {}", e))?;
 
     info!(
-        "🔧 CA 인증서 파일 로드: {} bytes (DER 형식)",
-        ca_cert_der.len()
+        "🔧 CA 인증서 파일 로드: {} bytes (PEM 형식)",
+        ca_cert_pem.len()
     );
 
-    // DER를 X509로 파싱
-    let ca_cert = X509::from_der(&ca_cert_der)
-        .map_err(|e| format!("Failed to parse CA certificate from DER: {}", e))?;
+    // PEM을 X509로 파싱
+    let ca_cert = X509::from_pem(ca_cert_pem.as_bytes())
+        .map_err(|e| format!("Failed to parse CA certificate from PEM: {}", e))?;
 
     // X509를 PEM으로 변환 (로깅용)
-    let ca_cert_pem = ca_cert
+    let ca_cert_pem_converted = ca_cert
         .to_pem()
         .map_err(|e| format!("Failed to convert CA certificate to PEM: {}", e))?;
 
     info!(
-        "✅ CA 인증서 DER -> PEM 변환 성공: {} bytes",
-        ca_cert_pem.len()
+        "✅ CA 인증서 PEM 파싱 성공: {} bytes",
+        ca_cert_pem_converted.len()
     );
 
     // PEM을 PKey로 변환

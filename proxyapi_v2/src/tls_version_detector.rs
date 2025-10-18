@@ -55,12 +55,8 @@ impl TlsVersionDetector {
                 Some(TlsVersion::Tls11)
             }
             [0x03, 0x03] => {
-                debug!("TLS 버전 감지: TLS 1.2");
-                Some(TlsVersion::Tls12)
-            }
-            [0x03, 0x04] => {
-                debug!("TLS 버전 감지: TLS 1.3");
-                Some(TlsVersion::Tls13)
+                debug!("TLS 버전 감지: TLS 1.2 또는 TLS 1.3 (레코드 레이어에서는 동일)");
+                Some(TlsVersion::Tls12) // TLS 1.3은 레코드 레이어에서 TLS 1.2와 동일
             }
             _ => {
                 debug!(
@@ -125,17 +121,6 @@ impl TlsVersion {
             TlsVersion::Tls13 => "TLS 1.3",
         }
     }
-
-    /// TLS 버전을 바이트 배열로 반환합니다
-    pub fn as_bytes(&self) -> [u8; 2] {
-        match self {
-            TlsVersion::Ssl30 => [0x03, 0x00],
-            TlsVersion::Tls10 => [0x03, 0x01],
-            TlsVersion::Tls11 => [0x03, 0x02],
-            TlsVersion::Tls12 => [0x03, 0x03],
-            TlsVersion::Tls13 => [0x03, 0x04],
-        }
-    }
 }
 
 impl std::fmt::Display for TlsVersion {
@@ -196,12 +181,13 @@ mod tests {
 
     #[test]
     fn test_detect_tls13() {
+        // TLS 1.3은 레코드 레이어에서 TLS 1.2와 동일한 버전 바이트를 사용
         let tls13_hello = [
-            0x16, 0x03, 0x01, 0x00, 0x98, 0x01, 0x00, 0x00, 0x94, 0x03, 0x04,
+            0x16, 0x03, 0x01, 0x00, 0x98, 0x01, 0x00, 0x00, 0x94, 0x03, 0x03,
         ];
         assert_eq!(
             TlsVersionDetector::detect_tls_version(&tls13_hello),
-            Some(TlsVersion::Tls13)
+            Some(TlsVersion::Tls12) // TLS 1.3은 레코드 레이어에서 TLS 1.2로 감지됨
         );
     }
 
