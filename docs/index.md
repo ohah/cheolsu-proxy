@@ -13,11 +13,9 @@ Rust와 Tauri로 구축된 간단한 Man In The Middle 프록시입니다.
 
 ## 가이드
 
-Cheolsu Proxy 사용을 위한 완전한 가이드입니다.
+Cheolsu Proxy 사용을 위한 가이드입니다.
 
 - [기본 사용법](/guide/basic-usage) - 처음 사용자를 위한 간단한 가이드
-- [프록시 설정](/guide/proxy-setup) - 포트 변경 등 기본 설정
-- [인증서 설치](/guide/certificate-setup) - HTTPS 사이트 사용을 위한 인증서
 - [문제 해결](/guide/troubleshooting) - 자주 발생하는 문제 해결
 
 ## 릴리즈 노트
