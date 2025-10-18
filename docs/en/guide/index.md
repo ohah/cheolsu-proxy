@@ -1,39 +1,59 @@
 # Guide
 
-Technical guide for Cheolsu Proxy development and advanced usage.
+Complete guide for using Cheolsu Proxy.
 
-## 🚀 Development Start
+## 🚀 Quick Start
 
-### [Getting Started](./getting-started.md)
+### [Basic Usage](./basic-usage.md)
 
-Guide on setting up Cheolsu Proxy development environment and build methods.
+Simple guide for first-time users of Cheolsu Proxy.
 
-- System requirements
-- Development environment setup
-- Build and run
-- Testing methods
+- How to launch the program
+- Start/stop proxy
+- Browser configuration
+- Using HTTPS sites
 
-## 🔧 Features & Architecture
+## ⚙️ Configuration & Management
 
-### [Features Overview](./features.md)
+### [Proxy Setup](./proxy-setup.md)
 
-Explains Cheolsu Proxy's main features and architecture.
+Guide on changing basic proxy settings.
 
-- Proxy functionality
-- TLS support
-- Certificate management
-- Performance optimization
+- Change port
+- Network settings
+- Auto-start settings
+- Mobile connection
+
+### [Certificate Setup](./certificate-setup.md)
+
+Guide on installing certificates for using HTTPS sites.
+
+- Automatic/manual installation
+- Installation by operating system
+- Mobile device installation
+- Troubleshooting
+
+## 🛠️ Troubleshooting
+
+### [Troubleshooting](./troubleshooting.md)
+
+Guide on resolving common issues during use.
+
+- Proxy startup issues
+- Website access issues
+- HTTPS site issues
+- Performance issues
 
 ## 📚 Additional Resources
 
-### User Guide
-
-For simple guides for general users, see the [Usage](../usage/index.md) section.
-
-### Contributing
+### Developer Guide
 
 If you want to contribute to the project, see the [Contributing](../contributing/index.md) section.
 
+### Release Information
+
+For the latest updates, check the [Release Notes](../releases/index.md).
+
 ---
 
-**Start Development**: Begin with [Getting Started](./getting-started.md)!
+**Get Started**: Begin with [Basic Usage](./basic-usage.md)!
