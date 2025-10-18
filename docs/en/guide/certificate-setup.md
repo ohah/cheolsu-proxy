@@ -13,7 +13,6 @@ Cheolsu Proxy generates CA certificates in the following locations:
 
 - **macOS**: `~/Library/Application Support/com.cheolsu-proxy/cheolsu-proxy.cer`
 - **Windows**: `%APPDATA%/com.cheolsu-proxy/cheolsu-proxy.cer` (coming soon)
-- **Linux**: `~/.config/com.cheolsu-proxy/cheolsu-proxy.cer` (coming soon)
 
 ## macOS Setup
 
@@ -80,10 +79,6 @@ security find-certificate -c "cheolsu-proxy" /Library/Keychains/System.keychain
 # Import certificate
 Import-Certificate -FilePath "$env:APPDATA\com.cheolsu-proxy\cheolsu-proxy.cer" -CertStoreLocation Cert:\LocalMachine\Root
 ```
-
-## Linux Setup (Coming Soon)
-
-### 1. Ubuntu/Debian
 
 ```bash
 # Copy certificate to system certificate store

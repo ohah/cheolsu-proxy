@@ -11,7 +11,6 @@ Cheolsu Proxy를 사용하여 네트워크 트래픽을 모니터링하고 분�
 
 - **macOS**: 10.15 (Catalina) 이상
 - **Windows**: Windows 10 이상 (향후 지원)
-- **Linux**: Ubuntu 18.04 이상 (향후 지원)
 
 ## 설치
 

@@ -13,7 +13,6 @@ Cheolsu Proxy는 다음 위치에 CA 인증서를 생성합니다:
 
 - **macOS**: `~/Library/Application Support/com.cheolsu-proxy/cheolsu-proxy.cer`
 - **Windows**: `%APPDATA%/com.cheolsu-proxy/cheolsu-proxy.cer` (향후 지원)
-- **Linux**: `~/.config/com.cheolsu-proxy/cheolsu-proxy.cer` (향후 지원)
 
 ## macOS 설정
 
@@ -80,10 +79,6 @@ security find-certificate -c "cheolsu-proxy" /Library/Keychains/System.keychain
 # 인증서 가져오기
 Import-Certificate -FilePath "$env:APPDATA\com.cheolsu-proxy\cheolsu-proxy.cer" -CertStoreLocation Cert:\LocalMachine\Root
 ```
-
-## Linux 설정 (향후 지원)
-
-### 1. Ubuntu/Debian
 
 ```bash
 # 인증서를 시스템 인증서 저장소에 복사

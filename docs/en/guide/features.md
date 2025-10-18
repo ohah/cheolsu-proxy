@@ -171,7 +171,6 @@ Cheolsu Proxy provides various features for network traffic monitoring and analy
 
 - **macOS**: Full support
 - **Windows**: In development
-- **Linux**: In development
 
 ### Future Plans
 

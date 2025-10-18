@@ -11,7 +11,6 @@ Learn how to use Cheolsu Proxy to monitor and analyze network traffic.
 
 - **macOS**: 10.15 (Catalina) or higher
 - **Windows**: Windows 10 or higher (coming soon)
-- **Linux**: Ubuntu 18.04 or higher (coming soon)
 
 ## Installation
 
