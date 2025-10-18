@@ -16,21 +16,26 @@ Check the version-by-version update history of Cheolsu Proxy.
 
 ## 📋 Development Roadmap
 
-### v1.1.0 (Planned)
+### Planned Features
 
-- **Planned Features**:
+- **Platform Support**:
+
   - Windows support
+  - Linux support
+  - Mobile app support
+
+- **Advanced Features**:
+
   - Advanced proxy settings
   - Log analysis features
   - Performance optimization
-
-### v1.2.0 (Planned)
-
-- **Planned Features**:
-  - Mobile app support
   - Cloud synchronization
+
+- **Extension Features**:
   - Plugin system
   - API support
+  - Custom filters
+  - Multi-proxy support
 
 ## 🔄 Update Notifications
 
