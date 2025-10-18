@@ -34,7 +34,7 @@ Cheolsu Proxy 개발을 위한 완전한 환경 설정 가이드입니다.
 
 ### 1. Rust 설치
 
-#### macOS/Linux
+#### macOS
 
 ```bash
 # Rust 설치
@@ -81,20 +81,6 @@ nvm use --lts
    node --version
    pnpm --version
    ```
-
-#### Linux (Ubuntu/Debian)
-
-```bash
-# NodeSource 저장소 추가
-curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
-
-# Node.js 설치
-sudo apt-get install -y nodejs
-
-# 확인
-node --version
-pnpm --version
-```
 
 ### 3. Tauri CLI 설치
 
@@ -331,7 +317,6 @@ cargo install tauri-cli --force
 # 시스템 의존성 확인
 # macOS: Xcode Command Line Tools
 # Windows: Visual Studio Build Tools
-# Linux: build-essential, libwebkit2gtk-4.0-dev
 ```
 
 ### 플랫폼별 문제

@@ -61,7 +61,7 @@ We appreciate contributions of any size, from small bug fixes to major new featu
 ### Rust Installation
 
 ```bash
-# macOS/Linux
+# macOS
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 # Windows

@@ -113,7 +113,7 @@ pub struct OpensslAuthority { /* ... */ }
 
 - **동적 인증서 생성**: 도메인별 인증서 자동 생성
 - **PKCS12 지원**: native-tls용 PKCS12 인증서 생성
-- **크로스 플랫폼**: macOS, Windows, Linux 지원
+- **크로스 플랫폼**: macOS, Windows 지원
 
 ### 3. proxy/ (프록시 핵심)
 

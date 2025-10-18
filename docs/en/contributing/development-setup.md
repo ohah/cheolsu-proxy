@@ -34,7 +34,7 @@ This project uses the following tools and technologies:
 
 ### 1. Rust Installation
 
-#### macOS/Linux
+#### macOS
 
 ```bash
 # Install Rust
@@ -81,20 +81,6 @@ nvm use --lts
    node --version
    pnpm --version
    ```
-
-#### Linux (Ubuntu/Debian)
-
-```bash
-# Add NodeSource repository
-curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
-
-# Install Node.js
-sudo apt-get install -y nodejs
-
-# Verify
-node --version
-pnpm --version
-```
 
 ### 3. Tauri CLI Installation
 
@@ -333,7 +319,6 @@ cargo install tauri-cli --force
 # Check system dependencies
 # macOS: Xcode Command Line Tools
 # Windows: Visual Studio Build Tools
-# Linux: build-essential, libwebkit2gtk-4.0-dev
 ```
 
 ### Platform-Specific Issues

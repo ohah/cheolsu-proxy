@@ -112,7 +112,7 @@ pub struct OpensslAuthority { /* ... */ }
 
 - **Dynamic Certificate Generation**: Automatic certificate generation per domain
 - **PKCS12 Support**: PKCS12 certificate generation for native-tls
-- **Cross-platform**: Support for macOS, Windows, Linux
+- **Cross-platform**: Support for macOS, Windows
 
 ### 3. proxy/ (Proxy Core)
 

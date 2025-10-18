@@ -61,7 +61,7 @@ Cheolsu Proxy 프로젝트에 기여해주셔서 감사합니다! 이 프로젝�
 ### Rust 설치
 
 ```bash
-# macOS/Linux
+# macOS
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 # Windows
