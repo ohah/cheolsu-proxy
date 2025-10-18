@@ -224,9 +224,9 @@ lsof -i :8100
 
 ### Useful Links
 
-- [GitHub Issues](https://github.com/your-repo/issues)
-- [FAQ](https://github.com/your-repo/wiki/FAQ)
-- [Community Forum](https://github.com/your-repo/discussions)
+- [GitHub Issues](https://github.com/ohah/cheolsu-proxy/issues)
+- [FAQ](https://github.com/ohah/cheolsu-proxy/wiki/FAQ)
+- [Community Forum](https://github.com/ohah/cheolsu-proxy/discussions)
 
 ---
 

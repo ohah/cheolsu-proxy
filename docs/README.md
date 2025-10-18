@@ -39,7 +39,7 @@
 ## 🔗 관련 링크
 
 - [프로젝트 메인 README](../README.md)
-- [GitHub 저장소](https://github.com/your-org/proxelar)
+- [GitHub 저장소](https://github.com/ohah/cheolsu-proxy)
 
 ---
 
