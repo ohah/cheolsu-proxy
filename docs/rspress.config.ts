@@ -48,15 +48,65 @@ export default defineConfig({
     ],
     nav: [
       {
-        text: "guide",
+        text: "사용하기",
+        link: "/usage/",
+      },
+      {
+        text: "가이드",
         link: "/guide/getting-started",
       },
       {
-        text: "contributing",
+        text: "기여하기",
         link: "/contributing/",
       },
     ],
     sidebar: {
+      "/usage/": [
+        {
+          text: "사용하기",
+          items: [
+            {
+              text: "기본 사용법",
+              link: "/usage/basic-usage",
+            },
+            {
+              text: "프록시 설정",
+              link: "/usage/proxy-setup",
+            },
+            {
+              text: "인증서 설치",
+              link: "/usage/certificate-setup",
+            },
+            {
+              text: "문제 해결",
+              link: "/usage/troubleshooting",
+            },
+          ],
+        },
+      ],
+      "/en/usage/": [
+        {
+          text: "Usage",
+          items: [
+            {
+              text: "Basic Usage",
+              link: "/en/usage/basic-usage",
+            },
+            {
+              text: "Proxy Setup",
+              link: "/en/usage/proxy-setup",
+            },
+            {
+              text: "Certificate Setup",
+              link: "/en/usage/certificate-setup",
+            },
+            {
+              text: "Troubleshooting",
+              link: "/en/usage/troubleshooting",
+            },
+          ],
+        },
+      ],
       "/guide/": [
         {
           text: "gettingStarted",
@@ -68,10 +118,6 @@ export default defineConfig({
             {
               text: "features",
               link: "/guide/features",
-            },
-            {
-              text: "certificateSetup",
-              link: "/guide/certificate-setup",
             },
           ],
         },
@@ -87,10 +133,6 @@ export default defineConfig({
             {
               text: "features",
               link: "/en/guide/features",
-            },
-            {
-              text: "certificateSetup",
-              link: "/en/guide/certificate-setup",
             },
           ],
         },
