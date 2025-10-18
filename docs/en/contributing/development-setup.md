@@ -23,7 +23,6 @@ This project uses the following tools and technologies:
 
 - **macOS**: 10.15 (Catalina) or higher
 - **Windows**: Windows 10 or higher
-- **Linux**: Ubuntu 18.04 or higher
 
 ### Hardware
 
@@ -173,8 +172,6 @@ cd tauri-ui
 # Install dependencies
 pnpm install
 
-# Use pnpm (recommended)
-pnpm install
 ```
 
 ### 3. Development Server
@@ -182,9 +179,6 @@ pnpm install
 ```bash
 # Run Tauri development server
 cd tauri-ui
-pnpm run tauri dev
-
-# Use pnpm
 pnpm tauri dev
 ```
 
@@ -312,59 +306,9 @@ pnpm run tauri build
 
 ### 3. Test
 
-```bash
-# Unit tests
-pnpm test
-
-# E2E tests
-pnpm run tauri test
-```
+To be added.
 
 ## Debugging
-
-### 1. Rust Debugging
-
-#### VS Code
-
-1. Open **Run and Debug** panel
-2. Click **create a launch.json file**
-3. Select Rust configuration
-
-#### Settings File (`.vscode/launch.json`)
-
-```json
-{
-  "version": "0.2.0",
-  "configurations": [
-    {
-      "type": "lldb",
-      "request": "launch",
-      "name": "Debug executable 'cheolsu-proxy'",
-      "cargo": {
-        "args": ["build", "--bin=cheolsu-proxy", "--package=cheolsu-proxy"],
-        "filter": {
-          "name": "cheolsu-proxy",
-          "kind": "bin"
-        }
-      },
-      "args": [],
-      "cwd": "${workspaceFolder}"
-    }
-  ]
-}
-```
-
-### 2. Frontend Debugging
-
-#### Browser Developer Tools
-
-```bash
-# Run development server
-cd tauri-ui
-pnpm run dev
-
-# Access in browser at http://localhost:1420
-```
 
 #### Tauri Debugging
 
@@ -374,62 +318,15 @@ cd tauri-ui
 RUST_LOG=debug pnpm run tauri dev
 ```
 
-## Performance Analysis
+Open Developer Tools
 
-### 1. Rust Performance Analysis
-
-```bash
-# Profiling
-cargo install flamegraph
-cargo flamegraph --bin cheolsu-proxy
-
-# Memory usage analysis
-cargo install cargo-valgrind
-cargo valgrind --bin cheolsu-proxy
-```
-
-### 2. Frontend Performance
-
-```bash
-# Bundle analysis
-cd tauri-ui
-pnpm run build
-npx webpack-bundle-analyzer dist/main.js
-```
-
-## Troubleshooting
-
-### Common Issues
-
-#### Rust Compilation Errors
-
-```bash
-# Update dependencies
-cargo update
-
-# Clear cache
-cargo clean
-
-# Update Rust toolchain
-rustup update
-```
-
-#### Node.js Dependency Issues
-
-```bash
-# Delete node_modules and reinstall
-cd tauri-ui
-rm -rf node_modules package-lock.json
-pnpm install
-
-# Use pnpm
-rm -rf node_modules pnpm-lock.yaml
-pnpm install
-```
+Cmd + shift + I
 
 #### Tauri Build Errors
 
 ```bash
+# Clear cache
+cargo clean
 # Reinstall Tauri CLI
 cargo install tauri-cli --force
 
@@ -458,17 +355,6 @@ brew update && brew upgrade
 # https://visualstudio.microsoft.com/visual-cpp-build-tools/
 
 # Verify Windows SDK installation
-```
-
-#### Linux (Ubuntu/Debian)
-
-```bash
-# Install essential packages
-sudo apt update
-sudo apt install build-essential libwebkit2gtk-4.0-dev libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
-
-# Additional development tools
-sudo apt install curl wget file libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
 ```
 
 ## Environment Variables
@@ -511,20 +397,6 @@ make release
 
 # Generate documentation
 make docs
-```
-
-### Git Hook Setup
-
-```bash
-# Setup pre-commit hook
-cat > .git/hooks/pre-commit << 'EOF'
-#!/bin/sh
-cargo fmt --all -- --check
-cargo clippy --all-targets --all-features -- -D warnings
-cargo test
-EOF
-
-chmod +x .git/hooks/pre-commit
 ```
 
 ## Next Steps

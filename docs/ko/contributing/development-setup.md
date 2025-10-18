@@ -23,7 +23,6 @@ Cheolsu Proxy 개발을 위한 완전한 환경 설정 가이드입니다.
 
 - **macOS**: 10.15 (Catalina) 이상
 - **Windows**: Windows 10 이상
-- **Linux**: Ubuntu 18.04 이상
 
 ### 하드웨어
 
@@ -292,10 +291,6 @@ cargo outdated
 ### 1. 개발 서버
 
 ```bash
-# Tauri UI 개발 서버
-cd tauri-ui
-pnpm run dev
-
 # Tauri 앱과 함께 실행
 pnpm run tauri dev
 ```
@@ -303,68 +298,15 @@ pnpm run tauri dev
 ### 2. 빌드
 
 ```bash
-# 웹 빌드
-pnpm run build
-
 # Tauri 앱 빌드
 pnpm run tauri build
 ```
 
 ### 3. 테스트
 
-```bash
-# 단위 테스트
-pnpm test
-
-# E2E 테스트
-pnpm run tauri test
-```
+추가 예정.
 
 ## 디버깅
-
-### 1. Rust 디버깅
-
-#### VS Code
-
-1. **Run and Debug** 패널 열기
-2. **create a launch.json file** 클릭
-3. Rust 설정 선택
-
-#### 설정 파일 (`.vscode/launch.json`)
-
-```json
-{
-  "version": "0.2.0",
-  "configurations": [
-    {
-      "type": "lldb",
-      "request": "launch",
-      "name": "Debug executable 'cheolsu-proxy'",
-      "cargo": {
-        "args": ["build", "--bin=cheolsu-proxy", "--package=cheolsu-proxy"],
-        "filter": {
-          "name": "cheolsu-proxy",
-          "kind": "bin"
-        }
-      },
-      "args": [],
-      "cwd": "${workspaceFolder}"
-    }
-  ]
-}
-```
-
-### 2. 프론트엔드 디버깅
-
-#### 브라우저 개발자 도구
-
-```bash
-# 개발 서버 실행
-cd tauri-ui
-pnpm run dev
-
-# 브라우저에서 http://localhost:1420 접속
-```
 
 #### Tauri 디버깅
 
@@ -374,62 +316,15 @@ cd tauri-ui
 RUST_LOG=debug pnpm run tauri dev
 ```
 
-## 성능 분석
+개발자 도구 켜기
 
-### 1. Rust 성능 분석
-
-```bash
-# 프로파일링
-cargo install flamegraph
-cargo flamegraph --bin cheolsu-proxy
-
-# 메모리 사용량 분석
-cargo install cargo-valgrind
-cargo valgrind --bin cheolsu-proxy
-```
-
-### 2. 프론트엔드 성능
-
-```bash
-# 번들 분석
-cd tauri-ui
-pnpm run build
-npx webpack-bundle-analyzer dist/main.js
-```
-
-## 문제 해결
-
-### 일반적인 문제
-
-#### Rust 컴파일 오류
-
-```bash
-# 의존성 업데이트
-cargo update
-
-# 캐시 정리
-cargo clean
-
-# Rust 툴체인 업데이트
-rustup update
-```
-
-#### Node.js 의존성 문제
-
-```bash
-# node_modules 삭제 후 재설치
-cd tauri-ui
-rm -rf node_modules package-lock.json
-pnpm install
-
-# pnpm 사용
-rm -rf node_modules pnpm-lock.yaml
-pnpm install
-```
+Cmd + shift + I
 
 #### Tauri 빌드 오류
 
 ```bash
+# 캐ㅐ시 정리.
+cargo clean
 # Tauri CLI 재설치
 cargo install tauri-cli --force
 
@@ -458,17 +353,6 @@ brew update && brew upgrade
 # https://visualstudio.microsoft.com/visual-cpp-build-tools/
 
 # Windows SDK 설치 확인
-```
-
-#### Linux (Ubuntu/Debian)
-
-```bash
-# 필수 패키지 설치
-sudo apt update
-sudo apt install build-essential libwebkit2gtk-4.0-dev libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
-
-# 추가 개발 도구
-sudo apt install curl wget file libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
 ```
 
 ## 환경 변수
@@ -511,20 +395,6 @@ make release
 
 # 문서 생성
 make docs
-```
-
-### Git 훅 설정
-
-```bash
-# pre-commit 훅 설정
-cat > .git/hooks/pre-commit << 'EOF'
-#!/bin/sh
-cargo fmt --all -- --check
-cargo clippy --all-targets --all-features -- -D warnings
-cargo test
-EOF
-
-chmod +x .git/hooks/pre-commit
 ```
 
 ## 다음 단계
