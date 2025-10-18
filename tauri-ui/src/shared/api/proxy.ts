@@ -5,7 +5,6 @@ export async function fetchProxyStatus(): Promise<boolean> {
 }
 
 export async function startProxy(address: string): Promise<void> {
-  console.log('startProxy!!');
   return await invoke('start_proxy', { addr: address });
 }
 
