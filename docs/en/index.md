@@ -11,21 +11,20 @@ A simple Man In The Middle proxy built with Rust and Tauri.
 - **Cross Platform**: macOS support (Windows support planned)
 - **User Friendly**: Intuitive GUI interface
 
-## Usage
-
-Step-by-step guide on how to use Cheolsu Proxy.
-
-- [Basic Usage](/en/usage/basic-usage) - Simple guide for first-time users
-- [Proxy Setup](/en/usage/proxy-setup) - Basic settings like port changes
-- [Certificate Setup](/en/usage/certificate-setup) - Certificates for HTTPS sites
-- [Troubleshooting](/en/usage/troubleshooting) - Resolving common issues
-
 ## Guide
 
-Technical guide for development and advanced usage.
+Complete guide for using Cheolsu Proxy.
 
-- [Getting Started](/en/guide/getting-started) - Development environment setup and build
-- [Features](/en/guide/features) - Detailed feature description
+- [Basic Usage](/en/guide/basic-usage) - Simple guide for first-time users
+- [Proxy Setup](/en/guide/proxy-setup) - Basic settings like port changes
+- [Certificate Setup](/en/guide/certificate-setup) - Certificates for HTTPS sites
+- [Troubleshooting](/en/guide/troubleshooting) - Resolving common issues
+
+## Release Notes
+
+Check the latest update information and development roadmap.
+
+- [Release Notes](/en/releases/) - Version-by-version update history
 
 ## Contributing
 
