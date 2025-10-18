@@ -1,3 +1,4 @@
+use crate::tunnel_event::TunnelEvent;
 use crate::{
     HttpContext, HttpHandler, RequestOrResponse, WebSocketContext, WebSocketHandler, body::Body,
     certificate_authority::CertificateAuthority, hybrid_tls_handler::HybridTlsHandler,
@@ -17,6 +18,8 @@ use hyper_util::{
     rt::{TokioExecutor, TokioIo},
     server,
 };
+use proxy_v2_models::RequestInfo;
+use std::sync::mpsc;
 use std::{convert::Infallible, net::SocketAddr, sync::Arc};
 use tokio::{
     io::AsyncReadExt,
@@ -53,6 +56,7 @@ pub(crate) struct InternalProxy<C, CA, H, W> {
     pub websocket_handler: W,
     pub websocket_connector: Option<Connector>,
     pub client_addr: SocketAddr,
+    pub tunnel_event_sender: Option<mpsc::Sender<RequestInfo>>,
 }
 
 impl<C, CA, H, W> Clone for InternalProxy<C, CA, H, W>
@@ -70,6 +74,7 @@ where
             websocket_handler: self.websocket_handler.clone(),
             websocket_connector: self.websocket_connector.clone(),
             client_addr: self.client_addr,
+            tunnel_event_sender: self.tunnel_event_sender.clone(),
         }
     }
 }
@@ -914,7 +919,16 @@ where
             .map(|p| p.to_string())
             .unwrap_or_else(|| "443".to_string());
         let target_addr = format!("{}:{}", authority.host(), port);
+        let client_addr = self.client_addr.to_string();
+
         info!("🚇 [TUNNEL-MODE] 대상 서버 연결 시도: {}", target_addr);
+
+        // 터널 시작 이벤트 전송
+        if let Some(ref sender) = self.tunnel_event_sender {
+            let start_event = TunnelEvent::started(target_addr.clone(), client_addr.clone());
+            let request_info = start_event.to_request_info();
+            let _ = sender.send(request_info);
+        }
 
         let mut server_stream = match tokio::net::TcpStream::connect(&target_addr).await {
             Ok(stream) => {
@@ -947,6 +961,20 @@ where
                     "🚇 [TUNNEL-TASK] 터널 완료 - 클라이언트→서버: {} bytes, 서버→클라이언트: {} bytes (소요시간: {:?})",
                     client_to_server, server_to_client, duration
                 );
+
+                // 터널 완료 이벤트 전송
+                if let Some(ref sender) = self.tunnel_event_sender {
+                    let completed_event = TunnelEvent::completed(
+                        target_addr,
+                        client_addr,
+                        client_to_server,
+                        server_to_client,
+                        duration,
+                    );
+                    let request_info = completed_event.to_request_info();
+                    let _ = sender.send(request_info);
+                }
+
                 Ok(())
             }
             Err(e) => {
@@ -955,6 +983,15 @@ where
                     "❌ [TUNNEL-TASK] 터널 오류: {} (소요시간: {:?})",
                     e, duration
                 );
+
+                // 터널 오류 이벤트 전송
+                if let Some(ref sender) = self.tunnel_event_sender {
+                    let error_event =
+                        TunnelEvent::error(target_addr, client_addr, e.to_string(), duration);
+                    let request_info = error_event.to_request_info();
+                    let _ = sender.send(request_info);
+                }
+
                 Err(format!("Tunnel failed: {}", e).into())
             }
         }

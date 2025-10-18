@@ -148,6 +148,7 @@ where
                                     websocket_handler: websocket_handler.clone(),
                                     websocket_connector: websocket_connector.clone(),
                                     client_addr,
+                                    tunnel_event_sender: None, // TODO: 터널 이벤트 채널 연결
                                 }
                                 .proxy(req)
                             }),

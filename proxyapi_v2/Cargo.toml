@@ -23,6 +23,9 @@ bstr = "1.0.0"
 futures = "0.3.11"
 http = "1.1.0"
 http-body-util = "0.1.0"
+serde = { version = "1.0", features = ["derive"] }
+bytes = "1.0"
+proxy_v2_models = { path = "../proxy_v2_models" }
 hyper = "1.1.0"
 hyper-rustls = { version = "0.27.7", default-features = false, features = ["http1", "logging", "tls12", "webpki-tokio"], optional = true }
 hyper-tls = { version = "0.6.0", optional = true }

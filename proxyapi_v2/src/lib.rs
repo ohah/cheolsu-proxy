@@ -27,6 +27,7 @@ mod rewind;
 pub mod certificate_authority;
 pub mod hybrid_tls_handler;
 pub mod tls_version_detector;
+pub mod tunnel_event;
 
 use futures::{Sink, SinkExt, Stream, StreamExt};
 use hyper::{Request, Response, StatusCode, Uri};
