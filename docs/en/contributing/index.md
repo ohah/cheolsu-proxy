@@ -278,9 +278,9 @@ Closes #123
 ### Review Process
 
 1. **Automated checks**: CI/CD pipeline passes
-2. **Code review**: At least one reviewer approval
+2. **Code review**: At least one maintainer approval
 3. **Testing**: All tests pass
-4. **Merge**: Squash and merge recommended
+4. **Merge**: Only maintainers can merge (Squash and merge recommended)
 
 ## Troubleshooting
 
