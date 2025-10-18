@@ -22,7 +22,6 @@ cheolsu-proxy/
 ├── proxyapi/                  # Legacy proxy API
 ├── proxyapi_models/           # Legacy models
 ├── proxyapi_v2/               # New proxy API
-├── proxyapi_v2_models/        # New models
 └── proxy_v2_models/           # Common models
 ```
 
@@ -34,16 +33,18 @@ cheolsu-proxy/
 [workspace]
 members = [
     "proxyapi",
-    "proxyapi_models",
     "proxyapi_v2",
-    "proxyapi_v2_models",
-    "proxy_v2_models",
+    "proxyapi_models",
     "tauri-ui/src-tauri"
 ]
 
 [workspace.dependencies]
 # Common dependency definitions
 ```
+
+### External Crates
+
+`proxy_v2_models` is not a workspace member but is a separate crate that other workspace members reference as a dependency.
 
 ## Backend Structure
 
@@ -61,17 +62,35 @@ proxyapi_v2/
 │   ├── noop.rs                # No-op handler
 │   ├── tls_version_detector.rs # TLS version detection
 │   ├── hybrid_tls_handler.rs  # Hybrid TLS handler
+│   └── tunnel_event.rs        # Tunnel event handling
 │   ├── certificate_authority/ # CA certificate management
 │   │   ├── mod.rs
 │   │   ├── rcgen_authority.rs # rcgen-based CA
-│   │   └── openssl_authority.rs # OpenSSL-based CA
+│   │   ├── openssl_authority.rs # OpenSSL-based CA
+│   │   ├── cheolsu-proxy.cnf  # OpenSSL configuration file
+│   │   └── cheolsu-proxy.srl  # OpenSSL serial number file
 │   └── proxy/                 # Proxy core logic
 │       ├── mod.rs
 │       ├── builder.rs         # Proxy builder
 │       └── internal.rs        # Internal proxy logic
 ├── examples/                  # Usage examples
+│   ├── improved_rustls_proxy.rs
+│   ├── log.rs
+│   ├── noop.rs
+│   ├── openssl.rs
+│   └── tls_hybrid_test.rs
 ├── tests/                     # Integration tests
+│   ├── common/
+│   │   └── mod.rs
+│   ├── integration_error_handling_tests.rs
+│   ├── logging_handler_error_tests.rs
+│   ├── openssl_ca.rs
+│   ├── rcgen_ca.rs
+│   └── websocket.rs
 └── benches/                   # Benchmarks
+    ├── certificate_authorities.rs
+    ├── decoder.rs
+    └── proxy.rs
 ```
 
 ### 2. certificate_authority/ (CA Management)
@@ -145,27 +164,180 @@ tauri-ui/src/
 │   ├── App.tsx                # Root component
 │   ├── layouts/               # Layout components
 │   └── providers/             # Context providers
+│       ├── index.ts
+│       ├── router-provider.tsx
+│       └── use-theme-provider.ts
 ├── pages/                     # Page layer
 │   ├── network-dashboard/     # Network dashboard
+│   │   ├── hooks/
+│   │   │   ├── index.ts
+│   │   │   ├── use-proxy-event-control.ts
+│   │   │   ├── use-theme-provider.ts
+│   │   │   ├── use-transaction-filters.ts
+│   │   │   └── use-transactions.ts
+│   │   ├── index.ts
+│   │   ├── lib/
+│   │   │   ├── index.ts
+│   │   │   └── utils.ts
+│   │   └── ui/
+│   │       ├── index.ts
+│   │       └── network-dashboard.tsx
 │   └── sessions/              # Session management
+│       ├── index.ts
+│       └── ui/
+│           └── sessions-page.tsx
 ├── widgets/                   # Widget layer
 │   ├── network-table/         # Network table
+│   │   ├── hooks/
+│   │   │   ├── index.ts
+│   │   │   └── use-table-data.ts
+│   │   ├── index.ts
+│   │   ├── lib/
+│   │   │   ├── index.ts
+│   │   │   └── utils.ts
+│   │   ├── model/
+│   │   │   ├── consts.ts
+│   │   │   ├── index.ts
+│   │   │   └── types.ts
+│   │   └── ui/
+│   │       ├── cells/
+│   │       │   ├── action-cell.tsx
+│   │       │   ├── index.ts
+│   │       │   ├── method-cell.tsx
+│   │       │   ├── path-cell.tsx
+│   │       │   ├── size-cell.tsx
+│   │       │   ├── status-cell.tsx
+│   │       │   └── time-cell.tsx
+│   │       ├── index.ts
+│   │       ├── network-table.tsx
+│   │       ├── table-body.tsx
+│   │       ├── table-header.tsx
+│   │       └── table-row.tsx
 │   ├── network-header/        # Network header
+│   │   ├── index.ts
+│   │   ├── model/
+│   │   │   ├── consts.ts
+│   │   │   └── index.ts
+│   │   └── ui/
+│   │       ├── index.ts
+│   │       ├── network-controls.tsx
+│   │       ├── network-filters.tsx
+│   │       ├── network-header.tsx
+│   │       └── network-stats.tsx
 │   └── host-path-tree/        # Host path tree
+│       ├── hooks/
+│       │   ├── index.ts
+│       │   ├── use-host-tree.ts
+│       │   └── use-node-actions.ts
+│       ├── index.ts
+│       ├── lib/
+│       │   ├── index.ts
+│       │   ├── node-ui-utils.tsx
+│       │   ├── tree-builder.ts
+│       │   └── utils.ts
+│       ├── model/
+│       │   ├── index.ts
+│       │   └── types.ts
+│       └── ui/
+│           ├── host-path-tree.tsx
+│           ├── index.ts
+│           ├── node-content.tsx
+│           ├── transaction-list.tsx
+│           └── tree-node.tsx
 ├── features/                  # Feature layer
 │   ├── network-table/         # Network table features
+│   │   └── api/
 │   ├── transaction-details/   # Transaction details
+│   │   ├── context/
+│   │   │   └── form-context.tsx
+│   │   ├── hooks/
+│   │   │   ├── index.ts
+│   │   │   ├── use-transaction-edit.ts
+│   │   │   └── use-transaction-tabs.ts
+│   │   ├── index.ts
+│   │   ├── lib/
+│   │   │   ├── index.ts
+│   │   │   └── utils.ts
+│   │   ├── model/
+│   │   │   ├── consts.ts
+│   │   │   ├── index.ts
+│   │   │   └── types.ts
+│   │   └── ui/
+│   │       ├── form-components.tsx
+│   │       ├── index.ts
+│   │       ├── transaction-body.tsx
+│   │       ├── transaction-details.tsx
+│   │       ├── transaction-header.tsx
+│   │       ├── transaction-headers.tsx
+│   │       └── transaction-response.tsx
 │   └── websocket-test/        # WebSocket test
+│       └── ui/
 ├── entities/                  # Entity layer
 │   ├── proxy/                 # Proxy entity
+│   │   ├── index.ts
+│   │   └── model/
+│   │       ├── data-type.ts
+│   │       ├── index.ts
+│   │       └── types.ts
 │   ├── session/               # Session entity
+│   │   ├── index.ts
+│   │   └── model/
+│   │       ├── index.ts
+│   │       └── types.ts
 │   └── transaction/           # Transaction entity
+│       ├── index.ts
+│       └── lib/
+│           ├── index.ts
+│           └── utils.ts
 └── shared/                    # Shared layer
     ├── api/                   # API client
-    ├── ui/                    # UI components
+    │   └── proxy.ts
+    ├── app-sidebar/           # App sidebar
+    │   ├── hooks/
+    │   │   ├── index.ts
+    │   │   └── use-sidebar-collapse.ts
+    │   ├── index.ts
+    │   ├── model/
+    │   │   ├── consts.ts
+    │   │   ├── index.ts
+    │   │   ├── sidebar-store.ts
+    │   │   └── types.ts
+    │   └── ui/
+    │       ├── app-sidebar.tsx
+    │       ├── index.ts
+    │       ├── sidebar-header.tsx
+    │       ├── sidebar-navigation.tsx
+    │       └── sidebar-status.tsx
+    ├── assets/                # Static assets
+    │   ├── index.ts
+    │   └── logo.png
     ├── lib/                   # Utility functions
+    │   ├── class-name.ts
+    │   └── index.ts
     ├── stores/                # State management
-    └── assets/                # Static assets
+    │   ├── index.ts
+    │   ├── proxy-store.ts
+    │   └── session-store.ts
+    └── ui/                    # UI components
+        ├── badge.tsx
+        ├── button.tsx
+        ├── card.tsx
+        ├── command.tsx
+        ├── dialog.tsx
+        ├── index.ts
+        ├── input.tsx
+        ├── layout.tsx
+        ├── multi-select.tsx
+        ├── popover.tsx
+        ├── resizable.tsx
+        ├── scroll-area.tsx
+        ├── select.tsx
+        ├── separator.tsx
+        ├── sidebar.tsx
+        ├── sonner.tsx
+        ├── tabs.tsx
+        ├── textarea.tsx
+        └── virtualized-scroll-area.tsx
 ```
 
 ### Layer Responsibilities
@@ -219,6 +391,8 @@ src-tauri/
 │   ├── proxy.rs               # Legacy proxy
 │   ├── proxy_v2.rs            # New proxy
 │   └── certificate_authority/ # CA management
+│       ├── cheolsu-proxy.cnf  # OpenSSL configuration file
+│       └── cheolsu-proxy.srl  # OpenSSL serial number file
 ├── capabilities/              # Tauri permission settings
 ├── icons/                     # App icons
 └── gen/                       # Auto-generated files
@@ -230,8 +404,8 @@ src-tauri/
 // tauri.conf.json
 {
   "build": {
-    "beforeDevCommand": "npm run dev",
-    "beforeBuildCommand": "npm run build",
+    "beforeDevCommand": "pnpm run dev",
+    "beforeBuildCommand": "pnpm run build",
     "devPath": "http://localhost:1420",
     "distDir": "../dist"
   },
@@ -269,7 +443,7 @@ sequenceDiagram
 
 ```mermaid
 graph TD
-    A[Tauri Backend] --> B[WebSocket API]
+    A[Tauri Backend] --> B[Tauri Invoke API]
     B --> C[Zustand Store]
     C --> D[React Components]
     D --> E[UI Updates]
@@ -313,31 +487,42 @@ interface SessionStore {
 
 ## API Communication
 
-### WebSocket API
+### Tauri Invoke API
 
 ```typescript
 // shared/api/proxy.ts
-export class ProxyAPI {
-  private ws: WebSocket;
+import { invoke } from "@tauri-apps/api/core";
 
-  connect(): void {
-    this.ws = new WebSocket("ws://localhost:8080/ws");
-    this.ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      this.handleMessage(data);
-    };
-  }
+export async function fetchProxyStatus(): Promise<boolean> {
+  return await invoke("proxy_status");
+}
 
-  private handleMessage(data: any): void {
-    switch (data.type) {
-      case "request":
-        proxyStore.getState().addRequest(data.payload);
-        break;
-      case "response":
-        // Handle response
-        break;
-    }
-  }
+export async function startProxy(address: string): Promise<void> {
+  return await invoke("start_proxy", { addr: address });
+}
+
+export async function stopProxy(): Promise<void> {
+  return await invoke("stop_proxy");
+}
+
+// New proxy functions using proxyapi_v2
+export interface ProxyStartResult {
+  status: boolean;
+  message: string;
+}
+
+export async function startProxyV2(
+  port: number = 8100
+): Promise<ProxyStartResult> {
+  return invoke("start_proxy_v2", { addr: `127.0.0.1:${port}` });
+}
+
+export async function stopProxyV2(): Promise<void> {
+  return invoke("stop_proxy_v2");
+}
+
+export async function getProxyV2Status(): Promise<boolean> {
+  return invoke("proxy_v2_status");
 }
 ```
 
@@ -375,10 +560,10 @@ __tests__/
 cargo build
 
 # Frontend build
-cd tauri-ui && npm run build
+cd tauri-ui && pnpm run build
 
 # Tauri app build
-cd tauri-ui && npm run tauri build
+cd tauri-ui && pnpm run tauri build
 ```
 
 ### Production Build
@@ -388,7 +573,7 @@ cd tauri-ui && npm run tauri build
 cargo build --release
 
 # Tauri app packaging
-cd tauri-ui && npm run tauri build -- --target universal-apple-darwin
+cd tauri-ui && pnpm run tauri build -- --target universal-apple-darwin
 ```
 
 ## Performance Optimization
