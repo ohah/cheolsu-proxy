@@ -173,8 +173,7 @@ cd tauri-ui
 # 의존성 설치
 pnpm install
 
-# 또는 pnpm 사용 (권장)
-pnpm install -g pnpm
+# pnpm 사용 (권장)
 pnpm install
 ```
 
@@ -185,7 +184,7 @@ pnpm install
 cd tauri-ui
 pnpm run tauri dev
 
-# 또는 pnpm 사용
+# pnpm 사용
 pnpm tauri dev
 ```
 
@@ -315,7 +314,7 @@ pnpm run tauri build
 
 ```bash
 # 단위 테스트
-npm test
+pnpm test
 
 # E2E 테스트
 pnpm run tauri test
@@ -423,7 +422,7 @@ cd tauri-ui
 rm -rf node_modules package-lock.json
 pnpm install
 
-# 또는 pnpm 사용
+# pnpm 사용
 rm -rf node_modules pnpm-lock.yaml
 pnpm install
 ```

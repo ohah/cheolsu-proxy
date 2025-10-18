@@ -173,8 +173,7 @@ cd tauri-ui
 # Install dependencies
 pnpm install
 
-# Or use pnpm (recommended)
-npm install -g pnpm
+# Use pnpm (recommended)
 pnpm install
 ```
 
@@ -185,7 +184,7 @@ pnpm install
 cd tauri-ui
 pnpm run tauri dev
 
-# Or use pnpm
+# Use pnpm
 pnpm tauri dev
 ```
 
@@ -315,7 +314,7 @@ pnpm run tauri build
 
 ```bash
 # Unit tests
-npm test
+pnpm test
 
 # E2E tests
 pnpm run tauri test
@@ -423,7 +422,7 @@ cd tauri-ui
 rm -rf node_modules package-lock.json
 pnpm install
 
-# Or use pnpm
+# Use pnpm
 rm -rf node_modules pnpm-lock.yaml
 pnpm install
 ```

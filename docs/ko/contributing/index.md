@@ -54,7 +54,7 @@ Cheolsu Proxy 프로젝트에 기여해주셔서 감사합니다! 이 프로젝�
 ### 필수 요구사항
 
 - **Rust**: 1.70.0 이상
-- **Node.js**: 18.0.0 이상
+- **Node.js**: 22.0.0 이상
 - **Tauri CLI**: 최신 버전
 - **Git**: 2.0.0 이상
 
@@ -90,7 +90,7 @@ cd cheolsu-proxy
 
 # 의존성 설치
 cargo build
-cd tauri-ui && npm install
+cd tauri-ui && pnpm install
 ```
 
 ## 개발 워크플로우
@@ -119,7 +119,7 @@ git checkout -b fix/your-bug-fix
 ```bash
 # 개발 서버 실행
 cd tauri-ui
-npm run tauri dev
+pnpm run tauri dev
 
 # 테스트 실행
 cargo test
@@ -227,7 +227,7 @@ cargo test --test integration_test
 ```bash
 # Tauri 앱 테스트
 cd tauri-ui
-npm run tauri test
+pnpm run tauri test
 ```
 
 ### 수동 테스트
@@ -291,11 +291,11 @@ Closes #123
 ```bash
 # 의존성 업데이트
 cargo update
-cd tauri-ui && npm update
+cd tauri-ui && pnpm update
 
 # 캐시 정리
 cargo clean
-cd tauri-ui && rm -rf node_modules && npm install
+cd tauri-ui && rm -rf node_modules && pnpm install
 ```
 
 **테스트 실패**:
@@ -315,7 +315,7 @@ cargo test test_name -- --nocapture
 cargo install tauri-cli --force
 
 # 의존성 재설치
-cd tauri-ui && npm install
+cd tauri-ui && pnpm install
 ```
 
 ## 커뮤니티
