@@ -14,8 +14,6 @@ Cheolsu Proxy 사용 중 발생하는 일반적인 문제들을 해결하는 방
 ### 유용한 링크
 
 - [GitHub Issues](https://github.com/ohah/cheolsu-proxy/issues)
-- [FAQ](https://github.com/ohah/cheolsu-proxy/wiki/FAQ)
-- [커뮤니티 포럼](https://github.com/ohah/cheolsu-proxy/discussions)
 
 ---
 
