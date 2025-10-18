@@ -9,21 +9,15 @@ Check the upcoming features planned for Cheolsu Proxy.
 - **Platform Support**:
 
   - Windows support
-  - Linux support
-  - Mobile app support
 
 - **Advanced Features**:
 
-  - Advanced proxy settings
   - Log analysis features
   - Performance optimization
-  - Cloud synchronization
 
 - **Extension Features**:
   - Plugin system
   - API support
-  - Custom filters
-  - Multi-proxy support
 
 ## 🔄 Update Notifications
 
