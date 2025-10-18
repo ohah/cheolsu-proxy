@@ -84,14 +84,6 @@ export default defineConfig({
               link: "/guide/basic-usage",
             },
             {
-              text: "프록시 설정",
-              link: "/guide/proxy-setup",
-            },
-            {
-              text: "인증서 설치",
-              link: "/guide/certificate-setup",
-            },
-            {
               text: "문제 해결",
               link: "/guide/troubleshooting",
             },
@@ -105,14 +97,6 @@ export default defineConfig({
             {
               text: "Basic Usage",
               link: "/en/guide/basic-usage",
-            },
-            {
-              text: "Proxy Setup",
-              link: "/en/guide/proxy-setup",
-            },
-            {
-              text: "Certificate Setup",
-              link: "/en/guide/certificate-setup",
             },
             {
               text: "Troubleshooting",
