@@ -30,6 +30,20 @@ export default defineConfig({
         outlineTitle: "이 페이지에서",
         prevPageText: "이전 페이지",
         nextPageText: "다음 페이지",
+        nav: [
+          {
+            text: "가이드",
+            link: "/guide/",
+          },
+          {
+            text: "기여하기",
+            link: "/contributing/",
+          },
+          {
+            text: "릴리즈 노트",
+            link: "/releases/",
+          },
+        ],
       },
       {
         lang: "en",
@@ -37,6 +51,20 @@ export default defineConfig({
         outlineTitle: "ON THIS PAGE",
         prevPageText: "Previous Page",
         nextPageText: "Next Page",
+        nav: [
+          {
+            text: "Guide",
+            link: "/en/guide/",
+          },
+          {
+            text: "Contributing",
+            link: "/en/contributing/",
+          },
+          {
+            text: "Release Notes",
+            link: "/en/releases/",
+          },
+        ],
       },
     ],
     socialLinks: [
@@ -46,93 +74,71 @@ export default defineConfig({
         content: "https://github.com/ohah/cheolsu-proxy",
       },
     ],
-    nav: [
-      {
-        text: "사용하기",
-        link: "/usage/",
-      },
-      {
-        text: "가이드",
-        link: "/guide/getting-started",
-      },
-      {
-        text: "기여하기",
-        link: "/contributing/",
-      },
-    ],
     sidebar: {
-      "/usage/": [
+      "/guide/": [
         {
-          text: "사용하기",
+          text: "가이드",
           items: [
             {
               text: "기본 사용법",
-              link: "/usage/basic-usage",
+              link: "/guide/basic-usage",
             },
             {
               text: "프록시 설정",
-              link: "/usage/proxy-setup",
+              link: "/guide/proxy-setup",
             },
             {
               text: "인증서 설치",
-              link: "/usage/certificate-setup",
+              link: "/guide/certificate-setup",
             },
             {
               text: "문제 해결",
-              link: "/usage/troubleshooting",
-            },
-          ],
-        },
-      ],
-      "/en/usage/": [
-        {
-          text: "Usage",
-          items: [
-            {
-              text: "Basic Usage",
-              link: "/en/usage/basic-usage",
-            },
-            {
-              text: "Proxy Setup",
-              link: "/en/usage/proxy-setup",
-            },
-            {
-              text: "Certificate Setup",
-              link: "/en/usage/certificate-setup",
-            },
-            {
-              text: "Troubleshooting",
-              link: "/en/usage/troubleshooting",
-            },
-          ],
-        },
-      ],
-      "/guide/": [
-        {
-          text: "gettingStarted",
-          items: [
-            {
-              text: "introduction",
-              link: "/guide/getting-started",
-            },
-            {
-              text: "features",
-              link: "/guide/features",
+              link: "/guide/troubleshooting",
             },
           ],
         },
       ],
       "/en/guide/": [
         {
-          text: "gettingStarted",
+          text: "Guide",
           items: [
             {
-              text: "introduction",
-              link: "/en/guide/getting-started",
+              text: "Basic Usage",
+              link: "/en/guide/basic-usage",
             },
             {
-              text: "features",
-              link: "/en/guide/features",
+              text: "Proxy Setup",
+              link: "/en/guide/proxy-setup",
+            },
+            {
+              text: "Certificate Setup",
+              link: "/en/guide/certificate-setup",
+            },
+            {
+              text: "Troubleshooting",
+              link: "/en/guide/troubleshooting",
+            },
+          ],
+        },
+      ],
+      "/releases/": [
+        {
+          text: "릴리즈 노트",
+          items: [
+            {
+              text: "릴리즈 노트",
+              link: "/releases/",
+            },
+          ],
+        },
+      ],
+      "/en/releases/": [
+        {
+          text: "Release Notes",
+          items: [
+            {
+              text: "Release Notes",
+              link: "/en/releases/",
             },
           ],
         },
