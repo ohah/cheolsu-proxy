@@ -444,13 +444,7 @@ sequenceDiagram
 ```mermaid
 graph TD
     A[Tauri Backend] --> B[Tauri Invoke API]
-    B --> C[Zustand Store]
-    C --> D[React Components]
-    D --> E[UI Updates]
-
-    F[User Actions] --> G[Event Handlers]
-    G --> H[Store Updates]
-    H --> I[Component Re-render]
+    B --> C[React Components]
 ```
 
 ## State Management
