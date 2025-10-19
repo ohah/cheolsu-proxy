@@ -309,7 +309,7 @@ Cmd + shift + I
 #### Tauri 빌드 오류
 
 ```bash
-# 캐ㅐ시 정리.
+# 캐시 정리.
 cargo clean
 # Tauri CLI 재설치
 cargo install tauri-cli --force
