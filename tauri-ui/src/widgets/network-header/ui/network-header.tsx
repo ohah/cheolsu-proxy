@@ -1,43 +1,43 @@
 import { NetworkControls } from './network-controls';
 import { NetworkFilters } from './network-filters';
-import { NetworkStats } from './network-stats';
 
 interface NetworkHeaderProps {
-  searchQuery: string;
+  filterQueryString: string;
+  appliedQueryString: string;
   filteredCount: number;
   totalCount: number;
   paused: boolean;
   togglePause: () => void;
-  onSearchQueryChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  onStatusFilterChange: React.Dispatch<React.SetStateAction<string[]>>;
-  onMethodFilterChange: React.Dispatch<React.SetStateAction<string[]>>;
+  onFilterQueryChange: (query: string) => void;
+  onApplyFilter: (query: string) => void;
   clearTransactions: () => void;
 }
 
 export function NetworkHeader({
-  searchQuery,
+  filterQueryString,
+  appliedQueryString,
   filteredCount,
   totalCount,
   paused,
   togglePause,
-  onSearchQueryChange,
-  onStatusFilterChange,
-  onMethodFilterChange,
+  onFilterQueryChange,
+  onApplyFilter,
   clearTransactions,
 }: NetworkHeaderProps) {
   return (
-    <div className="bg-sidebar">
-      <div className="flex items-center justify-between p-4 pl-0">
-        <div className="flex items-center gap-4 flex-1">
+    <div className="bg-sidebar w-full">
+      <div className="flex items-center justify-between py-4 px-2 w-full">
+        <div className="flex items-center gap-4 flex-1 w-full">
           <NetworkControls paused={paused} onTogglePause={togglePause} onClearTransactions={clearTransactions} />
 
           <NetworkFilters
-            searchQuery={searchQuery}
-            onSearchQueryChange={onSearchQueryChange}
-            onStatusFilterChange={onStatusFilterChange}
-            onMethodFilterChange={onMethodFilterChange}
+            filterQueryString={filterQueryString}
+            appliedQueryString={appliedQueryString}
+            totalCount={totalCount}
+            filteredCount={filteredCount}
+            onFilterQueryChange={onFilterQueryChange}
+            onApplyFilter={onApplyFilter}
           />
-          <NetworkStats totalCount={totalCount} filteredCount={filteredCount} />
         </div>
       </div>
     </div>

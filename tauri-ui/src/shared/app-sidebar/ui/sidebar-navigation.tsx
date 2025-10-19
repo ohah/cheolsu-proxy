@@ -46,7 +46,7 @@ export const SidebarNavigation = memo(({ collapsed }: SidebarNavigationProps) =>
   };
 
   return (
-    <div className="space-y-1">
+    <div className="space-y-1.5">
       {SIDEBAR_SECTIONS.map((section: SidebarSection) => {
         const Icon = section.icon;
         const isActive = activeSection === section.id;
