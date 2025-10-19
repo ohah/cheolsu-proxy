@@ -30,6 +30,20 @@ export default defineConfig({
         outlineTitle: "이 페이지에서",
         prevPageText: "이전 페이지",
         nextPageText: "다음 페이지",
+        nav: [
+          {
+            text: "가이드",
+            link: "/guide/",
+          },
+          {
+            text: "기여하기",
+            link: "/contributing/",
+          },
+          {
+            text: "릴리즈 노트",
+            link: "/releases/",
+          },
+        ],
       },
       {
         lang: "en",
@@ -37,6 +51,20 @@ export default defineConfig({
         outlineTitle: "ON THIS PAGE",
         prevPageText: "Previous Page",
         nextPageText: "Next Page",
+        nav: [
+          {
+            text: "Guide",
+            link: "/en/guide/",
+          },
+          {
+            text: "Contributing",
+            link: "/en/contributing/",
+          },
+          {
+            text: "Release Notes",
+            link: "/en/releases/",
+          },
+        ],
       },
     ],
     socialLinks: [
@@ -46,73 +74,85 @@ export default defineConfig({
         content: "https://github.com/ohah/cheolsu-proxy",
       },
     ],
-    nav: [
-      {
-        text: "guide",
-        link: "/guide/getting-started",
-      },
-      {
-        text: "contributing",
-        link: "/contributing/",
-      },
-    ],
     sidebar: {
       "/guide/": [
         {
-          text: "gettingStarted",
+          text: "가이드",
           items: [
             {
-              text: "introduction",
-              link: "/guide/getting-started",
+              text: "기본 사용법",
+              link: "/guide/basic-usage",
             },
             {
-              text: "features",
-              link: "/guide/features",
-            },
-            {
-              text: "certificateSetup",
-              link: "/guide/certificate-setup",
+              text: "문제 해결",
+              link: "/guide/troubleshooting",
             },
           ],
         },
       ],
       "/en/guide/": [
         {
-          text: "gettingStarted",
+          text: "Guide",
           items: [
             {
-              text: "introduction",
-              link: "/en/guide/getting-started",
+              text: "Basic Usage",
+              link: "/en/guide/basic-usage",
             },
             {
-              text: "features",
-              link: "/en/guide/features",
+              text: "Troubleshooting",
+              link: "/en/guide/troubleshooting",
+            },
+          ],
+        },
+      ],
+      "/releases/": [
+        {
+          text: "릴리즈 노트",
+          items: [
+            {
+              text: "릴리즈 노트",
+              link: "/releases/",
             },
             {
-              text: "certificateSetup",
-              link: "/en/guide/certificate-setup",
+              text: "지원 예정",
+              link: "/releases/roadmap",
+            },
+          ],
+        },
+      ],
+      "/en/releases/": [
+        {
+          text: "Release Notes",
+          items: [
+            {
+              text: "Release Notes",
+              link: "/en/releases/",
+            },
+            {
+              text: "Planned Features",
+              link: "/en/releases/roadmap",
             },
           ],
         },
       ],
       "/contributing/": [
         {
-          text: "contributing",
+          text: "기여하기",
           items: [
             {
-              text: "contributingGuide",
+              text: "기여하기",
               link: "/contributing/",
             },
             {
-              text: "developmentSetup",
+              text: "개발 환경 설정",
               link: "/contributing/development-setup",
             },
             {
-              text: "codeStructure",
+              text: "프로젝트 구조",
               link: "/contributing/code-structure",
             },
             {
-              text: "testing",
+              text: "테스트",
               link: "/contributing/testing",
             },
           ],
@@ -120,45 +160,23 @@ export default defineConfig({
       ],
       "/en/contributing/": [
         {
-          text: "contributing",
+          text: "Contributing",
           items: [
             {
-              text: "contributingGuide",
+              text: "Contributing",
               link: "/en/contributing/",
             },
             {
-              text: "developmentSetup",
+              text: "Development Setup",
               link: "/en/contributing/development-setup",
             },
             {
-              text: "codeStructure",
+              text: "Code Structure",
               link: "/en/contributing/code-structure",
             },
             {
-              text: "testing",
+              text: "Testing",
               link: "/en/contributing/testing",
-            },
-          ],
-        },
-      ],
-      "/features/": [
-        {
-          text: "featureSection",
-          items: [
-            {
-              text: "tlsSupport",
-              link: "/features/tls-support",
-            },
-          ],
-        },
-      ],
-      "/en/features/": [
-        {
-          text: "featureSection",
-          items: [
-            {
-              text: "tlsSupport",
-              link: "/en/features/tls-support",
             },
           ],
         },

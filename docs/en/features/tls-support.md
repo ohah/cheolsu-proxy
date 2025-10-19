@@ -11,7 +11,7 @@ Cheolsu Proxy supports not only modern TLS versions but also legacy TLS 1.0/1.1 
 
 - **Automatic TLS Version Detection**: Automatically detects TLS version from ClientHello
 - **Hybrid TLS Processing**: Uses native-tls for TLS 1.0/1.1, rustls for TLS 1.2+
-- **Cross-platform Compatibility**: Works on macOS, Windows, and Linux
+- **Cross-platform Compatibility**: Works on macOS and Windows
 - **PKCS12 Certificate Support**: Automatic generation of PKCS12 certificates for native-tls
 - **Tunnel Mode**: Direct tunneling for specific hosts with TLS compatibility issues
 

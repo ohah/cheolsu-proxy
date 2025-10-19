@@ -8,7 +8,7 @@ Cheolsu Proxy에 TLS 1.0/1.1 레거시 클라이언트 지원을 추가했습니
 
 - **자동 TLS 버전 감지**: ClientHello에서 TLS 버전을 자동으로 감지
 - **하이브리드 TLS 처리**: TLS 1.0/1.1은 native-tls, TLS 1.2+는 rustls 사용
-- **크로스 플랫폼 호환성**: macOS, Windows, Linux에서 모두 동작
+- **크로스 플랫폼 호환성**: macOS, Windows에서 모두 동작
 - **PKCS12 인증서 지원**: native-tls용 PKCS12 인증서 자동 생성
 
 ## 🔧 구현 방식

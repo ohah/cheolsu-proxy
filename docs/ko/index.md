@@ -11,11 +11,18 @@ Rust와 Tauri로 구축된 간단한 Man In The Middle 프록시입니다.
 - **크로스 플랫폼**: macOS 지원 (Windows 지원 예정)
 - **사용자 친화적**: 직관적인 GUI 인터페이스
 
-## 빠른 시작
+## 가이드
 
-1. [시작하기](/guide/getting-started) - 설치 및 기본 사용법
-2. [주요 기능](/guide/features) - 상세 기능 설명
-3. [인증서 설정](/guide/certificate-setup) - HTTPS 인증서 설정
+Cheolsu Proxy 사용을 위한 가이드입니다.
+
+- [기본 사용법](/guide/basic-usage) - 처음 사용자를 위한 간단한 가이드
+- [문제 해결](/guide/troubleshooting) - 자주 발생하는 문제 해결
+
+## 릴리즈 노트
+
+최신 업데이트 정보와 개발 로드맵을 확인하세요.
+
+- [릴리즈 노트](/releases/) - 버전별 업데이트 내역
 
 ## 기여하기
 

@@ -54,14 +54,14 @@ We appreciate contributions of any size, from small bug fixes to major new featu
 ### Prerequisites
 
 - **Rust**: 1.70.0 or higher
-- **Node.js**: 18.0.0 or higher
+- **Node.js**: 22.0.0 or higher
 - **Tauri CLI**: Latest version
 - **Git**: 2.0.0 or higher
 
 ### Rust Installation
 
 ```bash
-# macOS/Linux
+# macOS
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 # Windows
@@ -90,7 +90,7 @@ cd cheolsu-proxy
 
 # Install dependencies
 cargo build
-cd tauri-ui && npm install
+cd tauri-ui && pnpm install
 ```
 
 ## Development Workflow
@@ -119,7 +119,7 @@ git checkout -b fix/your-bug-fix
 ```bash
 # Run development server
 cd tauri-ui
-npm run tauri dev
+pnpm run tauri dev
 
 # Run tests
 cargo test
@@ -227,7 +227,7 @@ cargo test --test integration_test
 ```bash
 # Test Tauri app
 cd tauri-ui
-npm run tauri test
+pnpm run tauri test
 ```
 
 ### Manual Testing
@@ -278,9 +278,9 @@ Closes #123
 ### Review Process
 
 1. **Automated checks**: CI/CD pipeline passes
-2. **Code review**: At least one reviewer approval
+2. **Code review**: At least one maintainer approval
 3. **Testing**: All tests pass
-4. **Merge**: Squash and merge recommended
+4. **Merge**: Only maintainers can merge (Squash and merge recommended)
 
 ## Troubleshooting
 
@@ -291,11 +291,11 @@ Closes #123
 ```bash
 # Update dependencies
 cargo update
-cd tauri-ui && npm update
+cd tauri-ui && pnpm update
 
 # Clear cache
 cargo clean
-cd tauri-ui && rm -rf node_modules && npm install
+cd tauri-ui && rm -rf node_modules && pnpm install
 ```
 
 **Test failure**:
@@ -315,7 +315,7 @@ cargo test test_name -- --nocapture
 cargo install tauri-cli --force
 
 # Reinstall dependencies
-cd tauri-ui && npm install
+cd tauri-ui && pnpm install
 ```
 
 ## Community
