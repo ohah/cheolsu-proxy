@@ -75,7 +75,112 @@ export default defineConfig({
       },
     ],
     sidebar: {
-      // _meta.json 파일을 사용하여 사이드바 구조 자동 생성
+      "/guide/": [
+        {
+          text: "가이드",
+          items: [
+            {
+              text: "기본 사용법",
+              link: "/guide/basic-usage",
+            },
+            {
+              text: "문제 해결",
+              link: "/guide/troubleshooting",
+            },
+          ],
+        },
+      ],
+      "/en/guide/": [
+        {
+          text: "Guide",
+          items: [
+            {
+              text: "Basic Usage",
+              link: "/en/guide/basic-usage",
+            },
+            {
+              text: "Troubleshooting",
+              link: "/en/guide/troubleshooting",
+            },
+          ],
+        },
+      ],
+      "/releases/": [
+        {
+          text: "릴리즈 노트",
+          items: [
+            {
+              text: "릴리즈 노트",
+              link: "/releases/",
+            },
+            {
+              text: "지원 예정",
+              link: "/releases/roadmap",
+            },
+          ],
+        },
+      ],
+      "/en/releases/": [
+        {
+          text: "Release Notes",
+          items: [
+            {
+              text: "Release Notes",
+              link: "/en/releases/",
+            },
+            {
+              text: "Planned Features",
+              link: "/en/releases/roadmap",
+            },
+          ],
+        },
+      ],
+      "/contributing/": [
+        {
+          text: "기여하기",
+          items: [
+            {
+              text: "기여하기",
+              link: "/contributing/",
+            },
+            {
+              text: "개발 환경 설정",
+              link: "/contributing/development-setup",
+            },
+            {
+              text: "프로젝트 구조",
+              link: "/contributing/code-structure",
+            },
+            {
+              text: "테스트",
+              link: "/contributing/testing",
+            },
+          ],
+        },
+      ],
+      "/en/contributing/": [
+        {
+          text: "Contributing",
+          items: [
+            {
+              text: "Contributing",
+              link: "/en/contributing/",
+            },
+            {
+              text: "Development Setup",
+              link: "/en/contributing/development-setup",
+            },
+            {
+              text: "Code Structure",
+              link: "/en/contributing/code-structure",
+            },
+            {
+              text: "Testing",
+              link: "/en/contributing/testing",
+            },
+          ],
+        },
+      ],
     },
   },
   builderConfig: {
