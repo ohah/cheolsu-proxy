@@ -8,6 +8,9 @@ export default defineConfig({
   lang: "ko",
   logo: "/logo.png",
   logoText: "Cheolsu Proxy",
+  route: {
+    cleanUrls: true,
+  },
   locales: [
     {
       lang: "ko",
@@ -216,5 +219,9 @@ export default defineConfig({
         overlay: false,
       },
     },
+  },
+  // 루트 경로를 한국어 index로 리다이렉트
+  redirects: {
+    "/": "/ko/",
   },
 });
