@@ -1,6 +1,4 @@
 import { defineConfig } from "rspress/config";
-import pluginMermaid from "rspress-plugin-mermaid";
-import { pluginNodePolyfill } from "@rsbuild/plugin-node-polyfill";
 
 export default defineConfig({
   root: ".",
