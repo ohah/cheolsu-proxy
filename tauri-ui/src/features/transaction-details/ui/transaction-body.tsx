@@ -35,13 +35,23 @@ export const TransactionBody = ({ transaction, isEditing = false, form }: Transa
   const handleCopy = async () => {
     if (request?.body && request.body.length > 0 && isImageDataType(request.data_type)) {
       try {
+        console.log('Attempting to copy image:', {
+          dataType: request.data_type,
+          dataLength: request.body.length,
+          dataFirst10Bytes: Array.from(request.body.slice(0, 10)),
+        });
+
         // Tauri 클립보드 매니저를 사용하여 이미지 복사
         await writeImage(request.body);
+        console.log('Image copied successfully via Tauri clipboard manager');
         toast.success('Image copied to clipboard');
       } catch (error) {
-        console.error('Failed to copy image:', error);
+        console.error('Failed to copy image via Tauri clipboard manager:', error);
+        toast.error('Failed to copy image');
+        
         // Tauri 클립보드 실패 시 다운로드로 fallback
         try {
+          console.log('Attempting fallback download...');
           const dataUrl = createImageDataUrl(request.body, request.data_type);
           if (dataUrl) {
             const link = document.createElement('a');
@@ -51,7 +61,9 @@ export const TransactionBody = ({ transaction, isEditing = false, form }: Transa
             link.click();
             document.body.removeChild(link);
             toast.success('Image downloaded (clipboard failed)');
+            console.log('Image downloaded as fallback');
           } else {
+            console.error('Failed to generate dataUrl for fallback download');
             toast.error('Failed to copy or download image');
           }
         } catch (fallbackError) {
