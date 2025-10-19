@@ -45,7 +45,7 @@ export const TransactionResponse = ({ transaction, isEditing = false, form }: Tr
       } catch (error) {
         console.error('Failed to copy image via Tauri clipboard manager:', error);
         toast.error('Failed to copy image');
-        
+
         // Tauri 클립보드 실패 시 다운로드로 fallback
         try {
           console.log('Attempting fallback download...');
