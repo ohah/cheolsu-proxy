@@ -230,37 +230,37 @@ pub fn detect_data_type(headers: &HeaderMap, body: &Bytes) -> DataType {
             if body.len() >= 8 && &body[0..8] == b"\x89PNG\r\n\x1a\n" {
                 return DataType::Image;
             }
-            
+
             // JPEG 시그니처 (매우 명확)
             if &body[0..2] == b"\xff\xd8" {
                 return DataType::Image;
             }
-            
+
             // GIF 시그니처 (매우 명확)
             if body.len() >= 6 && (&body[0..6] == b"GIF87a" || &body[0..6] == b"GIF89a") {
                 return DataType::Image;
             }
-            
+
             // WebP 시그니처 (RIFF 컨테이너 확인)
             if body.len() >= 12 && &body[0..4] == b"RIFF" && &body[8..12] == b"WEBP" {
                 return DataType::Image;
             }
-            
+
             // BMP 시그니처
             if body.len() >= 2 && &body[0..2] == b"BM" {
                 return DataType::Image;
             }
-            
+
             // ICO 시그니처
             if body.len() >= 4 && &body[0..4] == b"\x00\x00\x01\x00" {
                 return DataType::Image;
             }
-            
+
             // TIFF 시그니처 (Little Endian)
             if body.len() >= 4 && &body[0..4] == b"II*\x00" {
                 return DataType::Image;
             }
-            
+
             // TIFF 시그니처 (Big Endian)
             if body.len() >= 4 && &body[0..4] == b"MM\x00*" {
                 return DataType::Image;
@@ -277,9 +277,16 @@ pub fn detect_data_type(headers: &HeaderMap, body: &Bytes) -> DataType {
                 if body.len() >= 12 {
                     let brand = &body[8..12];
                     // 일반적인 MP4 브랜드들
-                    if brand == b"mp41" || brand == b"mp42" || brand == b"isom" || 
-                       brand == b"avc1" || brand == b"iso2" || brand == b"iso3" ||
-                       brand == b"iso4" || brand == b"iso5" || brand == b"iso6" {
+                    if brand == b"mp41"
+                        || brand == b"mp42"
+                        || brand == b"isom"
+                        || brand == b"avc1"
+                        || brand == b"iso2"
+                        || brand == b"iso3"
+                        || brand == b"iso4"
+                        || brand == b"iso5"
+                        || brand == b"iso6"
+                    {
                         return DataType::Video;
                     }
                 }
@@ -289,7 +296,7 @@ pub fn detect_data_type(headers: &HeaderMap, body: &Bytes) -> DataType {
                 return DataType::Video;
             }
         }
-        
+
         if body.len() >= 4 {
             // WebM 시그니처
             if &body[0..4] == b"\x1a\x45\xdf\xa3" {
