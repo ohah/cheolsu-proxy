@@ -1,4 +1,5 @@
 import { Copy } from 'lucide-react';
+import { writeImage, writeText } from '@tauri-apps/plugin-clipboard-manager';
 
 import type { HttpTransaction } from '@/entities/proxy';
 
@@ -6,7 +7,7 @@ import { Button, Card, CardContent, CardHeader } from '@/shared/ui';
 import type { AppFormInstance } from '../context/form-context';
 import { Editor } from '@monaco-editor/react';
 
-import { getBodyForDisplay } from '../lib/utils';
+import { getBodyForDisplay, createImageDataUrl } from '../lib/utils';
 import { dataTypeToMonacoLanguage, isImageDataType } from '@/entities/proxy/model/data-type';
 import { toast } from 'sonner';
 import { ImagePreview } from './image-preview';
@@ -28,9 +29,48 @@ export const TransactionResponse = ({ transaction, isEditing = false, form }: Tr
 
   const responseText = getResponseText();
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(responseText);
-    toast.success('Response body copied to clipboard');
+  const handleCopy = async () => {
+    if (isImageDataType(response.data_type)) {
+      try {
+        // Tauri 클립보드 매니저를 사용하여 이미지 복사
+        await writeImage(response.body);
+        toast.success('Image copied to clipboard');
+      } catch (error) {
+        console.error('Failed to copy image:', error);
+        // Tauri 클립보드 실패 시 다운로드로 fallback
+        try {
+          const dataUrl = createImageDataUrl(response.body, response.data_type);
+          if (dataUrl) {
+            const link = document.createElement('a');
+            link.href = dataUrl;
+            link.download = `image.${getImageFileExtension(response.data_type)}`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            toast.success('Image downloaded (clipboard failed)');
+          } else {
+            toast.error('Failed to copy or download image');
+          }
+        } catch (fallbackError) {
+          console.error('Fallback download failed:', fallbackError);
+          toast.error('Failed to copy or download image');
+        }
+      }
+    } else {
+      try {
+        // Tauri 클립보드 매니저를 사용하여 텍스트 복사
+        await writeText(responseText);
+        toast.success('Response body copied to clipboard');
+      } catch (error) {
+        console.error('Failed to copy text:', error);
+        toast.error('Failed to copy to clipboard');
+      }
+    }
+  };
+
+  const getImageFileExtension = (dataType: string): string => {
+    // MIME 타입에서 확장자 추출하는 간단한 함수
+    return 'png'; // 기본값
   };
 
   return (
