@@ -1,18 +1,13 @@
 import { defineConfig } from "rspress/config";
-import pluginMermaid from "rspress-plugin-mermaid";
 
 export default defineConfig({
   root: ".",
-  base: process.env.NODE_ENV === "production" ? "/proxelar/" : "/",
+  base: process.env.NODE_ENV === "production" ? "/cheolsu-proxy/" : "/",
   title: "Cheolsu Proxy",
   description: "A simple Man In The Middle proxy built with Rust and Tauri",
   lang: "ko",
   logo: "/logo.png",
   logoText: "Cheolsu Proxy",
-  route: {
-    cleanUrls: true,
-  },
-  plugins: [pluginMermaid()],
   locales: [
     {
       lang: "ko",
@@ -80,134 +75,7 @@ export default defineConfig({
       },
     ],
     sidebar: {
-      "/guide/": [
-        {
-          text: "가이드",
-          items: [
-            {
-              text: "기본 사용법",
-              link: "/guide/basic-usage",
-            },
-            {
-              text: "문제 해결",
-              link: "/guide/troubleshooting",
-            },
-          ],
-        },
-      ],
-      "/en/guide/": [
-        {
-          text: "Guide",
-          items: [
-            {
-              text: "Basic Usage",
-              link: "/en/guide/basic-usage",
-            },
-            {
-              text: "Troubleshooting",
-              link: "/en/guide/troubleshooting",
-            },
-          ],
-        },
-      ],
-      "/releases/": [
-        {
-          text: "릴리즈 노트",
-          items: [
-            {
-              text: "릴리즈 노트",
-              link: "/releases/",
-            },
-            {
-              text: "지원 예정",
-              link: "/releases/roadmap",
-            },
-          ],
-        },
-      ],
-      "/en/releases/": [
-        {
-          text: "Release Notes",
-          items: [
-            {
-              text: "Release Notes",
-              link: "/en/releases/",
-            },
-            {
-              text: "Planned Features",
-              link: "/en/releases/roadmap",
-            },
-          ],
-        },
-      ],
-      "/contributing/": [
-        {
-          text: "contributing",
-          items: [
-            {
-              text: "contributingGuide",
-              link: "/contributing/",
-            },
-            {
-              text: "developmentSetup",
-              link: "/contributing/development-setup",
-            },
-            {
-              text: "codeStructure",
-              link: "/contributing/code-structure",
-            },
-            {
-              text: "testing",
-              link: "/contributing/testing",
-            },
-          ],
-        },
-      ],
-      "/en/contributing/": [
-        {
-          text: "contributing",
-          items: [
-            {
-              text: "contributingGuide",
-              link: "/en/contributing/",
-            },
-            {
-              text: "developmentSetup",
-              link: "/en/contributing/development-setup",
-            },
-            {
-              text: "codeStructure",
-              link: "/en/contributing/code-structure",
-            },
-            {
-              text: "testing",
-              link: "/en/contributing/testing",
-            },
-          ],
-        },
-      ],
-      "/features/": [
-        {
-          text: "featureSection",
-          items: [
-            {
-              text: "tlsSupport",
-              link: "/features/tls-support",
-            },
-          ],
-        },
-      ],
-      "/en/features/": [
-        {
-          text: "featureSection",
-          items: [
-            {
-              text: "tlsSupport",
-              link: "/en/features/tls-support",
-            },
-          ],
-        },
-      ],
+      // _meta.json 파일을 사용하여 사이드바 구조 자동 생성
     },
   },
   builderConfig: {

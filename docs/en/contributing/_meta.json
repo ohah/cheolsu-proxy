@@ -1,0 +1,18 @@
+[
+  "index",
+  {
+    "type": "file",
+    "name": "development-setup",
+    "label": "Development Setup"
+  },
+  {
+    "type": "file",
+    "name": "code-structure", 
+    "label": "Code Structure"
+  },
+  {
+    "type": "file",
+    "name": "testing",
+    "label": "Testing"
+  }
+]
