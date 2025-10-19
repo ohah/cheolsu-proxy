@@ -8,7 +8,6 @@ export default defineConfig({
   lang: "ko",
   logo: "/logo.png",
   logoText: "Cheolsu Proxy",
-  plugins: [pluginMermaid(), pluginNodePolyfill()],
   locales: [
     {
       lang: "ko",
