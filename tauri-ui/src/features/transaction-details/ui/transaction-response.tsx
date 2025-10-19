@@ -43,7 +43,11 @@ export const TransactionResponse = ({ transaction, isEditing = false, form }: Tr
         </div>
       </CardHeader>
       <CardContent className="flex-1 p-0 min-h-0">
-        {form && isEditing ? (
+        {isImageDataType(response.data_type) ? (
+          <div className="h-[calc(100vh-300px)] border rounded-md overflow-auto p-4">
+            <ImagePreview data={response.body} dataType={response.data_type} className="h-full" />
+          </div>
+        ) : form && isEditing ? (
           <form.Field
             name="response.data"
             children={(field) => (
@@ -70,10 +74,6 @@ export const TransactionResponse = ({ transaction, isEditing = false, form }: Tr
               </div>
             )}
           />
-        ) : isImageDataType(response.data_type) ? (
-          <div className="h-[calc(100vh-300px)] border rounded-md overflow-auto p-4">
-            <ImagePreview data={response.body} dataType={response.data_type} className="h-full" />
-          </div>
         ) : (
           <div className="h-[calc(100vh-300px)] border rounded-md overflow-hidden">
             <Editor

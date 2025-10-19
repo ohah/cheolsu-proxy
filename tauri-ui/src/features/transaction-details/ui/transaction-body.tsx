@@ -46,7 +46,11 @@ export const TransactionBody = ({ transaction, isEditing = false, form }: Transa
         </div>
       </CardHeader>
       <CardContent className="flex-1 p-0 min-h-0">
-        {form && isEditing ? (
+        {request?.body && request.body.length > 0 && isImageDataType(request.data_type) ? (
+          <div className="h-[calc(100vh-300px)] border rounded-md overflow-auto p-4">
+            <ImagePreview data={request.body} dataType={request.data_type} className="h-full" />
+          </div>
+        ) : form && isEditing ? (
           <form.Field
             name="request.data"
             children={(field) => (
@@ -73,10 +77,6 @@ export const TransactionBody = ({ transaction, isEditing = false, form }: Transa
               </div>
             )}
           />
-        ) : request?.body && request.body.length > 0 && isImageDataType(request.data_type) ? (
-          <div className="h-[calc(100vh-300px)] border rounded-md overflow-auto p-4">
-            <ImagePreview data={request.body} dataType={request.data_type} className="h-full" />
-          </div>
         ) : (
           <div className="h-[calc(100vh-300px)] border rounded-md overflow-hidden">
             <Editor
