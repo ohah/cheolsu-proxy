@@ -340,48 +340,6 @@ brew update && brew upgrade
 # Windows SDK 설치 확인
 ```
 
-## 환경 변수
-
-### 개발용 환경 변수
-
-```bash
-# .env 파일 생성
-cd tauri-ui
-cat > .env << EOF
-RUST_LOG=debug
-TAURI_DEBUG=true
-VITE_DEV_SERVER_URL=http://localhost:1420
-EOF
-```
-
-### 프로덕션 환경 변수
-
-```bash
-# .env.production 파일
-cat > .env.production << EOF
-RUST_LOG=info
-TAURI_DEBUG=false
-EOF
-```
-
-## 유용한 명령어
-
-### 개발 워크플로우
-
-```bash
-# 전체 빌드 및 테스트
-make dev
-
-# 코드 품질 검사
-make check
-
-# 릴리즈 빌드
-make release
-
-# 문서 생성
-make docs
-```
-
 ## 다음 단계
 
 환경 설정이 완료되면 다음 문서를 참조하세요:
