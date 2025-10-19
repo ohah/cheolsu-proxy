@@ -342,51 +342,9 @@ brew update && brew upgrade
 # Verify Windows SDK installation
 ```
 
-## Environment Variables
-
-### Development Environment Variables
-
-```bash
-# Create .env file
-cd tauri-ui
-cat > .env << EOF
-RUST_LOG=debug
-TAURI_DEBUG=true
-VITE_DEV_SERVER_URL=http://localhost:1420
-EOF
-```
-
-### Production Environment Variables
-
-```bash
-# .env.production file
-cat > .env.production << EOF
-RUST_LOG=info
-TAURI_DEBUG=false
-EOF
-```
-
-## Useful Commands
-
-### Development Workflow
-
-```bash
-# Full build and test
-make dev
-
-# Code quality check
-make check
-
-# Release build
-make release
-
-# Generate documentation
-make docs
-```
-
 ## Next Steps
 
-Once environment setup is complete, refer to the following documents:
+After setting up your development environment, refer to the following documents:
 
 - [Code Structure](/en/contributing/code-structure) - Understanding the codebase structure
 - [Testing](/en/contributing/testing) - Writing and running tests
