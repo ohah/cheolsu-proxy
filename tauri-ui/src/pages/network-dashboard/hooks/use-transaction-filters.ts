@@ -1,7 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
-
 import type { HttpTransaction } from '@/entities/proxy';
-
+import { parseFilterQuery } from '@/shared/lib/query-parser';
 import { getFilteredTransactions } from '../lib';
 
 interface UseTransactionFiltersProps {
@@ -9,30 +8,40 @@ interface UseTransactionFiltersProps {
 }
 
 export const useTransactionFilters = ({ transactions }: UseTransactionFiltersProps) => {
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [methodFilter, setMethodFilter] = useState<string[]>([]);
-  const [statusFilter, setStatusFilter] = useState<string[]>([]);
+  const [filterQueryString, setFilterQueryString] = useState<string>('');
+  const [appliedQueryString, setAppliedQueryString] = useState<string>('');
+
+  const parsedQuery = useMemo(() => parseFilterQuery(appliedQueryString), [appliedQueryString]);
 
   const filteredTransactions = useMemo(() => {
-    return getFilteredTransactions(transactions, statusFilter, methodFilter, searchQuery);
-  }, [transactions, statusFilter, methodFilter, searchQuery]);
+    return getFilteredTransactions(
+      transactions,
+      parsedQuery.status,
+      parsedQuery.methods,
+      parsedQuery.urls,
+      parsedQuery.excludeStatus,
+      parsedQuery.excludeMethods,
+      parsedQuery.excludeUrls,
+      parsedQuery.operator,
+    );
+  }, [transactions, parsedQuery]);
 
-  const filteredCount = useMemo(() => filteredTransactions.length, [filteredTransactions]);
-  const totalCount = useMemo(() => transactions.length, [transactions]);
+  const handleFilterQueryChange = useCallback((query: string) => {
+    setFilterQueryString(query);
+  }, []);
 
-  const handleSearchQueryChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(event.target.value);
+  const handleApplyFilter = useCallback((query: string) => {
+    setAppliedQueryString(query);
+    setFilterQueryString(query);
   }, []);
 
   return {
-    searchQuery,
+    filterQueryString,
+    appliedQueryString,
     filteredTransactions,
-    filteredCount,
-    totalCount,
-
-    setMethodFilter,
-    setStatusFilter,
-
-    onSearchQueryChange: handleSearchQueryChange,
+    filteredCount: filteredTransactions.length,
+    totalCount: transactions.length,
+    onFilterQueryChange: handleFilterQueryChange,
+    onApplyFilter: handleApplyFilter,
   };
 };

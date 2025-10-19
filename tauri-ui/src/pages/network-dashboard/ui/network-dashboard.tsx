@@ -29,11 +29,11 @@ export const NetworkDashboard = () => {
   } = useTransactions();
 
   const {
-    searchQuery,
-    setMethodFilter,
-    setStatusFilter,
+    filterQueryString,
+    appliedQueryString,
     filteredTransactions,
-    onSearchQueryChange,
+    onFilterQueryChange,
+    onApplyFilter,
     filteredCount,
     totalCount,
   } = useTransactionFilters({ transactions });
@@ -64,23 +64,23 @@ export const NetworkDashboard = () => {
     <div className="flex h-[100vh] w-full">
       <AppSidebar isConnected={isConnected} />
 
-      <div className="flex-1 flex flex-col h-full">
+      <div className="flex-1 flex flex-col h-full overflow-x-hidden">
         <NetworkHeader
-          searchQuery={searchQuery}
+          filterQueryString={filterQueryString}
+          appliedQueryString={appliedQueryString}
           filteredCount={filteredCount}
           totalCount={totalCount}
           paused={paused}
           togglePause={togglePause}
-          onSearchQueryChange={onSearchQueryChange}
-          onStatusFilterChange={setStatusFilter}
-          onMethodFilterChange={setMethodFilter}
+          onFilterQueryChange={onFilterQueryChange}
+          onApplyFilter={onApplyFilter}
           clearTransactions={clearTransactions}
         />
 
         <ResizablePanelGroup
           direction="horizontal"
           autoSaveId="network-dashboard-layout"
-          className="flex-1 flex border border-b-0 rounded-tl-lg shadow-[0_0_10px_0_rgba(0,0,0,0.05)] bg-background"
+          className="flex-1 flex border border-b-0 shadow-[0_0_10px_0_rgba(0,0,0,0.05)] bg-background"
         >
           <ResizablePanel
             id="host-path-tree"
@@ -88,6 +88,7 @@ export const NetworkDashboard = () => {
             maxSize={40}
             minSize={10}
             defaultSize={25}
+            collapsible
           >
             <HostPathTree
               transactions={filteredTransactions}
@@ -109,7 +110,7 @@ export const NetworkDashboard = () => {
             />
           </ResizablePanel>
 
-          <ResizableHandle withHandle />
+          <ResizableHandle withHandle={!!selectedTransaction} />
           <ResizablePanel
             ref={detailsPanelRef}
             id="transaction-details"
