@@ -35,6 +35,7 @@ If you want to contribute to the project, please refer to the [Contributing Guid
 ## Feature Documentation
 
 - [TLS 1.0/1.1 Support](/en/features/tls-support) - Legacy TLS client support
+- [Cheolsu-Query](/en/features/cheolsu-query) - Network request filtering query language
 
 ## License
 

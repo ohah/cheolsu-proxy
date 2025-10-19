@@ -24,6 +24,17 @@ Guide on resolving common issues during use.
 - HTTPS site issues
 - Performance issues
 
+## 🔍 Advanced Features
+
+### [Cheolsu-Query](../features/cheolsu-query.md)
+
+Guide for using the dedicated query language for filtering network requests.
+
+- Query syntax and operators
+- Filtering examples
+- Auto-completion features
+- Advanced usage
+
 ## 🔒 Security Considerations
 
 ### Important Security Rules
