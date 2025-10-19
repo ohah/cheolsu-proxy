@@ -4,17 +4,26 @@
   "description": "A simple Man In The Middle proxy built with Rust and Tauri",
   "private": true,
   "type": "module",
-  "packageManager": "pnpm@10.9.0",
+  "packageManager": "pnpm@10.18.3",
   "workspaces": [
     "tauri-ui",
     "docs"
   ],
+  "devDependencies": {
+    "@prettier/plugin-oxc": "^0.0.4",
+    "oxlint": "latest",
+    "prettier": "^3.6.2"
+  },
   "scripts": {
     "dev": "pnpm --filter cheolsu-proxy-docs dev",
     "build": "pnpm --filter cheolsu-proxy-docs build",
     "preview": "pnpm --filter cheolsu-proxy-docs preview",
     "tauri:dev": "pnpm --filter tauri-ui tauri dev",
-    "tauri:build": "pnpm --filter tauri-ui tauri build"
+    "tauri:build": "pnpm --filter tauri-ui tauri build",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "format": "prettier --write \"**/*.{js,ts,tsx,jsx}\"",
+    "format:check": "prettier --check \"**/*.{js,ts,tsx,jsx}\""
   },
   "keywords": [
     "proxy",
