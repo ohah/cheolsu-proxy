@@ -7,8 +7,9 @@ import type { AppFormInstance } from '../context/form-context';
 import { Editor } from '@monaco-editor/react';
 
 import { getBodyForDisplay } from '../lib/utils';
-import { dataTypeToMonacoLanguage } from '@/entities/proxy/model/data-type';
+import { dataTypeToMonacoLanguage, isImageDataType } from '@/entities/proxy/model/data-type';
 import { toast } from 'sonner';
+import { ImagePreview } from './image-preview';
 
 interface TransactionBodyProps {
   transaction: HttpTransaction;
@@ -72,6 +73,10 @@ export const TransactionBody = ({ transaction, isEditing = false, form }: Transa
               </div>
             )}
           />
+        ) : request?.body && request.body.length > 0 && isImageDataType(request.data_type) ? (
+          <div className="h-[calc(100vh-300px)] border rounded-md overflow-auto p-4">
+            <ImagePreview data={request.body} dataType={request.data_type} className="h-full" />
+          </div>
         ) : (
           <div className="h-[calc(100vh-300px)] border rounded-md overflow-hidden">
             <Editor
