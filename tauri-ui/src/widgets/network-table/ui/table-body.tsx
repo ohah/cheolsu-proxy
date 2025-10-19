@@ -34,7 +34,13 @@ export const TableBody = ({
         isPinned: pinnedTransactionIds.has(id),
       };
     });
-  }, [data, createTransactionSelectHandler, createTransactionDeleteHandler]);
+  }, [
+    data,
+    createTransactionSelectHandler,
+    createTransactionDeleteHandler,
+    createTransactionPinHandler,
+    pinnedTransactionIds,
+  ]);
 
   const renderItem = useCallback(
     (index: number) => {

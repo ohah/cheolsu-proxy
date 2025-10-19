@@ -50,7 +50,7 @@ export const NetworkDashboard = () => {
         clearSelectedTransaction();
       }
     },
-    [],
+    [clearSelectedTransaction, deleteTransaction, selectedTransaction],
   );
 
   const createTransactionPinHandler = useCallback(
