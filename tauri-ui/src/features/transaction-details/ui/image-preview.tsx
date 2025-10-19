@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Download, Maximize2, Minimize2 } from 'lucide-react';
 
 import { Button } from '@/shared/ui';
 import { createImageDataUrl } from '../lib/utils';
+import { useBase64Worker } from '@/hooks/use-base64-worker';
 import type { DataType } from '@/entities/proxy/model/types';
 
 interface ImagePreviewProps {
@@ -14,8 +15,62 @@ interface ImagePreviewProps {
 export const ImagePreview = ({ data, dataType, className = '' }: ImagePreviewProps) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [dataUrl, setDataUrl] = useState<string>('');
+  const [isLoading, setIsLoading] = useState(true);
 
-  const dataUrl = createImageDataUrl(data, dataType);
+  const { encodeToBase64, isWorkerAvailable } = useBase64Worker();
+
+  useEffect(() => {
+    if (dataType === 'Image') {
+      setIsLoading(true);
+      setImageError(false);
+
+      // Worker가 사용 가능한 경우 Worker 사용, 그렇지 않으면 기존 방식 사용
+      if (isWorkerAvailable()) {
+        encodeToBase64(data, dataType)
+          .then(setDataUrl)
+          .catch(() => {
+            // Worker 실패 시 기존 방식으로 fallback
+            const fallbackDataUrl = createImageDataUrl(data, dataType);
+            if (fallbackDataUrl) {
+              setDataUrl(fallbackDataUrl);
+            } else {
+              setImageError(true);
+            }
+          })
+          .finally(() => {
+            setIsLoading(false);
+          });
+      } else {
+        // Worker를 사용할 수 없는 경우 기존 방식 사용
+        const fallbackDataUrl = createImageDataUrl(data, dataType);
+        if (fallbackDataUrl) {
+          setDataUrl(fallbackDataUrl);
+        } else {
+          setImageError(true);
+        }
+        setIsLoading(false);
+      }
+    } else {
+      setIsLoading(false);
+    }
+  }, [data, dataType, encodeToBase64, isWorkerAvailable]);
+
+  if (isLoading) {
+    return (
+      <div className={`flex items-center justify-center p-8 bg-gray-50 rounded-md ${className}`}>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-2"></div>
+          <p className="text-gray-500">이미지 로딩 중...</p>
+          <p className="text-xs text-gray-400 mt-1">
+            {data.length > 1024 * 1024
+              ? `${Math.round(data.length / 1024 / 1024)}MB`
+              : `${Math.round(data.length / 1024)}KB`}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (!dataUrl || imageError) {
     return (
