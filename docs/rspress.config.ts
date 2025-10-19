@@ -1,4 +1,5 @@
 import { defineConfig } from "rspress/config";
+import { pluginMermaid } from "rspress-plugin-mermaid";
 
 export default defineConfig({
   root: ".",
@@ -11,6 +12,7 @@ export default defineConfig({
   route: {
     cleanUrls: true,
   },
+  plugins: [pluginMermaid()],
   locales: [
     {
       lang: "ko",
