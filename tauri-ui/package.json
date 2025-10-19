@@ -30,6 +30,7 @@
     "@tanstack/react-form": "^1.19.5",
     "@tanstack/react-virtual": "^3.13.12",
     "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-clipboard-manager": "^2.3.0",
     "@tauri-apps/plugin-fs": "^2.4.1",
     "@tauri-apps/plugin-http": "^2.5.1",
     "@tauri-apps/plugin-opener": "^2.4.0",
@@ -68,6 +69,7 @@
     "babel-plugin-react-compiler": "^1.0.0",
     "react-refresh": "^0.17.0",
     "ts-node": "^10.9.2",
+    "react-scan": "^0.4.3",
     "typescript": "^5.8.3"
   }
 }

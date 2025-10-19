@@ -1,3 +1,6 @@
 packages:
-  - "tauri-ui"
-  - "docs"
+  - tauri-ui
+  - docs
+
+onlyBuiltDependencies:
+  - esbuild

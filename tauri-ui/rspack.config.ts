@@ -104,4 +104,8 @@ export default defineConfig({
     css: true,
     topLevelAwait: true,
   },
+  // Worker 지원을 위한 설정
+  output: {
+    workerChunkLoading: 'import-scripts',
+  },
 });

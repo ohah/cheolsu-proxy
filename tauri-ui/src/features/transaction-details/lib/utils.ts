@@ -33,6 +33,109 @@ export const decodeHtmlEntities = (text: string): string => {
 };
 
 /**
+ * Uint8Array를 Base64 문자열로 변환
+ */
+export const uint8ArrayToBase64 = (data: Uint8Array | number[]): string => {
+  if (!data || data.length === 0) {
+    return '';
+  }
+
+  try {
+    // 일반 배열인 경우 Uint8Array로 변환
+    const uint8Array = data instanceof Uint8Array ? data : new Uint8Array(data);
+
+    // Uint8Array를 문자열로 변환한 후 Base64 인코딩
+    let binary = '';
+    for (let i = 0; i < uint8Array.length; i++) {
+      binary += String.fromCharCode(uint8Array[i]);
+    }
+    return btoa(binary);
+  } catch (error) {
+    console.error('Base64 인코딩 실패:', error);
+    return '';
+  }
+};
+
+/**
+ * 이미지 데이터를 Data URL로 변환
+ */
+export const createImageDataUrl = (data: Uint8Array | number[], dataType: DataType): string => {
+  if (dataType !== 'Image') {
+    return '';
+  }
+
+  const base64 = uint8ArrayToBase64(data);
+  if (!base64) {
+    return '';
+  }
+
+  // MIME 타입 결정
+  let mimeType = 'image/png'; // 기본값
+  if (data.length >= 2) {
+    const uint8Array = data instanceof Uint8Array ? data : new Uint8Array(data);
+
+    // PNG 시그니처
+    if (
+      uint8Array.length >= 8 &&
+      uint8Array[0] === 0x89 &&
+      uint8Array[1] === 0x50 &&
+      uint8Array[2] === 0x4e &&
+      uint8Array[3] === 0x47
+    ) {
+      mimeType = 'image/png';
+    }
+    // JPEG 시그니처
+    else if (uint8Array[0] === 0xff && uint8Array[1] === 0xd8) {
+      mimeType = 'image/jpeg';
+    }
+    // GIF 시그니처
+    else if (
+      uint8Array.length >= 6 &&
+      ((uint8Array[0] === 0x47 &&
+        uint8Array[1] === 0x49 &&
+        uint8Array[2] === 0x46 &&
+        uint8Array[3] === 0x38 &&
+        uint8Array[4] === 0x37 &&
+        uint8Array[5] === 0x61) ||
+        (uint8Array[0] === 0x47 &&
+          uint8Array[1] === 0x49 &&
+          uint8Array[2] === 0x46 &&
+          uint8Array[3] === 0x38 &&
+          uint8Array[4] === 0x39 &&
+          uint8Array[5] === 0x61))
+    ) {
+      mimeType = 'image/gif';
+    }
+    // WebP 시그니처
+    else if (
+      uint8Array.length >= 12 &&
+      uint8Array[0] === 0x52 &&
+      uint8Array[1] === 0x49 &&
+      uint8Array[2] === 0x46 &&
+      uint8Array[3] === 0x46 &&
+      uint8Array[8] === 0x57 &&
+      uint8Array[9] === 0x45 &&
+      uint8Array[10] === 0x42 &&
+      uint8Array[11] === 0x50
+    ) {
+      mimeType = 'image/webp';
+    }
+    // SVG는 텍스트 기반이므로 별도 처리
+    else if (
+      uint8Array.length >= 4 &&
+      uint8Array[0] === 0x3c &&
+      uint8Array[1] === 0x73 &&
+      uint8Array[2] === 0x76 &&
+      uint8Array[3] === 0x67
+    ) {
+      mimeType = 'image/svg+xml';
+    }
+  }
+
+  return `data:${mimeType};base64,${base64}`;
+};
+
+/**
  * 요청/응답 본문을 포맷팅된 문자열로 변환
  * 러스트에서 이미 데이터 타입 감지와 압축 해제를 완료했으므로 단순한 포맷팅만 수행
  */
