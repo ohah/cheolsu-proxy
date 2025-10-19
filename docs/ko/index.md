@@ -35,6 +35,7 @@ Cheolsu Proxy 사용을 위한 가이드입니다.
 ## 기능 문서
 
 - [TLS 1.0/1.1 지원](/features/tls-support) - 레거시 TLS 클라이언트 지원
+- [Cheolsu-Query](/features/cheolsu-query) - 네트워크 요청 필터링 쿼리 언어
 
 ## 라이센스
 
