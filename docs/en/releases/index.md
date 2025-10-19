@@ -4,7 +4,7 @@ Check the version-by-version update history of Cheolsu Proxy.
 
 ## 🚀 Latest Release
 
-### v1.0.0 (In Development)
+### v0.1.0 (In Development)
 
 - **Release Date**: Q1 2024
 - **Key Features**:

@@ -445,13 +445,7 @@ sequenceDiagram
 ```mermaid
 graph TD
     A[Tauri Backend] --> B[Tauri Invoke API]
-    B --> C[Zustand Store]
-    C --> D[React Components]
-    D --> E[UI Updates]
-
-    F[User Actions] --> G[Event Handlers]
-    G --> H[Store Updates]
-    H --> I[Component Re-render]
+    B --> C[React Components]
 ```
 
 ## 상태 관리
@@ -550,21 +544,6 @@ __tests__/
 ├── pages/                     # 페이지 테스트
 ├── utils/                     # 유틸리티 테스트
 └── setup.ts                   # 테스트 설정
-```
-
-## 빌드 및 배포
-
-### 개발 빌드
-
-```bash
-# 백엔드 빌드
-cargo build
-
-# 프론트엔드 빌드
-cd tauri-ui && pnpm run build
-
-# Tauri 앱 빌드
-cd tauri-ui && pnpm run tauri build
 ```
 
 ## 성능 최적화
