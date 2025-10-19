@@ -174,11 +174,67 @@ export const formatBodyContent = (body: Uint8Array, dataType: DataType, bodyJson
 };
 
 /**
+ * 이미지 시그니처를 재검증하여 실제 이미지인지 확인
+ */
+const verifyImageSignature = (data: Uint8Array | number[]): boolean => {
+  if (!data || data.length === 0) {
+    return false;
+  }
+
+  const uint8Array = data instanceof Uint8Array ? data : new Uint8Array(data);
+
+  // PNG 시그니처
+  if (uint8Array.length >= 8 && 
+      uint8Array[0] === 0x89 && uint8Array[1] === 0x50 && 
+      uint8Array[2] === 0x4E && uint8Array[3] === 0x47) {
+    return true;
+  }
+
+  // JPEG 시그니처
+  if (uint8Array.length >= 2 && 
+      uint8Array[0] === 0xFF && uint8Array[1] === 0xD8) {
+    return true;
+  }
+
+  // GIF 시그니처
+  if (uint8Array.length >= 6 && 
+      ((uint8Array[0] === 0x47 && uint8Array[1] === 0x49 && uint8Array[2] === 0x46 && 
+        uint8Array[3] === 0x38 && uint8Array[4] === 0x37 && uint8Array[5] === 0x61) ||
+       (uint8Array[0] === 0x47 && uint8Array[1] === 0x49 && uint8Array[2] === 0x46 && 
+        uint8Array[3] === 0x38 && uint8Array[4] === 0x39 && uint8Array[5] === 0x61))) {
+    return true;
+  }
+
+  // WebP 시그니처
+  if (uint8Array.length >= 12 && 
+      uint8Array[0] === 0x52 && uint8Array[1] === 0x49 && 
+      uint8Array[2] === 0x46 && uint8Array[3] === 0x46 &&
+      uint8Array[8] === 0x57 && uint8Array[9] === 0x45 && 
+      uint8Array[10] === 0x42 && uint8Array[11] === 0x50) {
+    return true;
+  }
+
+  // SVG 시그니처 (텍스트 기반)
+  if (uint8Array.length >= 4 && 
+      uint8Array[0] === 0x3C && uint8Array[1] === 0x73 && 
+      uint8Array[2] === 0x76 && uint8Array[3] === 0x67) {
+    return true;
+  }
+
+  return false;
+};
+
+/**
  * 요청/응답 본문을 표시용으로 변환 (Monaco Editor용)
  */
 export const getBodyForDisplay = (body: Uint8Array, dataType: DataType, bodyJson?: any): string => {
   if (dataType === 'Empty') {
     return '';
+  }
+
+  // 이미지 시그니처 재검증: Video로 잘못 분류된 이미지를 Image로 수정
+  if (dataType === 'Video' && verifyImageSignature(body)) {
+    dataType = 'Image';
   }
 
   if (isTextBasedDataType(dataType)) {
