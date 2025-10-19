@@ -3,7 +3,7 @@ import pluginMermaid from "rspress-plugin-mermaid";
 
 export default defineConfig({
   root: ".",
-  base: process.env.NODE_ENV === "production" ? "/cheolsu-proxy/" : "/",
+  base: process.env.NODE_ENV === "production" ? "/proxelar/" : "/",
   title: "Cheolsu Proxy",
   description: "A simple Man In The Middle proxy built with Rust and Tauri",
   lang: "ko",
@@ -221,9 +221,5 @@ export default defineConfig({
         overlay: false,
       },
     },
-  },
-  // 루트 경로를 한국어 index로 리다이렉트
-  redirects: {
-    "/": "/ko/",
   },
 });
