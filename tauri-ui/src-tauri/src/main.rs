@@ -7,7 +7,7 @@ use tracing_subscriber::prelude::*;
 use tracing_subscriber::EnvFilter;
 
 fn main() {
-    // LOG 환경변수가 "true"일 때만 로깅 초기화
+    // Initialize logging only when the LOG environment variable is "true"
     if std::env::var("LOG").unwrap_or_default() == "true" {
         let kst_offset = FixedOffset::east_opt(9 * 3600).unwrap();
         let now = Utc::now().with_timezone(&kst_offset);
