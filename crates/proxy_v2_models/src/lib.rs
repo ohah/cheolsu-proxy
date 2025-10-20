@@ -195,7 +195,8 @@ impl ProxiedRequest {
 
     /// 클라이언트(타우리 UI)용으로 변환
     pub fn for_client(self, cache_dir: Option<&Path>) -> ClientRequest {
-        let (body, file_path) = if self.body.len() >= BODY_FILE_THRESHOLD {
+        let original_body_size = self.body.len();
+        let (body, file_path) = if original_body_size >= BODY_FILE_THRESHOLD {
             // 큰 body는 파일로 저장
             if let Some(cache_dir) = cache_dir {
                 match save_body_to_file(&self.id, &self.body, cache_dir, "request") {
@@ -203,7 +204,7 @@ impl ProxiedRequest {
                         println!(
                             "📁 Request body 저장됨: {} ({} bytes)",
                             path,
-                            self.body.len()
+                            original_body_size
                         );
                         (Bytes::new(), Some(path))
                     }
@@ -231,6 +232,7 @@ impl ProxiedRequest {
             data_type: self.data_type,
             body_json: self.body_json,
             file_path,
+            body_size: original_body_size, // 원본 크기 유지
         }
     }
 }
@@ -252,6 +254,7 @@ pub struct ClientRequest {
     data_type: DataType,
     body_json: Option<serde_json::Value>,
     file_path: Option<String>, // body가 저장된 파일 경로
+    body_size: usize, // 실제 body 크기 (파일 저장 시에도 원본 크기 유지)
 }
 
 impl ClientRequest {
@@ -305,6 +308,11 @@ impl ClientRequest {
     /// body가 저장된 파일 경로 반환
     pub fn file_path(&self) -> &Option<String> {
         &self.file_path
+    }
+
+    /// 실제 body 크기 반환
+    pub fn body_size(&self) -> usize {
+        self.body_size
     }
 }
 
@@ -431,7 +439,8 @@ impl ProxiedResponse {
     /// 클라이언트(타우리 UI)용으로 변환
     pub fn for_client(self, request_id: &str, cache_dir: Option<&Path>) -> ClientResponse {
         let body_to_save = self.decompressed_body.unwrap_or(self.body);
-        let (body, file_path) = if body_to_save.len() >= BODY_FILE_THRESHOLD {
+        let original_body_size = body_to_save.len();
+        let (body, file_path) = if original_body_size >= BODY_FILE_THRESHOLD {
             // 큰 body는 파일로 저장
             if let Some(cache_dir) = cache_dir {
                 match save_body_to_file(request_id, &body_to_save, cache_dir, "response") {
@@ -439,7 +448,7 @@ impl ProxiedResponse {
                         println!(
                             "📁 Response body 저장됨: {} ({} bytes)",
                             path,
-                            body_to_save.len()
+                            original_body_size
                         );
                         (Bytes::new(), Some(path))
                     }
@@ -466,6 +475,7 @@ impl ProxiedResponse {
             data_type: self.data_type,
             body_json: self.body_json,
             file_path,
+            body_size: original_body_size, // 원본 크기 유지
         }
     }
 }
@@ -485,6 +495,7 @@ pub struct ClientResponse {
     data_type: DataType,
     body_json: Option<serde_json::Value>,
     file_path: Option<String>, // body가 저장된 파일 경로
+    body_size: usize, // 실제 body 크기 (파일 저장 시에도 원본 크기 유지)
 }
 
 impl ClientResponse {
@@ -535,6 +546,11 @@ impl ClientResponse {
     /// body가 저장된 파일 경로 반환
     pub fn file_path(&self) -> &Option<String> {
         &self.file_path
+    }
+
+    /// 실제 body 크기 반환
+    pub fn body_size(&self) -> usize {
+        self.body_size
     }
 }
 
