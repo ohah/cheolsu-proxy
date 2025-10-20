@@ -40,6 +40,7 @@ export interface HttpRequest {
   id: string; // 고유 ID 추가
   data_type: DataType; // 데이터 타입 정보 추가
   body_json?: any; // JSON 파싱된 데이터 (JSON 타입인 경우)
+  file_path?: string; // body가 저장된 파일 경로
 }
 
 export interface HttpResponse {
@@ -48,8 +49,10 @@ export interface HttpResponse {
   headers: Record<string, string>;
   body: Uint8Array;
   time: number;
+  id: string; // ClientRequest의 id와 동일
   data_type: DataType; // 데이터 타입 정보 추가
   body_json?: any; // JSON 파싱된 데이터 (JSON 타입인 경우)
+  file_path?: string; // body가 저장된 파일 경로
 }
 
 export interface HttpTransaction {
