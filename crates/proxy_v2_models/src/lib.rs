@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::path::Path;
 
 // Re-export commonly used types
 pub use bytes::Bytes;
@@ -8,6 +9,45 @@ pub use http::{HeaderMap, Method, StatusCode, Uri, Version};
 // Re-export data type module
 pub mod data_type;
 pub use data_type::{decompress_brotli, decompress_gzip, detect_data_type, DataType};
+
+/// Body 크기 임계값 (1MB)
+/// 이 크기 이상의 body는 파일시스템에 저장됩니다
+pub const BODY_FILE_THRESHOLD: usize = 1_048_576; // 1MB
+
+/// Body를 파일로 저장하는 함수
+///
+/// # Arguments
+/// * `id` - 요청/응답의 고유 ID
+/// * `body` - 저장할 body 데이터
+/// * `cache_dir` - 캐시 디렉토리 경로
+/// * `prefix` - 파일명 접두사 ("request" 또는 "response")
+///
+/// # Returns
+/// * `Ok(String)` - 저장된 파일의 전체 경로
+/// * `Err(String)` - 저장 실패 시 에러 메시지
+pub fn save_body_to_file(
+    id: &str,
+    body: &Bytes,
+    cache_dir: &Path,
+    prefix: &str,
+) -> Result<String, String> {
+    use std::fs::File;
+    use std::io::Write;
+
+    // 파일명 생성: {id}_{prefix}.body
+    let filename = format!("{}_{}.body", id, prefix);
+    let file_path = cache_dir.join(filename);
+
+    // 파일 생성 및 쓰기
+    let mut file =
+        File::create(&file_path).map_err(|e| format!("Failed to create body file: {}", e))?;
+
+    file.write_all(body)
+        .map_err(|e| format!("Failed to write body to file: {}", e))?;
+
+    // 전체 경로를 문자열로 변환
+    Ok(file_path.to_string_lossy().to_string())
+}
 
 /// 압축된 body를 해제하는 헬퍼 함수
 fn decompress_body_if_needed(headers: &HeaderMap, body: &Bytes) -> Vec<u8> {
@@ -154,17 +194,43 @@ impl ProxiedRequest {
     }
 
     /// 클라이언트(타우리 UI)용으로 변환
-    pub fn for_client(self) -> ClientRequest {
+    pub fn for_client(self, cache_dir: Option<&Path>) -> ClientRequest {
+        let (body, file_path) = if self.body.len() >= BODY_FILE_THRESHOLD {
+            // 큰 body는 파일로 저장
+            if let Some(cache_dir) = cache_dir {
+                match save_body_to_file(&self.id, &self.body, cache_dir, "request") {
+                    Ok(path) => {
+                        println!(
+                            "📁 Request body 저장됨: {} ({} bytes)",
+                            path,
+                            self.body.len()
+                        );
+                        (Bytes::new(), Some(path))
+                    }
+                    Err(e) => {
+                        eprintln!("⚠️ Request body 파일 저장 실패: {}", e);
+                        (self.body, None)
+                    }
+                }
+            } else {
+                (self.body, None)
+            }
+        } else {
+            // 작은 body는 메모리에 유지
+            (self.body, None)
+        };
+
         ClientRequest {
             method: self.method,
             uri: self.uri,
             version: self.version,
             headers: self.headers,
-            body: self.body,
+            body,
             time: self.time,
             id: self.id,
             data_type: self.data_type,
             body_json: self.body_json,
+            file_path,
         }
     }
 }
@@ -185,6 +251,7 @@ pub struct ClientRequest {
     id: String,
     data_type: DataType,
     body_json: Option<serde_json::Value>,
+    file_path: Option<String>, // body가 저장된 파일 경로
 }
 
 impl ClientRequest {
@@ -233,6 +300,11 @@ impl ClientRequest {
     /// JSON 파싱된 데이터 반환 (JSON 타입인 경우)
     pub fn body_json(&self) -> &Option<serde_json::Value> {
         &self.body_json
+    }
+
+    /// body가 저장된 파일 경로 반환
+    pub fn file_path(&self) -> &Option<String> {
+        &self.file_path
     }
 }
 
@@ -357,15 +429,43 @@ impl ProxiedResponse {
     }
 
     /// 클라이언트(타우리 UI)용으로 변환
-    pub fn for_client(self) -> ClientResponse {
+    pub fn for_client(self, request_id: &str, cache_dir: Option<&Path>) -> ClientResponse {
+        let body_to_save = self.decompressed_body.unwrap_or(self.body);
+        let (body, file_path) = if body_to_save.len() >= BODY_FILE_THRESHOLD {
+            // 큰 body는 파일로 저장
+            if let Some(cache_dir) = cache_dir {
+                match save_body_to_file(request_id, &body_to_save, cache_dir, "response") {
+                    Ok(path) => {
+                        println!(
+                            "📁 Response body 저장됨: {} ({} bytes)",
+                            path,
+                            body_to_save.len()
+                        );
+                        (Bytes::new(), Some(path))
+                    }
+                    Err(e) => {
+                        eprintln!("⚠️ Response body 파일 저장 실패: {}", e);
+                        (body_to_save, None)
+                    }
+                }
+            } else {
+                (body_to_save, None)
+            }
+        } else {
+            // 작은 body는 메모리에 유지
+            (body_to_save, None)
+        };
+
         ClientResponse {
             status: self.status,
             version: self.version,
             headers: self.headers,
-            body: self.decompressed_body.unwrap_or(self.body),
+            body,
             time: self.time,
+            id: request_id.to_string(),
             data_type: self.data_type,
             body_json: self.body_json,
+            file_path,
         }
     }
 }
@@ -381,8 +481,10 @@ pub struct ClientResponse {
     headers: HeaderMap,
     body: Bytes,
     time: i64,
+    id: String, // ClientRequest의 id와 동일
     data_type: DataType,
     body_json: Option<serde_json::Value>,
+    file_path: Option<String>, // body가 저장된 파일 경로
 }
 
 impl ClientResponse {
@@ -423,6 +525,16 @@ impl ClientResponse {
     /// JSON 파싱된 데이터 반환 (JSON 타입인 경우)
     pub fn body_json(&self) -> &Option<serde_json::Value> {
         &self.body_json
+    }
+
+    /// ID 반환
+    pub fn id(&self) -> &str {
+        &self.id
+    }
+
+    /// body가 저장된 파일 경로 반환
+    pub fn file_path(&self) -> &Option<String> {
+        &self.file_path
     }
 }
 
