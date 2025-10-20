@@ -26,7 +26,7 @@ const NOT_BEFORE_OFFSET: i64 = 60;
 ///
 /// # Returns
 /// - macOS: `~/Library/Application Support/com.cheolsu-proxy/`
-/// - Windows: `%APPDATA%/com.cheolsu-proxy/` (향후 구현)
+/// - Windows: `%APPDATA%/com.cheolsu-proxy/`
 /// - Linux: `~/.config/com.cheolsu-proxy/` (향후 구현)
 fn get_ca_storage_dir() -> Result<PathBuf, String> {
     #[cfg(target_os = "macos")]
@@ -47,9 +47,200 @@ fn get_ca_storage_dir() -> Result<PathBuf, String> {
         Ok(dir)
     }
 
-    #[cfg(not(target_os = "macos"))]
+    #[cfg(target_os = "windows")]
     {
-        Err("Currently only macOS is supported".to_string())
+        let local_app_data = std::env::var("LOCALAPPDATA")
+            .map_err(|_| "Could not find LOCALAPPDATA environment variable")?;
+
+        // 앱 identifier (고정값)
+        let identifier = "com.cheolsu-proxy";
+
+        let dir = PathBuf::from(local_app_data).join(identifier);
+
+        // 디렉토리 생성
+        fs::create_dir_all(&dir).map_err(|e| format!("Failed to create directory: {}", e))?;
+
+        Ok(dir)
+    }
+
+    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+    {
+        Err("Currently only macOS and Windows are supported".to_string())
+    }
+}
+
+/// 캐시 저장 디렉토리 경로를 반환합니다.
+///
+/// # Returns
+/// - macOS: `~/Library/Caches/com.cheolsu-proxy/data/{session_hash}/`
+/// - Windows: `%LOCALAPPDATA%/com.cheolsu-proxy/Cache/data/{session_hash}/`
+/// - Linux: `~/.cache/com.cheolsu-proxy/data/{session_hash}/` (향후 구현)
+pub fn get_cache_storage_dir(session_hash: &str) -> Result<PathBuf, String> {
+    #[cfg(target_os = "macos")]
+    {
+        let home = std::env::var("HOME").map_err(|_| "Could not find HOME environment variable")?;
+
+        // 앱 identifier (고정값)
+        let identifier = "com.cheolsu-proxy";
+
+        let dir = PathBuf::from(home)
+            .join("Library")
+            .join("Caches")
+            .join(identifier)
+            .join("data")
+            .join(session_hash);
+
+        // 디렉토리 생성
+        fs::create_dir_all(&dir).map_err(|e| format!("Failed to create cache directory: {}", e))?;
+
+        Ok(dir)
+    }
+
+    #[cfg(target_os = "windows")]
+    {
+        let local_app_data = std::env::var("LOCALAPPDATA")
+            .map_err(|_| "Could not find LOCALAPPDATA environment variable")?;
+
+        // 앱 identifier (고정값)
+        let identifier = "com.cheolsu-proxy";
+
+        let dir = PathBuf::from(local_app_data)
+            .join(identifier)
+            .join("Cache")
+            .join("data")
+            .join(session_hash);
+
+        // 디렉토리 생성
+        fs::create_dir_all(&dir).map_err(|e| format!("Failed to create cache directory: {}", e))?;
+
+        Ok(dir)
+    }
+
+    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+    {
+        Err("Currently only macOS and Windows are supported".to_string())
+    }
+}
+
+/// 세션 해시를 생성합니다.
+/// 타임스탬프 + UUID 일부를 사용하여 고유성 보장
+pub fn generate_session_hash() -> String {
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    let timestamp = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_nanos();
+
+    let uuid_part = uuid::Uuid::new_v4().to_string().replace('-', "");
+
+    format!("{}_{}", timestamp, &uuid_part[..8])
+}
+
+/// 앱 종료 시 현재 세션의 캐시만 삭제
+pub fn clean_cache_on_exit(session_hash: &str) -> Result<(), String> {
+    let cache_dir = get_cache_storage_dir(session_hash)?;
+
+    if cache_dir.exists() {
+        fs::remove_dir_all(&cache_dir)
+            .map_err(|e| format!("Failed to remove session cache directory: {}", e))?;
+        println!("✅ 세션 캐시 정리 완료: {}", cache_dir.display());
+    }
+
+    Ok(())
+}
+
+/// 지정된 일수보다 오래된 캐시 폴더 삭제
+pub fn clean_old_cache(days: u64) -> Result<(), String> {
+    let base_cache_dir = get_base_cache_dir()?;
+
+    if !base_cache_dir.exists() {
+        return Ok(());
+    }
+
+    let cutoff_time = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs()
+        - (days * 24 * 60 * 60);
+
+    let mut cleaned_count = 0;
+
+    if let Ok(entries) = fs::read_dir(&base_cache_dir) {
+        for entry in entries.flatten() {
+            if let Ok(metadata) = entry.metadata() {
+                if let Ok(modified) = metadata.modified() {
+                    if let Ok(modified_secs) = modified.duration_since(std::time::UNIX_EPOCH) {
+                        if modified_secs.as_secs() < cutoff_time {
+                            if let Err(e) = fs::remove_dir_all(entry.path()) {
+                                eprintln!(
+                                    "⚠️ 오래된 캐시 삭제 실패: {} - {}",
+                                    entry.path().display(),
+                                    e
+                                );
+                            } else {
+                                cleaned_count += 1;
+                                println!("🗑️ 오래된 캐시 삭제: {}", entry.path().display());
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    println!("✅ 오래된 캐시 정리 완료: {} 개 폴더 삭제", cleaned_count);
+    Ok(())
+}
+
+/// 모든 캐시 데이터 삭제 (수동 정리용)
+pub fn clean_all_cache() -> Result<(), String> {
+    let base_cache_dir = get_base_cache_dir()?;
+
+    if !base_cache_dir.exists() {
+        println!(
+            "ℹ️ 캐시 디렉토리가 존재하지 않습니다: {}",
+            base_cache_dir.display()
+        );
+        return Ok(());
+    }
+
+    fs::remove_dir_all(&base_cache_dir)
+        .map_err(|e| format!("Failed to remove all cache directories: {}", e))?;
+
+    println!("✅ 모든 캐시 정리 완료: {}", base_cache_dir.display());
+    Ok(())
+}
+
+/// 기본 캐시 디렉토리 경로를 반환합니다 (세션 해시 제외)
+fn get_base_cache_dir() -> Result<PathBuf, String> {
+    #[cfg(target_os = "macos")]
+    {
+        let home = std::env::var("HOME").map_err(|_| "Could not find HOME environment variable")?;
+        let identifier = "com.cheolsu-proxy";
+
+        Ok(PathBuf::from(home)
+            .join("Library")
+            .join("Caches")
+            .join(identifier)
+            .join("data"))
+    }
+
+    #[cfg(target_os = "windows")]
+    {
+        let local_app_data = std::env::var("LOCALAPPDATA")
+            .map_err(|_| "Could not find LOCALAPPDATA environment variable")?;
+        let identifier = "com.cheolsu-proxy";
+
+        Ok(PathBuf::from(local_app_data)
+            .join(identifier)
+            .join("Cache")
+            .join("data"))
+    }
+
+    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+    {
+        Err("Currently only macOS and Windows are supported".to_string())
     }
 }
 
