@@ -35,7 +35,7 @@ export interface HttpRequest {
   uri: string;
   version: string;
   headers: Record<string, string>;
-  body: Uint8Array;
+  body: Uint8Array | null; // 파일로 저장된 경우 null
   time: number;
   id: string; // 고유 ID 추가
   data_type: DataType; // 데이터 타입 정보 추가
@@ -48,7 +48,7 @@ export interface HttpResponse {
   status: number;
   version: string;
   headers: Record<string, string>;
-  body: Uint8Array;
+  body: Uint8Array | null; // 파일로 저장된 경우 null
   time: number;
   id: string; // ClientRequest의 id와 동일
   data_type: DataType; // 데이터 타입 정보 추가

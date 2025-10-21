@@ -1,4 +1,4 @@
-import { Copy } from 'lucide-react';
+import { Copy, FileText, Loader2 } from 'lucide-react';
 import { writeImage, writeText } from '@tauri-apps/plugin-clipboard-manager';
 
 import type { HttpTransaction } from '@/entities/proxy';
@@ -11,6 +11,7 @@ import { getBodyForDisplay, createImageDataUrl } from '../lib/utils';
 import { dataTypeToMonacoLanguage, isImageDataType } from '@/entities/proxy/model/data-type';
 import { toast } from 'sonner';
 import { ImagePreview } from './image-preview';
+import { useBodyFile } from '@/hooks/use-body-file';
 
 interface TransactionResponseProps {
   transaction: HttpTransaction;
@@ -23,23 +24,46 @@ export const TransactionResponse = ({ transaction, isEditing = false, form }: Tr
 
   if (!response) return null;
 
+  // 파일에서 body를 읽어오는 훅
+  const {
+    body: fileBody,
+    loading: fileLoading,
+    error: fileError,
+  } = useBodyFile(response.file_path, !!response.file_path);
+
+  // 실제 사용할 body 데이터 (파일이 있으면 파일에서 읽어온 것, 없으면 메모리의 것)
+  const actualBody = response.file_path ? fileBody : response.body || null;
+
   const getResponseText = () => {
-    return getBodyForDisplay(response.body, response.data_type, response.body_json);
+    // 파일이 있고 로딩 중이면 로딩 메시지 표시
+    if (response.file_path && fileLoading) {
+      return '파일을 로딩 중입니다...';
+    }
+
+    // 파일이 있고 에러가 발생했으면 에러 메시지 표시
+    if (response.file_path && fileError) {
+      return `파일 로딩 실패: ${fileError}`;
+    }
+
+    if (!actualBody || actualBody.length === 0) {
+      return '';
+    }
+    return getBodyForDisplay(actualBody, response.data_type, response.body_json);
   };
 
   const responseText = getResponseText();
 
   const handleCopy = async () => {
-    if (isImageDataType(response.data_type)) {
+    if (actualBody && actualBody.length > 0 && isImageDataType(response.data_type)) {
       try {
         console.log('Attempting to copy image:', {
           dataType: response.data_type,
-          dataLength: response.body.length,
-          dataFirst10Bytes: Array.from(response.body.slice(0, 10)),
+          dataLength: actualBody.length,
+          dataFirst10Bytes: Array.from(actualBody.slice(0, 10)),
         });
 
         // Tauri 클립보드 매니저를 사용하여 이미지 복사
-        await writeImage(response.body);
+        await writeImage(actualBody);
         console.log('Image copied successfully via Tauri clipboard manager');
         toast.success('Image copied to clipboard');
       } catch (error) {
@@ -49,7 +73,7 @@ export const TransactionResponse = ({ transaction, isEditing = false, form }: Tr
         // Tauri 클립보드 실패 시 다운로드로 fallback
         try {
           console.log('Attempting fallback download...');
-          const dataUrl = createImageDataUrl(response.body, response.data_type);
+          const dataUrl = createImageDataUrl(actualBody, response.data_type);
           if (dataUrl) {
             const link = document.createElement('a');
             link.href = dataUrl;
@@ -88,16 +112,27 @@ export const TransactionResponse = ({ transaction, isEditing = false, form }: Tr
   return (
     <Card className="gap-0 flex flex-col min-h-0 flex-1">
       <CardHeader className="flex-shrink-0">
-        <div className="flex items-center justify-end gap-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {response.file_path && (
+              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                <FileText className="w-4 h-4" />
+                {/** 디버깅용 지울 예정 @ohah */}
+                <span>파일에서 로드됨</span>
+                {fileLoading && <Loader2 className="w-3 h-3 animate-spin" />}
+                {fileError && <span className="text-destructive">오류</span>}
+              </div>
+            )}
+          </div>
           <Button variant="ghost" size="sm" onClick={handleCopy}>
             <Copy className="w-4 h-4" />
           </Button>
         </div>
       </CardHeader>
       <CardContent className="flex-1 p-0 min-h-0">
-        {isImageDataType(response.data_type) ? (
+        {actualBody && actualBody.length > 0 && isImageDataType(response.data_type) ? (
           <div className="h-[calc(100vh-300px)] border rounded-md overflow-auto p-4">
-            <ImagePreview data={response.body} dataType={response.data_type} className="h-full" />
+            <ImagePreview data={actualBody} dataType={response.data_type} className="h-full" />
           </div>
         ) : form && isEditing ? (
           <form.Field

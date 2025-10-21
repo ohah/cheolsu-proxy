@@ -8,7 +8,9 @@ use proxy::{
     get_proxy_status_command, proxy_status, set_proxy, start_proxy, stop_proxy, store_changed,
     ProxyState,
 };
-use proxy_v2::{proxy_v2_status, start_proxy_v2, stop_proxy_v2, store_changed_v2, ProxyV2State};
+use proxy_v2::{
+    proxy_v2_status, read_body_file, start_proxy_v2, stop_proxy_v2, store_changed_v2, ProxyV2State,
+};
 use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -62,7 +64,8 @@ pub fn run() {
                 stop_proxy_v2,
                 proxy_v2_status,
                 store_changed_v2,
-                get_proxy_status_command
+                get_proxy_status_command,
+                read_body_file
             ])
             .run(tauri::generate_context!())
             .expect("error while running tauri application");

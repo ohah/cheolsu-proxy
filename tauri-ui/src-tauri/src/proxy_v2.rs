@@ -21,6 +21,7 @@ use proxyapi_v2::{
 };
 use regex::Regex;
 use std::error::Error;
+use std::fs;
 use std::net::SocketAddr;
 use std::sync::mpsc;
 use std::sync::Arc;
@@ -1172,6 +1173,12 @@ pub async fn clean_proxy_cache() -> Result<String, String> {
         Ok(_) => Ok("모든 캐시가 성공적으로 정리되었습니다".to_string()),
         Err(e) => Err(format!("캐시 정리 실패: {}", e)),
     }
+}
+
+/// 파일에서 body 데이터 읽기
+#[tauri::command]
+pub async fn read_body_file(file_path: String) -> Result<Vec<u8>, String> {
+    fs::read(&file_path).map_err(|e| format!("파일 읽기 실패: {} - {}", file_path, e))
 }
 
 /// 오래된 캐시 정리 명령어

@@ -29,3 +29,8 @@ export async function stopProxyV2(): Promise<void> {
 export async function getProxyV2Status(): Promise<boolean> {
   return invoke('proxy_v2_status');
 }
+
+export async function readBodyFile(filePath: string): Promise<Uint8Array> {
+  const data = await invoke<number[]>('read_body_file', { filePath });
+  return new Uint8Array(data);
+}

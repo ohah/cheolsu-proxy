@@ -10,9 +10,9 @@ pub use http::{HeaderMap, Method, StatusCode, Uri, Version};
 pub mod data_type;
 pub use data_type::{decompress_brotli, decompress_gzip, detect_data_type, DataType};
 
-/// Body 크기 임계값 (1MB)
+/// Body 크기 임계값 (테스트용: 0 초과)
 /// 이 크기 이상의 body는 파일시스템에 저장됩니다
-pub const BODY_FILE_THRESHOLD: usize = 1_048_576; // 1MB
+pub const BODY_FILE_THRESHOLD: usize = 0; // 테스트용: 모든 body를 파일로 저장, 1_048_576 1MB
 
 /// Body를 파일로 저장하는 함수
 ///
@@ -203,22 +203,21 @@ impl ProxiedRequest {
                     Ok(path) => {
                         println!(
                             "📁 Request body 저장됨: {} ({} bytes)",
-                            path,
-                            original_body_size
+                            path, original_body_size
                         );
-                        (Bytes::new(), Some(path))
+                        (None, Some(path)) // 파일로 저장했으므로 body는 None
                     }
                     Err(e) => {
                         eprintln!("⚠️ Request body 파일 저장 실패: {}", e);
-                        (self.body, None)
+                        (Some(self.body), None)
                     }
                 }
             } else {
-                (self.body, None)
+                (Some(self.body), None)
             }
         } else {
             // 작은 body는 메모리에 유지
-            (self.body, None)
+            (Some(self.body), None)
         };
 
         ClientRequest {
@@ -248,13 +247,13 @@ pub struct ClientRequest {
     version: Version,
     #[serde(with = "http_serde::header_map")]
     headers: HeaderMap,
-    body: Bytes,
+    body: Option<Bytes>, // 파일로 저장된 경우 None
     time: i64,
     id: String,
     data_type: DataType,
     body_json: Option<serde_json::Value>,
     file_path: Option<String>, // body가 저장된 파일 경로
-    body_size: usize, // 실제 body 크기 (파일 저장 시에도 원본 크기 유지)
+    body_size: usize,          // 실제 body 크기 (파일 저장 시에도 원본 크기 유지)
 }
 
 impl ClientRequest {
@@ -274,8 +273,8 @@ impl ClientRequest {
         &self.headers
     }
 
-    pub fn body(&self) -> &Bytes {
-        &self.body
+    pub fn body(&self) -> Option<&Bytes> {
+        self.body.as_ref()
     }
 
     pub fn time(&self) -> i64 {
@@ -447,22 +446,21 @@ impl ProxiedResponse {
                     Ok(path) => {
                         println!(
                             "📁 Response body 저장됨: {} ({} bytes)",
-                            path,
-                            original_body_size
+                            path, original_body_size
                         );
-                        (Bytes::new(), Some(path))
+                        (None, Some(path)) // 파일로 저장했으므로 body는 None
                     }
                     Err(e) => {
                         eprintln!("⚠️ Response body 파일 저장 실패: {}", e);
-                        (body_to_save, None)
+                        (Some(body_to_save), None)
                     }
                 }
             } else {
-                (body_to_save, None)
+                (Some(body_to_save), None)
             }
         } else {
             // 작은 body는 메모리에 유지
-            (body_to_save, None)
+            (Some(body_to_save), None)
         };
 
         ClientResponse {
@@ -489,13 +487,13 @@ pub struct ClientResponse {
     version: Version,
     #[serde(with = "http_serde::header_map")]
     headers: HeaderMap,
-    body: Bytes,
+    body: Option<Bytes>, // 파일로 저장된 경우 None
     time: i64,
     id: String, // ClientRequest의 id와 동일
     data_type: DataType,
     body_json: Option<serde_json::Value>,
     file_path: Option<String>, // body가 저장된 파일 경로
-    body_size: usize, // 실제 body 크기 (파일 저장 시에도 원본 크기 유지)
+    body_size: usize,          // 실제 body 크기 (파일 저장 시에도 원본 크기 유지)
 }
 
 impl ClientResponse {
@@ -511,8 +509,8 @@ impl ClientResponse {
         &self.headers
     }
 
-    pub fn body(&self) -> &Bytes {
-        &self.body
+    pub fn body(&self) -> Option<&Bytes> {
+        self.body.as_ref()
     }
 
     pub fn time(&self) -> i64 {
