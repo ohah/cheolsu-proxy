@@ -1,5 +1,7 @@
 import { isImageDataType, isVideoDataType, isAudioDataType } from '@/entities/proxy/model/data-type';
 import type { DataType } from '@/entities/proxy/model/data-type';
+import { readFile } from '@tauri-apps/plugin-fs';
+import { useState, useEffect, useMemo } from 'react';
 
 interface MediaPreviewProps {
   data?: Uint8Array; // 파일 경로가 있으면 선택적
@@ -203,23 +205,95 @@ function getMimeTypeFromExtension(extension: string): string {
 }
 
 export const MediaPreview = ({ data, dataType, className, mimeType, filePath }: MediaPreviewProps) => {
-  // 파일 경로가 있으면 직접 사용, 없으면 Blob URL 생성
-  const mediaUrl = filePath 
-    ? `file://${filePath}` // 파일 경로 직접 사용
-    : (() => {
-        // MIME 타입 결정: 전달받은 mimeType -> 파일 헤더 감지 순으로 시도
-        let detectedMimeType = mimeType && mimeType !== 'application/octet-stream' ? mimeType : null;
-        
-        if (!detectedMimeType && data) {
-          // 파일 헤더에서 확장자 감지 후 MIME 타입으로 변환
-          const detectedExtension = detectFileExtensionFromHeader(data);
-          detectedMimeType = detectedExtension ? getMimeTypeFromExtension(detectedExtension) : 'application/octet-stream';
+  const [mediaUrl, setMediaUrl] = useState<string>('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadMedia = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        let fileData: Uint8Array;
+        let detectedMimeType: string;
+
+        if (filePath) {
+          // Tauri File System API로 파일 직접 읽기
+          const rawData = await readFile(filePath);
+          fileData = new Uint8Array(rawData);
+          
+          // MIME 타입 결정
+          detectedMimeType = mimeType && mimeType !== 'application/octet-stream' ? mimeType : '';
+          
+          if (!detectedMimeType) {
+            const detectedExtension = detectFileExtensionFromHeader(fileData);
+            detectedMimeType = detectedExtension ? getMimeTypeFromExtension(detectedExtension) : 'application/octet-stream';
+          }
+        } else if (data) {
+          // 기존 방식 (메모리 데이터)
+          fileData = data;
+          detectedMimeType = mimeType && mimeType !== 'application/octet-stream' ? mimeType : '';
+          
+          if (!detectedMimeType) {
+            const detectedExtension = detectFileExtensionFromHeader(data);
+            detectedMimeType = detectedExtension ? getMimeTypeFromExtension(detectedExtension) : 'application/octet-stream';
+          }
+        } else {
+          throw new Error('파일 데이터가 없습니다');
         }
 
-        // Uint8Array를 Blob으로 변환 (감지된 MIME 타입 사용)
-        const blob = new Blob([data!], { type: detectedMimeType || 'application/octet-stream' });
-        return URL.createObjectURL(blob);
-      })();
+        // Blob 생성
+        const blob = new Blob([fileData], { type: detectedMimeType });
+        const url = URL.createObjectURL(blob);
+        setMediaUrl(url);
+      } catch (err) {
+        console.error('미디어 로드 실패:', err);
+        setError(err instanceof Error ? err.message : '미디어 로드 실패');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadMedia();
+
+    // Cleanup
+    return () => {
+      if (mediaUrl) {
+        URL.revokeObjectURL(mediaUrl);
+      }
+    };
+  }, [filePath, data, mimeType]);
+
+  if (loading) {
+    return (
+      <div className={className}>
+        <div className="flex items-center justify-center h-full">
+          <div className="text-gray-500">로딩 중...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={className}>
+        <div className="flex items-center justify-center h-full">
+          <div className="text-red-500">오류: {error}</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!mediaUrl) {
+    return (
+      <div className={className}>
+        <div className="flex items-center justify-center h-full">
+          <div className="text-gray-500">미디어를 로드할 수 없습니다</div>
+        </div>
+      </div>
+    );
+  }
 
   if (isImageDataType(dataType)) {
     return (
@@ -228,8 +302,8 @@ export const MediaPreview = ({ data, dataType, className, mimeType, filePath }: 
           src={mediaUrl}
           alt="Image preview"
           className="max-w-full max-h-full object-contain"
-          onLoad={() => !filePath && URL.revokeObjectURL(mediaUrl)}
-          onError={() => !filePath && URL.revokeObjectURL(mediaUrl)}
+          onLoad={() => URL.revokeObjectURL(mediaUrl)}
+          onError={() => URL.revokeObjectURL(mediaUrl)}
         />
       </div>
     );
@@ -242,8 +316,8 @@ export const MediaPreview = ({ data, dataType, className, mimeType, filePath }: 
           src={mediaUrl}
           controls
           className="max-w-full max-h-full"
-          onLoadedData={() => !filePath && URL.revokeObjectURL(mediaUrl)}
-          onError={() => !filePath && URL.revokeObjectURL(mediaUrl)}
+          onLoadedData={() => URL.revokeObjectURL(mediaUrl)}
+          onError={() => URL.revokeObjectURL(mediaUrl)}
         >
           Your browser does not support the video tag.
         </video>
@@ -258,8 +332,8 @@ export const MediaPreview = ({ data, dataType, className, mimeType, filePath }: 
           src={mediaUrl}
           controls
           className="w-full"
-          onLoadedData={() => !filePath && URL.revokeObjectURL(mediaUrl)}
-          onError={() => !filePath && URL.revokeObjectURL(mediaUrl)}
+          onLoadedData={() => URL.revokeObjectURL(mediaUrl)}
+          onError={() => URL.revokeObjectURL(mediaUrl)}
         >
           Your browser does not support the audio tag.
         </audio>
