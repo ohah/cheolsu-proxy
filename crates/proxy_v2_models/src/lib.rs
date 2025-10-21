@@ -17,7 +17,10 @@ pub const BODY_FILE_THRESHOLD: usize = 0; // 테스트용: 모든 body를 파일
 /// 미디어 파일 타입인지 확인하는 함수
 /// 이미지, 비디오, 오디오는 무조건 파일로 저장
 pub fn is_media_data_type(data_type: &DataType) -> bool {
-    matches!(data_type, DataType::Image | DataType::Video | DataType::Audio)
+    matches!(
+        data_type,
+        DataType::Image | DataType::Video | DataType::Audio
+    )
 }
 
 /// Body를 파일로 저장하는 함수
@@ -27,6 +30,7 @@ pub fn is_media_data_type(data_type: &DataType) -> bool {
 /// * `body` - 저장할 body 데이터
 /// * `cache_dir` - 캐시 디렉토리 경로
 /// * `prefix` - 파일명 접두사 ("request" 또는 "response")
+/// * `data_type` - 데이터 타입 (미디어 파일의 경우 확장자 포함)
 ///
 /// # Returns
 /// * `Ok(String)` - 저장된 파일의 전체 경로
@@ -36,12 +40,20 @@ pub fn save_body_to_file(
     body: &Bytes,
     cache_dir: &Path,
     prefix: &str,
+    data_type: &DataType,
 ) -> Result<String, String> {
     use std::fs::File;
     use std::io::Write;
 
-    // 파일명 생성: {id}_{prefix}.body
-    let filename = format!("{}_{}.body", id, prefix);
+    // 미디어 파일의 경우 확장자 포함
+    let extension = match data_type {
+        DataType::Image => "img",
+        DataType::Video => "video", 
+        DataType::Audio => "audio",
+        _ => "body",
+    };
+    
+    let filename = format!("{}_{}.{}", id, prefix, extension);
     let file_path = cache_dir.join(filename);
 
     // 파일 생성 및 쓰기
@@ -202,34 +214,35 @@ impl ProxiedRequest {
     /// 클라이언트(타우리 UI)용으로 변환
     pub fn for_client(self, cache_dir: Option<&Path>) -> ClientRequest {
         let original_body_size = self.body.len();
-        let (body, file_path) = if original_body_size >= BODY_FILE_THRESHOLD || is_media_data_type(&self.data_type) {
-            // 큰 body이거나 미디어 파일은 파일로 저장
-            if let Some(cache_dir) = cache_dir {
-                match save_body_to_file(&self.id, &self.body, cache_dir, "request") {
-                    Ok(path) => {
-                        let reason = if is_media_data_type(&self.data_type) {
-                            "미디어 파일"
-                        } else {
-                            "크기 초과"
-                        };
-                        println!(
-                            "📁 Request body 저장됨 ({}): {} ({} bytes)",
-                            reason, path, original_body_size
-                        );
-                        (None, Some(path)) // 파일로 저장했으므로 body는 None
+        let (body, file_path) =
+            if original_body_size >= BODY_FILE_THRESHOLD || is_media_data_type(&self.data_type) {
+                // 큰 body이거나 미디어 파일은 파일로 저장
+                if let Some(cache_dir) = cache_dir {
+                    match save_body_to_file(&self.id, &self.body, cache_dir, "request", &self.data_type) {
+                        Ok(path) => {
+                            let reason = if is_media_data_type(&self.data_type) {
+                                "미디어 파일"
+                            } else {
+                                "크기 초과"
+                            };
+                            println!(
+                                "📁 Request body 저장됨 ({}): {} ({} bytes)",
+                                reason, path, original_body_size
+                            );
+                            (None, Some(path)) // 파일로 저장했으므로 body는 None
+                        }
+                        Err(e) => {
+                            eprintln!("⚠️ Request body 파일 저장 실패: {}", e);
+                            (Some(self.body), None)
+                        }
                     }
-                    Err(e) => {
-                        eprintln!("⚠️ Request body 파일 저장 실패: {}", e);
-                        (Some(self.body), None)
-                    }
+                } else {
+                    (Some(self.body), None)
                 }
             } else {
+                // 작은 body는 메모리에 유지
                 (Some(self.body), None)
-            }
-        } else {
-            // 작은 body는 메모리에 유지
-            (Some(self.body), None)
-        };
+            };
 
         ClientRequest {
             method: self.method,
@@ -450,34 +463,35 @@ impl ProxiedResponse {
     pub fn for_client(self, request_id: &str, cache_dir: Option<&Path>) -> ClientResponse {
         let body_to_save = self.decompressed_body.unwrap_or(self.body);
         let original_body_size = body_to_save.len();
-        let (body, file_path) = if original_body_size >= BODY_FILE_THRESHOLD || is_media_data_type(&self.data_type) {
-            // 큰 body이거나 미디어 파일은 파일로 저장
-            if let Some(cache_dir) = cache_dir {
-                match save_body_to_file(request_id, &body_to_save, cache_dir, "response") {
-                    Ok(path) => {
-                        let reason = if is_media_data_type(&self.data_type) {
-                            "미디어 파일"
-                        } else {
-                            "크기 초과"
-                        };
-                        println!(
-                            "📁 Response body 저장됨 ({}): {} ({} bytes)",
-                            reason, path, original_body_size
-                        );
-                        (None, Some(path)) // 파일로 저장했으므로 body는 None
+        let (body, file_path) =
+            if original_body_size >= BODY_FILE_THRESHOLD || is_media_data_type(&self.data_type) {
+                // 큰 body이거나 미디어 파일은 파일로 저장
+                if let Some(cache_dir) = cache_dir {
+                    match save_body_to_file(request_id, &body_to_save, cache_dir, "response", &self.data_type) {
+                        Ok(path) => {
+                            let reason = if is_media_data_type(&self.data_type) {
+                                "미디어 파일"
+                            } else {
+                                "크기 초과"
+                            };
+                            println!(
+                                "📁 Response body 저장됨 ({}): {} ({} bytes)",
+                                reason, path, original_body_size
+                            );
+                            (None, Some(path)) // 파일로 저장했으므로 body는 None
+                        }
+                        Err(e) => {
+                            eprintln!("⚠️ Response body 파일 저장 실패: {}", e);
+                            (Some(body_to_save), None)
+                        }
                     }
-                    Err(e) => {
-                        eprintln!("⚠️ Response body 파일 저장 실패: {}", e);
-                        (Some(body_to_save), None)
-                    }
+                } else {
+                    (Some(body_to_save), None)
                 }
             } else {
+                // 작은 body는 메모리에 유지
                 (Some(body_to_save), None)
-            }
-        } else {
-            // 작은 body는 메모리에 유지
-            (Some(body_to_save), None)
-        };
+            };
 
         ClientResponse {
             status: self.status,

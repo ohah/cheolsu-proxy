@@ -11,6 +11,7 @@ import { getBodyForDisplay, createImageDataUrl } from '../lib/utils';
 import { dataTypeToMonacoLanguage, isImageDataType, isMediaDataType } from '@/entities/proxy/model/data-type';
 import { toast } from 'sonner';
 import { ImagePreview } from './image-preview';
+import { MediaPreview } from './media-preview';
 import { useBodyFile } from '@/hooks/use-body-file';
 
 interface TransactionResponseProps {
@@ -111,9 +112,7 @@ export const TransactionResponse = ({ transaction, isEditing = false, form }: Tr
             {response.file_path && (
               <div className="flex items-center gap-1 text-sm text-muted-foreground">
                 <FileText className="w-4 h-4" />
-                <span>
-                  {isMediaDataType(response.data_type) ? '미디어 파일' : '파일에서 로드됨'}
-                </span>
+                <span>{isMediaDataType(response.data_type) ? '미디어 파일' : '파일에서 로드됨'}</span>
                 {fileLoading && <Loader2 className="w-3 h-3 animate-spin" />}
                 {fileError && <span className="text-destructive">오류</span>}
               </div>
@@ -125,9 +124,9 @@ export const TransactionResponse = ({ transaction, isEditing = false, form }: Tr
         </div>
       </CardHeader>
       <CardContent className="flex-1 p-0 min-h-0">
-        {actualBody && actualBody.length > 0 && isImageDataType(response.data_type) ? (
+        {actualBody && actualBody.length > 0 && isMediaDataType(response.data_type) && !fileLoading && !fileError ? (
           <div className="h-[calc(100vh-300px)] border rounded-md overflow-auto p-4">
-            <ImagePreview data={actualBody} dataType={response.data_type} className="h-full" />
+            <MediaPreview data={actualBody} dataType={response.data_type} className="h-full" />
           </div>
         ) : form && isEditing ? (
           <form.Field
