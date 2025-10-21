@@ -131,7 +131,13 @@ export const TransactionResponse = ({ transaction, isEditing = false, form }: Tr
       <CardContent className="flex-1 p-0 min-h-0">
         {actualBody && actualBody.length > 0 && isMediaDataType(response.data_type) && !fileLoading && !fileError ? (
           <div className="h-[calc(100vh-300px)] border rounded-md overflow-auto p-4">
-            <MediaPreview data={actualBody} dataType={response.data_type} className="h-full" mimeType={getMimeType()} />
+            <MediaPreview 
+              data={actualBody} 
+              dataType={response.data_type} 
+              className="h-full" 
+              mimeType={getMimeType()}
+              filePath={response.file_path}
+            />
           </div>
         ) : form && isEditing ? (
           <form.Field

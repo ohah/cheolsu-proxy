@@ -2,10 +2,11 @@ import { isImageDataType, isVideoDataType, isAudioDataType } from '@/entities/pr
 import type { DataType } from '@/entities/proxy/model/data-type';
 
 interface MediaPreviewProps {
-  data: Uint8Array;
+  data?: Uint8Array; // 파일 경로가 있으면 선택적
   dataType: DataType;
   className?: string;
   mimeType?: string; // MIME 타입 정보 추가
+  filePath?: string; // 파일 경로 추가
 }
 
 // 파일 헤더를 읽어서 파일 확장자를 감지하는 함수
@@ -201,29 +202,34 @@ function getMimeTypeFromExtension(extension: string): string {
   }
 }
 
-export const MediaPreview = ({ data, dataType, className, mimeType }: MediaPreviewProps) => {
-  // MIME 타입 결정: 전달받은 mimeType -> 파일 헤더 감지 순으로 시도
-  let detectedMimeType = mimeType && mimeType !== 'application/octet-stream' ? mimeType : null;
-  
-  if (!detectedMimeType) {
-    // 파일 헤더에서 확장자 감지 후 MIME 타입으로 변환
-    const detectedExtension = detectFileExtensionFromHeader(data);
-    detectedMimeType = detectedExtension ? getMimeTypeFromExtension(detectedExtension) : 'application/octet-stream';
-  }
+export const MediaPreview = ({ data, dataType, className, mimeType, filePath }: MediaPreviewProps) => {
+  // 파일 경로가 있으면 직접 사용, 없으면 Blob URL 생성
+  const mediaUrl = filePath 
+    ? `file://${filePath}` // 파일 경로 직접 사용
+    : (() => {
+        // MIME 타입 결정: 전달받은 mimeType -> 파일 헤더 감지 순으로 시도
+        let detectedMimeType = mimeType && mimeType !== 'application/octet-stream' ? mimeType : null;
+        
+        if (!detectedMimeType && data) {
+          // 파일 헤더에서 확장자 감지 후 MIME 타입으로 변환
+          const detectedExtension = detectFileExtensionFromHeader(data);
+          detectedMimeType = detectedExtension ? getMimeTypeFromExtension(detectedExtension) : 'application/octet-stream';
+        }
 
-  // Uint8Array를 Blob으로 변환 (감지된 MIME 타입 사용)
-  const blob = new Blob([data], { type: detectedMimeType });
-  const url = URL.createObjectURL(blob);
+        // Uint8Array를 Blob으로 변환 (감지된 MIME 타입 사용)
+        const blob = new Blob([data!], { type: detectedMimeType || 'application/octet-stream' });
+        return URL.createObjectURL(blob);
+      })();
 
   if (isImageDataType(dataType)) {
     return (
       <div className={className}>
         <img
-          src={url}
+          src={mediaUrl}
           alt="Image preview"
           className="max-w-full max-h-full object-contain"
-          onLoad={() => URL.revokeObjectURL(url)}
-          onError={() => URL.revokeObjectURL(url)}
+          onLoad={() => !filePath && URL.revokeObjectURL(mediaUrl)}
+          onError={() => !filePath && URL.revokeObjectURL(mediaUrl)}
         />
       </div>
     );
@@ -233,11 +239,11 @@ export const MediaPreview = ({ data, dataType, className, mimeType }: MediaPrevi
     return (
       <div className={className}>
         <video
-          src={url}
+          src={mediaUrl}
           controls
           className="max-w-full max-h-full"
-          onLoadedData={() => URL.revokeObjectURL(url)}
-          onError={() => URL.revokeObjectURL(url)}
+          onLoadedData={() => !filePath && URL.revokeObjectURL(mediaUrl)}
+          onError={() => !filePath && URL.revokeObjectURL(mediaUrl)}
         >
           Your browser does not support the video tag.
         </video>
@@ -249,11 +255,11 @@ export const MediaPreview = ({ data, dataType, className, mimeType }: MediaPrevi
     return (
       <div className={className}>
         <audio
-          src={url}
+          src={mediaUrl}
           controls
           className="w-full"
-          onLoadedData={() => URL.revokeObjectURL(url)}
-          onError={() => URL.revokeObjectURL(url)}
+          onLoadedData={() => !filePath && URL.revokeObjectURL(mediaUrl)}
+          onError={() => !filePath && URL.revokeObjectURL(mediaUrl)}
         >
           Your browser does not support the audio tag.
         </audio>
