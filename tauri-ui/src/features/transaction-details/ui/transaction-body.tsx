@@ -8,7 +8,7 @@ import type { AppFormInstance } from '../context/form-context';
 import { Editor } from '@monaco-editor/react';
 
 import { getBodyForDisplay, createImageDataUrl } from '../lib/utils';
-import { dataTypeToMonacoLanguage, isImageDataType } from '@/entities/proxy/model/data-type';
+import { dataTypeToMonacoLanguage, isImageDataType, isMediaDataType } from '@/entities/proxy/model/data-type';
 import { toast } from 'sonner';
 import { ImagePreview } from './image-preview';
 import { useBodyFile } from '@/hooks/use-body-file';
@@ -56,12 +56,6 @@ export const TransactionBody = ({ transaction, isEditing = false, form }: Transa
   const handleCopy = async () => {
     if (actualBody && actualBody.length > 0 && isImageDataType(request.data_type)) {
       try {
-        console.log('Attempting to copy image:', {
-          dataType: request.data_type,
-          dataLength: actualBody.length,
-          dataFirst10Bytes: Array.from(actualBody.slice(0, 10)),
-        });
-
         // Tauri 클립보드 매니저를 사용하여 이미지 복사
         await writeImage(actualBody);
         console.log('Image copied successfully via Tauri clipboard manager');
@@ -117,8 +111,9 @@ export const TransactionBody = ({ transaction, isEditing = false, form }: Transa
             {request.file_path && (
               <div className="flex items-center gap-1 text-sm text-muted-foreground">
                 <FileText className="w-4 h-4" />
-                {/** 디버깅용 지울 예정 @ohah */}
-                <span>파일에서 로드됨</span>
+                <span>
+                  {isMediaDataType(request.data_type) ? '미디어 파일' : '파일에서 로드됨'}
+                </span>
                 {fileLoading && <Loader2 className="w-3 h-3 animate-spin" />}
                 {fileError && <span className="text-destructive">오류</span>}
               </div>
