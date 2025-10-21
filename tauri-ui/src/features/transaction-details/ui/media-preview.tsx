@@ -222,22 +222,26 @@ export const MediaPreview = ({ data, dataType, className, mimeType, filePath }: 
           // Tauri File System API로 파일 직접 읽기
           const rawData = await readFile(filePath);
           fileData = new Uint8Array(rawData);
-          
+
           // MIME 타입 결정
           detectedMimeType = mimeType && mimeType !== 'application/octet-stream' ? mimeType : '';
-          
+
           if (!detectedMimeType) {
             const detectedExtension = detectFileExtensionFromHeader(fileData);
-            detectedMimeType = detectedExtension ? getMimeTypeFromExtension(detectedExtension) : 'application/octet-stream';
+            detectedMimeType = detectedExtension
+              ? getMimeTypeFromExtension(detectedExtension)
+              : 'application/octet-stream';
           }
         } else if (data) {
           // 기존 방식 (메모리 데이터)
           fileData = data;
           detectedMimeType = mimeType && mimeType !== 'application/octet-stream' ? mimeType : '';
-          
+
           if (!detectedMimeType) {
             const detectedExtension = detectFileExtensionFromHeader(data);
-            detectedMimeType = detectedExtension ? getMimeTypeFromExtension(detectedExtension) : 'application/octet-stream';
+            detectedMimeType = detectedExtension
+              ? getMimeTypeFromExtension(detectedExtension)
+              : 'application/octet-stream';
           }
         } else {
           throw new Error('파일 데이터가 없습니다');

@@ -16,7 +16,8 @@
       "allow": [
         "$APPDATA/**",
         "$APPCONFIG/**",
-        "$APPCONFIGDATA/**"
+        "$APPCONFIGDATA/**",
+        "$APPCACHE/**"
       ]
     },
     "clipboard-manager:allow-write-text",

@@ -131,10 +131,10 @@ export const TransactionBody = ({ transaction, isEditing = false, form }: Transa
       <CardContent className="flex-1 p-0 min-h-0">
         {actualBody && actualBody.length > 0 && isMediaDataType(request.data_type) && !fileLoading && !fileError ? (
           <div className="h-[calc(100vh-300px)] border rounded-md overflow-auto p-4">
-            <MediaPreview 
-              data={request.file_path ? undefined : actualBody} 
-              dataType={request.data_type} 
-              className="h-full" 
+            <MediaPreview
+              data={request.file_path ? undefined : actualBody}
+              dataType={request.data_type}
+              className="h-full"
               mimeType={getMimeType()}
               filePath={request.file_path}
             />
