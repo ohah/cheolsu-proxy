@@ -23,6 +23,66 @@ pub fn is_media_data_type(data_type: &DataType) -> bool {
     )
 }
 
+/// MIME 타입에서 파일 확장자를 추출하는 함수
+pub fn get_extension_from_mime_type(mime_type: &str) -> &'static str {
+    match mime_type {
+        // 이미지
+        "image/jpeg" | "image/jpg" => "jpg",
+        "image/png" => "png",
+        "image/gif" => "gif",
+        "image/webp" => "webp",
+        "image/svg+xml" => "svg",
+        "image/bmp" => "bmp",
+        "image/tiff" => "tiff",
+        "image/ico" | "image/x-icon" => "ico",
+        
+        // 비디오
+        "video/mp4" => "mp4",
+        "video/avi" => "avi",
+        "video/mov" => "mov",
+        "video/wmv" => "wmv",
+        "video/flv" => "flv",
+        "video/webm" => "webm",
+        "video/mkv" => "mkv",
+        "video/3gp" => "3gp",
+        
+        // 오디오
+        "audio/mpeg" | "audio/mp3" => "mp3",
+        "audio/wav" => "wav",
+        "audio/ogg" => "ogg",
+        "audio/aac" => "aac",
+        "audio/flac" => "flac",
+        "audio/m4a" => "m4a",
+        "audio/wma" => "wma",
+        
+        // 문서
+        "application/pdf" => "pdf",
+        "application/msword" => "doc",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document" => "docx",
+        "application/vnd.ms-excel" => "xls",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" => "xlsx",
+        "application/vnd.ms-powerpoint" => "ppt",
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation" => "pptx",
+        
+        // 압축
+        "application/zip" => "zip",
+        "application/x-rar-compressed" => "rar",
+        "application/x-7z-compressed" => "7z",
+        "application/gzip" => "gz",
+        "application/x-tar" => "tar",
+        
+        // 기타
+        "text/plain" => "txt",
+        "text/html" => "html",
+        "text/css" => "css",
+        "application/javascript" | "text/javascript" => "js",
+        "application/json" => "json",
+        "application/xml" | "text/xml" => "xml",
+        
+        _ => "bin", // 기본값
+    }
+}
+
 /// Body를 파일로 저장하는 함수
 ///
 /// # Arguments
@@ -30,7 +90,8 @@ pub fn is_media_data_type(data_type: &DataType) -> bool {
 /// * `body` - 저장할 body 데이터
 /// * `cache_dir` - 캐시 디렉토리 경로
 /// * `prefix` - 파일명 접두사 ("request" 또는 "response")
-/// * `data_type` - 데이터 타입 (미디어 파일의 경우 확장자 포함)
+/// * `data_type` - 데이터 타입
+/// * `headers` - HTTP 헤더 (MIME 타입 추출용)
 ///
 /// # Returns
 /// * `Ok(String)` - 저장된 파일의 전체 경로
@@ -41,18 +102,35 @@ pub fn save_body_to_file(
     cache_dir: &Path,
     prefix: &str,
     data_type: &DataType,
+    headers: &HeaderMap,
 ) -> Result<String, String> {
     use std::fs::File;
     use std::io::Write;
 
-    // 미디어 파일의 경우 확장자 포함
-    let extension = match data_type {
-        DataType::Image => "img",
-        DataType::Video => "video", 
-        DataType::Audio => "audio",
-        _ => "body",
+    // MIME 타입에서 확장자 추출
+    let extension = if let Some(content_type) = headers.get("content-type") {
+        if let Ok(mime_type) = content_type.to_str() {
+            // MIME 타입에서 실제 확장자 추출 (예: "image/jpeg" -> "jpg")
+            get_extension_from_mime_type(mime_type)
+        } else {
+            // MIME 타입 파싱 실패 시 데이터 타입으로 fallback
+            match data_type {
+                DataType::Image => "img",
+                DataType::Video => "video",
+                DataType::Audio => "audio",
+                _ => "body",
+            }
+        }
+    } else {
+        // Content-Type 헤더가 없는 경우 데이터 타입으로 fallback
+        match data_type {
+            DataType::Image => "img",
+            DataType::Video => "video",
+            DataType::Audio => "audio",
+            _ => "body",
+        }
     };
-    
+
     let filename = format!("{}_{}.{}", id, prefix, extension);
     let file_path = cache_dir.join(filename);
 
@@ -214,35 +292,37 @@ impl ProxiedRequest {
     /// 클라이언트(타우리 UI)용으로 변환
     pub fn for_client(self, cache_dir: Option<&Path>) -> ClientRequest {
         let original_body_size = self.body.len();
-        let (body, file_path) =
-            if original_body_size >= BODY_FILE_THRESHOLD || is_media_data_type(&self.data_type) {
-                // 큰 body이거나 미디어 파일은 파일로 저장
-                if let Some(cache_dir) = cache_dir {
-                    match save_body_to_file(&self.id, &self.body, cache_dir, "request", &self.data_type) {
-                        Ok(path) => {
-                            let reason = if is_media_data_type(&self.data_type) {
-                                "미디어 파일"
-                            } else {
-                                "크기 초과"
-                            };
-                            println!(
-                                "📁 Request body 저장됨 ({}): {} ({} bytes)",
-                                reason, path, original_body_size
-                            );
-                            (None, Some(path)) // 파일로 저장했으므로 body는 None
-                        }
-                        Err(e) => {
-                            eprintln!("⚠️ Request body 파일 저장 실패: {}", e);
-                            (Some(self.body), None)
-                        }
+        let (body, file_path) = if original_body_size >= BODY_FILE_THRESHOLD
+            || is_media_data_type(&self.data_type)
+        {
+            // 큰 body이거나 미디어 파일은 파일로 저장
+            if let Some(cache_dir) = cache_dir {
+                match save_body_to_file(&self.id, &self.body, cache_dir, "request", &self.data_type, &self.headers)
+                {
+                    Ok(path) => {
+                        let reason = if is_media_data_type(&self.data_type) {
+                            "미디어 파일"
+                        } else {
+                            "크기 초과"
+                        };
+                        println!(
+                            "📁 Request body 저장됨 ({}): {} ({} bytes)",
+                            reason, path, original_body_size
+                        );
+                        (None, Some(path)) // 파일로 저장했으므로 body는 None
                     }
-                } else {
-                    (Some(self.body), None)
+                    Err(e) => {
+                        eprintln!("⚠️ Request body 파일 저장 실패: {}", e);
+                        (Some(self.body), None)
+                    }
                 }
             } else {
-                // 작은 body는 메모리에 유지
                 (Some(self.body), None)
-            };
+            }
+        } else {
+            // 작은 body는 메모리에 유지
+            (Some(self.body), None)
+        };
 
         ClientRequest {
             method: self.method,
@@ -467,23 +547,18 @@ impl ProxiedResponse {
             if original_body_size >= BODY_FILE_THRESHOLD || is_media_data_type(&self.data_type) {
                 // 큰 body이거나 미디어 파일은 파일로 저장
                 if let Some(cache_dir) = cache_dir {
-                    match save_body_to_file(request_id, &body_to_save, cache_dir, "response", &self.data_type) {
+                    match save_body_to_file(
+                        request_id,
+                        &body_to_save,
+                        cache_dir,
+                        "response",
+                        &self.data_type,
+                        &self.headers,
+                    ) {
                         Ok(path) => {
-                            let reason = if is_media_data_type(&self.data_type) {
-                                "미디어 파일"
-                            } else {
-                                "크기 초과"
-                            };
-                            println!(
-                                "📁 Response body 저장됨 ({}): {} ({} bytes)",
-                                reason, path, original_body_size
-                            );
                             (None, Some(path)) // 파일로 저장했으므로 body는 None
                         }
-                        Err(e) => {
-                            eprintln!("⚠️ Response body 파일 저장 실패: {}", e);
-                            (Some(body_to_save), None)
-                        }
+                        Err(e) => (Some(body_to_save), None),
                     }
                 } else {
                     (Some(body_to_save), None)

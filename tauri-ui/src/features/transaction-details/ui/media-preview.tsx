@@ -5,11 +5,12 @@ interface MediaPreviewProps {
   data: Uint8Array;
   dataType: DataType;
   className?: string;
+  mimeType?: string; // MIME 타입 정보 추가
 }
 
-export const MediaPreview = ({ data, dataType, className }: MediaPreviewProps) => {
-  // Uint8Array를 Blob으로 변환
-  const blob = new Blob([data]);
+export const MediaPreview = ({ data, dataType, className, mimeType }: MediaPreviewProps) => {
+  // Uint8Array를 Blob으로 변환 (MIME 타입 지정)
+  const blob = new Blob([data], { type: mimeType || 'application/octet-stream' });
   const url = URL.createObjectURL(blob);
 
   if (isImageDataType(dataType)) {

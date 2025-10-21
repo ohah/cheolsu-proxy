@@ -35,6 +35,11 @@ export const TransactionBody = ({ transaction, isEditing = false, form }: Transa
   // 실제 사용할 body 데이터 (파일이 있으면 파일에서 읽어온 것, 없으면 메모리의 것)
   const actualBody = request.file_path ? fileBody : request.body || null;
 
+  // Content-Type 헤더에서 MIME 타입 추출
+  const getMimeType = () => {
+    return request.headers['content-type'] || '';
+  };
+
   const getRequestText = () => {
     // 파일이 있고 로딩 중이면 로딩 메시지 표시
     if (request.file_path && fileLoading) {
@@ -126,7 +131,12 @@ export const TransactionBody = ({ transaction, isEditing = false, form }: Transa
       <CardContent className="flex-1 p-0 min-h-0">
         {actualBody && actualBody.length > 0 && isMediaDataType(request.data_type) && !fileLoading && !fileError ? (
           <div className="h-[calc(100vh-300px)] border rounded-md overflow-auto p-4">
-            <MediaPreview data={actualBody} dataType={request.data_type} className="h-full" />
+            <MediaPreview 
+              data={actualBody} 
+              dataType={request.data_type} 
+              className="h-full"
+              mimeType={getMimeType()}
+            />
           </div>
         ) : form && isEditing ? (
           <form.Field
