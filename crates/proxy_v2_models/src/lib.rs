@@ -23,43 +23,107 @@ pub fn is_media_data_type(data_type: &DataType) -> bool {
     )
 }
 
-/// 파일 헤더를 읽어서 파일 타입을 감지하는 함수
-pub fn detect_file_type_from_header(body: &Bytes) -> Option<&'static str> {
+/// 파일 헤더를 읽어서 파일 확장자를 감지하는 함수
+pub fn detect_file_extension_from_header(body: &Bytes) -> Option<&'static str> {
     if body.len() < 4 {
         return None;
     }
 
     let header = &body[0..4.min(body.len())];
-    
+
     match header {
         // 이미지 파일 시그니처
-        [0xFF, 0xD8, 0xFF, _] => Some("jpg"), // JPEG
+        [0xFF, 0xD8, 0xFF, _] => Some("jpg"),    // JPEG
         [0x89, 0x50, 0x4E, 0x47] => Some("png"), // PNG
         [0x47, 0x49, 0x46, 0x38] => Some("gif"), // GIF
         [0x52, 0x49, 0x46, 0x46] if body.len() >= 12 && &body[8..12] == b"WEBP" => Some("webp"), // WebP
         [0x42, 0x4D, _, _] => Some("bmp"), // BMP
         [0x49, 0x49, 0x2A, 0x00] | [0x4D, 0x4D, 0x00, 0x2A] => Some("tiff"), // TIFF
         [0x00, 0x00, 0x01, 0x00] => Some("ico"), // ICO
-        
+
         // 비디오 파일 시그니처
         [0x00, 0x00, 0x00, 0x18] if body.len() >= 8 && &body[4..8] == b"ftyp" => Some("mp4"), // MP4
-        [0x1A, 0x45, 0xDF, 0xA3] => Some("mkv"), // MKV
+        [0x1A, 0x45, 0xDF, 0xA3] => Some("mkv"),                                              // MKV
         [0x52, 0x49, 0x46, 0x46] if body.len() >= 12 && &body[8..12] == b"AVI " => Some("avi"), // AVI
-        
+
         // 오디오 파일 시그니처
-        [0x49, 0x44, 0x33, _] | [0xFF, 0xFB, _, _] | [0xFF, 0xF3, _, _] | [0xFF, 0xF2, _, _] => Some("mp3"), // MP3
+        [0x49, 0x44, 0x33, _] | [0xFF, 0xFB, _, _] | [0xFF, 0xF3, _, _] | [0xFF, 0xF2, _, _] => {
+            Some("mp3")
+        } // MP3
         [0x52, 0x49, 0x46, 0x46] if body.len() >= 12 && &body[8..12] == b"WAVE" => Some("wav"), // WAV
         [0x4F, 0x67, 0x67, 0x53] => Some("ogg"), // OGG
-        
+
         // 문서 파일 시그니처
         [0x25, 0x50, 0x44, 0x46] => Some("pdf"), // PDF
-        
+
         // 압축 파일 시그니처
-        [0x50, 0x4B, 0x03, 0x04] | [0x50, 0x4B, 0x05, 0x06] | [0x50, 0x4B, 0x07, 0x08] => Some("zip"), // ZIP
+        [0x50, 0x4B, 0x03, 0x04] | [0x50, 0x4B, 0x05, 0x06] | [0x50, 0x4B, 0x07, 0x08] => {
+            Some("zip")
+        } // ZIP
         [0x52, 0x61, 0x72, 0x21] => Some("rar"), // RAR
-        [0x37, 0x7A, 0xBC, 0xAF] => Some("7z"), // 7Z
-        
+        [0x37, 0x7A, 0xBC, 0xAF] => Some("7z"),  // 7Z
+
         _ => None,
+    }
+}
+
+/// 파일 확장자에서 MIME 타입을 추출하는 함수
+pub fn get_mime_type_from_extension(extension: &str) -> &'static str {
+    match extension {
+        // 이미지
+        "jpg" | "jpeg" => "image/jpeg",
+        "png" => "image/png",
+        "gif" => "image/gif",
+        "webp" => "image/webp",
+        "svg" => "image/svg+xml",
+        "bmp" => "image/bmp",
+        "tiff" => "image/tiff",
+        "ico" => "image/x-icon",
+
+        // 비디오
+        "mp4" => "video/mp4",
+        "avi" => "video/avi",
+        "mov" => "video/quicktime",
+        "wmv" => "video/x-ms-wmv",
+        "flv" => "video/x-flv",
+        "webm" => "video/webm",
+        "mkv" => "video/x-matroska",
+        "3gp" => "video/3gpp",
+
+        // 오디오
+        "mp3" => "audio/mpeg",
+        "wav" => "audio/wav",
+        "ogg" => "audio/ogg",
+        "aac" => "audio/aac",
+        "flac" => "audio/flac",
+        "m4a" => "audio/mp4",
+        "wma" => "audio/x-ms-wma",
+
+        // 문서
+        "pdf" => "application/pdf",
+        "doc" => "application/msword",
+        "docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "xls" => "application/vnd.ms-excel",
+        "xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "ppt" => "application/vnd.ms-powerpoint",
+        "pptx" => "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+
+        // 압축
+        "zip" => "application/zip",
+        "rar" => "application/x-rar-compressed",
+        "7z" => "application/x-7z-compressed",
+        "gz" => "application/gzip",
+        "tar" => "application/x-tar",
+
+        // 기타
+        "txt" => "text/plain",
+        "html" => "text/html",
+        "css" => "text/css",
+        "js" => "application/javascript",
+        "json" => "application/json",
+        "xml" => "application/xml",
+
+        _ => "application/octet-stream",
     }
 }
 
@@ -155,35 +219,29 @@ pub fn save_body_to_file(
                 mime_ext
             } else {
                 // MIME 타입에서 확장자를 찾을 수 없으면 파일 헤더 확인
-                detect_file_type_from_header(body).unwrap_or_else(|| {
-                    match data_type {
-                        DataType::Image => "img",
-                        DataType::Video => "video",
-                        DataType::Audio => "audio",
-                        _ => "body",
-                    }
-                })
-            }
-        } else {
-            // MIME 타입 파싱 실패 시 파일 헤더 확인
-            detect_file_type_from_header(body).unwrap_or_else(|| {
-                match data_type {
+                detect_file_extension_from_header(body).unwrap_or_else(|| match data_type {
                     DataType::Image => "img",
                     DataType::Video => "video",
                     DataType::Audio => "audio",
                     _ => "body",
-                }
-            })
-        }
-    } else {
-        // Content-Type 헤더가 없는 경우 파일 헤더 확인
-        detect_file_type_from_header(body).unwrap_or_else(|| {
-            match data_type {
+                })
+            }
+        } else {
+            // MIME 타입 파싱 실패 시 파일 헤더 확인
+            detect_file_extension_from_header(body).unwrap_or_else(|| match data_type {
                 DataType::Image => "img",
                 DataType::Video => "video",
                 DataType::Audio => "audio",
                 _ => "body",
-            }
+            })
+        }
+    } else {
+        // Content-Type 헤더가 없는 경우 파일 헤더 확인
+        detect_file_extension_from_header(body).unwrap_or_else(|| match data_type {
+            DataType::Image => "img",
+            DataType::Video => "video",
+            DataType::Audio => "audio",
+            _ => "body",
         })
     };
 
