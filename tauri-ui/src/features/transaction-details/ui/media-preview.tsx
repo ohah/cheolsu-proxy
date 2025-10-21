@@ -1,6 +1,6 @@
 import { isImageDataType, isVideoDataType, isAudioDataType } from '@/entities/proxy/model/data-type';
 import type { DataType } from '@/entities/proxy/model/data-type';
-import { readFile } from '@tauri-apps/plugin-fs';
+import { readFile, BaseDirectory } from '@tauri-apps/plugin-fs';
 import { useState, useEffect, useMemo } from 'react';
 
 interface MediaPreviewProps {
@@ -219,8 +219,15 @@ export const MediaPreview = ({ data, dataType, className, mimeType, filePath }: 
         let detectedMimeType: string;
 
         if (filePath) {
-          // Tauri File System API로 파일 직접 읽기
-          const rawData = await readFile(filePath);
+          // Tauri File System API로 파일 직접 읽기 (상대 경로 + baseDir 방식)
+          // GitHub 이슈 #11614 해결책: 절대 경로 대신 상대 경로 + baseDir 사용
+          // 파일 경로에서 캐시 디렉토리 부분을 제거하여 상대 경로 생성
+          const cacheDirPrefix = '/Users/yoon/Library/Caches/com.cheolsu-proxy/data/';
+          const relativePath = filePath.startsWith(cacheDirPrefix) 
+            ? filePath.substring(cacheDirPrefix.length)
+            : filePath;
+          
+          const rawData = await readFile(relativePath, { baseDir: BaseDirectory.Cache });
           fileData = new Uint8Array(rawData);
 
           // MIME 타입 결정
