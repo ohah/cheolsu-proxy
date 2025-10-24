@@ -136,20 +136,7 @@ pub struct LoggingHandler {
 }
 
 impl LoggingHandler {
-    pub fn new(sender: mpsc::SyncSender<RequestInfo>) -> Self {
-        Self {
-            sender,
-            req: None,
-            res: None,
-            sessions: Arc::new(Mutex::new(JsonValue::Array(Vec::new()))),
-            cache_dir: None,
-        }
-    }
-
-    pub fn with_cache_dir(
-        sender: mpsc::SyncSender<RequestInfo>,
-        cache_dir: std::path::PathBuf,
-    ) -> Self {
+    pub fn new(sender: mpsc::SyncSender<RequestInfo>, cache_dir: std::path::PathBuf) -> Self {
         Self {
             sender,
             req: None,
@@ -987,7 +974,7 @@ pub async fn start_proxy_v2<R: Runtime>(
     let sessions = store.get("sessions").unwrap_or_default();
 
     // 로깅 핸들러 생성 (캐시 디렉토리 포함)
-    let handler = LoggingHandler::with_cache_dir(tx.clone(), cache_dir);
+    let handler = LoggingHandler::new(tx.clone(), cache_dir);
 
     // 세션 데이터를 핸들러에 전달
     handler.update_sessions(sessions).await;
