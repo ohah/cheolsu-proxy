@@ -12,12 +12,23 @@
     "http:default",
     "fs:default",
     {
-      "identifier": "fs:allow-read",
+      "identifier": "fs:scope",
       "allow": [
-        "$APPDATA/**",
-        "$APPCONFIG/**",
-        "$APPCONFIGDATA/**",
-        "$APPCACHE/**"
+        {
+          "path": "$APPDATA/**"
+        },
+        {
+          "path": "$APPCONFIG/**"
+        },
+        {
+          "path": "$APPCONFIGDATA/**"
+        },
+        {
+          "path": "$APPCACHE/**"
+        },
+        {
+          "path": "$APPCACHE/com.cheolsu-proxy/**"
+        }
       ]
     },
     "clipboard-manager:allow-write-text",

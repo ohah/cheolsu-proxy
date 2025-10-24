@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { readBodyFile } from '@/shared/api/proxy';
+import { readFile, BaseDirectory } from '@tauri-apps/plugin-fs';
 
 interface UseBodyFileResult {
   body: Uint8Array | null;
@@ -29,9 +29,10 @@ export function useBodyFile(filePath: string | undefined, enabled: boolean = tru
       setError(null);
 
       try {
-        const data = await readBodyFile(filePath);
-        setBody(data);
+        const rawData = await readFile(filePath, { baseDir: BaseDirectory.Cache });
+        setBody(rawData);
       } catch (err) {
+        console.log('err', err);
         setError(err instanceof Error ? err.message : '파일 읽기 실패');
         setBody(null);
       } finally {

@@ -260,8 +260,24 @@ pub fn save_body_to_file(
     file.write_all(body)
         .map_err(|e| format!("Failed to write body to file: {}", e))?;
 
-    // 전체 경로를 문자열로 변환
-    Ok(file_path.to_string_lossy().to_string())
+    // 상대 경로만 반환 (BaseDirectory.Cache 기준)
+    // cache_dir에서 세션 해시 부분을 제외한 기본 캐시 디렉토리 기준으로 상대 경로 생성
+    let base_cache_dir = cache_dir.parent().unwrap(); // /Users/[username]/Library/Caches/com.cheolsu-proxy/data/
+    let relative_path: String = file_path
+        .strip_prefix(base_cache_dir)
+        .map_err(|e| format!("Failed to create relative path: {}", e))?
+        .to_string_lossy()
+        .to_string();
+
+    // 앱별 캐시 디렉토리 경로 추가 (com.cheolsu-proxy/data/...)
+    let app_cache_path = format!("com.cheolsu-proxy/data/{}", relative_path);
+    println!("app_cache_path: {}", app_cache_path);
+    println!(
+        "file_path.to_string_lossy().to_string(): {}",
+        file_path.to_string_lossy().to_string()
+    );
+    println!("base_cache_dir: {}", base_cache_dir.display());
+    Ok(app_cache_path)
 }
 
 /// 압축된 body를 해제하는 헬퍼 함수
@@ -426,7 +442,7 @@ impl ProxiedRequest {
                         Ok(path) => {
                             (None, Some(path)) // 파일로 저장했으므로 body는 None
                         }
-                        Err(e) => (Some(self.body), None),
+                        Err(_e) => (Some(self.body), None),
                     }
                 } else {
                     (Some(self.body), None)
@@ -670,7 +686,7 @@ impl ProxiedResponse {
                         Ok(path) => {
                             (None, Some(path)) // 파일로 저장했으므로 body는 None
                         }
-                        Err(e) => (Some(body_to_save), None),
+                        Err(_e) => (Some(body_to_save), None),
                     }
                 } else {
                     (Some(body_to_save), None)

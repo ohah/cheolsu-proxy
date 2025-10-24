@@ -1,7 +1,7 @@
 import { isImageDataType, isVideoDataType, isAudioDataType } from '@/entities/proxy/model/data-type';
 import type { DataType } from '@/entities/proxy/model/data-type';
 import { readFile, BaseDirectory } from '@tauri-apps/plugin-fs';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 
 interface MediaPreviewProps {
   data?: Uint8Array; // 파일 경로가 있으면 선택적
@@ -220,14 +220,12 @@ export const MediaPreview = ({ data, dataType, className, mimeType, filePath }: 
 
         if (filePath) {
           // Tauri File System API로 파일 직접 읽기 (상대 경로 + baseDir 방식)
-          // GitHub 이슈 #11614 해결책: 절대 경로 대신 상대 경로 + baseDir 사용
-          // 파일 경로에서 캐시 디렉토리 부분을 제거하여 상대 경로 생성
-          const cacheDirPrefix = '/Users/yoon/Library/Caches/com.cheolsu-proxy/data/';
-          const relativePath = filePath.startsWith(cacheDirPrefix) 
-            ? filePath.substring(cacheDirPrefix.length)
-            : filePath;
-          
-          const rawData = await readFile(relativePath, { baseDir: BaseDirectory.Cache });
+          // Rust에서 이미 상대 경로로 전달되므로 그대로 사용
+          console.log('filePath', filePath);
+          console.log('BaseDirectory.Cache', BaseDirectory.Cache);
+          console.log('readFile options:', { baseDir: BaseDirectory.Cache });
+          const rawData = await readFile(filePath, { baseDir: BaseDirectory.Cache });
+
           fileData = new Uint8Array(rawData);
 
           // MIME 타입 결정
