@@ -9,7 +9,8 @@ use proxy::{
     ProxyState,
 };
 use proxy_v2::{
-    clean_old_proxy_cache, proxy_v2_status, read_body_file, start_proxy_v2, stop_proxy_v2, store_changed_v2, ProxyV2State,
+    clean_old_proxy_cache, proxy_v2_status, read_body_file, start_proxy_v2, stop_proxy_v2,
+    store_changed_v2, ProxyV2State,
 };
 use tauri::Manager;
 
