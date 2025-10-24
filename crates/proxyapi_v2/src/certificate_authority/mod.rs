@@ -366,57 +366,6 @@ fn generate_and_save_ca(storage_dir: &std::path::Path) -> Result<RcgenAuthority,
     ))
 }
 
-/// 개발/테스트용 인증서를 사용하여 RcgenAuthority 생성
-#[cfg(feature = "rcgen-ca")]
-fn build_ca_embedded() -> Result<RcgenAuthority, String> {
-    println!("🔧 개발/테스트 모드: 기존 인증서 파일 사용");
-
-    // 실제 생성된 인증서 파일이 있으면 사용, 없으면 고정 파일 사용
-    let storage_dir = get_ca_storage_dir()?;
-    let key_path = storage_dir.join("cheolsu-proxy.key");
-    let cer_path = storage_dir.join("cheolsu-proxy.cer");
-
-    if key_path.exists() && cer_path.exists() {
-        println!("📁 기존 생성된 인증서 파일 사용: {}", storage_dir.display());
-        return load_ca_from_storage(&key_path, &cer_path);
-    }
-
-    // 기존 인증서가 없으면 고정 파일 사용 (개발용)
-    println!("📁 고정 인증서 파일 사용 (개발용)");
-    let private_key_bytes: &[u8] =
-        include_bytes!("../../src/certificate_authority/cheolsu-proxy.key");
-    let ca_cert_bytes: &[u8] = include_bytes!("../../src/certificate_authority/cheolsu-proxy.cer");
-
-    // PEM 형식의 키 페어 파싱
-    let key_pair = rcgen::KeyPair::from_pem(
-        std::str::from_utf8(private_key_bytes)
-            .map_err(|e| format!("Key file encoding error: {}", e))?,
-    )
-    .map_err(|e| format!("Failed to parse key pair: {}", e))?;
-
-    // PEM 형식의 CA 인증서 파싱
-    let ca_cert_params = rcgen::CertificateParams::from_ca_cert_pem(
-        std::str::from_utf8(ca_cert_bytes)
-            .map_err(|e| format!("Certificate file encoding error: {}", e))?,
-    )
-    .map_err(|e| format!("Failed to parse CA certificate: {}", e))?;
-
-    // CertificateParams를 Certificate로 변환
-    let ca_cert = ca_cert_params
-        .self_signed(&key_pair)
-        .map_err(|e| format!("Failed to sign CA certificate: {}", e))?;
-
-    // RcgenAuthority 생성
-    let ca = RcgenAuthority::new(
-        key_pair,
-        ca_cert,
-        1_000,
-        tokio_rustls::rustls::crypto::aws_lc_rs::default_provider(),
-    );
-
-    Ok(ca)
-}
-
 /// CA 인증서를 빌드합니다.
 
 #[cfg(feature = "rcgen-ca")]
