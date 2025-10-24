@@ -779,39 +779,5 @@ impl ClientResponse {
     }
 }
 
-trait ToString {
-    fn to_string(&self) -> String;
-}
-
-trait ToHashString {
-    fn to_hash_string(&self) -> HashMap<String, String>;
-}
-
-impl ToHashString for HeaderMap {
-    fn to_hash_string(&self) -> HashMap<String, String> {
-        let mut headers: HashMap<String, String> = HashMap::new();
-
-        for (k, v) in self.iter() {
-            headers
-                .insert(k.as_str().to_string(), v.to_str().unwrap().to_string())
-                .unwrap_or("NO header".to_string());
-        }
-        headers
-    }
-}
-
-impl ToString for Version {
-    fn to_string(&self) -> String {
-        match *self {
-            Version::HTTP_09 => "HTTP_09".to_string(),
-            Version::HTTP_10 => "HTTP_10".to_string(),
-            Version::HTTP_11 => "HTTP_11".to_string(),
-            Version::HTTP_2 => "HTTP_2".to_string(),
-            Version::HTTP_3 => "HTTP_3".to_string(),
-            _ => "__NonExhaustive".to_string(),
-        }
-    }
-}
-
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct RequestInfo(pub Option<ClientRequest>, pub Option<ClientResponse>);
