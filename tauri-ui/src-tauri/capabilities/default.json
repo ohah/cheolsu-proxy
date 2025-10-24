@@ -25,9 +25,6 @@
         },
         {
           "path": "$APPCACHE/**"
-        },
-        {
-          "path": "$APPCACHE/com.cheolsu-proxy/**"
         }
       ]
     },
