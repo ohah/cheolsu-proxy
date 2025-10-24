@@ -271,12 +271,6 @@ pub fn save_body_to_file(
 
     // 앱별 캐시 디렉토리 경로 추가 (com.cheolsu-proxy/data/...)
     let app_cache_path = format!("com.cheolsu-proxy/data/{}", relative_path);
-    println!("app_cache_path: {}", app_cache_path);
-    println!(
-        "file_path.to_string_lossy().to_string(): {}",
-        file_path.to_string_lossy().to_string()
-    );
-    println!("base_cache_dir: {}", base_cache_dir.display());
     Ok(app_cache_path)
 }
 

@@ -32,7 +32,6 @@ export function useBodyFile(filePath: string | undefined, enabled: boolean = tru
         const rawData = await readFile(filePath, { baseDir: BaseDirectory.Cache });
         setBody(rawData);
       } catch (err) {
-        console.log('err', err);
         setError(err instanceof Error ? err.message : '파일 읽기 실패');
         setBody(null);
       } finally {

@@ -221,9 +221,6 @@ export const MediaPreview = ({ data, dataType, className, mimeType, filePath }: 
         if (filePath) {
           // Tauri File System API로 파일 직접 읽기 (상대 경로 + baseDir 방식)
           // Rust에서 이미 상대 경로로 전달되므로 그대로 사용
-          console.log('filePath', filePath);
-          console.log('BaseDirectory.Cache', BaseDirectory.Cache);
-          console.log('readFile options:', { baseDir: BaseDirectory.Cache });
           const rawData = await readFile(filePath, { baseDir: BaseDirectory.Cache });
 
           fileData = new Uint8Array(rawData);
