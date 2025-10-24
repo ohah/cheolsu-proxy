@@ -77,7 +77,7 @@ export const TransactionResponse = ({ transaction, isEditing = false, form }: Tr
           if (dataUrl) {
             const link = document.createElement('a');
             link.href = dataUrl;
-            link.download = `image.${getImageFileExtension(response.data_type)}`;
+            link.download = `image.${response.data_type}`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -104,11 +104,6 @@ export const TransactionResponse = ({ transaction, isEditing = false, form }: Tr
     }
   };
 
-  const getImageFileExtension = (dataType: string): string => {
-    // MIME 타입에서 확장자 추출하는 간단한 함수
-    return 'png'; // 기본값
-  };
-
   return (
     <Card className="gap-0 flex flex-col min-h-0 flex-1">
       <CardHeader className="flex-shrink-0">
@@ -117,7 +112,7 @@ export const TransactionResponse = ({ transaction, isEditing = false, form }: Tr
             {response.file_path && (
               <div className="flex items-center gap-1 text-sm text-muted-foreground">
                 <FileText className="w-4 h-4" />
-                <span>{isMediaDataType(response.data_type) ? '미디어 파일' : '파일에서 로드됨'}</span>
+                {/* <span>{isMediaDataType(response.data_type) ? '미디어 파일' : '파일에서 로드됨'}</span> */}
                 {fileLoading && <Loader2 className="w-3 h-3 animate-spin" />}
                 {fileError && <span className="text-destructive">오류</span>}
               </div>
