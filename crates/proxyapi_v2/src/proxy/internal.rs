@@ -7,7 +7,7 @@ use crate::{
 use futures::{Sink, Stream, StreamExt};
 use http::uri::{Authority, Scheme};
 use hyper::{
-    Method, Request, Response, StatusCode, Uri,
+    Method, Request, Response, StatusCode, Uri, Version,
     body::{Bytes, Incoming},
     header::Entry,
     service::service_fn,
@@ -18,8 +18,8 @@ use hyper_util::{
     rt::{TokioExecutor, TokioIo},
     server,
 };
-use proxy_v2_models::RequestInfo;
-use std::{convert::Infallible, net::SocketAddr, sync::Arc};
+use proxy_v2_models::{ProxiedRequest, ProxiedResponse, RequestInfo};
+use std::{collections::HashMap, convert::Infallible, net::SocketAddr, sync::Arc};
 use tokio::sync::mpsc;
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
@@ -898,6 +898,7 @@ where
             "gdmf.apple.com",
             "fbs.smoot.apple.com",
             "gateway.icloud.com",
+            "setup.icloud.com",
             "icloud.com",
             "apple.com",
         ];
@@ -905,17 +906,93 @@ where
         tunnel_domains.iter().any(|&domain| host.contains(domain))
     }
 
+    /// 터널 모드에서 HTTP 요청을 파싱하는 헬퍼 함수
+    fn parse_http_request_from_buffer(
+        buffer: &[u8],
+    ) -> Option<(String, String, String, HashMap<String, String>)> {
+        if let Ok(data_str) = std::str::from_utf8(buffer) {
+            let lines: Vec<&str> = data_str.lines().collect();
+            if let Some(first_line) = lines.first() {
+                let parts: Vec<&str> = first_line.split_whitespace().collect();
+                if parts.len() >= 3 {
+                    let method = parts[0].to_string();
+                    let path = parts[1].to_string();
+                    let version = parts[2].to_string();
+
+                    // HTTP 메서드 검증 (GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS, TRACE, CONNECT)
+                    let valid_methods = [
+                        "GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS", "TRACE",
+                        "CONNECT",
+                    ];
+                    if !valid_methods.contains(&method.as_str()) {
+                        return None;
+                    }
+
+                    // 헤더 파싱
+                    let mut headers = HashMap::new();
+                    for line in lines.iter().skip(1) {
+                        if line.is_empty() {
+                            break; // 헤더와 본문 구분
+                        }
+                        if let Some((key, value)) = line.split_once(':') {
+                            headers.insert(key.trim().to_lowercase(), value.trim().to_string());
+                        }
+                    }
+
+                    return Some((method, path, version, headers));
+                }
+            }
+        }
+        None
+    }
+
+    /// 터널 모드에서 HTTP 응답을 파싱하는 헬퍼 함수
+    fn parse_http_response_from_buffer(
+        buffer: &[u8],
+    ) -> Option<(String, u16, String, HashMap<String, String>)> {
+        if let Ok(data_str) = std::str::from_utf8(buffer) {
+            let lines: Vec<&str> = data_str.lines().collect();
+            if let Some(first_line) = lines.first() {
+                let parts: Vec<&str> = first_line.split_whitespace().collect();
+                if parts.len() >= 3 {
+                    let version = parts[0].to_string();
+                    let status_code = parts[1].parse::<u16>().ok()?;
+                    let reason_phrase = parts[2..].join(" ");
+
+                    // 헤더 파싱
+                    let mut headers = HashMap::new();
+                    for line in lines.iter().skip(1) {
+                        if line.is_empty() {
+                            break; // 헤더와 본문 구분
+                        }
+                        if let Some((key, value)) = line.split_once(':') {
+                            headers.insert(key.trim().to_lowercase(), value.trim().to_string());
+                        }
+                    }
+
+                    return Some((version, status_code, reason_phrase, headers));
+                }
+            }
+        }
+        None
+    }
+
     /// 터널 모드에서 데이터를 모니터링하면서 양방향 복사를 수행합니다
     async fn copy_bidirectional_with_monitoring(
         client_stream: &mut TokioIo<Upgraded>,
         server_stream: &mut TcpStream,
         target_addr: &str,
+        tunnel_event_sender: Option<mpsc::Sender<RequestInfo>>,
     ) -> Result<(u64, u64), std::io::Error> {
         // 데이터 버퍼
         let mut client_to_server_buffer = [0u8; 8192];
         let mut server_to_client_buffer = [0u8; 8192];
 
         let mut client_to_server_bytes = 0u64;
+
+        // 터널 내부 HTTP 요청과 응답 매칭을 위한 요청 ID 추적
+        let mut pending_requests: std::collections::HashMap<String, String> =
+            std::collections::HashMap::new();
         let mut server_to_client_bytes = 0u64;
 
         let mut client_read_done = false;
@@ -933,9 +1010,83 @@ where
                         Ok(n) => {
                             client_to_server_bytes += n as u64;
 
+                            // HTTP 요청 감지 및 로깅
+                            let data_preview = &client_to_server_buffer[..n];
+                            if let Some((method, path, version, headers)) = Self::parse_http_request_from_buffer(data_preview) {
+                                info!("🌐 [TUNNEL-HTTP] HTTP 요청 감지: {} {} {} (터널: {})",
+                                    method, path, version, target_addr);
+
+                                // Host 헤더에서 실제 호스트 추출
+                                let host = headers.get("host")
+                                    .map(|h| h.split(':').next().unwrap_or(h))
+                                    .unwrap_or_else(|| target_addr.split(':').next().unwrap_or("unknown"));
+
+                                // 터널 이벤트로 HTTP 요청 전송
+                                if let Some(sender) = &tunnel_event_sender {
+                                    use proxy_v2_models::{ProxiedRequest, ProxiedResponse};
+                                    use hyper::{StatusCode, Version};
+                                    use http::HeaderMap;
+
+                                    // HTTP 헤더를 HeaderMap으로 변환
+                                    let mut header_map = HeaderMap::new();
+                                    for (key, value) in &headers {
+                                        if let (Ok(header_name), Ok(header_value)) = (
+                                            hyper::header::HeaderName::from_bytes(key.as_bytes()),
+                                            hyper::header::HeaderValue::from_str(value)
+                                        ) {
+                                            header_map.insert(header_name, header_value);
+                                        }
+                                    }
+
+                                    // URI 생성
+                                    let uri = format!("https://{}{}", host, path)
+                                        .parse::<Uri>()
+                                        .unwrap_or_else(|_| Uri::from_static("https://unknown/"));
+
+                                    // HTTP 메서드 변환
+                                    let http_method = method.parse::<Method>()
+                                        .unwrap_or_else(|_| Method::GET);
+
+                                    // HTTP 버전 변환
+                                    let http_version = if version.contains("1.1") {
+                                        Version::HTTP_11
+                                    } else if version.contains("2.0") {
+                                        Version::HTTP_2
+                                    } else {
+                                        Version::HTTP_10
+                                    };
+
+                                    let proxied_request = ProxiedRequest::new(
+                                        http_method,
+                                        uri,
+                                        http_version,
+                                        header_map,
+                                        bytes::Bytes::new(),
+                                        std::time::SystemTime::now()
+                                            .duration_since(std::time::UNIX_EPOCH)
+                                            .unwrap_or_default()
+                                            .as_nanos() as i64,
+                                    );
+
+                                    let request_id = proxied_request.id().clone();
+                                    let tunnel_request = RequestInfo(
+                                        Some(proxied_request.for_client(None)),
+                                        None,
+                                    );
+
+                                    if let Err(e) = sender.try_send(tunnel_request) {
+                                        warn!("터널 이벤트 전송 실패: {}", e);
+                                    }
+
+                                    // 요청 ID를 pending_requests에 저장 (응답 매칭용)
+                                    pending_requests.insert(request_id.clone(), format!("{} {}", method, path));
+                                }
+
+                                info!("🌐 [TUNNEL-HTTP] 터널 내 HTTP 요청: {} https://{}{}", method, host, path);
+                            }
+
                             // 데이터 로깅 (처음 1024바이트만)
                             if client_to_server_bytes <= 1024 {
-                                let data_preview = &client_to_server_buffer[..n];
                                 if let Ok(data_str) = std::str::from_utf8(data_preview) {
                                     info!("🚇 [TUNNEL-DATA] 클라이언트→서버 ({}): {}", target_addr,
                                         data_str.chars().take(200).collect::<String>());
@@ -968,9 +1119,76 @@ where
                         Ok(n) => {
                             server_to_client_bytes += n as u64;
 
+                            // HTTP 응답 감지 및 로깅
+                            let data_preview = &server_to_client_buffer[..n];
+                            if let Some((version, status_code, reason_phrase, headers)) = Self::parse_http_response_from_buffer(data_preview) {
+                                info!("🌐 [TUNNEL-HTTP] HTTP 응답 감지: {} {} {} (터널: {})",
+                                    version, status_code, reason_phrase, target_addr);
+
+                                // 터널 이벤트로 HTTP 응답 전송 (마지막 요청에 대한 응답으로 처리)
+                                if let Some(sender) = &tunnel_event_sender {
+                                    use proxy_v2_models::{ProxiedRequest, ProxiedResponse};
+                                    use hyper::{StatusCode, Version};
+                                    use http::HeaderMap;
+
+                                    // HTTP 헤더를 HeaderMap으로 변환
+                                    let mut header_map = HeaderMap::new();
+                                    for (key, value) in &headers {
+                                        if let (Ok(header_name), Ok(header_value)) = (
+                                            hyper::header::HeaderName::from_bytes(key.as_bytes()),
+                                            hyper::header::HeaderValue::from_str(value)
+                                        ) {
+                                            header_map.insert(header_name, header_value);
+                                        }
+                                    }
+
+                                    // HTTP 버전 변환
+                                    let http_version = if version.contains("1.1") {
+                                        Version::HTTP_11
+                                    } else if version.contains("2.0") {
+                                        Version::HTTP_2
+                                    } else {
+                                        Version::HTTP_10
+                                    };
+
+                                    let proxied_response = ProxiedResponse::new(
+                                        StatusCode::from_u16(status_code).unwrap_or(StatusCode::OK),
+                                        http_version,
+                                        header_map,
+                                        bytes::Bytes::new(),
+                                        std::time::SystemTime::now()
+                                            .duration_since(std::time::UNIX_EPOCH)
+                                            .unwrap_or_default()
+                                            .as_nanos() as i64,
+                                    );
+
+                                    // 가장 최근 요청 ID를 사용하여 응답 매칭
+                                    let response_request_id = if let Some((latest_request_id, _)) = pending_requests.iter().last() {
+                                        latest_request_id.clone()
+                                    } else {
+                                        "tunnel-response".to_string()
+                                    };
+
+                                    let tunnel_response = RequestInfo(
+                                        None, // 요청은 이미 전송됨
+                                        Some(proxied_response.for_client(&response_request_id, None)),
+                                    );
+
+                                    if let Err(e) = sender.try_send(tunnel_response) {
+                                        warn!("터널 응답 이벤트 전송 실패: {}", e);
+                                    }
+
+                                    // 응답을 받았으므로 해당 요청을 pending에서 제거
+                                    if response_request_id != "tunnel-response" {
+                                        pending_requests.remove(&response_request_id);
+                                    }
+                                }
+
+                                info!("🌐 [TUNNEL-HTTP] 터널 내 HTTP 응답: {} {} {}", version, status_code, reason_phrase);
+                            }
+
                             // 데이터 로깅 (처음 1024바이트만)
                             if server_to_client_bytes <= 1024 {
-                                let data_preview = &server_to_client_buffer[..n];
                                 if let Ok(data_str) = std::str::from_utf8(data_preview) {
                                     info!("🚇 [TUNNEL-DATA] 서버→클라이언트 ({}): {}", target_addr,
                                         data_str.chars().take(200).collect::<String>());
@@ -1077,6 +1295,7 @@ where
                 &mut client_stream,
                 &mut server_stream,
                 &target_addr,
+                self.tunnel_event_sender.clone(),
             ),
         )
         .await
