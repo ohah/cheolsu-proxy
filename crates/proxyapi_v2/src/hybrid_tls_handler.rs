@@ -101,6 +101,7 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
             "gdmf.apple.com",
             "fbs.smoot.apple.com",
             "gateway.icloud.com",
+            "setup.icloud.com",
             "icloud.com",
             "apple.com",
         ];
