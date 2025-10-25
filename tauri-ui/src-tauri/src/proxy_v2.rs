@@ -14,7 +14,7 @@ use proxyapi_v2::certificate_authority::{
 use proxyapi_v2::{
     builder::ProxyBuilder,
     certificate_authority::build_ca,
-    hyper::http::{HeaderMap, HeaderValue, StatusCode},
+    hyper::http::{HeaderMap, HeaderValue, Method, StatusCode, Version},
     hyper::{Request, Response},
     tokio_tungstenite::tungstenite::Message,
     Body, HttpContext, HttpHandler, RequestOrResponse, WebSocketContext, WebSocketHandler,
@@ -510,6 +510,14 @@ impl HttpHandler for LoggingHandler {
 
         // 요청 정보를 ProxiedRequest로 변환하고 원본 요청을 복원
         let (proxied_request, restored_req) = self.request_to_proxied_request(req).await;
+
+        // CONNECT 요청은 터널 설정용이므로 UI에 표시하지 않음
+        // 터널 내부의 실제 HTTP 요청은 copy_bidirectional_with_monitoring에서 처리됨
+        if restored_req.method() == Method::CONNECT || proxied_request.method() == "CONNECT" {
+            // CONNECT 요청은 UI에 전송하지 않고 터널 모드로 처리
+            return restored_req.into();
+        }
+
         self.req = Some(proxied_request);
 
         restored_req.into()
