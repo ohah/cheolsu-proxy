@@ -12,11 +12,20 @@
     "http:default",
     "fs:default",
     {
-      "identifier": "fs:allow-read",
+      "identifier": "fs:scope",
       "allow": [
-        "$APPDATA/**",
-        "$APPCONFIG/**",
-        "$APPCONFIGDATA/**"
+        {
+          "path": "$APPDATA/**"
+        },
+        {
+          "path": "$APPCONFIG/**"
+        },
+        {
+          "path": "$APPCONFIGDATA/**"
+        },
+        {
+          "path": "$APPCACHE/**"
+        }
       ]
     },
     "clipboard-manager:allow-write-text",

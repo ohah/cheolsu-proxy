@@ -7,6 +7,10 @@ use hyper_util::{
     rt::TokioExecutor,
 };
 use proxy_v2_models::{ProxiedRequest, ProxiedResponse, RequestInfo};
+use proxyapi_v2::certificate_authority::{
+    clean_all_cache, clean_cache_on_exit, clean_old_cache, generate_session_hash,
+    get_cache_storage_dir,
+};
 use proxyapi_v2::{
     builder::ProxyBuilder,
     certificate_authority::build_ca,
@@ -17,6 +21,7 @@ use proxyapi_v2::{
 };
 use regex::Regex;
 use std::error::Error;
+use std::fs;
 use std::net::SocketAddr;
 use std::sync::mpsc;
 use std::sync::Arc;
@@ -127,15 +132,17 @@ pub struct LoggingHandler {
     req: Option<ProxiedRequest>,
     res: Option<ProxiedResponse>,
     sessions: Arc<Mutex<JsonValue>>,
+    cache_dir: Option<std::path::PathBuf>,
 }
 
 impl LoggingHandler {
-    pub fn new(sender: mpsc::SyncSender<RequestInfo>) -> Self {
+    pub fn new(sender: mpsc::SyncSender<RequestInfo>, cache_dir: std::path::PathBuf) -> Self {
         Self {
             sender,
             req: None,
             res: None,
             sessions: Arc::new(Mutex::new(JsonValue::Array(Vec::new()))),
+            cache_dir: Some(cache_dir),
         }
     }
 
@@ -230,8 +237,19 @@ impl LoggingHandler {
     /// 요청과 응답을 묶어서 전송
     fn send_output(&self) {
         // 클라이언트(타우리 UI)용으로 변환
-        let client_request = self.req.as_ref().map(|req| req.clone().for_client());
-        let client_response = self.res.as_ref().map(|res| res.clone().for_client());
+        let client_request = self
+            .req
+            .as_ref()
+            .map(|req| req.clone().for_client(self.cache_dir.as_deref()));
+        let client_response = self.res.as_ref().map(|res| {
+            let request_id = self
+                .req
+                .as_ref()
+                .map(|r| r.id().clone())
+                .unwrap_or_default();
+            res.clone()
+                .for_client(&request_id, self.cache_dir.as_deref())
+        });
         let request_info = RequestInfo(client_request, client_response);
         if let Err(e) = self.sender.send(request_info) {
             // RequestInfo 전송 실패 (무시)
@@ -924,6 +942,23 @@ pub async fn start_proxy_v2<R: Runtime>(
     // 이벤트 전송을 위한 채널 생성 (proxy.rs와 동일한 구조)
     let (tx, rx) = std::sync::mpsc::sync_channel(1);
 
+    // 세션 해시 생성 및 캐시 디렉토리 설정
+    let session_hash = generate_session_hash();
+    let cache_dir = match get_cache_storage_dir(&session_hash) {
+        Ok(dir) => {
+            println!("📁 캐시 디렉토리 생성됨: {}", dir.display());
+            dir
+        }
+        Err(e) => {
+            let error_msg = format!("캐시 디렉토리 생성 실패: {}", e);
+            eprintln!("❌ {}", error_msg);
+            return Err(ProxyStartResult {
+                status: false,
+                message: error_msg,
+            });
+        }
+    };
+
     // 세션 데이터 로드 (proxy.rs와 동일한 방식)
     let store = match app.store("session.json") {
         Ok(store) => store,
@@ -938,8 +973,8 @@ pub async fn start_proxy_v2<R: Runtime>(
     };
     let sessions = store.get("sessions").unwrap_or_default();
 
-    // 로깅 핸들러 생성
-    let handler = LoggingHandler::new(tx.clone());
+    // 로깅 핸들러 생성 (캐시 디렉토리 포함)
+    let handler = LoggingHandler::new(tx.clone(), cache_dir);
 
     // 세션 데이터를 핸들러에 전달
     handler.update_sessions(sessions).await;
@@ -1068,7 +1103,7 @@ pub async fn start_proxy_v2<R: Runtime>(
 pub async fn stop_proxy_v2(proxy: tauri::State<'_, ProxyV2State>) -> Result<(), String> {
     let mut proxy_guard = proxy.lock().await;
 
-    if let Some((close_tx, thread, _handler)) = proxy_guard.take() {
+    if let Some((close_tx, thread, handler)) = proxy_guard.take() {
         // 종료 신호 전송 (oneshot 채널은 한 번만 사용 가능)
         match close_tx.send(()) {
             Ok(_) => {
@@ -1095,6 +1130,15 @@ pub async fn stop_proxy_v2(proxy: tauri::State<'_, ProxyV2State>) -> Result<(), 
             }
         }
 
+        // 캐시 정리 (앱 종료 시 현재 세션 캐시 삭제)
+        if let Some(cache_dir) = &handler.cache_dir {
+            if let Some(session_hash) = cache_dir.file_name().and_then(|name| name.to_str()) {
+                if let Err(e) = clean_cache_on_exit(session_hash) {
+                    eprintln!("⚠️ 캐시 정리 실패: {}", e);
+                }
+            }
+        }
+
         println!("📋 시스템 프록시 설정을 해제하세요");
     } else {
         return Err("프록시가 실행 중이 아닙니다".to_string());
@@ -1107,6 +1151,33 @@ pub async fn stop_proxy_v2(proxy: tauri::State<'_, ProxyV2State>) -> Result<(), 
 #[tauri::command]
 pub async fn proxy_v2_status(proxy: tauri::State<'_, ProxyV2State>) -> Result<bool, String> {
     Ok(proxy.lock().await.is_some())
+}
+
+/// 캐시 정리 명령어 (수동 정리용)
+#[tauri::command]
+pub async fn clean_proxy_cache() -> Result<String, String> {
+    match clean_all_cache() {
+        Ok(_) => Ok("모든 캐시가 성공적으로 정리되었습니다".to_string()),
+        Err(e) => Err(format!("캐시 정리 실패: {}", e)),
+    }
+}
+
+/// 파일에서 body 데이터 읽기
+#[tauri::command]
+pub async fn read_body_file(file_path: String) -> Result<Vec<u8>, String> {
+    fs::read(&file_path).map_err(|e| format!("파일 읽기 실패: {} - {}", file_path, e))
+}
+
+/// 오래된 캐시 정리 명령어
+#[tauri::command]
+pub async fn clean_old_proxy_cache(days: u64) -> Result<String, String> {
+    match clean_old_cache(days) {
+        Ok(_) => Ok(format!(
+            "{}일 이상 된 캐시가 성공적으로 정리되었습니다",
+            days
+        )),
+        Err(e) => Err(format!("오래된 캐시 정리 실패: {}", e)),
+    }
 }
 
 /// 세션 데이터 변경 시 호출되는 명령어 (proxy.rs와 동일한 기능)

@@ -116,7 +116,7 @@ impl TunnelEvent {
                     timestamp,
                 );
 
-                RequestInfo(Some(request.for_client()), None)
+                RequestInfo(Some(request.for_client(None)), None)
             }
             TunnelEventType::Completed => {
                 // 터널 완료: 200 응답으로 표현
@@ -145,7 +145,7 @@ impl TunnelEvent {
                     timestamp,
                 );
 
-                RequestInfo(None, Some(response.for_client()))
+                RequestInfo(None, Some(response.for_client("tunnel_completed", None)))
             }
             TunnelEventType::Error => {
                 // 터널 오류: 500 응답으로 표현
@@ -170,7 +170,7 @@ impl TunnelEvent {
                     timestamp,
                 );
 
-                RequestInfo(None, Some(response.for_client()))
+                RequestInfo(None, Some(response.for_client("tunnel_error", None)))
             }
         }
     }

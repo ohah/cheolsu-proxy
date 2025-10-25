@@ -29,3 +29,7 @@ export async function stopProxyV2(): Promise<void> {
 export async function getProxyV2Status(): Promise<boolean> {
   return invoke('proxy_v2_status');
 }
+
+export async function cleanOldProxyCache(days: number): Promise<string> {
+  return invoke('clean_old_proxy_cache', { days });
+}

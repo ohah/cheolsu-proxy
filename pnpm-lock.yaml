@@ -75,7 +75,7 @@ importers:
         specifier: ^2.3.0
         version: 2.3.0
       '@tauri-apps/plugin-fs':
-        specifier: ^2.4.1
+        specifier: ^2.4.2
         version: 2.4.2
       '@tauri-apps/plugin-http':
         specifier: ^2.5.1

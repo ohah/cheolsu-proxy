@@ -8,7 +8,10 @@ use proxy::{
     get_proxy_status_command, proxy_status, set_proxy, start_proxy, stop_proxy, store_changed,
     ProxyState,
 };
-use proxy_v2::{proxy_v2_status, start_proxy_v2, stop_proxy_v2, store_changed_v2, ProxyV2State};
+use proxy_v2::{
+    clean_old_proxy_cache, proxy_v2_status, read_body_file, start_proxy_v2, stop_proxy_v2,
+    store_changed_v2, ProxyV2State,
+};
 use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -37,6 +40,14 @@ pub fn run() {
                 // 새로운 proxyapi_v2 프록시 상태
                 app_handle.manage(ProxyV2State::default());
 
+                // 앱 시작 시 자동 캐시 정리 (1일 이상 된 캐시)
+                tauri::async_runtime::spawn(async {
+                    match clean_old_proxy_cache(1).await {
+                        Ok(message) => println!("🧹 {}", message),
+                        Err(e) => eprintln!("⚠️ 캐시 정리 실패: {}", e),
+                    }
+                });
+
                 tauri::async_runtime::spawn(async {
                     if let Err(e) = set_proxy(true) {
                         eprintln!("프록시 설정 실패: {}", e);
@@ -62,7 +73,9 @@ pub fn run() {
                 stop_proxy_v2,
                 proxy_v2_status,
                 store_changed_v2,
-                get_proxy_status_command
+                get_proxy_status_command,
+                read_body_file,
+                clean_old_proxy_cache
             ])
             .run(tauri::generate_context!())
             .expect("error while running tauri application");
