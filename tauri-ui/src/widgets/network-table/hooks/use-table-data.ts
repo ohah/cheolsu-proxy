@@ -23,13 +23,19 @@ export const useTableData = ({ transactions, selectedTransaction }: UseTableData
       let pathname = '';
 
       if (request?.uri) {
-        try {
-          const url = new URL(request.uri);
-          authority = getAuthority(request.uri);
-          pathname = url.pathname;
-        } catch {
-          authority = request.uri.split('/')[0] || request.uri;
-          pathname = '';
+        // CONNECT 요청의 경우 host:port 형식이므로 특별 처리
+        if (request.method === 'CONNECT') {
+          authority = request.uri; // host:port 형식 그대로 사용
+          pathname = '/'; // CONNECT 요청은 경로가 없으므로 '/'로 표시
+        } else {
+          try {
+            const url = new URL(request.uri);
+            authority = getAuthority(request.uri);
+            pathname = url.pathname;
+          } catch {
+            authority = request.uri.split('/')[0] || request.uri;
+            pathname = '';
+          }
         }
       }
 

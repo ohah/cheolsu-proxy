@@ -4,7 +4,6 @@
 <h2> A simple <i>Man In The Middle</i> proxy</h2>
 </div>
 
-[![build](https://github.com/ohah/cheolsu-proxy/actions/workflows/autofix.yml/badge.svg?branch=master)](https://github.com/ohah/cheolsu-proxy/actions/workflows/autofix.yml)
 ![GitHub](https://img.shields.io/github/license/ohah/cheolsu-proxy/)
 ![GitHub last commit](https://img.shields.io/github/last-commit/ohah/cheolsu-proxy/)
 ![GitHub top language](https://img.shields.io/github/languages/top/ohah/cheolsu-proxy/)
@@ -109,22 +108,3 @@ Please adhere to this project's `code of conduct`.
 ## Licenses
 
 See [LICENSE-APACHE](LICENSE-APACHE), [LICENSE-MIT](LICENSE-MIT) for details
-
-## Screenshots
-
-### Input of Listening Address
-
-![Mitm proxy Screenshot 1](assets/screenshots/1b.png)
-![Mitm proxy Screenshot 1](assets/screenshots/1w.png)
-![Mitm proxy Screenshot 1](assets/screenshots/2w.png)
-
-### Requests List
-
-![Mitm proxy Screenshot 2](assets/screenshots/3w.png)
-![Mitm proxy Screenshot 2](assets/screenshots/3b.png)
-![Mitm proxy Screenshot 2](assets/screenshots/4b.png)
-
-### Request and Response Details
-
-![Mitm proxy Screenshot 3](assets/screenshots/5b.png)
-![Mitm proxy Screenshot 3](assets/screenshots/5w.png)
