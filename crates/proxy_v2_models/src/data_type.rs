@@ -322,6 +322,24 @@ pub fn detect_data_type(headers: &HeaderMap, body: &Bytes) -> DataType {
             return DataType::Document;
         }
 
+        // HWP 파일 감지 (HWP 3.0 형식)
+        // HWP 3.0 파일은 "HWP Document File" 시그니처로 시작
+        if body.len() >= 16 && &body[0..16] == b"HWP Document Fil" {
+            return DataType::Document;
+        }
+
+        // HWP 5.0+ 파일 감지 (ZIP 기반 복합 문서)
+        // HWP 5.0+ 파일은 ZIP 형식이며, 내부에 특정 구조를 가짐
+        // ZIP 시그니처로 시작하고 "FileHeader" 엔트리를 포함
+        if body.len() >= 30 && &body[0..4] == b"PK\x03\x04" {
+            // ZIP 파일 내용에서 "FileHeader" 또는 "DocInfo" 문자열 확인
+            if let Ok(body_str) = std::str::from_utf8(body) {
+                if body_str.contains("FileHeader") || body_str.contains("PrvText") {
+                    return DataType::Document;
+                }
+            }
+        }
+
         // ZIP 아카이브 감지 (GZIP이 아닌 경우)
         if body.len() >= 4 && &body[0..4] == b"PK\x03\x04" {
             return DataType::Archive;
@@ -351,6 +369,8 @@ pub fn detect_data_type(headers: &HeaderMap, body: &Bytes) -> DataType {
             } else if content_type.contains("audio/") {
                 return DataType::Audio;
             } else if content_type.contains("pdf") {
+                return DataType::Document;
+            } else if content_type.contains("hwp") || content_type.contains("x-hwp") {
                 return DataType::Document;
             } else if content_type.contains("zip") || content_type.contains("gzip") {
                 return DataType::Archive;
@@ -537,8 +557,12 @@ mod tests {
     fn test_video_detection() {
         let headers = HeaderMap::new();
 
-        // MP4 시그니처 테스트
-        let mp4_data = Bytes::from(vec![0x00, 0x00, 0x00, 0x20, 0x66, 0x74, 0x79, 0x70]);
+        // MP4 시그니처 테스트 (ftyp + brand 포함)
+        let mp4_data = Bytes::from(vec![
+            0x00, 0x00, 0x00, 0x20, // 크기
+            0x66, 0x74, 0x79, 0x70, // "ftyp"
+            0x69, 0x73, 0x6F, 0x6D, // "isom" 브랜드
+        ]);
         assert_eq!(detect_data_type(&headers, &mp4_data), DataType::Video);
 
         // WebM 시그니처 테스트
@@ -568,6 +592,48 @@ mod tests {
         // PDF 시그니처 테스트
         let pdf_data = Bytes::from(vec![0x25, 0x50, 0x44, 0x46]);
         assert_eq!(detect_data_type(&headers, &pdf_data), DataType::Document);
+
+        // HWP 3.0 시그니처 테스트
+        let hwp3_data = Bytes::from("HWP Document File\x00\x00\x00".as_bytes().to_vec());
+        assert_eq!(detect_data_type(&headers, &hwp3_data), DataType::Document);
+    }
+
+    #[test]
+    fn test_hwp5_detection() {
+        let headers = HeaderMap::new();
+
+        // HWP 5.0+ 시그니처 테스트 (ZIP 기반 + FileHeader 포함)
+        let mut hwp5_data = Vec::new();
+        hwp5_data.extend_from_slice(b"PK\x03\x04"); // ZIP 시그니처
+        hwp5_data.extend_from_slice(&[0x00; 26]); // ZIP 헤더 나머지
+        hwp5_data.extend_from_slice(b"FileHeader"); // HWP 특유 엔트리
+        
+        assert_eq!(
+            detect_data_type(&headers, &Bytes::from(hwp5_data)),
+            DataType::Document
+        );
+    }
+
+    #[test]
+    fn test_hwp_content_type_header() {
+        use http::HeaderValue;
+
+        let mut headers = HeaderMap::new();
+        headers.insert(
+            "content-type",
+            HeaderValue::from_static("application/x-hwp"),
+        );
+
+        let body = Bytes::from(vec![0x00; 100]);
+        assert_eq!(detect_data_type(&headers, &body), DataType::Document);
+
+        // 다른 HWP MIME 타입 테스트
+        headers.clear();
+        headers.insert(
+            "content-type",
+            HeaderValue::from_static("application/haansofthwp"),
+        );
+        assert_eq!(detect_data_type(&headers, &body), DataType::Document);
     }
 
     #[test]
