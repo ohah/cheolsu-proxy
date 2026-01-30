@@ -537,12 +537,8 @@ mod tests {
     fn test_video_detection() {
         let headers = HeaderMap::new();
 
-        // MP4 시그니처 테스트 (ftyp + brand 포함)
-        let mp4_data = Bytes::from(vec![
-            0x00, 0x00, 0x00, 0x20, // 크기
-            0x66, 0x74, 0x79, 0x70, // "ftyp"
-            0x69, 0x73, 0x6F, 0x6D, // "isom" 브랜드
-        ]);
+        // MP4 시그니처 테스트
+        let mp4_data = Bytes::from(vec![0x00, 0x00, 0x00, 0x20, 0x66, 0x74, 0x79, 0x70]);
         assert_eq!(detect_data_type(&headers, &mp4_data), DataType::Video);
 
         // WebM 시그니처 테스트
