@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::path::Path;
 
 // Re-export commonly used types
@@ -54,10 +55,6 @@ pub fn detect_file_extension_from_header(body: &Bytes) -> Option<&'static str> {
 
         // 문서 파일 시그니처
         [0x25, 0x50, 0x44, 0x46] => Some("pdf"), // PDF
-        // HWP 3.0 파일 시그니처
-        [0x48, 0x57, 0x50, 0x20] if body.len() >= 16 && &body[0..16] == b"HWP Document Fil" => {
-            Some("hwp")
-        } // HWP 3.0
 
         // 압축 파일 시그니처
         [0x50, 0x4B, 0x03, 0x04] | [0x50, 0x4B, 0x05, 0x06] | [0x50, 0x4B, 0x07, 0x08] => {
@@ -104,7 +101,6 @@ pub fn get_mime_type_from_extension(extension: &str) -> &'static str {
 
         // 문서
         "pdf" => "application/pdf",
-        "hwp" => "application/x-hwp",
         "doc" => "application/msword",
         "docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         "xls" => "application/vnd.ms-excel",
@@ -165,7 +161,6 @@ pub fn get_extension_from_mime_type(mime_type: &str) -> &'static str {
 
         // 문서
         "application/pdf" => "pdf",
-        "application/x-hwp" | "application/haansofthwp" | "application/vnd.hancom.hwp" => "hwp",
         "application/msword" => "doc",
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document" => "docx",
         "application/vnd.ms-excel" => "xls",
