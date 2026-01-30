@@ -330,13 +330,17 @@ pub fn detect_data_type(headers: &HeaderMap, body: &Bytes) -> DataType {
 
         // HWP 5.0+ 파일 감지 (ZIP 기반 복합 문서)
         // HWP 5.0+ 파일은 ZIP 형식이며, 내부에 특정 구조를 가짐
-        // ZIP 시그니처로 시작하고 "FileHeader" 엔트리를 포함
+        // ZIP 시그니처로 시작하고 "FileHeader" 또는 "PrvText" 엔트리를 포함
         if body.len() >= 30 && &body[0..4] == b"PK\x03\x04" {
-            // ZIP 파일 내용에서 "FileHeader" 또는 "DocInfo" 문자열 확인
-            if let Ok(body_str) = std::str::from_utf8(body) {
-                if body_str.contains("FileHeader") || body_str.contains("PrvText") {
-                    return DataType::Document;
-                }
+            // ZIP 파일 내용에서 "FileHeader" 또는 "PrvText" 바이트 시퀀스 확인
+            // UTF-8 변환 없이 바이트 검색으로 처리
+            let file_header_bytes = b"FileHeader";
+            let prv_text_bytes = b"PrvText";
+            
+            if body.windows(file_header_bytes.len()).any(|w| w == file_header_bytes)
+                || body.windows(prv_text_bytes.len()).any(|w| w == prv_text_bytes)
+            {
+                return DataType::Document;
             }
         }
 
@@ -612,6 +616,28 @@ mod tests {
             detect_data_type(&headers, &Bytes::from(hwp5_data)),
             DataType::Document
         );
+
+        // HWP 5.0+ PrvText 테스트
+        let mut hwp5_prvtext = Vec::new();
+        hwp5_prvtext.extend_from_slice(b"PK\x03\x04"); // ZIP 시그니처
+        hwp5_prvtext.extend_from_slice(&[0x00; 26]); // ZIP 헤더 나머지
+        hwp5_prvtext.extend_from_slice(b"PrvText"); // HWP PrvText 엔트리
+        
+        assert_eq!(
+            detect_data_type(&headers, &Bytes::from(hwp5_prvtext)),
+            DataType::Document
+        );
+
+        // 일반 ZIP 파일은 Archive로 감지되어야 함
+        let mut normal_zip = Vec::new();
+        normal_zip.extend_from_slice(b"PK\x03\x04");
+        normal_zip.extend_from_slice(&[0x00; 26]);
+        normal_zip.extend_from_slice(b"normalfile.txt");
+        
+        assert_eq!(
+            detect_data_type(&headers, &Bytes::from(normal_zip)),
+            DataType::Archive
+        );
     }
 
     #[test]
@@ -632,6 +658,14 @@ mod tests {
         headers.insert(
             "content-type",
             HeaderValue::from_static("application/haansofthwp"),
+        );
+        assert_eq!(detect_data_type(&headers, &body), DataType::Document);
+
+        // application/vnd.hancom.hwp 테스트
+        headers.clear();
+        headers.insert(
+            "content-type",
+            HeaderValue::from_static("application/vnd.hancom.hwp"),
         );
         assert_eq!(detect_data_type(&headers, &body), DataType::Document);
     }
