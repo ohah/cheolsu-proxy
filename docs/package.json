@@ -17,6 +17,6 @@
     "preview": "rspress preview"
   },
   "devDependencies": {
-    "rspress": "^1.45.6"
+    "rspress": "1.47.1"
   }
 }

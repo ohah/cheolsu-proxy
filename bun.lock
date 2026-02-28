@@ -13,7 +13,7 @@
       "name": "cheolsu-proxy-docs",
       "version": "1.0.0",
       "devDependencies": {
-        "rspress": "^1.45.6",
+        "rspress": "1.47.1",
       },
     },
     "tauri-ui": {
