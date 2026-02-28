@@ -8,6 +8,7 @@ bun-debug.log*
 # Build output
 dist/
 build/
+doc_build/
 .rspress/
 
 # Environment variables

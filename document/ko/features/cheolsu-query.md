@@ -46,7 +46,7 @@ Cheolsu-Query는 Monaco Editor 기반의 강력한 쿼리 언어로, 네트워�
 
 ### 기본 필터링
 
-```cheolsu-query
+```text
 # GET 요청만 필터링
 method="GET"
 
@@ -62,7 +62,7 @@ status!="4xx,5xx"
 
 ### 복합 조건
 
-```cheolsu-query
+```text
 # 여러 HTTP 메서드
 method="GET,POST"
 
@@ -78,7 +78,7 @@ method="POST" or status="5xx"
 
 ### 실제 사용 시나리오
 
-```cheolsu-query
+```text
 # API 요청만 모니터링
 url|="api" and method!="OPTIONS"
 
@@ -130,7 +130,7 @@ url|="localhost" or url|="127.0.0.1"
 
 ### 1. 효율적인 필터링
 
-```cheolsu-query
+```text
 # 정확한 조건 사용
 method="GET"  # ✅ 좋음
 method|="GET" # ❌ 불필요한 패턴 매칭
@@ -138,7 +138,7 @@ method|="GET" # ❌ 불필요한 패턴 매칭
 
 ### 2. 성능 최적화
 
-```cheolsu-query
+```text
 # 구체적인 조건을 먼저 배치
 url|="api" and method="GET"  # ✅ 좋음
 method="GET" and url|="api"  # ❌ URL 패턴이 더 선택적
@@ -146,7 +146,7 @@ method="GET" and url|="api"  # ❌ URL 패턴이 더 선택적
 
 ### 3. 가독성 향상
 
-```cheolsu-query
+```text
 # 복잡한 조건은 괄호 사용
 (method="GET" or method="POST") and status="2xx"
 ```
@@ -155,7 +155,7 @@ method="GET" and url|="api"  # ❌ URL 패턴이 더 선택적
 
 ### 정규식 패턴 (향후 지원 예정)
 
-```cheolsu-query
+```text
 # URL 패턴 매칭
 url~="^/api/v[0-9]+/"
 
@@ -165,7 +165,7 @@ status~="^[45][0-9][0-9]$"
 
 ### 시간 기반 필터링 (향후 지원 예정)
 
-```cheolsu-query
+```text
 # 최근 1시간 내 요청
 time>="1h"
 
@@ -179,7 +179,7 @@ time>="09:00" and time<="18:00"
 
 1. **문법 오류**
 
-   ```cheolsu-query
+   ```text
    # ❌ 잘못된 예시
    method=GET
 
@@ -189,7 +189,7 @@ time>="09:00" and time<="18:00"
 
 2. **연산자 오류**
 
-   ```cheolsu-query
+   ```text
    # ❌ 잘못된 예시
    method=="GET"
 
@@ -199,7 +199,7 @@ time>="09:00" and time<="18:00"
 
 3. **논리 연산자 오류**
 
-   ```cheolsu-query
+   ```text
    # ❌ 잘못된 예시
    method="GET" && status="2xx"
 

@@ -73,9 +73,9 @@ Cheolsu Proxy는 첫 실행 시 자동으로 고유한 CA 인증서를 생성합
 
 ### 로컬 문서
 
-기존 마크다운 문서는 [docs/](docs/) 디렉토리를 참조하세요.
+기존 마크다운 문서는 [document/](document/) 디렉토리를 참조하세요.
 
-- [TLS 1.0/1.1 지원](docs/features/TLS_1_0_1_1_SUPPORT.md) - 레거시 TLS 클라이언트 지원
+- [TLS 1.0/1.1 지원](document/features/TLS_1_0_1_1_SUPPORT.md) - 레거시 TLS 클라이언트 지원
 - [Windows guide](https://support.microsoft.com/en-us/windows/use-a-proxy-server-in-windows-03096c53-0554-4ffe-b6ab-8b1deee8dae1#:~:text=a%20VPN%20connection-,Select%20the%20Start%20button%2C%20then%20select%20Settings%20%3E%20Network%20%26%20Internet,information%20for%20that%20VPN%20connection.)
 
 ## Start Development

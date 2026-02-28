@@ -13,7 +13,7 @@ When creating or suggesting git commits, follow these rules. Full details in `AG
 ```
 
 - **Type** (required): `feat` | `fix` | `refactor` | `test` | `docs` | `chore` | `style`
-- **Scope** (optional): `proxyapi` | `proxyapi_v2` | `proxy_v2_models` | `proxyapi_models` | `tauri-ui` | `docs` | `config`
+- **Scope** (optional): `proxyapi` | `proxyapi_v2` | `proxy_v2_models` | `proxyapi_models` | `tauri-ui` | `document` | `config`
 - **Subject** (required): imperative, lowercase start, ≤50 chars, no trailing period
 - **Body** (optional): wrap at 72 chars; explain what and why
 - **Footer** (optional): breaking changes, issue refs
