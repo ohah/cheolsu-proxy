@@ -40,6 +40,12 @@
 3. **가이드**: `document/guides/` 디렉토리에 추가
 4. **이 인덱스 업데이트**: 새로운 문서를 목차에 추가
 
+## 🌐 GitHub Pages 배포
+
+문서는 main 브랜치에 `document/**` 변경이 푸시되면 CI가 빌드 후 GitHub Pages에 배포합니다.
+
+**저장소 설정**: Settings → Pages → Build and deployment → Source: **GitHub Actions**
+
 ## 🔗 관련 링크
 
 - [프로젝트 메인 README](https://github.com/ohah/cheolsu-proxy/blob/main/README.md)
