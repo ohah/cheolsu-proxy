@@ -4,9 +4,9 @@
   "version": "0.1.0",
   "identifier": "com.cheolsu-proxy",
   "build": {
-    "beforeDevCommand": "pnpm run dev",
+    "beforeDevCommand": "bun run dev",
     "devUrl": "http://localhost:1420",
-    "beforeBuildCommand": "pnpm run build",
+    "beforeBuildCommand": "bun run build",
     "frontendDist": "../dist"
   },
   "app": {
@@ -23,15 +23,8 @@
   },
   "bundle": {
     "active": true,
-    "targets": [
-      "msi",
-      "nsis",
-      "dmg",
-      "app"
-    ],
-    "icon": [
-      "icons/logo.png"
-    ],
+    "targets": ["msi", "nsis", "dmg", "app"],
+    "icon": ["icons/logo.png"],
     "macOS": {
       "entitlements": null,
       "exceptionDomain": "",

@@ -1,4 +1,4 @@
-// adapted from https://github.com/hyperium/hyper/blob/master/src/common/io/rewind.rs
+// adapted from https://github.com/hyperium/hyper/blob/main/src/common/io/rewind.rs
 
 use hyper::body::Bytes;
 use std::{

@@ -1,6 +1,6 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback } from "react";
 
-import type { HttpTransaction } from '@/entities/proxy';
+import type { HttpTransaction } from "@/entities/proxy";
 
 export const useTransactions = () => {
   const [transactions, setTransactions] = useState<HttpTransaction[]>([]);
@@ -59,7 +59,9 @@ export const useTransactions = () => {
 
   const createTransactionToggleHandler = useCallback(
     (transaction: HttpTransaction) => () => {
-      setSelectedTransaction((prev) => (prev?.request?.id === transaction.request?.id ? null : transaction));
+      setSelectedTransaction((prev) =>
+        prev?.request?.id === transaction.request?.id ? null : transaction,
+      );
     },
     [],
   );

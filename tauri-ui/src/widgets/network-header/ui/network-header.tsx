@@ -1,5 +1,5 @@
-import { NetworkControls } from './network-controls';
-import { NetworkFilters } from './network-filters';
+import { NetworkControls } from "./network-controls";
+import { NetworkFilters } from "./network-filters";
 
 interface NetworkHeaderProps {
   filterQueryString: string;
@@ -28,7 +28,11 @@ export function NetworkHeader({
     <div className="bg-sidebar w-full">
       <div className="flex items-center justify-between py-4 px-2 w-full">
         <div className="flex items-center gap-4 flex-1 w-full">
-          <NetworkControls paused={paused} onTogglePause={togglePause} onClearTransactions={clearTransactions} />
+          <NetworkControls
+            paused={paused}
+            onTogglePause={togglePause}
+            onClearTransactions={clearTransactions}
+          />
 
           <NetworkFilters
             filterQueryString={filterQueryString}

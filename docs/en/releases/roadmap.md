@@ -7,11 +7,9 @@ Check the upcoming features planned for Cheolsu Proxy.
 ### Planned Features
 
 - **Platform Support**:
-
   - Windows support
 
 - **Advanced Features**:
-
   - Log analysis features
   - Performance optimization
 

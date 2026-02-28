@@ -1,4 +1,4 @@
-import type { HttpMethod, RequestPayload, ResponsePayload } from '@/entities/proxy';
+import type { HttpMethod, RequestPayload, ResponsePayload } from "@/entities/proxy";
 
 // 세션 스토어 타입
 export interface SessionStore {

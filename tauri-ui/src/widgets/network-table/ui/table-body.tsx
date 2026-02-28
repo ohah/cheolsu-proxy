@@ -1,11 +1,11 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo } from "react";
 
-import type { HttpTransaction } from '@/entities/proxy';
-import { VirtualizedScrollArea } from '@/shared/ui';
+import type { HttpTransaction } from "@/entities/proxy";
+import { VirtualizedScrollArea } from "@/shared/ui";
 
-import type { TableRowData } from '../model';
+import type { TableRowData } from "../model";
 
-import { TableRow } from './table-row';
+import { TableRow } from "./table-row";
 
 interface TableBodyProps {
   data: TableRowData[];
@@ -26,7 +26,7 @@ export const TableBody = ({
 }: TableBodyProps) => {
   const rowHandlers = useMemo(() => {
     return data.map((rowData) => {
-      const id = rowData.transaction.request?.id ?? '';
+      const id = rowData.transaction.request?.id ?? "";
       return {
         onSelect: createTransactionSelectHandler(rowData.transaction),
         onDelete: createTransactionDeleteHandler(id),

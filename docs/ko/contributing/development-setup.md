@@ -13,8 +13,8 @@ Cheolsu Proxy 개발을 위한 완전한 환경 설정 가이드입니다.
 
 - **Rust**: Cargo 패키지 매니저를 사용하는 핵심 백엔드 언어
 - **Tauri**: 데스크톱 애플리케이션 프레임워크
-- **pnpm**: Node.js용 빠르고 디스크 공간 효율적인 패키지 매니저
-- **oxc**: 파싱 및 린팅을 위한 JavaScript/TypeScript 도구체인
+- **bun**: Node.js 호환 런타임 및 패키지 매니저 (mise.toml로 버전 고정)
+- **oxc**: 포맷(oxfmt) 및 린트(oxlint)용 JavaScript/TypeScript 도구체인
 - **Rspress**: 문서 사이트 생성기
 
 ## 시스템 요구사항
@@ -58,31 +58,43 @@ cargo --version
    cargo --version
    ```
 
-### 2. Node.js 설치
+### 2. mise로 개발 환경 맞추기 (권장)
+
+이 프로젝트는 [mise](https://mise.jdx.dev/)로 Node.js, Bun, Rust 버전을 고정합니다.
+
+```bash
+# mise 설치 (없는 경우)
+curl https://mise.run | sh
+
+# 저장소 루트에서 실행 시 mise.toml에 맞춰 node, bun, rust 설치
+cd cheolsu-proxy
+mise install
+
+# 확인
+node --version
+bun --version
+rustc --version
+```
+
+### 3. Node.js / Bun 직접 설치 (mise 미사용 시)
 
 #### macOS (Homebrew)
 
 ```bash
-# Homebrew로 설치
-brew install node
-
-# 또는 nvm 사용
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
-nvm install --lts
-nvm use --lts
+brew install node bun
 ```
 
 #### Windows
 
 1. [nodejs.org](https://nodejs.org/)에서 LTS 버전 다운로드
-2. 설치 마법사 따라하기
+2. [bun.sh](https://bun.sh/)에서 Bun 설치
 3. PowerShell에서 확인:
    ```powershell
    node --version
-   pnpm --version
+   bun --version
    ```
 
-### 3. Tauri CLI 설치
+### 4. Tauri CLI 설치
 
 ```bash
 # Tauri CLI 설치
@@ -92,7 +104,7 @@ cargo install tauri-cli
 tauri --version
 ```
 
-### 4. 개발 도구 설치
+### 5. 개발 도구 설치
 
 #### Rust 도구
 
@@ -155,11 +167,8 @@ cargo build --workspace
 # Tauri UI 디렉토리로 이동
 cd tauri-ui
 
-# 의존성 설치
-pnpm install
-
-# pnpm 사용 (권장)
-pnpm install
+# 의존성 설치 (루트에서 워크스페이스 전체)
+bun install
 ```
 
 ### 3. 개발 서버 실행
@@ -167,10 +176,10 @@ pnpm install
 ```bash
 # Tauri 개발 서버 실행
 cd tauri-ui
-pnpm run tauri dev
+bun run tauri dev
 
-# pnpm 사용
-pnpm tauri dev
+# bun 사용
+bun run tauri dev
 ```
 
 ## IDE 설정
@@ -186,7 +195,7 @@ pnpm tauri dev
     "vadimcn.vscode-lldb",
     "ms-vscode.vscode-typescript-next",
     "bradlc.vscode-tailwindcss",
-    "esbenp.prettier-vscode",
+    "oxc.oxc",
     "ms-vscode.vscode-json"
   ]
 }
@@ -201,10 +210,10 @@ pnpm tauri dev
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "rust-lang.rust-analyzer",
   "[typescript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "oxc.oxc"
   },
   "[typescriptreact]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "oxc.oxc"
   }
 }
 ```
@@ -278,14 +287,14 @@ cargo outdated
 
 ```bash
 # Tauri 앱과 함께 실행
-pnpm run tauri dev
+bun run tauri dev
 ```
 
 ### 2. 빌드
 
 ```bash
 # Tauri 앱 빌드
-pnpm run tauri build
+bun run tauri build
 ```
 
 ### 3. 테스트
@@ -299,7 +308,7 @@ pnpm run tauri build
 ```bash
 # 디버그 모드로 실행
 cd tauri-ui
-RUST_LOG=debug pnpm run tauri dev
+RUST_LOG=debug bun run tauri dev
 ```
 
 개발자 도구 켜기

@@ -1,0 +1,7 @@
+# Cheolsu Proxy 개발 환경 (mise)
+# https://mise.jdx.dev/
+
+[tools]
+node = "latest"
+bun = "latest"
+rust = "nightly"

@@ -10,6 +10,7 @@ Review Copilot feedback on a branch/PR and apply the suggested changes.
   # or
   gh pr list --head $(git branch --show-current) --state open --json number,url
   ```
+
   - If exactly one PR exists for the current branch, use that PR. If none or multiple, ask the user for the PR link (or pasted review text).
 - **Review text**: User may paste Copilot review text directly; use that as the source of feedback.
 
@@ -28,7 +29,7 @@ Review Copilot feedback on a branch/PR and apply the suggested changes.
 3. **Apply the changes**:
    - Edit the codebase to address each suggestion where it makes sense.
    - Prefer accepting suggestions that improve correctness, security, or maintainability; skip or adapt ones that conflict with project rules or intent.
-   - Run format/lint after edits (`pnpm run format`, `pnpm run lint` for TS/JS; `cargo fmt`, `cargo clippy` for Rust).
+   - Run format/lint after edits (`bun run format`, `bun run lint` for TS/JS; `cargo fmt`, `cargo clippy` for Rust).
 
 4. **Reply to the user**:
    - List what was changed and what was skipped (and why, if relevant).

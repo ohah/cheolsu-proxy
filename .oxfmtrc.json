@@ -1,0 +1,3 @@
+{
+  "ignorePatterns": [".cursor/**", "node_modules/**", "doc_build/**", "dist/**"]
+}

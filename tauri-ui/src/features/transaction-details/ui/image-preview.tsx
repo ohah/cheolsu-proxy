@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
-import { Download, Maximize2, Minimize2 } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { Download, Maximize2, Minimize2 } from "lucide-react";
 
-import { Button } from '@/shared/ui';
-import { createImageDataUrl } from '../lib/utils';
-import { useBase64Worker } from '@/hooks/use-base64-worker';
-import type { DataType } from '@/entities/proxy/model/types';
+import { Button } from "@/shared/ui";
+import { createImageDataUrl } from "../lib/utils";
+import { useBase64Worker } from "@/hooks/use-base64-worker";
+import type { DataType } from "@/entities/proxy/model/types";
 
 interface ImagePreviewProps {
   data: Uint8Array | number[];
@@ -12,16 +12,16 @@ interface ImagePreviewProps {
   className?: string;
 }
 
-export const ImagePreview = ({ data, dataType, className = '' }: ImagePreviewProps) => {
+export const ImagePreview = ({ data, dataType, className = "" }: ImagePreviewProps) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [imageError, setImageError] = useState(false);
-  const [dataUrl, setDataUrl] = useState<string>('');
+  const [dataUrl, setDataUrl] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
 
   const { encodeToBase64, isWorkerAvailable } = useBase64Worker();
 
   useEffect(() => {
-    if (dataType === 'Image') {
+    if (dataType === "Image") {
       setIsLoading(true);
       setImageError(false);
 
@@ -86,7 +86,7 @@ export const ImagePreview = ({ data, dataType, className = '' }: ImagePreviewPro
   }
 
   const handleDownload = () => {
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = dataUrl;
     link.download = `image.${getFileExtension(dataType)}`;
     document.body.appendChild(link);
@@ -96,25 +96,25 @@ export const ImagePreview = ({ data, dataType, className = '' }: ImagePreviewPro
 
   const getFileExtension = (type: DataType): string => {
     switch (type) {
-      case 'Image':
+      case "Image":
         // MIME 타입에서 확장자 추출
-        const mimeType = dataUrl.split(';')[0].split(':')[1];
+        const mimeType = dataUrl.split(";")[0].split(":")[1];
         switch (mimeType) {
-          case 'image/png':
-            return 'png';
-          case 'image/jpeg':
-            return 'jpg';
-          case 'image/gif':
-            return 'gif';
-          case 'image/webp':
-            return 'webp';
-          case 'image/svg+xml':
-            return 'svg';
+          case "image/png":
+            return "png";
+          case "image/jpeg":
+            return "jpg";
+          case "image/gif":
+            return "gif";
+          case "image/webp":
+            return "webp";
+          case "image/svg+xml":
+            return "svg";
           default:
-            return 'png';
+            return "png";
         }
       default:
-        return 'bin';
+        return "bin";
     }
   };
 
@@ -123,18 +123,23 @@ export const ImagePreview = ({ data, dataType, className = '' }: ImagePreviewPro
       <img
         src={dataUrl}
         alt="이미지 미리보기"
-        className={`max-w-full h-auto rounded-md shadow-sm ${isFullscreen ? 'max-h-none' : 'max-h-[400px]'}`}
+        className={`max-w-full h-auto rounded-md shadow-sm ${isFullscreen ? "max-h-none" : "max-h-[400px]"}`}
         onError={() => setImageError(true)}
         style={{
-          maxWidth: isFullscreen ? '90vw' : '100%',
-          maxHeight: isFullscreen ? '90vh' : '400px',
+          maxWidth: isFullscreen ? "90vw" : "100%",
+          maxHeight: isFullscreen ? "90vh" : "400px",
         }}
       />
 
       {/* 호버 시 컨트롤 버튼들 */}
       <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
         <div className="flex gap-1">
-          <Button variant="secondary" size="sm" onClick={() => setIsFullscreen(!isFullscreen)} className="h-8 w-8 p-0">
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => setIsFullscreen(!isFullscreen)}
+            className="h-8 w-8 p-0"
+          >
             {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
           </Button>
           <Button variant="secondary" size="sm" onClick={handleDownload} className="h-8 w-8 p-0">

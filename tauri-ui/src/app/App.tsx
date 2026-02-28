@@ -1,7 +1,7 @@
-import { useEffect } from 'react';
-import { useThemeProvider, RouterProvider } from './providers';
-import { Toaster } from '@/shared/ui';
-import { useProxyStore } from '@/shared/stores';
+import { useEffect } from "react";
+import { useThemeProvider, RouterProvider } from "./providers";
+import { Toaster } from "@/shared/ui";
+import { useProxyStore } from "@/shared/stores";
 
 const App: React.FC = () => {
   useThemeProvider();

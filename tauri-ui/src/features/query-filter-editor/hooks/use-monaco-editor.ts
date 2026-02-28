@@ -1,7 +1,12 @@
-import { useRef, useEffect } from 'react';
-import type { editor } from 'monaco-editor';
-import type { Monaco } from '@monaco-editor/react';
-import { setupMonacoLanguage, createCompletionProvider, setupKeybindings, setupAutoCompleteTriggers } from '../lib';
+import { useRef, useEffect } from "react";
+import type { editor } from "monaco-editor";
+import type { Monaco } from "@monaco-editor/react";
+import {
+  setupMonacoLanguage,
+  createCompletionProvider,
+  setupKeybindings,
+  setupAutoCompleteTriggers,
+} from "../lib";
 
 interface UseMonacoEditorProps {
   onApply: (value: string) => void;

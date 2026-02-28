@@ -1,10 +1,10 @@
-import { useSessionStore, useProxyStore } from '@/shared/stores';
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui';
-import { Badge } from '@/shared/ui';
-import { Trash2, Copy, ExternalLink } from 'lucide-react';
-import { Button } from '@/shared/ui';
-import { toast } from 'sonner';
-import { AppSidebar } from '@/shared/app-sidebar';
+import { useSessionStore, useProxyStore } from "@/shared/stores";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui";
+import { Badge } from "@/shared/ui";
+import { Trash2, Copy, ExternalLink } from "lucide-react";
+import { Button } from "@/shared/ui";
+import { toast } from "sonner";
+import { AppSidebar } from "@/shared/app-sidebar";
 
 /**
  * 세션 데이터를 표시하는 페이지
@@ -17,17 +17,17 @@ export const SessionsPage = () => {
 
   const handleDeleteSession = (id: string) => {
     deleteSession(id);
-    toast.success('Session deleted successfully');
+    toast.success("Session deleted successfully");
   };
 
   const handleCopySession = (session: any) => {
     const sessionText = JSON.stringify(session, null, 2);
     navigator.clipboard.writeText(sessionText);
-    toast.success('Session data copied to clipboard');
+    toast.success("Session data copied to clipboard");
   };
 
   const handleOpenUrl = (url: string) => {
-    window.open(url, '_blank');
+    window.open(url, "_blank");
   };
 
   return (
@@ -51,7 +51,9 @@ export const SessionsPage = () => {
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <div className="text-center space-y-2">
                   <h3 className="text-lg font-semibold">No sessions found</h3>
-                  <p className="text-muted-foreground">Start making HTTP requests to see your sessions here.</p>
+                  <p className="text-muted-foreground">
+                    Start making HTTP requests to see your sessions here.
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -62,9 +64,14 @@ export const SessionsPage = () => {
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <CardTitle className="text-lg font-semibold truncate max-w-md">{session.url}</CardTitle>
-                        <Badge variant={session.isActive ? 'default' : 'secondary'} className="text-xs">
-                          {session.isActive ? 'Active' : 'Inactive'}
+                        <CardTitle className="text-lg font-semibold truncate max-w-md">
+                          {session.url}
+                        </CardTitle>
+                        <Badge
+                          variant={session.isActive ? "default" : "secondary"}
+                          className="text-xs"
+                        >
+                          {session.isActive ? "Active" : "Inactive"}
                         </Badge>
                         <Badge variant="outline" className="text-xs">
                           {session.method}
@@ -107,7 +114,9 @@ export const SessionsPage = () => {
                         <div className="bg-muted/50 rounded-md p-3 space-y-2">
                           {session.request?.headers && (
                             <div>
-                              <span className="text-xs font-medium text-muted-foreground">Headers:</span>
+                              <span className="text-xs font-medium text-muted-foreground">
+                                Headers:
+                              </span>
                               <pre className="text-xs mt-1 overflow-x-auto">
                                 {JSON.stringify(session.request.headers, null, 2)}
                               </pre>
@@ -115,7 +124,9 @@ export const SessionsPage = () => {
                           )}
                           {session.request?.data && (
                             <div>
-                              <span className="text-xs font-medium text-muted-foreground">Data:</span>
+                              <span className="text-xs font-medium text-muted-foreground">
+                                Data:
+                              </span>
                               <pre className="text-xs mt-1 overflow-x-auto">
                                 {JSON.stringify(session.request.data, null, 2)}
                               </pre>
@@ -123,7 +134,9 @@ export const SessionsPage = () => {
                           )}
                           {session.request?.params && (
                             <div>
-                              <span className="text-xs font-medium text-muted-foreground">Params:</span>
+                              <span className="text-xs font-medium text-muted-foreground">
+                                Params:
+                              </span>
                               <pre className="text-xs mt-1 overflow-x-auto">
                                 {JSON.stringify(session.request.params, null, 2)}
                               </pre>
@@ -138,7 +151,9 @@ export const SessionsPage = () => {
                         <div className="bg-muted/50 rounded-md p-3 space-y-2">
                           {session.response?.status && (
                             <div>
-                              <span className="text-xs font-medium text-muted-foreground">Status:</span>
+                              <span className="text-xs font-medium text-muted-foreground">
+                                Status:
+                              </span>
                               <Badge variant="outline" className="ml-2 text-xs">
                                 {session.response.status}
                               </Badge>
@@ -146,7 +161,9 @@ export const SessionsPage = () => {
                           )}
                           {session.response?.headers && (
                             <div>
-                              <span className="text-xs font-medium text-muted-foreground">Headers:</span>
+                              <span className="text-xs font-medium text-muted-foreground">
+                                Headers:
+                              </span>
                               <pre className="text-xs mt-1 overflow-x-auto">
                                 {JSON.stringify(session.response.headers, null, 2)}
                               </pre>
@@ -154,7 +171,9 @@ export const SessionsPage = () => {
                           )}
                           {session.response?.data && (
                             <div>
-                              <span className="text-xs font-medium text-muted-foreground">Data:</span>
+                              <span className="text-xs font-medium text-muted-foreground">
+                                Data:
+                              </span>
                               <pre className="text-xs mt-1 overflow-x-auto">
                                 {JSON.stringify(session.response.data, null, 2)}
                               </pre>

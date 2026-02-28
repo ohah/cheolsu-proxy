@@ -1,31 +1,31 @@
-import { createBrowserRouter, RouterProvider as ReactRouterProvider } from 'react-router-dom';
-import { NetworkDashboard } from '@/pages/network-dashboard';
-import { SessionsPage } from '@/pages/sessions';
+import { createBrowserRouter, RouterProvider as ReactRouterProvider } from "react-router-dom";
+import { NetworkDashboard } from "@/pages/network-dashboard";
+import { SessionsPage } from "@/pages/sessions";
 
 // React Router v7의 기본 라우터 설정
 export const router = createBrowserRouter([
   {
-    path: '/',
+    path: "/",
     element: <NetworkDashboard />,
     handle: {
-      title: 'Cheolsu Proxy - Network Dashboard',
-      description: 'HTTP proxy monitoring and debugging tool',
+      title: "Cheolsu Proxy - Network Dashboard",
+      description: "HTTP proxy monitoring and debugging tool",
     },
   },
   {
-    path: '/dashboard',
+    path: "/dashboard",
     element: <NetworkDashboard />,
     handle: {
-      title: 'Dashboard - Cheolsu Proxy',
-      description: 'Network traffic monitoring dashboard',
+      title: "Dashboard - Cheolsu Proxy",
+      description: "Network traffic monitoring dashboard",
     },
   },
   {
-    path: '/sessions',
+    path: "/sessions",
     element: <SessionsPage />,
     handle: {
-      title: 'Sessions - Cheolsu Proxy',
-      description: 'View and manage saved HTTP sessions',
+      title: "Sessions - Cheolsu Proxy",
+      description: "View and manage saved HTTP sessions",
     },
   },
   // 향후 추가될 페이지들을 위한 라우트들

@@ -1,21 +1,21 @@
-import { Network, Database } from 'lucide-react';
+import { Network, Database } from "lucide-react";
 
-import type { SidebarSection } from './types';
+import type { SidebarSection } from "./types";
 
-export const DEFAULT_ACTIVE_SECTION = 'network';
+export const DEFAULT_ACTIVE_SECTION = "network";
 
 export const SIDEBAR_SECTIONS: SidebarSection[] = [
   {
-    id: 'network',
-    label: 'Network',
+    id: "network",
+    label: "Network",
     icon: Network,
-    description: 'HTTP requests and responses',
+    description: "HTTP requests and responses",
   },
   {
-    id: 'sessions',
-    label: 'Sessions',
+    id: "sessions",
+    label: "Sessions",
     icon: Database,
-    description: 'Saved HTTP sessions and data',
+    description: "Saved HTTP sessions and data",
   },
   // {
   //   id: 'performance',
@@ -48,4 +48,3 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
   //   description: 'Request analytics and insights'
   // },
 ];
-

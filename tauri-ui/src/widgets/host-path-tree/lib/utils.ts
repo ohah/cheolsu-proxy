@@ -1,34 +1,34 @@
-import { HttpRequest, HttpTransaction } from '@/entities/proxy';
+import { HttpRequest, HttpTransaction } from "@/entities/proxy";
 
 export function extractHostFromRequest(request: HttpRequest): string {
   try {
-    const url = new URL(request.uri.startsWith('http') ? request.uri : `http://${request.uri}`);
+    const url = new URL(request.uri.startsWith("http") ? request.uri : `http://${request.uri}`);
     return url.hostname;
   } catch {
-    const uriParts = request.uri.split('/');
-    return uriParts[0] || 'unknown';
+    const uriParts = request.uri.split("/");
+    return uriParts[0] || "unknown";
   }
 }
 
 export function extractPathFromRequest(request: HttpRequest): string {
   try {
-    const url = new URL(request.uri.startsWith('http') ? request.uri : `http://${request.uri}`);
+    const url = new URL(request.uri.startsWith("http") ? request.uri : `http://${request.uri}`);
     return url.pathname;
   } catch {
-    const uriParts = request.uri.split('/');
-    return uriParts.length > 1 ? '/' + uriParts.slice(1).join('/') : '/';
+    const uriParts = request.uri.split("/");
+    return uriParts.length > 1 ? "/" + uriParts.slice(1).join("/") : "/";
   }
 }
 
 export function parsePathSegments(path: string): string[] {
-  return path.split('/').filter(Boolean);
+  return path.split("/").filter(Boolean);
 }
 
 export function bodyToString(body: Uint8Array): string {
   try {
     return new TextDecoder().decode(body);
   } catch {
-    return '[Binary Data]';
+    return "[Binary Data]";
   }
 }
 

@@ -1,2 +1,1 @@
-export { SessionsPage } from './ui/sessions-page';
-
+export { SessionsPage } from "./ui/sessions-page";

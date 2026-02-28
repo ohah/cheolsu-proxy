@@ -8,7 +8,19 @@
     "**/.vscode/**": true
   },
   "editor.formatOnSave": true,
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.defaultFormatter": "oxc.oxc",
+  "[javascript]": {
+    "editor.defaultFormatter": "oxc.oxc"
+  },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "oxc.oxc"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "oxc.oxc"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "oxc.oxc"
+  },
   "[rust]": {
     "editor.formatOnSave": true,
     "editor.defaultFormatter": "rust-lang.rust-analyzer"

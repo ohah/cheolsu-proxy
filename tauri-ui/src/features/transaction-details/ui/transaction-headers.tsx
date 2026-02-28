@@ -1,10 +1,10 @@
-import { Copy, Plus, Trash2 } from 'lucide-react';
+import { Copy, Plus, Trash2 } from "lucide-react";
 
-import type { HttpTransaction } from '@/entities/proxy';
+import type { HttpTransaction } from "@/entities/proxy";
 
-import { Button, Card, CardContent, CardHeader, Input } from '@/shared/ui';
-import type { AppFormInstance } from '../context/form-context';
-import { toast } from 'sonner';
+import { Button, Card, CardContent, CardHeader, Input } from "@/shared/ui";
+import type { AppFormInstance } from "../context/form-context";
+import { toast } from "sonner";
 
 interface TransactionHeadersProps {
   transaction: HttpTransaction;
@@ -12,33 +12,37 @@ interface TransactionHeadersProps {
   form?: AppFormInstance;
 }
 
-export const TransactionHeaders = ({ transaction, isEditing = false, form }: TransactionHeadersProps) => {
+export const TransactionHeaders = ({
+  transaction,
+  isEditing = false,
+  form,
+}: TransactionHeadersProps) => {
   const { request } = transaction;
 
   if (!request?.headers) return null;
 
   const handleCopy = () => {
-    const headers = form?.getFieldValue('request.headers') || request.headers;
+    const headers = form?.getFieldValue("request.headers") || request.headers;
     const headersText = Object.entries(headers)
       .map(([key, value]) => `${key}: ${value}`)
-      .join('\n');
+      .join("\n");
     navigator.clipboard.writeText(headersText);
-    toast.success('Request headers copied to clipboard');
+    toast.success("Request headers copied to clipboard");
   };
 
   const handleAddHeader = () => {
     if (!form) return;
-    const currentHeaders = form.getFieldValue('request.headers') || {};
-    const newHeaders = { ...currentHeaders, '': '' };
-    form.setFieldValue('request.headers', newHeaders);
+    const currentHeaders = form.getFieldValue("request.headers") || {};
+    const newHeaders = { ...currentHeaders, "": "" };
+    form.setFieldValue("request.headers", newHeaders);
   };
 
   const handleRemoveHeader = (key: string) => {
     if (!form) return;
-    const currentHeaders = form.getFieldValue('request.headers') || {};
+    const currentHeaders = form.getFieldValue("request.headers") || {};
     const newHeaders = { ...currentHeaders } as Record<string, string>;
     delete newHeaders[key];
-    form.setFieldValue('request.headers', newHeaders);
+    form.setFieldValue("request.headers", newHeaders);
   };
 
   return (

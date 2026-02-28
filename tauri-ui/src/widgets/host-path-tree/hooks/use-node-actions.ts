@@ -1,8 +1,8 @@
-import { useCallback } from 'react';
+import { useCallback } from "react";
 
-import { HttpTransaction } from '@/entities/proxy';
+import { HttpTransaction } from "@/entities/proxy";
 
-import { HostNode } from '../model';
+import { HostNode } from "../model";
 
 interface UseNodeActionsProps {
   node: HostNode;

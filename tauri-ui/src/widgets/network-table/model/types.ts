@@ -1,4 +1,4 @@
-import type { HttpTransaction } from '@/entities/proxy';
+import type { HttpTransaction } from "@/entities/proxy";
 
 export interface TableRowData {
   transaction: HttpTransaction;

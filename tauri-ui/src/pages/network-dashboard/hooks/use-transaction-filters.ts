@@ -1,15 +1,15 @@
-import { useState, useMemo, useCallback } from 'react';
-import type { HttpTransaction } from '@/entities/proxy';
-import { parseFilterQuery } from '@/shared/lib/query-parser';
-import { getFilteredTransactions } from '../lib';
+import { useState, useMemo, useCallback } from "react";
+import type { HttpTransaction } from "@/entities/proxy";
+import { parseFilterQuery } from "@/shared/lib/query-parser";
+import { getFilteredTransactions } from "../lib";
 
 interface UseTransactionFiltersProps {
   transactions: HttpTransaction[];
 }
 
 export const useTransactionFilters = ({ transactions }: UseTransactionFiltersProps) => {
-  const [filterQueryString, setFilterQueryString] = useState<string>('');
-  const [appliedQueryString, setAppliedQueryString] = useState<string>('');
+  const [filterQueryString, setFilterQueryString] = useState<string>("");
+  const [appliedQueryString, setAppliedQueryString] = useState<string>("");
 
   const parsedQuery = useMemo(() => parseFilterQuery(appliedQueryString), [appliedQueryString]);
 

@@ -2,7 +2,7 @@
 :root {
   --gradient: linear-gradient(312deg, rgba(99, 69, 177, 1) 35%, rgba(203, 135, 173, 1) 100%);
 }
-[data-theme='light'] {
+[data-theme="light"] {
   --bg-color: #ffffff;
   --bg-color-secondary: #faf9f7;
   --font-color: #0c0c0c;
@@ -19,7 +19,7 @@
   --bg-input: #fff;
   --shadow-color: 220deg 47% 85%;
 }
-[data-theme='dark'] {
+[data-theme="dark"] {
   --font-color-emphasis: rgba(255, 255, 255, 0.87);
   --font-color: rgba(255, 255, 255, 0.6);
   --bg-color: #121212;
@@ -36,8 +36,8 @@
   --bg-input: #373737;
   --shadow-color: 240deg 4% 14%;
 }
-[data-theme='dark'],
-[data-theme='light'] {
+[data-theme="dark"],
+[data-theme="light"] {
   --box-shadow:
     1px 2px 2px hsl(var(--shadow-color) / 0.2), 2px 4px 4px hsl(var(--shadow-color) / 0.2),
     4px 8px 8px hsl(var(--shadow-color) / 0.2), 8px 8px 16px hsl(var(--shadow-color) / 0.2),
@@ -208,7 +208,7 @@ main > *:last-child {
   height: 100vh;
   background: var(--font-color);
   opacity: 0.9;
-  content: '';
+  content: "";
   z-index: 99999;
 }
 
@@ -377,7 +377,7 @@ main > *:last-child {
 }
 
 .loader:after {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   background: var(--bg-input);

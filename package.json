@@ -1,37 +1,36 @@
 {
   "name": "cheolsu-proxy",
   "version": "0.1.0",
-  "description": "A simple Man In The Middle proxy built with Rust and Tauri",
   "private": true,
-  "type": "module",
-  "packageManager": "pnpm@10.18.3",
+  "description": "A simple Man In The Middle proxy built with Rust and Tauri",
+  "keywords": [
+    "documentation",
+    "mitm",
+    "proxy",
+    "rust",
+    "tauri"
+  ],
+  "license": "MIT",
+  "author": "Cheolsu Proxy Team",
   "workspaces": [
     "tauri-ui",
     "docs"
   ],
-  "devDependencies": {
-    "@prettier/plugin-oxc": "^0.0.4",
-    "oxlint": "latest",
-    "prettier": "^3.6.2"
-  },
+  "type": "module",
   "scripts": {
-    "dev": "pnpm --filter cheolsu-proxy-docs dev",
-    "build": "pnpm --filter cheolsu-proxy-docs build",
-    "preview": "pnpm --filter cheolsu-proxy-docs preview",
-    "tauri:dev": "pnpm --filter tauri-ui tauri dev",
-    "tauri:build": "pnpm --filter tauri-ui tauri build",
+    "dev": "bun run --filter cheolsu-proxy-docs dev",
+    "build": "bun run --filter cheolsu-proxy-docs build",
+    "preview": "bun run --filter cheolsu-proxy-docs preview",
+    "tauri:dev": "bun run --filter tauri-ui tauri dev",
+    "tauri:build": "bun run --filter tauri-ui tauri build",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
-    "format": "prettier --write \"**/*.{js,ts,tsx,jsx}\"",
-    "format:check": "prettier --check \"**/*.{js,ts,tsx,jsx}\""
+    "format": "oxfmt",
+    "format:check": "oxfmt --check"
   },
-  "keywords": [
-    "proxy",
-    "mitm",
-    "rust",
-    "tauri",
-    "documentation"
-  ],
-  "author": "Cheolsu Proxy Team",
-  "license": "MIT"
+  "devDependencies": {
+    "oxfmt": "latest",
+    "oxlint": "latest"
+  },
+  "packageManager": "bun@latest"
 }

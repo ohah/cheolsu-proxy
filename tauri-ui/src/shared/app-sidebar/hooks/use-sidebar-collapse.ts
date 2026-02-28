@@ -1,4 +1,4 @@
-import { useSidebarStore } from '../model';
+import { useSidebarStore } from "../model";
 
 export const useSidebarCollapse = () => {
   const { collapsed, toggleCollapse } = useSidebarStore();

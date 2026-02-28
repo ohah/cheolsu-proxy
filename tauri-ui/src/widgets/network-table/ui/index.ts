@@ -1,1 +1,1 @@
-export * from './network-table';
+export * from "./network-table";

@@ -1,1 +1,1 @@
-export type TransactionTab = 'headers' | 'body' | 'response';
+export type TransactionTab = "headers" | "body" | "response";

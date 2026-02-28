@@ -1,7 +1,11 @@
-import { isImageDataType, isVideoDataType, isAudioDataType } from '@/entities/proxy/model/data-type';
-import type { DataType } from '@/entities/proxy/model/data-type';
-import { readFile, BaseDirectory } from '@tauri-apps/plugin-fs';
-import { useState, useEffect } from 'react';
+import {
+  isImageDataType,
+  isVideoDataType,
+  isAudioDataType,
+} from "@/entities/proxy/model/data-type";
+import type { DataType } from "@/entities/proxy/model/data-type";
+import { readFile, BaseDirectory } from "@tauri-apps/plugin-fs";
+import { useState, useEffect } from "react";
 
 interface MediaPreviewProps {
   data?: Uint8Array; // 파일 경로가 있으면 선택적
@@ -21,32 +25,38 @@ function detectFileExtensionFromHeader(data: Uint8Array): string | null {
 
   // 이미지 파일 시그니처
   if (header[0] === 0xff && header[1] === 0xd8 && header[2] === 0xff) {
-    return 'jpg';
+    return "jpg";
   }
   if (header[0] === 0x89 && header[1] === 0x50 && header[2] === 0x4e && header[3] === 0x47) {
-    return 'png';
+    return "png";
   }
   if (header[0] === 0x47 && header[1] === 0x49 && header[2] === 0x46 && header[3] === 0x38) {
-    return 'gif';
+    return "gif";
   }
   if (header[0] === 0x42 && header[1] === 0x4d) {
-    return 'bmp';
+    return "bmp";
   }
   if (header[0] === 0x49 && header[1] === 0x49 && header[2] === 0x2a && header[3] === 0x00) {
-    return 'tiff';
+    return "tiff";
   }
   if (header[0] === 0x4d && header[1] === 0x4d && header[2] === 0x00 && header[3] === 0x2a) {
-    return 'tiff';
+    return "tiff";
   }
   if (header[0] === 0x00 && header[1] === 0x00 && header[2] === 0x01 && header[3] === 0x00) {
-    return 'ico';
+    return "ico";
   }
 
   // WebP 체크 (더 많은 바이트 필요)
-  if (data.length >= 12 && header[0] === 0x52 && header[1] === 0x49 && header[2] === 0x46 && header[3] === 0x46) {
+  if (
+    data.length >= 12 &&
+    header[0] === 0x52 &&
+    header[1] === 0x49 &&
+    header[2] === 0x46 &&
+    header[3] === 0x46
+  ) {
     const webpHeader = data.slice(8, 12);
-    if (String.fromCharCode(...webpHeader) === 'WEBP') {
-      return 'webp';
+    if (String.fromCharCode(...webpHeader) === "WEBP") {
+      return "webp";
     }
   }
 
@@ -54,48 +64,58 @@ function detectFileExtensionFromHeader(data: Uint8Array): string | null {
   if (header[0] === 0x00 && header[1] === 0x00 && header[2] === 0x00 && header[3] === 0x18) {
     if (data.length >= 8) {
       const ftypHeader = data.slice(4, 8);
-      if (String.fromCharCode(...ftypHeader) === 'ftyp') {
-        return 'mp4';
+      if (String.fromCharCode(...ftypHeader) === "ftyp") {
+        return "mp4";
       }
     }
   }
   if (header[0] === 0x1a && header[1] === 0x45 && header[2] === 0xdf && header[3] === 0xa3) {
-    return 'mkv';
+    return "mkv";
   }
 
   // 오디오 파일 시그니처
   if (header[0] === 0x49 && header[1] === 0x44 && header[2] === 0x33) {
-    return 'mp3';
+    return "mp3";
   }
   if (header[0] === 0xff && (header[1] === 0xfb || header[1] === 0xf3 || header[1] === 0xf2)) {
-    return 'mp3';
+    return "mp3";
   }
   if (header[0] === 0x4f && header[1] === 0x67 && header[2] === 0x67 && header[3] === 0x53) {
-    return 'ogg';
+    return "ogg";
   }
 
   // WAV 체크
-  if (data.length >= 12 && header[0] === 0x52 && header[1] === 0x49 && header[2] === 0x46 && header[3] === 0x46) {
+  if (
+    data.length >= 12 &&
+    header[0] === 0x52 &&
+    header[1] === 0x49 &&
+    header[2] === 0x46 &&
+    header[3] === 0x46
+  ) {
     const waveHeader = data.slice(8, 12);
-    if (String.fromCharCode(...waveHeader) === 'WAVE') {
-      return 'wav';
+    if (String.fromCharCode(...waveHeader) === "WAVE") {
+      return "wav";
     }
   }
 
   // 문서 파일 시그니처
   if (header[0] === 0x25 && header[1] === 0x50 && header[2] === 0x44 && header[3] === 0x46) {
-    return 'pdf';
+    return "pdf";
   }
 
   // 압축 파일 시그니처
-  if (header[0] === 0x50 && header[1] === 0x4b && (header[2] === 0x03 || header[2] === 0x05 || header[2] === 0x07)) {
-    return 'zip';
+  if (
+    header[0] === 0x50 &&
+    header[1] === 0x4b &&
+    (header[2] === 0x03 || header[2] === 0x05 || header[2] === 0x07)
+  ) {
+    return "zip";
   }
   if (header[0] === 0x52 && header[1] === 0x61 && header[2] === 0x72 && header[3] === 0x21) {
-    return 'rar';
+    return "rar";
   }
   if (header[0] === 0x37 && header[1] === 0x7a && header[2] === 0xbc && header[3] === 0xaf) {
-    return '7z';
+    return "7z";
   }
 
   return null;
@@ -105,107 +125,113 @@ function detectFileExtensionFromHeader(data: Uint8Array): string | null {
 function getMimeTypeFromExtension(extension: string): string {
   switch (extension) {
     // 이미지
-    case 'jpg':
-    case 'jpeg':
-      return 'image/jpeg';
-    case 'png':
-      return 'image/png';
-    case 'gif':
-      return 'image/gif';
-    case 'webp':
-      return 'image/webp';
-    case 'svg':
-      return 'image/svg+xml';
-    case 'bmp':
-      return 'image/bmp';
-    case 'tiff':
-      return 'image/tiff';
-    case 'ico':
-      return 'image/x-icon';
+    case "jpg":
+    case "jpeg":
+      return "image/jpeg";
+    case "png":
+      return "image/png";
+    case "gif":
+      return "image/gif";
+    case "webp":
+      return "image/webp";
+    case "svg":
+      return "image/svg+xml";
+    case "bmp":
+      return "image/bmp";
+    case "tiff":
+      return "image/tiff";
+    case "ico":
+      return "image/x-icon";
 
     // 비디오
-    case 'mp4':
-      return 'video/mp4';
-    case 'avi':
-      return 'video/avi';
-    case 'mov':
-      return 'video/quicktime';
-    case 'wmv':
-      return 'video/x-ms-wmv';
-    case 'flv':
-      return 'video/x-flv';
-    case 'webm':
-      return 'video/webm';
-    case 'mkv':
-      return 'video/x-matroska';
-    case '3gp':
-      return 'video/3gpp';
+    case "mp4":
+      return "video/mp4";
+    case "avi":
+      return "video/avi";
+    case "mov":
+      return "video/quicktime";
+    case "wmv":
+      return "video/x-ms-wmv";
+    case "flv":
+      return "video/x-flv";
+    case "webm":
+      return "video/webm";
+    case "mkv":
+      return "video/x-matroska";
+    case "3gp":
+      return "video/3gpp";
 
     // 오디오
-    case 'mp3':
-      return 'audio/mpeg';
-    case 'wav':
-      return 'audio/wav';
-    case 'ogg':
-      return 'audio/ogg';
-    case 'aac':
-      return 'audio/aac';
-    case 'flac':
-      return 'audio/flac';
-    case 'm4a':
-      return 'audio/mp4';
-    case 'wma':
-      return 'audio/x-ms-wma';
+    case "mp3":
+      return "audio/mpeg";
+    case "wav":
+      return "audio/wav";
+    case "ogg":
+      return "audio/ogg";
+    case "aac":
+      return "audio/aac";
+    case "flac":
+      return "audio/flac";
+    case "m4a":
+      return "audio/mp4";
+    case "wma":
+      return "audio/x-ms-wma";
 
     // 문서
-    case 'pdf':
-      return 'application/pdf';
-    case 'doc':
-      return 'application/msword';
-    case 'docx':
-      return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-    case 'xls':
-      return 'application/vnd.ms-excel';
-    case 'xlsx':
-      return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
-    case 'ppt':
-      return 'application/vnd.ms-powerpoint';
-    case 'pptx':
-      return 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
+    case "pdf":
+      return "application/pdf";
+    case "doc":
+      return "application/msword";
+    case "docx":
+      return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+    case "xls":
+      return "application/vnd.ms-excel";
+    case "xlsx":
+      return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+    case "ppt":
+      return "application/vnd.ms-powerpoint";
+    case "pptx":
+      return "application/vnd.openxmlformats-officedocument.presentationml.presentation";
 
     // 압축
-    case 'zip':
-      return 'application/zip';
-    case 'rar':
-      return 'application/x-rar-compressed';
-    case '7z':
-      return 'application/x-7z-compressed';
-    case 'gz':
-      return 'application/gzip';
-    case 'tar':
-      return 'application/x-tar';
+    case "zip":
+      return "application/zip";
+    case "rar":
+      return "application/x-rar-compressed";
+    case "7z":
+      return "application/x-7z-compressed";
+    case "gz":
+      return "application/gzip";
+    case "tar":
+      return "application/x-tar";
 
     // 기타
-    case 'txt':
-      return 'text/plain';
-    case 'html':
-      return 'text/html';
-    case 'css':
-      return 'text/css';
-    case 'js':
-      return 'application/javascript';
-    case 'json':
-      return 'application/json';
-    case 'xml':
-      return 'application/xml';
+    case "txt":
+      return "text/plain";
+    case "html":
+      return "text/html";
+    case "css":
+      return "text/css";
+    case "js":
+      return "application/javascript";
+    case "json":
+      return "application/json";
+    case "xml":
+      return "application/xml";
 
     default:
-      return 'application/octet-stream';
+      return "application/octet-stream";
   }
 }
 
-export const MediaPreview = ({ data, dataType, className, mimeType, filePath }: MediaPreviewProps) => {
-  const [mediaUrl, setMediaUrl] = useState<string>('');
+export const MediaPreview = ({
+  data,
+  dataType,
+  className,
+  mimeType,
+  filePath,
+}: MediaPreviewProps) => {
+  const [mediaUrl, setMediaUrl] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -226,27 +252,27 @@ export const MediaPreview = ({ data, dataType, className, mimeType, filePath }: 
           fileData = new Uint8Array(rawData);
 
           // MIME 타입 결정
-          detectedMimeType = mimeType && mimeType !== 'application/octet-stream' ? mimeType : '';
+          detectedMimeType = mimeType && mimeType !== "application/octet-stream" ? mimeType : "";
 
           if (!detectedMimeType) {
             const detectedExtension = detectFileExtensionFromHeader(fileData);
             detectedMimeType = detectedExtension
               ? getMimeTypeFromExtension(detectedExtension)
-              : 'application/octet-stream';
+              : "application/octet-stream";
           }
         } else if (data) {
           // 기존 방식 (메모리 데이터)
           fileData = data;
-          detectedMimeType = mimeType && mimeType !== 'application/octet-stream' ? mimeType : '';
+          detectedMimeType = mimeType && mimeType !== "application/octet-stream" ? mimeType : "";
 
           if (!detectedMimeType) {
             const detectedExtension = detectFileExtensionFromHeader(data);
             detectedMimeType = detectedExtension
               ? getMimeTypeFromExtension(detectedExtension)
-              : 'application/octet-stream';
+              : "application/octet-stream";
           }
         } else {
-          throw new Error('파일 데이터가 없습니다');
+          throw new Error("파일 데이터가 없습니다");
         }
 
         // Blob 생성
@@ -254,8 +280,8 @@ export const MediaPreview = ({ data, dataType, className, mimeType, filePath }: 
         const url = URL.createObjectURL(blob);
         setMediaUrl(url);
       } catch (err) {
-        console.error('미디어 로드 실패:', err);
-        setError(err instanceof Error ? err.message : '미디어 로드 실패');
+        console.error("미디어 로드 실패:", err);
+        setError(err instanceof Error ? err.message : "미디어 로드 실패");
       } finally {
         setLoading(false);
       }

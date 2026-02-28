@@ -5,7 +5,7 @@ export interface ParsedQuery {
   excludeStatus: string[];
   urls: string[];
   excludeUrls: string[];
-  operator: 'and' | 'or';
+  operator: "and" | "or";
 }
 
 /**
@@ -31,12 +31,12 @@ export function parseFilterQuery(query: string): ParsedQuery {
     excludeStatus: [],
     urls: [],
     excludeUrls: [],
-    operator: 'and',
+    operator: "and",
   };
 
   // or 연산자 감지
   if (/\bor\b/i.test(query)) {
-    result.operator = 'or';
+    result.operator = "or";
   }
 
   // key(operator)"value" 패턴 추출
@@ -45,13 +45,13 @@ export function parseFilterQuery(query: string): ParsedQuery {
 
   while ((match = regex.exec(query)) !== null) {
     const [, key, operator, value] = match;
-    const isExclude = operator === '!=';
+    const isExclude = operator === "!=";
 
     switch (key.toLowerCase()) {
-      case 'method':
-      case 'methods':
+      case "method":
+      case "methods":
         const methods = value
-          .split(',')
+          .split(",")
           .map((m) => m.trim().toUpperCase())
           .filter(Boolean);
 
@@ -62,9 +62,9 @@ export function parseFilterQuery(query: string): ParsedQuery {
         }
         break;
 
-      case 'status':
+      case "status":
         const statuses = value
-          .split(',')
+          .split(",")
           .map((s) => s.trim())
           .filter(Boolean);
 
@@ -75,10 +75,10 @@ export function parseFilterQuery(query: string): ParsedQuery {
         }
         break;
 
-      case 'url':
+      case "url":
         // 콤마로 구분된 여러 URL 조건 지원
         const urlParts = value
-          .split(',')
+          .split(",")
           .map((u) => u.trim())
           .filter(Boolean);
 

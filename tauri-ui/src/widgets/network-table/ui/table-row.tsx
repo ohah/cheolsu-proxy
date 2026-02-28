@@ -1,13 +1,18 @@
-import { memo, useCallback, useMemo } from 'react';
+import { memo, useCallback, useMemo } from "react";
 
-import { PathCell, MethodCell, StatusCell, SizeCell, TimeCell } from './cells';
+import { PathCell, MethodCell, StatusCell, SizeCell, TimeCell } from "./cells";
 
-import { ROW_BASE_CLASSES, SELECTED_ROW_CLASSES, GRID_COLS_CLASS, PINNED_ROW_CLASSES } from '../model';
-import type { TableRowData } from '../model';
-import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from '@/shared/ui';
-import { generateCurlCommand } from '@/features/transaction-details';
-import { toast } from 'sonner';
-import { Code, Pin, PinOff, Trash2 } from 'lucide-react';
+import {
+  ROW_BASE_CLASSES,
+  SELECTED_ROW_CLASSES,
+  GRID_COLS_CLASS,
+  PINNED_ROW_CLASSES,
+} from "../model";
+import type { TableRowData } from "../model";
+import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from "@/shared/ui";
+import { generateCurlCommand } from "@/features/transaction-details";
+import { toast } from "sonner";
+import { Code, Pin, PinOff, Trash2 } from "lucide-react";
 
 interface TableRowProps {
   data: TableRowData;
@@ -17,7 +22,13 @@ interface TableRowProps {
   isPinned: boolean;
 }
 
-export const TableRow = memo(function TableRow({ data, onSelect, onDelete, onPin, isPinned }: TableRowProps) {
+export const TableRow = memo(function TableRow({
+  data,
+  onSelect,
+  onDelete,
+  onPin,
+  isPinned,
+}: TableRowProps) {
   const { isSelected } = data;
 
   const rowClasses = useMemo(() => {
@@ -35,17 +46,17 @@ export const TableRow = memo(function TableRow({ data, onSelect, onDelete, onPin
   const handleClickCopyCurlCommand = useCallback(() => {
     const curlCommand = generateCurlCommand(data.transaction);
     navigator.clipboard.writeText(curlCommand);
-    toast.success('Curl command copied to clipboard');
+    toast.success("Curl command copied to clipboard");
   }, [data]);
 
   const handleClickDeleteTransaction = useCallback(() => {
     onDelete();
-    toast.success('Transaction deleted');
+    toast.success("Transaction deleted");
   }, [onDelete]);
 
   const handleClickPinTransaction = useCallback(() => {
     onPin();
-    toast.success(isPinned ? 'Transaction unpinned' : 'Transaction pinned to top');
+    toast.success(isPinned ? "Transaction unpinned" : "Transaction pinned to top");
   }, [onPin, isPinned]);
 
   return (
@@ -62,7 +73,7 @@ export const TableRow = memo(function TableRow({ data, onSelect, onDelete, onPin
       <ContextMenuContent className="w-3xs">
         <ContextMenuItem onClick={handleClickPinTransaction}>
           {isPinned ? <PinOff /> : <Pin />}
-          {isPinned ? 'Unpin from Top' : 'Pin to Top'}
+          {isPinned ? "Unpin from Top" : "Pin to Top"}
         </ContextMenuItem>
         <ContextMenuItem onClick={handleClickCopyCurlCommand}>
           <Code />
@@ -77,4 +88,4 @@ export const TableRow = memo(function TableRow({ data, onSelect, onDelete, onPin
   );
 });
 
-TableRow.displayName = 'TableRow';
+TableRow.displayName = "TableRow";

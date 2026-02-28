@@ -1,10 +1,10 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
-import { z } from 'zod';
+import { useState, useCallback, useEffect, useRef } from "react";
+import { z } from "zod";
 
-import type { HttpTransaction } from '@/entities/proxy';
-import { useAppForm } from '../context/form-context';
-import { formatBodyContent } from '../lib';
-import { useSessionStore } from '@/shared/stores';
+import type { HttpTransaction } from "@/entities/proxy";
+import { useAppForm } from "../context/form-context";
+import { formatBodyContent } from "../lib";
+import { useSessionStore } from "@/shared/stores";
 
 // 편집 가능한 필드들에 대한 스키마 (세션 스토어 타입과 일치)
 const transactionEditSchema = z.object({
@@ -29,7 +29,7 @@ export type TransactionEditFormData = z.infer<typeof transactionEditSchema>;
 // 객체 비교를 위한 헬퍼 함수
 const isEqual = (a: any, b: any): boolean => {
   if (typeof a !== typeof b) return false;
-  if (typeof a === 'object' && a !== null && b !== null) {
+  if (typeof a === "object" && a !== null && b !== null) {
     return JSON.stringify(a) === JSON.stringify(b);
   }
   return a === b;
@@ -55,13 +55,17 @@ export const useTransactionEdit = (transaction: HttpTransaction) => {
       request: {
         ...request,
         headers: request?.headers,
-        data: request?.body ? formatBodyContent(request.body, request.data_type, request.body_json) : '',
+        data: request?.body
+          ? formatBodyContent(request.body, request.data_type, request.body_json)
+          : "",
       },
       response: {
         ...response,
         status: response?.status || 200,
         headers: response?.headers,
-        data: response?.body ? formatBodyContent(response.body, response.data_type, response.body_json) : '',
+        data: response?.body
+          ? formatBodyContent(response.body, response.data_type, response.body_json)
+          : "",
       },
     };
   }, [transaction]);
@@ -92,8 +96,8 @@ export const useTransactionEdit = (transaction: HttpTransaction) => {
 
       const saveData = {
         id: crypto.randomUUID(),
-        url: transaction.request?.uri || '',
-        method: transaction.request?.method || 'GET',
+        url: transaction.request?.uri || "",
+        method: transaction.request?.method || "GET",
         request: changedFields.request,
         response: {
           headers: changedFields.response?.headers,
@@ -115,15 +119,15 @@ export const useTransactionEdit = (transaction: HttpTransaction) => {
   const startEditing = useCallback(() => {
     const initialValues = getInitialValues();
     originalDataRef.current = initialValues;
-    form.setFieldValue('request', initialValues.request);
-    form.setFieldValue('response', initialValues.response);
+    form.setFieldValue("request", initialValues.request);
+    form.setFieldValue("response", initialValues.response);
     setIsEditing(true);
   }, [form, getInitialValues]);
 
   const cancelEditing = useCallback(() => {
     if (originalDataRef.current) {
-      form.setFieldValue('request', originalDataRef.current.request);
-      form.setFieldValue('response', originalDataRef.current.response);
+      form.setFieldValue("request", originalDataRef.current.request);
+      form.setFieldValue("response", originalDataRef.current.response);
     }
     setIsEditing(false);
     originalDataRef.current = null;

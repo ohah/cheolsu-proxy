@@ -1,13 +1,13 @@
-import { useMemo } from 'react';
-import Editor from '@monaco-editor/react';
-import { useTheme } from 'next-themes';
+import { useMemo } from "react";
+import Editor from "@monaco-editor/react";
+import { useTheme } from "next-themes";
 
-import { cn } from '@/shared/lib';
-import { Badge, TooltipProvider } from '@/shared/ui';
+import { cn } from "@/shared/lib";
+import { Badge, TooltipProvider } from "@/shared/ui";
 
-import { useMonacoEditor } from '../hooks';
-import { FilterHelpTooltip } from './filter-help-tooltip';
-import { Separator } from '@/shared/ui/separator';
+import { useMonacoEditor } from "../hooks";
+import { FilterHelpTooltip } from "./filter-help-tooltip";
+import { Separator } from "@/shared/ui/separator";
 
 export interface QueryFilterEditorProps {
   value: string;
@@ -47,8 +47,8 @@ export const QueryFilterEditor = ({
       <div className="absolute w-full flex-1 min-w-0 right-0">
         <div
           className={cn(
-            'w-full h-[36px] flex items-center border rounded-md transition-all bg-background',
-            isDirty && 'border-accent shadow-[0_0_0_1px_rgba(69,203,218,0.2)]',
+            "w-full h-[36px] flex items-center border rounded-md transition-all bg-background",
+            isDirty && "border-accent shadow-[0_0_0_1px_rgba(69,203,218,0.2)]",
           )}
         >
           <TooltipProvider>
@@ -61,45 +61,45 @@ export const QueryFilterEditor = ({
               height="24px"
               language="cheolsu-query"
               value={value}
-              onChange={(value) => onChange(value || '')}
+              onChange={(value) => onChange(value || "")}
               onMount={handleEditorDidMount}
-              theme={theme === 'dark' ? 'cheolsu-dark' : 'cheolsu-light'}
+              theme={theme === "dark" ? "cheolsu-dark" : "cheolsu-light"}
               options={{
                 minimap: { enabled: false },
-                lineNumbers: 'off',
+                lineNumbers: "off",
                 glyphMargin: false,
                 folding: false,
                 lineDecorationsWidth: 0,
                 lineNumbersMinChars: 0,
                 scrollBeyondLastLine: false,
-                wordWrap: 'off',
+                wordWrap: "off",
                 overviewRulerLanes: 0,
                 hideCursorInOverviewRuler: true,
                 scrollbar: {
-                  vertical: 'hidden',
-                  horizontal: 'auto',
+                  vertical: "hidden",
+                  horizontal: "auto",
                   horizontalScrollbarSize: 4,
                 },
                 automaticLayout: true,
-                renderLineHighlight: 'none',
-                renderWhitespace: 'none',
-                fontFamily: 'var(--font-jetbrains-mono), Consolas, Monaco, monospace',
+                renderLineHighlight: "none",
+                renderWhitespace: "none",
+                fontFamily: "var(--font-jetbrains-mono), Consolas, Monaco, monospace",
                 fontSize: 12,
                 lineHeight: 24,
                 suggest: {
                   showKeywords: true,
                   showSnippets: true,
                   snippetsPreventQuickSuggestions: false,
-                  insertMode: 'insert',
+                  insertMode: "insert",
                   showInlineDetails: false,
                   preview: false,
                 },
                 suggestLineHeight: 22,
                 suggestFontSize: 12,
                 quickSuggestions: true,
-                acceptSuggestionOnEnter: 'on',
+                acceptSuggestionOnEnter: "on",
                 suggestOnTriggerCharacters: true,
-                tabCompletion: 'on',
+                tabCompletion: "on",
               }}
             />
           </div>
@@ -113,7 +113,9 @@ export const QueryFilterEditor = ({
           )}
 
           <Separator orientation="vertical" />
-          <Badge className="mx-2 text-[10px] font-mono shrink-0 bg-accent text-accent-foreground">{statsText}</Badge>
+          <Badge className="mx-2 text-[10px] font-mono shrink-0 bg-accent text-accent-foreground">
+            {statsText}
+          </Badge>
         </div>
       </div>
     </div>

@@ -1,7 +1,7 @@
-import { memo } from 'react';
+import { memo } from "react";
 
-import { formatBytes } from '../../lib';
-import type { TableCellProps } from '../../model';
+import { formatBytes } from "../../lib";
+import type { TableCellProps } from "../../model";
 
 export const SizeCell = memo<TableCellProps>(({ data }) => {
   const requestSize = data.transaction.request?.body_size || 0;
@@ -18,4 +18,4 @@ export const SizeCell = memo<TableCellProps>(({ data }) => {
   );
 });
 
-SizeCell.displayName = 'SizeCell';
+SizeCell.displayName = "SizeCell";

@@ -1,8 +1,8 @@
-import { Button } from '@/shared/ui/button';
-import { HttpTransaction } from '@/entities/proxy';
+import { Button } from "@/shared/ui/button";
+import { HttpTransaction } from "@/entities/proxy";
 
-import { getStatusDisplay, getStatusColor } from '../lib';
-import { HostNode } from '../model';
+import { getStatusDisplay, getStatusColor } from "../lib";
+import { HostNode } from "../model";
 
 interface TransactionListProps {
   transactions: HttpTransaction[];
@@ -28,7 +28,7 @@ export const TransactionList = ({
   };
 
   const getDisplayText = (transaction: HttpTransaction) => {
-    return node.type === 'host' ? transaction.request?.uri : node.name;
+    return node.type === "host" ? transaction.request?.uri : node.name;
   };
 
   return (
@@ -39,7 +39,7 @@ export const TransactionList = ({
           variant="ghost"
           size="sm"
           className={`w-full justify-start h-7 text-xs font-mono hover:bg-muted/70 ${
-            isSelected(transaction) ? 'bg-accent text-accent-foreground' : ''
+            isSelected(transaction) ? "bg-accent text-accent-foreground" : ""
           }`}
           style={{ paddingLeft: `${(depth + 1) * 16 + 24}px` }}
           onClick={() => onTransactionSelect(transaction)}
@@ -47,10 +47,12 @@ export const TransactionList = ({
           <span
             className={`inline-block w-12 text-center rounded px-1 text-xs font-medium mr-2 ${getStatusColor(transaction)}`}
           >
-            {transaction.request?.method || '?'}
+            {transaction.request?.method || "?"}
           </span>
           <span className="truncate text-xs">{getDisplayText(transaction)}</span>
-          <span className="ml-auto text-xs text-muted-foreground">{getStatusDisplay(transaction)}</span>
+          <span className="ml-auto text-xs text-muted-foreground">
+            {getStatusDisplay(transaction)}
+          </span>
         </Button>
       ))}
     </div>

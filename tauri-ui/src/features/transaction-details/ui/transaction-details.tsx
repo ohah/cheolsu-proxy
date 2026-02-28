@@ -1,26 +1,30 @@
-import type { HttpTransaction } from '@/entities/proxy';
+import type { HttpTransaction } from "@/entities/proxy";
 
-import { ScrollArea, Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui';
-import { useSessionStore } from '@/shared/stores';
+import { ScrollArea, Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui";
+import { useSessionStore } from "@/shared/stores";
 
-import { TransactionHeader } from './transaction-header';
-import { TransactionHeaders } from './transaction-headers';
-import { TransactionBody } from './transaction-body';
-import { TransactionResponse } from './transaction-response';
+import { TransactionHeader } from "./transaction-header";
+import { TransactionHeaders } from "./transaction-headers";
+import { TransactionBody } from "./transaction-body";
+import { TransactionResponse } from "./transaction-response";
 
-import { useTransactionTabs, useTransactionEdit } from '../hooks';
-import { TRANSACTION_DETAILS_TAB_LABELS, TRANSACTION_DETAILS_TABS } from '../model';
+import { useTransactionTabs, useTransactionEdit } from "../hooks";
+import { TRANSACTION_DETAILS_TAB_LABELS, TRANSACTION_DETAILS_TABS } from "../model";
 
 interface TransactionDetailsProps {
   transaction: HttpTransaction;
   clearSelectedTransaction: () => void;
 }
 
-export function TransactionDetails({ transaction, clearSelectedTransaction }: TransactionDetailsProps) {
+export function TransactionDetails({
+  transaction,
+  clearSelectedTransaction,
+}: TransactionDetailsProps) {
   const { request, response } = transaction;
 
   const { activeTab, tabs, onTabChange } = useTransactionTabs();
-  const { isEditing, form, startEditing, cancelEditing, saveChanges } = useTransactionEdit(transaction);
+  const { isEditing, form, startEditing, cancelEditing, saveChanges } =
+    useTransactionEdit(transaction);
   const deleteSessionByUrl = useSessionStore((state) => state.deleteSessionByUrl);
 
   const handleDeleteSession = () => {

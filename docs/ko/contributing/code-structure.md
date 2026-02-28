@@ -405,8 +405,8 @@ src-tauri/
 // tauri.conf.json
 {
   "build": {
-    "beforeDevCommand": "pnpm run dev",
-    "beforeBuildCommand": "pnpm run build",
+    "beforeDevCommand": "bun run dev",
+    "beforeBuildCommand": "bun run build",
     "devPath": "http://localhost:1420",
     "distDir": "../dist"
   },
@@ -506,9 +506,7 @@ export interface ProxyStartResult {
   message: string;
 }
 
-export async function startProxyV2(
-  port: number = 8100
-): Promise<ProxyStartResult> {
+export async function startProxyV2(port: number = 8100): Promise<ProxyStartResult> {
   return invoke("start_proxy_v2", { addr: `127.0.0.1:${port}` });
 }
 

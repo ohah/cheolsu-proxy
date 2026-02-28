@@ -90,7 +90,7 @@ cd cheolsu-proxy
 
 # 의존성 설치
 cargo build
-cd tauri-ui && pnpm install
+cd tauri-ui && bun install
 ```
 
 ## 개발 워크플로우
@@ -119,7 +119,7 @@ git checkout -b fix/your-bug-fix
 ```bash
 # 개발 서버 실행
 cd tauri-ui
-pnpm run tauri dev
+bun run tauri dev
 
 # 테스트 실행
 cargo test
@@ -227,7 +227,7 @@ cargo test --test integration_test
 ```bash
 # Tauri 앱 테스트
 cd tauri-ui
-pnpm run tauri test
+bun run tauri test
 ```
 
 ### 수동 테스트
@@ -291,11 +291,11 @@ Closes #123
 ```bash
 # 의존성 업데이트
 cargo update
-cd tauri-ui && pnpm update
+cd tauri-ui && bun update
 
 # 캐시 정리
 cargo clean
-cd tauri-ui && rm -rf node_modules && pnpm install
+cd tauri-ui && rm -rf node_modules && bun install
 ```
 
 **테스트 실패**:
@@ -315,7 +315,7 @@ cargo test test_name -- --nocapture
 cargo install tauri-cli --force
 
 # 의존성 재설치
-cd tauri-ui && pnpm install
+cd tauri-ui && bun install
 ```
 
 ## 커뮤니티
@@ -328,7 +328,7 @@ cd tauri-ui && pnpm install
 
 ### 행동 강령
 
-모든 기여자는 [행동 강령](https://github.com/ohah/cheolsu-proxy/blob/master/CODE_OF_CONDUCT.md)을 준수해야 합니다.
+모든 기여자는 [행동 강령](https://github.com/ohah/cheolsu-proxy/blob/main/CODE_OF_CONDUCT.md)을 준수해야 합니다.
 
 ## 라이선스
 

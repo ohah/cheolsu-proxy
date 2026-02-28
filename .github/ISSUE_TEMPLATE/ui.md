@@ -1,10 +1,9 @@
 ---
 name: UI / UX
 about: bug or enhancement GUI side
-title: ''
-labels: ''
-assignees: ''
-
+title: ""
+labels: ""
+assignees: ""
 ---
 
 **Description**

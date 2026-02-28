@@ -41,5 +41,5 @@ Cheolsu Proxy 사용을 위한 가이드입니다.
 
 이 프로젝트는 MIT 및 Apache 2.0 라이센스 하에 배포됩니다.
 
-- [MIT 라이센스](https://github.com/ohah/cheolsu-proxy/blob/master/LICENSE-MIT)
-- [Apache 2.0 라이센스](https://github.com/ohah/cheolsu-proxy/blob/master/LICENSE-APACHE)
+- [MIT 라이센스](https://github.com/ohah/cheolsu-proxy/blob/main/LICENSE-MIT)
+- [Apache 2.0 라이센스](https://github.com/ohah/cheolsu-proxy/blob/main/LICENSE-APACHE)
