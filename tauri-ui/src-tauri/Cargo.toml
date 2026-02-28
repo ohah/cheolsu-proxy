@@ -27,10 +27,15 @@ tauri-plugin-http = "2"
 tauri-plugin-devtools = "2"
 tauri-plugin-clipboard-manager = "2"
 tokio = { version = "1", features = ["full"] }
-proxyapi = {path = "../../crates/proxyapi"}
-proxyapi_models = {path = "../../crates/proxyapi_models"}
-proxy_v2_models = {path = "../../crates/proxy_v2_models"}
-proxyapi_v2 = {path = "../../crates/proxyapi_v2", features = ["decoder", "rcgen-ca", "openssl-ca", "native-tls-client"] }
+proxyapi = { path = "../../crates/proxyapi" }
+proxyapi_models = { path = "../../crates/proxyapi_models" }
+proxy_v2_models = { path = "../../crates/proxy_v2_models" }
+proxyapi_v2 = { path = "../../crates/proxyapi_v2", features = [
+  "decoder",
+  "rcgen-ca",
+  "openssl-ca",
+  "native-tls-client",
+] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0.142"
 tauri-plugin-fs = "2"
@@ -44,7 +49,7 @@ bytes = "1.0"
 futures-util = "0.3"
 http-body-util = "0.1"
 chrono = { version = "0.4", features = ["serde"] }
-flate2 = "1.1.2"  # 최신 버전으로 GZIP 압축 해제
+flate2 = "1.1.2" # 최신 버전으로 GZIP 압축 해제
 tokio-stream = "0.1.17"
 regex = "1.0"
 tracing = "0.1"

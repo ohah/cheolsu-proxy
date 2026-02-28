@@ -1,10 +1,10 @@
-import type { Monaco } from '@monaco-editor/react';
-import type { languages, IRange, IDisposable } from 'monaco-editor';
-import { HTTP_METHODS, STATUS_CODES } from '../model';
+import type { Monaco } from "@monaco-editor/react";
+import type { languages, IRange, IDisposable } from "monaco-editor";
+import { HTTP_METHODS, STATUS_CODES } from "../model";
 
 export const createCompletionProvider = (monaco: Monaco): IDisposable => {
-  return monaco.languages.registerCompletionItemProvider('cheolsu-query', {
-    triggerCharacters: ['"', ',', ' ', '|', '!', '='],
+  return monaco.languages.registerCompletionItemProvider("cheolsu-query", {
+    triggerCharacters: ['"', ",", " ", "|", "!", "="],
     provideCompletionItems: (model, position) => {
       const textUntilPosition = model.getValueInRange({
         startLineNumber: 1,
@@ -60,43 +60,43 @@ export const createCompletionProvider = (monaco: Monaco): IDisposable => {
 const createOperatorSuggestions = (monaco: Monaco, range: IRange): languages.CompletionItem[] => {
   return [
     {
-      label: '=',
+      label: "=",
       kind: monaco.languages.CompletionItemKind.Operator,
       insertText: '="',
-      detail: 'Equals',
-      documentation: 'Exact match',
+      detail: "Equals",
+      documentation: "Exact match",
       range,
     },
     {
-      label: '|=',
+      label: "|=",
       kind: monaco.languages.CompletionItemKind.Operator,
       insertText: '|="',
-      detail: 'Contains',
-      documentation: 'String contains',
+      detail: "Contains",
+      documentation: "String contains",
       range,
     },
     {
-      label: '|~',
+      label: "|~",
       kind: monaco.languages.CompletionItemKind.Operator,
       insertText: '|~"',
-      detail: 'Regex',
-      documentation: 'Regular expression match',
+      detail: "Regex",
+      documentation: "Regular expression match",
       range,
     },
     {
-      label: '!=',
+      label: "!=",
       kind: monaco.languages.CompletionItemKind.Operator,
       insertText: '!="',
-      detail: 'Not equals',
-      documentation: 'Does not equal',
+      detail: "Not equals",
+      documentation: "Does not equal",
       range,
     },
     {
-      label: '!~',
+      label: "!~",
       kind: monaco.languages.CompletionItemKind.Operator,
       insertText: '!~"',
-      detail: 'Not regex',
-      documentation: 'Does not match regex',
+      detail: "Not regex",
+      documentation: "Does not match regex",
       range,
     },
   ];
@@ -107,7 +107,7 @@ const createMethodSuggestions = (monaco: Monaco, range: IRange): languages.Compl
     label: method,
     kind: monaco.languages.CompletionItemKind.EnumMember,
     insertText: method,
-    detail: 'HTTP Method',
+    detail: "HTTP Method",
     range,
   }));
 };
@@ -125,17 +125,17 @@ const createStatusSuggestions = (monaco: Monaco, range: IRange): languages.Compl
 const createUrlSuggestions = (monaco: Monaco, range: IRange): languages.CompletionItem[] => {
   return [
     {
-      label: '*',
+      label: "*",
       kind: monaco.languages.CompletionItemKind.Text,
-      insertText: '*',
-      detail: 'Wildcard',
+      insertText: "*",
+      detail: "Wildcard",
       range,
     },
     {
-      label: 'api',
+      label: "api",
       kind: monaco.languages.CompletionItemKind.Text,
-      insertText: 'api',
-      detail: 'API paths',
+      insertText: "api",
+      detail: "API paths",
       range,
     },
   ];
@@ -144,38 +144,38 @@ const createUrlSuggestions = (monaco: Monaco, range: IRange): languages.Completi
 const createKeywordSuggestions = (monaco: Monaco, range: IRange): languages.CompletionItem[] => {
   return [
     {
-      label: 'method',
+      label: "method",
       kind: monaco.languages.CompletionItemKind.Keyword,
-      insertText: 'method',
-      detail: 'Filter by HTTP method',
+      insertText: "method",
+      detail: "Filter by HTTP method",
       range,
     },
     {
-      label: 'status',
+      label: "status",
       kind: monaco.languages.CompletionItemKind.Keyword,
-      insertText: 'status',
-      detail: 'Filter by status code',
+      insertText: "status",
+      detail: "Filter by status code",
       range,
     },
     {
-      label: 'url',
+      label: "url",
       kind: monaco.languages.CompletionItemKind.Keyword,
-      insertText: 'url',
-      detail: 'Filter by URL',
+      insertText: "url",
+      detail: "Filter by URL",
       range,
     },
     {
-      label: 'or',
+      label: "or",
       kind: monaco.languages.CompletionItemKind.Keyword,
-      insertText: 'or ',
-      detail: 'Logical OR',
+      insertText: "or ",
+      detail: "Logical OR",
       range,
     },
     {
-      label: 'and',
+      label: "and",
       kind: monaco.languages.CompletionItemKind.Keyword,
-      insertText: 'and ',
-      detail: 'Logical AND',
+      insertText: "and ",
+      detail: "Logical AND",
       range,
     },
   ];

@@ -1,4 +1,4 @@
-import { QueryFilterEditor } from '@/features/query-filter-editor';
+import { QueryFilterEditor } from "@/features/query-filter-editor";
 
 interface NetworkFiltersProps {
   filterQueryString: string;

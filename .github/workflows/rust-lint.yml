@@ -2,14 +2,14 @@ name: Rust Format Check
 
 on:
   push:
-    branches: [master, main]
+    branches: [main]
     paths:
       - "tauri-ui/src-tauri/**"
       - "proxyapi/**"
       - "proxyapi_models/**"
       - ".github/workflows/rust-lint.yml"
   pull_request:
-    branches: [master, main]
+    branches: [main]
     paths:
       - "tauri-ui/src-tauri/**"
       - "proxyapi/**"

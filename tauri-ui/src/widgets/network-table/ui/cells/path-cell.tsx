@@ -1,6 +1,6 @@
-import { memo } from 'react';
+import { memo } from "react";
 
-import type { TableCellProps } from '../../model';
+import type { TableCellProps } from "../../model";
 
 export const PathCell = memo<TableCellProps>(({ data }) => {
   const { authority, pathname } = data;
@@ -17,4 +17,4 @@ export const PathCell = memo<TableCellProps>(({ data }) => {
   );
 });
 
-PathCell.displayName = 'PathCell';
+PathCell.displayName = "PathCell";

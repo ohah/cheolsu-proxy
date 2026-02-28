@@ -1,13 +1,13 @@
-import { memo, useMemo } from 'react';
+import { memo, useMemo } from "react";
 
-import { HttpTransaction } from '@/entities/proxy';
+import { HttpTransaction } from "@/entities/proxy";
 
-import { sortTreeNodes } from '../lib';
-import { HostNode } from '../model';
-import { useNodeActions } from '../hooks';
+import { sortTreeNodes } from "../lib";
+import { HostNode } from "../model";
+import { useNodeActions } from "../hooks";
 
-import { NodeContent } from './node-content';
-import { TransactionList } from './transaction-list';
+import { NodeContent } from "./node-content";
+import { TransactionList } from "./transaction-list";
 
 interface TreeNodeProps {
   node: HostNode;
@@ -29,7 +29,7 @@ const TreeNodeComponent = ({
   const hasChildren = node.children.size > 0;
   const isExpanded = expandedPaths.has(node.path);
   const hasTransactions = node.transactions.length > 0;
-  const shouldShowContent = isExpanded || node.name === 'root';
+  const shouldShowContent = isExpanded || node.name === "root";
 
   const { handleNodeClick } = useNodeActions({
     node,
@@ -45,7 +45,7 @@ const TreeNodeComponent = ({
 
   return (
     <div className="cursor-pointer">
-      {node.name !== 'root' && (
+      {node.name !== "root" && (
         <NodeContent
           node={node}
           depth={depth}

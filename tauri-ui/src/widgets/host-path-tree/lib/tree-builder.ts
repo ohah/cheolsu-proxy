@@ -1,6 +1,6 @@
-import { HttpTransaction } from '@/entities/proxy';
-import { HostNode, NodeType } from '../model';
-import { extractHostFromRequest, extractPathFromRequest, parsePathSegments } from './utils';
+import { HttpTransaction } from "@/entities/proxy";
+import { HostNode, NodeType } from "../model";
+import { extractHostFromRequest, extractPathFromRequest, parsePathSegments } from "./utils";
 
 const NODE_ORDER: Record<NodeType, number> = {
   host: 0,
@@ -19,12 +19,12 @@ function createHostNode(name: string, path: string, type: NodeType): HostNode {
 }
 
 function createRootNode(): HostNode {
-  return createHostNode('root', '', 'host');
+  return createHostNode("root", "", "host");
 }
 
 function getOrCreateHostNode(root: HostNode, host: string): HostNode {
   if (!root.children.has(host)) {
-    root.children.set(host, createHostNode(host, host, 'host'));
+    root.children.set(host, createHostNode(host, host, "host"));
   }
   return root.children.get(host)!;
 }
@@ -36,7 +36,7 @@ function getOrCreatePathNode(
   isLastSegment: boolean,
 ): HostNode {
   if (!parentNode.children.has(segment)) {
-    const nodeType: NodeType = isLastSegment ? 'endpoint' : 'folder';
+    const nodeType: NodeType = isLastSegment ? "endpoint" : "folder";
     parentNode.children.set(segment, createHostNode(segment, currentPath, nodeType));
   }
   return parentNode.children.get(segment)!;
@@ -60,7 +60,7 @@ function addTransactionToTree(transaction: HttpTransaction, root: HostNode): voi
 
   pathSegments.forEach((segment, index) => {
     const isLastSegment = index === pathSegments.length - 1;
-    const currentPath = `${host}/${pathSegments.slice(0, index + 1).join('/')}`;
+    const currentPath = `${host}/${pathSegments.slice(0, index + 1).join("/")}`;
 
     currentNode = getOrCreatePathNode(currentNode, segment, currentPath, isLastSegment);
 

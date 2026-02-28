@@ -404,8 +404,8 @@ src-tauri/
 // tauri.conf.json
 {
   "build": {
-    "beforeDevCommand": "pnpm run dev",
-    "beforeBuildCommand": "pnpm run build",
+    "beforeDevCommand": "bun run dev",
+    "beforeBuildCommand": "bun run build",
     "devPath": "http://localhost:1420",
     "distDir": "../dist"
   },
@@ -505,9 +505,7 @@ export interface ProxyStartResult {
   message: string;
 }
 
-export async function startProxyV2(
-  port: number = 8100
-): Promise<ProxyStartResult> {
+export async function startProxyV2(port: number = 8100): Promise<ProxyStartResult> {
   return invoke("start_proxy_v2", { addr: `127.0.0.1:${port}` });
 }
 
@@ -554,10 +552,10 @@ __tests__/
 cargo build
 
 # Frontend build
-cd tauri-ui && pnpm run build
+cd tauri-ui && bun run build
 
 # Tauri app build
-cd tauri-ui && pnpm run tauri build
+cd tauri-ui && bun run tauri build
 ```
 
 ### Production Build
@@ -567,7 +565,7 @@ cd tauri-ui && pnpm run tauri build
 cargo build --release
 
 # Tauri app packaging
-cd tauri-ui && pnpm run tauri build -- --target universal-apple-darwin
+cd tauri-ui && bun run tauri build -- --target universal-apple-darwin
 ```
 
 ## Performance Optimization

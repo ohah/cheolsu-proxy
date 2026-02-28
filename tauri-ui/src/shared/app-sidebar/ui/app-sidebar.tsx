@@ -1,10 +1,10 @@
-import { cn } from '@/shared/lib';
+import { cn } from "@/shared/lib";
 
-import { SidebarHeader } from './sidebar-header';
-import { SidebarNavigation } from './sidebar-navigation';
-import { SidebarStatus } from './sidebar-status';
+import { SidebarHeader } from "./sidebar-header";
+import { SidebarNavigation } from "./sidebar-navigation";
+import { SidebarStatus } from "./sidebar-status";
 
-import { useSidebarCollapse } from '../hooks';
+import { useSidebarCollapse } from "../hooks";
 
 interface AppSidebarProps {
   isConnected?: boolean;
@@ -17,10 +17,10 @@ export function AppSidebar({ isConnected = true, version }: AppSidebarProps) {
   return (
     <div
       className={cn(
-        collapsed ? 'w-18' : 'w-64',
-        'bg-sidebar',
-        'flex flex-col shrink-0',
-        'transition-all duration-300 ease-in-out',
+        collapsed ? "w-18" : "w-64",
+        "bg-sidebar",
+        "flex flex-col shrink-0",
+        "transition-all duration-300 ease-in-out",
       )}
     >
       <SidebarHeader collapsed={collapsed} toggleCollapse={toggleCollapse} />

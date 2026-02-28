@@ -1,5 +1,5 @@
-import { Input, Textarea, Button } from '@/shared/ui';
-import type { FieldApi } from '@tanstack/react-form';
+import { Input, Textarea, Button } from "@/shared/ui";
+import type { FieldApi } from "@tanstack/react-form";
 
 // Form Field Components
 export const TextField = ({
@@ -38,7 +38,7 @@ export const TextField = ({
   <div className="space-y-2">
     {label && <label className="text-sm font-medium">{label}</label>}
     <Input
-      value={field.state.value || ''}
+      value={field.state.value || ""}
       onChange={(e) => field.handleChange(e.target.value)}
       onBlur={field.handleBlur}
       placeholder={placeholder}
@@ -88,7 +88,7 @@ export const NumberField = ({
     {label && <label className="text-sm font-medium">{label}</label>}
     <Input
       type="number"
-      value={field.state.value || ''}
+      value={field.state.value || ""}
       onChange={(e) => field.handleChange(parseInt(e.target.value) || 0)}
       onBlur={field.handleBlur}
       placeholder={placeholder}
@@ -137,7 +137,7 @@ export const TextareaField = ({
   <div className="space-y-2">
     {label && <label className="text-sm font-medium">{label}</label>}
     <Textarea
-      value={field.state.value || ''}
+      value={field.state.value || ""}
       onChange={(e) => field.handleChange(e.target.value)}
       onBlur={field.handleBlur}
       placeholder={placeholder}

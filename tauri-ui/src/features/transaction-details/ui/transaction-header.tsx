@@ -1,13 +1,13 @@
-import { Edit, X, Save, XCircle, Trash2, Code } from 'lucide-react';
+import { Edit, X, Save, XCircle, Trash2, Code } from "lucide-react";
 
-import type { HttpTransaction } from '@/entities/proxy';
+import type { HttpTransaction } from "@/entities/proxy";
 
-import { getStatusColor } from '@/entities/transaction';
-import type { AppFormInstance } from '../context/form-context';
+import { getStatusColor } from "@/entities/transaction";
+import type { AppFormInstance } from "../context/form-context";
 
-import { Badge, Button, Input } from '@/shared/ui';
-import { generateCurlCommand } from '../lib';
-import { toast } from 'sonner';
+import { Badge, Button, Input } from "@/shared/ui";
+import { generateCurlCommand } from "../lib";
+import { toast } from "sonner";
 
 interface TransactionHeaderProps {
   transaction: HttpTransaction;
@@ -37,7 +37,7 @@ export const TransactionHeader = ({
   const handleCopyCurl = () => {
     const curlCommand = generateCurlCommand(transaction);
     navigator.clipboard.writeText(curlCommand);
-    toast.success('Curl command copied to clipboard');
+    toast.success("Curl command copied to clipboard");
   };
 
   return (

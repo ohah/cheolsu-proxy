@@ -1,4 +1,4 @@
-import { TABLE_COLUMNS, GRID_COLS_CLASS, HEADER_CLASSES } from '../model';
+import { TABLE_COLUMNS, GRID_COLS_CLASS, HEADER_CLASSES } from "../model";
 
 export const TableHeader = () => {
   return (

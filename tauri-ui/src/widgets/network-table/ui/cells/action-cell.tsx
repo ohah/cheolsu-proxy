@@ -1,7 +1,7 @@
-import { memo } from 'react';
-import { Trash2 } from 'lucide-react';
+import { memo } from "react";
+import { Trash2 } from "lucide-react";
 
-import { Button } from '@/shared/ui';
+import { Button } from "@/shared/ui";
 
 interface ActionCellProps {
   onDelete?: () => void;
@@ -17,4 +17,4 @@ export const ActionCell = memo<ActionCellProps>(({ onDelete }) => {
   );
 });
 
-ActionCell.displayName = 'ActionCell';
+ActionCell.displayName = "ActionCell";

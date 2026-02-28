@@ -1,4 +1,4 @@
-import { useCallback, useRef, useEffect } from 'react';
+import { useCallback, useRef, useEffect } from "react";
 
 interface WorkerTask {
   id: string;
@@ -31,7 +31,7 @@ export const useBase64Worker = () => {
   useEffect(() => {
     // Worker 생성
     try {
-      workerRef.current = new Worker(new URL('../workers/base64-worker.ts', import.meta.url));
+      workerRef.current = new Worker(new URL("../workers/base64-worker.ts", import.meta.url));
 
       workerRef.current.onmessage = (e: MessageEvent<WorkerResponse>) => {
         const { id, success, dataUrl, error } = e.data;
@@ -42,7 +42,7 @@ export const useBase64Worker = () => {
           if (success && dataUrl) {
             task.resolve(dataUrl);
           } else {
-            task.reject(new Error(error || 'Unknown error'));
+            task.reject(new Error(error || "Unknown error"));
           }
         }
       };
@@ -50,7 +50,7 @@ export const useBase64Worker = () => {
       workerRef.current.onerror = () => {
         // 모든 대기 중인 작업을 실패로 처리
         tasksRef.current.forEach((task) => {
-          task.reject(new Error('Worker error'));
+          task.reject(new Error("Worker error"));
         });
         tasksRef.current.clear();
       };
@@ -62,7 +62,7 @@ export const useBase64Worker = () => {
       if (workerRef.current) {
         // 대기 중인 모든 작업을 실패로 처리
         tasksRef.current.forEach((task) => {
-          task.reject(new Error('Worker terminated'));
+          task.reject(new Error("Worker terminated"));
         });
         tasksRef.current.clear();
 
@@ -75,31 +75,34 @@ export const useBase64Worker = () => {
   /**
    * 이미지 데이터를 Base64 Data URL로 변환
    */
-  const encodeToBase64 = useCallback((data: Uint8Array | number[], dataType: string): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      if (!workerRef.current) {
-        reject(new Error('Worker not initialized'));
-        return;
-      }
+  const encodeToBase64 = useCallback(
+    (data: Uint8Array | number[], dataType: string): Promise<string> => {
+      return new Promise((resolve, reject) => {
+        if (!workerRef.current) {
+          reject(new Error("Worker not initialized"));
+          return;
+        }
 
-      taskIdRef.current += 1;
-      const id = `task_${taskIdRef.current}`;
-      tasksRef.current.set(id, { id, resolve, reject });
+        taskIdRef.current += 1;
+        const id = `task_${taskIdRef.current}`;
+        tasksRef.current.set(id, { id, resolve, reject });
 
-      const message: WorkerMessage = {
-        id,
-        data,
-        dataType,
-      };
+        const message: WorkerMessage = {
+          id,
+          data,
+          dataType,
+        };
 
-      try {
-        workerRef.current.postMessage(message);
-      } catch {
-        tasksRef.current.delete(id);
-        reject(new Error('Failed to send message to worker'));
-      }
-    });
-  }, []);
+        try {
+          workerRef.current.postMessage(message);
+        } catch {
+          tasksRef.current.delete(id);
+          reject(new Error("Failed to send message to worker"));
+        }
+      });
+    },
+    [],
+  );
 
   /**
    * Worker가 사용 가능한지 확인

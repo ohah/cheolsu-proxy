@@ -27,7 +27,7 @@ When creating or suggesting git commits, follow these rules. Full details in `AG
 
 ## Pre-commit (required)
 
-**TypeScript/JavaScript**: Run `pnpm run format`; run `pnpm run lint`; stage any changed files; then commit.
+**TypeScript/JavaScript**: Run `bun run format`; run `bun run lint`; stage any changed files; then commit.
 
 **Rust**: Run `cargo fmt --all -- --check` (fix with `cargo fmt --all` if needed); run `cargo clippy --all-targets --all-features -- -D warnings` and fix all warnings; then commit.
 

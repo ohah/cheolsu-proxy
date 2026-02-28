@@ -1,8 +1,8 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo } from "react";
 
-import { HttpTransaction } from '@/entities/proxy';
+import { HttpTransaction } from "@/entities/proxy";
 
-import { buildHostTree } from '../lib/tree-builder';
+import { buildHostTree } from "../lib/tree-builder";
 
 export const useHostTree = (transactions: HttpTransaction[]) => {
   const [expandedPaths, setExpandedPaths] = useState<Set<string>>(new Set());

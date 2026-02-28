@@ -1,12 +1,12 @@
-import { memo } from 'react';
+import { memo } from "react";
 
-import { Badge } from '@/shared/ui';
-import { getMethodColor } from '@/entities/transaction';
+import { Badge } from "@/shared/ui";
+import { getMethodColor } from "@/entities/transaction";
 
-import type { TableCellProps } from '../../model';
+import type { TableCellProps } from "../../model";
 
 export const MethodCell = memo<TableCellProps>(({ data }) => {
-  const method = data.transaction.request?.method || '';
+  const method = data.transaction.request?.method || "";
 
   return (
     <div className="col-span-1">
@@ -15,6 +15,6 @@ export const MethodCell = memo<TableCellProps>(({ data }) => {
       </Badge>
     </div>
   );
-  });
+});
 
-MethodCell.displayName = 'MethodCell';
+MethodCell.displayName = "MethodCell";

@@ -1,5 +1,5 @@
-import { DataType, HttpTransaction } from '@/entities/proxy/model/types';
-import { isTextBasedDataType, isBinaryDataType } from '@/entities/proxy/model/data-type';
+import { DataType, HttpTransaction } from "@/entities/proxy/model/types";
+import { isTextBasedDataType, isBinaryDataType } from "@/entities/proxy/model/data-type";
 
 /**
  * Uint8Array를 문자열로 변환 (UTF-8 디코딩)
@@ -7,7 +7,7 @@ import { isTextBasedDataType, isBinaryDataType } from '@/entities/proxy/model/da
  */
 export const uint8ArrayToString = (data: Uint8Array | number[], dataType: DataType): string => {
   if (!data || data.length === 0) {
-    return '';
+    return "";
   }
 
   try {
@@ -15,10 +15,10 @@ export const uint8ArrayToString = (data: Uint8Array | number[], dataType: DataTy
     const uint8Array = data instanceof Uint8Array ? data : new Uint8Array(data);
 
     // 러스트에서 이미 처리된 데이터이므로 단순한 UTF-8 디코딩
-    const decoder = new TextDecoder('utf-8', { fatal: false });
+    const decoder = new TextDecoder("utf-8", { fatal: false });
     return decoder.decode(uint8Array);
   } catch (error) {
-    console.error('UTF-8 디코딩 실패:', error);
+    console.error("UTF-8 디코딩 실패:", error);
     return `디코딩 실패 (${dataType})`;
   }
 };
@@ -27,7 +27,7 @@ export const uint8ArrayToString = (data: Uint8Array | number[], dataType: DataTy
  * HTML 엔티티 디코딩
  */
 export const decodeHtmlEntities = (text: string): string => {
-  const textarea = document.createElement('textarea');
+  const textarea = document.createElement("textarea");
   textarea.innerHTML = text;
   return textarea.value;
 };
@@ -37,7 +37,7 @@ export const decodeHtmlEntities = (text: string): string => {
  */
 export const uint8ArrayToBase64 = (data: Uint8Array | number[]): string => {
   if (!data || data.length === 0) {
-    return '';
+    return "";
   }
 
   try {
@@ -45,14 +45,14 @@ export const uint8ArrayToBase64 = (data: Uint8Array | number[]): string => {
     const uint8Array = data instanceof Uint8Array ? data : new Uint8Array(data);
 
     // Uint8Array를 문자열로 변환한 후 Base64 인코딩
-    let binary = '';
+    let binary = "";
     for (let i = 0; i < uint8Array.length; i++) {
       binary += String.fromCharCode(uint8Array[i]);
     }
     return btoa(binary);
   } catch (error) {
-    console.error('Base64 인코딩 실패:', error);
-    return '';
+    console.error("Base64 인코딩 실패:", error);
+    return "";
   }
 };
 
@@ -60,17 +60,17 @@ export const uint8ArrayToBase64 = (data: Uint8Array | number[]): string => {
  * 이미지 데이터를 Data URL로 변환
  */
 export const createImageDataUrl = (data: Uint8Array | number[], dataType: DataType): string => {
-  if (dataType !== 'Image') {
-    return '';
+  if (dataType !== "Image") {
+    return "";
   }
 
   const base64 = uint8ArrayToBase64(data);
   if (!base64) {
-    return '';
+    return "";
   }
 
   // MIME 타입 결정
-  let mimeType = 'image/png'; // 기본값
+  let mimeType = "image/png"; // 기본값
   if (data.length >= 2) {
     const uint8Array = data instanceof Uint8Array ? data : new Uint8Array(data);
 
@@ -82,11 +82,11 @@ export const createImageDataUrl = (data: Uint8Array | number[], dataType: DataTy
       uint8Array[2] === 0x4e &&
       uint8Array[3] === 0x47
     ) {
-      mimeType = 'image/png';
+      mimeType = "image/png";
     }
     // JPEG 시그니처
     else if (uint8Array[0] === 0xff && uint8Array[1] === 0xd8) {
-      mimeType = 'image/jpeg';
+      mimeType = "image/jpeg";
     }
     // GIF 시그니처
     else if (
@@ -104,7 +104,7 @@ export const createImageDataUrl = (data: Uint8Array | number[], dataType: DataTy
           uint8Array[4] === 0x39 &&
           uint8Array[5] === 0x61))
     ) {
-      mimeType = 'image/gif';
+      mimeType = "image/gif";
     }
     // WebP 시그니처
     else if (
@@ -118,7 +118,7 @@ export const createImageDataUrl = (data: Uint8Array | number[], dataType: DataTy
       uint8Array[10] === 0x42 &&
       uint8Array[11] === 0x50
     ) {
-      mimeType = 'image/webp';
+      mimeType = "image/webp";
     }
     // SVG는 텍스트 기반이므로 별도 처리
     else if (
@@ -128,7 +128,7 @@ export const createImageDataUrl = (data: Uint8Array | number[], dataType: DataTy
       uint8Array[2] === 0x76 &&
       uint8Array[3] === 0x67
     ) {
-      mimeType = 'image/svg+xml';
+      mimeType = "image/svg+xml";
     }
   }
 
@@ -140,12 +140,12 @@ export const createImageDataUrl = (data: Uint8Array | number[], dataType: DataTy
  * 러스트에서 이미 데이터 타입 감지와 압축 해제를 완료했으므로 단순한 포맷팅만 수행
  */
 export const formatBodyContent = (body: Uint8Array, dataType: DataType, bodyJson?: any): string => {
-  if (dataType === 'Empty') {
-    return '';
+  if (dataType === "Empty") {
+    return "";
   }
 
   // JSON 타입이고 body_json이 있으면 바로 포맷팅
-  if (dataType === 'Json' && bodyJson) {
+  if (dataType === "Json" && bodyJson) {
     return JSON.stringify(bodyJson, null, 2);
   }
 
@@ -153,12 +153,12 @@ export const formatBodyContent = (body: Uint8Array, dataType: DataType, bodyJson
     const text = uint8ArrayToString(body, dataType);
 
     // JSON 타입인 경우 포맷팅 시도 (fallback)
-    if (dataType === 'Json') {
+    if (dataType === "Json") {
       try {
         const parsed = JSON.parse(text);
         return JSON.stringify(parsed, null, 2);
       } catch (error) {
-        console.warn('JSON 파싱 실패, 원본 텍스트 반환:', error);
+        console.warn("JSON 파싱 실패, 원본 텍스트 반환:", error);
         return decodeHtmlEntities(text);
       }
     }
@@ -177,8 +177,8 @@ export const formatBodyContent = (body: Uint8Array, dataType: DataType, bodyJson
  * 요청/응답 본문을 표시용으로 변환 (Monaco Editor용)
  */
 export const getBodyForDisplay = (body: Uint8Array, dataType: DataType, bodyJson?: any): string => {
-  if (dataType === 'Empty') {
-    return '';
+  if (dataType === "Empty") {
+    return "";
   }
 
   if (isTextBasedDataType(dataType)) {
@@ -237,4 +237,4 @@ export {
   isAudioDataType,
   isCompressedDataType,
   isBinaryDataType,
-} from '@/entities/proxy/model/data-type';
+} from "@/entities/proxy/model/data-type";

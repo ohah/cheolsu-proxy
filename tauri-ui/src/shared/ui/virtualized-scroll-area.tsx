@@ -1,8 +1,8 @@
-import { useRef, forwardRef, useMemo, useEffect, useCallback } from 'react';
+import { useRef, forwardRef, useMemo, useEffect, useCallback } from "react";
 
-import { useVirtualizer } from '@tanstack/react-virtual';
+import { useVirtualizer } from "@tanstack/react-virtual";
 
-import { ScrollArea } from './scroll-area';
+import { ScrollArea } from "./scroll-area";
 
 interface VirtualizedScrollAreaProps {
   itemCount: number;
@@ -19,7 +19,9 @@ export const VirtualizedScrollArea = forwardRef<HTMLDivElement, VirtualizedScrol
 
     useEffect(() => {
       if (scrollAreaRef.current) {
-        const viewport = scrollAreaRef.current.querySelector('[data-slot="scroll-area-viewport"]') as HTMLDivElement;
+        const viewport = scrollAreaRef.current.querySelector(
+          '[data-slot="scroll-area-viewport"]',
+        ) as HTMLDivElement;
         if (viewport) {
           viewportRef.current = viewport;
         }
@@ -39,8 +41,8 @@ export const VirtualizedScrollArea = forwardRef<HTMLDivElement, VirtualizedScrol
     const containerStyle = useMemo(
       () => ({
         height: `${virtualizer.getTotalSize()}px`,
-        width: '100%',
-        position: 'relative' as const,
+        width: "100%",
+        position: "relative" as const,
       }),
       [virtualizer.getTotalSize()],
     );
@@ -52,10 +54,10 @@ export const VirtualizedScrollArea = forwardRef<HTMLDivElement, VirtualizedScrol
         <div style={containerStyle}>
           {virtualItems.map((virtualItem) => {
             const itemStyle: React.CSSProperties = {
-              position: 'absolute',
+              position: "absolute",
               top: 0,
               left: 0,
-              width: '100%',
+              width: "100%",
               height: `${virtualItem.size}px`,
               transform: `translateY(${virtualItem.start}px)`,
             };
@@ -72,4 +74,4 @@ export const VirtualizedScrollArea = forwardRef<HTMLDivElement, VirtualizedScrol
   },
 );
 
-VirtualizedScrollArea.displayName = 'VirtualizedScrollArea';
+VirtualizedScrollArea.displayName = "VirtualizedScrollArea";

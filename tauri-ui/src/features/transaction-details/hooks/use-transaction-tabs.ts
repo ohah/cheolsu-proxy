@@ -1,7 +1,7 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo } from "react";
 
-import { TRANSACTION_DETAILS_TABS } from '../model';
-import type { TransactionTab } from '../model';
+import { TRANSACTION_DETAILS_TABS } from "../model";
+import type { TransactionTab } from "../model";
 
 export const useTransactionTabs = () => {
   const [activeTab, setActiveTab] = useState<TransactionTab>(TRANSACTION_DETAILS_TABS.HEADERS);

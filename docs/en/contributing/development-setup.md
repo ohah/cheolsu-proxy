@@ -13,8 +13,8 @@ This project uses the following tools and technologies:
 
 - **Rust**: Core backend language with Cargo package manager
 - **Tauri**: Desktop application framework
-- **pnpm**: Fast, disk space efficient package manager for Node.js
-- **oxc**: JavaScript/TypeScript toolchain for parsing and linting
+- **bun**: Node.js-compatible runtime and package manager (version pinned in mise.toml)
+- **oxc**: JavaScript/TypeScript toolchain for formatting (oxfmt) and linting (oxlint)
 - **Rspress**: Documentation site generator
 
 ## System Requirements
@@ -58,31 +58,43 @@ cargo --version
    cargo --version
    ```
 
-### 2. Node.js Installation
+### 2. Development environment with mise (recommended)
+
+This project pins Node.js, Bun, and Rust versions via [mise](https://mise.jdx.dev/).
+
+```bash
+# Install mise (if needed)
+curl https://mise.run | sh
+
+# From repo root, install tools per mise.toml
+cd cheolsu-proxy
+mise install
+
+# Verify
+node --version
+bun --version
+rustc --version
+```
+
+### 3. Node.js / Bun manual install (without mise)
 
 #### macOS (Homebrew)
 
 ```bash
-# Install with Homebrew
-brew install node
-
-# Or use nvm
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
-nvm install --lts
-nvm use --lts
+brew install node bun
 ```
 
 #### Windows
 
-1. Download LTS version from [nodejs.org](https://nodejs.org/)
-2. Follow the installation wizard
+1. Download LTS from [nodejs.org](https://nodejs.org/)
+2. Install [Bun](https://bun.sh/)
 3. Verify in PowerShell:
    ```powershell
    node --version
-   pnpm --version
+   bun --version
    ```
 
-### 3. Tauri CLI Installation
+### 4. Tauri CLI Installation
 
 ```bash
 # Install Tauri CLI
@@ -92,7 +104,7 @@ cargo install tauri-cli
 tauri --version
 ```
 
-### 4. Development Tools Installation
+### 5. Development Tools Installation
 
 #### Rust Tools
 
@@ -156,7 +168,7 @@ cargo build --workspace
 cd tauri-ui
 
 # Install dependencies
-pnpm install
+bun install
 
 ```
 
@@ -165,7 +177,7 @@ pnpm install
 ```bash
 # Run Tauri development server
 cd tauri-ui
-pnpm tauri dev
+bun run tauri dev
 ```
 
 ## IDE Setup
@@ -181,7 +193,7 @@ pnpm tauri dev
     "vadimcn.vscode-lldb",
     "ms-vscode.vscode-typescript-next",
     "bradlc.vscode-tailwindcss",
-    "esbenp.prettier-vscode",
+    "oxc.oxc",
     "ms-vscode.vscode-json"
   ]
 }
@@ -196,10 +208,10 @@ pnpm tauri dev
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "rust-lang.rust-analyzer",
   "[typescript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "oxc.oxc"
   },
   "[typescriptreact]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "oxc.oxc"
   }
 }
 ```
@@ -274,20 +286,20 @@ cargo outdated
 ```bash
 # Tauri UI development server
 cd tauri-ui
-pnpm run dev
+bun run dev
 
 # Run with Tauri app
-pnpm run tauri dev
+bun run tauri dev
 ```
 
 ### 2. Build
 
 ```bash
 # Web build
-pnpm run build
+bun run build
 
 # Tauri app build
-pnpm run tauri build
+bun run tauri build
 ```
 
 ### 3. Test
@@ -301,7 +313,7 @@ To be added.
 ```bash
 # Run in debug mode
 cd tauri-ui
-RUST_LOG=debug pnpm run tauri dev
+RUST_LOG=debug bun run tauri dev
 ```
 
 Open Developer Tools

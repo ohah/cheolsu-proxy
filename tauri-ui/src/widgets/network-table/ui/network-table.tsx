@@ -1,10 +1,10 @@
-import type { HttpTransaction } from '@/entities/proxy';
+import type { HttpTransaction } from "@/entities/proxy";
 
-import { TableHeader } from './table-header';
-import { TableBody } from './table-body';
-import { useTableData } from '../hooks';
-import { useMemo } from 'react';
-import { Pin } from 'lucide-react';
+import { TableHeader } from "./table-header";
+import { TableBody } from "./table-body";
+import { useTableData } from "../hooks";
+import { useMemo } from "react";
+import { Pin } from "lucide-react";
 
 interface NetworkTableProps {
   transactions: HttpTransaction[];

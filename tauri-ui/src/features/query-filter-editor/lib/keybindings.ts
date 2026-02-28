@@ -1,5 +1,5 @@
-import type { editor } from 'monaco-editor';
-import type { Monaco } from '@monaco-editor/react';
+import type { editor } from "monaco-editor";
+import type { Monaco } from "@monaco-editor/react";
 
 interface KeybindingHandlers {
   onApply: (value: string) => void;

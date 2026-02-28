@@ -1,11 +1,11 @@
-import { useCallback } from 'react';
-import { Globe } from 'lucide-react';
+import { useCallback } from "react";
+import { Globe } from "lucide-react";
 
-import { ScrollArea } from '@/shared/ui/scroll-area';
-import { HttpTransaction } from '@/entities/proxy';
+import { ScrollArea } from "@/shared/ui/scroll-area";
+import { HttpTransaction } from "@/entities/proxy";
 
-import { useHostTree } from '../hooks';
-import { TreeNode } from './tree-node';
+import { useHostTree } from "../hooks";
+import { TreeNode } from "./tree-node";
 
 interface HostPathTreeProps {
   transactions: HttpTransaction[];
@@ -13,7 +13,11 @@ interface HostPathTreeProps {
   selectedTransaction: HttpTransaction | null;
 }
 
-export function HostPathTree({ transactions, createTransactionSelectHandler, selectedTransaction }: HostPathTreeProps) {
+export function HostPathTree({
+  transactions,
+  createTransactionSelectHandler,
+  selectedTransaction,
+}: HostPathTreeProps) {
   const { tree, expandedPaths, toggleExpanded } = useHostTree(transactions);
 
   const handleTransactionSelect = useCallback(

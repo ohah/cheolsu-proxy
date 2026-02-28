@@ -1,21 +1,21 @@
-import { create } from 'zustand';
-import { subscribeWithSelector } from 'zustand/middleware';
-import { load } from '@tauri-apps/plugin-store';
-import type { SessionStore, SessionStoreState } from '@/entities/session';
+import { create } from "zustand";
+import { subscribeWithSelector } from "zustand/middleware";
+import { load } from "@tauri-apps/plugin-store";
+import type { SessionStore, SessionStoreState } from "@/entities/session";
 
-const tauriStore = await load('session.json');
+const tauriStore = await load("session.json");
 
 const notifyStoreChange = async () => {
   try {
-    const { invoke } = await import('@tauri-apps/api/core');
-    console.log('notifyStoreChange');
-    await invoke('store_changed_v2');
+    const { invoke } = await import("@tauri-apps/api/core");
+    console.log("notifyStoreChange");
+    await invoke("store_changed_v2");
   } catch (error) {
-    console.error('Failed to notify store change:', error);
+    console.error("Failed to notify store change:", error);
   }
 };
 
-const initialSessions = (await tauriStore.get('sessions')) as SessionStore[];
+const initialSessions = (await tauriStore.get("sessions")) as SessionStore[];
 
 const useSessionStore = create<SessionStoreState>()(
   subscribeWithSelector((set) => ({
@@ -57,11 +57,11 @@ useSessionStore.subscribe(
   (state) => state.sessions,
   async (sessions) => {
     try {
-      await tauriStore.set('sessions', sessions);
+      await tauriStore.set("sessions", sessions);
       await tauriStore.save();
       await notifyStoreChange();
     } catch (error) {
-      console.error('Auto-save failed:', error);
+      console.error("Auto-save failed:", error);
     }
   },
 );

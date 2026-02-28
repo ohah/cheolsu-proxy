@@ -1,5 +1,5 @@
-@import 'tailwindcss';
-@import 'tw-animate-css';
+@import "tailwindcss";
+@import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -40,7 +40,7 @@
   --sidebar-accent-foreground: #0d0d0d;
   --sidebar-border: #e5e7eb;
   --sidebar-ring: rgba(237, 100, 100, 0.5);
-  --font-jetbrains-mono: 'JetBrains Mono', 'Consolas', 'Monaco', 'Menlo', monospace;
+  --font-jetbrains-mono: "JetBrains Mono", "Consolas", "Monaco", "Menlo", monospace;
 }
 
 .dark {
@@ -131,7 +131,7 @@
   code,
   pre,
   .font-mono {
-    font-family: var(--font-jetbrains-mono), 'Consolas', 'Monaco', monospace;
+    font-family: var(--font-jetbrains-mono), "Consolas", "Monaco", monospace;
     line-height: 1.75;
   }
 }

@@ -90,7 +90,7 @@ cd cheolsu-proxy
 
 # Install dependencies
 cargo build
-cd tauri-ui && pnpm install
+cd tauri-ui && bun install
 ```
 
 ## Development Workflow
@@ -119,7 +119,7 @@ git checkout -b fix/your-bug-fix
 ```bash
 # Run development server
 cd tauri-ui
-pnpm run tauri dev
+bun run tauri dev
 
 # Run tests
 cargo test
@@ -227,7 +227,7 @@ cargo test --test integration_test
 ```bash
 # Test Tauri app
 cd tauri-ui
-pnpm run tauri test
+bun run tauri test
 ```
 
 ### Manual Testing
@@ -291,11 +291,11 @@ Closes #123
 ```bash
 # Update dependencies
 cargo update
-cd tauri-ui && pnpm update
+cd tauri-ui && bun update
 
 # Clear cache
 cargo clean
-cd tauri-ui && rm -rf node_modules && pnpm install
+cd tauri-ui && rm -rf node_modules && bun install
 ```
 
 **Test failure**:
@@ -315,7 +315,7 @@ cargo test test_name -- --nocapture
 cargo install tauri-cli --force
 
 # Reinstall dependencies
-cd tauri-ui && pnpm install
+cd tauri-ui && bun install
 ```
 
 ## Community
@@ -328,7 +328,7 @@ cd tauri-ui && pnpm install
 
 ### Code of Conduct
 
-All contributors must follow the [Code of Conduct](https://github.com/ohah/cheolsu-proxy/blob/master/CODE_OF_CONDUCT.md).
+All contributors must follow the [Code of Conduct](https://github.com/ohah/cheolsu-proxy/blob/main/CODE_OF_CONDUCT.md).
 
 ## License
 

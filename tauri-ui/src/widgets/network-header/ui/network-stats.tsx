@@ -1,6 +1,6 @@
-import { useMemo } from 'react';
+import { useMemo } from "react";
 
-import { Badge } from '@/shared/ui';
+import { Badge } from "@/shared/ui";
 
 interface NetworkStatsProps {
   totalCount: number;

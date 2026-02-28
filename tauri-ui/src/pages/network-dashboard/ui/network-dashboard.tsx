@@ -1,16 +1,21 @@
-import { useCallback } from 'react';
+import { useCallback } from "react";
 
-import { TransactionDetails } from '@/features/transaction-details';
+import { TransactionDetails } from "@/features/transaction-details";
 
-import { NetworkHeader } from '@/widgets/network-header';
-import { AppSidebar } from '@/shared/app-sidebar';
-import { NetworkTable } from '@/widgets/network-table';
+import { NetworkHeader } from "@/widgets/network-header";
+import { AppSidebar } from "@/shared/app-sidebar";
+import { NetworkTable } from "@/widgets/network-table";
 
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/shared/ui';
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/shared/ui";
 
-import { useProxyEventControl, useTransactionFilters, useTransactions, useResizablePanelController } from '../hooks';
-import { useProxyStore } from '@/shared/stores';
-import { HostPathTree } from '@/widgets/host-path-tree/ui/host-path-tree';
+import {
+  useProxyEventControl,
+  useTransactionFilters,
+  useTransactions,
+  useResizablePanelController,
+} from "../hooks";
+import { useProxyStore } from "@/shared/stores";
+import { HostPathTree } from "@/widgets/host-path-tree/ui/host-path-tree";
 
 export const NetworkDashboard = () => {
   const { isConnected } = useProxyStore();
@@ -99,7 +104,11 @@ export const NetworkDashboard = () => {
 
           <ResizableHandle withHandle />
 
-          <ResizablePanel id="network-table" defaultSize={75} className="flex flex-1 h-full overflow-hidden">
+          <ResizablePanel
+            id="network-table"
+            defaultSize={75}
+            className="flex flex-1 h-full overflow-hidden"
+          >
             <NetworkTable
               transactions={filteredTransactions}
               pinnedTransactionIds={pinnedTransactionIds}
