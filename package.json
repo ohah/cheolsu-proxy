@@ -14,13 +14,13 @@
   "author": "Cheolsu Proxy Team",
   "workspaces": [
     "tauri-ui",
-    "docs"
+    "document"
   ],
   "type": "module",
   "scripts": {
-    "dev": "bun run --filter cheolsu-proxy-docs dev",
-    "build": "bun run --filter cheolsu-proxy-docs build",
-    "preview": "bun run --filter cheolsu-proxy-docs preview",
+    "dev": "bun run --filter cheolsu-proxy-document dev",
+    "build": "bun run --filter cheolsu-proxy-document build",
+    "preview": "bun run --filter cheolsu-proxy-document preview",
     "tauri:dev": "bun run --filter tauri-ui tauri dev",
     "tauri:build": "bun run --filter tauri-ui tauri build",
     "lint": "oxlint",

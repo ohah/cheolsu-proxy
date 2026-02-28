@@ -46,7 +46,7 @@ Cheolsu-Query is a powerful query language based on Monaco Editor, designed to e
 
 ### Basic Filtering
 
-```cheolsu-query
+```text
 # Filter only GET requests
 method="GET"
 
@@ -62,7 +62,7 @@ status!="4xx,5xx"
 
 ### Complex Conditions
 
-```cheolsu-query
+```text
 # Multiple HTTP methods
 method="GET,POST"
 
@@ -78,7 +78,7 @@ method="POST" or status="5xx"
 
 ### Real-world Scenarios
 
-```cheolsu-query
+```text
 # Monitor only API requests
 url|="api" and method!="OPTIONS"
 
@@ -130,7 +130,7 @@ url|="localhost" or url|="127.0.0.1"
 
 ### 1. Efficient Filtering
 
-```cheolsu-query
+```text
 # Use exact conditions
 method="GET"  # ✅ Good
 method|="GET" # ❌ Unnecessary pattern matching
@@ -138,7 +138,7 @@ method|="GET" # ❌ Unnecessary pattern matching
 
 ### 2. Performance Optimization
 
-```cheolsu-query
+```text
 # Place specific conditions first
 url|="api" and method="GET"  # ✅ Good
 method="GET" and url|="api"  # ❌ URL pattern is more selective
@@ -146,7 +146,7 @@ method="GET" and url|="api"  # ❌ URL pattern is more selective
 
 ### 3. Improved Readability
 
-```cheolsu-query
+```text
 # Use parentheses for complex conditions
 (method="GET" or method="POST") and status="2xx"
 ```
@@ -155,7 +155,7 @@ method="GET" and url|="api"  # ❌ URL pattern is more selective
 
 ### Regex Patterns (Future Support)
 
-```cheolsu-query
+```text
 # URL pattern matching
 url~="^/api/v[0-9]+/"
 
@@ -165,7 +165,7 @@ status~="^[45][0-9][0-9]$"
 
 ### Time-based Filtering (Future Support)
 
-```cheolsu-query
+```text
 # Requests within the last hour
 time>="1h"
 
@@ -179,7 +179,7 @@ time>="09:00" and time<="18:00"
 
 1. **Syntax Errors**
 
-   ```cheolsu-query
+   ```text
    # ❌ Incorrect
    method=GET
 
@@ -189,7 +189,7 @@ time>="09:00" and time<="18:00"
 
 2. **Operator Errors**
 
-   ```cheolsu-query
+   ```text
    # ❌ Incorrect
    method=="GET"
 
@@ -199,7 +199,7 @@ time>="09:00" and time<="18:00"
 
 3. **Logical Operator Errors**
 
-   ```cheolsu-query
+   ```text
    # ❌ Incorrect
    method="GET" && status="2xx"
 

@@ -53,9 +53,9 @@ dd-flag
 **/src-tauri/gen/
 
 # RSPress build artifacts
-docs/dist/
-docs/.rspress/
-docs/doc_build/
+document/dist/
+document/.rspress/
+document/doc_build/
 
 # Log files
 logs/

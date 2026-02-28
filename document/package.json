@@ -1,5 +1,5 @@
 {
-  "name": "cheolsu-proxy-docs",
+  "name": "cheolsu-proxy-document",
   "version": "1.0.0",
   "description": "Cheolsu Proxy Documentation",
   "keywords": [
@@ -16,7 +16,13 @@
     "build": "rspress build",
     "preview": "rspress preview"
   },
+  "dependencies": {
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
   "devDependencies": {
-    "rspress": "1.47.1"
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "@rspress/core": "2.0.3"
   }
 }

@@ -1,34 +1,33 @@
 ---
-title: 프로젝트 구조
-description: Cheolsu Proxy 코드베이스 구조 및 아키텍처
+title: Code Structure
+description: Cheolsu Proxy codebase structure and architecture
 ---
 
-# 프로젝트 구조
+# Code Structure
 
-Cheolsu Proxy는 Rust 기반의 모노레포 구조로 구성되어 있으며, Tauri를 사용한 데스크톱 애플리케이션입니다.
+Cheolsu Proxy is structured as a Rust-based monorepo with a Tauri desktop application.
 
-## 전체 구조
+## Overall Structure
 
 ```
 cheolsu-proxy/
-├── Cargo.toml                 # 워크스페이스 루트 설정
-├── Cargo.lock                 # 의존성 잠금 파일
-├── README.md                  # 프로젝트 소개
-├── CONTRIBUTING.md            # 기여 가이드 (영어)
-├── CONTRIBUTING_KO.md         # 기여 가이드 (한국어)
-├── docs/                      # 문서 (기존)
-├── assets/                    # 프로젝트 에셋
-├── tauri-ui/                  # 프론트엔드 (React + TypeScript)
-├── proxyapi/                  # 레거시 프록시 API
-├── proxyapi_models/           # 레거시 모델
-├── proxyapi_v2/               # 새로운 프록시 API
-├── proxyapi_v2_models/        # 새로운 모델
-└── proxy_v2_models/           # 공통 모델
+├── Cargo.toml                 # Workspace root configuration
+├── Cargo.lock                 # Dependency lock file
+├── README.md                  # Project introduction
+├── CONTRIBUTING.md            # Contributing guide (English)
+├── CONTRIBUTING_KO.md         # Contributing guide (Korean)
+├── document/                  # Documentation (existing)
+├── assets/                    # Project assets
+├── tauri-ui/                  # Frontend (React + TypeScript)
+├── proxyapi/                  # Legacy proxy API
+├── proxyapi_models/           # Legacy models
+├── proxyapi_v2/               # New proxy API
+└── proxy_v2_models/           # Common models
 ```
 
-## 워크스페이스 구조
+## Workspace Structure
 
-### 루트 Cargo.toml
+### Root Cargo.toml
 
 ```toml
 [workspace]
@@ -36,51 +35,51 @@ members = [
     "proxyapi",
     "proxyapi_v2",
     "proxyapi_models",
-    "tauri-ui/src-tauri",
+    "tauri-ui/src-tauri"
 ]
 
 [workspace.dependencies]
-# 공통 의존성 정의
+# Common dependency definitions
 ```
 
-### 워크스페이스 외부 크레이트
+### External Crates
 
-`proxy_v2_models`는 워크스페이스 멤버는 아니지만, 다른 워크스페이스 멤버들이 의존성으로 참조하는 별도의 크레이트입니다.
+`proxy_v2_models` is not a workspace member but is a separate crate that other workspace members reference as a dependency.
 
-## 백엔드 구조
+## Backend Structure
 
-### 1. proxyapi_v2/ (메인 프록시 엔진)
+### 1. proxyapi_v2/ (Main Proxy Engine)
 
 ```
 proxyapi_v2/
-├── Cargo.toml                 # 패키지 설정
+├── Cargo.toml                 # Package configuration
 ├── src/
-│   ├── lib.rs                 # 라이브러리 진입점
-│   ├── error.rs               # 에러 타입 정의
-│   ├── body.rs                # HTTP 바디 처리
-│   ├── decoder.rs             # HTTP 디코더
-│   ├── rewind.rs              # 스트림 리와인드
-│   ├── noop.rs                # No-op 핸들러
-│   ├── tls_version_detector.rs # TLS 버전 감지
-│   ├── hybrid_tls_handler.rs  # 하이브리드 TLS 핸들러
-│   └── tunnel_event.rs        # 터널 이벤트 처리
-│   ├── certificate_authority/ # CA 인증서 관리
+│   ├── lib.rs                 # Library entry point
+│   ├── error.rs               # Error type definitions
+│   ├── body.rs                # HTTP body handling
+│   ├── decoder.rs             # HTTP decoder
+│   ├── rewind.rs              # Stream rewind
+│   ├── noop.rs                # No-op handler
+│   ├── tls_version_detector.rs # TLS version detection
+│   ├── hybrid_tls_handler.rs  # Hybrid TLS handler
+│   └── tunnel_event.rs        # Tunnel event handling
+│   ├── certificate_authority/ # CA certificate management
 │   │   ├── mod.rs
-│   │   ├── rcgen_authority.rs # rcgen 기반 CA
-│   │   ├── openssl_authority.rs # OpenSSL 기반 CA
-│   │   ├── cheolsu-proxy.cnf  # OpenSSL 설정 파일
-│   │   └── cheolsu-proxy.srl  # OpenSSL 직렬 번호 파일
-│   └── proxy/                 # 프록시 핵심 로직
+│   │   ├── rcgen_authority.rs # rcgen-based CA
+│   │   ├── openssl_authority.rs # OpenSSL-based CA
+│   │   ├── cheolsu-proxy.cnf  # OpenSSL configuration file
+│   │   └── cheolsu-proxy.srl  # OpenSSL serial number file
+│   └── proxy/                 # Proxy core logic
 │       ├── mod.rs
-│       ├── builder.rs         # 프록시 빌더
-│       └── internal.rs        # 내부 프록시 로직
-├── examples/                  # 사용 예제
+│       ├── builder.rs         # Proxy builder
+│       └── internal.rs        # Internal proxy logic
+├── examples/                  # Usage examples
 │   ├── improved_rustls_proxy.rs
 │   ├── log.rs
 │   ├── noop.rs
 │   ├── openssl.rs
 │   └── tls_hybrid_test.rs
-├── tests/                     # 통합 테스트
+├── tests/                     # Integration tests
 │   ├── common/
 │   │   └── mod.rs
 │   ├── integration_error_handling_tests.rs
@@ -88,15 +87,15 @@ proxyapi_v2/
 │   ├── openssl_ca.rs
 │   ├── rcgen_ca.rs
 │   └── websocket.rs
-└── benches/                   # 벤치마크
+└── benches/                   # Benchmarks
     ├── certificate_authorities.rs
     ├── decoder.rs
     └── proxy.rs
 ```
 
-### 2. certificate_authority/ (CA 관리)
+### 2. certificate_authority/ (CA Management)
 
-#### 모듈 구조
+#### Module Structure
 
 ```rust
 // mod.rs
@@ -109,15 +108,15 @@ pub struct RcgenAuthority { /* ... */ }
 pub struct OpensslAuthority { /* ... */ }
 ```
 
-#### 주요 기능
+#### Key Features
 
-- **동적 인증서 생성**: 도메인별 인증서 자동 생성
-- **PKCS12 지원**: native-tls용 PKCS12 인증서 생성
-- **크로스 플랫폼**: macOS, Windows 지원
+- **Dynamic Certificate Generation**: Automatic certificate generation per domain
+- **PKCS12 Support**: PKCS12 certificate generation for native-tls
+- **Cross-platform**: Support for macOS, Windows
 
-### 3. proxy/ (프록시 핵심)
+### 3. proxy/ (Proxy Core)
 
-#### Builder 패턴
+#### Builder Pattern
 
 ```rust
 // builder.rs
@@ -135,7 +134,7 @@ impl ProxyBuilder {
 }
 ```
 
-#### 내부 로직
+#### Internal Logic
 
 ```rust
 // internal.rs
@@ -153,23 +152,23 @@ impl Proxy {
 }
 ```
 
-## 프론트엔드 구조 (tauri-ui/)
+## Frontend Structure (tauri-ui/)
 
-### FSD (Feature-Sliced Design) 아키텍처
+### FSD (Feature-Sliced Design) Architecture
 
 ```
 tauri-ui/src/
-├── main.tsx                   # 애플리케이션 진입점
-├── main.css                   # 글로벌 스타일
-├── app/                       # 애플리케이션 레이어
-│   ├── App.tsx                # 루트 컴포넌트
-│   ├── layouts/               # 레이아웃 컴포넌트
-│   └── providers/             # 컨텍스트 프로바이더
+├── main.tsx                   # Application entry point
+├── main.css                   # Global styles
+├── app/                       # Application layer
+│   ├── App.tsx                # Root component
+│   ├── layouts/               # Layout components
+│   └── providers/             # Context providers
 │       ├── index.ts
 │       ├── router-provider.tsx
 │       └── use-theme-provider.ts
-├── pages/                     # 페이지 레이어
-│   ├── network-dashboard/     # 네트워크 대시보드
+├── pages/                     # Page layer
+│   ├── network-dashboard/     # Network dashboard
 │   │   ├── hooks/
 │   │   │   ├── index.ts
 │   │   │   ├── use-proxy-event-control.ts
@@ -183,12 +182,12 @@ tauri-ui/src/
 │   │   └── ui/
 │   │       ├── index.ts
 │   │       └── network-dashboard.tsx
-│   └── sessions/              # 세션 관리
+│   └── sessions/              # Session management
 │       ├── index.ts
 │       └── ui/
 │           └── sessions-page.tsx
-├── widgets/                   # 위젯 레이어
-│   ├── network-table/         # 네트워크 테이블
+├── widgets/                   # Widget layer
+│   ├── network-table/         # Network table
 │   │   ├── hooks/
 │   │   │   ├── index.ts
 │   │   │   └── use-table-data.ts
@@ -214,7 +213,7 @@ tauri-ui/src/
 │   │       ├── table-body.tsx
 │   │       ├── table-header.tsx
 │   │       └── table-row.tsx
-│   ├── network-header/        # 네트워크 헤더
+│   ├── network-header/        # Network header
 │   │   ├── index.ts
 │   │   ├── model/
 │   │   │   ├── consts.ts
@@ -225,7 +224,7 @@ tauri-ui/src/
 │   │       ├── network-filters.tsx
 │   │       ├── network-header.tsx
 │   │       └── network-stats.tsx
-│   └── host-path-tree/        # 호스트 경로 트리
+│   └── host-path-tree/        # Host path tree
 │       ├── hooks/
 │       │   ├── index.ts
 │       │   ├── use-host-tree.ts
@@ -245,10 +244,10 @@ tauri-ui/src/
 │           ├── node-content.tsx
 │           ├── transaction-list.tsx
 │           └── tree-node.tsx
-├── features/                  # 기능 레이어
-│   ├── network-table/         # 네트워크 테이블 기능
+├── features/                  # Feature layer
+│   ├── network-table/         # Network table features
 │   │   └── api/
-│   ├── transaction-details/   # 트랜잭션 상세
+│   ├── transaction-details/   # Transaction details
 │   │   ├── context/
 │   │   │   └── form-context.tsx
 │   │   ├── hooks/
@@ -271,29 +270,29 @@ tauri-ui/src/
 │   │       ├── transaction-header.tsx
 │   │       ├── transaction-headers.tsx
 │   │       └── transaction-response.tsx
-│   └── websocket-test/        # WebSocket 테스트
+│   └── websocket-test/        # WebSocket test
 │       └── ui/
-├── entities/                  # 엔티티 레이어
-│   ├── proxy/                 # 프록시 엔티티
+├── entities/                  # Entity layer
+│   ├── proxy/                 # Proxy entity
 │   │   ├── index.ts
 │   │   └── model/
 │   │       ├── data-type.ts
 │   │       ├── index.ts
 │   │       └── types.ts
-│   ├── session/               # 세션 엔티티
+│   ├── session/               # Session entity
 │   │   ├── index.ts
 │   │   └── model/
 │   │       ├── index.ts
 │   │       └── types.ts
-│   └── transaction/           # 트랜잭션 엔티티
+│   └── transaction/           # Transaction entity
 │       ├── index.ts
 │       └── lib/
 │           ├── index.ts
 │           └── utils.ts
-└── shared/                    # 공유 레이어
-    ├── api/                   # API 클라이언트
+└── shared/                    # Shared layer
+    ├── api/                   # API client
     │   └── proxy.ts
-    ├── app-sidebar/           # 앱 사이드바
+    ├── app-sidebar/           # App sidebar
     │   ├── hooks/
     │   │   ├── index.ts
     │   │   └── use-sidebar-collapse.ts
@@ -309,17 +308,17 @@ tauri-ui/src/
     │       ├── sidebar-header.tsx
     │       ├── sidebar-navigation.tsx
     │       └── sidebar-status.tsx
-    ├── assets/                # 정적 에셋
+    ├── assets/                # Static assets
     │   ├── index.ts
     │   └── logo.png
-    ├── lib/                   # 유틸리티 함수
+    ├── lib/                   # Utility functions
     │   ├── class-name.ts
     │   └── index.ts
-    ├── stores/                # 상태 관리
+    ├── stores/                # State management
     │   ├── index.ts
     │   ├── proxy-store.ts
     │   └── session-store.ts
-    └── ui/                    # UI 컴포넌트
+    └── ui/                    # UI components
         ├── badge.tsx
         ├── button.tsx
         ├── card.tsx
@@ -341,65 +340,65 @@ tauri-ui/src/
         └── virtualized-scroll-area.tsx
 ```
 
-### 각 레이어의 역할
+### Layer Responsibilities
 
-#### 1. app/ (애플리케이션 레이어)
+#### 1. app/ (Application Layer)
 
-- **App.tsx**: 루트 컴포넌트, 라우팅 설정
-- **layouts/**: 공통 레이아웃 컴포넌트
-- **providers/**: React Context 프로바이더
+- **App.tsx**: Root component, routing setup
+- **layouts/**: Common layout components
+- **providers/**: React Context providers
 
-#### 2. pages/ (페이지 레이어)
+#### 2. pages/ (Page Layer)
 
-- **network-dashboard/**: 메인 네트워크 모니터링 페이지
-- **sessions/**: 세션 관리 페이지
+- **network-dashboard/**: Main network monitoring page
+- **sessions/**: Session management page
 
-#### 3. widgets/ (위젯 레이어)
+#### 3. widgets/ (Widget Layer)
 
-- **network-table/**: 네트워크 요청 테이블
-- **network-header/**: 네트워크 헤더 정보
-- **host-path-tree/**: 호스트별 경로 트리
+- **network-table/**: Network request table
+- **network-header/**: Network header information
+- **host-path-tree/**: Host-based path tree
 
-#### 4. features/ (기능 레이어)
+#### 4. features/ (Feature Layer)
 
-- **network-table/**: 테이블 관련 기능 (필터링, 정렬 등)
-- **transaction-details/**: 트랜잭션 상세 보기
-- **websocket-test/**: WebSocket 테스트 기능
+- **network-table/**: Table-related features (filtering, sorting, etc.)
+- **transaction-details/**: Transaction detail view
+- **websocket-test/**: WebSocket test functionality
 
-#### 5. entities/ (엔티티 레이어)
+#### 5. entities/ (Entity Layer)
 
-- **proxy/**: 프록시 관련 데이터 모델
-- **session/**: 세션 관련 데이터 모델
-- **transaction/**: 트랜잭션 관련 데이터 모델
+- **proxy/**: Proxy-related data models
+- **session/**: Session-related data models
+- **transaction/**: Transaction-related data models
 
-#### 6. shared/ (공유 레이어)
+#### 6. shared/ (Shared Layer)
 
-- **api/**: 백엔드 API 클라이언트
-- **ui/**: 재사용 가능한 UI 컴포넌트
-- **lib/**: 유틸리티 함수
-- **stores/**: Zustand 상태 관리
-- **assets/**: 정적 에셋
+- **api/**: Backend API client
+- **ui/**: Reusable UI components
+- **lib/**: Utility functions
+- **stores/**: Zustand state management
+- **assets/**: Static assets
 
-## Tauri 백엔드 (tauri-ui/src-tauri/)
+## Tauri Backend (tauri-ui/src-tauri/)
 
 ```
 src-tauri/
-├── Cargo.toml                 # Tauri 백엔드 설정
-├── tauri.conf.json            # Tauri 설정
+├── Cargo.toml                 # Tauri backend configuration
+├── tauri.conf.json            # Tauri configuration
 ├── src/
-│   ├── main.rs                # 메인 진입점
-│   ├── lib.rs                 # 라이브러리 진입점
-│   ├── proxy.rs               # 레거시 프록시
-│   ├── proxy_v2.rs            # 새로운 프록시
-│   └── certificate_authority/ # CA 관리
-│       ├── cheolsu-proxy.cnf  # OpenSSL 설정 파일
-│       └── cheolsu-proxy.srl  # OpenSSL 직렬 번호 파일
-├── capabilities/              # Tauri 권한 설정
-├── icons/                     # 앱 아이콘
-└── gen/                       # 자동 생성 파일
+│   ├── main.rs                # Main entry point
+│   ├── lib.rs                 # Library entry point
+│   ├── proxy.rs               # Legacy proxy
+│   ├── proxy_v2.rs            # New proxy
+│   └── certificate_authority/ # CA management
+│       ├── cheolsu-proxy.cnf  # OpenSSL configuration file
+│       └── cheolsu-proxy.srl  # OpenSSL serial number file
+├── capabilities/              # Tauri permission settings
+├── icons/                     # App icons
+└── gen/                       # Auto-generated files
 ```
 
-### Tauri 설정
+### Tauri Configuration
 
 ```json
 // tauri.conf.json
@@ -417,30 +416,30 @@ src-tauri/
 }
 ```
 
-## 데이터 플로우
+## Data Flow
 
-### 1. 프록시 요청 처리
+### 1. Proxy Request Processing
 
 ```mermaid
 sequenceDiagram
-    participant Client as 클라이언트
-    participant Proxy as 프록시 서버
-    participant CA as CA 관리자
-    participant Target as 대상 서버
+    participant Client as Client
+    participant Proxy as Proxy Server
+    participant CA as CA Manager
+    participant Target as Target Server
 
-    Client->>Proxy: HTTP/HTTPS 요청
-    Proxy->>Proxy: 요청 분석
-    alt HTTPS 요청
-        Proxy->>CA: 인증서 요청
-        CA-->>Proxy: 동적 인증서
-        Proxy->>Client: TLS 핸드셰이크
+    Client->>Proxy: HTTP/HTTPS Request
+    Proxy->>Proxy: Request Analysis
+    alt HTTPS Request
+        Proxy->>CA: Certificate Request
+        CA-->>Proxy: Dynamic Certificate
+        Proxy->>Client: TLS Handshake
     end
-    Proxy->>Target: 요청 전달
-    Target-->>Proxy: 응답
-    Proxy-->>Client: 응답 전달
+    Proxy->>Target: Forward Request
+    Target-->>Proxy: Response
+    Proxy-->>Client: Forward Response
 ```
 
-### 2. 프론트엔드 데이터 플로우
+### 2. Frontend Data Flow
 
 ```mermaid
 graph TD
@@ -448,19 +447,19 @@ graph TD
     B --> C[React Components]
 ```
 
-## 상태 관리
+## State Management
 
-### Zustand 스토어 구조
+### Zustand Store Structure
 
 ```typescript
 // stores/proxy-store.ts
 interface ProxyStore {
-  // 상태
+  // State
   isRunning: boolean;
   listenAddr: string;
   requests: Transaction[];
 
-  // 액션
+  // Actions
   startProxy: () => void;
   stopProxy: () => void;
   addRequest: (request: Transaction) => void;
@@ -469,18 +468,18 @@ interface ProxyStore {
 
 // stores/session-store.ts
 interface SessionStore {
-  // 상태
+  // State
   sessions: Session[];
   activeSession: string | null;
 
-  // 액션
+  // Actions
   createSession: () => void;
   switchSession: (id: string) => void;
   deleteSession: (id: string) => void;
 }
 ```
 
-## API 통신
+## API Communication
 
 ### Tauri Invoke API
 
@@ -500,7 +499,7 @@ export async function stopProxy(): Promise<void> {
   return await invoke("stop_proxy");
 }
 
-// proxyapi_v2를 사용하는 새로운 프록시 함수들
+// New proxy functions using proxyapi_v2
 export interface ProxyStartResult {
   status: boolean;
   message: string;
@@ -519,13 +518,13 @@ export async function getProxyV2Status(): Promise<boolean> {
 }
 ```
 
-## 테스트 구조
+## Test Structure
 
-### Rust 테스트
+### Rust Tests
 
 ```
 tests/
-├── common/                    # 공통 테스트 유틸리티
+├── common/                    # Common test utilities
 │   └── mod.rs
 ├── integration_error_handling_tests.rs
 ├── logging_handler_error_tests.rs
@@ -534,50 +533,75 @@ tests/
 └── websocket.rs
 ```
 
-### 프론트엔드 테스트
+### Frontend Tests
 
 ```
 __tests__/
-├── components/                # 컴포넌트 테스트
-├── pages/                     # 페이지 테스트
-├── utils/                     # 유틸리티 테스트
-└── setup.ts                   # 테스트 설정
+├── components/                # Component tests
+├── pages/                     # Page tests
+├── utils/                     # Utility tests
+└── setup.ts                   # Test setup
 ```
 
-## 성능 최적화
+## Build and Deployment
 
-### 백엔드 최적화
+### Development Build
 
-- **비동기 처리**: tokio 런타임 사용
-- **메모리 풀링**: 객체 풀 패턴 적용
-- **스트리밍**: 대용량 데이터 스트리밍 처리
+```bash
+# Backend build
+cargo build
 
-### 프론트엔드 최적화
+# Frontend build
+cd tauri-ui && bun run build
 
-- **가상화**: 대용량 리스트 가상화
-- **메모이제이션**: React.memo, useMemo 사용
-- **코드 스플리팅**: 동적 import 사용
+# Tauri app build
+cd tauri-ui && bun run tauri build
+```
 
-## 보안 고려사항
+### Production Build
 
-### 백엔드 보안
+```bash
+# Release build
+cargo build --release
 
-- **인증서 관리**: 안전한 CA 인증서 생성
-- **메모리 보안**: 안전한 메모리 관리
-- **입력 검증**: 모든 입력 데이터 검증
+# Tauri app packaging
+cd tauri-ui && bun run tauri build -- --target universal-apple-darwin
+```
 
-### 프론트엔드 보안
+## Performance Optimization
 
-- **XSS 방지**: 입력 데이터 이스케이핑
-- **CSRF 방지**: 토큰 기반 인증
-- **콘텐츠 보안 정책**: CSP 헤더 설정
+### Backend Optimization
 
-## 확장성
+- **Asynchronous Processing**: Using tokio runtime
+- **Memory Pooling**: Object pool pattern implementation
+- **Streaming**: Large data streaming processing
 
-### 플러그인 시스템 (향후)
+### Frontend Optimization
+
+- **Virtualization**: Large list virtualization
+- **Memoization**: React.memo, useMemo usage
+- **Code Splitting**: Dynamic import usage
+
+## Security Considerations
+
+### Backend Security
+
+- **Certificate Management**: Secure CA certificate generation
+- **Memory Security**: Safe memory management
+- **Input Validation**: All input data validation
+
+### Frontend Security
+
+- **XSS Prevention**: Input data escaping
+- **CSRF Prevention**: Token-based authentication
+- **Content Security Policy**: CSP header settings
+
+## Extensibility
+
+### Plugin System (Future)
 
 ```rust
-// 플러그인 트레이트
+// Plugin trait
 pub trait Plugin {
     fn name(&self) -> &str;
     fn version(&self) -> &str;
@@ -586,4 +610,10 @@ pub trait Plugin {
 }
 ```
 
-이 구조를 이해하면 Cheolsu Proxy의 코드베이스를 효과적으로 탐색하고 기여할 수 있습니다.
+### API Extension
+
+- REST API addition
+- GraphQL support
+- gRPC support
+
+Understanding this structure will help you effectively navigate and contribute to the Cheolsu Proxy codebase.
