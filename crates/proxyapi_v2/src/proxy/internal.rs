@@ -1546,6 +1546,7 @@ mod tests {
             websocket_handler: crate::NoopHandler::new(),
             websocket_connector: None,
             client_addr: "127.0.0.1:8080".parse().unwrap(),
+            tunnel_event_sender: None,
         }
     }
 

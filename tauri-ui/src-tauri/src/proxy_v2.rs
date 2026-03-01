@@ -101,7 +101,7 @@ impl tokio_rustls::rustls::client::danger::ServerCertVerifier for DangerousCerti
 }
 
 /// 하이브리드 클라이언트 생성 (모든 인증서 허용)
-fn create_hybrid_client(
+pub fn create_hybrid_client(
 ) -> Result<Client<hyper_rustls::HttpsConnector<HttpConnector>, Body>, Box<dyn std::error::Error>> {
     // aws_lc_rs 프로바이더를 사용하되 모든 인증서를 허용하는 설정
     let rustls_config =
