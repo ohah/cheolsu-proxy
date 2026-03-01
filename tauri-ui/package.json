@@ -65,6 +65,8 @@
     "@types/react-dom": "^19.2.2",
     "babel-loader": "^10.0.0",
     "babel-plugin-react-compiler": "^1.0.0",
+    "oxfmt": "^0.35.0",
+    "oxlint": "^1.50.0",
     "react-refresh": "^0.17.0",
     "react-scan": "^0.4.3",
     "ts-node": "^10.9.2",
