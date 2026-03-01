@@ -796,7 +796,13 @@ pub fn analyze_tls_connection(
         [0x03, 0x02] => TlsVersion::Tls11,
         [0x03, 0x03] => TlsVersion::Tls12,
         [0x03, 0x04] => TlsVersion::Tls13,
-        _ => return Err(format!("Unknown TLS version: 0x{:02x}{:02x}", version_code[0], version_code[1]).into()),
+        _ => {
+            return Err(format!(
+                "Unknown TLS version: 0x{:02x}{:02x}",
+                version_code[0], version_code[1]
+            )
+            .into());
+        }
     };
 
     info!("📊 [TLS-ANALYSIS] 기본 정보:");
@@ -828,8 +834,7 @@ pub fn analyze_tls_connection(
                 let cipher_suites_end = cipher_suites_start + 2 + cipher_suites_length;
                 for i in (cipher_suites_start + 2..cipher_suites_end).step_by(2) {
                     if i + 1 < initial_buffer.len() {
-                        let suite =
-                            u16::from_be_bytes([initial_buffer[i], initial_buffer[i + 1]]);
+                        let suite = u16::from_be_bytes([initial_buffer[i], initial_buffer[i + 1]]);
                         cipher_suites.push(suite);
 
                         // Apple 특별 암호화 스위트 감지
@@ -844,10 +849,8 @@ pub fn analyze_tls_connection(
             // Extensions 분석
             let compression_methods_start = cipher_suites_start + 2 + cipher_suites_length;
             if initial_buffer.len() >= compression_methods_start + 1 {
-                let compression_methods_length =
-                    initial_buffer[compression_methods_start] as usize;
-                let extensions_start =
-                    compression_methods_start + 1 + compression_methods_length;
+                let compression_methods_length = initial_buffer[compression_methods_start] as usize;
+                let extensions_start = compression_methods_start + 1 + compression_methods_length;
 
                 if initial_buffer.len() >= extensions_start + 2 {
                     let extensions_length = u16::from_be_bytes([
@@ -861,10 +864,9 @@ pub fn analyze_tls_connection(
                     while pos + 4 <= extensions_end && pos + 4 <= initial_buffer.len() {
                         let extension_type =
                             u16::from_be_bytes([initial_buffer[pos], initial_buffer[pos + 1]]);
-                        let extension_length = u16::from_be_bytes([
-                            initial_buffer[pos + 2],
-                            initial_buffer[pos + 3],
-                        ]) as usize;
+                        let extension_length =
+                            u16::from_be_bytes([initial_buffer[pos + 2], initial_buffer[pos + 3]])
+                                as usize;
 
                         let extension_name = get_extension_name(extension_type);
                         extensions.push(TlsExtension {
@@ -914,10 +916,7 @@ pub fn analyze_tls_connection(
 }
 
 /// TLS 처리 전략을 결정합니다 (순수 함수)
-pub fn determine_tls_strategy(
-    authority: &Authority,
-    tls_info: &TlsConnectionInfo,
-) -> TlsStrategy {
+pub fn determine_tls_strategy(authority: &Authority, tls_info: &TlsConnectionInfo) -> TlsStrategy {
     let host = authority.host();
 
     info!("🎯 [STRATEGY] 전략 결정 분석:");
@@ -934,8 +933,14 @@ pub fn determine_tls_strategy(
     }
 
     // 2. TLS 1.0/1.1/SSL 3.0은 OpenSSL 전용
-    if matches!(tls_info.version, TlsVersion::Tls10 | TlsVersion::Tls11 | TlsVersion::Ssl30) {
-        info!("🎯 [STRATEGY] 레거시 TLS 버전 감지 ({}) → OpenSSL 전용", tls_info.version);
+    if matches!(
+        tls_info.version,
+        TlsVersion::Tls10 | TlsVersion::Tls11 | TlsVersion::Ssl30
+    ) {
+        info!(
+            "🎯 [STRATEGY] 레거시 TLS 버전 감지 ({}) → OpenSSL 전용",
+            tls_info.version
+        );
         return TlsStrategy::OpenSslOnly;
     }
 
@@ -1142,11 +1147,7 @@ mod tests {
     #[test]
     fn test_apple_domain_routes_to_tunnel() {
         let sni_data = b"\x00\x00\x15gateway.icloud.com";
-        let buf = build_client_hello(
-            [0x03, 0x03],
-            &[0x1301],
-            &[(0x0000, sni_data)],
-        );
+        let buf = build_client_hello([0x03, 0x03], &[0x1301], &[(0x0000, sni_data)]);
         let info = analyze_tls_connection(&buf).unwrap();
 
         let authority: Authority = "gateway.icloud.com:443".parse().unwrap();
@@ -1230,7 +1231,12 @@ mod tests {
         let buf = build_client_hello([0x03, 0x05], &[0x002f], &[]);
         let result = analyze_tls_connection(&buf);
         assert!(result.is_err());
-        assert!(result.unwrap_err().to_string().contains("Unknown TLS version"));
+        assert!(
+            result
+                .unwrap_err()
+                .to_string()
+                .contains("Unknown TLS version")
+        );
     }
 
     #[test]
