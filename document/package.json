@@ -21,8 +21,8 @@
     "react-dom": "^19.2.0"
   },
   "devDependencies": {
+    "@rspress/core": "2.0.3",
     "@types/react": "^19.2.2",
-    "@types/react-dom": "^19.2.2",
-    "@rspress/core": "2.0.3"
+    "@types/react-dom": "^19.2.2"
   }
 }
