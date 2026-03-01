@@ -73,10 +73,10 @@ fn handle_cli_mode(app: &tauri::App) -> bool {
 
     // headless 모드에서 프록시 자동 시작
     tauri::async_runtime::spawn(async move {
+        use proxyapi_v2::builder::ProxyBuilder;
         use proxyapi_v2::certificate_authority::{
             build_ca, generate_session_hash, get_cache_storage_dir,
         };
-        use proxyapi_v2::builder::ProxyBuilder;
         use tokio::net::TcpListener;
 
         // CA 인증서 생성
