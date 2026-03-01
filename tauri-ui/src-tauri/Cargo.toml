@@ -28,8 +28,6 @@ tauri-plugin-devtools = "2.0.1"
 tauri-plugin-clipboard-manager = "2.3.2"
 tauri-plugin-cli = "2.4.1"
 tokio = { version = "1", features = ["full"] }
-proxyapi = { path = "../../crates/proxyapi" }
-proxyapi_models = { path = "../../crates/proxyapi_models" }
 proxy_v2_models = { path = "../../crates/proxy_v2_models" }
 proxyapi_v2 = { path = "../../crates/proxyapi_v2", features = [
   "decoder",
@@ -41,7 +39,6 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0.142"
 tauri-plugin-fs = "2.4.5"
 hyper-util = "0.1"
-hyper-tls = "0.6"
 hyper-rustls = "0.27"
 tokio-native-tls = "0.3"
 native-tls = "0.2"

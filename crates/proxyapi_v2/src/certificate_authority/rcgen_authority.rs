@@ -90,7 +90,7 @@ impl RcgenAuthority {
         let cert = params
             .signed_by(&self.key_pair, &self.ca_cert, &self.key_pair)
             .map_err(|e| {
-                eprintln!("Failed to sign certificate for '{}': {:?}", authority, e);
+                error!(authority = %authority, error = ?e, "Failed to sign certificate");
                 e
             })
             .expect("Failed to sign certificate");

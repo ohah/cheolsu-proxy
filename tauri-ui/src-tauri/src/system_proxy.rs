@@ -1,93 +1,7 @@
-use proxyapi::Proxy;
+use std::env;
 use std::process::Command;
-use std::{env, net::SocketAddr};
-use tauri_plugin_store::StoreExt;
-use tokio::sync::oneshot::Sender;
 
-use tauri::{async_runtime::Mutex, AppHandle, Emitter, Runtime, State};
-
-use proxyapi_models::RequestInfo;
-
-pub type ProxyState = Mutex<Option<(Sender<()>, tauri::async_runtime::JoinHandle<()>, Proxy)>>;
-
-#[tauri::command]
-pub async fn start_proxy<R: Runtime>(
-    app: AppHandle<R>,
-    proxy: State<'_, ProxyState>,
-    addr: SocketAddr,
-) -> Result<(), String> {
-    let (tx, rx) = std::sync::mpsc::sync_channel(1);
-    let (close_tx, close_rx) = tokio::sync::oneshot::channel();
-
-    let store = app.store("session.json").map_err(|e| e.to_string())?;
-    let sessions = store.get("sessions").unwrap_or_default();
-
-    let proxy_server = Proxy::new(addr, Some(tx.clone()), sessions);
-
-    let proxy_server_clone = proxy_server.clone();
-
-    let thread = tauri::async_runtime::spawn(async move {
-        if let Err(e) = proxy_server_clone
-            .start(async move {
-                let _ = close_rx.await;
-            })
-            .await
-        {
-            eprintln!("Error running proxy on {:?}: {e}", addr);
-        }
-    });
-
-    let mut proxy = proxy.lock().await;
-    proxy.replace((close_tx, thread, proxy_server));
-
-    tauri::async_runtime::spawn(async move {
-        for exchange in rx.iter() {
-            let (request, response) = exchange.to_parts();
-            app.emit("proxy_event", RequestInfo(request, response))
-                .unwrap();
-        }
-    });
-
-    Ok(())
-}
-
-#[tauri::command]
-pub async fn stop_proxy(proxy: State<'_, ProxyState>) -> Result<(), String> {
-    let mut proxy = proxy.lock().await;
-    assert!(proxy.is_some());
-    proxy.take();
-    Ok(())
-}
-
-#[tauri::command]
-pub async fn proxy_status(proxy: State<'_, ProxyState>) -> Result<bool, String> {
-    Ok(proxy.lock().await.is_some())
-}
-
-#[tauri::command]
-pub async fn store_changed<R: Runtime>(
-    app: AppHandle<R>,
-    proxy: State<'_, ProxyState>,
-) -> Result<(), String> {
-    let mut proxy = proxy.lock().await;
-
-    if proxy.is_none() {
-        println!("store_changed: Proxy is not running, ignoring session update");
-        return Ok(());
-    }
-
-    let store = app.store("session.json").map_err(|e| e.to_string())?;
-    let sessions = store.get("sessions").unwrap_or_default();
-
-    proxy.as_mut().unwrap().2.update_sessions(sessions);
-    Ok(())
-}
-
-#[tauri::command]
-pub async fn get_proxy_status_command() -> Result<ProxyStatus, String> {
-    get_proxy_status()
-}
-
+/// 현재 활성 네트워크 서비스 이름 가져오기 (macOS)
 pub fn get_active_service() -> Option<String> {
     // 1. 기본 네트워크 인터페이스 이름 가져오기 (en0, en1 등)
     let route_output = Command::new("sh")
@@ -117,6 +31,7 @@ pub fn get_active_service() -> Option<String> {
     None
 }
 
+/// macOS 시스템 프록시 설정/해제
 pub fn set_proxy(enable: bool) -> Result<(), String> {
     let is_proxy = env::var("IS_PROXY").unwrap_or_else(|_| "true".to_string());
     // NOTE: IS_PROXY 환경변수가 없으면 프록시 설정 안함
@@ -197,6 +112,11 @@ pub fn get_proxy_status() -> Result<ProxyStatus, String> {
     } else {
         Err("활성 네트워크 서비스를 찾을 수 없습니다".to_string())
     }
+}
+
+#[tauri::command]
+pub async fn get_proxy_status_command() -> Result<ProxyStatus, String> {
+    get_proxy_status()
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]

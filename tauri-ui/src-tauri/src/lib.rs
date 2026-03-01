@@ -2,16 +2,13 @@
 
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-mod proxy;
 mod proxy_v2;
-use proxy::{
-    get_proxy_status_command, proxy_status, set_proxy, start_proxy, stop_proxy, store_changed,
-    ProxyState,
-};
+mod system_proxy;
 use proxy_v2::{
     clean_old_proxy_cache, proxy_v2_status, read_body_file, start_proxy_v2, stop_proxy_v2,
     store_changed_v2, ProxyV2State,
 };
+use system_proxy::{get_proxy_status_command, set_proxy};
 use tauri::Manager;
 use tauri_plugin_cli::CliExt;
 
@@ -203,10 +200,7 @@ pub fn run() {
 
         builder
             .setup(|app_handle| {
-                use tauri::async_runtime::Mutex;
-                // 기존 프록시 상태
-                app_handle.manage(Mutex::new(None) as ProxyState);
-                // 새로운 proxyapi_v2 프록시 상태
+                // proxyapi_v2 프록시 상태
                 app_handle.manage(ProxyV2State::default());
 
                 // CLI 모드 확인 — headless이면 GUI 셋업 건너뜀
@@ -239,10 +233,6 @@ pub fn run() {
                 }
             })
             .invoke_handler(tauri::generate_handler![
-                start_proxy,
-                stop_proxy,
-                store_changed,
-                proxy_status,
                 start_proxy_v2,
                 stop_proxy_v2,
                 proxy_v2_status,
