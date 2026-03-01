@@ -33,7 +33,7 @@ use futures::{Sink, SinkExt, Stream, StreamExt};
 use hyper::{Request, Response, StatusCode, Uri};
 use std::net::SocketAddr;
 use tokio_tungstenite::tungstenite::{self, Message};
-use tracing::error;
+use tracing::{error, warn};
 
 pub use futures;
 pub use hyper;
@@ -259,20 +259,18 @@ pub trait WebSocketHandler: Clone + Send + Sync + 'static {
                                         break;
                                     }
                                     Err(e) => {
-                                        println!("❌ WebSocket 전송 에러: {}", e);
+                                        error!(error = %e, "WebSocket 전송 에러");
                                         break;
                                     }
                                     Ok(_) => {}
                                 }
                             }
                             Err(e) => {
-                                println!("❌ WebSocket 메시지 에러: {}", e);
+                                error!(error = %e, "WebSocket 메시지 에러");
 
                                 // Reserved bits 에러인 경우 연결을 끊지 않고 계속 진행
                                 if e.to_string().contains("Reserved bits are non-zero") {
-                                    println!(
-                                        "⚠️ Reserved bits 에러 감지 - 메시지를 건너뛰고 계속 대기"
-                                    );
+                                    warn!("Reserved bits 에러 감지 - 메시지를 건너뛰고 계속 대기");
                                     // 이 메시지만 건너뛰고 다음 메시지 계속 처리
                                     continue;
                                 }
@@ -280,7 +278,7 @@ pub trait WebSocketHandler: Clone + Send + Sync + 'static {
                                 match sink.send(Message::Close(None)).await {
                                     Err(tungstenite::Error::ConnectionClosed) => {}
                                     Err(e) => {
-                                        println!("❌ WebSocket Close 전송 에러: {}", e);
+                                        error!(error = %e, "WebSocket Close 전송 에러");
                                     }
                                     Ok(_) => {}
                                 };
