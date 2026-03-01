@@ -1,54 +1,55 @@
 use crate::certificate_authority::CertificateAuthority;
 use crate::rewind::Rewind;
+use crate::tls_version_detector::TlsVersion;
 use http::uri::Authority;
 use hyper::upgrade::Upgraded;
 use hyper_util::rt::TokioIo;
-use std::pin::Pin;
 use std::sync::Arc;
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 use tokio::net::TcpStream;
 use tokio_openssl::SslStream;
 use tokio_rustls::TlsAcceptor;
-use tracing::{error, info, warn};
+use tracing::{error, info};
+
+#[cfg(feature = "openssl-ca")]
+use {std::pin::Pin, tracing::warn};
 
 /// TLS 연결 정보를 담는 구조체
 #[derive(Debug, Clone)]
-struct TlsConnectionInfo {
-    /// TLS 버전 (예: "TLS 1.2", "TLS 1.3")
-    version: String,
+pub struct TlsConnectionInfo {
+    /// TLS 버전
+    pub version: TlsVersion,
     /// TLS 버전 코드 (예: [0x03, 0x03])
-    version_code: [u8; 2],
+    pub version_code: [u8; 2],
     /// 암호화 스위트 목록
-    cipher_suites: Vec<u16>,
+    pub cipher_suites: Vec<u16>,
     /// Extensions 정보
-    extensions: Vec<TlsExtension>,
+    pub extensions: Vec<TlsExtension>,
     /// SNI (Server Name Indication) 지원 여부
-    has_sni: bool,
+    pub has_sni: bool,
     /// Apple 특별 암호화 스위트 포함 여부
-    has_apple_cipher: bool,
+    pub has_apple_cipher: bool,
     /// ClientHello 메시지 크기
-    message_size: usize,
+    pub message_size: usize,
     /// 연결 복잡도 점수 (높을수록 복잡한 연결)
-    complexity_score: u8,
+    pub complexity_score: u8,
 }
 
 /// TLS Extension 정보
 #[derive(Debug, Clone)]
-struct TlsExtension {
-    extension_type: u16,
-    name: String,
-    length: u16,
+pub struct TlsExtension {
+    pub extension_type: u16,
+    pub name: String,
+    pub length: u16,
 }
 
-/// TLS 처리 전략
-#[derive(Debug, Clone, Copy)]
-enum TlsStrategy {
-    /// OpenSSL 우선, 실패 시 rustls로 폴백
-    OpenSslFirst,
-    /// rustls 우선, 실패 시 OpenSSL로 폴백
-    RustlsFirst,
-    /// OpenSSL 전용 (TLS 1.0/1.1 또는 특별한 도메인)
+/// TLS 처리 전략 — 결정적(deterministic) 선택만 사용
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TlsStrategy {
+    /// OpenSSL 전용 (TLS 1.0/1.1, SSL 3.0, 특수 도메인/암호화)
     OpenSslOnly,
+    /// rustls 전용 (TLS 1.2/1.3 일반 연결)
+    RustlsOnly,
     /// 터널 모드 (프록시 우회, 직접 연결)
     TunnelMode,
 }
@@ -72,292 +73,12 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
         })
     }
 
-    /// 특정 도메인이 openssl을 필요로 하는지 확인합니다
-    fn is_openssl_required_domain(&self, authority: &Authority) -> bool {
-        let host = authority.host();
-
-        // rustls에서 문제가 있는 도메인들
-        let openssl_required_domains = [
-            "api2.cursor.sh",
-            "wps.apple.com",
-            "gdmf.apple.com",
-            "fbs.smoot.apple.com",
-            "gateway.icloud.com",
-            "jamf.payhere.in",
-        ];
-
-        openssl_required_domains
-            .iter()
-            .any(|&domain| host == domain)
-    }
-
-    /// 특정 도메인이 터널 모드가 필요한지 확인합니다
-    fn is_tunnel_required_domain(&self, authority: &Authority) -> bool {
-        let host = authority.host();
-
-        // 터널 모드가 필요한 도메인들 (프록시 우회)
-        let tunnel_required_domains = [
-            "wps.apple.com",
-            "gdmf.apple.com",
-            "fbs.smoot.apple.com",
-            "gateway.icloud.com",
-            "setup.icloud.com",
-            "icloud.com",
-            "apple.com",
-        ];
-
-        tunnel_required_domains
-            .iter()
-            .any(|&domain| host.contains(domain))
-    }
-
     /// TLS 연결을 상세 분석합니다
     fn analyze_tls_connection(
         &self,
         initial_buffer: &[u8],
     ) -> Result<TlsConnectionInfo, Box<dyn std::error::Error + Send + Sync>> {
-        info!("🔍 [TLS-ANALYSIS] TLS 연결 분석 시작");
-
-        // 기본 TLS 감지
-        if initial_buffer.len() < 2 || initial_buffer[..2] != *b"\x16\x03" {
-            return Err("TLS not detected".into());
-        }
-
-        if initial_buffer.len() < 11 {
-            return Err("TLS handshake data too short".into());
-        }
-
-        // TLS 버전 분석
-        let version_code = [initial_buffer[9], initial_buffer[10]];
-        let version = match version_code {
-            [0x03, 0x00] => "SSL 3.0",
-            [0x03, 0x01] => "TLS 1.0",
-            [0x03, 0x02] => "TLS 1.1",
-            [0x03, 0x03] => "TLS 1.2",
-            [0x03, 0x04] => "TLS 1.3",
-            _ => "Unknown",
-        };
-
-        info!("📊 [TLS-ANALYSIS] 기본 정보:");
-        info!(
-            "  - TLS 버전: {} (0x{:02x}{:02x})",
-            version, version_code[0], version_code[1]
-        );
-        info!("  - 메시지 크기: {} bytes", initial_buffer.len());
-
-        // ClientHello 상세 분석
-        let mut cipher_suites = Vec::new();
-        let mut extensions = Vec::new();
-        let mut has_sni = false;
-        let mut has_apple_cipher = false;
-
-        if initial_buffer.len() >= 43 {
-            let session_id_length = initial_buffer[43] as usize;
-            info!("  - 세션 ID 길이: {} bytes", session_id_length);
-
-            if initial_buffer.len() >= 44 + session_id_length + 2 {
-                let cipher_suites_start = 44 + session_id_length;
-                let cipher_suites_length = u16::from_be_bytes([
-                    initial_buffer[cipher_suites_start],
-                    initial_buffer[cipher_suites_start + 1],
-                ]) as usize;
-
-                // 암호화 스위트 분석
-                if initial_buffer.len() >= cipher_suites_start + 2 + cipher_suites_length {
-                    let cipher_suites_end = cipher_suites_start + 2 + cipher_suites_length;
-                    for i in (cipher_suites_start + 2..cipher_suites_end).step_by(2) {
-                        if i + 1 < initial_buffer.len() {
-                            let suite =
-                                u16::from_be_bytes([initial_buffer[i], initial_buffer[i + 1]]);
-                            cipher_suites.push(suite);
-
-                            // Apple 특별 암호화 스위트 감지
-                            if suite == 0xcaca {
-                                has_apple_cipher = true;
-                                info!("  - 🍎 Apple 특별 암호화 스위트 감지: 0x{:04x}", suite);
-                            }
-                        }
-                    }
-                }
-
-                // Extensions 분석
-                let compression_methods_start = cipher_suites_start + 2 + cipher_suites_length;
-                if initial_buffer.len() >= compression_methods_start + 1 {
-                    let compression_methods_length =
-                        initial_buffer[compression_methods_start] as usize;
-                    let extensions_start =
-                        compression_methods_start + 1 + compression_methods_length;
-
-                    if initial_buffer.len() >= extensions_start + 2 {
-                        let extensions_length = u16::from_be_bytes([
-                            initial_buffer[extensions_start],
-                            initial_buffer[extensions_start + 1],
-                        ]) as usize;
-
-                        let mut pos = extensions_start + 2;
-                        let extensions_end = extensions_start + 2 + extensions_length;
-
-                        while pos + 4 <= extensions_end && pos + 4 <= initial_buffer.len() {
-                            let extension_type =
-                                u16::from_be_bytes([initial_buffer[pos], initial_buffer[pos + 1]]);
-                            let extension_length = u16::from_be_bytes([
-                                initial_buffer[pos + 2],
-                                initial_buffer[pos + 3],
-                            ]) as usize;
-
-                            let extension_name = self.get_extension_name(extension_type);
-                            extensions.push(TlsExtension {
-                                extension_type,
-                                name: extension_name.clone(),
-                                length: extension_length as u16,
-                            });
-
-                            // SNI Extension 감지
-                            if extension_type == 0x0000 {
-                                has_sni = true;
-                                info!("  - ✅ SNI Extension 감지됨");
-                            }
-
-                            pos += 4 + extension_length;
-                        }
-                    }
-                }
-            }
-        }
-
-        // 복잡도 점수 계산
-        let complexity_score = self.calculate_complexity_score(
-            &cipher_suites,
-            &extensions,
-            initial_buffer.len(),
-            has_apple_cipher,
-        );
-
-        info!("📊 [TLS-ANALYSIS] 분석 결과:");
-        info!("  - 암호화 스위트 개수: {}", cipher_suites.len());
-        info!("  - Extensions 개수: {}", extensions.len());
-        info!("  - SNI 지원: {}", has_sni);
-        info!("  - Apple 암호화 스위트: {}", has_apple_cipher);
-        info!("  - 복잡도 점수: {}", complexity_score);
-
-        Ok(TlsConnectionInfo {
-            version: version.to_string(),
-            version_code,
-            cipher_suites,
-            extensions,
-            has_sni,
-            has_apple_cipher,
-            message_size: initial_buffer.len(),
-            complexity_score,
-        })
-    }
-
-    /// Extension 타입을 이름으로 변환
-    fn get_extension_name(&self, extension_type: u16) -> String {
-        match extension_type {
-            0x0000 => "SNI".to_string(),
-            0x0001 => "max_fragment_length".to_string(),
-            0x0002 => "client_certificate_url".to_string(),
-            0x0003 => "trusted_ca_keys".to_string(),
-            0x0004 => "truncated_hmac".to_string(),
-            0x0005 => "status_request".to_string(),
-            0x0006 => "user_mapping".to_string(),
-            0x0007 => "client_authz".to_string(),
-            0x0008 => "server_authz".to_string(),
-            0x0009 => "cert_type".to_string(),
-            0x000a => "supported_groups".to_string(),
-            0x000b => "ec_point_formats".to_string(),
-            0x000c => "srp".to_string(),
-            0x000d => "signature_algorithms".to_string(),
-            0x000e => "use_srtp".to_string(),
-            0x000f => "heartbeat".to_string(),
-            0x0010 => "application_layer_protocol_negotiation".to_string(),
-            0x0011 => "status_request_v2".to_string(),
-            0x0012 => "signed_certificate_timestamp".to_string(),
-            0x0013 => "client_certificate_type".to_string(),
-            0x0014 => "server_certificate_type".to_string(),
-            0x0015 => "padding".to_string(),
-            0x0016 => "encrypt_then_mac".to_string(),
-            0x0017 => "extended_master_secret".to_string(),
-            0x0018 => "token_binding".to_string(),
-            0x0019 => "cached_info".to_string(),
-            0x001a => "tls_lts".to_string(),
-            0x001b => "compress_certificate".to_string(),
-            0x001c => "record_size_limit".to_string(),
-            0x001d => "pwd_protect".to_string(),
-            0x001e => "pwd_clear".to_string(),
-            0x001f => "password_salt".to_string(),
-            0x0020 => "ticket_pinning".to_string(),
-            0x0021 => "tls_cert_with_extern_psk".to_string(),
-            0x0022 => "delegated_credentials".to_string(),
-            0x0023 => "session_ticket".to_string(),
-            0x0024 => "TLMSP".to_string(),
-            0x0025 => "TLMSP_proxying".to_string(),
-            0x0026 => "TLMSP_delegate".to_string(),
-            0x0027 => "supported_ekt_ciphers".to_string(),
-            0x0028 => "pre_shared_key".to_string(),
-            0x0029 => "early_data".to_string(),
-            0x002a => "supported_versions".to_string(),
-            0x002b => "cookie".to_string(),
-            0x002c => "psk_key_exchange_modes".to_string(),
-            0x002d => "certificate_authorities".to_string(),
-            0x002e => "oid_filters".to_string(),
-            0x002f => "post_handshake_auth".to_string(),
-            0x0030 => "signature_algorithms_cert".to_string(),
-            0x0031 => "key_share".to_string(),
-            _ => format!("unknown_0x{:04x}", extension_type),
-        }
-    }
-
-    /// 연결 복잡도 점수를 계산합니다
-    fn calculate_complexity_score(
-        &self,
-        cipher_suites: &[u16],
-        extensions: &[TlsExtension],
-        message_size: usize,
-        has_apple_cipher: bool,
-    ) -> u8 {
-        let mut score = 0u8;
-
-        // 암호화 스위트 개수에 따른 점수
-        if cipher_suites.len() > 20 {
-            score += 3;
-        } else if cipher_suites.len() > 10 {
-            score += 2;
-        } else if cipher_suites.len() > 5 {
-            score += 1;
-        }
-
-        // Extensions 개수에 따른 점수
-        if extensions.len() > 10 {
-            score += 3;
-        } else if extensions.len() > 5 {
-            score += 2;
-        } else if extensions.len() > 2 {
-            score += 1;
-        }
-
-        // 메시지 크기에 따른 점수
-        if message_size > 1000 {
-            score += 3;
-        } else if message_size > 500 {
-            score += 2;
-        } else if message_size > 200 {
-            score += 1;
-        }
-
-        // Apple 특별 암호화 스위트
-        if has_apple_cipher {
-            score += 2;
-        }
-
-        // SNI가 없는 경우 복잡도 증가
-        let has_sni = extensions.iter().any(|ext| ext.extension_type == 0x0000);
-        if !has_sni {
-            score += 2;
-        }
-
-        score.min(10) // 최대 10점
+        analyze_tls_connection(initial_buffer)
     }
 
     /// TLS 처리 전략을 결정합니다
@@ -366,139 +87,7 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
         authority: &Authority,
         tls_info: &TlsConnectionInfo,
     ) -> TlsStrategy {
-        let host = authority.host();
-
-        info!("🎯 [STRATEGY] 전략 결정 분석:");
-        info!("  - 도메인: {}", host);
-        info!("  - TLS 버전: {}", tls_info.version);
-        info!("  - SNI 지원: {}", tls_info.has_sni);
-        info!("  - Apple 암호화 스위트: {}", tls_info.has_apple_cipher);
-        info!("  - 복잡도 점수: {}", tls_info.complexity_score);
-
-        // 1. 터널 모드가 필요한 도메인들 (최우선)
-        if self.is_tunnel_required_domain(authority) {
-            info!("🎯 [STRATEGY] 터널 모드 도메인 감지 → 터널 모드");
-            return TlsStrategy::TunnelMode;
-        }
-
-        // 2. TLS 1.0/1.1은 OpenSSL 전용
-        if tls_info.version == "TLS 1.0" || tls_info.version == "SSL 3.0" {
-            info!("🎯 [STRATEGY] TLS 1.0/SSL 3.0 감지 → OpenSSL 전용");
-            return TlsStrategy::OpenSslOnly;
-        }
-
-        // 3. 특별한 도메인들은 OpenSSL 우선
-        if self.is_openssl_required_domain(authority) {
-            info!("🎯 [STRATEGY] 특별한 도메인 감지 → OpenSSL 우선");
-            return TlsStrategy::OpenSslFirst;
-        }
-
-        // 4. Apple 특별 암호화 스위트가 있으면 OpenSSL 우선
-        if tls_info.has_apple_cipher {
-            info!("🎯 [STRATEGY] Apple 암호화 스위트 감지 → OpenSSL 우선");
-            return TlsStrategy::OpenSslFirst;
-        }
-
-        // 5. SNI가 없고 복잡도가 높으면 OpenSSL 우선
-        if !tls_info.has_sni && tls_info.complexity_score >= 6 {
-            info!("🎯 [STRATEGY] SNI 없음 + 높은 복잡도 → OpenSSL 우선");
-            return TlsStrategy::OpenSslFirst;
-        }
-
-        // 6. 기본적으로는 rustls 우선
-        info!("🎯 [STRATEGY] 기본 전략 → Rustls 우선");
-        TlsStrategy::RustlsFirst
-    }
-
-    /// OpenSSL 우선 시도, 실패 시 rustls로 폴백
-    async fn try_openssl_with_fallback(
-        &self,
-        authority: &Authority,
-        upgraded: Rewind<TokioIo<Upgraded>>,
-        initial_buffer: &[u8],
-    ) -> Result<HybridTlsStream, Box<dyn std::error::Error + Send + Sync>> {
-        #[cfg(feature = "openssl-ca")]
-        {
-            info!("🔧 [OPENSSL-FALLBACK] OpenSSL 시도 시작: {}", authority);
-            match self
-                .handle_with_openssl_upgraded(authority, upgraded, initial_buffer)
-                .await
-            {
-                Ok(stream) => {
-                    info!("✅ [OPENSSL-FALLBACK] OpenSSL 성공: {}", authority);
-                    Ok(stream)
-                }
-                Err(openssl_error) => {
-                    warn!(
-                        "⚠️ [OPENSSL-FALLBACK] OpenSSL 실패, rustls로 폴백: {} - {}",
-                        authority, openssl_error
-                    );
-
-                    // 새로운 upgraded 스트림을 생성해야 함 (이미 소비되었으므로)
-                    // 실제로는 이 부분에서 스트림을 재생성하는 로직이 필요
-                    // 현재는 에러를 반환하지만, 실제 구현에서는 스트림 재생성 로직이 필요
-                    Err(format!(
-                        "OpenSSL failed and fallback not implemented: {}",
-                        openssl_error
-                    )
-                    .into())
-                }
-            }
-        }
-        #[cfg(not(feature = "openssl-ca"))]
-        {
-            warn!(
-                "⚠️ [OPENSSL-FALLBACK] OpenSSL feature 없음, rustls로 직접 시도: {}",
-                authority
-            );
-            self.handle_with_rustls_upgraded(authority, upgraded, initial_buffer)
-                .await
-        }
-    }
-
-    /// rustls 우선 시도, 실패 시 OpenSSL로 폴백
-    async fn try_rustls_with_fallback(
-        &self,
-        authority: &Authority,
-        upgraded: Rewind<TokioIo<Upgraded>>,
-        initial_buffer: &[u8],
-    ) -> Result<HybridTlsStream, Box<dyn std::error::Error + Send + Sync>> {
-        info!("🔧 [RUSTLS-FALLBACK] rustls 시도 시작: {}", authority);
-        match self
-            .handle_with_rustls_upgraded(authority, upgraded, initial_buffer)
-            .await
-        {
-            Ok(stream) => {
-                info!("✅ [RUSTLS-FALLBACK] rustls 성공: {}", authority);
-                Ok(stream)
-            }
-            Err(rustls_error) => {
-                warn!(
-                    "⚠️ [RUSTLS-FALLBACK] rustls 실패, OpenSSL로 폴백: {} - {}",
-                    authority, rustls_error
-                );
-
-                #[cfg(feature = "openssl-ca")]
-                {
-                    // 새로운 upgraded 스트림을 생성해야 함 (이미 소비되었으므로)
-                    // 실제로는 이 부분에서 스트림을 재생성하는 로직이 필요
-                    // 현재는 에러를 반환하지만, 실제 구현에서는 스트림 재생성 로직이 필요
-                    Err(format!(
-                        "rustls failed and fallback not implemented: {}",
-                        rustls_error
-                    )
-                    .into())
-                }
-                #[cfg(not(feature = "openssl-ca"))]
-                {
-                    error!(
-                        "❌ [RUSTLS-FALLBACK] rustls 실패, OpenSSL feature 없음: {}",
-                        authority
-                    );
-                    Err(rustls_error)
-                }
-            }
-        }
+        determine_tls_strategy(authority, tls_info)
     }
 
     /// TLS 버전을 감지하고 적절한 TLS 핸들러를 선택합니다 (Upgraded 스트림 전용)
@@ -514,7 +103,7 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
         let tls_info = self.analyze_tls_connection(initial_buffer)?;
         info!("📊 [TLS-INFO] 연결 분석 완료: {:?}", tls_info);
 
-        // 2단계: 지능형 라이브러리 선택
+        // 2단계: 결정적 라이브러리 선택
         let strategy = self.determine_tls_strategy(authority, &tls_info);
         info!("🎯 [TLS-STRATEGY] 선택된 전략: {:?}", strategy);
 
@@ -533,38 +122,6 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
                     }
                 }
             }
-            TlsStrategy::OpenSslFirst => {
-                info!("🔧 [OPENSSL-FIRST] OpenSSL 우선 시도: {}", authority);
-                match self
-                    .try_openssl_with_fallback(authority, upgraded, initial_buffer)
-                    .await
-                {
-                    Ok(stream) => {
-                        info!("✅ [OPENSSL-FIRST] 성공: {}", authority);
-                        Ok(stream)
-                    }
-                    Err(e) => {
-                        error!("❌ [OPENSSL-FIRST] 실패: {} - {}", authority, e);
-                        Err(e)
-                    }
-                }
-            }
-            TlsStrategy::RustlsFirst => {
-                info!("🔧 [RUSTLS-FIRST] Rustls 우선 시도: {}", authority);
-                match self
-                    .try_rustls_with_fallback(authority, upgraded, initial_buffer)
-                    .await
-                {
-                    Ok(stream) => {
-                        info!("✅ [RUSTLS-FIRST] 성공: {}", authority);
-                        Ok(stream)
-                    }
-                    Err(e) => {
-                        error!("❌ [RUSTLS-FIRST] 실패: {} - {}", authority, e);
-                        Err(e)
-                    }
-                }
-            }
             TlsStrategy::OpenSslOnly => {
                 info!("🔧 [OPENSSL-ONLY] OpenSSL 전용 처리: {}", authority);
                 #[cfg(feature = "openssl-ca")]
@@ -579,6 +136,22 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
                         authority
                     );
                     Err("OpenSSL-only domain requires openssl-ca feature".into())
+                }
+            }
+            TlsStrategy::RustlsOnly => {
+                info!("🔧 [RUSTLS-ONLY] Rustls 전용 처리: {}", authority);
+                match self
+                    .handle_with_rustls_upgraded(authority, upgraded, initial_buffer)
+                    .await
+                {
+                    Ok(stream) => {
+                        info!("✅ [RUSTLS-ONLY] 성공: {}", authority);
+                        Ok(stream)
+                    }
+                    Err(e) => {
+                        error!("❌ [RUSTLS-ONLY] 실패: {} - {}", authority, e);
+                        Err(e)
+                    }
                 }
             }
         }
@@ -887,34 +460,26 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
         info!("🔧 [SSL-CONFIG] SSL 객체 설정 시작: {}", authority);
 
         // 클라이언트가 요청한 TLS 버전에 맞춰 설정
-        match tls_info.version.as_str() {
-            "TLS 1.0" | "SSL 3.0" => {
+        match tls_info.version {
+            TlsVersion::Tls10 | TlsVersion::Ssl30 => {
                 info!("🔧 [SSL-CONFIG] 레거시 TLS 버전 감지, TLS 1.0 고정");
                 ssl.set_min_proto_version(Some(openssl::ssl::SslVersion::TLS1))?;
                 ssl.set_max_proto_version(Some(openssl::ssl::SslVersion::TLS1))?;
             }
-            "TLS 1.1" => {
+            TlsVersion::Tls11 => {
                 info!("🔧 [SSL-CONFIG] TLS 1.1 감지, TLS 1.1 고정");
                 ssl.set_min_proto_version(Some(openssl::ssl::SslVersion::TLS1_1))?;
                 ssl.set_max_proto_version(Some(openssl::ssl::SslVersion::TLS1_1))?;
             }
-            "TLS 1.2" => {
+            TlsVersion::Tls12 => {
                 info!("🔧 [SSL-CONFIG] TLS 1.2 감지, TLS 1.2 고정 (1.3 업그레이드 방지)");
                 ssl.set_min_proto_version(Some(openssl::ssl::SslVersion::TLS1_2))?;
                 ssl.set_max_proto_version(Some(openssl::ssl::SslVersion::TLS1_2))?;
             }
-            "TLS 1.3" => {
+            TlsVersion::Tls13 => {
                 info!("🔧 [SSL-CONFIG] TLS 1.3 감지, TLS 1.3 고정");
                 ssl.set_min_proto_version(Some(openssl::ssl::SslVersion::TLS1_3))?;
                 ssl.set_max_proto_version(Some(openssl::ssl::SslVersion::TLS1_3))?;
-            }
-            _ => {
-                warn!(
-                    "⚠️ [SSL-CONFIG] 알 수 없는 TLS 버전: {}, TLS 1.2로 제한",
-                    tls_info.version
-                );
-                ssl.set_min_proto_version(Some(openssl::ssl::SslVersion::TLS1_2))?;
-                ssl.set_max_proto_version(Some(openssl::ssl::SslVersion::TLS1_2))?;
             }
         }
 
@@ -1066,6 +631,337 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
     }
 }
 
+// ─── 순수 함수 (테스트 가능) ───
+
+/// 특정 도메인이 openssl을 필요로 하는지 확인합니다
+pub fn is_openssl_required_domain(authority: &Authority) -> bool {
+    let host = authority.host();
+    let openssl_required_domains = [
+        "api2.cursor.sh",
+        "wps.apple.com",
+        "gdmf.apple.com",
+        "fbs.smoot.apple.com",
+        "gateway.icloud.com",
+        "jamf.payhere.in",
+    ];
+    openssl_required_domains
+        .iter()
+        .any(|&domain| host == domain)
+}
+
+/// 특정 도메인이 터널 모드가 필요한지 확인합니다
+pub fn is_tunnel_required_domain(authority: &Authority) -> bool {
+    let host = authority.host();
+    let tunnel_required_domains = [
+        "wps.apple.com",
+        "gdmf.apple.com",
+        "fbs.smoot.apple.com",
+        "gateway.icloud.com",
+        "setup.icloud.com",
+        "icloud.com",
+        "apple.com",
+    ];
+    tunnel_required_domains
+        .iter()
+        .any(|&domain| host.contains(domain))
+}
+
+/// Extension 타입을 이름으로 변환
+pub fn get_extension_name(extension_type: u16) -> String {
+    match extension_type {
+        0x0000 => "SNI".to_string(),
+        0x0001 => "max_fragment_length".to_string(),
+        0x0002 => "client_certificate_url".to_string(),
+        0x0003 => "trusted_ca_keys".to_string(),
+        0x0004 => "truncated_hmac".to_string(),
+        0x0005 => "status_request".to_string(),
+        0x0006 => "user_mapping".to_string(),
+        0x0007 => "client_authz".to_string(),
+        0x0008 => "server_authz".to_string(),
+        0x0009 => "cert_type".to_string(),
+        0x000a => "supported_groups".to_string(),
+        0x000b => "ec_point_formats".to_string(),
+        0x000c => "srp".to_string(),
+        0x000d => "signature_algorithms".to_string(),
+        0x000e => "use_srtp".to_string(),
+        0x000f => "heartbeat".to_string(),
+        0x0010 => "application_layer_protocol_negotiation".to_string(),
+        0x0011 => "status_request_v2".to_string(),
+        0x0012 => "signed_certificate_timestamp".to_string(),
+        0x0013 => "client_certificate_type".to_string(),
+        0x0014 => "server_certificate_type".to_string(),
+        0x0015 => "padding".to_string(),
+        0x0016 => "encrypt_then_mac".to_string(),
+        0x0017 => "extended_master_secret".to_string(),
+        0x0018 => "token_binding".to_string(),
+        0x0019 => "cached_info".to_string(),
+        0x001a => "tls_lts".to_string(),
+        0x001b => "compress_certificate".to_string(),
+        0x001c => "record_size_limit".to_string(),
+        0x001d => "pwd_protect".to_string(),
+        0x001e => "pwd_clear".to_string(),
+        0x001f => "password_salt".to_string(),
+        0x0020 => "ticket_pinning".to_string(),
+        0x0021 => "tls_cert_with_extern_psk".to_string(),
+        0x0022 => "delegated_credentials".to_string(),
+        0x0023 => "session_ticket".to_string(),
+        0x0024 => "TLMSP".to_string(),
+        0x0025 => "TLMSP_proxying".to_string(),
+        0x0026 => "TLMSP_delegate".to_string(),
+        0x0027 => "supported_ekt_ciphers".to_string(),
+        0x0028 => "pre_shared_key".to_string(),
+        0x0029 => "early_data".to_string(),
+        0x002a => "supported_versions".to_string(),
+        0x002b => "cookie".to_string(),
+        0x002c => "psk_key_exchange_modes".to_string(),
+        0x002d => "certificate_authorities".to_string(),
+        0x002e => "oid_filters".to_string(),
+        0x002f => "post_handshake_auth".to_string(),
+        0x0030 => "signature_algorithms_cert".to_string(),
+        0x0031 => "key_share".to_string(),
+        _ => format!("unknown_0x{:04x}", extension_type),
+    }
+}
+
+/// 연결 복잡도 점수를 계산합니다
+pub fn calculate_complexity_score(
+    cipher_suites: &[u16],
+    extensions: &[TlsExtension],
+    message_size: usize,
+    has_apple_cipher: bool,
+) -> u8 {
+    let mut score = 0u8;
+
+    // 암호화 스위트 개수에 따른 점수
+    if cipher_suites.len() > 20 {
+        score += 3;
+    } else if cipher_suites.len() > 10 {
+        score += 2;
+    } else if cipher_suites.len() > 5 {
+        score += 1;
+    }
+
+    // Extensions 개수에 따른 점수
+    if extensions.len() > 10 {
+        score += 3;
+    } else if extensions.len() > 5 {
+        score += 2;
+    } else if extensions.len() > 2 {
+        score += 1;
+    }
+
+    // 메시지 크기에 따른 점수
+    if message_size > 1000 {
+        score += 3;
+    } else if message_size > 500 {
+        score += 2;
+    } else if message_size > 200 {
+        score += 1;
+    }
+
+    // Apple 특별 암호화 스위트
+    if has_apple_cipher {
+        score += 2;
+    }
+
+    // SNI가 없는 경우 복잡도 증가
+    let has_sni = extensions.iter().any(|ext| ext.extension_type == 0x0000);
+    if !has_sni {
+        score += 2;
+    }
+
+    score.min(10) // 최대 10점
+}
+
+/// TLS 연결을 상세 분석합니다 (순수 함수)
+pub fn analyze_tls_connection(
+    initial_buffer: &[u8],
+) -> Result<TlsConnectionInfo, Box<dyn std::error::Error + Send + Sync>> {
+    info!("🔍 [TLS-ANALYSIS] TLS 연결 분석 시작");
+
+    // 기본 TLS 감지
+    if initial_buffer.len() < 2 || initial_buffer[..2] != *b"\x16\x03" {
+        return Err("TLS not detected".into());
+    }
+
+    if initial_buffer.len() < 11 {
+        return Err("TLS handshake data too short".into());
+    }
+
+    // TLS 버전 분석
+    let version_code = [initial_buffer[9], initial_buffer[10]];
+    let version = match version_code {
+        [0x03, 0x00] => TlsVersion::Ssl30,
+        [0x03, 0x01] => TlsVersion::Tls10,
+        [0x03, 0x02] => TlsVersion::Tls11,
+        [0x03, 0x03] => TlsVersion::Tls12,
+        [0x03, 0x04] => TlsVersion::Tls13,
+        _ => return Err(format!("Unknown TLS version: 0x{:02x}{:02x}", version_code[0], version_code[1]).into()),
+    };
+
+    info!("📊 [TLS-ANALYSIS] 기본 정보:");
+    info!(
+        "  - TLS 버전: {} (0x{:02x}{:02x})",
+        version, version_code[0], version_code[1]
+    );
+    info!("  - 메시지 크기: {} bytes", initial_buffer.len());
+
+    // ClientHello 상세 분석
+    let mut cipher_suites = Vec::new();
+    let mut extensions = Vec::new();
+    let mut has_sni = false;
+    let mut has_apple_cipher = false;
+
+    if initial_buffer.len() >= 43 {
+        let session_id_length = initial_buffer[43] as usize;
+        info!("  - 세션 ID 길이: {} bytes", session_id_length);
+
+        if initial_buffer.len() >= 44 + session_id_length + 2 {
+            let cipher_suites_start = 44 + session_id_length;
+            let cipher_suites_length = u16::from_be_bytes([
+                initial_buffer[cipher_suites_start],
+                initial_buffer[cipher_suites_start + 1],
+            ]) as usize;
+
+            // 암호화 스위트 분석
+            if initial_buffer.len() >= cipher_suites_start + 2 + cipher_suites_length {
+                let cipher_suites_end = cipher_suites_start + 2 + cipher_suites_length;
+                for i in (cipher_suites_start + 2..cipher_suites_end).step_by(2) {
+                    if i + 1 < initial_buffer.len() {
+                        let suite =
+                            u16::from_be_bytes([initial_buffer[i], initial_buffer[i + 1]]);
+                        cipher_suites.push(suite);
+
+                        // Apple 특별 암호화 스위트 감지
+                        if suite == 0xcaca {
+                            has_apple_cipher = true;
+                            info!("  - 🍎 Apple 특별 암호화 스위트 감지: 0x{:04x}", suite);
+                        }
+                    }
+                }
+            }
+
+            // Extensions 분석
+            let compression_methods_start = cipher_suites_start + 2 + cipher_suites_length;
+            if initial_buffer.len() >= compression_methods_start + 1 {
+                let compression_methods_length =
+                    initial_buffer[compression_methods_start] as usize;
+                let extensions_start =
+                    compression_methods_start + 1 + compression_methods_length;
+
+                if initial_buffer.len() >= extensions_start + 2 {
+                    let extensions_length = u16::from_be_bytes([
+                        initial_buffer[extensions_start],
+                        initial_buffer[extensions_start + 1],
+                    ]) as usize;
+
+                    let mut pos = extensions_start + 2;
+                    let extensions_end = extensions_start + 2 + extensions_length;
+
+                    while pos + 4 <= extensions_end && pos + 4 <= initial_buffer.len() {
+                        let extension_type =
+                            u16::from_be_bytes([initial_buffer[pos], initial_buffer[pos + 1]]);
+                        let extension_length = u16::from_be_bytes([
+                            initial_buffer[pos + 2],
+                            initial_buffer[pos + 3],
+                        ]) as usize;
+
+                        let extension_name = get_extension_name(extension_type);
+                        extensions.push(TlsExtension {
+                            extension_type,
+                            name: extension_name.clone(),
+                            length: extension_length as u16,
+                        });
+
+                        // SNI Extension 감지
+                        if extension_type == 0x0000 {
+                            has_sni = true;
+                            info!("  - ✅ SNI Extension 감지됨");
+                        }
+
+                        pos += 4 + extension_length;
+                    }
+                }
+            }
+        }
+    }
+
+    // 복잡도 점수 계산
+    let complexity_score = calculate_complexity_score(
+        &cipher_suites,
+        &extensions,
+        initial_buffer.len(),
+        has_apple_cipher,
+    );
+
+    info!("📊 [TLS-ANALYSIS] 분석 결과:");
+    info!("  - 암호화 스위트 개수: {}", cipher_suites.len());
+    info!("  - Extensions 개수: {}", extensions.len());
+    info!("  - SNI 지원: {}", has_sni);
+    info!("  - Apple 암호화 스위트: {}", has_apple_cipher);
+    info!("  - 복잡도 점수: {}", complexity_score);
+
+    Ok(TlsConnectionInfo {
+        version,
+        version_code,
+        cipher_suites,
+        extensions,
+        has_sni,
+        has_apple_cipher,
+        message_size: initial_buffer.len(),
+        complexity_score,
+    })
+}
+
+/// TLS 처리 전략을 결정합니다 (순수 함수)
+pub fn determine_tls_strategy(
+    authority: &Authority,
+    tls_info: &TlsConnectionInfo,
+) -> TlsStrategy {
+    let host = authority.host();
+
+    info!("🎯 [STRATEGY] 전략 결정 분석:");
+    info!("  - 도메인: {}", host);
+    info!("  - TLS 버전: {}", tls_info.version);
+    info!("  - SNI 지원: {}", tls_info.has_sni);
+    info!("  - Apple 암호화 스위트: {}", tls_info.has_apple_cipher);
+    info!("  - 복잡도 점수: {}", tls_info.complexity_score);
+
+    // 1. 터널 모드가 필요한 도메인들 (최우선)
+    if is_tunnel_required_domain(authority) {
+        info!("🎯 [STRATEGY] 터널 모드 도메인 감지 → 터널 모드");
+        return TlsStrategy::TunnelMode;
+    }
+
+    // 2. TLS 1.0/1.1/SSL 3.0은 OpenSSL 전용
+    if matches!(tls_info.version, TlsVersion::Tls10 | TlsVersion::Tls11 | TlsVersion::Ssl30) {
+        info!("🎯 [STRATEGY] 레거시 TLS 버전 감지 ({}) → OpenSSL 전용", tls_info.version);
+        return TlsStrategy::OpenSslOnly;
+    }
+
+    // 3. 특별한 도메인들은 OpenSSL 전용
+    if is_openssl_required_domain(authority) {
+        info!("🎯 [STRATEGY] 특별한 도메인 감지 → OpenSSL 전용");
+        return TlsStrategy::OpenSslOnly;
+    }
+
+    // 4. Apple 특별 암호화 스위트가 있으면 OpenSSL 전용
+    if tls_info.has_apple_cipher {
+        info!("🎯 [STRATEGY] Apple 암호화 스위트 감지 → OpenSSL 전용");
+        return TlsStrategy::OpenSslOnly;
+    }
+
+    // 5. SNI가 없고 복잡도가 높으면 OpenSSL 전용
+    if !tls_info.has_sni && tls_info.complexity_score >= 6 {
+        info!("🎯 [STRATEGY] SNI 없음 + 높은 복잡도 → OpenSSL 전용");
+        return TlsStrategy::OpenSslOnly;
+    }
+
+    // 6. 기본적으로는 rustls 전용
+    info!("🎯 [STRATEGY] 기본 전략 → Rustls 전용");
+    TlsStrategy::RustlsOnly
+}
+
 /// TLS 스트림 - rustls와 openssl 스트림을 래핑
 pub enum HybridTlsStream {
     Rustls(tokio_rustls::TlsStream<Rewind<TokioIo<Upgraded>>>),
@@ -1128,5 +1024,233 @@ impl AsyncWrite for HybridTlsStream {
             HybridTlsStream::OpenSsl(stream) => std::pin::Pin::new(stream).poll_shutdown(cx),
             HybridTlsStream::Tunnel(stream) => std::pin::Pin::new(stream).poll_shutdown(cx),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// 최소 유효한 TLS 1.2 ClientHello를 생성하는 헬퍼
+    /// 구조: record_hdr(5) + handshake_hdr(4) + client_version(2) + random(32) +
+    ///       session_id_len(1) + cipher_suites_len(2) + cipher_suites(N*2) +
+    ///       compression_len(1) + compression(1) + extensions_len(2) + extensions(...)
+    fn build_client_hello(
+        client_version: [u8; 2],
+        cipher_suites: &[u16],
+        extensions: &[(u16, &[u8])], // (type, data)
+    ) -> Vec<u8> {
+        let mut body = Vec::new();
+
+        // client_version
+        body.extend_from_slice(&client_version);
+        // random (32 bytes)
+        body.extend_from_slice(&[0u8; 32]);
+        // session_id_length = 0
+        body.push(0);
+        // cipher suites
+        let cs_len = (cipher_suites.len() * 2) as u16;
+        body.extend_from_slice(&cs_len.to_be_bytes());
+        for &cs in cipher_suites {
+            body.extend_from_slice(&cs.to_be_bytes());
+        }
+        // compression methods: 1 method (null)
+        body.push(1);
+        body.push(0);
+
+        // extensions
+        let mut ext_buf = Vec::new();
+        for &(ext_type, ext_data) in extensions {
+            ext_buf.extend_from_slice(&ext_type.to_be_bytes());
+            ext_buf.extend_from_slice(&(ext_data.len() as u16).to_be_bytes());
+            ext_buf.extend_from_slice(ext_data);
+        }
+        let ext_len = ext_buf.len() as u16;
+        body.extend_from_slice(&ext_len.to_be_bytes());
+        body.extend_from_slice(&ext_buf);
+
+        // Handshake header: type=ClientHello(0x01), length=body.len() (3 bytes)
+        let hs_len = body.len() as u32;
+        let mut handshake = vec![0x01];
+        handshake.push((hs_len >> 16) as u8);
+        handshake.push((hs_len >> 8) as u8);
+        handshake.push(hs_len as u8);
+        handshake.extend_from_slice(&body);
+
+        // TLS record header: type=Handshake(0x16), version=TLS 1.0(0x03,0x01), length
+        let record_len = handshake.len() as u16;
+        let mut record = vec![0x16, 0x03, 0x01];
+        record.extend_from_slice(&record_len.to_be_bytes());
+        record.extend_from_slice(&handshake);
+
+        record
+    }
+
+    // ─── TLS 전략 단위 테스트 ───
+
+    #[test]
+    fn test_tls10_routes_to_openssl_only() {
+        let buf = build_client_hello([0x03, 0x01], &[0x002f], &[]);
+        let info = analyze_tls_connection(&buf).unwrap();
+        assert_eq!(info.version, TlsVersion::Tls10);
+
+        let authority: Authority = "example.com:443".parse().unwrap();
+        let strategy = determine_tls_strategy(&authority, &info);
+        assert_eq!(strategy, TlsStrategy::OpenSslOnly);
+    }
+
+    #[test]
+    fn test_tls11_routes_to_openssl_only() {
+        let buf = build_client_hello([0x03, 0x02], &[0x002f], &[]);
+        let info = analyze_tls_connection(&buf).unwrap();
+        assert_eq!(info.version, TlsVersion::Tls11);
+
+        let authority: Authority = "example.com:443".parse().unwrap();
+        let strategy = determine_tls_strategy(&authority, &info);
+        assert_eq!(strategy, TlsStrategy::OpenSslOnly);
+    }
+
+    #[test]
+    fn test_ssl30_routes_to_openssl_only() {
+        let buf = build_client_hello([0x03, 0x00], &[0x002f], &[]);
+        let info = analyze_tls_connection(&buf).unwrap();
+        assert_eq!(info.version, TlsVersion::Ssl30);
+
+        let authority: Authority = "example.com:443".parse().unwrap();
+        let strategy = determine_tls_strategy(&authority, &info);
+        assert_eq!(strategy, TlsStrategy::OpenSslOnly);
+    }
+
+    #[test]
+    fn test_tls12_normal_domain_routes_to_rustls() {
+        // SNI extension present (type 0x0000)
+        let sni_data = b"\x00\x00\x0eexample.com";
+        let buf = build_client_hello(
+            [0x03, 0x03],
+            &[0x1301, 0x1302, 0xc02c],
+            &[(0x0000, sni_data)],
+        );
+        let info = analyze_tls_connection(&buf).unwrap();
+        assert_eq!(info.version, TlsVersion::Tls12);
+        assert!(info.has_sni);
+
+        let authority: Authority = "example.com:443".parse().unwrap();
+        let strategy = determine_tls_strategy(&authority, &info);
+        assert_eq!(strategy, TlsStrategy::RustlsOnly);
+    }
+
+    #[test]
+    fn test_apple_domain_routes_to_tunnel() {
+        let sni_data = b"\x00\x00\x15gateway.icloud.com";
+        let buf = build_client_hello(
+            [0x03, 0x03],
+            &[0x1301],
+            &[(0x0000, sni_data)],
+        );
+        let info = analyze_tls_connection(&buf).unwrap();
+
+        let authority: Authority = "gateway.icloud.com:443".parse().unwrap();
+        let strategy = determine_tls_strategy(&authority, &info);
+        assert_eq!(strategy, TlsStrategy::TunnelMode);
+    }
+
+    #[test]
+    fn test_apple_cipher_routes_to_openssl_only() {
+        // 0xcaca is Apple's GREASE cipher suite marker
+        let sni_data = b"\x00\x00\x0eexample.com";
+        let buf = build_client_hello(
+            [0x03, 0x03],
+            &[0xcaca, 0x1301, 0xc02c],
+            &[(0x0000, sni_data)],
+        );
+        let info = analyze_tls_connection(&buf).unwrap();
+        assert!(info.has_apple_cipher);
+
+        let authority: Authority = "example.com:443".parse().unwrap();
+        let strategy = determine_tls_strategy(&authority, &info);
+        assert_eq!(strategy, TlsStrategy::OpenSslOnly);
+    }
+
+    #[test]
+    fn test_no_sni_high_complexity_routes_to_openssl() {
+        // Build a buffer with many cipher suites, many extensions, large size, no SNI
+        // This should give a high complexity score
+        let many_ciphers: Vec<u16> = (0x0001..=0x0019).collect(); // 25 ciphers → +3
+        let mut dummy_extensions = Vec::new();
+        for i in 1u16..=12 {
+            // 12 extensions → +3, no SNI → +2
+            dummy_extensions.push((i, &[][..]));
+        }
+        let buf = build_client_hello([0x03, 0x03], &many_ciphers, &dummy_extensions);
+        let info = analyze_tls_connection(&buf).unwrap();
+        assert!(!info.has_sni);
+        assert!(info.complexity_score >= 6);
+
+        let authority: Authority = "some-server.com:443".parse().unwrap();
+        let strategy = determine_tls_strategy(&authority, &info);
+        assert_eq!(strategy, TlsStrategy::OpenSslOnly);
+    }
+
+    // ─── ClientHello 파싱 테스트 ───
+
+    #[test]
+    fn test_valid_tls12_client_hello_parses() {
+        let sni_data = b"\x00\x00\x0eexample.com";
+        let buf = build_client_hello(
+            [0x03, 0x03],
+            &[0x1301, 0xc02c],
+            &[(0x0000, sni_data), (0x000d, &[0x00, 0x02, 0x04, 0x03])],
+        );
+        let info = analyze_tls_connection(&buf).unwrap();
+        assert_eq!(info.version, TlsVersion::Tls12);
+        assert!(info.has_sni);
+        assert_eq!(info.cipher_suites.len(), 2);
+        assert_eq!(info.extensions.len(), 2);
+    }
+
+    #[test]
+    fn test_short_buffer_returns_error() {
+        let buf = vec![0x16, 0x03, 0x01, 0x00];
+        let result = analyze_tls_connection(&buf);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("too short"));
+    }
+
+    #[test]
+    fn test_http_data_returns_error() {
+        let buf = b"GET / HTTP/1.1\r\nHost: example.com\r\n\r\n";
+        let result = analyze_tls_connection(buf);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("TLS not detected"));
+    }
+
+    #[test]
+    fn test_unknown_tls_version_returns_error() {
+        // Use version bytes [0x03, 0x05] which is not a known TLS version
+        let buf = build_client_hello([0x03, 0x05], &[0x002f], &[]);
+        let result = analyze_tls_connection(&buf);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("Unknown TLS version"));
+    }
+
+    #[test]
+    fn test_openssl_required_domain() {
+        let auth: Authority = "api2.cursor.sh:443".parse().unwrap();
+        assert!(is_openssl_required_domain(&auth));
+
+        let auth: Authority = "google.com:443".parse().unwrap();
+        assert!(!is_openssl_required_domain(&auth));
+    }
+
+    #[test]
+    fn test_tunnel_required_domain() {
+        let auth: Authority = "gateway.icloud.com:443".parse().unwrap();
+        assert!(is_tunnel_required_domain(&auth));
+
+        let auth: Authority = "www.apple.com:443".parse().unwrap();
+        assert!(is_tunnel_required_domain(&auth));
+
+        let auth: Authority = "google.com:443".parse().unwrap();
+        assert!(!is_tunnel_required_domain(&auth));
     }
 }

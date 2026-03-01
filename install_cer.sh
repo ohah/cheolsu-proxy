@@ -11,7 +11,14 @@ rm -f ./*.cer ./*.key ./*.pem ./*.crt
 # 프라이빗 키 생성 (더 강력한 암호화)
 echo "🔑 프라이빗 키 생성 중..."
 openssl genrsa \
-    -out cheolsu-proxy.key 4096
+    -out cheolsu-proxy.rsa.key 4096
+
+# PKCS#8 형식으로 변환 (rcgen 라이브러리가 PKCS#8만 지원)
+echo "🔄 프라이빗 키를 PKCS#8 형식으로 변환 중..."
+openssl pkcs8 -topk8 -nocrypt \
+    -in cheolsu-proxy.rsa.key \
+    -out cheolsu-proxy.key
+rm -f cheolsu-proxy.rsa.key
 
 # CA 인증서용 설정 파일 생성
 echo "📝 CA 인증서 설정 파일 생성 중..."

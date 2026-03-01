@@ -14,18 +14,50 @@ Here are some steps to get started with contributing to this project:
 
 We appreciate contributions of any size, from small bug fixes to major new features. If you're unsure about a change you'd like to make, feel free to open an issue first to discuss it with the maintainers.
 
+### 개발 환경 설정
+
+1. **의존성 설치 (macOS)**
+
+   ```bash
+   brew install openssl@3 pkg-config
+   ```
+
+2. **인증서 생성**
+
+   ```bash
+   cd crates
+   bash ../install_cer.sh
+   ```
+
+3. **CA 인증서 시스템 신뢰 등록**
+
+   ```bash
+   # macOS
+   open proxyapi_v2/src/certificate_authority/cheolsu-proxy.cer
+   # Keychain Access에서 "항상 신뢰"로 설정
+   ```
+
+4. **테스트 실행**
+
+   ```bash
+   PKG_CONFIG_PATH="/opt/homebrew/opt/openssl@3/lib/pkgconfig" cargo test -p proxyapi_v2 --lib
+   ```
+
 ### Contribute to UI with Tauri UI
 
 - start development
 
 ```bash
-cargo tauri dev
+cd tauri-ui
+bun install
+bun tauri dev
 ```
 
 - package and release
 
 ```bash
-cargo tauri build
+cd tauri-ui
+bun tauri build
 ```
 
 ## Test request generation

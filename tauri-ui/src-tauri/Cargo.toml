@@ -20,12 +20,13 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
-tauri = { version = "2", features = [] }
-tauri-plugin-opener = "2"
-tauri-plugin-store = "2"
-tauri-plugin-http = "2"
-tauri-plugin-devtools = "2"
-tauri-plugin-clipboard-manager = "2"
+tauri = { version = "2.10.2", features = [] }
+tauri-plugin-opener = "2.5.3"
+tauri-plugin-store = "2.4.2"
+tauri-plugin-http = "2.5.7"
+tauri-plugin-devtools = "2.0.1"
+tauri-plugin-clipboard-manager = "2.3.2"
+tauri-plugin-cli = "2.4.1"
 tokio = { version = "1", features = ["full"] }
 proxyapi = { path = "../../crates/proxyapi" }
 proxyapi_models = { path = "../../crates/proxyapi_models" }
@@ -38,7 +39,7 @@ proxyapi_v2 = { path = "../../crates/proxyapi_v2", features = [
 ] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0.142"
-tauri-plugin-fs = "2"
+tauri-plugin-fs = "2.4.5"
 hyper-util = "0.1"
 hyper-tls = "0.6"
 hyper-rustls = "0.27"

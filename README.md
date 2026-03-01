@@ -80,17 +80,99 @@ Cheolsu Proxy는 첫 실행 시 자동으로 고유한 CA 인증서를 생성합
 
 ## Start Development
 
-### 기본 개발 실행
+### 사전 요구사항
+
+- [Rust](https://rustup.rs/) (stable)
+- [Bun](https://bun.sh/) 또는 npm
+- [Tauri CLI](https://v2.tauri.app/start/prerequisites/)
+- OpenSSL 3.x (빌드에 필요)
+
+**macOS:**
 
 ```bash
-cargo tauri dev
+brew install openssl@3 pkg-config
+```
+
+### 1. 인증서 생성
+
+프록시가 HTTPS 트래픽을 중간에서 분석하려면 CA 인증서가 필요합니다. 프로젝트 루트의 `crates/` 디렉토리에서 인증서 생성 스크립트를 실행하세요:
+
+```bash
+cd crates
+bash ../install_cer.sh
+```
+
+> 스크립트가 `crates/proxyapi_v2/src/certificate_authority/` 디렉토리에 인증서 파일들을 생성합니다.
+> 개인키는 PKCS#8 형식으로 변환됩니다 (rcgen 라이브러리 호환).
+
+### 2. CA 인증서 시스템 신뢰 등록
+
+생성된 CA 인증서를 운영체제에 등록해야 HTTPS 프록시가 정상 동작합니다.
+
+**macOS:**
+
+```bash
+open crates/proxyapi_v2/src/certificate_authority/cheolsu-proxy.cer
+```
+
+Keychain Access가 열리면 인증서를 더블클릭 → "신뢰" 섹션 → **"항상 신뢰"** 로 설정하세요.
+
+**Linux:**
+
+```bash
+sudo cp crates/proxyapi_v2/src/certificate_authority/cheolsu-proxy.cer /usr/local/share/ca-certificates/cheolsu-proxy.crt
+sudo update-ca-certificates
+```
+
+**Windows:**
+
+인증서 관리자(`certmgr.msc`)에서 "신뢰할 수 있는 루트 인증 기관"에 `cheolsu-proxy.cer`를 가져오세요.
+
+### 3. 개발 서버 실행
+
+```bash
+cd tauri-ui
+bun install
+bun tauri dev
+```
+
+OpenSSL 링크 오류가 발생하면 환경변수를 설정하세요:
+
+```bash
+PKG_CONFIG_PATH="/opt/homebrew/opt/openssl@3/lib/pkgconfig" bun tauri dev
+```
+
+### 4. CLI (Headless) 모드
+
+GUI 없이 프록시만 실행할 수 있습니다:
+
+```bash
+bun tauri dev -- -- --headless --port 8100
+```
+
+| 옵션 | 단축 | 설명 |
+|------|------|------|
+| `--headless` | `-H` | GUI 없이 프록시만 실행 |
+| `--port <PORT>` | `-p` | 프록시 리슨 포트 (기본: 8100) |
+| `--host <HOST>` | `-b` | 프록시 리슨 호스트 (기본: 127.0.0.1) |
+| `--verbose` | `-v` | 상세 로깅 활성화 |
+
+### 5. 테스트
+
+```bash
+# 단위 테스트 (TLS 전략 선택, ClientHello 파싱 등)
+PKG_CONFIG_PATH="/opt/homebrew/opt/openssl@3/lib/pkgconfig" cargo test -p proxyapi_v2 --lib
+
+# 통합 테스트 (CA 인증서 시스템 신뢰 등록 필요)
+PKG_CONFIG_PATH="/opt/homebrew/opt/openssl@3/lib/pkgconfig" cargo test -p proxyapi_v2 --test rcgen_ca
 ```
 
 ### 인증서 파일 위치
 
-- **macOS**: `~/Library/Application Support/com.cheolsu-proxy/`
-- **Windows**: `%APPDATA%/com.cheolsu-proxy/` (향후 지원)
-- **Linux**: `~/.config/com.cheolsu-proxy/` (향후 지원)
+- **개발 환경**: `crates/proxyapi_v2/src/certificate_authority/`
+- **프로덕션 (macOS)**: `~/Library/Application Support/com.cheolsu-proxy/`
+- **프로덕션 (Windows)**: `%APPDATA%/com.cheolsu-proxy/` (향후 지원)
+- **프로덕션 (Linux)**: `~/.config/com.cheolsu-proxy/` (향후 지원)
 
 ## Documentation and Help
 
