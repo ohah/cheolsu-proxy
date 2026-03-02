@@ -7,14 +7,9 @@ use hyper_util::{
     rt::TokioExecutor,
 };
 use proxy_v2_models::{ProxiedRequest, ProxiedResponse, RequestInfo};
-use proxyapi_v2::certificate_authority::{
-    clean_all_cache, clean_cache_on_exit, clean_old_cache, generate_session_hash,
-    get_cache_storage_dir,
-};
+use proxyapi_v2::certificate_authority::{clean_all_cache, clean_old_cache};
 use proxyapi_v2::{
-    builder::ProxyBuilder,
-    certificate_authority::build_ca,
-    hyper::http::{HeaderMap, HeaderValue, Method, StatusCode, Version},
+    hyper::http::{HeaderMap, HeaderValue, Method, StatusCode},
     hyper::{Request, Response},
     tokio_tungstenite::tungstenite::Message,
     Body, HttpContext, HttpHandler, RequestOrResponse, WebSocketContext, WebSocketHandler,
@@ -27,8 +22,6 @@ use std::sync::mpsc;
 use std::sync::Arc;
 use tauri::{AppHandle, Emitter, Runtime, State};
 use tauri_plugin_store::{JsonValue, StoreExt};
-use tokio::net::TcpListener;
-use tokio::sync::oneshot::Sender;
 use tokio::sync::Mutex;
 use tokio_rustls::rustls::{crypto::aws_lc_rs, ClientConfig};
 use tokio_stream::wrappers::ReceiverStream;
@@ -887,16 +880,8 @@ impl WebSocketHandler for LoggingHandler {
     }
 }
 
-/// hudsucker를 사용하는 프록시 상태 (proxy.rs와 유사한 구조)
-pub type ProxyV2State = Arc<
-    Mutex<
-        Option<(
-            Sender<()>,
-            tauri::async_runtime::JoinHandle<()>,
-            LoggingHandler,
-        )>,
-    >,
->;
+/// 프록시 상태: daemon과의 연결을 관리
+pub type ProxyV2State = Arc<Mutex<Option<crate::proxy_client::DaemonConnection>>>;
 
 /// 프록시 시작 결과를 나타내는 구조체
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -905,148 +890,42 @@ pub struct ProxyStartResult {
     pub message: String,
 }
 
-/// hudsucker 프록시 시작 (실제 프록시 서버 실행)
+/// 프록시 시작: daemon에 연결하여 이벤트를 GUI로 포워딩
 #[tauri::command]
 pub async fn start_proxy_v2<R: Runtime>(
     app: AppHandle<R>,
     proxy: State<'_, ProxyV2State>,
     addr: SocketAddr,
 ) -> Result<ProxyStartResult, ProxyStartResult> {
-    // 이미 프록시가 실행 중인지 확인
+    // 이미 daemon에 연결 중인지 확인
     let proxy_guard = proxy.lock().await;
     if proxy_guard.is_some() {
         let already_running_message = format!(
-            "프록시 V2가 이미 포트 {}에서 실행 중입니다. 시스템 프록시 설정을 127.0.0.1:{}로 변경하세요",
+            "프록시가 이미 포트 {}에서 실행 중입니다. 시스템 프록시 설정을 127.0.0.1:{}로 변경하세요",
             addr.port(),
             addr.port()
         );
-        // println!("ℹ️ {}", already_running_message);
         return Ok(ProxyStartResult {
             status: true,
             message: already_running_message,
         });
     }
-    drop(proxy_guard); // 락 해제
+    drop(proxy_guard);
 
-    // CA 인증서 생성 (proxyapi_v2의 build_ca 함수 사용)
-    // println!("🔐 CA 인증서 생성/로드 시도 중...");
-    let ca = match build_ca() {
-        Ok(ca) => {
-            // println!("✅ CA 인증서 로드 완료");
-            // println!("   - CA 인증서가 성공적으로 생성/로드되었습니다");
-            ca
-        }
-        Err(e) => {
-            let error_msg = format!("CA 인증서 생성 실패: {}", e);
-            eprintln!("❌ {}", error_msg);
-            eprintln!("   - 상세 오류: {:?}", e);
-            return Err(ProxyStartResult {
-                status: false,
-                message: error_msg,
-            });
-        }
-    };
+    let port = addr.port();
+    let host = addr.ip().to_string();
 
-    // 이벤트 전송을 위한 채널 생성 (proxy.rs와 동일한 구조)
-    let (tx, rx) = std::sync::mpsc::sync_channel(1);
-
-    // 세션 해시 생성 및 캐시 디렉토리 설정
-    let session_hash = generate_session_hash();
-    let cache_dir = match get_cache_storage_dir(&session_hash) {
-        Ok(dir) => {
-            println!("📁 캐시 디렉토리 생성됨: {}", dir.display());
-            dir
-        }
-        Err(e) => {
-            let error_msg = format!("캐시 디렉토리 생성 실패: {}", e);
-            eprintln!("❌ {}", error_msg);
-            return Err(ProxyStartResult {
-                status: false,
-                message: error_msg,
-            });
-        }
-    };
-
-    // 세션 데이터 로드 (proxy.rs와 동일한 방식)
-    let store = match app.store("session.json") {
-        Ok(store) => store,
-        Err(e) => {
-            let error_msg = format!("세션 스토어 로드 실패: {}", e);
-            eprintln!("❌ {}", error_msg);
-            return Err(ProxyStartResult {
-                status: false,
-                message: error_msg,
-            });
-        }
-    };
-    let sessions = store.get("sessions").unwrap_or_default();
-
-    // 로깅 핸들러 생성 (캐시 디렉토리 포함)
-    let handler = LoggingHandler::new(tx.clone(), cache_dir);
-
-    // 세션 데이터를 핸들러에 전달
-    handler.update_sessions(sessions).await;
-
-    // TCP 리스너 생성
-    let listener = match TcpListener::bind(addr).await {
-        Ok(listener) => {
-            // println!("✅ 포트 {}에서 TCP 리스너 시작됨", addr.port());
-            listener
-        }
-        Err(e) => {
-            let error_msg = format!("포트 {} 바인딩 실패: {}", addr.port(), e);
-            eprintln!("❌ {}", error_msg);
-            return Err(ProxyStartResult {
-                status: false,
-                message: error_msg,
-            });
-        }
-    };
-
-    // 하이브리드 클라이언트 생성 (모든 인증서 허용)
-    let hybrid_client = match create_hybrid_client() {
-        Ok(client) => {
-            // println!("✅ 하이브리드 클라이언트 생성 완료");
-            // println!("   - 기본 프로바이더 사용");
-            // println!("   - 모든 인증서 허용 (DangerousCertificateVerifier)");
-            // println!("   - HTTP/1.1 지원");
-            client
-        }
-        Err(e) => {
-            let error_msg = format!("하이브리드 클라이언트 생성 실패: {}", e);
-            eprintln!("❌ {}", error_msg);
-            return Err(ProxyStartResult {
-                status: false,
-                message: error_msg,
-            });
-        }
-    };
-
-    // 터널 이벤트 채널 생성
-    let (tunnel_tx, mut tunnel_rx) =
-        tokio::sync::mpsc::channel::<proxy_v2_models::RequestInfo>(100);
-
-    // 프록시 빌더로 프록시 구성 (하이브리드 클라이언트 사용)
-    let proxy_builder = match ProxyBuilder::new()
-        .with_listener(listener)
-        .with_ca(ca)
-        .with_client(hybrid_client) // 하이브리드 클라이언트 사용
-        .with_http_handler(handler.clone())
-        .with_websocket_handler(handler.clone())
-        .with_tunnel_event_sender(tunnel_tx) // 터널 이벤트 채널 연결
-        .build()
+    // daemon에 연결 (없으면 자동 spawn)
+    let app_clone = app.clone();
+    let conn = match crate::proxy_client::ensure_daemon(port, &host, move |event| {
+        let _ = app_clone.emit("proxy_event", event);
+    })
+    .await
     {
-        Ok(builder) => {
-            // println!("✅ 프록시 빌더 구성 완료");
-            // println!("   - CA 인증서: 로드됨");
-            // println!("   - TLS 클라이언트: 하이브리드 클라이언트 (모든 인증서 허용)");
-            // println!("   - HTTP 핸들러: 로깅 핸들러");
-            // println!("   - WebSocket: 직접 통과 (핸들러 없음)");
-            builder
-        }
+        Ok(conn) => conn,
         Err(e) => {
-            let error_msg = format!("프록시 빌드 실패: {}", e);
-            eprintln!("❌ {}", error_msg);
+            let error_msg = format!("Daemon 연결 실패: {}", e);
+            eprintln!("{}", error_msg);
             return Err(ProxyStartResult {
                 status: false,
                 message: error_msg,
@@ -1054,100 +933,40 @@ pub async fn start_proxy_v2<R: Runtime>(
         }
     };
 
-    // 종료 신호를 위한 채널 생성
-    let (close_tx, _close_rx) = tokio::sync::oneshot::channel();
-
-    // 프록시를 백그라운드에서 실행
-    let app_handle = app.clone();
-    let thread = tauri::async_runtime::spawn(async move {
-        // println!("🚀 프록시 서버 시작 중...");
-        match proxy_builder.start().await {
-            Ok(_) => { /* println!("✅ 프록시 서버가 정상적으로 종료되었습니다") */
-            }
-            Err(e) => {
-                let error_msg = format!("❌ 프록시 실행 오류: {}", e);
-                eprintln!("{}", error_msg);
-                // 에러를 프론트엔드로 전송
-                let _ = app_handle.emit("proxy_error", error_msg);
-            }
+    // 세션 데이터를 daemon에 전송
+    if let Ok(store) = app.store("session.json") {
+        let sessions = store.get("sessions").unwrap_or_default();
+        let cmd = crate::proxy_daemon::ClientCommand::UpdateSessions { data: sessions };
+        if let Err(e) = conn.send_command(&cmd).await {
+            eprintln!("Failed to send initial sessions: {}", e);
         }
-    });
+    }
 
-    // 프록시 상태 업데이트
+    // 연결 저장
     let mut proxy_guard = proxy.lock().await;
-    proxy_guard.replace((close_tx, thread, handler.clone()));
-
-    // 이벤트 전송을 위한 백그라운드 태스크 (proxy.rs와 동일한 구조)
-    let app_clone1 = app.clone();
-    tauri::async_runtime::spawn(async move {
-        for event in rx.iter() {
-            let _ = app_clone1.emit("proxy_event", event);
-        }
-    });
-
-    // 터널 이벤트 전송을 위한 백그라운드 태스크
-    let app_clone2 = app.clone();
-    tauri::async_runtime::spawn(async move {
-        while let Some(tunnel_event) = tunnel_rx.recv().await {
-            let _ = app_clone2.emit("proxy_event", tunnel_event);
-        }
-    });
+    proxy_guard.replace(conn);
 
     let success_message = format!(
-        "프록시 V2가 포트 {}에서 성공적으로 시작되었습니다. 시스템 프록시 설정을 127.0.0.1:{}로 변경하세요",
-        addr.port(),
-        addr.port()
+        "프록시가 포트 {}에서 성공적으로 시작되었습니다. 시스템 프록시 설정을 127.0.0.1:{}로 변경하세요",
+        port, port
     );
 
-    println!("🎉 {}", success_message);
+    println!("{}", success_message);
     Ok(ProxyStartResult {
         status: true,
         message: success_message,
     })
 }
 
-/// hudsucker 프록시 중지 (실제 프록시 서버 중지)
+/// 프록시 중지: daemon과의 연결 해제 (daemon에 stop 명령은 보내지 않음)
 #[tauri::command]
 pub async fn stop_proxy_v2(proxy: tauri::State<'_, ProxyV2State>) -> Result<(), String> {
     let mut proxy_guard = proxy.lock().await;
 
-    if let Some((close_tx, thread, handler)) = proxy_guard.take() {
-        // 종료 신호 전송 (oneshot 채널은 한 번만 사용 가능)
-        match close_tx.send(()) {
-            Ok(_) => {
-                println!("✅ 프록시 종료 신호 전송 성공");
-            }
-            Err(_) => {
-                // 이미 사용된 채널이거나 수신자가 이미 종료된 경우
-                println!("⚠️ 프록시 종료 신호 전송 실패 (이미 종료 중이거나 완료됨)");
-            }
-        }
-
-        // 스레드 종료 대기 (타임아웃 설정)
-        match tokio::time::timeout(std::time::Duration::from_secs(5), thread).await {
-            Ok(result) => match result {
-                Ok(_) => println!("✅ 프록시 V2가 정상적으로 중지되었습니다"),
-                Err(e) => {
-                    let error_msg = format!("❌ 프록시 스레드 종료 실패: {}", e);
-                    eprintln!("{}", error_msg);
-                    return Err(error_msg);
-                }
-            },
-            Err(_) => {
-                println!("⏰ 프록시 종료 타임아웃 (5초), 강제 종료");
-            }
-        }
-
-        // 캐시 정리 (앱 종료 시 현재 세션 캐시 삭제)
-        if let Some(cache_dir) = &handler.cache_dir {
-            if let Some(session_hash) = cache_dir.file_name().and_then(|name| name.to_str()) {
-                if let Err(e) = clean_cache_on_exit(session_hash) {
-                    eprintln!("⚠️ 캐시 정리 실패: {}", e);
-                }
-            }
-        }
-
-        println!("📋 시스템 프록시 설정을 해제하세요");
+    if let Some(conn) = proxy_guard.take() {
+        // daemon과의 연결만 해제 (다른 클라이언트가 있을 수 있으므로 stop은 보내지 않음)
+        conn.disconnect().await;
+        println!("Daemon 연결 해제 완료");
     } else {
         return Err("프록시가 실행 중이 아닙니다".to_string());
     }
@@ -1155,7 +974,7 @@ pub async fn stop_proxy_v2(proxy: tauri::State<'_, ProxyV2State>) -> Result<(), 
     Ok(())
 }
 
-/// hudsucker 프록시 상태 확인 (실제 프록시 상태 확인)
+/// 프록시 상태 확인 (daemon 연결 존재 여부)
 #[tauri::command]
 pub async fn proxy_v2_status(proxy: tauri::State<'_, ProxyV2State>) -> Result<bool, String> {
     Ok(proxy.lock().await.is_some())
@@ -1188,16 +1007,16 @@ pub async fn clean_old_proxy_cache(days: u64) -> Result<String, String> {
     }
 }
 
-/// 세션 데이터 변경 시 호출되는 명령어 (proxy.rs와 동일한 기능)
+/// 세션 데이터 변경 시 UDS를 통해 daemon에 전달
 #[tauri::command]
 pub async fn store_changed_v2<R: Runtime>(
     app: AppHandle<R>,
     proxy: State<'_, ProxyV2State>,
 ) -> Result<(), String> {
-    let mut proxy_guard = proxy.lock().await;
+    let proxy_guard = proxy.lock().await;
 
     if proxy_guard.is_none() {
-        println!("store_changed_v2: Proxy V2가 실행 중이 아니므로 세션 업데이트를 무시합니다");
+        println!("store_changed_v2: Proxy가 실행 중이 아니므로 세션 업데이트를 무시합니다");
         return Ok(());
     }
 
@@ -1211,15 +1030,13 @@ pub async fn store_changed_v2<R: Runtime>(
         0
     };
 
-    println!(
-        "🔄 Proxy V2 세션 데이터 업데이트: {} 개의 세션",
-        session_count
-    );
+    println!("세션 데이터 업데이트: {} 개의 세션", session_count);
 
-    // 핸들러에 세션 데이터 전달
-    if let Some((_close_tx, _thread, handler)) = proxy_guard.as_mut() {
-        handler.update_sessions(sessions).await;
-        println!("✅ Proxy V2 핸들러에 세션 데이터 업데이트 완료");
+    // UDS를 통해 daemon에 세션 업데이트 명령 전송
+    if let Some(conn) = proxy_guard.as_ref() {
+        let cmd = crate::proxy_daemon::ClientCommand::UpdateSessions { data: sessions };
+        conn.send_command(&cmd).await?;
+        println!("Daemon에 세션 데이터 업데이트 완료");
     }
 
     Ok(())
