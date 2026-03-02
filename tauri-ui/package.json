@@ -10,6 +10,7 @@
     "tauri:local": "IS_PROXY=false tauri",
     "tauri": "tauri",
     "tauri:dev:log": "bun run log:backup && LOG=true tauri dev",
+    "tauri:headless": "cd src-tauri && cargo run --no-default-features -- --headless --port 8100",
     "log:backup": "cd src-tauri/logs && TODAY=$(date +%Y-%m-%d) && echo \"TODAY: $TODAY\" && echo \"Checking file: proxy.log.$TODAY\" && if [ -f proxy.log.$TODAY ]; then echo \"File exists, starting backup process\" && for i in {99..1}; do if [ -f proxy.log.$TODAY.old$i ]; then echo \"Moving proxy.log.$TODAY.old$i to proxy.log.$TODAY.old$((i+1))\" && mv proxy.log.$TODAY.old$i proxy.log.$TODAY.old$((i+1)); fi; done && echo \"Moving proxy.log.$TODAY to proxy.log.$TODAY.old1\" && mv proxy.log.$TODAY proxy.log.$TODAY.old1 && echo \"Backup completed\"; else echo \"File does not exist\"; fi",
     "log:generate": "npm run log:backup && cd /Users/yoon/Documents/workspace/proxelar && timeout 20s cargo run -p proxyapi_v2 --example log",
     "log:clean": "cd src-tauri/logs && TODAY=$(date +%Y-%m-%d) && rm -f proxy.log.$TODAY.old*"

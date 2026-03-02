@@ -59,9 +59,9 @@ fn handle_cli_mode(app: &tauri::App) -> bool {
     println!("  Verbose: {}", verbose);
     println!("========================================");
 
-    // GUI 윈도우 닫기
+    // GUI 윈도우 숨기기 (닫으면 창이 0개가 되어 앱이 종료되므로 hide 사용)
     if let Some(window) = app.get_webview_window("main") {
-        let _ = window.close();
+        let _ = window.hide();
     }
 
     let addr: std::net::SocketAddr = format!("{}:{}", host, port)
