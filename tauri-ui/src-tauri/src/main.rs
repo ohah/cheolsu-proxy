@@ -29,5 +29,26 @@ fn main() {
             .init();
     }
 
+    // Check for --daemon flag BEFORE Tauri initialization
+    let args: Vec<String> = std::env::args().collect();
+    if args.contains(&"--daemon".to_string()) {
+        // Parse port (default 8100)
+        let port: u16 = args
+            .windows(2)
+            .find(|w| w[0] == "--port")
+            .and_then(|w| w[1].parse().ok())
+            .unwrap_or(8100);
+
+        // Parse host (default 127.0.0.1)
+        let host = args
+            .windows(2)
+            .find(|w| w[0] == "--host")
+            .map(|w| w[1].clone())
+            .unwrap_or_else(|| "127.0.0.1".to_string());
+
+        // Run daemon without Tauri runtime
+        cheolsu_proxy::proxy_daemon::run_daemon(port, host);
+    }
+
     cheolsu_proxy::run()
 }
