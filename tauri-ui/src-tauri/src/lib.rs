@@ -2,9 +2,9 @@
 
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-mod proxy_v2;
 pub mod proxy_client;
 pub mod proxy_daemon;
+mod proxy_v2;
 mod system_proxy;
 use proxy_v2::{
     clean_old_proxy_cache, proxy_v2_status, read_body_file, start_proxy_v2, stop_proxy_v2,
