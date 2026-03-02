@@ -32,7 +32,7 @@ pub fn get_active_service() -> Option<String> {
 }
 
 /// macOS 시스템 프록시 설정/해제
-pub fn set_proxy(enable: bool) -> Result<(), String> {
+pub fn set_proxy(enable: bool, port: u16) -> Result<(), String> {
     let is_proxy = env::var("IS_PROXY").unwrap_or_else(|_| "true".to_string());
     // NOTE: IS_PROXY 환경변수가 없으면 프록시 설정 안함
     if is_proxy == "false" {
@@ -43,20 +43,22 @@ pub fn set_proxy(enable: bool) -> Result<(), String> {
     if let Some(service) = service {
         let service = service.as_str();
         if enable {
+            let port_str = port.to_string();
+
             // HTTP 프록시 켜기
             Command::new("networksetup")
-                .args(["-setwebproxy", service, "127.0.0.1", "8100"])
+                .args(["-setwebproxy", service, "127.0.0.1", &port_str])
                 .status()
                 .map_err(|e| e.to_string())?;
 
             // HTTPS 프록시 켜기
             Command::new("networksetup")
-                .args(["-setsecurewebproxy", service, "127.0.0.1", "8100"])
+                .args(["-setsecurewebproxy", service, "127.0.0.1", &port_str])
                 .status()
                 .map_err(|e| e.to_string())?;
 
-            println!("✅ 프록시 설정 완료 - HTTP, HTTPS 프록시 활성화됨");
-            println!("   🌐 프록시 주소: 127.0.0.1:8100");
+            println!("프록시 설정 완료 - HTTP, HTTPS 프록시 활성화됨");
+            println!("   프록시 주소: 127.0.0.1:{}", port);
         } else {
             // HTTP 프록시 끄기
             Command::new("networksetup")
@@ -70,7 +72,7 @@ pub fn set_proxy(enable: bool) -> Result<(), String> {
                 .status()
                 .map_err(|e| e.to_string())?;
 
-            println!("✅ 프록시 설정 해제 완료 - HTTP, HTTPS 프록시 비활성화됨");
+            println!("프록시 설정 해제 완료 - HTTP, HTTPS 프록시 비활성화됨");
         }
     }
     Ok(())
