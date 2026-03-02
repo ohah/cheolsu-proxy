@@ -16,6 +16,14 @@ pub struct DaemonConnection {
     pub port: u16,
 }
 
+impl Drop for DaemonConnection {
+    fn drop(&mut self) {
+        if let Some(task) = self.event_task.take() {
+            task.abort();
+        }
+    }
+}
+
 impl DaemonConnection {
     /// Disconnect from the daemon (does NOT send stop command).
     pub async fn disconnect(mut self) {
@@ -42,7 +50,7 @@ impl DaemonConnection {
 
 /// Check if a daemon is running by reading the lock file and verifying the PID.
 pub fn is_daemon_running() -> Option<ProxyLockInfo> {
-    let lock_path = lock_file_path();
+    let lock_path = lock_file_path().ok()?;
     if !lock_path.exists() {
         return None;
     }
@@ -101,18 +109,14 @@ where
         // Spawn daemon
         spawn_daemon(port, host)?;
 
-        // Wait for daemon to be ready (poll UDS socket existence)
-        let uds_path = uds_socket_path();
+        // Wait for daemon to be ready (check lock file, avoids probe connection leak)
         let mut ready = false;
         for _ in 0..50 {
             // 50 * 100ms = 5 seconds max
             tokio::time::sleep(std::time::Duration::from_millis(100)).await;
-            if uds_path.exists() {
-                // Try connecting
-                if UnixStream::connect(&uds_path).await.is_ok() {
-                    ready = true;
-                    break;
-                }
+            if is_daemon_running().is_some() {
+                ready = true;
+                break;
             }
         }
         if !ready {
@@ -129,7 +133,7 @@ pub async fn connect_to_daemon<F>(on_event: F) -> Result<DaemonConnection, Strin
 where
     F: Fn(RequestInfo) + Send + 'static,
 {
-    let uds_path = uds_socket_path();
+    let uds_path = uds_socket_path()?;
     let stream = UnixStream::connect(&uds_path)
         .await
         .map_err(|e| format!("Failed to connect to daemon UDS: {}", e))?;
@@ -153,8 +157,7 @@ where
 
     // Send subscribe command
     {
-        let mut sub_line =
-            serde_json::to_string(&ClientCommand::Subscribe).unwrap_or_default();
+        let mut sub_line = serde_json::to_string(&ClientCommand::Subscribe).unwrap_or_default();
         sub_line.push('\n');
         let mut w = writer.lock().await;
         w.write_all(sub_line.as_bytes())

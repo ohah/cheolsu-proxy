@@ -1,26 +1,22 @@
-use cheolsu_proxy::proxy_daemon::{
-    handle_client, ClientCommand, DaemonMessage, ProxyLockInfo,
-};
+use cheolsu_proxy::proxy_daemon::{handle_client, ClientCommand, DaemonMessage, ProxyLockInfo};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::net::{UnixListener, UnixStream};
-use tokio::sync::{broadcast, Mutex};
+use tokio::sync::broadcast;
 
-/// Helper: create a temp UDS path
-fn temp_uds_path() -> std::path::PathBuf {
+/// Helper: create a temp UDS path (returns TempDir to prevent premature cleanup)
+fn temp_uds_path() -> (std::path::PathBuf, tempfile::TempDir) {
     let dir = tempfile::TempDir::new().unwrap();
-    // We leak the TempDir so it doesn't get deleted while the test is running
     let path = dir.path().join("test.sock");
-    std::mem::forget(dir);
-    path
+    (path, dir)
 }
 
 /// Helper: start a minimal UDS server that uses handle_client
 async fn start_test_server(
     uds_path: &std::path::Path,
     event_tx: broadcast::Sender<String>,
-    shared_sessions: Arc<Mutex<serde_json::Value>>,
+    session_tx: tokio::sync::watch::Sender<serde_json::Value>,
     port: u16,
 ) -> (
     tokio::task::JoinHandle<()>,
@@ -47,11 +43,10 @@ async fn start_test_server(
                             let event_rx = etx.subscribe();
                             let cc2 = cc.clone();
                             let stx2 = stx.clone();
-                            let ss = shared_sessions.clone();
-                            let etx2 = etx.clone();
+                            let session_tx2 = session_tx.clone();
 
                             tokio::spawn(async move {
-                                handle_client(stream, event_rx, etx2, ss, port).await;
+                                handle_client(stream, event_rx, session_tx2, port).await;
                                 let remaining = cc2.fetch_sub(1, Ordering::SeqCst) - 1;
                                 if remaining == 0 {
                                     let _ = stx2.send(()).await;
@@ -77,12 +72,12 @@ async fn start_test_server(
 
 #[tokio::test]
 async fn test_client_receives_status_on_connect() {
-    let uds_path = temp_uds_path();
+    let (uds_path, _tmp) = temp_uds_path();
     let (event_tx, _) = broadcast::channel::<String>(16);
-    let sessions = Arc::new(Mutex::new(serde_json::json!([])));
+    let (session_tx, _session_rx) = tokio::sync::watch::channel(serde_json::json!([]));
 
     let (server_handle, _, shutdown_tx) =
-        start_test_server(&uds_path, event_tx, sessions, 8100).await;
+        start_test_server(&uds_path, event_tx, session_tx, 8100).await;
 
     // Connect as client
     let stream = UnixStream::connect(&uds_path).await.unwrap();
@@ -105,17 +100,16 @@ async fn test_client_receives_status_on_connect() {
     // Cleanup
     let _ = shutdown_tx.send(()).await;
     server_handle.abort();
-    let _ = std::fs::remove_file(&uds_path);
 }
 
 #[tokio::test]
 async fn test_subscribe_and_receive_events() {
-    let uds_path = temp_uds_path();
+    let (uds_path, _tmp) = temp_uds_path();
     let (event_tx, _) = broadcast::channel::<String>(16);
-    let sessions = Arc::new(Mutex::new(serde_json::json!([])));
+    let (session_tx, _session_rx) = tokio::sync::watch::channel(serde_json::json!([]));
 
     let (server_handle, _, shutdown_tx) =
-        start_test_server(&uds_path, event_tx.clone(), sessions, 8100).await;
+        start_test_server(&uds_path, event_tx.clone(), session_tx, 8100).await;
 
     // Connect as client
     let stream = UnixStream::connect(&uds_path).await.unwrap();
@@ -162,17 +156,16 @@ async fn test_subscribe_and_receive_events() {
     // Cleanup
     let _ = shutdown_tx.send(()).await;
     server_handle.abort();
-    let _ = std::fs::remove_file(&uds_path);
 }
 
 #[tokio::test]
 async fn test_unsubscribed_client_does_not_receive_events() {
-    let uds_path = temp_uds_path();
+    let (uds_path, _tmp) = temp_uds_path();
     let (event_tx, _) = broadcast::channel::<String>(16);
-    let sessions = Arc::new(Mutex::new(serde_json::json!([])));
+    let (session_tx, _session_rx) = tokio::sync::watch::channel(serde_json::json!([]));
 
     let (server_handle, _, shutdown_tx) =
-        start_test_server(&uds_path, event_tx.clone(), sessions, 8100).await;
+        start_test_server(&uds_path, event_tx.clone(), session_tx, 8100).await;
 
     // Connect as client but do NOT subscribe
     let stream = UnixStream::connect(&uds_path).await.unwrap();
@@ -202,18 +195,16 @@ async fn test_unsubscribed_client_does_not_receive_events() {
     // Cleanup
     let _ = shutdown_tx.send(()).await;
     server_handle.abort();
-    let _ = std::fs::remove_file(&uds_path);
 }
 
 #[tokio::test]
 async fn test_update_sessions_command() {
-    let uds_path = temp_uds_path();
+    let (uds_path, _tmp) = temp_uds_path();
     let (event_tx, _) = broadcast::channel::<String>(16);
-    let sessions = Arc::new(Mutex::new(serde_json::json!([])));
-    let sessions_check = sessions.clone();
+    let (session_tx, session_rx) = tokio::sync::watch::channel(serde_json::json!([]));
 
     let (server_handle, _, shutdown_tx) =
-        start_test_server(&uds_path, event_tx, sessions, 8100).await;
+        start_test_server(&uds_path, event_tx, session_tx, 8100).await;
 
     // Connect as client
     let stream = UnixStream::connect(&uds_path).await.unwrap();
@@ -243,24 +234,23 @@ async fn test_update_sessions_command() {
     // Give the server time to process
     tokio::time::sleep(std::time::Duration::from_millis(100)).await;
 
-    // Verify sessions were updated
-    let current_sessions = sessions_check.lock().await;
-    assert_eq!(*current_sessions, new_sessions);
+    // Verify sessions were updated via watch channel
+    let current_sessions = session_rx.borrow().clone();
+    assert_eq!(current_sessions, new_sessions);
 
     // Cleanup
     let _ = shutdown_tx.send(()).await;
     server_handle.abort();
-    let _ = std::fs::remove_file(&uds_path);
 }
 
 #[tokio::test]
 async fn test_multiple_clients_connect() {
-    let uds_path = temp_uds_path();
+    let (uds_path, _tmp) = temp_uds_path();
     let (event_tx, _) = broadcast::channel::<String>(16);
-    let sessions = Arc::new(Mutex::new(serde_json::json!([])));
+    let (session_tx, _session_rx) = tokio::sync::watch::channel(serde_json::json!([]));
 
     let (server_handle, client_count, shutdown_tx) =
-        start_test_server(&uds_path, event_tx.clone(), sessions, 8100).await;
+        start_test_server(&uds_path, event_tx.clone(), session_tx, 8100).await;
 
     // Connect client 1
     let stream1 = UnixStream::connect(&uds_path).await.unwrap();
@@ -283,7 +273,10 @@ async fn test_multiple_clients_connect() {
     assert_eq!(client_count.load(Ordering::SeqCst), 2);
 
     // Both subscribe
-    let sub = format!("{}\n", serde_json::to_string(&ClientCommand::Subscribe).unwrap());
+    let sub = format!(
+        "{}\n",
+        serde_json::to_string(&ClientCommand::Subscribe).unwrap()
+    );
     w1.write_all(sub.as_bytes()).await.unwrap();
     w1.flush().await.unwrap();
     w2.write_all(sub.as_bytes()).await.unwrap();
@@ -297,10 +290,10 @@ async fn test_multiple_clients_connect() {
     let mut ev1 = String::new();
     let mut ev2 = String::new();
 
-    let res1 = tokio::time::timeout(std::time::Duration::from_secs(2), r1.read_line(&mut ev1))
-        .await;
-    let res2 = tokio::time::timeout(std::time::Duration::from_secs(2), r2.read_line(&mut ev2))
-        .await;
+    let res1 =
+        tokio::time::timeout(std::time::Duration::from_secs(2), r1.read_line(&mut ev1)).await;
+    let res2 =
+        tokio::time::timeout(std::time::Duration::from_secs(2), r2.read_line(&mut ev2)).await;
 
     assert!(res1.is_ok() && res1.unwrap().unwrap() > 0);
     assert!(res2.is_ok() && res2.unwrap().unwrap() > 0);
@@ -310,17 +303,16 @@ async fn test_multiple_clients_connect() {
     // Cleanup
     let _ = shutdown_tx.send(()).await;
     server_handle.abort();
-    let _ = std::fs::remove_file(&uds_path);
 }
 
 #[tokio::test]
 async fn test_client_disconnect_decrements_count() {
-    let uds_path = temp_uds_path();
+    let (uds_path, _tmp) = temp_uds_path();
     let (event_tx, _) = broadcast::channel::<String>(16);
-    let sessions = Arc::new(Mutex::new(serde_json::json!([])));
+    let (session_tx, _session_rx) = tokio::sync::watch::channel(serde_json::json!([]));
 
     let (server_handle, client_count, shutdown_tx) =
-        start_test_server(&uds_path, event_tx, sessions, 8100).await;
+        start_test_server(&uds_path, event_tx, session_tx, 8100).await;
 
     // Connect client
     let stream = UnixStream::connect(&uds_path).await.unwrap();
@@ -345,17 +337,16 @@ async fn test_client_disconnect_decrements_count() {
     // Cleanup
     let _ = shutdown_tx.send(()).await;
     server_handle.abort();
-    let _ = std::fs::remove_file(&uds_path);
 }
 
 #[tokio::test]
 async fn test_auto_shutdown_when_all_clients_disconnect() {
-    let uds_path = temp_uds_path();
+    let (uds_path, _tmp) = temp_uds_path();
     let (event_tx, _) = broadcast::channel::<String>(16);
-    let sessions = Arc::new(Mutex::new(serde_json::json!([])));
+    let (session_tx, _session_rx) = tokio::sync::watch::channel(serde_json::json!([]));
 
     let (server_handle, client_count, _shutdown_tx) =
-        start_test_server(&uds_path, event_tx, sessions, 8100).await;
+        start_test_server(&uds_path, event_tx, session_tx, 8100).await;
 
     // Connect two clients
     let stream1 = UnixStream::connect(&uds_path).await.unwrap();
@@ -393,18 +384,16 @@ async fn test_auto_shutdown_when_all_clients_disconnect() {
         server_done.is_ok(),
         "Server should shut down after all clients disconnect"
     );
-
-    let _ = std::fs::remove_file(&uds_path);
 }
 
 #[tokio::test]
 async fn test_stop_command_disconnects_client() {
-    let uds_path = temp_uds_path();
+    let (uds_path, _tmp) = temp_uds_path();
     let (event_tx, _) = broadcast::channel::<String>(16);
-    let sessions = Arc::new(Mutex::new(serde_json::json!([])));
+    let (session_tx, _session_rx) = tokio::sync::watch::channel(serde_json::json!([]));
 
     let (server_handle, client_count, _shutdown_tx) =
-        start_test_server(&uds_path, event_tx, sessions, 8100).await;
+        start_test_server(&uds_path, event_tx, session_tx, 8100).await;
 
     // Connect client
     let stream = UnixStream::connect(&uds_path).await.unwrap();
@@ -420,10 +409,7 @@ async fn test_stop_command_disconnects_client() {
     assert_eq!(client_count.load(Ordering::SeqCst), 1);
 
     // Send stop command
-    let stop = format!(
-        "{}\n",
-        serde_json::to_string(&ClientCommand::Stop).unwrap()
-    );
+    let stop = format!("{}\n", serde_json::to_string(&ClientCommand::Stop).unwrap());
     writer.write_all(stop.as_bytes()).await.unwrap();
     writer.flush().await.unwrap();
 
@@ -434,8 +420,6 @@ async fn test_stop_command_disconnects_client() {
     // Server should auto-shutdown (single client stop → 0 remaining)
     let server_done = tokio::time::timeout(std::time::Duration::from_secs(2), server_handle).await;
     assert!(server_done.is_ok(), "Server should shut down after stop");
-
-    let _ = std::fs::remove_file(&uds_path);
 }
 
 // --- Lock File Integration Tests ---

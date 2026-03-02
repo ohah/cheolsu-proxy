@@ -5,7 +5,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::net::{UnixListener, UnixStream};
-use tokio::sync::{broadcast, Mutex};
+use tokio::sync::{broadcast, watch, Mutex};
 
 use crate::proxy_v2::{create_hybrid_client, LoggingHandler};
 use crate::system_proxy::set_proxy;
@@ -41,34 +41,36 @@ pub struct ProxyLockInfo {
     pub uds_path: String,
 }
 
-fn app_support_dir() -> PathBuf {
-    dirs::home_dir()
-        .expect("Cannot find home directory")
-        .join("Library/Application Support/com.cheolsu-proxy")
+fn app_support_dir() -> Result<PathBuf, String> {
+    dirs::data_dir()
+        .ok_or_else(|| "Cannot find data directory".to_string())
+        .map(|dir| dir.join("com.cheolsu-proxy"))
 }
 
-pub fn lock_file_path() -> PathBuf {
-    app_support_dir().join("proxy.lock")
+pub fn lock_file_path() -> Result<PathBuf, String> {
+    Ok(app_support_dir()?.join("proxy.lock"))
 }
 
-pub fn uds_socket_path() -> PathBuf {
-    app_support_dir().join("proxy.sock")
+pub fn uds_socket_path() -> Result<PathBuf, String> {
+    Ok(app_support_dir()?.join("proxy.sock"))
 }
 
-fn write_lock_file(port: u16, uds_path: &str) -> std::io::Result<()> {
-    let dir = app_support_dir();
-    std::fs::create_dir_all(&dir)?;
+fn write_lock_file(port: u16, uds_path: &str) -> Result<(), String> {
+    let dir = app_support_dir()?;
+    std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
     let info = ProxyLockInfo {
         pid: std::process::id(),
         port,
         uds_path: uds_path.to_string(),
     };
-    let json = serde_json::to_string_pretty(&info).unwrap();
-    std::fs::write(lock_file_path(), json)
+    let json = serde_json::to_string_pretty(&info).map_err(|e| e.to_string())?;
+    std::fs::write(lock_file_path()?, json).map_err(|e| e.to_string())
 }
 
 fn remove_lock_file() {
-    let _ = std::fs::remove_file(lock_file_path());
+    if let Ok(path) = lock_file_path() {
+        let _ = std::fs::remove_file(path);
+    }
 }
 
 fn remove_uds_socket(path: &Path) {
@@ -78,7 +80,10 @@ fn remove_uds_socket(path: &Path) {
 /// Checks if a stale lock file exists and cleans it up.
 /// Returns true if the lock was stale and cleaned up (or didn't exist).
 pub fn check_and_cleanup_stale_lock() -> bool {
-    let lock_path = lock_file_path();
+    let lock_path = match lock_file_path() {
+        Ok(p) => p,
+        Err(_) => return true,
+    };
     if !lock_path.exists() {
         return true;
     }
@@ -138,7 +143,13 @@ async fn daemon_main(port: u16, host: String) -> i32 {
         return 1;
     }
 
-    let uds_path = uds_socket_path();
+    let uds_path = match uds_socket_path() {
+        Ok(p) => p,
+        Err(e) => {
+            eprintln!("Failed to get UDS socket path: {}", e);
+            return 1;
+        }
+    };
     let uds_path_str = uds_path.to_string_lossy().to_string();
 
     // Remove leftover socket file
@@ -164,9 +175,8 @@ async fn daemon_main(port: u16, host: String) -> i32 {
     // Shutdown signal
     let (shutdown_tx, mut shutdown_rx) = tokio::sync::mpsc::channel::<()>(1);
 
-    // Shared sessions for LoggingHandler
-    let shared_sessions: Arc<Mutex<serde_json::Value>> =
-        Arc::new(Mutex::new(serde_json::Value::Array(Vec::new())));
+    // Watch channel for session updates (replaces polling)
+    let (session_tx, session_rx) = watch::channel(serde_json::Value::Array(Vec::new()));
 
     // --- Start proxy ---
     let addr: std::net::SocketAddr = format!("{}:{}", host, port)
@@ -179,11 +189,8 @@ async fn daemon_main(port: u16, host: String) -> i32 {
     }
 
     let event_tx_proxy = event_tx.clone();
-    let shared_sessions_proxy = shared_sessions.clone();
     let proxy_handle = tokio::spawn(async move {
-        if let Err(code) =
-            run_proxy(addr, event_tx_proxy, shared_sessions_proxy).await
-        {
+        if let Err(code) = run_proxy(addr, event_tx_proxy, session_rx).await {
             eprintln!("Proxy error: {}", code);
         }
     });
@@ -226,18 +233,11 @@ async fn daemon_main(port: u16, host: String) -> i32 {
                         let event_rx = event_tx.subscribe();
                         let client_count_clone = client_count.clone();
                         let shutdown_tx_clone = shutdown_tx.clone();
-                        let shared_sessions_clone = shared_sessions.clone();
-                        let event_tx_clone = event_tx.clone();
+                        let session_tx_clone = session_tx.clone();
 
                         tokio::spawn(async move {
-                            handle_client(
-                                stream,
-                                event_rx,
-                                event_tx_clone,
-                                shared_sessions_clone,
-                                port,
-                            )
-                            .await;
+                            handle_client(stream, event_rx, session_tx_clone, port)
+                                .await;
 
                             let remaining = client_count_clone.fetch_sub(1, Ordering::SeqCst) - 1;
                             println!("Client disconnected (remaining: {})", remaining);
@@ -280,10 +280,12 @@ fn cleanup(port: u16, uds_path: &Path) {
 async fn run_proxy(
     addr: std::net::SocketAddr,
     event_tx: broadcast::Sender<String>,
-    shared_sessions: Arc<Mutex<serde_json::Value>>,
+    mut session_rx: watch::Receiver<serde_json::Value>,
 ) -> Result<(), String> {
     use proxyapi_v2::builder::ProxyBuilder;
-    use proxyapi_v2::certificate_authority::{build_ca, generate_session_hash, get_cache_storage_dir};
+    use proxyapi_v2::certificate_authority::{
+        build_ca, generate_session_hash, get_cache_storage_dir,
+    };
     use tokio::net::TcpListener;
 
     let ca = build_ca().map_err(|e| format!("CA build failed: {}", e))?;
@@ -300,30 +302,16 @@ async fn run_proxy(
 
     // Apply initial sessions
     {
-        let sessions = shared_sessions.lock().await;
-        handler.update_sessions(sessions.clone()).await;
+        let sessions = session_rx.borrow().clone();
+        handler.update_sessions(sessions).await;
     }
 
-    // Store handler for session updates
+    // Watch for session updates (replaces 500ms polling)
     let handler_for_updates = handler.clone();
-
-    // Watch for session updates in background
-    let shared_sessions_watch = shared_sessions.clone();
     tokio::spawn(async move {
-        let mut last_sessions = {
-            let s = shared_sessions_watch.lock().await;
-            s.clone()
-        };
-        loop {
-            tokio::time::sleep(std::time::Duration::from_millis(500)).await;
-            let current = {
-                let s = shared_sessions_watch.lock().await;
-                s.clone()
-            };
-            if current != last_sessions {
-                handler_for_updates.update_sessions(current.clone()).await;
-                last_sessions = current;
-            }
+        while session_rx.changed().await.is_ok() {
+            let sessions = session_rx.borrow().clone();
+            handler_for_updates.update_sessions(sessions).await;
         }
     });
 
@@ -351,8 +339,7 @@ async fn run_proxy(
     tokio::spawn(async move {
         for event in rx.iter() {
             let json = serde_json::to_string(&event).unwrap_or_default();
-            let msg = serde_json::to_string(&DaemonMessage::Event { data: event })
-                .unwrap_or(json);
+            let msg = serde_json::to_string(&DaemonMessage::Event { data: event }).unwrap_or(json);
             let _ = event_tx_http.send(msg);
         }
     });
@@ -361,10 +348,8 @@ async fn run_proxy(
     let event_tx_tunnel = event_tx.clone();
     tokio::spawn(async move {
         while let Some(tunnel_event) = tunnel_rx.recv().await {
-            let msg = serde_json::to_string(&DaemonMessage::Event {
-                data: tunnel_event,
-            })
-            .unwrap_or_default();
+            let msg = serde_json::to_string(&DaemonMessage::Event { data: tunnel_event })
+                .unwrap_or_default();
             let _ = event_tx_tunnel.send(msg);
         }
     });
@@ -382,8 +367,7 @@ async fn run_proxy(
 pub async fn handle_client(
     stream: UnixStream,
     mut event_rx: broadcast::Receiver<String>,
-    _event_tx: broadcast::Sender<String>,
-    shared_sessions: Arc<Mutex<serde_json::Value>>,
+    session_tx: watch::Sender<serde_json::Value>,
     port: u16,
 ) {
     let (reader, writer) = stream.into_split();
@@ -449,8 +433,7 @@ pub async fn handle_client(
                         subscribed.store(true, std::sync::atomic::Ordering::Relaxed);
                     }
                     Ok(ClientCommand::UpdateSessions { data }) => {
-                        let mut sessions = shared_sessions.lock().await;
-                        *sessions = data;
+                        let _ = session_tx.send(data);
                     }
                     Ok(ClientCommand::Stop) => {
                         // Client requests daemon stop — handled by disconnect auto-shutdown
@@ -616,10 +599,7 @@ mod tests {
         use nix::sys::signal::kill;
         use nix::unistd::Pid;
         let pid = Pid::from_raw(4_000_000);
-        assert!(
-            kill(pid, None).is_err(),
-            "PID 4000000 should not exist"
-        );
+        assert!(kill(pid, None).is_err(), "PID 4000000 should not exist");
 
         // After checking, the lock file with dead PID should be cleaned
         let contents = std::fs::read_to_string(&lock_path).unwrap();
@@ -640,22 +620,22 @@ mod tests {
     // --- Path Tests ---
 
     #[test]
-    fn test_app_support_dir_is_under_home() {
-        let dir = app_support_dir();
-        let home = dirs::home_dir().unwrap();
-        assert!(dir.starts_with(&home));
-        assert!(dir.ends_with("Library/Application Support/com.cheolsu-proxy"));
+    fn test_app_support_dir_is_under_data_dir() {
+        let dir = app_support_dir().unwrap();
+        let data = dirs::data_dir().unwrap();
+        assert!(dir.starts_with(&data));
+        assert!(dir.ends_with("com.cheolsu-proxy"));
     }
 
     #[test]
     fn test_lock_file_path_ends_with_proxy_lock() {
-        let path = lock_file_path();
+        let path = lock_file_path().unwrap();
         assert!(path.ends_with("proxy.lock"));
     }
 
     #[test]
     fn test_uds_socket_path_ends_with_proxy_sock() {
-        let path = uds_socket_path();
+        let path = uds_socket_path().unwrap();
         assert!(path.ends_with("proxy.sock"));
     }
 
