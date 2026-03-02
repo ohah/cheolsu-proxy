@@ -3,16 +3,18 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 mod proxy_v2;
+pub mod proxy_client;
+pub mod proxy_daemon;
 mod system_proxy;
 use proxy_v2::{
     clean_old_proxy_cache, proxy_v2_status, read_body_file, start_proxy_v2, stop_proxy_v2,
     store_changed_v2, ProxyV2State,
 };
-use system_proxy::{get_proxy_status_command, set_proxy};
+use system_proxy::get_proxy_status_command;
 use tauri::Manager;
 use tauri_plugin_cli::CliExt;
 
-/// headless (CLI) 모드인지 확인하고, headless일 경우 프록시를 자동 시작합니다.
+/// headless (CLI) 모드인지 확인하고, headless일 경우 daemon 클라이언트로 동작합니다.
 fn handle_cli_mode(app: &tauri::App) -> bool {
     let cli_matches = match app.cli().matches() {
         Ok(m) => m,
@@ -64,115 +66,36 @@ fn handle_cli_mode(app: &tauri::App) -> bool {
         let _ = window.close();
     }
 
-    let addr: std::net::SocketAddr = format!("{}:{}", host, port)
-        .parse()
-        .expect("Invalid host:port");
-
-    // headless 모드에서 프록시 자동 시작
+    // headless 모드: daemon에 연결하여 이벤트를 stdout에 출력
+    let app_handle = app.handle().clone();
     tauri::async_runtime::spawn(async move {
-        use proxyapi_v2::builder::ProxyBuilder;
-        use proxyapi_v2::certificate_authority::{
-            build_ca, generate_session_hash, get_cache_storage_dir,
-        };
-        use tokio::net::TcpListener;
-
-        // CA 인증서 생성
-        let ca = match build_ca() {
-            Ok(ca) => ca,
-            Err(e) => {
-                eprintln!("CA 인증서 생성 실패: {}", e);
-                std::process::exit(1);
-            }
-        };
-
-        // 세션 해시 및 캐시 디렉토리
-        let session_hash = generate_session_hash();
-        let cache_dir = match get_cache_storage_dir(&session_hash) {
-            Ok(dir) => dir,
-            Err(e) => {
-                eprintln!("캐시 디렉토리 생성 실패: {}", e);
-                std::process::exit(1);
-            }
-        };
-
-        // 이벤트 채널 (stdout 출력용)
-        let (tx, rx) = std::sync::mpsc::sync_channel(1);
-        let (tunnel_tx, mut tunnel_rx) =
-            tokio::sync::mpsc::channel::<proxy_v2_models::RequestInfo>(100);
-
-        // 로깅 핸들러
-        let handler = proxy_v2::LoggingHandler::new(tx.clone(), cache_dir);
-
-        // 하이브리드 클라이언트
-        let hybrid_client = match proxy_v2::create_hybrid_client() {
-            Ok(c) => c,
-            Err(e) => {
-                eprintln!("클라이언트 생성 실패: {}", e);
-                std::process::exit(1);
-            }
-        };
-
-        // TCP 리스너
-        let listener = match TcpListener::bind(addr).await {
-            Ok(l) => l,
-            Err(e) => {
-                eprintln!("포트 {} 바인딩 실패: {}", addr.port(), e);
-                std::process::exit(1);
-            }
-        };
-
-        // 프록시 빌더
-        let proxy_builder = match ProxyBuilder::new()
-            .with_listener(listener)
-            .with_ca(ca)
-            .with_client(hybrid_client)
-            .with_http_handler(handler.clone())
-            .with_websocket_handler(handler.clone())
-            .with_tunnel_event_sender(tunnel_tx)
-            .build()
+        match proxy_client::ensure_daemon(port, &host, move |event| {
+            let json = serde_json::to_string(&event).unwrap_or_default();
+            println!("{}", json);
+        })
+        .await
         {
-            Ok(b) => b,
+            Ok(conn) => {
+                println!("Connected to daemon (port {})", conn.port);
+
+                // Keep connection alive until Ctrl+C
+                match tokio::signal::ctrl_c().await {
+                    Ok(()) => {
+                        println!("\nShutting down...");
+                        conn.disconnect().await;
+                        app_handle.exit(0);
+                    }
+                    Err(e) => {
+                        eprintln!("Ctrl+C handler error: {}", e);
+                        conn.disconnect().await;
+                        app_handle.exit(1);
+                    }
+                }
+            }
             Err(e) => {
-                eprintln!("프록시 빌드 실패: {}", e);
-                std::process::exit(1);
+                eprintln!("Failed to connect to daemon: {}", e);
+                app_handle.exit(1);
             }
-        };
-
-        println!("Proxy listening on {}:{}", host, port);
-        println!("Press Ctrl+C to stop.");
-
-        // stdout으로 이벤트 출력 (HTTP 요청/응답)
-        tauri::async_runtime::spawn(async move {
-            for event in rx.iter() {
-                let json = serde_json::to_string(&event).unwrap_or_default();
-                println!("[HTTP] {}", json);
-            }
-        });
-
-        // stdout으로 터널 이벤트 출력
-        tauri::async_runtime::spawn(async move {
-            while let Some(tunnel_event) = tunnel_rx.recv().await {
-                let json = serde_json::to_string(&tunnel_event).unwrap_or_default();
-                println!("[TUNNEL] {}", json);
-            }
-        });
-
-        // 프록시 실행
-        if let Err(e) = proxy_builder.start().await {
-            eprintln!("프록시 실행 오류: {}", e);
-            std::process::exit(1);
-        }
-    });
-
-    // Ctrl+C graceful shutdown
-    let app_handle2 = app.handle().clone();
-    tauri::async_runtime::spawn(async move {
-        if let Ok(()) = tokio::signal::ctrl_c().await {
-            println!("\nShutting down...");
-            if let Err(e) = set_proxy(false) {
-                eprintln!("프록시 설정 해제 실패: {}", e);
-            }
-            app_handle2.exit(0);
         }
     });
 
@@ -184,7 +107,7 @@ pub fn run() {
     #[cfg(debug_assertions)]
     // let devtools = tauri_plugin_devtools::init();
     {
-        let mut builder = tauri::Builder::default()
+        let builder = tauri::Builder::default()
             .plugin(tauri_plugin_cli::init())
             .plugin(tauri_plugin_http::init())
             .plugin(tauri_plugin_opener::init())
@@ -211,25 +134,20 @@ pub fn run() {
                 // 앱 시작 시 자동 캐시 정리 (1일 이상 된 캐시)
                 tauri::async_runtime::spawn(async {
                     match clean_old_proxy_cache(1).await {
-                        Ok(message) => println!("🧹 {}", message),
-                        Err(e) => eprintln!("⚠️ 캐시 정리 실패: {}", e),
+                        Ok(message) => println!("{}", message),
+                        Err(e) => eprintln!("캐시 정리 실패: {}", e),
                     }
                 });
 
-                tauri::async_runtime::spawn(async {
-                    if let Err(e) = set_proxy(true) {
-                        eprintln!("프록시 설정 실패: {}", e);
-                    }
-                });
+                // GUI 모드에서는 시스템 프록시 설정을 daemon이 담당하므로 여기서는 하지 않음
+
                 Ok(())
             })
             .on_window_event(|_window, event| {
-                // 앱 종료 시 프록시 해제
+                // GUI 종료 시 daemon과의 연결만 해제 (프록시 설정 해제는 daemon이 담당)
                 if let tauri::WindowEvent::CloseRequested { .. } = event {
                     println!("CloseRequested");
-                    if let Err(e) = set_proxy(false) {
-                        eprintln!("프록시 설정 실패: {}", e);
-                    }
+                    // daemon과의 연결은 ProxyV2State drop 시 자동 해제
                 }
             })
             .invoke_handler(tauri::generate_handler![
