@@ -1,4 +1,5 @@
-use cheolsu_proxy::proxy_daemon::{handle_client, ClientCommand, DaemonMessage, ProxyLockInfo};
+use proxy_daemon::daemon::handle_client;
+use proxy_daemon::{ClientCommand, DaemonMessage, ProxyLockInfo};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
