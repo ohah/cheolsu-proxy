@@ -1,12 +1,12 @@
 import { useEffect, useRef } from "react";
-import type { ImperativePanelHandle } from "react-resizable-panels";
+import type { PanelImperativeHandle } from "react-resizable-panels";
 
 interface UseResizablePanelControllerProps {
   isExpanded: boolean;
 }
 
 export const useResizablePanelController = ({ isExpanded }: UseResizablePanelControllerProps) => {
-  const panelRef = useRef<ImperativePanelHandle>(null);
+  const panelRef = useRef<PanelImperativeHandle>(null);
 
   useEffect(() => {
     const panel = panelRef.current;
