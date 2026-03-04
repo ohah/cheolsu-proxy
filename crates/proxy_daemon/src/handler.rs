@@ -8,7 +8,7 @@ use hyper_util::{
 };
 use proxy_v2_models::{ProxiedRequest, ProxiedResponse, RequestInfo};
 use proxyapi_v2::{
-    hyper::http::{HeaderMap, HeaderValue, Method, StatusCode},
+    hyper::http::{HeaderMap, HeaderName, HeaderValue, Method, StatusCode},
     hyper::{Request, Response},
     tokio_tungstenite::tungstenite::Message,
     Body, HttpContext, HttpHandler, RequestOrResponse, WebSocketContext, WebSocketHandler,
@@ -744,10 +744,9 @@ pub fn parse_curl_response(
                 continue;
             }
 
-            if let (Ok(header_name), Ok(header_value)) = (
-                name.parse::<proxyapi_v2::hyper::http::HeaderName>(),
-                value.parse::<HeaderValue>(),
-            ) {
+            if let (Ok(header_name), Ok(header_value)) =
+                (name.parse::<HeaderName>(), value.parse::<HeaderValue>())
+            {
                 headers.insert(header_name, header_value);
             }
         }
