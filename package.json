@@ -1,5 +1,5 @@
 {
-  "name": "cheolsu-proxy",
+  "name": "cheolsu-proxy-root",
   "version": "0.1.0",
   "private": true,
   "description": "A simple Man In The Middle proxy built with Rust and Tauri",
@@ -21,8 +21,8 @@
     "dev": "bun run --filter cheolsu-proxy-document dev",
     "build": "bun run --filter cheolsu-proxy-document build",
     "preview": "bun run --filter cheolsu-proxy-document preview",
-    "tauri:dev": "bun run --filter tauri-ui tauri dev",
-    "tauri:build": "bun run --filter tauri-ui tauri build",
+    "tauri:dev": "bun run --filter cheolsu-proxy tauri dev",
+    "tauri:build": "bun run --filter cheolsu-proxy tauri build",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
     "format": "oxfmt",
