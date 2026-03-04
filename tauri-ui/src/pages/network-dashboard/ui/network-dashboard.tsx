@@ -83,8 +83,7 @@ export const NetworkDashboard = () => {
         />
 
         <ResizablePanelGroup
-          direction="horizontal"
-          autoSaveId="network-dashboard-layout"
+          orientation="horizontal"
           className="flex-1 flex border border-b-0 shadow-[0_0_10px_0_rgba(0,0,0,0.05)] bg-background"
         >
           <ResizablePanel
@@ -121,7 +120,7 @@ export const NetworkDashboard = () => {
 
           <ResizableHandle withHandle={!!selectedTransaction} />
           <ResizablePanel
-            ref={detailsPanelRef}
+            panelRef={detailsPanelRef}
             id="transaction-details"
             defaultSize={25}
             maxSize={50}
