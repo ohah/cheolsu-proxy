@@ -1,4 +1,9 @@
 [workspace]
 resolver = "2"
 
-members = ["crates/proxyapi_v2", "crates/proxy_v2_models", "crates/proxy_daemon", "tauri-ui/src-tauri"]
+members = [
+  "crates/proxyapi_v2",
+  "crates/proxy_v2_models",
+  "crates/proxy_daemon",
+  "tauri-ui/src-tauri",
+]
