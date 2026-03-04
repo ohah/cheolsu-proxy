@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "rspack dev",
-    "build": "rspack build",
-    "preview": "rspack preview",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
     "tauri-dev": "npm run log:backup && tauri dev",
     "tauri:local": "IS_PROXY=false tauri",
     "tauri": "tauri",
@@ -17,7 +17,6 @@
   "dependencies": {
     "@base-ui/react": "^1.2.0",
     "@monaco-editor/react": "^4.7.0",
-    "@tailwindcss/postcss": "^4.2.1",
     "@tanstack/react-form": "^1.28.4",
     "@tanstack/react-virtual": "^3.13.19",
     "@tauri-apps/api": "2.10.1",
@@ -31,8 +30,6 @@
     "cmdk": "^1.1.1",
     "lucide-react": "^0.577.0",
     "next-themes": "^0.4.6",
-    "postcss": "^8.5.8",
-    "postcss-loader": "^8.2.1",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-resizable-panels": "^4.7.1",
@@ -45,22 +42,14 @@
     "zustand": "^5.0.11"
   },
   "devDependencies": {
-    "@babel/core": "^7.29.0",
-    "@babel/preset-env": "^7.29.0",
-    "@babel/preset-react": "^7.28.5",
-    "@babel/preset-typescript": "^7.28.5",
-    "@rspack/cli": "^1.7.7",
-    "@rspack/core": "^1.7.7",
-    "@rspack/plugin-react-refresh": "^1.6.1",
+    "@tailwindcss/vite": "^4.2.1",
     "@tauri-apps/cli": "2.10.1",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "babel-loader": "^10.0.0",
-    "babel-plugin-react-compiler": "^1.0.0",
+    "@vitejs/plugin-react": "^5.1.4",
     "oxfmt": "^0.36.0",
     "oxlint": "^1.51.0",
-    "react-refresh": "^0.18.0",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1"
   }
 }
