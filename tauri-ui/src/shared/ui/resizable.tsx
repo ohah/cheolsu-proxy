@@ -6,7 +6,11 @@ import { cn } from "@/shared/lib/index";
 
 function ResizablePanelGroup({ className, ...props }: React.ComponentProps<typeof Group>) {
   return (
-    <Group data-slot="resizable-panel-group" className={cn("h-full w-full", className)} {...props} />
+    <Group
+      data-slot="resizable-panel-group"
+      className={cn("h-full w-full", className)}
+      {...props}
+    />
   );
 }
 
