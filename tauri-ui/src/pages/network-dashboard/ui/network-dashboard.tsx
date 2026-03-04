@@ -90,8 +90,8 @@ export const NetworkDashboard = () => {
           <ResizablePanel
             id="host-path-tree"
             className="h-full overflow-hidden"
-            maxSize={40}
-            minSize={10}
+            maxSize="40%"
+            minSize="10%"
             collapsible
           >
             <HostPathTree
@@ -121,10 +121,10 @@ export const NetworkDashboard = () => {
           <ResizablePanel
             panelRef={detailsPanelRef}
             id="transaction-details"
-            maxSize={50}
-            minSize={25}
+            maxSize="50%"
+            minSize="25%"
             collapsible
-            collapsedSize={0}
+            collapsedSize="0%"
             className="w-96 h-full overflow-y-auto"
           >
             {selectedTransaction && (
