@@ -84,6 +84,7 @@ export const NetworkDashboard = () => {
 
         <ResizablePanelGroup
           orientation="horizontal"
+          defaultLayout={{ "host-path-tree": 25, "network-table": 75, "transaction-details": 0 }}
           className="flex-1 flex border border-b-0 shadow-[0_0_10px_0_rgba(0,0,0,0.05)] bg-background"
         >
           <ResizablePanel
@@ -91,7 +92,6 @@ export const NetworkDashboard = () => {
             className="h-full overflow-hidden"
             maxSize={40}
             minSize={10}
-            defaultSize={25}
             collapsible
           >
             <HostPathTree
@@ -105,7 +105,6 @@ export const NetworkDashboard = () => {
 
           <ResizablePanel
             id="network-table"
-            defaultSize={75}
             className="flex flex-1 h-full overflow-hidden"
           >
             <NetworkTable
@@ -122,7 +121,6 @@ export const NetworkDashboard = () => {
           <ResizablePanel
             panelRef={detailsPanelRef}
             id="transaction-details"
-            defaultSize={25}
             maxSize={50}
             minSize={25}
             collapsible
