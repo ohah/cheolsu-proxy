@@ -9,9 +9,7 @@ import { cn } from "@/shared/lib";
 const Select = SelectPrimitive.Root;
 
 function SelectGroup({ className, ...props }: SelectPrimitive.Group.Props) {
-  return (
-    <SelectPrimitive.Group data-slot="select-group" className={className} {...props} />
-  );
+  return <SelectPrimitive.Group data-slot="select-group" className={className} {...props} />;
 }
 
 function SelectValue({ className, ...props }: SelectPrimitive.Value.Props) {
@@ -37,9 +35,7 @@ function SelectTrigger({
       {...props}
     >
       {children}
-      <SelectPrimitive.Icon
-        render={<ChevronDownIcon className="size-4 opacity-50" />}
-      />
+      <SelectPrimitive.Icon render={<ChevronDownIcon className="size-4 opacity-50" />} />
     </SelectPrimitive.Trigger>
   );
 }
@@ -75,9 +71,7 @@ function SelectContent({
           {...props}
         >
           <SelectScrollUpButton />
-          <SelectPrimitive.List className="p-1">
-            {children}
-          </SelectPrimitive.List>
+          <SelectPrimitive.List className="p-1">{children}</SelectPrimitive.List>
           <SelectScrollDownButton />
         </SelectPrimitive.Popup>
       </SelectPrimitive.Positioner>
@@ -95,11 +89,7 @@ function SelectLabel({ className, ...props }: SelectPrimitive.GroupLabel.Props) 
   );
 }
 
-function SelectItem({
-  className,
-  children,
-  ...props
-}: SelectPrimitive.Item.Props) {
+function SelectItem({ className, children, ...props }: SelectPrimitive.Item.Props) {
   return (
     <SelectPrimitive.Item
       data-slot="select-item"
@@ -111,9 +101,7 @@ function SelectItem({
     >
       <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
       <SelectPrimitive.ItemIndicator
-        render={
-          <span className="absolute right-2 flex size-3.5 items-center justify-center" />
-        }
+        render={<span className="absolute right-2 flex size-3.5 items-center justify-center" />}
       >
         <CheckIcon className="size-4" />
       </SelectPrimitive.ItemIndicator>
@@ -121,10 +109,7 @@ function SelectItem({
   );
 }
 
-function SelectSeparator({
-  className,
-  ...props
-}: SelectPrimitive.Separator.Props) {
+function SelectSeparator({ className, ...props }: SelectPrimitive.Separator.Props) {
   return (
     <SelectPrimitive.Separator
       data-slot="select-separator"
