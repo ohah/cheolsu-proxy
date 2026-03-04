@@ -115,6 +115,22 @@ where
         }
     }
 
+    // Wait for the UDS socket file to actually exist.
+    // The lock file is created before the socket is bound, so we need
+    // to wait for the socket to avoid a race condition.
+    let uds_path = uds_socket_path()?;
+    let mut socket_ready = false;
+    for _ in 0..50 {
+        if uds_path.exists() {
+            socket_ready = true;
+            break;
+        }
+        tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+    }
+    if !socket_ready {
+        return Err("Daemon started but UDS socket was not created within 5 seconds".to_string());
+    }
+
     connect_to_daemon(on_event).await
 }
 
