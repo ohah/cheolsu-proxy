@@ -1,5 +1,3 @@
-"use client";
-
 import * as React from "react";
 import { ContextMenu as ContextMenuPrimitive } from "@base-ui/react/context-menu";
 import { CheckIcon, ChevronRightIcon, CircleIcon } from "lucide-react";
@@ -19,7 +17,7 @@ function ContextMenuGroup({ ...props }: ContextMenuPrimitive.Group.Props) {
 }
 
 function ContextMenuPortal({ ...props }: ContextMenuPrimitive.Portal.Props) {
-  return <ContextMenuPrimitive.Portal data-slot="context-menu-portal" {...props} />;
+  return <ContextMenuPrimitive.Portal {...props} />;
 }
 
 function ContextMenuSub({ ...props }: ContextMenuPrimitive.SubmenuRoot.Props) {

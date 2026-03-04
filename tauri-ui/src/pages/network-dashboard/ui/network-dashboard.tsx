@@ -7,6 +7,7 @@ import { AppSidebar } from "@/shared/app-sidebar";
 import { NetworkTable } from "@/widgets/network-table";
 
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/shared/ui";
+import { useDefaultLayout } from "react-resizable-panels";
 
 import {
   useProxyEventControl,
@@ -44,6 +45,11 @@ export const NetworkDashboard = () => {
   } = useTransactionFilters({ transactions });
 
   const detailsPanelRef = useResizablePanelController({ isExpanded: !!selectedTransaction });
+
+  const { defaultLayout, onLayoutChanged } = useDefaultLayout({
+    id: "network-dashboard-layout",
+    storage: localStorage,
+  });
 
   const { paused, togglePause } = useProxyEventControl({ onTransactionReceived: addTransaction });
 
@@ -84,7 +90,10 @@ export const NetworkDashboard = () => {
 
         <ResizablePanelGroup
           orientation="horizontal"
-          defaultLayout={{ "host-path-tree": 25, "network-table": 75, "transaction-details": 0 }}
+          defaultLayout={
+            defaultLayout ?? { "host-path-tree": 25, "network-table": 75, "transaction-details": 0 }
+          }
+          onLayoutChanged={onLayoutChanged}
           className="flex-1 flex border border-b-0 shadow-[0_0_10px_0_rgba(0,0,0,0.05)] bg-background"
         >
           <ResizablePanel
