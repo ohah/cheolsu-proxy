@@ -47,7 +47,7 @@ fn main() {
             .unwrap_or_else(|| "127.0.0.1".to_string());
 
         // Run daemon without Tauri runtime
-        cheolsu_proxy::proxy_daemon::run_daemon(port, host);
+        proxy_daemon::run_daemon(port, host);
     }
 
     cheolsu_proxy::run()
