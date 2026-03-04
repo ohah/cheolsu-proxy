@@ -4,13 +4,15 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui";
 export const FilterHelpTooltip = () => {
   return (
     <Tooltip>
-      <TooltipTrigger asChild>
-        <button
-          className="p-2 hover:bg-accent/10 rounded-md transition-colors"
-          aria-label="Query syntax help"
-        >
-          <HelpCircle className="w-4 h-4 text-muted-foreground" />
-        </button>
+      <TooltipTrigger
+        render={
+          <button
+            className="p-2 hover:bg-accent/10 rounded-md transition-colors"
+            aria-label="Query syntax help"
+          />
+        }
+      >
+        <HelpCircle className="w-4 h-4 text-muted-foreground" />
       </TooltipTrigger>
       <TooltipContent
         side="bottom"
