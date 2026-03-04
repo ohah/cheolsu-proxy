@@ -9,7 +9,7 @@ use crate::handler::{create_hybrid_client, LoggingHandler};
 use crate::protocol::{ClientCommand, DaemonMessage, ProxyLockInfo};
 use crate::system_proxy::set_proxy;
 
-pub fn app_support_dir() -> Result<PathBuf, String> {
+pub(crate) fn app_support_dir() -> Result<PathBuf, String> {
     dirs::data_dir()
         .ok_or_else(|| "Cannot find data directory".to_string())
         .map(|dir| dir.join("com.cheolsu-proxy"))

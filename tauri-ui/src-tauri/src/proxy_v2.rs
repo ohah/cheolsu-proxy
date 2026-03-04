@@ -1,5 +1,4 @@
-use proxy_daemon::{ClientCommand, DaemonConnection};
-use proxyapi_v2::certificate_authority::{clean_all_cache, clean_old_cache};
+use proxy_daemon::{clean_old_cache, ClientCommand, DaemonConnection};
 use std::net::SocketAddr;
 use std::sync::Arc;
 use tauri::{AppHandle, Emitter, Runtime, State};
@@ -100,15 +99,6 @@ pub async fn stop_proxy_v2(proxy: tauri::State<'_, ProxyV2State>) -> Result<(), 
 #[tauri::command]
 pub async fn proxy_v2_status(proxy: tauri::State<'_, ProxyV2State>) -> Result<bool, String> {
     Ok(proxy.lock().await.is_some())
-}
-
-/// 캐시 정리 명령어
-#[tauri::command]
-pub async fn clean_proxy_cache() -> Result<String, String> {
-    match clean_all_cache() {
-        Ok(_) => Ok("모든 캐시가 성공적으로 정리되었습니다".to_string()),
-        Err(e) => Err(format!("캐시 정리 실패: {}", e)),
-    }
 }
 
 /// 파일에서 body 데이터 읽기

@@ -750,8 +750,6 @@ dependencies = [
  "chrono",
  "nix",
  "proxy_daemon",
- "proxy_v2_models",
- "proxyapi_v2",
  "serde",
  "serde_json",
  "tauri",

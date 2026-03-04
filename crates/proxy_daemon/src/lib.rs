@@ -10,3 +10,6 @@ pub use daemon::{check_and_cleanup_stale_lock, lock_file_path, run_daemon, uds_s
 pub use handler::{create_hybrid_client, LoggingHandler};
 pub use protocol::{ClientCommand, DaemonMessage, ProxyLockInfo};
 pub use system_proxy::{get_proxy_status, set_proxy, ProxyStatus};
+
+// Re-export cache utilities from proxyapi_v2
+pub use proxyapi_v2::certificate_authority::{clean_all_cache, clean_old_cache};
