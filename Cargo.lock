@@ -747,19 +747,11 @@ checksum = "613afe47fcd5fac7ccf1db93babcb082c5994d996f20b8b159f2ad1658eb5724"
 name = "cheolsu-proxy"
 version = "0.1.0"
 dependencies = [
- "bytes",
  "chrono",
- "dirs",
- "flate2",
- "futures-util",
- "http-body-util",
- "hyper-rustls",
- "hyper-util",
- "native-tls",
  "nix",
+ "proxy_daemon",
  "proxy_v2_models",
  "proxyapi_v2",
- "regex",
  "serde",
  "serde_json",
  "tauri",
@@ -773,9 +765,6 @@ dependencies = [
  "tauri-plugin-store",
  "tempfile",
  "tokio",
- "tokio-native-tls",
- "tokio-rustls",
- "tokio-stream",
  "tracing",
  "tracing-appender",
  "tracing-subscriber",
@@ -4173,6 +4162,30 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9091c90b0a32608e984ff2fa4091273cbdd755d54935c51d520887f4a1dbd5b0"
 dependencies = [
  "prost",
+]
+
+[[package]]
+name = "proxy_daemon"
+version = "0.1.0"
+dependencies = [
+ "bytes",
+ "chrono",
+ "dirs",
+ "flate2",
+ "futures-util",
+ "http-body-util",
+ "hyper-rustls",
+ "hyper-util",
+ "nix",
+ "proxy_v2_models",
+ "proxyapi_v2",
+ "regex",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "tokio",
+ "tokio-rustls",
+ "tokio-stream",
 ]
 
 [[package]]
