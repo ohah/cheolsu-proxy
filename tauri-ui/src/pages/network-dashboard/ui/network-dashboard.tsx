@@ -103,10 +103,7 @@ export const NetworkDashboard = () => {
 
           <ResizableHandle withHandle />
 
-          <ResizablePanel
-            id="network-table"
-            className="flex flex-1 h-full overflow-hidden"
-          >
+          <ResizablePanel id="network-table" className="flex flex-1 h-full overflow-hidden">
             <NetworkTable
               transactions={filteredTransactions}
               pinnedTransactionIds={pinnedTransactionIds}
