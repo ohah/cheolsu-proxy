@@ -1,6 +1,7 @@
 use crate::{
     Body, HttpHandler, NoopHandler, Proxy, WebSocketHandler,
     certificate_authority::CertificateAuthority, tls_passthrough::TlsPassthrough,
+    websocket_registry::WebSocketRegistry,
 };
 use hyper_util::{
     client::legacy::{Client, connect::Connect},
@@ -218,6 +219,7 @@ impl<CA: CertificateAuthority> ProxyBuilder<WantsClient<CA>> {
                     graceful_shutdown: pending(),
                     tunnel_event_sender: None,
                     tls_passthrough: None,
+                    websocket_registry: None,
                 });
             }
         };
@@ -246,6 +248,7 @@ impl<CA: CertificateAuthority> ProxyBuilder<WantsClient<CA>> {
             graceful_shutdown: pending(),
             tunnel_event_sender: None,
             tls_passthrough: None,
+            websocket_registry: None,
         })
     }
 
@@ -271,6 +274,7 @@ impl<CA: CertificateAuthority> ProxyBuilder<WantsClient<CA>> {
                     graceful_shutdown: pending(),
                     tunnel_event_sender: None,
                     tls_passthrough: None,
+                    websocket_registry: None,
                 });
             }
         };
@@ -292,6 +296,7 @@ impl<CA: CertificateAuthority> ProxyBuilder<WantsClient<CA>> {
             graceful_shutdown: pending(),
             tunnel_event_sender: None,
             tls_passthrough: None,
+            websocket_registry: None,
         })
     }
 
@@ -314,6 +319,7 @@ impl<CA: CertificateAuthority> ProxyBuilder<WantsClient<CA>> {
             graceful_shutdown: pending(),
             tunnel_event_sender: None,
             tls_passthrough: None,
+            websocket_registry: None,
         })
     }
 }
@@ -330,6 +336,7 @@ pub struct WantsHandlers<CA, C, H, W, F> {
     graceful_shutdown: F,
     tunnel_event_sender: Option<mpsc::Sender<RequestInfo>>,
     tls_passthrough: Option<TlsPassthrough>,
+    websocket_registry: Option<WebSocketRegistry>,
 }
 
 impl<CA, C, H, W, F> ProxyBuilder<WantsHandlers<CA, C, H, W, F>> {
@@ -349,6 +356,7 @@ impl<CA, C, H, W, F> ProxyBuilder<WantsHandlers<CA, C, H, W, F>> {
             graceful_shutdown: self.0.graceful_shutdown,
             tunnel_event_sender: self.0.tunnel_event_sender,
             tls_passthrough: self.0.tls_passthrough,
+            websocket_registry: self.0.websocket_registry,
         })
     }
 
@@ -368,6 +376,7 @@ impl<CA, C, H, W, F> ProxyBuilder<WantsHandlers<CA, C, H, W, F>> {
             graceful_shutdown: self.0.graceful_shutdown,
             tunnel_event_sender: self.0.tunnel_event_sender,
             tls_passthrough: self.0.tls_passthrough,
+            websocket_registry: self.0.websocket_registry,
         })
     }
 
@@ -403,6 +412,7 @@ impl<CA, C, H, W, F> ProxyBuilder<WantsHandlers<CA, C, H, W, F>> {
             graceful_shutdown,
             tunnel_event_sender: self.0.tunnel_event_sender,
             tls_passthrough: self.0.tls_passthrough,
+            websocket_registry: self.0.websocket_registry,
         })
     }
 
@@ -410,6 +420,14 @@ impl<CA, C, H, W, F> ProxyBuilder<WantsHandlers<CA, C, H, W, F>> {
     pub fn with_tunnel_event_sender(self, tunnel_event_sender: mpsc::Sender<RequestInfo>) -> Self {
         ProxyBuilder(WantsHandlers {
             tunnel_event_sender: Some(tunnel_event_sender),
+            ..self.0
+        })
+    }
+
+    /// Set the WebSocket registry for message injection.
+    pub fn with_websocket_registry(self, registry: WebSocketRegistry) -> Self {
+        ProxyBuilder(WantsHandlers {
+            websocket_registry: Some(registry),
             ..self.0
         })
     }
@@ -435,6 +453,7 @@ impl<CA, C, H, W, F> ProxyBuilder<WantsHandlers<CA, C, H, W, F>> {
             graceful_shutdown: self.0.graceful_shutdown,
             tunnel_event_sender: self.0.tunnel_event_sender,
             tls_passthrough: self.0.tls_passthrough,
+            websocket_registry: self.0.websocket_registry,
         })
     }
 }

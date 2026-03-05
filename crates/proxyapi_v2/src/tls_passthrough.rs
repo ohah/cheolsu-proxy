@@ -17,25 +17,27 @@ pub struct TlsPassthrough {
 
 impl TlsPassthrough {
     pub fn new(file_path: Option<PathBuf>) -> Self {
-        let passthrough = Self {
-            failures: Arc::new(RwLock::new(HashMap::new())),
-            file_path,
-        };
+        let mut initial = HashMap::new();
 
         // 파일에서 이전 기록 로드
-        if let Some(ref path) = passthrough.file_path {
+        if let Some(ref path) = file_path {
             if path.exists() {
                 if let Ok(data) = std::fs::read_to_string(path) {
                     if let Ok(loaded) = serde_json::from_str::<HashMap<String, u32>>(&data) {
-                        let count = loaded.len();
-                        *passthrough.failures.blocking_write() = loaded;
-                        info!("[TLS-PASSTHROUGH] 이전 기록 로드: {}개 도메인", count);
+                        info!(
+                            "[TLS-PASSTHROUGH] 이전 기록 로드: {}개 도메인",
+                            loaded.len()
+                        );
+                        initial = loaded;
                     }
                 }
             }
         }
 
-        passthrough
+        Self {
+            failures: Arc::new(RwLock::new(initial)),
+            file_path,
+        }
     }
 
     /// 내부 failures 맵에 대한 참조 (blocking context에서 사용)
@@ -198,5 +200,51 @@ mod tests {
 
         let _ = std::fs::remove_file(&file_path);
         let _ = std::fs::remove_dir(&dir);
+    }
+
+    #[tokio::test]
+    async fn test_failure_count_increments() {
+        let passthrough = TlsPassthrough::new(None);
+        let authority: Authority = "example.com:443".parse().unwrap();
+
+        passthrough.record_failure(&authority).await;
+        passthrough.record_failure(&authority).await;
+        passthrough.record_failure(&authority).await;
+
+        let list = passthrough.list_bypassed().await;
+        assert_eq!(list.len(), 1);
+        assert_eq!(list[0].1, 3);
+    }
+
+    #[tokio::test]
+    async fn test_clear_domain() {
+        let passthrough = TlsPassthrough::new(None);
+        let auth1: Authority = "apple.com:443".parse().unwrap();
+        let auth2: Authority = "google.com:443".parse().unwrap();
+
+        passthrough.record_failure(&auth1).await;
+        passthrough.record_failure(&auth2).await;
+
+        passthrough.clear_domain("apple.com").await;
+
+        assert!(!passthrough.should_bypass(&auth1).await);
+        assert!(passthrough.should_bypass(&auth2).await);
+    }
+
+    #[tokio::test]
+    async fn test_list_bypassed() {
+        let passthrough = TlsPassthrough::new(None);
+        let auth1: Authority = "a.com:443".parse().unwrap();
+        let auth2: Authority = "b.com:443".parse().unwrap();
+
+        passthrough.record_failure(&auth1).await;
+        passthrough.record_failure(&auth2).await;
+        passthrough.record_failure(&auth2).await;
+
+        let mut list = passthrough.list_bypassed().await;
+        list.sort_by(|a, b| a.0.cmp(&b.0));
+        assert_eq!(list.len(), 2);
+        assert_eq!(list[0], ("a.com".to_string(), 1));
+        assert_eq!(list[1], ("b.com".to_string(), 2));
     }
 }
