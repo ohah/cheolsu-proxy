@@ -609,9 +609,7 @@ where
             }
         });
 
-        debug!(
-            "[SERVE-STREAM] 서버 연결 시작 - serve_connection_with_upgrades 호출"
-        );
+        debug!("[SERVE-STREAM] 서버 연결 시작 - serve_connection_with_upgrades 호출");
         let result = self
             .server
             .serve_connection_with_upgrades(stream, service)
