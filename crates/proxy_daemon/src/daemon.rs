@@ -249,7 +249,7 @@ async fn run_proxy(
     let cache_dir =
         get_cache_storage_dir(&session_hash).map_err(|e| format!("Cache dir failed: {}", e))?;
 
-    let (tx, rx) = std::sync::mpsc::sync_channel(1);
+    let (tx, mut rx) = tokio::sync::mpsc::channel::<proxy_v2_models::RequestInfo>(256);
     let (tunnel_tx, mut tunnel_rx) =
         tokio::sync::mpsc::channel::<proxy_v2_models::RequestInfo>(100);
 
@@ -289,7 +289,7 @@ async fn run_proxy(
 
     let event_tx_http = event_tx.clone();
     tokio::spawn(async move {
-        for event in rx.iter() {
+        while let Some(event) = rx.recv().await {
             let json = serde_json::to_string(&event).unwrap_or_default();
             let msg = serde_json::to_string(&DaemonMessage::Event { data: event }).unwrap_or(json);
             let _ = event_tx_http.send(msg);

@@ -15,7 +15,6 @@ use proxyapi_v2::{
 };
 use regex::Regex;
 use std::error::Error;
-use std::sync::mpsc;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use tokio_rustls::rustls::{crypto::aws_lc_rs, ClientConfig};
@@ -109,7 +108,7 @@ pub fn create_hybrid_client(
 /// HTTP 및 WebSocket 요청/응답을 로깅하는 핸들러
 #[derive(Clone)]
 pub struct LoggingHandler {
-    sender: mpsc::SyncSender<RequestInfo>,
+    sender: tokio::sync::mpsc::Sender<RequestInfo>,
     req: Option<ProxiedRequest>,
     res: Option<ProxiedResponse>,
     sessions: Arc<Mutex<serde_json::Value>>,
@@ -117,7 +116,7 @@ pub struct LoggingHandler {
 }
 
 impl LoggingHandler {
-    pub fn new(sender: mpsc::SyncSender<RequestInfo>, cache_dir: std::path::PathBuf) -> Self {
+    pub fn new(sender: tokio::sync::mpsc::Sender<RequestInfo>, cache_dir: std::path::PathBuf) -> Self {
         Self {
             sender,
             req: None,
@@ -208,7 +207,7 @@ impl LoggingHandler {
     }
 
     /// 요청과 응답을 묶어서 전송
-    fn send_output(&self) {
+    async fn send_output(&self) {
         let client_request = self
             .req
             .as_ref()
@@ -223,8 +222,8 @@ impl LoggingHandler {
                 .for_client(&request_id, self.cache_dir.as_deref())
         });
         let request_info = RequestInfo(client_request, client_response);
-        if let Err(e) = self.sender.send(request_info) {
-            let _ = e;
+        if let Err(e) = self.sender.send(request_info).await {
+            eprintln!("[LoggingHandler] 이벤트 전송 실패: {}", e);
         }
     }
 
@@ -496,7 +495,7 @@ impl HttpHandler for LoggingHandler {
 
                 self.res = Some(session_proxied_response);
 
-                self.send_output();
+                self.send_output().await;
 
                 use http_body_util::Full;
                 *session_response.body_mut() = Body::from(Full::new(session_body_bytes));
@@ -514,7 +513,7 @@ impl HttpHandler for LoggingHandler {
         if !is_sse {
             let (proxied_response, restored_res) = self.response_to_proxied_response(res).await;
             self.res = Some(proxied_response);
-            self.send_output();
+            self.send_output().await;
             return restored_res;
         }
 
@@ -564,7 +563,7 @@ impl HttpHandler for LoggingHandler {
             );
 
             handler_clone.res = Some(proxied_response);
-            handler_clone.send_output();
+            handler_clone.send_output().await;
         });
 
         response_for_client
