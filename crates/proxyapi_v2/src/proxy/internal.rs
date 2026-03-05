@@ -17,7 +17,7 @@ use hyper_util::{
     rt::{TokioExecutor, TokioIo},
     server,
 };
-use std::{convert::Infallible, net::SocketAddr, sync::Arc};
+use std::{convert::Infallible, net::SocketAddr, pin::Pin, sync::Arc};
 use tokio::{io::AsyncReadExt, net::TcpStream};
 use tokio_rustls::TlsAcceptor;
 use tracing::{Instrument, debug, error, info, info_span, instrument, warn};
@@ -48,6 +48,23 @@ where
             client_addr: self.client_addr,
             ctx: self.ctx.clone(),
         }
+    }
+}
+
+impl<C, CA, H, W> hyper::service::Service<Request<Incoming>> for InternalProxy<C, CA, H, W>
+where
+    C: Connect + Clone + Send + Sync + 'static,
+    CA: CertificateAuthority,
+    H: HttpHandler,
+    W: WebSocketHandler,
+{
+    type Response = Response<Body>;
+    type Error = Infallible;
+    type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send>>;
+
+    fn call(&self, req: Request<Incoming>) -> Self::Future {
+        let proxy = self.clone();
+        Box::pin(proxy.proxy(req))
     }
 }
 

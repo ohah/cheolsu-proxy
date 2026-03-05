@@ -11,7 +11,6 @@ use crate::{
 };
 use builder::{AddrOrListener, WantsAddr};
 use context::ProxyContext;
-use hyper::service::service_fn;
 use hyper_util::{
     client::legacy::{Client, connect::Connect},
     rt::{TokioExecutor, TokioIo},
@@ -133,27 +132,20 @@ where
                     };
 
                     let server = server.clone();
-                    let client = self.client.clone();
-                    let ca = Arc::clone(&self.ca);
-                    let http_handler = self.http_handler.clone();
-                    let websocket_handler = self.websocket_handler.clone();
-                    let proxy_ctx = self.ctx.clone();
+                    let svc = InternalProxy {
+                        ca: Arc::clone(&self.ca),
+                        client: self.client.clone(),
+                        server: server.clone(),
+                        http_handler: self.http_handler.clone(),
+                        websocket_handler: self.websocket_handler.clone(),
+                        client_addr,
+                        ctx: self.ctx.clone(),
+                    };
 
                     shutdown.spawn_task_fn(move |guard| async move {
                         let conn = server.serve_connection_with_upgrades(
                             TokioIo::new(tcp),
-                            service_fn(|req| {
-                                InternalProxy {
-                                    ca: Arc::clone(&ca),
-                                    client: client.clone(),
-                                    server: server.clone(),
-                                    http_handler: http_handler.clone(),
-                                    websocket_handler: websocket_handler.clone(),
-                                    client_addr,
-                                    ctx: proxy_ctx.clone(),
-                                }
-                                .proxy(req)
-                            }),
+                            svc,
                         );
 
                         let mut conn = std::pin::pin!(conn);
