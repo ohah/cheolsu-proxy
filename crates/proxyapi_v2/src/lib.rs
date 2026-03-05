@@ -85,38 +85,6 @@ pub struct HttpContext {
     pub client_addr: SocketAddr,
 }
 
-/// SSE 전용 핸들러 - chunk 단위로 실시간 전달
-pub struct SseHandler;
-
-impl SseHandler {
-    /// SSE 응답을 chunk 단위로 실시간 전달
-    pub async fn handle_sse_response(&self, res: Response<Body>) -> Response<Body> {
-        let _sse_processing_time = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_millis();
-
-        let (mut parts, body) = res.into_parts();
-
-        // SSE 최적화된 헤더 설정
-        parts
-            .headers
-            .insert("Cache-Control", "no-cache".parse().unwrap());
-        parts
-            .headers
-            .insert("Connection", "keep-alive".parse().unwrap());
-        parts.headers.remove("content-length");
-
-        // Transfer-Encoding: chunked 명시적 설정
-        parts
-            .headers
-            .insert("Transfer-Encoding", "chunked".parse().unwrap());
-
-        // Body를 그대로 전달 (proxy/internal.rs에서 이미 chunk 단위로 처리됨)
-        Response::from_parts(parts, body)
-    }
-}
-
 /// Context for websocket messages.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum WebSocketContext {
@@ -153,57 +121,15 @@ pub trait HttpHandler: Clone + Send + Sync + 'static {
 
     /// This handler will be called for each HTTP response. It can modify a response before it is
     /// forwarded to the client.
+    ///
+    /// Note: 스트리밍 응답(SSE, chunked) 헤더 최적화는 proxy 내부의
+    /// `optimize_streaming_response` 미들웨어에서 자동 처리됩니다.
     fn handle_response(
         &mut self,
         _ctx: &HttpContext,
         res: Response<Body>,
     ) -> impl Future<Output = Response<Body>> + Send {
-        async {
-            // SSE 스트리밍 응답 감지 및 로깅
-            let content_type = res
-                .headers()
-                .get("content-type")
-                .and_then(|ct| ct.to_str().ok())
-                .unwrap_or("");
-
-            let transfer_encoding = res
-                .headers()
-                .get("transfer-encoding")
-                .and_then(|te| te.to_str().ok())
-                .unwrap_or("");
-
-            let is_sse = content_type.contains("text/event-stream")
-                || content_type.contains("application/x-ndjson")
-                || transfer_encoding.contains("chunked");
-
-            if is_sse {
-                let _sse_handler_time = std::time::SystemTime::now()
-                    .duration_since(std::time::UNIX_EPOCH)
-                    .unwrap()
-                    .as_millis();
-
-                // SSE 응답인 경우 헤더 최적화
-                let (mut parts, body) = res.into_parts();
-
-                // 스트리밍을 위한 헤더 설정
-                parts
-                    .headers
-                    .insert("Cache-Control", "no-cache".parse().unwrap());
-                parts
-                    .headers
-                    .insert("Connection", "keep-alive".parse().unwrap());
-
-                // Content-Length가 있다면 제거 (스트리밍에서는 불필요)
-                parts.headers.remove("content-length");
-
-                // SSE 전용 핸들러로 chunk 단위 전달
-                return SseHandler
-                    .handle_sse_response(Response::from_parts(parts, body))
-                    .await;
-            }
-
-            res
-        }
+        async { res }
     }
 
     /// This handler will be called if a proxy request fails. Default response is a 502 Bad Gateway.
