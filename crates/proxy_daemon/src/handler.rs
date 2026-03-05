@@ -17,6 +17,7 @@ use regex::Regex;
 use std::error::Error;
 use std::sync::Arc;
 use tokio::sync::Mutex;
+use tracing::{debug, error, info};
 use tokio_rustls::rustls::{crypto::aws_lc_rs, ClientConfig};
 use tokio_stream::wrappers::ReceiverStream;
 
@@ -223,7 +224,7 @@ impl LoggingHandler {
         });
         let request_info = RequestInfo(client_request, client_response);
         if let Err(e) = self.sender.send(request_info).await {
-            eprintln!("[LoggingHandler] 이벤트 전송 실패: {}", e);
+            error!("[LoggingHandler] 이벤트 전송 실패: {}", e);
         }
     }
 
@@ -546,7 +547,7 @@ impl HttpHandler for LoggingHandler {
                         }
                     }
                     Err(e) => {
-                        eprintln!("[SSE Stream] Error reading from upstream: {:?}", e);
+                        error!("[SSE Stream] Error reading from upstream: {:?}", e);
                         break;
                     }
                 }
@@ -574,35 +575,21 @@ impl HttpHandler for LoggingHandler {
         _ctx: &HttpContext,
         err: hyper_util::client::legacy::Error,
     ) -> Response<Body> {
-        eprintln!("❌ [HANDLER] handle_error 호출됨 - 에러 발생!");
-        eprintln!("   - 에러 타입: {:?}", err);
-        eprintln!("   - 에러 메시지: {}", err);
-
         let tls_info = self.extract_tls_info_from_error(&err);
-        if let Some((tls_version, tls_backend)) = tls_info {
-            eprintln!("   - TLS 버전: {}", tls_version);
-            eprintln!("   - TLS 백엔드: {}", tls_backend);
-        }
-
-        if let Some(target_server) = self.extract_target_server_from_error(&err) {
-            eprintln!("   - 대상 서버: {}", target_server);
-        }
+        let target_server = self.extract_target_server_from_error(&err);
 
         if let Some(source) = err.source() {
             let source_str = source.to_string();
             if source_str.contains("UnexpectedEof") || source_str.contains("unexpected EOF") {
-                eprintln!("ℹ️  TLS close_notify 없이 연결 종료됨 - 정상 종료로 처리");
+                debug!(
+                    error = %err,
+                    target = ?target_server,
+                    "TLS close_notify 없이 연결 종료됨 - 정상 종료로 처리"
+                );
 
                 if self.res.is_some() {
-                    eprintln!("   - ✅ 이미 받은 응답 데이터가 있음 - 해당 데이터 사용");
-                    eprintln!("   - 📊 응답 상태: {}", self.res.as_ref().unwrap().status());
-                    eprintln!(
-                        "   - 📏 응답 크기: {} bytes",
-                        self.res.as_ref().unwrap().body().len()
-                    );
                     return self.create_response_from_cached_data();
                 } else {
-                    eprintln!("   - ⚠️  받은 응답 데이터가 없음 - 빈 응답 반환");
                     return Response::builder()
                         .status(StatusCode::OK)
                         .body(Body::empty())
@@ -616,36 +603,29 @@ impl HttpHandler for LoggingHandler {
             }
         }
 
-        eprintln!("❌ 프록시 요청 오류 발생:");
-        eprintln!("   - 에러 타입: {:?}", err);
-        eprintln!("   - 에러 메시지: {}", err);
+        error!(
+            error = %err,
+            target = ?target_server,
+            tls_info = ?tls_info,
+            source = ?err.source().map(|s| s.to_string()),
+            "프록시 요청 오류"
+        );
 
-        let should_use_curl = if let Some(source) = err.source() {
-            eprintln!("   - 원인: {}", source);
-
-            let source_str = source.to_string();
-            if source_str.contains("HandshakeFailure") {
-                eprintln!("   - TLS 핸드셰이크 실패 (curl 백업 사용)");
-                true
-            } else {
-                eprintln!("   - 기타 연결 오류 (curl 백업 사용 안함)");
-                false
-            }
-        } else {
-            eprintln!("   - 알 수 없는 오류 (curl 백업 사용 안함)");
-            false
-        };
+        let should_use_curl = err
+            .source()
+            .map(|s| s.to_string().contains("HandshakeFailure"))
+            .unwrap_or(false);
 
         if should_use_curl {
             if let Some(req) = &self.req {
-                eprintln!("🔄 TLS 오류: curl로 직접 요청 시도 중...");
+                error!("TLS 핸드셰이크 실패 - curl 폴백 시도");
                 match fallback_with_curl(req).await {
                     Ok(response) => {
-                        eprintln!("✅ curl 직접 요청 성공 - 원본 응답 반환");
+                        info!("curl 폴백 성공");
                         return response;
                     }
                     Err(curl_err) => {
-                        eprintln!("❌ curl 직접 요청도 실패: {}", curl_err);
+                        error!(error = %curl_err, "curl 폴백도 실패");
                     }
                 }
             }
@@ -693,7 +673,7 @@ pub async fn fallback_with_curl(
 
     curl_cmd.arg(&url);
 
-    eprintln!("🔧 curl 명령어 실행: {:?}", curl_cmd);
+    debug!("curl 명령어 실행: {:?}", curl_cmd);
 
     let output = curl_cmd.output()?;
 
@@ -702,7 +682,7 @@ pub async fn fallback_with_curl(
     }
 
     let response_text = str::from_utf8(&output.stdout)?;
-    eprintln!("📥 curl 응답 길이: {} bytes", response_text.len());
+    debug!("curl 응답 길이: {} bytes", response_text.len());
 
     parse_curl_response(response_text)
 }
