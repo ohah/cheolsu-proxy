@@ -1,6 +1,6 @@
 use crate::{
     Body, HttpHandler, NoopHandler, Proxy, WebSocketHandler,
-    certificate_authority::CertificateAuthority,
+    certificate_authority::CertificateAuthority, tls_passthrough::TlsPassthrough,
 };
 use hyper_util::{
     client::legacy::{Client, connect::Connect},
@@ -217,6 +217,7 @@ impl<CA: CertificateAuthority> ProxyBuilder<WantsClient<CA>> {
                     server: None,
                     graceful_shutdown: pending(),
                     tunnel_event_sender: None,
+                    tls_passthrough: None,
                 });
             }
         };
@@ -244,6 +245,7 @@ impl<CA: CertificateAuthority> ProxyBuilder<WantsClient<CA>> {
             server: None,
             graceful_shutdown: pending(),
             tunnel_event_sender: None,
+            tls_passthrough: None,
         })
     }
 
@@ -268,6 +270,7 @@ impl<CA: CertificateAuthority> ProxyBuilder<WantsClient<CA>> {
                     server: None,
                     graceful_shutdown: pending(),
                     tunnel_event_sender: None,
+                    tls_passthrough: None,
                 });
             }
         };
@@ -288,6 +291,7 @@ impl<CA: CertificateAuthority> ProxyBuilder<WantsClient<CA>> {
             server: None,
             graceful_shutdown: pending(),
             tunnel_event_sender: None,
+            tls_passthrough: None,
         })
     }
 
@@ -309,6 +313,7 @@ impl<CA: CertificateAuthority> ProxyBuilder<WantsClient<CA>> {
             server: None,
             graceful_shutdown: pending(),
             tunnel_event_sender: None,
+            tls_passthrough: None,
         })
     }
 }
@@ -324,6 +329,7 @@ pub struct WantsHandlers<CA, C, H, W, F> {
     server: Option<Builder<TokioExecutor>>,
     graceful_shutdown: F,
     tunnel_event_sender: Option<mpsc::Sender<RequestInfo>>,
+    tls_passthrough: Option<TlsPassthrough>,
 }
 
 impl<CA, C, H, W, F> ProxyBuilder<WantsHandlers<CA, C, H, W, F>> {
@@ -342,6 +348,7 @@ impl<CA, C, H, W, F> ProxyBuilder<WantsHandlers<CA, C, H, W, F>> {
             server: self.0.server,
             graceful_shutdown: self.0.graceful_shutdown,
             tunnel_event_sender: self.0.tunnel_event_sender,
+            tls_passthrough: self.0.tls_passthrough,
         })
     }
 
@@ -360,6 +367,7 @@ impl<CA, C, H, W, F> ProxyBuilder<WantsHandlers<CA, C, H, W, F>> {
             server: self.0.server,
             graceful_shutdown: self.0.graceful_shutdown,
             tunnel_event_sender: self.0.tunnel_event_sender,
+            tls_passthrough: self.0.tls_passthrough,
         })
     }
 
@@ -394,6 +402,7 @@ impl<CA, C, H, W, F> ProxyBuilder<WantsHandlers<CA, C, H, W, F>> {
             server: self.0.server,
             graceful_shutdown,
             tunnel_event_sender: self.0.tunnel_event_sender,
+            tls_passthrough: self.0.tls_passthrough,
         })
     }
 
@@ -401,6 +410,14 @@ impl<CA, C, H, W, F> ProxyBuilder<WantsHandlers<CA, C, H, W, F>> {
     pub fn with_tunnel_event_sender(self, tunnel_event_sender: mpsc::Sender<RequestInfo>) -> Self {
         ProxyBuilder(WantsHandlers {
             tunnel_event_sender: Some(tunnel_event_sender),
+            ..self.0
+        })
+    }
+
+    /// Set the TLS passthrough handler for auto-learning bypass.
+    pub fn with_tls_passthrough(self, tls_passthrough: TlsPassthrough) -> Self {
+        ProxyBuilder(WantsHandlers {
+            tls_passthrough: Some(tls_passthrough),
             ..self.0
         })
     }
@@ -417,6 +434,7 @@ impl<CA, C, H, W, F> ProxyBuilder<WantsHandlers<CA, C, H, W, F>> {
             server: self.0.server,
             graceful_shutdown: self.0.graceful_shutdown,
             tunnel_event_sender: self.0.tunnel_event_sender,
+            tls_passthrough: self.0.tls_passthrough,
         })
     }
 }

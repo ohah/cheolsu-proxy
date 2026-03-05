@@ -563,6 +563,7 @@ mod tests {
             websocket_connector: None,
             client_addr: "127.0.0.1:0".parse::<SocketAddr>().unwrap(),
             tunnel_event_sender: None,
+            tls_passthrough: None,
         }
     }
 

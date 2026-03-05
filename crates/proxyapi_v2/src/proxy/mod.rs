@@ -7,7 +7,7 @@ pub mod builder;
 
 use crate::{
     Body, Error, HttpHandler, WebSocketHandler, builder::ProxyBuilder,
-    certificate_authority::CertificateAuthority,
+    certificate_authority::CertificateAuthority, tls_passthrough::TlsPassthrough,
 };
 use builder::{AddrOrListener, WantsAddr};
 use hyper::service::service_fn;
@@ -84,6 +84,7 @@ pub struct Proxy<C, CA, H, W, F> {
     server: Option<Builder<TokioExecutor>>,
     graceful_shutdown: F,
     tunnel_event_sender: Option<mpsc::Sender<RequestInfo>>,
+    tls_passthrough: Option<TlsPassthrough>,
 }
 
 impl Proxy<(), (), (), (), ()> {
@@ -142,6 +143,7 @@ where
                     let websocket_handler = self.websocket_handler.clone();
                     let websocket_connector = self.websocket_connector.clone();
                     let tunnel_event_sender = self.tunnel_event_sender.clone();
+                    let tls_passthrough = self.tls_passthrough.clone();
 
                     shutdown.spawn_task_fn(move |guard| async move {
                         let conn = server.serve_connection_with_upgrades(
@@ -156,6 +158,7 @@ where
                                     websocket_connector: websocket_connector.clone(),
                                     client_addr,
                                     tunnel_event_sender: tunnel_event_sender.clone(),
+                                    tls_passthrough: tls_passthrough.clone(),
                                 }
                                 .proxy(req)
                             }),

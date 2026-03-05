@@ -286,6 +286,12 @@ async fn run_proxy(
         .await
         .map_err(|e| format!("Port {} bind failed: {}", addr.port(), e))?;
 
+    // TLS 자동 학습 바이패스 초기화
+    let passthrough_path = app_support_dir()
+        .ok()
+        .map(|dir| dir.join("tls_passthrough.json"));
+    let tls_passthrough = proxyapi_v2::tls_passthrough::TlsPassthrough::new(passthrough_path);
+
     let proxy_builder = ProxyBuilder::new()
         .with_listener(listener)
         .with_ca(ca)
@@ -293,6 +299,7 @@ async fn run_proxy(
         .with_http_handler(handler.clone())
         .with_websocket_handler(handler.clone())
         .with_tunnel_event_sender(tunnel_tx)
+        .with_tls_passthrough(tls_passthrough)
         .build()
         .map_err(|e| format!("Proxy build failed: {}", e))?;
 

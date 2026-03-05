@@ -650,20 +650,10 @@ pub fn is_openssl_required_domain(authority: &Authority) -> bool {
 }
 
 /// 특정 도메인이 터널 모드가 필요한지 확인합니다
-pub fn is_tunnel_required_domain(authority: &Authority) -> bool {
-    let host = authority.host();
-    let tunnel_required_domains = [
-        "wps.apple.com",
-        "gdmf.apple.com",
-        "fbs.smoot.apple.com",
-        "gateway.icloud.com",
-        "setup.icloud.com",
-        "icloud.com",
-        "apple.com",
-    ];
-    tunnel_required_domains
-        .iter()
-        .any(|&domain| host.contains(domain))
+/// 터널 모드가 필요한 도메인인지 확인합니다
+/// 현재 비활성화 — 모든 도메인을 MITM 인터셉트합니다
+pub fn is_tunnel_required_domain(_authority: &Authority) -> bool {
+    false
 }
 
 /// Extension 타입을 이름으로 변환
