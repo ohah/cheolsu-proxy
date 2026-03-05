@@ -612,24 +612,30 @@ where
                 Ok(())
             }
             Err(e) => {
-                let error_str = e.to_string();
-                let is_benign = error_str.starts_with("error shutting down connection")
-                    || error_str.contains("close_notify")
-                    || error_str.contains("connection error")
-                    || error_str.contains("connection reset")
-                    || error_str.contains("broken pipe");
+                // 에러 소스 체인을 모두 수집
+                let mut error_chain = format!("{}", e);
+                let mut source: Option<&dyn std::error::Error> = e.source();
+                while let Some(s) = source {
+                    error_chain.push_str(&format!(" → {}", s));
+                    source = s.source();
+                }
+
+                let is_benign = error_chain.contains("error shutting down connection")
+                    || error_chain.contains("close_notify")
+                    || error_chain.contains("connection reset")
+                    || error_chain.contains("broken pipe");
 
                 if is_benign {
                     debug!(
                         %authority,
-                        error = %e,
+                        error_chain,
                         "[SERVE-STREAM] 연결 종료 (정상)"
                     );
                     Ok(())
                 } else {
                     error!(
                         %authority,
-                        error = %e,
+                        error_chain,
                         "[SERVE-STREAM] 스트림 서빙 실패"
                     );
                     Err(e)
