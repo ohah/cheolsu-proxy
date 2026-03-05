@@ -24,21 +24,9 @@ where
 {
     #[instrument(skip_all)]
     /// 터널 모드가 필요한 도메인인지 확인합니다
-    pub(crate) fn is_tunnel_mode_domain(&self, authority: &Authority) -> bool {
-        let host = authority.host();
-
-        // 터널 모드가 필요한 도메인들
-        let tunnel_domains = [
-            "wps.apple.com",
-            "gdmf.apple.com",
-            "fbs.smoot.apple.com",
-            "gateway.icloud.com",
-            "setup.icloud.com",
-            "icloud.com",
-            "apple.com",
-        ];
-
-        tunnel_domains.iter().any(|&domain| host.contains(domain))
+    /// 현재 비활성화 — 모든 도메인을 MITM 인터셉트합니다
+    pub(crate) fn is_tunnel_mode_domain(&self, _authority: &Authority) -> bool {
+        false
     }
 
     /// 터널 모드에서 HTTP 요청을 파싱하는 헬퍼 함수
