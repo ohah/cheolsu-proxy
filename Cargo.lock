@@ -4184,6 +4184,7 @@ dependencies = [
  "tokio",
  "tokio-rustls",
  "tokio-stream",
+ "tracing",
 ]
 
 [[package]]

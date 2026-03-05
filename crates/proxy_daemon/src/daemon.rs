@@ -4,6 +4,7 @@ use std::sync::Arc;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::net::{UnixListener, UnixStream};
 use tokio::sync::{broadcast, watch, Mutex};
+use tracing::{error, info, warn};
 
 use crate::handler::{create_hybrid_client, LoggingHandler};
 use crate::protocol::{ClientCommand, DaemonMessage, ProxyLockInfo};
@@ -76,7 +77,7 @@ pub fn check_and_cleanup_stale_lock() -> bool {
     use nix::unistd::Pid;
     let pid = Pid::from_raw(info.pid as i32);
     if kill(pid, None).is_err() {
-        eprintln!(
+        warn!(
             "Stale lock file detected (PID {} is dead), cleaning up",
             info.pid
         );
@@ -103,14 +104,14 @@ pub fn run_daemon(port: u16, host: String) -> ! {
 
 async fn daemon_main(port: u16, host: String) -> i32 {
     if !check_and_cleanup_stale_lock() {
-        eprintln!("Another daemon is already running. Exiting.");
+        error!("Another daemon is already running. Exiting.");
         return 1;
     }
 
     let uds_path = match uds_socket_path() {
         Ok(p) => p,
         Err(e) => {
-            eprintln!("Failed to get UDS socket path: {}", e);
+            error!("Failed to get UDS socket path: {}", e);
             return 1;
         }
     };
@@ -123,7 +124,7 @@ async fn daemon_main(port: u16, host: String) -> i32 {
     }
 
     if let Err(e) = write_lock_file(port, &uds_path_str) {
-        eprintln!("Failed to write lock file: {}", e);
+        error!("Failed to write lock file: {}", e);
         return 1;
     }
 
@@ -140,20 +141,20 @@ async fn daemon_main(port: u16, host: String) -> i32 {
         .expect("Invalid host:port");
 
     if let Err(e) = set_proxy(true, port) {
-        eprintln!("Failed to set system proxy: {}", e);
+        error!("Failed to set system proxy: {}", e);
     }
 
     let event_tx_proxy = event_tx.clone();
     let proxy_handle = tokio::spawn(async move {
         if let Err(code) = run_proxy(addr, event_tx_proxy, session_rx).await {
-            eprintln!("Proxy error: {}", code);
+            error!("Proxy error: {}", code);
         }
     });
 
     let uds_listener = match UnixListener::bind(&uds_path) {
         Ok(l) => l,
         Err(e) => {
-            eprintln!("Failed to bind UDS: {}", e);
+            error!("Failed to bind UDS: {}", e);
             cleanup(port, &uds_path);
             return 1;
         }
@@ -162,7 +163,7 @@ async fn daemon_main(port: u16, host: String) -> i32 {
     let log_path = app_support_dir()
         .map(|d| d.join("daemon.log"))
         .unwrap_or_default();
-    println!(
+    info!(
         "Daemon started (PID {}, proxy={}:{}, uds={}, log={})",
         std::process::id(),
         host,
@@ -174,7 +175,7 @@ async fn daemon_main(port: u16, host: String) -> i32 {
     let shutdown_tx_ctrlc = shutdown_tx.clone();
     tokio::spawn(async move {
         let _ = tokio::signal::ctrl_c().await;
-        eprintln!("\nCtrl+C received, shutting down daemon...");
+        warn!("Ctrl+C received, shutting down daemon...");
         let _ = shutdown_tx_ctrlc.send(()).await;
     });
 
@@ -184,7 +185,7 @@ async fn daemon_main(port: u16, host: String) -> i32 {
                 match accept_result {
                     Ok((stream, _addr)) => {
                         let count = client_count.fetch_add(1, Ordering::SeqCst) + 1;
-                        println!("Client connected (total: {})", count);
+                        info!("Client connected (total: {})", count);
 
                         let event_rx = event_tx.subscribe();
                         let client_count_clone = client_count.clone();
@@ -196,21 +197,21 @@ async fn daemon_main(port: u16, host: String) -> i32 {
                                 .await;
 
                             let remaining = client_count_clone.fetch_sub(1, Ordering::SeqCst) - 1;
-                            println!("Client disconnected (remaining: {})", remaining);
+                            info!("Client disconnected (remaining: {})", remaining);
 
                             if remaining == 0 {
-                                println!("No clients remaining, shutting down daemon...");
+                                info!("No clients remaining, shutting down daemon...");
                                 let _ = shutdown_tx_clone.send(()).await;
                             }
                         });
                     }
                     Err(e) => {
-                        eprintln!("UDS accept error: {}", e);
+                        error!("UDS accept error: {}", e);
                     }
                 }
             }
             _ = shutdown_rx.recv() => {
-                println!("Shutdown signal received");
+                info!("Shutdown signal received");
                 break;
             }
         }
@@ -218,13 +219,13 @@ async fn daemon_main(port: u16, host: String) -> i32 {
 
     proxy_handle.abort();
     cleanup(port, &uds_path);
-    println!("Daemon stopped");
+    info!("Daemon stopped");
     0
 }
 
 fn cleanup(port: u16, uds_path: &Path) {
     if let Err(e) = set_proxy(false, port) {
-        eprintln!("Failed to unset system proxy: {}", e);
+        error!("Failed to unset system proxy: {}", e);
     }
     remove_lock_file();
     remove_uds_socket(uds_path);
@@ -285,7 +286,7 @@ async fn run_proxy(
         .build()
         .map_err(|e| format!("Proxy build failed: {}", e))?;
 
-    println!("Proxy listening on {}", addr);
+    info!("Proxy listening on {}", addr);
 
     let event_tx_http = event_tx.clone();
     tokio::spawn(async move {
@@ -359,7 +360,7 @@ pub async fn handle_client(
                     }
                 }
                 Err(broadcast::error::RecvError::Lagged(n)) => {
-                    eprintln!("Client lagged by {} messages", n);
+                    warn!("Client lagged by {} messages", n);
                 }
                 Err(broadcast::error::RecvError::Closed) => break,
             }
@@ -387,12 +388,12 @@ pub async fn handle_client(
                         break;
                     }
                     Err(e) => {
-                        eprintln!("Invalid command from client: {} ({})", trimmed, e);
+                        error!("Invalid command from client: {} ({})", trimmed, e);
                     }
                 }
             }
             Err(e) => {
-                eprintln!("Client read error: {}", e);
+                error!("Client read error: {}", e);
                 break;
             }
         }

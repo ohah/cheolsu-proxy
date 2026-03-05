@@ -1,5 +1,6 @@
 use std::env;
 use std::process::Command;
+use tracing::info;
 
 /// 현재 활성 네트워크 서비스 이름 가져오기 (macOS)
 pub fn get_active_service() -> Option<String> {
@@ -57,8 +58,8 @@ pub fn set_proxy(enable: bool, port: u16) -> Result<(), String> {
                 .status()
                 .map_err(|e| e.to_string())?;
 
-            println!("프록시 설정 완료 - HTTP, HTTPS 프록시 활성화됨");
-            println!("   프록시 주소: 127.0.0.1:{}", port);
+            info!("프록시 설정 완료 - HTTP, HTTPS 프록시 활성화됨");
+            info!("   프록시 주소: 127.0.0.1:{}", port);
         } else {
             // HTTP 프록시 끄기
             Command::new("networksetup")
@@ -72,7 +73,7 @@ pub fn set_proxy(enable: bool, port: u16) -> Result<(), String> {
                 .status()
                 .map_err(|e| e.to_string())?;
 
-            println!("프록시 설정 해제 완료 - HTTP, HTTPS 프록시 비활성화됨");
+            info!("프록시 설정 해제 완료 - HTTP, HTTPS 프록시 비활성화됨");
         }
     }
     Ok(())
