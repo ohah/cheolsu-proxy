@@ -182,9 +182,8 @@ async fn daemon_main(port: u16, host: String) -> i32 {
     // SIGTERM 시그널 처리 (프로세스 kill 시 프록시 설정 복원)
     let shutdown_tx_term = shutdown_tx.clone();
     tokio::spawn(async move {
-        let mut sigterm =
-            tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
-                .expect("Failed to register SIGTERM handler");
+        let mut sigterm = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
+            .expect("Failed to register SIGTERM handler");
         sigterm.recv().await;
         warn!("SIGTERM received, shutting down daemon...");
         let _ = shutdown_tx_term.send(()).await;

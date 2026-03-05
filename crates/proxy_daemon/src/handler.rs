@@ -17,9 +17,9 @@ use regex::Regex;
 use std::error::Error;
 use std::sync::Arc;
 use tokio::sync::Mutex;
-use tracing::{debug, error, info};
 use tokio_rustls::rustls::{crypto::aws_lc_rs, ClientConfig};
 use tokio_stream::wrappers::ReceiverStream;
+use tracing::{debug, error, info};
 
 /// 모든 인증서를 허용하는 위험한 인증서 검증기
 #[derive(Debug)]
@@ -117,7 +117,10 @@ pub struct LoggingHandler {
 }
 
 impl LoggingHandler {
-    pub fn new(sender: tokio::sync::mpsc::Sender<RequestInfo>, cache_dir: std::path::PathBuf) -> Self {
+    pub fn new(
+        sender: tokio::sync::mpsc::Sender<RequestInfo>,
+        cache_dir: std::path::PathBuf,
+    ) -> Self {
         Self {
             sender,
             req: None,
