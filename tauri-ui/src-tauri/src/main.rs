@@ -36,7 +36,7 @@ fn main() {
         // (stdout/stderr가 터미널+로그 파일로 tee됨)
         if std::env::var("LOG").unwrap_or_default() != "true" {
             let filter =
-                EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info"));
+                EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("warn"));
             tracing_subscriber::registry()
                 .with(fmt::layer().with_writer(std::io::stderr).with_ansi(false))
                 .with(filter)
