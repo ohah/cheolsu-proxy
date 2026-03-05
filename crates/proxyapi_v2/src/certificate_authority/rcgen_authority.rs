@@ -241,6 +241,9 @@ impl CertificateAuthority for RcgenAuthority {
         ctx.set_min_proto_version(Some(openssl::ssl::SslVersion::TLS1))?;
         ctx.set_max_proto_version(Some(openssl::ssl::SslVersion::TLS1_3))?;
 
+        // OpenSSL 3.0+에서 레거시 TLS 1.0/1.1 지원을 위해 SECLEVEL=0 설정
+        ctx.set_cipher_list("@SECLEVEL=0:ALL:!aNULL:!eNULL")?;
+
         // 프록시를 위한 인증서 검증 비활성화
         ctx.set_verify(openssl::ssl::SslVerifyMode::NONE);
         ctx.set_verify_depth(10);

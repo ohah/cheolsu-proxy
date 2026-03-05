@@ -459,6 +459,15 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         info!("🔧 [SSL-CONFIG] SSL 객체 설정 시작: {}", authority);
 
+        // 레거시 TLS 버전은 OpenSSL 3.0+에서 SECLEVEL=0이 필요
+        if matches!(
+            tls_info.version,
+            TlsVersion::Tls10 | TlsVersion::Ssl30 | TlsVersion::Tls11
+        ) {
+            ssl.set_cipher_list("@SECLEVEL=0:ALL:!aNULL:!eNULL")?;
+            info!("🔧 [SSL-CONFIG] 레거시 TLS용 SECLEVEL=0 적용");
+        }
+
         // 클라이언트가 요청한 TLS 버전에 맞춰 설정
         match tls_info.version {
             TlsVersion::Tls10 | TlsVersion::Ssl30 => {

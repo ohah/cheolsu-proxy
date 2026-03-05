@@ -6,7 +6,7 @@ use tokio::sync::RwLock;
 use tracing::{debug, info, warn};
 
 /// TLS 핸드셰이크 실패 도메인을 기록하고, 이후 연결 시 자동으로 바이패스(터널)하는 모듈.
-/// mitmproxy의 tls_passthrough.py ConservativeStrategy와 동일한 접근 방식.
+/// 한 번이라도 실패한 도메인은 이후 MITM 없이 TCP 파이프로 통과시킵니다.
 #[derive(Clone)]
 pub struct TlsPassthrough {
     /// host → 실패 횟수
