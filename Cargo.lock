@@ -4240,6 +4240,8 @@ dependencies = [
  "tokio-rustls",
  "tokio-tungstenite",
  "tokio-util",
+ "tower 0.5.3",
+ "tower-service",
  "tracing",
  "tracing-subscriber",
  "uuid",

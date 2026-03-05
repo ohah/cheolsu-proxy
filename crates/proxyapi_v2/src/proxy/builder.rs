@@ -395,7 +395,10 @@ impl<CA, C, H, W, F> ProxyBuilder<WantsHandlers<CA, C, H, W, F>> {
     }
 
     /// Set the tunnel event sender for tunnel mode events.
-    pub fn with_tunnel_event_sender(mut self, tunnel_event_sender: mpsc::Sender<RequestInfo>) -> Self {
+    pub fn with_tunnel_event_sender(
+        mut self,
+        tunnel_event_sender: mpsc::Sender<RequestInfo>,
+    ) -> Self {
         self.0.ctx.tunnel_event_sender = Some(tunnel_event_sender);
         self
     }
