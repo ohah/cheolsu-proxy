@@ -35,10 +35,7 @@ where
     type Error = Infallible;
     type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send>>;
 
-    fn poll_ready(
-        &mut self,
-        cx: &mut std::task::Context<'_>,
-    ) -> Poll<Result<(), Self::Error>> {
+    fn poll_ready(&mut self, cx: &mut std::task::Context<'_>) -> Poll<Result<(), Self::Error>> {
         self.inner.poll_ready(cx)
     }
 
@@ -130,10 +127,7 @@ mod tests {
         let uri: Uri = "http://example.com/events".parse().unwrap();
         let result = optimize_streaming_response(res, &uri);
 
-        assert_eq!(
-            result.headers().get("X-Accel-Buffering").unwrap(),
-            "no"
-        );
+        assert_eq!(result.headers().get("X-Accel-Buffering").unwrap(), "no");
         assert_eq!(
             result.headers().get("Transfer-Encoding").unwrap(),
             "chunked"
@@ -167,9 +161,6 @@ mod tests {
         let uri: Uri = "http://example.com/ces/v1/t".parse().unwrap();
         let result = optimize_streaming_response(res, &uri);
 
-        assert_eq!(
-            result.headers().get("X-Accel-Buffering").unwrap(),
-            "no"
-        );
+        assert_eq!(result.headers().get("X-Accel-Buffering").unwrap(), "no");
     }
 }

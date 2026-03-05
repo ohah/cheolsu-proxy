@@ -128,8 +128,7 @@ where
 
             match res {
                 Ok(res) => {
-                    let response =
-                        optimize_streaming_response(res.map(Body::from), &req_uri);
+                    let response = optimize_streaming_response(res.map(Body::from), &req_uri);
 
                     Ok(self
                         .http_handler
