@@ -1,4 +1,5 @@
 use proxy_v2_models::RequestInfo;
+use std::io::Write;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::net::UnixStream;
 use tokio::sync::Mutex;
@@ -69,36 +70,54 @@ pub fn is_daemon_running() -> Option<ProxyLockInfo> {
 fn spawn_daemon(port: u16, host: &str) -> Result<(), String> {
     let exe = std::env::current_exe().map_err(|e| format!("Cannot find current exe: {}", e))?;
 
-    let (stdout_cfg, stderr_cfg) = match daemon_log_file() {
-        Some(file) => {
-            let stderr_file = file.try_clone().unwrap_or_else(|_| {
-                std::fs::OpenOptions::new()
-                    .create(true)
-                    .append(true)
-                    .open("/dev/null")
-                    .expect("Failed to open /dev/null")
-            });
-            (
-                std::process::Stdio::from(file),
-                std::process::Stdio::from(stderr_file),
-            )
-        }
-        None => (std::process::Stdio::null(), std::process::Stdio::null()),
-    };
-
-    std::process::Command::new(exe)
+    let mut child = std::process::Command::new(exe)
         .arg("--daemon")
         .arg("--port")
         .arg(port.to_string())
         .arg("--host")
         .arg(host)
         .stdin(std::process::Stdio::null())
-        .stdout(stdout_cfg)
-        .stderr(stderr_cfg)
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped())
         .spawn()
         .map_err(|e| format!("Failed to spawn daemon: {}", e))?;
 
+    let log_file = daemon_log_file();
+
+    // stdout → 터미널 + 로그 파일
+    if let Some(stdout) = child.stdout.take() {
+        let log_file_clone = log_file.as_ref().and_then(|f| f.try_clone().ok());
+        std::thread::spawn(move || {
+            tee_stream(stdout, std::io::stdout(), log_file_clone);
+        });
+    }
+
+    // stderr → 터미널 + 로그 파일
+    if let Some(stderr) = child.stderr.take() {
+        let log_file_clone = log_file.as_ref().and_then(|f| f.try_clone().ok());
+        std::thread::spawn(move || {
+            tee_stream(stderr, std::io::stderr(), log_file_clone);
+        });
+    }
+
     Ok(())
+}
+
+/// 스트림을 터미널과 로그 파일 양쪽에 출력합니다.
+fn tee_stream(
+    source: impl std::io::Read,
+    mut terminal: impl std::io::Write + Send + 'static,
+    mut log_file: Option<std::fs::File>,
+) {
+    use std::io::BufRead;
+    let reader = std::io::BufReader::new(source);
+    for line in reader.lines() {
+        let Ok(line) = line else { break };
+        let _ = writeln!(terminal, "[daemon] {}", line);
+        if let Some(ref mut f) = log_file {
+            let _ = writeln!(f, "{}", line);
+        }
+    }
 }
 
 /// Daemon 로그 파일을 생성하여 반환합니다.
