@@ -59,9 +59,9 @@ fn handle_cli_mode(app: &tauri::App) -> bool {
     println!("  Verbose: {}", verbose);
     println!("========================================");
 
-    // GUI 윈도우 닫기
+    // GUI 윈도우 숨기기 (close하면 Tauri가 앱을 종료함)
     if let Some(window) = app.get_webview_window("main") {
-        let _ = window.close();
+        let _ = window.hide();
     }
 
     // headless 모드: daemon에 연결하여 이벤트를 stdout에 출력
