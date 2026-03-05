@@ -13,7 +13,7 @@ use tokio::{
     net::TcpStream,
     sync::mpsc,
 };
-use tracing::{debug, error, info, instrument, warn};
+use tracing::{debug, error, info, warn};
 
 impl<C, CA, H, W> InternalProxy<C, CA, H, W>
 where
@@ -22,13 +22,6 @@ where
     H: HttpHandler,
     W: WebSocketHandler,
 {
-    #[instrument(skip_all)]
-    /// 터널 모드가 필요한 도메인인지 확인합니다
-    /// 현재 비활성화 — 모든 도메인을 MITM 인터셉트합니다
-    pub(crate) fn is_tunnel_mode_domain(&self, _authority: &Authority) -> bool {
-        false
-    }
-
     /// 터널 모드에서 HTTP 요청을 파싱하는 헬퍼 함수
     pub(crate) fn parse_http_request_from_buffer(
         buffer: &[u8],
@@ -565,50 +558,6 @@ mod tests {
             tunnel_event_sender: None,
             tls_passthrough: None,
             websocket_registry: None,
-        }
-    }
-
-    mod is_tunnel_mode_domain {
-        use super::*;
-
-        #[test]
-        fn tunnel_mode_disabled_for_all_domains() {
-            // 터널 모드 비활성화 상태 — 모든 도메인이 false 반환
-            let proxy = make_test_proxy();
-            let test_cases = vec![
-                "wps.apple.com:443",
-                "gdmf.apple.com:443",
-                "gateway.icloud.com:443",
-                "www.apple.com:443",
-                "www.google.com:443",
-            ];
-            for addr in test_cases {
-                let authority: Authority = addr.parse().unwrap();
-                assert!(
-                    !proxy.is_tunnel_mode_domain(&authority),
-                    "{} should NOT be tunnel mode (disabled)",
-                    addr
-                );
-            }
-        }
-
-        #[test]
-        fn non_apple_domains_are_not_tunnel_mode() {
-            let proxy = make_test_proxy();
-            let test_cases = vec![
-                "www.google.com:443",
-                "api.github.com:443",
-                "example.org:443",
-                "cloudflare.com:443",
-            ];
-            for addr in test_cases {
-                let authority: Authority = addr.parse().unwrap();
-                assert!(
-                    !proxy.is_tunnel_mode_domain(&authority),
-                    "{} should NOT be tunnel mode",
-                    addr
-                );
-            }
         }
     }
 

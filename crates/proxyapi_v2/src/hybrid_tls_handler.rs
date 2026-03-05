@@ -6,7 +6,6 @@ use hyper::upgrade::Upgraded;
 use hyper_util::rt::TokioIo;
 use std::sync::Arc;
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
-use tokio::net::TcpStream;
 use tokio_openssl::SslStream;
 use tokio_rustls::TlsAcceptor;
 use tracing::{error, info};
@@ -50,8 +49,6 @@ pub enum TlsStrategy {
     OpenSslOnly,
     /// rustls 전용 (TLS 1.2/1.3 일반 연결)
     RustlsOnly,
-    /// 터널 모드 (프록시 우회, 직접 연결)
-    TunnelMode,
 }
 
 /// TLS 핸들러 - rustls 사용 (Hudsucker 방식으로 단순화)
@@ -109,19 +106,6 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
 
         // 3단계: 선택된 전략으로 연결 시도
         match strategy {
-            TlsStrategy::TunnelMode => {
-                info!("🔧 [TUNNEL-MODE] 터널 모드 처리: {}", authority);
-                match self.handle_tunnel_mode(authority, upgraded).await {
-                    Ok(stream) => {
-                        info!("✅ [TUNNEL-MODE] 터널 모드 성공: {}", authority);
-                        Ok(stream)
-                    }
-                    Err(e) => {
-                        error!("❌ [TUNNEL-MODE] 터널 모드 실패: {} - {}", authority, e);
-                        Err(e)
-                    }
-                }
-            }
             TlsStrategy::OpenSslOnly => {
                 info!("🔧 [OPENSSL-ONLY] OpenSSL 전용 처리: {}", authority);
                 #[cfg(feature = "openssl-ca")]
@@ -231,74 +215,6 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
             Err(e) => {
                 error!("❌ rustls 핸드셰이크 실패: {} - {}", authority, e);
                 Err(format!("rustls handshake failed: {}", e).into())
-            }
-        }
-    }
-
-    /// 터널 모드로 직접 연결을 처리합니다
-    async fn handle_tunnel_mode(
-        &self,
-        authority: &Authority,
-        upgraded: Rewind<TokioIo<Upgraded>>,
-    ) -> Result<HybridTlsStream, Box<dyn std::error::Error + Send + Sync>> {
-        info!("🚇 [TUNNEL-MODE] 터널 모드 시작: {}", authority);
-
-        // 대상 서버에 직접 연결
-        let port = authority
-            .port()
-            .map(|p| p.to_string())
-            .unwrap_or_else(|| "443".to_string());
-        let target_addr = format!("{}:{}", authority.host(), port);
-        info!("🚇 [TUNNEL-MODE] 대상 서버 연결 시도: {}", target_addr);
-
-        // 대상 서버에 실제 연결
-        let mut server_stream = match TcpStream::connect(&target_addr).await {
-            Ok(stream) => {
-                info!("✅ [TUNNEL-MODE] 대상 서버 연결 성공: {}", target_addr);
-                stream
-            }
-            Err(e) => {
-                error!(
-                    "❌ [TUNNEL-MODE] 대상 서버 연결 실패: {} - {}",
-                    target_addr, e
-                );
-                return Err(format!("Failed to connect to target server: {}", e).into());
-            }
-        };
-
-        // Rewind에서 실제 스트림 추출
-        let mut client_stream = upgraded.into_inner();
-
-        // 실제 터널 생성 - 클라이언트와 서버 간 양방향 데이터 전달
-        info!("🚇 [TUNNEL-MODE] 양방향 터널 생성 시작");
-
-        // 실제 터널 작업 실행 - 클라이언트와 서버 간 양방향 데이터 전달
-        let start_time = std::time::Instant::now();
-        info!(
-            "🚇 [TUNNEL-TASK] 터널 작업 시작: {} ↔ {}",
-            target_addr, "클라이언트"
-        );
-
-        // 터널 모드에서는 실제 터널 작업을 수행하고 완료될 때까지 대기
-        match tokio::io::copy_bidirectional(&mut client_stream, &mut server_stream).await {
-            Ok((client_to_server, server_to_client)) => {
-                let duration = start_time.elapsed();
-                info!(
-                    "🚇 [TUNNEL-TASK] 터널 완료 - 클라이언트→서버: {} bytes, 서버→클라이언트: {} bytes (소요시간: {:?})",
-                    client_to_server, server_to_client, duration
-                );
-
-                // 터널이 성공적으로 완료되었으므로 성공으로 처리
-                // 실제로는 터널이 완료되었으므로 더 이상 스트림을 사용할 수 없음
-                Ok(HybridTlsStream::Tunnel(client_stream))
-            }
-            Err(e) => {
-                let duration = start_time.elapsed();
-                error!(
-                    "❌ [TUNNEL-TASK] 터널 오류: {} (소요시간: {:?})",
-                    e, duration
-                );
-                Err(format!("Tunnel failed: {}", e).into())
             }
         }
     }
@@ -658,13 +574,6 @@ pub fn is_openssl_required_domain(authority: &Authority) -> bool {
         .any(|&domain| host == domain)
 }
 
-/// 특정 도메인이 터널 모드가 필요한지 확인합니다
-/// 터널 모드가 필요한 도메인인지 확인합니다
-/// 현재 비활성화 — 모든 도메인을 MITM 인터셉트합니다
-pub fn is_tunnel_required_domain(_authority: &Authority) -> bool {
-    false
-}
-
 /// Extension 타입을 이름으로 변환
 pub fn get_extension_name(extension_type: u16) -> String {
     match extension_type {
@@ -925,13 +834,7 @@ pub fn determine_tls_strategy(authority: &Authority, tls_info: &TlsConnectionInf
     info!("  - Apple 암호화 스위트: {}", tls_info.has_apple_cipher);
     info!("  - 복잡도 점수: {}", tls_info.complexity_score);
 
-    // 1. 터널 모드가 필요한 도메인들 (최우선)
-    if is_tunnel_required_domain(authority) {
-        info!("🎯 [STRATEGY] 터널 모드 도메인 감지 → 터널 모드");
-        return TlsStrategy::TunnelMode;
-    }
-
-    // 2. TLS 1.0/1.1/SSL 3.0은 OpenSSL 전용
+    // 1. TLS 1.0/1.1/SSL 3.0은 OpenSSL 전용
     if matches!(
         tls_info.version,
         TlsVersion::Tls10 | TlsVersion::Tls11 | TlsVersion::Ssl30
@@ -971,8 +874,6 @@ pub enum HybridTlsStream {
     Rustls(tokio_rustls::TlsStream<Rewind<TokioIo<Upgraded>>>),
     RustlsGeneric(tokio_rustls::TlsStream<Rewind<tokio::io::DuplexStream>>),
     OpenSsl(SslStream<Rewind<TokioIo<Upgraded>>>),
-    /// 터널 모드 - 직접 연결 (TLS 스트림이 아님)
-    Tunnel(TokioIo<Upgraded>),
 }
 
 impl AsyncRead for HybridTlsStream {
@@ -985,7 +886,6 @@ impl AsyncRead for HybridTlsStream {
             HybridTlsStream::Rustls(stream) => std::pin::Pin::new(stream).poll_read(cx, buf),
             HybridTlsStream::RustlsGeneric(stream) => std::pin::Pin::new(stream).poll_read(cx, buf),
             HybridTlsStream::OpenSsl(stream) => std::pin::Pin::new(stream).poll_read(cx, buf),
-            HybridTlsStream::Tunnel(stream) => std::pin::Pin::new(stream).poll_read(cx, buf),
         }
     }
 }
@@ -1002,7 +902,6 @@ impl AsyncWrite for HybridTlsStream {
                 std::pin::Pin::new(stream).poll_write(cx, buf)
             }
             HybridTlsStream::OpenSsl(stream) => std::pin::Pin::new(stream).poll_write(cx, buf),
-            HybridTlsStream::Tunnel(stream) => std::pin::Pin::new(stream).poll_write(cx, buf),
         }
     }
 
@@ -1014,7 +913,6 @@ impl AsyncWrite for HybridTlsStream {
             HybridTlsStream::Rustls(stream) => std::pin::Pin::new(stream).poll_flush(cx),
             HybridTlsStream::RustlsGeneric(stream) => std::pin::Pin::new(stream).poll_flush(cx),
             HybridTlsStream::OpenSsl(stream) => std::pin::Pin::new(stream).poll_flush(cx),
-            HybridTlsStream::Tunnel(stream) => std::pin::Pin::new(stream).poll_flush(cx),
         }
     }
 
@@ -1026,7 +924,6 @@ impl AsyncWrite for HybridTlsStream {
             HybridTlsStream::Rustls(stream) => std::pin::Pin::new(stream).poll_shutdown(cx),
             HybridTlsStream::RustlsGeneric(stream) => std::pin::Pin::new(stream).poll_shutdown(cx),
             HybridTlsStream::OpenSsl(stream) => std::pin::Pin::new(stream).poll_shutdown(cx),
-            HybridTlsStream::Tunnel(stream) => std::pin::Pin::new(stream).poll_shutdown(cx),
         }
     }
 }
@@ -1144,16 +1041,19 @@ mod tests {
     }
 
     #[test]
-    fn test_apple_domain_routes_to_openssl() {
-        // 터널 모드 비활성화 상태에서 Apple 도메인은 OpenSslOnly로 라우팅
+    fn test_apple_domain_routes_normally() {
+        // 터널 모드 제거 후 Apple 도메인도 일반 전략으로 처리
         let sni_data = b"\x00\x00\x15gateway.icloud.com";
         let buf = build_client_hello([0x03, 0x03], &[0x1301], &[(0x0000, sni_data)]);
         let info = analyze_tls_connection(&buf).unwrap();
 
         let authority: Authority = "gateway.icloud.com:443".parse().unwrap();
         let strategy = determine_tls_strategy(&authority, &info);
-        // 터널 비활성화 → Apple 도메인도 일반 전략으로 처리
-        assert_ne!(strategy, TlsStrategy::TunnelMode);
+        // TLS 자동 바이패스가 터널 역할을 대체
+        assert!(matches!(
+            strategy,
+            TlsStrategy::OpenSslOnly | TlsStrategy::RustlsOnly
+        ));
     }
 
     #[test]
@@ -1247,18 +1147,5 @@ mod tests {
 
         let auth: Authority = "google.com:443".parse().unwrap();
         assert!(!is_openssl_required_domain(&auth));
-    }
-
-    #[test]
-    fn test_tunnel_required_domain_disabled() {
-        // 터널 모드 비활성화 상태 — 모든 도메인이 false 반환
-        let auth: Authority = "gateway.icloud.com:443".parse().unwrap();
-        assert!(!is_tunnel_required_domain(&auth));
-
-        let auth: Authority = "www.apple.com:443".parse().unwrap();
-        assert!(!is_tunnel_required_domain(&auth));
-
-        let auth: Authority = "google.com:443".parse().unwrap();
-        assert!(!is_tunnel_required_domain(&auth));
     }
 }
