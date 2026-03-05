@@ -403,11 +403,7 @@ where
                                                         )
                                                         .await
                                                     {
-                                                        if !e.to_string().starts_with(
-                                                            "error shutting down connection",
-                                                        ) {
-                                                            error!("HTTPS connect error: {}", e);
-                                                        }
+                                                        error!("HTTPS connect error: {}", e);
                                                     }
                                                 }
                                                 Err(e) => {
@@ -507,12 +503,7 @@ where
                                                 )
                                                 .await
                                             {
-                                                if !e
-                                                    .to_string()
-                                                    .starts_with("error shutting down connection")
-                                                {
-                                                    error!("HTTPS connect error: {}", e);
-                                                }
+                                                error!("HTTPS connect error: {}", e);
                                             }
                                         }
                                     }
@@ -617,14 +608,22 @@ where
 
         match result {
             Ok(_) => {
-                info!("[SERVE-STREAM] 스트림 서빙 완료: {}", authority);
+                debug!("[SERVE-STREAM] 스트림 서빙 완료: {}", authority);
                 Ok(())
             }
             Err(e) => {
-                if e.to_string().starts_with("error shutting down connection") {
+                let error_str = e.to_string();
+                let is_benign = error_str.starts_with("error shutting down connection")
+                    || error_str.contains("close_notify")
+                    || error_str.contains("connection error")
+                    || error_str.contains("connection reset")
+                    || error_str.contains("broken pipe");
+
+                if is_benign {
                     debug!(
                         %authority,
-                        "[SERVE-STREAM] 연결 종료 중 에러 (무시)"
+                        error = %e,
+                        "[SERVE-STREAM] 연결 종료 (정상)"
                     );
                     Ok(())
                 } else {
