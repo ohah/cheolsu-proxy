@@ -1,4 +1,5 @@
 use super::helpers::{bad_request, spawn_with_trace};
+use crate::tls_passthrough::TlsPassthrough;
 use crate::{
     HttpContext, HttpHandler, RequestOrResponse, WebSocketHandler, body::Body,
     certificate_authority::CertificateAuthority, hybrid_tls_handler::HybridTlsHandler,
@@ -33,6 +34,7 @@ pub(crate) struct InternalProxy<C, CA, H, W> {
     pub(crate) websocket_connector: Option<Connector>,
     pub(crate) client_addr: SocketAddr,
     pub(crate) tunnel_event_sender: Option<mpsc::Sender<RequestInfo>>,
+    pub(crate) tls_passthrough: Option<TlsPassthrough>,
 }
 
 impl<C, CA, H, W> Clone for InternalProxy<C, CA, H, W>
@@ -51,6 +53,7 @@ where
             websocket_connector: self.websocket_connector.clone(),
             client_addr: self.client_addr,
             tunnel_event_sender: self.tunnel_event_sender.clone(),
+            tls_passthrough: self.tls_passthrough.clone(),
         }
     }
 }
@@ -223,6 +226,66 @@ where
     pub(crate) fn process_connect(mut self, mut req: Request<Body>) -> Response<Body> {
         match req.uri().authority().cloned() {
             Some(authority) => {
+                // 자동 학습 바이패스 체크 (이전에 TLS 핸드셰이크 실패한 도메인)
+                let should_bypass = if let Some(ref passthrough) = self.tls_passthrough {
+                    // blocking context에서 async 호출을 위해 try_read 사용
+                    let failures = passthrough.failures_ref().blocking_read();
+                    failures.contains_key(authority.host())
+                } else {
+                    false
+                };
+
+                if should_bypass {
+                    warn!(
+                        "[TLS-PASSTHROUGH] 자동 바이패스 적용 (이전 실패 기록): {}",
+                        authority
+                    );
+                    let response = Response::builder()
+                        .status(200)
+                        .header("Connection", "keep-alive")
+                        .body(Body::empty())
+                        .unwrap();
+
+                    let authority_clone = authority.clone();
+                    let tunnel_sender = self.tunnel_event_sender.clone();
+                    let client_addr = self.client_addr;
+                    tokio::spawn(async move {
+                        match hyper::upgrade::on(&mut req).await {
+                            Ok(upgraded) => {
+                                let mut client_stream = TokioIo::new(upgraded);
+                                let target_addr = format!(
+                                    "{}:{}",
+                                    authority_clone.host(),
+                                    authority_clone
+                                        .port()
+                                        .map(|p| p.to_string())
+                                        .unwrap_or_else(|| "443".to_string())
+                                );
+                                match TcpStream::connect(&target_addr).await {
+                                    Ok(mut server_stream) => {
+                                        let _ = tokio::io::copy_bidirectional(
+                                            &mut client_stream,
+                                            &mut server_stream,
+                                        )
+                                        .await;
+                                    }
+                                    Err(e) => {
+                                        error!(
+                                            "[TLS-PASSTHROUGH] 서버 연결 실패: {} - {}",
+                                            target_addr, e
+                                        );
+                                    }
+                                }
+                            }
+                            Err(e) => {
+                                error!("[TLS-PASSTHROUGH] 업그레이드 실패: {}", e);
+                            }
+                        }
+                    });
+
+                    return response;
+                }
+
                 // 터널 모드 도메인 확인 (CONNECT 요청 처리 전에 먼저 확인)
                 if self.is_tunnel_mode_domain(&authority) {
                     info!("[TUNNEL-MODE] 터널 모드 도메인 감지: {}", authority);
@@ -444,6 +507,15 @@ where
                                                         "하이브리드 TLS 연결 실패"
                                                     );
 
+                                                    // 자동 학습: 실패한 도메인 기록
+                                                    if let Some(ref passthrough) =
+                                                        self.tls_passthrough
+                                                    {
+                                                        passthrough
+                                                            .record_failure(&authority)
+                                                            .await;
+                                                    }
+
                                                     return;
                                                 }
                                             }
@@ -490,6 +562,15 @@ where
                                                         tls_hint,
                                                         "TLS 핸드셰이크 실패"
                                                     );
+
+                                                    // 자동 학습: 실패한 도메인 기록
+                                                    if let Some(ref passthrough) =
+                                                        self.tls_passthrough
+                                                    {
+                                                        passthrough
+                                                            .record_failure(&authority)
+                                                            .await;
+                                                    }
 
                                                     return;
                                                 }
@@ -694,6 +775,7 @@ mod tests {
             websocket_connector: None,
             client_addr: "127.0.0.1:8080".parse().unwrap(),
             tunnel_event_sender: None,
+            tls_passthrough: None,
         }
     }
 
