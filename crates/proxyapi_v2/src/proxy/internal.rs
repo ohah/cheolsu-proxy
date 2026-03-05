@@ -290,40 +290,6 @@ where
                     return response;
                 }
 
-                // 터널 모드 도메인 확인 (CONNECT 요청 처리 전에 먼저 확인)
-                if self.is_tunnel_mode_domain(&authority) {
-                    info!("[TUNNEL-MODE] 터널 모드 도메인 감지: {}", authority);
-
-                    // CONNECT 요청에 대한 200 Connection Established 응답 생성
-                    let response = Response::builder()
-                        .status(200)
-                        .header("Connection", "keep-alive")
-                        .body(Body::empty())
-                        .unwrap();
-
-                    // 백그라운드에서 터널 모드 처리
-                    let self_clone = self.clone();
-                    tokio::spawn(async move {
-                        match hyper::upgrade::on(&mut req).await {
-                            Ok(upgraded) => {
-                                let upgraded = TokioIo::new(upgraded);
-                                let upgraded = Rewind::new(upgraded, Bytes::new());
-
-                                if let Err(e) =
-                                    self_clone.handle_tunnel_mode(&authority, upgraded).await
-                                {
-                                    error!("[TUNNEL-MODE] 터널 모드 처리 실패: {}", e);
-                                }
-                            }
-                            Err(e) => {
-                                error!("[TUNNEL-MODE] CONNECT 업그레이드 실패: {}", e);
-                            }
-                        }
-                    });
-
-                    return response;
-                }
-
                 let span = info_span!("process_connect");
                 let fut = async move {
                     match hyper::upgrade::on(&mut req).await {
