@@ -1,6 +1,5 @@
+use super::context::ProxyContext;
 use super::helpers::{bad_request, spawn_with_trace};
-use crate::tls_passthrough::TlsPassthrough;
-use crate::websocket_registry::WebSocketRegistry;
 use crate::{
     HttpContext, HttpHandler, RequestOrResponse, WebSocketHandler, body::Body,
     certificate_authority::CertificateAuthority, hybrid_tls_handler::HybridTlsHandler,
@@ -18,12 +17,9 @@ use hyper_util::{
     rt::{TokioExecutor, TokioIo},
     server,
 };
-use proxy_v2_models::RequestInfo;
 use std::{convert::Infallible, net::SocketAddr, sync::Arc};
-use tokio::sync::mpsc;
 use tokio::{io::AsyncReadExt, net::TcpStream};
 use tokio_rustls::TlsAcceptor;
-use tokio_tungstenite::Connector;
 use tracing::{Instrument, debug, error, info, info_span, instrument, warn};
 
 pub(crate) struct InternalProxy<C, CA, H, W> {
@@ -32,11 +28,8 @@ pub(crate) struct InternalProxy<C, CA, H, W> {
     pub(crate) server: server::conn::auto::Builder<TokioExecutor>,
     pub(crate) http_handler: H,
     pub(crate) websocket_handler: W,
-    pub(crate) websocket_connector: Option<Connector>,
     pub(crate) client_addr: SocketAddr,
-    pub(crate) tunnel_event_sender: Option<mpsc::Sender<RequestInfo>>,
-    pub(crate) tls_passthrough: Option<TlsPassthrough>,
-    pub(crate) websocket_registry: Option<WebSocketRegistry>,
+    pub(crate) ctx: ProxyContext,
 }
 
 impl<C, CA, H, W> Clone for InternalProxy<C, CA, H, W>
@@ -52,11 +45,8 @@ where
             server: self.server.clone(),
             http_handler: self.http_handler.clone(),
             websocket_handler: self.websocket_handler.clone(),
-            websocket_connector: self.websocket_connector.clone(),
             client_addr: self.client_addr,
-            tunnel_event_sender: self.tunnel_event_sender.clone(),
-            tls_passthrough: self.tls_passthrough.clone(),
-            websocket_registry: self.websocket_registry.clone(),
+            ctx: self.ctx.clone(),
         }
     }
 }
@@ -230,7 +220,7 @@ where
         match req.uri().authority().cloned() {
             Some(authority) => {
                 // 자동 학습 바이패스 체크 (이전에 TLS 핸드셰이크 실패한 도메인)
-                let should_bypass = if let Some(ref passthrough) = self.tls_passthrough {
+                let should_bypass = if let Some(ref passthrough) = self.ctx.tls_passthrough {
                     match passthrough.failures_ref().try_read() {
                         Ok(failures) => failures.contains_key(authority.host()),
                         Err(_) => false,
@@ -251,7 +241,7 @@ where
                         .unwrap();
 
                     let authority_clone = authority.clone();
-                    let _tunnel_sender = self.tunnel_event_sender.clone();
+                    let _tunnel_sender = self.ctx.tunnel_event_sender.clone();
                     let _client_addr = self.client_addr;
                     tokio::spawn(async move {
                         match hyper::upgrade::on(&mut req).await {
@@ -479,7 +469,7 @@ where
 
                                                     // 자동 학습: 실패한 도메인 기록
                                                     if let Some(ref passthrough) =
-                                                        self.tls_passthrough
+                                                        self.ctx.tls_passthrough
                                                     {
                                                         passthrough
                                                             .record_failure(&authority)
@@ -535,7 +525,7 @@ where
 
                                                     // 자동 학습: 실패한 도메인 기록
                                                     if let Some(ref passthrough) =
-                                                        self.tls_passthrough
+                                                        self.ctx.tls_passthrough
                                                     {
                                                         passthrough
                                                             .record_failure(&authority)
@@ -742,11 +732,8 @@ mod tests {
             server: server::conn::auto::Builder::new(TokioExecutor::new()),
             http_handler: crate::NoopHandler::new(),
             websocket_handler: crate::NoopHandler::new(),
-            websocket_connector: None,
             client_addr: "127.0.0.1:8080".parse().unwrap(),
-            tunnel_event_sender: None,
-            tls_passthrough: None,
-            websocket_registry: None,
+            ctx: ProxyContext::new(),
         }
     }
 

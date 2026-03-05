@@ -1,3 +1,4 @@
+use super::context::ProxyContext;
 use crate::{
     Body, HttpHandler, NoopHandler, Proxy, WebSocketHandler,
     certificate_authority::CertificateAuthority, tls_passthrough::TlsPassthrough,
@@ -214,12 +215,9 @@ impl<CA: CertificateAuthority> ProxyBuilder<WantsClient<CA>> {
                     client: Err(Error::from(e)),
                     http_handler: NoopHandler::new(),
                     websocket_handler: NoopHandler::new(),
-                    websocket_connector: None,
                     server: None,
                     graceful_shutdown: pending(),
-                    tunnel_event_sender: None,
-                    tls_passthrough: None,
-                    websocket_registry: None,
+                    ctx: ProxyContext::new(),
                 });
             }
         };
@@ -243,12 +241,12 @@ impl<CA: CertificateAuthority> ProxyBuilder<WantsClient<CA>> {
                 .build(https)),
             http_handler: NoopHandler::new(),
             websocket_handler: NoopHandler::new(),
-            websocket_connector: Some(Connector::Rustls(Arc::new(rustls_config))),
             server: None,
             graceful_shutdown: pending(),
-            tunnel_event_sender: None,
-            tls_passthrough: None,
-            websocket_registry: None,
+            ctx: ProxyContext {
+                websocket_connector: Some(Connector::Rustls(Arc::new(rustls_config))),
+                ..ProxyContext::new()
+            },
         })
     }
 
@@ -269,12 +267,9 @@ impl<CA: CertificateAuthority> ProxyBuilder<WantsClient<CA>> {
                     client: Err(Error::from(e)),
                     http_handler: NoopHandler::new(),
                     websocket_handler: NoopHandler::new(),
-                    websocket_connector: None,
                     server: None,
                     graceful_shutdown: pending(),
-                    tunnel_event_sender: None,
-                    tls_passthrough: None,
-                    websocket_registry: None,
+                    ctx: ProxyContext::new(),
                 });
             }
         };
@@ -291,12 +286,12 @@ impl<CA: CertificateAuthority> ProxyBuilder<WantsClient<CA>> {
                 .build(https)),
             http_handler: NoopHandler::new(),
             websocket_handler: NoopHandler::new(),
-            websocket_connector: Some(Connector::NativeTls(tls_connector)),
             server: None,
             graceful_shutdown: pending(),
-            tunnel_event_sender: None,
-            tls_passthrough: None,
-            websocket_registry: None,
+            ctx: ProxyContext {
+                websocket_connector: Some(Connector::NativeTls(tls_connector)),
+                ..ProxyContext::new()
+            },
         })
     }
 
@@ -314,12 +309,9 @@ impl<CA: CertificateAuthority> ProxyBuilder<WantsClient<CA>> {
             client: Ok(client),
             http_handler: NoopHandler::new(),
             websocket_handler: NoopHandler::new(),
-            websocket_connector: None,
             server: None,
             graceful_shutdown: pending(),
-            tunnel_event_sender: None,
-            tls_passthrough: None,
-            websocket_registry: None,
+            ctx: ProxyContext::new(),
         })
     }
 }
@@ -331,12 +323,9 @@ pub struct WantsHandlers<CA, C, H, W, F> {
     client: Result<Client<C, Body>, Error>,
     http_handler: H,
     websocket_handler: W,
-    websocket_connector: Option<Connector>,
     server: Option<Builder<TokioExecutor>>,
     graceful_shutdown: F,
-    tunnel_event_sender: Option<mpsc::Sender<RequestInfo>>,
-    tls_passthrough: Option<TlsPassthrough>,
-    websocket_registry: Option<WebSocketRegistry>,
+    ctx: ProxyContext,
 }
 
 impl<CA, C, H, W, F> ProxyBuilder<WantsHandlers<CA, C, H, W, F>> {
@@ -351,12 +340,9 @@ impl<CA, C, H, W, F> ProxyBuilder<WantsHandlers<CA, C, H, W, F>> {
             client: self.0.client,
             http_handler,
             websocket_handler: self.0.websocket_handler,
-            websocket_connector: self.0.websocket_connector,
             server: self.0.server,
             graceful_shutdown: self.0.graceful_shutdown,
-            tunnel_event_sender: self.0.tunnel_event_sender,
-            tls_passthrough: self.0.tls_passthrough,
-            websocket_registry: self.0.websocket_registry,
+            ctx: self.0.ctx,
         })
     }
 
@@ -371,21 +357,16 @@ impl<CA, C, H, W, F> ProxyBuilder<WantsHandlers<CA, C, H, W, F>> {
             client: self.0.client,
             http_handler: self.0.http_handler,
             websocket_handler,
-            websocket_connector: self.0.websocket_connector,
             server: self.0.server,
             graceful_shutdown: self.0.graceful_shutdown,
-            tunnel_event_sender: self.0.tunnel_event_sender,
-            tls_passthrough: self.0.tls_passthrough,
-            websocket_registry: self.0.websocket_registry,
+            ctx: self.0.ctx,
         })
     }
 
     /// Set the connector to use when connecting to WebSocket servers.
-    pub fn with_websocket_connector(self, connector: Connector) -> Self {
-        ProxyBuilder(WantsHandlers {
-            websocket_connector: Some(connector),
-            ..self.0
-        })
+    pub fn with_websocket_connector(mut self, connector: Connector) -> Self {
+        self.0.ctx.websocket_connector = Some(connector);
+        self
     }
 
     /// Set a custom server builder to use for the proxy server.
@@ -407,37 +388,28 @@ impl<CA, C, H, W, F> ProxyBuilder<WantsHandlers<CA, C, H, W, F>> {
             client: self.0.client,
             http_handler: self.0.http_handler,
             websocket_handler: self.0.websocket_handler,
-            websocket_connector: self.0.websocket_connector,
             server: self.0.server,
             graceful_shutdown,
-            tunnel_event_sender: self.0.tunnel_event_sender,
-            tls_passthrough: self.0.tls_passthrough,
-            websocket_registry: self.0.websocket_registry,
+            ctx: self.0.ctx,
         })
     }
 
     /// Set the tunnel event sender for tunnel mode events.
-    pub fn with_tunnel_event_sender(self, tunnel_event_sender: mpsc::Sender<RequestInfo>) -> Self {
-        ProxyBuilder(WantsHandlers {
-            tunnel_event_sender: Some(tunnel_event_sender),
-            ..self.0
-        })
+    pub fn with_tunnel_event_sender(mut self, tunnel_event_sender: mpsc::Sender<RequestInfo>) -> Self {
+        self.0.ctx.tunnel_event_sender = Some(tunnel_event_sender);
+        self
     }
 
     /// Set the WebSocket registry for message injection.
-    pub fn with_websocket_registry(self, registry: WebSocketRegistry) -> Self {
-        ProxyBuilder(WantsHandlers {
-            websocket_registry: Some(registry),
-            ..self.0
-        })
+    pub fn with_websocket_registry(mut self, registry: WebSocketRegistry) -> Self {
+        self.0.ctx.websocket_registry = Some(registry);
+        self
     }
 
     /// Set the TLS passthrough handler for auto-learning bypass.
-    pub fn with_tls_passthrough(self, tls_passthrough: TlsPassthrough) -> Self {
-        ProxyBuilder(WantsHandlers {
-            tls_passthrough: Some(tls_passthrough),
-            ..self.0
-        })
+    pub fn with_tls_passthrough(mut self, tls_passthrough: TlsPassthrough) -> Self {
+        self.0.ctx.tls_passthrough = Some(tls_passthrough);
+        self
     }
 
     /// Build the proxy.
@@ -448,12 +420,9 @@ impl<CA, C, H, W, F> ProxyBuilder<WantsHandlers<CA, C, H, W, F>> {
             client: self.0.client?,
             http_handler: self.0.http_handler,
             websocket_handler: self.0.websocket_handler,
-            websocket_connector: self.0.websocket_connector,
             server: self.0.server,
             graceful_shutdown: self.0.graceful_shutdown,
-            tunnel_event_sender: self.0.tunnel_event_sender,
-            tls_passthrough: self.0.tls_passthrough,
-            websocket_registry: self.0.websocket_registry,
+            ctx: self.0.ctx,
         })
     }
 }

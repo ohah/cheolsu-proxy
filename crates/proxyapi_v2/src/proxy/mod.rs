@@ -1,3 +1,4 @@
+pub mod context;
 mod helpers;
 mod internal;
 mod websocket;
@@ -6,10 +7,10 @@ pub mod builder;
 
 use crate::{
     Body, Error, HttpHandler, WebSocketHandler, builder::ProxyBuilder,
-    certificate_authority::CertificateAuthority, tls_passthrough::TlsPassthrough,
-    websocket_registry::WebSocketRegistry,
+    certificate_authority::CertificateAuthority,
 };
 use builder::{AddrOrListener, WantsAddr};
+use context::ProxyContext;
 use hyper::service::service_fn;
 use hyper_util::{
     client::legacy::{Client, connect::Connect},
@@ -17,12 +18,9 @@ use hyper_util::{
     server::conn::auto::{self, Builder},
 };
 use internal::InternalProxy;
-use proxy_v2_models::RequestInfo;
 use std::sync::Arc;
 use tokio::net::TcpListener;
-use tokio::sync::mpsc;
 use tokio_graceful::Shutdown;
-use tokio_tungstenite::Connector;
 use tracing::error;
 
 /// A proxy server. This must be constructed with a [`ProxyBuilder`].
@@ -80,12 +78,9 @@ pub struct Proxy<C, CA, H, W, F> {
     client: Client<C, Body>,
     http_handler: H,
     websocket_handler: W,
-    websocket_connector: Option<Connector>,
     server: Option<Builder<TokioExecutor>>,
     graceful_shutdown: F,
-    tunnel_event_sender: Option<mpsc::Sender<RequestInfo>>,
-    tls_passthrough: Option<TlsPassthrough>,
-    websocket_registry: Option<WebSocketRegistry>,
+    ctx: ProxyContext,
 }
 
 impl Proxy<(), (), (), (), ()> {
@@ -142,10 +137,7 @@ where
                     let ca = Arc::clone(&self.ca);
                     let http_handler = self.http_handler.clone();
                     let websocket_handler = self.websocket_handler.clone();
-                    let websocket_connector = self.websocket_connector.clone();
-                    let tunnel_event_sender = self.tunnel_event_sender.clone();
-                    let tls_passthrough = self.tls_passthrough.clone();
-                    let websocket_registry = self.websocket_registry.clone();
+                    let proxy_ctx = self.ctx.clone();
 
                     shutdown.spawn_task_fn(move |guard| async move {
                         let conn = server.serve_connection_with_upgrades(
@@ -157,11 +149,8 @@ where
                                     server: server.clone(),
                                     http_handler: http_handler.clone(),
                                     websocket_handler: websocket_handler.clone(),
-                                    websocket_connector: websocket_connector.clone(),
                                     client_addr,
-                                    tunnel_event_sender: tunnel_event_sender.clone(),
-                                    tls_passthrough: tls_passthrough.clone(),
-                                    websocket_registry: websocket_registry.clone(),
+                                    ctx: proxy_ctx.clone(),
                                 }
                                 .proxy(req)
                             }),
