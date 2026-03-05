@@ -69,6 +69,23 @@ pub fn is_daemon_running() -> Option<ProxyLockInfo> {
 fn spawn_daemon(port: u16, host: &str) -> Result<(), String> {
     let exe = std::env::current_exe().map_err(|e| format!("Cannot find current exe: {}", e))?;
 
+    let (stdout_cfg, stderr_cfg) = match daemon_log_file() {
+        Some(file) => {
+            let stderr_file = file.try_clone().unwrap_or_else(|_| {
+                std::fs::OpenOptions::new()
+                    .create(true)
+                    .append(true)
+                    .open("/dev/null")
+                    .expect("Failed to open /dev/null")
+            });
+            (
+                std::process::Stdio::from(file),
+                std::process::Stdio::from(stderr_file),
+            )
+        }
+        None => (std::process::Stdio::null(), std::process::Stdio::null()),
+    };
+
     std::process::Command::new(exe)
         .arg("--daemon")
         .arg("--port")
@@ -76,12 +93,24 @@ fn spawn_daemon(port: u16, host: &str) -> Result<(), String> {
         .arg("--host")
         .arg(host)
         .stdin(std::process::Stdio::null())
-        .stdout(std::process::Stdio::null())
-        .stderr(std::process::Stdio::null())
+        .stdout(stdout_cfg)
+        .stderr(stderr_cfg)
         .spawn()
         .map_err(|e| format!("Failed to spawn daemon: {}", e))?;
 
     Ok(())
+}
+
+/// Daemon 로그 파일을 생성하여 반환합니다.
+fn daemon_log_file() -> Option<std::fs::File> {
+    let log_dir = crate::daemon::app_support_dir().ok()?;
+    std::fs::create_dir_all(&log_dir).ok()?;
+    let log_path = log_dir.join("daemon.log");
+    std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(&log_path)
+        .ok()
 }
 
 /// Ensure a daemon is running and connect to it.

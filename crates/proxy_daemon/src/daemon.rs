@@ -9,7 +9,7 @@ use crate::handler::{create_hybrid_client, LoggingHandler};
 use crate::protocol::{ClientCommand, DaemonMessage, ProxyLockInfo};
 use crate::system_proxy::set_proxy;
 
-pub(crate) fn app_support_dir() -> Result<PathBuf, String> {
+pub fn app_support_dir() -> Result<PathBuf, String> {
     dirs::data_dir()
         .ok_or_else(|| "Cannot find data directory".to_string())
         .map(|dir| dir.join("com.cheolsu-proxy"))
@@ -159,12 +159,16 @@ async fn daemon_main(port: u16, host: String) -> i32 {
         }
     };
 
+    let log_path = app_support_dir()
+        .map(|d| d.join("daemon.log"))
+        .unwrap_or_default();
     println!(
-        "Daemon started (PID {}, proxy={}:{}, uds={})",
+        "Daemon started (PID {}, proxy={}:{}, uds={}, log={})",
         std::process::id(),
         host,
         port,
-        uds_path_str
+        uds_path_str,
+        log_path.display()
     );
 
     let shutdown_tx_ctrlc = shutdown_tx.clone();

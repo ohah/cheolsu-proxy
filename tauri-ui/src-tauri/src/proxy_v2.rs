@@ -68,9 +68,12 @@ pub async fn start_proxy_v2<R: Runtime>(
     let mut proxy_guard = proxy.lock().await;
     proxy_guard.replace(conn);
 
+    let log_path = proxy_daemon::daemon::app_support_dir()
+        .map(|d| d.join("daemon.log").display().to_string())
+        .unwrap_or_else(|_| "unknown".to_string());
     let success_message = format!(
-        "프록시가 포트 {}에서 성공적으로 시작되었습니다. 시스템 프록시 설정을 127.0.0.1:{}로 변경하세요",
-        port, port
+        "프록시가 포트 {}에서 성공적으로 시작되었습니다. 시스템 프록시 설정을 127.0.0.1:{}로 변경하세요 (로그: {})",
+        port, port, log_path
     );
 
     println!("{}", success_message);
