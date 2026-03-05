@@ -19,7 +19,7 @@ use tokio_rustls::rustls::{
     crypto::CryptoProvider,
     pki_types::{CertificateDer, PrivateKeyDer, PrivatePkcs8KeyDer},
 };
-use tracing::{debug, error, info};
+use tracing::{debug, info};
 
 /// Issues certificates for use when communicating with clients.
 ///

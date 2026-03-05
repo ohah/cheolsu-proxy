@@ -564,6 +564,7 @@ mod tests {
             client_addr: "127.0.0.1:0".parse::<SocketAddr>().unwrap(),
             tunnel_event_sender: None,
             tls_passthrough: None,
+            websocket_registry: None,
         }
     }
 
@@ -571,21 +572,21 @@ mod tests {
         use super::*;
 
         #[test]
-        fn apple_domains_are_tunnel_mode() {
+        fn tunnel_mode_disabled_for_all_domains() {
+            // 터널 모드 비활성화 상태 — 모든 도메인이 false 반환
             let proxy = make_test_proxy();
             let test_cases = vec![
                 "wps.apple.com:443",
                 "gdmf.apple.com:443",
-                "fbs.smoot.apple.com:443",
                 "gateway.icloud.com:443",
-                "setup.icloud.com:443",
                 "www.apple.com:443",
+                "www.google.com:443",
             ];
             for addr in test_cases {
                 let authority: Authority = addr.parse().unwrap();
                 assert!(
-                    proxy.is_tunnel_mode_domain(&authority),
-                    "{} should be tunnel mode",
+                    !proxy.is_tunnel_mode_domain(&authority),
+                    "{} should NOT be tunnel mode (disabled)",
                     addr
                 );
             }

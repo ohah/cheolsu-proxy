@@ -3,16 +3,18 @@ use super::internal::InternalProxy;
 use crate::{
     Body, HttpHandler, WebSocketContext, WebSocketHandler,
     certificate_authority::CertificateAuthority,
+    websocket_registry::{WebSocketInjector, WebSocketRegistry},
 };
-use futures::{Sink, Stream, StreamExt};
+use futures::{Sink, SinkExt, Stream, StreamExt};
 use http::uri::{Scheme, Uri};
 use hyper::{Request, Response, upgrade::Upgraded};
 use hyper_util::{client::legacy::connect::Connect, rt::TokioIo};
+use tokio::sync::mpsc;
 use tokio_tungstenite::{
     WebSocketStream,
     tungstenite::{self, Message, protocol::WebSocketConfig},
 };
-use tracing::{debug, error, info, info_span, instrument};
+use tracing::{debug, error, info, info_span, instrument, warn};
 
 impl<C, CA, H, W> InternalProxy<C, CA, H, W>
 where
@@ -206,94 +208,130 @@ where
         let (server_sink, server_stream) = server_socket.split();
         let (client_sink, client_stream) = client_socket.split();
 
+        // 주입 채널 생성
+        let (inject_to_client_tx, inject_to_client_rx) = mpsc::channel::<Message>(32);
+        let (inject_to_server_tx, inject_to_server_rx) = mpsc::channel::<Message>(32);
+
+        // 레지스트리에 등록
+        let conn_id = uri.to_string();
+        if let Some(ref registry) = self.websocket_registry {
+            let injector =
+                WebSocketInjector::new(inject_to_client_tx.clone(), inject_to_server_tx.clone());
+            registry.register(conn_id.clone(), injector).await;
+        }
+
         let InternalProxy {
-            websocket_handler, ..
+            websocket_handler,
+            websocket_registry,
+            ..
         } = self;
 
-        // WebSocket 핸들러를 사용하여 메시지 전달
+        // 서버→클라이언트 (+ 주입 메시지)
         debug!("서버→클라이언트 메시지 전달기 시작");
-        spawn_message_forwarder(
+        let registry_clone = websocket_registry.clone();
+        let conn_id_clone = conn_id.clone();
+        spawn_message_forwarder_with_inject(
             server_stream,
             client_sink,
+            inject_to_client_rx,
             websocket_handler.clone(),
             WebSocketContext::ServerToClient {
                 src: uri.clone(),
                 dst: self.client_addr,
             },
+            registry_clone,
+            conn_id_clone,
         );
 
+        // 클라이언트→서버 (+ 주입 메시지)
         debug!("클라이언트→서버 메시지 전달기 시작");
-        spawn_message_forwarder(
+        spawn_message_forwarder_with_inject(
             client_stream,
             server_sink,
+            inject_to_server_rx,
             websocket_handler,
             WebSocketContext::ClientToServer {
                 src: self.client_addr,
                 dst: uri,
             },
-        );
-
-        Ok(())
-    }
-
-    #[instrument(skip_all)]
-    async fn handle_websocket(
-        self,
-        client_socket: WebSocketStream<TokioIo<Upgraded>>,
-        req: Request<()>,
-    ) -> Result<(), tungstenite::Error> {
-        let uri = req.uri().clone();
-
-        #[cfg(any(feature = "rustls-client", feature = "native-tls-client"))]
-        let (server_socket, _) = tokio_tungstenite::connect_async_tls_with_config(
-            req,
-            None,
-            false,
-            self.websocket_connector,
-        )
-        .await?;
-
-        #[cfg(not(any(feature = "rustls-client", feature = "native-tls-client")))]
-        let (server_socket, _) = tokio_tungstenite::connect_async(req).await?;
-
-        let (server_sink, server_stream) = server_socket.split();
-        let (client_sink, client_stream) = client_socket.split();
-
-        let InternalProxy {
-            websocket_handler, ..
-        } = self;
-
-        spawn_message_forwarder(
-            server_stream,
-            client_sink,
-            websocket_handler.clone(),
-            WebSocketContext::ServerToClient {
-                src: uri.clone(),
-                dst: self.client_addr,
-            },
-        );
-
-        spawn_message_forwarder(
-            client_stream,
-            server_sink,
-            websocket_handler,
-            WebSocketContext::ClientToServer {
-                src: self.client_addr,
-                dst: uri,
-            },
+            websocket_registry,
+            conn_id,
         );
 
         Ok(())
     }
 }
 
-fn spawn_message_forwarder(
+/// 주입 채널을 포함한 메시지 전달기
+fn spawn_message_forwarder_with_inject(
     stream: impl Stream<Item = Result<Message, tungstenite::Error>> + Unpin + Send + 'static,
     sink: impl Sink<Message, Error = tungstenite::Error> + Unpin + Send + 'static,
-    handler: impl WebSocketHandler,
+    mut inject_rx: mpsc::Receiver<Message>,
+    mut handler: impl WebSocketHandler,
     ctx: WebSocketContext,
+    registry: Option<WebSocketRegistry>,
+    conn_id: String,
 ) {
-    let span = info_span!("message_forwarder", context = ?ctx);
-    let fut = handler.handle_websocket(ctx, stream, sink);
+    let span = info_span!("message_forwarder_inject", context = ?ctx);
+
+    let fut = async move {
+        let mut stream = std::pin::pin!(stream);
+        let mut sink = sink;
+
+        loop {
+            tokio::select! {
+                // 원본 스트림 메시지
+                msg = stream.next() => {
+                    match msg {
+                        Some(Ok(message)) => {
+                            let modified = handler.handle_message(&ctx, message).await;
+                            if let Some(message) = modified {
+                                if let Err(e) = sink.send(message).await {
+                                    match e {
+                                        tungstenite::Error::ConnectionClosed => break,
+                                        _ => {
+                                            error!(error = %e, "WebSocket 전송 에러");
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        Some(Err(e)) => {
+                            if e.to_string().contains("Reserved bits are non-zero") {
+                                warn!("Reserved bits 에러 - 건너뜀");
+                                continue;
+                            }
+                            error!(error = %e, "WebSocket 수신 에러");
+                            let _ = sink.send(Message::Close(None)).await;
+                            break;
+                        }
+                        None => break,
+                    }
+                }
+                // 주입 메시지
+                injected = inject_rx.recv() => {
+                    match injected {
+                        Some(message) => {
+                            debug!("주입 메시지 전달");
+                            if let Err(e) = sink.send(message).await {
+                                error!(error = %e, "주입 메시지 전송 실패");
+                                break;
+                            }
+                        }
+                        None => {
+                            // 주입 채널 닫힘 - 정상 동작 계속
+                        }
+                    }
+                }
+            }
+        }
+
+        // 레지스트리에서 연결 해제
+        if let Some(ref registry) = registry {
+            registry.unregister(&conn_id).await;
+        }
+    };
+
     spawn_with_trace(fut, span);
 }

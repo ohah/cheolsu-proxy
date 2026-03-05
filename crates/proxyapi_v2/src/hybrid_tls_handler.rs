@@ -1144,14 +1144,16 @@ mod tests {
     }
 
     #[test]
-    fn test_apple_domain_routes_to_tunnel() {
+    fn test_apple_domain_routes_to_openssl() {
+        // 터널 모드 비활성화 상태에서 Apple 도메인은 OpenSslOnly로 라우팅
         let sni_data = b"\x00\x00\x15gateway.icloud.com";
         let buf = build_client_hello([0x03, 0x03], &[0x1301], &[(0x0000, sni_data)]);
         let info = analyze_tls_connection(&buf).unwrap();
 
         let authority: Authority = "gateway.icloud.com:443".parse().unwrap();
         let strategy = determine_tls_strategy(&authority, &info);
-        assert_eq!(strategy, TlsStrategy::TunnelMode);
+        // 터널 비활성화 → Apple 도메인도 일반 전략으로 처리
+        assert_ne!(strategy, TlsStrategy::TunnelMode);
     }
 
     #[test]
@@ -1248,12 +1250,13 @@ mod tests {
     }
 
     #[test]
-    fn test_tunnel_required_domain() {
+    fn test_tunnel_required_domain_disabled() {
+        // 터널 모드 비활성화 상태 — 모든 도메인이 false 반환
         let auth: Authority = "gateway.icloud.com:443".parse().unwrap();
-        assert!(is_tunnel_required_domain(&auth));
+        assert!(!is_tunnel_required_domain(&auth));
 
         let auth: Authority = "www.apple.com:443".parse().unwrap();
-        assert!(is_tunnel_required_domain(&auth));
+        assert!(!is_tunnel_required_domain(&auth));
 
         let auth: Authority = "google.com:443".parse().unwrap();
         assert!(!is_tunnel_required_domain(&auth));

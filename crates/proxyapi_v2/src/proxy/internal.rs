@@ -1,5 +1,6 @@
 use super::helpers::{bad_request, spawn_with_trace};
 use crate::tls_passthrough::TlsPassthrough;
+use crate::websocket_registry::WebSocketRegistry;
 use crate::{
     HttpContext, HttpHandler, RequestOrResponse, WebSocketHandler, body::Body,
     certificate_authority::CertificateAuthority, hybrid_tls_handler::HybridTlsHandler,
@@ -35,6 +36,7 @@ pub(crate) struct InternalProxy<C, CA, H, W> {
     pub(crate) client_addr: SocketAddr,
     pub(crate) tunnel_event_sender: Option<mpsc::Sender<RequestInfo>>,
     pub(crate) tls_passthrough: Option<TlsPassthrough>,
+    pub(crate) websocket_registry: Option<WebSocketRegistry>,
 }
 
 impl<C, CA, H, W> Clone for InternalProxy<C, CA, H, W>
@@ -54,6 +56,7 @@ where
             client_addr: self.client_addr,
             tunnel_event_sender: self.tunnel_event_sender.clone(),
             tls_passthrough: self.tls_passthrough.clone(),
+            websocket_registry: self.websocket_registry.clone(),
         }
     }
 }
@@ -247,8 +250,8 @@ where
                         .unwrap();
 
                     let authority_clone = authority.clone();
-                    let tunnel_sender = self.tunnel_event_sender.clone();
-                    let client_addr = self.client_addr;
+                    let _tunnel_sender = self.tunnel_event_sender.clone();
+                    let _client_addr = self.client_addr;
                     tokio::spawn(async move {
                         match hyper::upgrade::on(&mut req).await {
                             Ok(upgraded) => {
@@ -776,6 +779,7 @@ mod tests {
             client_addr: "127.0.0.1:8080".parse().unwrap(),
             tunnel_event_sender: None,
             tls_passthrough: None,
+            websocket_registry: None,
         }
     }
 
