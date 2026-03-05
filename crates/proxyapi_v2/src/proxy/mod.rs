@@ -1,6 +1,5 @@
 mod helpers;
 mod internal;
-mod tunnel;
 mod websocket;
 
 pub mod builder;

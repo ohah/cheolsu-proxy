@@ -54,20 +54,12 @@ pub enum TlsStrategy {
 /// TLS 핸들러 - rustls 사용 (Hudsucker 방식으로 단순화)
 pub struct HybridTlsHandler<CA: CertificateAuthority> {
     ca: Arc<CA>,
-    rustls_acceptor: Option<TlsAcceptor>,
 }
 
 impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
-    /// 새로운 TLS 핸들러를 생성합니다 (Hudsucker 방식으로 단순화)
+    /// 새로운 TLS 핸들러를 생성합니다
     pub async fn new(ca: Arc<CA>) -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
-        // rustls 서버 설정 생성
-        let rustls_server_config = ca.gen_server_config(&"localhost".parse().unwrap()).await;
-        let rustls_acceptor = Some(TlsAcceptor::from(rustls_server_config));
-
-        Ok(Self {
-            ca,
-            rustls_acceptor,
-        })
+        Ok(Self { ca })
     }
 
     /// TLS 연결을 상세 분석합니다

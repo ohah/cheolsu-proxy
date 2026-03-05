@@ -23,10 +23,6 @@ impl<T> Rewind<T> {
             inner: io,
         }
     }
-
-    pub(crate) fn into_inner(self) -> T {
-        self.inner
-    }
 }
 
 impl<T> AsyncRead for Rewind<T>

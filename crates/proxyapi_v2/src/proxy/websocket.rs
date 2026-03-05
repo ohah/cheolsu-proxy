@@ -277,7 +277,6 @@ fn spawn_message_forwarder_with_inject(
     let fut = async move {
         let mut stream = std::pin::pin!(stream);
         let mut sink = sink;
-        let mut closing = false;
 
         loop {
             tokio::select! {
@@ -285,7 +284,6 @@ fn spawn_message_forwarder_with_inject(
                 msg = stream.next() => {
                     match msg {
                         Some(Ok(message)) => {
-                            // Close 메시지를 받으면 전달 후 루프 종료
                             let is_close = matches!(message, Message::Close(_));
 
                             let modified = handler.handle_message(&ctx, message).await;
@@ -302,7 +300,6 @@ fn spawn_message_forwarder_with_inject(
                             }
 
                             if is_close {
-                                closing = true;
                                 break;
                             }
                         }
@@ -312,16 +309,14 @@ fn spawn_message_forwarder_with_inject(
                                 continue;
                             }
                             debug!(error = %e, "WebSocket 수신 에러");
-                            if !closing {
-                                let _ = sink.send(Message::Close(None)).await;
-                            }
+                            let _ = sink.send(Message::Close(None)).await;
                             break;
                         }
                         None => break,
                     }
                 }
                 // 주입 메시지
-                injected = inject_rx.recv(), if !closing => {
+                injected = inject_rx.recv() => {
                     match injected {
                         Some(message) => {
                             debug!("주입 메시지 전달");
