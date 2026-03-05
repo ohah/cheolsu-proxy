@@ -240,7 +240,7 @@ where
                 };
 
                 if should_bypass {
-                    warn!(
+                    debug!(
                         "[TLS-PASSTHROUGH] 자동 바이패스 적용 (이전 실패 기록): {}",
                         authority
                     );
