@@ -1,6 +1,7 @@
 pub mod context;
 mod helpers;
 mod internal;
+pub mod middleware;
 mod websocket;
 
 pub mod builder;

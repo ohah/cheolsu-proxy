@@ -1,5 +1,6 @@
 use super::context::ProxyContext;
 use super::helpers::{bad_request, spawn_with_trace};
+use super::middleware::optimize_streaming_response;
 use crate::{
     HttpContext, HttpHandler, RequestOrResponse, WebSocketHandler, body::Body,
     certificate_authority::CertificateAuthority, hybrid_tls_handler::HybridTlsHandler,
@@ -119,14 +120,6 @@ where
             let req_host = normalized_req.headers().get("host").cloned();
             let req_user_agent = normalized_req.headers().get("user-agent").cloned();
 
-            // SSE 요청인 경우 추가 로깅
-            let _is_sse_request = normalized_req
-                .headers()
-                .get("accept")
-                .and_then(|a| a.to_str().ok())
-                .map(|a| a.contains("text/event-stream") || a.contains("application/x-ndjson"))
-                .unwrap_or(false);
-
             let res = self
                 .client
                 .request(normalized_req)
@@ -135,75 +128,8 @@ where
 
             match res {
                 Ok(res) => {
-                    // 응답 수신 시간 기록
-                    let _response_received_time = std::time::SystemTime::now()
-                        .duration_since(std::time::UNIX_EPOCH)
-                        .unwrap()
-                        .as_millis();
-
-                    // 스트리밍 응답 감지 및 로깅
-                    let content_type = res
-                        .headers()
-                        .get("content-type")
-                        .and_then(|ct| ct.to_str().ok())
-                        .unwrap_or("");
-
-                    let transfer_encoding = res
-                        .headers()
-                        .get("transfer-encoding")
-                        .and_then(|te| te.to_str().ok())
-                        .unwrap_or("");
-
-                    let is_streaming = content_type.contains("text/event-stream")
-                        || content_type.contains("application/x-ndjson");
-
-                    let is_chunked = transfer_encoding.contains("chunked");
-
-                    // SSE 스트리밍 요청 감지
-                    let is_sse_request = content_type.contains("text/event-stream")
-                        || content_type.contains("application/x-ndjson");
-
-                    // ces/v1/t는 강제로 스트리밍으로 처리
-                    let is_ces_v1_t = req_uri.path().contains("/ces/v1/t");
-                    let force_streaming =
-                        is_streaming || is_chunked || is_sse_request || is_ces_v1_t;
-
-                    // 응답 전달 시작 시간 기록
-                    let _response_delivery_start_time = std::time::SystemTime::now()
-                        .duration_since(std::time::UNIX_EPOCH)
-                        .unwrap()
-                        .as_millis();
-
-                    // 스트리밍 응답인 경우 헤더를 더 강력하게 최적화
-                    let response = if force_streaming {
-                        // 스트리밍 응답 헤더 강화
-                        let (mut parts, body) = res.into_parts();
-
-                        // 스트리밍을 위한 핵심 헤더 설정
-                        parts.headers.insert(
-                            "Cache-Control",
-                            "no-cache, no-store, must-revalidate".parse().unwrap(),
-                        );
-                        parts
-                            .headers
-                            .insert("Connection", "keep-alive".parse().unwrap());
-                        parts
-                            .headers
-                            .insert("Transfer-Encoding", "chunked".parse().unwrap());
-                        parts.headers.remove("content-length");
-
-                        // 추가 스트리밍 최적화 헤더
-                        parts
-                            .headers
-                            .insert("X-Accel-Buffering", "no".parse().unwrap()); // Nginx 버퍼링 방지
-                        parts
-                            .headers
-                            .insert("X-Content-Type-Options", "nosniff".parse().unwrap());
-
-                        Response::from_parts(parts, Body::from(body))
-                    } else {
-                        res.map(Body::from)
-                    };
+                    let response =
+                        optimize_streaming_response(res.map(Body::from), &req_uri);
 
                     Ok(self
                         .http_handler
@@ -212,7 +138,6 @@ where
                         .await)
                 }
                 Err(err) => {
-                    // 실패한 요청 정보 로깅
                     error!(
                         url = %req_uri,
                         method = %req_method,
