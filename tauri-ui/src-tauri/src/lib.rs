@@ -67,9 +67,8 @@ fn handle_cli_mode(app: &tauri::App) -> bool {
     // headless 모드: daemon에 연결하여 이벤트를 stdout에 출력
     let app_handle = app.handle().clone();
     tauri::async_runtime::spawn(async move {
-        match proxy_daemon::ensure_daemon(port, &host, move |event| {
-            let json = serde_json::to_string(&event).unwrap_or_default();
-            println!("{}", json);
+        match proxy_daemon::ensure_daemon(port, &host, move |_event| {
+            // GUI 모드에서는 app.emit으로 전달, headless에서는 무시
         })
         .await
         {
