@@ -231,9 +231,10 @@ where
             Some(authority) => {
                 // 자동 학습 바이패스 체크 (이전에 TLS 핸드셰이크 실패한 도메인)
                 let should_bypass = if let Some(ref passthrough) = self.tls_passthrough {
-                    // blocking context에서 async 호출을 위해 try_read 사용
-                    let failures = passthrough.failures_ref().blocking_read();
-                    failures.contains_key(authority.host())
+                    match passthrough.failures_ref().try_read() {
+                        Ok(failures) => failures.contains_key(authority.host()),
+                        Err(_) => false,
+                    }
                 } else {
                     false
                 };
