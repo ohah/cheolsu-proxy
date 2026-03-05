@@ -144,7 +144,7 @@ where
                 req,
                 Some(ws_config),
                 false,
-                self.websocket_connector,
+                self.ctx.websocket_connector,
             )
             .await
             {
@@ -214,17 +214,15 @@ where
 
         // 레지스트리에 등록
         let conn_id = uri.to_string();
-        if let Some(ref registry) = self.websocket_registry {
+        if let Some(ref registry) = self.ctx.websocket_registry {
             let injector =
                 WebSocketInjector::new(inject_to_client_tx.clone(), inject_to_server_tx.clone());
             registry.register(conn_id.clone(), injector).await;
         }
 
-        let InternalProxy {
-            websocket_handler,
-            websocket_registry,
-            ..
-        } = self;
+        let websocket_handler = self.websocket_handler;
+        let websocket_registry = self.ctx.websocket_registry;
+        let client_addr = self.client_addr;
 
         // 서버→클라이언트 (+ 주입 메시지)
         debug!("서버→클라이언트 메시지 전달기 시작");
@@ -237,7 +235,7 @@ where
             websocket_handler.clone(),
             WebSocketContext::ServerToClient {
                 src: uri.clone(),
-                dst: self.client_addr,
+                dst: client_addr,
             },
             registry_clone,
             conn_id_clone,
@@ -251,7 +249,7 @@ where
             inject_to_server_rx,
             websocket_handler,
             WebSocketContext::ClientToServer {
-                src: self.client_addr,
+                src: client_addr,
                 dst: uri,
             },
             websocket_registry,
