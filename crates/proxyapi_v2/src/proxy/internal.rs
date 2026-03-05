@@ -19,11 +19,7 @@ use hyper_util::{
 use proxy_v2_models::RequestInfo;
 use std::{convert::Infallible, net::SocketAddr, sync::Arc};
 use tokio::sync::mpsc;
-use tokio::{
-    io::AsyncReadExt,
-    net::TcpStream,
-    time::{Duration, timeout},
-};
+use tokio::{io::AsyncReadExt, net::TcpStream};
 use tokio_rustls::TlsAcceptor;
 use tokio_tungstenite::Connector;
 use tracing::{Instrument, debug, error, info, info_span, instrument, warn};
@@ -614,33 +610,33 @@ where
         });
 
         debug!(
-            "[SERVE-STREAM] 서버 연결 시작 - serve_connection_with_upgrades 호출 (타임아웃: 30초)"
+            "[SERVE-STREAM] 서버 연결 시작 - serve_connection_with_upgrades 호출"
         );
-        let result = timeout(
-            Duration::from_secs(30),
-            self.server.serve_connection_with_upgrades(stream, service),
-        )
-        .await;
+        let result = self
+            .server
+            .serve_connection_with_upgrades(stream, service)
+            .await;
 
         match result {
-            Ok(Ok(_)) => {
+            Ok(_) => {
                 info!("[SERVE-STREAM] 스트림 서빙 완료: {}", authority);
                 Ok(())
             }
-            Ok(Err(e)) => {
-                error!(
-                    %authority,
-                    error = %e,
-                    "[SERVE-STREAM] 스트림 서빙 실패"
-                );
-                Err(e)
-            }
-            Err(_timeout_error) => {
-                error!(
-                    %authority,
-                    "[SERVE-STREAM] 스트림 서빙 타임아웃 (30초 후 종료)"
-                );
-                Err("Connection timeout after 30 seconds".into())
+            Err(e) => {
+                if e.to_string().starts_with("error shutting down connection") {
+                    debug!(
+                        %authority,
+                        "[SERVE-STREAM] 연결 종료 중 에러 (무시)"
+                    );
+                    Ok(())
+                } else {
+                    error!(
+                        %authority,
+                        error = %e,
+                        "[SERVE-STREAM] 스트림 서빙 실패"
+                    );
+                    Err(e)
+                }
             }
         }
     }
