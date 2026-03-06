@@ -17,9 +17,9 @@ use tauri_plugin_cli::CliExt;
 fn print_cli_help() {
     println!();
     println!("명령어:");
-    println!("  block <url> [status_code]           요청 차단 (기본: 403)");
-    println!("  modify-request <url> [옵션]         요청 수정");
-    println!("  modify-response <url> [옵션]        응답 수정");
+    println!("  block <패턴> [옵션]                 요청 차단 (기본: 403)");
+    println!("  modify-request <패턴> [옵션]        요청 수정 (별칭: mr)");
+    println!("  modify-response <패턴> [옵션]       응답 수정 (별칭: mres)");
     println!("  rules                               현재 규칙 목록");
     println!("  remove <id>                         규칙 삭제");
     println!("  enable <id>                         규칙 활성화");
@@ -27,20 +27,23 @@ fn print_cli_help() {
     println!("  clear                               모든 규칙 삭제");
     println!("  help                                도움말");
     println!();
+    println!("패턴 (와일드카드):");
+    println!("  *                                   모든 문자열 매칭");
+    println!("  ?                                   단일 문자 매칭");
+    println!();
     println!("옵션:");
     println!("  --header <name>=<value>             헤더 추가 (여러 개 가능)");
     println!("  --remove-header <name>              헤더 제거 (여러 개 가능)");
     println!("  --body <body>                       바디 설정");
-    println!("  --status <code>                     상태 코드 설정 (modify-response 전용)");
+    println!("  --status <code>                     상태 코드 설정");
     println!("  --method <METHOD>                   특정 HTTP 메서드만 매칭");
-    println!("  --regex                             URL 패턴을 정규식으로 처리");
     println!("  --name <name>                       규칙 이름 설정");
     println!();
     println!("예시:");
-    println!("  > block ads.example.com");
-    println!("  > block api/v1/secret 403");
-    println!("  > modify-response example.com/api --body '{{\"mocked\":true}}' --status 200");
-    println!("  > modify-request example.com --header X-Debug=true --method GET");
+    println!("  > block *ads.example.com*");
+    println!("  > block *.example.com/api/* --status 403");
+    println!("  > mres *example.com/api* --body '{{\"mocked\":true}}' --status 200");
+    println!("  > mr *example.com* --header X-Debug=true --method GET");
     println!();
 }
 
@@ -130,24 +133,25 @@ fn parse_cli_command(
         }
         "block" => {
             if tokens.len() < 2 {
-                println!("  사용법: block <filter_expr> [옵션]");
-                println!("  예시: block '~u ads.example.com' --status 403 --body Blocked");
+                println!("  사용법: block <패턴> [옵션]");
+                println!("  예시: block *ads.example.com* --status 403 --body Blocked");
                 return None;
             }
-            let filter = tokens[1].clone();
+            let pattern = tokens[1].clone();
             let opts = parse_common_options(&tokens[2..]);
             let status_code = opts.status.unwrap_or(403);
             let body = opts.body.unwrap_or_default();
 
             *rule_counter += 1;
             let id = format!("r{}", rule_counter);
-            let name = opts.name.unwrap_or_else(|| format!("Block {}", filter));
+            let name = opts.name.unwrap_or_else(|| format!("Block {}", pattern));
 
             let rule = InterceptRule {
                 id: id.clone(),
                 name,
                 enabled: true,
-                filter,
+                pattern,
+                method: opts.method,
                 action: InterceptAction::Block { status_code, body },
             };
             println!("  규칙 추가: {}", rule);
@@ -156,22 +160,25 @@ fn parse_cli_command(
         }
         "modify-request" | "mr" => {
             if tokens.len() < 2 {
-                println!("  사용법: modify-request <filter_expr> [옵션]");
-                println!("  예시: mr '~u api.com & ~m POST' --header X-Auth=token");
+                println!("  사용법: modify-request <패턴> [옵션]");
+                println!("  예시: mr *api.com* --header X-Auth=token --method POST");
                 return None;
             }
-            let filter = tokens[1].clone();
+            let pattern = tokens[1].clone();
             let opts = parse_common_options(&tokens[2..]);
 
             *rule_counter += 1;
             let id = format!("r{}", rule_counter);
-            let name = opts.name.unwrap_or_else(|| format!("ModifyReq {}", filter));
+            let name = opts
+                .name
+                .unwrap_or_else(|| format!("ModifyReq {}", pattern));
 
             let rule = InterceptRule {
                 id: id.clone(),
                 name,
                 enabled: true,
-                filter,
+                pattern,
+                method: opts.method,
                 action: InterceptAction::ModifyRequest {
                     add_headers: opts.add_headers,
                     remove_headers: opts.remove_headers,
@@ -184,22 +191,25 @@ fn parse_cli_command(
         }
         "modify-response" | "mres" => {
             if tokens.len() < 2 {
-                println!("  사용법: modify-response <filter_expr> [옵션]");
-                println!("  예시: mres '~u api.com' --status 200 --body '{{\"ok\":true}}'");
+                println!("  사용법: modify-response <패턴> [옵션]");
+                println!("  예시: mres *api.com* --status 200 --body '{{\"ok\":true}}'");
                 return None;
             }
-            let filter = tokens[1].clone();
+            let pattern = tokens[1].clone();
             let opts = parse_common_options(&tokens[2..]);
 
             *rule_counter += 1;
             let id = format!("r{}", rule_counter);
-            let name = opts.name.unwrap_or_else(|| format!("ModifyRes {}", filter));
+            let name = opts
+                .name
+                .unwrap_or_else(|| format!("ModifyRes {}", pattern));
 
             let rule = InterceptRule {
                 id: id.clone(),
                 name,
                 enabled: true,
-                filter,
+                pattern,
+                method: opts.method,
                 action: InterceptAction::ModifyResponse {
                     set_status: opts.status,
                     add_headers: opts.add_headers,
@@ -224,6 +234,7 @@ struct CliOptions {
     remove_headers: Vec<String>,
     body: Option<String>,
     status: Option<u16>,
+    method: Option<String>,
     name: Option<String>,
 }
 
@@ -234,6 +245,7 @@ fn parse_common_options(tokens: &[String]) -> CliOptions {
         remove_headers: Vec::new(),
         body: None,
         status: None,
+        method: None,
         name: None,
     };
 
@@ -264,6 +276,12 @@ fn parse_common_options(tokens: &[String]) -> CliOptions {
                 if i + 1 < tokens.len() {
                     i += 1;
                     opts.status = tokens[i].parse().ok();
+                }
+            }
+            "--method" | "-m" => {
+                if i + 1 < tokens.len() {
+                    i += 1;
+                    opts.method = Some(tokens[i].to_uppercase());
                 }
             }
             "--name" | "-n" => {
