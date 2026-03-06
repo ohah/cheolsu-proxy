@@ -3,10 +3,7 @@ import { Download, FileArchive, FileText, FileType, HardDrive, Eye, EyeOff } fro
 import { readFile, BaseDirectory } from "@tauri-apps/plugin-fs";
 
 import type { DataType } from "@/entities/proxy/model/data-type";
-import {
-  dataTypeToDisplayName,
-  dataTypeToIcon,
-} from "@/entities/proxy/model/data-type";
+import { dataTypeToDisplayName, dataTypeToIcon } from "@/entities/proxy/model/data-type";
 import { Button } from "@/shared/ui";
 import { formatBytes } from "@/widgets/network-table/lib/utils";
 
@@ -135,7 +132,9 @@ export const BinaryPreview = ({
     const loaded = await loadFileData();
     if (!loaded) return;
 
-    const blob = new Blob([loaded.buffer as ArrayBuffer], { type: mimeType || "application/octet-stream" });
+    const blob = new Blob([loaded.buffer as ArrayBuffer], {
+      type: mimeType || "application/octet-stream",
+    });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
@@ -215,11 +214,7 @@ export const BinaryPreview = ({
         {showPdf && dataType === "Document" && (
           <div className="flex-1 min-h-0">
             {pdfUrl ? (
-              <embed
-                src={pdfUrl}
-                type="application/pdf"
-                className="w-full h-full"
-              />
+              <embed src={pdfUrl} type="application/pdf" className="w-full h-full" />
             ) : (
               <div className="flex items-center justify-center h-full text-muted-foreground">
                 PDF 로딩 중...
@@ -240,16 +235,17 @@ export const BinaryPreview = ({
                 <pre className="font-mono text-xs leading-5 text-foreground whitespace-pre">
                   {formatHexDump(actualData, hexMaxRows)}
                 </pre>
-                {actualData.length > hexMaxRows * HEX_BYTES_PER_ROW && hexMaxRows < HEX_MAX_ROWS && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="mt-2"
-                    onClick={() => setHexMaxRows(Math.min(hexMaxRows * 2, HEX_MAX_ROWS))}
-                  >
-                    더 보기
-                  </Button>
-                )}
+                {actualData.length > hexMaxRows * HEX_BYTES_PER_ROW &&
+                  hexMaxRows < HEX_MAX_ROWS && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="mt-2"
+                      onClick={() => setHexMaxRows(Math.min(hexMaxRows * 2, HEX_MAX_ROWS))}
+                    >
+                      더 보기
+                    </Button>
+                  )}
               </div>
             ) : (
               <div className="flex items-center justify-center h-full text-muted-foreground">
@@ -264,12 +260,8 @@ export const BinaryPreview = ({
           <div className="flex-1 flex items-center justify-center text-muted-foreground">
             <div className="text-center">
               <span className="text-4xl">{dataTypeToIcon(dataType)}</span>
-              <p className="mt-2 text-sm">
-                이 파일은 바이너리 형식입니다
-              </p>
-              <p className="text-xs mt-1">
-                Hex 보기 또는 다운로드를 사용하세요
-              </p>
+              <p className="mt-2 text-sm">이 파일은 바이너리 형식입니다</p>
+              <p className="text-xs mt-1">Hex 보기 또는 다운로드를 사용하세요</p>
             </div>
           </div>
         )}
