@@ -21,6 +21,8 @@ export async function cleanOldProxyCache(days: number): Promise<string> {
   return invoke("clean_old_proxy_cache", { days });
 }
 
-export async function updateInterceptRules(rules: import("@/entities/intercept-rule").InterceptRule[]): Promise<void> {
+export async function updateInterceptRules(
+  rules: import("@/entities/intercept-rule").InterceptRule[],
+): Promise<void> {
   return invoke("update_intercept_rules_v2", { rules });
 }

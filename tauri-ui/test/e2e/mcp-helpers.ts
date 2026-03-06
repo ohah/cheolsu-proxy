@@ -39,10 +39,7 @@ export async function disconnectMcp(): Promise<void> {
 /**
  * MCP 도구 호출 헬퍼
  */
-export async function callTool(
-  name: string,
-  args: Record<string, unknown> = {},
-): Promise<any> {
+export async function callTool(name: string, args: Record<string, unknown> = {}): Promise<any> {
   const c = await connectMcp();
   const result = await c.callTool({ name, arguments: args });
 
@@ -104,10 +101,7 @@ export async function clickElement(selector: string): Promise<any> {
 }
 
 /** 텍스트 입력 */
-export async function typeText(
-  selector: string,
-  text: string,
-): Promise<any> {
+export async function typeText(selector: string, text: string): Promise<any> {
   return callTool("webview_keyboard", { action: "type", selector, text });
 }
 
@@ -133,10 +127,7 @@ export async function executeJs(script: string): Promise<any> {
 }
 
 /** IPC 커맨드 실행 */
-export async function ipcExecute(
-  command: string,
-  args?: Record<string, unknown>,
-): Promise<any> {
+export async function ipcExecute(command: string, args?: Record<string, unknown>): Promise<any> {
   const toolArgs: Record<string, unknown> = { command };
   if (args) toolArgs.args = args;
   return callTool("ipc_execute_command", toolArgs);

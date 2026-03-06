@@ -1,19 +1,16 @@
 import { useState } from "react";
 import { useProxyStore, useInterceptRuleStore } from "@/shared/stores";
-import {
-  Card,
-  CardContent,
-  Badge,
-  Button,
-  Switch,
-} from "@/shared/ui";
+import { Card, CardContent, Badge, Button, Switch } from "@/shared/ui";
 import { Plus, Trash2, Pencil, Ban, ArrowUpDown, ArrowDownUp, Eraser } from "lucide-react";
 import { toast } from "sonner";
 import { AppSidebar } from "@/shared/app-sidebar";
 import type { InterceptRule, InterceptActionType } from "@/entities/intercept-rule";
 import { RuleFormDialog } from "./rule-form-dialog";
 
-const ACTION_LABELS: Record<InterceptActionType, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+const ACTION_LABELS: Record<
+  InterceptActionType,
+  { label: string; variant: "default" | "secondary" | "destructive" | "outline" }
+> = {
   block: { label: "Block", variant: "destructive" },
   modify_request: { label: "Modify Request", variant: "default" },
   modify_response: { label: "Modify Response", variant: "secondary" },
@@ -148,17 +145,17 @@ export const InterceptRulesPage = () => {
                                 Status: {rule.action.set_status}
                               </span>
                             )}
-                            {(rule.action.type === "modify_request" || rule.action.type === "modify_response") &&
+                            {(rule.action.type === "modify_request" ||
+                              rule.action.type === "modify_response") &&
                               Object.keys(rule.action.add_headers).length > 0 && (
                                 <span className="text-xs text-muted-foreground">
                                   +{Object.keys(rule.action.add_headers).length} headers
                                 </span>
                               )}
-                            {(rule.action.type === "modify_request" || rule.action.type === "modify_response") &&
+                            {(rule.action.type === "modify_request" ||
+                              rule.action.type === "modify_response") &&
                               rule.action.set_body && (
-                                <span className="text-xs text-muted-foreground">
-                                  Custom body
-                                </span>
+                                <span className="text-xs text-muted-foreground">Custom body</span>
                               )}
                           </div>
                         </div>
@@ -192,11 +189,7 @@ export const InterceptRulesPage = () => {
         </div>
       </div>
 
-      <RuleFormDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        editingRule={editingRule}
-      />
+      <RuleFormDialog open={dialogOpen} onOpenChange={setDialogOpen} editingRule={editingRule} />
     </div>
   );
 };
