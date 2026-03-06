@@ -71,7 +71,7 @@ export function WsReplayDialog({ message, open, onOpenChange }: WsReplayDialogPr
     const params: WsInjectParams = {
       connection_id: message.connection_id,
       direction,
-      payload: message.is_binary ? payload : payload,
+      payload,
       is_binary: message.is_binary,
     };
 
@@ -79,7 +79,8 @@ export function WsReplayDialog({ message, open, onOpenChange }: WsReplayDialogPr
       await wsInjectMessage(params);
       setSuccess(true);
     } catch (e: unknown) {
-      const errorMessage = e instanceof Error ? e.message : typeof e === "string" ? e : "Failed to send";
+      const errorMessage =
+        e instanceof Error ? e.message : typeof e === "string" ? e : "Failed to send";
       setError(errorMessage);
     } finally {
       setLoading(false);
