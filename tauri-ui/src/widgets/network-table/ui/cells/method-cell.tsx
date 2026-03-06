@@ -9,7 +9,7 @@ export const MethodCell = memo<TableCellProps>(({ data }) => {
   const method = data.transaction.request?.method || "";
 
   return (
-    <div className="col-span-1">
+    <div>
       <Badge variant="outline" className={`text-xs ${getMethodColor(method)}`}>
         {method}
       </Badge>

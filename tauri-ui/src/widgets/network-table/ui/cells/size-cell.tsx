@@ -10,7 +10,7 @@ export const SizeCell = memo<TableCellProps>(({ data }) => {
 
   return (
     <div
-      className="col-span-1 text-sm font-mono"
+      className="text-sm font-mono"
       title={`Request: ${formatBytes(requestSize)}, Response: ${formatBytes(responseSize)}`}
     >
       {formatBytes(totalSize)}

@@ -22,9 +22,7 @@ export const TableHeader = ({ allChecked, someChecked, onToggleAll }: TableHeade
           />
         </div>
         {TABLE_COLUMNS.map((column) => (
-          <div key={column.key} className={`col-span-${column.span}`}>
-            {column.label}
-          </div>
+          <div key={column.key}>{column.label}</div>
         ))}
       </div>
     </div>

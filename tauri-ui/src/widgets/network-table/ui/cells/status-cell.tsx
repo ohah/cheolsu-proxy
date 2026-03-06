@@ -9,7 +9,7 @@ export const StatusCell = memo<TableCellProps>(({ data }) => {
   const status = data.transaction.response?.status || 0;
 
   return (
-    <div className="col-span-1">
+    <div>
       <Badge variant="outline" className={`text-xs ${getStatusColor(status)}`}>
         {status}
       </Badge>
