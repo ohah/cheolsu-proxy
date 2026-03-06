@@ -52,7 +52,7 @@ pub enum TlsStrategy {
 }
 
 /// TLS 핸들러 - rustls 사용 (Hudsucker 방식으로 단순화)
-pub struct HybridTlsHandler<CA: CertificateAuthority> {
+pub(crate) struct HybridTlsHandler<CA: CertificateAuthority> {
     ca: Arc<CA>,
 }
 
@@ -80,7 +80,7 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
     }
 
     /// TLS 버전을 감지하고 적절한 TLS 핸들러를 선택합니다 (Upgraded 스트림 전용)
-    pub async fn handle_tls_connection_upgraded(
+    pub(crate) async fn handle_tls_connection_upgraded(
         &self,
         authority: &Authority,
         upgraded: Rewind<TokioIo<Upgraded>>,
@@ -134,7 +134,8 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
     }
 
     /// TLS 버전을 감지하고 적절한 TLS 핸들러를 선택합니다
-    pub async fn handle_tls_connection<R, W>(
+    #[allow(dead_code)]
+    pub(crate) async fn handle_tls_connection<R, W>(
         &self,
         authority: &Authority,
         stream: (R, W),
@@ -167,6 +168,7 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
     }
 
     /// rustls를 사용하여 TLS 연결을 처리합니다
+    #[allow(dead_code)]
     async fn handle_with_rustls<R, W>(
         &self,
         authority: &Authority,
@@ -551,7 +553,7 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
 // ─── 순수 함수 (테스트 가능) ───
 
 /// 특정 도메인이 openssl을 필요로 하는지 확인합니다
-pub fn is_openssl_required_domain(authority: &Authority) -> bool {
+pub(crate) fn is_openssl_required_domain(authority: &Authority) -> bool {
     let host = authority.host();
     let openssl_required_domains = [
         "api2.cursor.sh",
@@ -567,7 +569,7 @@ pub fn is_openssl_required_domain(authority: &Authority) -> bool {
 }
 
 /// Extension 타입을 이름으로 변환
-pub fn get_extension_name(extension_type: u16) -> String {
+pub(crate) fn get_extension_name(extension_type: u16) -> String {
     match extension_type {
         0x0000 => "SNI".to_string(),
         0x0001 => "max_fragment_length".to_string(),
@@ -624,7 +626,7 @@ pub fn get_extension_name(extension_type: u16) -> String {
 }
 
 /// 연결 복잡도 점수를 계산합니다
-pub fn calculate_complexity_score(
+pub(crate) fn calculate_complexity_score(
     cipher_suites: &[u16],
     extensions: &[TlsExtension],
     message_size: usize,
@@ -674,7 +676,7 @@ pub fn calculate_complexity_score(
 }
 
 /// TLS 연결을 상세 분석합니다 (순수 함수)
-pub fn analyze_tls_connection(
+pub(crate) fn analyze_tls_connection(
     initial_buffer: &[u8],
 ) -> Result<TlsConnectionInfo, Box<dyn std::error::Error + Send + Sync>> {
     info!("🔍 [TLS-ANALYSIS] TLS 연결 분석 시작");
@@ -816,7 +818,7 @@ pub fn analyze_tls_connection(
 }
 
 /// TLS 처리 전략을 결정합니다 (순수 함수)
-pub fn determine_tls_strategy(authority: &Authority, tls_info: &TlsConnectionInfo) -> TlsStrategy {
+pub(crate) fn determine_tls_strategy(authority: &Authority, tls_info: &TlsConnectionInfo) -> TlsStrategy {
     let host = authority.host();
 
     info!("🎯 [STRATEGY] 전략 결정 분석:");
@@ -862,7 +864,8 @@ pub fn determine_tls_strategy(authority: &Authority, tls_info: &TlsConnectionInf
 }
 
 /// TLS 스트림 - rustls와 openssl 스트림을 래핑
-pub enum HybridTlsStream {
+#[allow(dead_code)]
+pub(crate) enum HybridTlsStream {
     Rustls(tokio_rustls::TlsStream<Rewind<TokioIo<Upgraded>>>),
     RustlsGeneric(tokio_rustls::TlsStream<Rewind<tokio::io::DuplexStream>>),
     OpenSsl(SslStream<Rewind<TokioIo<Upgraded>>>),
