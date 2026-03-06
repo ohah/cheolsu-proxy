@@ -1,0 +1,21 @@
+[package]
+name = "cheolsu-proxy-mcp"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "cheolsu-proxy-mcp"
+path = "src/main.rs"
+
+[dependencies]
+rmcp = { version = "1.1", features = ["server", "transport-io"] }
+proxy_daemon = { path = "../proxy_daemon" }
+proxy_v2_models = { path = "../proxy_v2_models" }
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+schemars = "1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+anyhow = "1"
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls"] }
