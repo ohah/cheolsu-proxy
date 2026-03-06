@@ -232,7 +232,7 @@ export function ReplayDialog({ transaction }: ReplayDialogProps) {
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="!max-w-none w-[calc(100vw-4rem)] h-[calc(100vh-4rem)] flex flex-col">
+        <DialogContent className="!max-w-none !rounded-none w-screen h-screen flex flex-col">
           <DialogHeader className="flex-shrink-0">
             <DialogTitle>Traffic Replay</DialogTitle>
           </DialogHeader>
@@ -270,8 +270,8 @@ export function ReplayDialog({ transaction }: ReplayDialogProps) {
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="request" className="flex-1 mt-4 min-h-0 overflow-y-auto">
-              <div className="space-y-4">
+            <TabsContent value="request" className="flex-1 mt-4 min-h-0 flex flex-col">
+              <div className="flex-1 overflow-y-auto space-y-4">
                 <div className="flex gap-2">
                   <Select value={method} onValueChange={(v) => v && setMethod(v)}>
                     <SelectTrigger className="w-28">
@@ -353,6 +353,14 @@ export function ReplayDialog({ transaction }: ReplayDialogProps) {
                   </div>
                 )}
 
+              </div>
+
+              <div className="flex-shrink-0 pt-4 space-y-3">
+                {error && (
+                  <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm">
+                    {error}
+                  </div>
+                )}
                 <Button onClick={handleReplay} disabled={loading || !url} className="w-full">
                   {loading ? (
                     <>
@@ -366,12 +374,6 @@ export function ReplayDialog({ transaction }: ReplayDialogProps) {
                     </>
                   )}
                 </Button>
-
-                {error && (
-                  <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm">
-                    {error}
-                  </div>
-                )}
               </div>
             </TabsContent>
 
