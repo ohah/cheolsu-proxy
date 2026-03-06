@@ -123,6 +123,7 @@ impl ProxiedRequest {
     /// 클라이언트(타우리 UI)용으로 변환
     pub fn for_client(self, cache_dir: Option<&Path>) -> ClientRequest {
         let original_body_size = self.body.len();
+        #[allow(clippy::absurd_extreme_comparisons)]
         let (body, file_path) =
             if original_body_size >= BODY_FILE_THRESHOLD || is_media_data_type(&self.data_type) {
                 // 큰 body이거나 미디어 파일은 파일로 저장

@@ -133,6 +133,7 @@ impl ProxiedResponse {
     pub fn for_client(self, request_id: &str, cache_dir: Option<&Path>) -> ClientResponse {
         let body_to_save = self.decompressed_body.unwrap_or(self.body);
         let original_body_size = body_to_save.len();
+        #[allow(clippy::absurd_extreme_comparisons)]
         let (body, file_path) =
             if original_body_size >= BODY_FILE_THRESHOLD || is_media_data_type(&self.data_type) {
                 // 큰 body이거나 미디어 파일은 파일로 저장
