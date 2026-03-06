@@ -256,13 +256,18 @@ where
 
     let handler = TestHandler::new(should_intercept);
 
+    let proxy_ctx = proxyapi_v2::ProxyContext {
+        websocket_connector: Some(websocket_connector),
+        ..Default::default()
+    };
+
     let proxy = Proxy::builder()
         .with_listener(listener)
         .with_ca(ca)
         .with_client(client)
         .with_http_handler(handler.clone())
         .with_websocket_handler(handler.clone())
-        .with_websocket_connector(websocket_connector)
+        .with_proxy_context(proxy_ctx)
         .with_graceful_shutdown(async {
             rx.await.unwrap_or_default();
         })
