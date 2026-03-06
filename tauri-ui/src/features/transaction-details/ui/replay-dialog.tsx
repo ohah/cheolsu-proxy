@@ -103,8 +103,8 @@ function ResponseView({
   const headerEntries = Object.entries(headers);
 
   return (
-    <div className="space-y-4 flex-1 flex flex-col min-h-0">
-      <div className="flex items-center gap-4 flex-shrink-0">
+    <div className="flex-1 overflow-y-auto space-y-4">
+      <div className="flex items-center gap-4">
         <Badge variant="outline" className={`text-sm ${getStatusColor(status)}`}>
           {status}
         </Badge>
@@ -118,37 +118,33 @@ function ResponseView({
 
       {headerEntries.length > 0 && (
         <>
-          <div className="space-y-2 flex-shrink-0">
+          <div className="space-y-2">
             <label className="text-sm font-medium">Headers ({headerEntries.length})</label>
-            <ScrollArea className="max-h-[250px]">
-              <div className="rounded-md border">
-                <table className="w-full text-xs font-mono">
-                  <tbody>
-                    {headerEntries.map(([k, v]) => (
-                      <tr key={k} className="border-b last:border-b-0">
-                        <td className="px-3 py-1.5 text-muted-foreground font-medium whitespace-nowrap align-top w-[220px]">
-                          {k}
-                        </td>
-                        <td className="px-3 py-1.5 break-all">{v}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </ScrollArea>
+            <div className="rounded-md border">
+              <table className="w-full text-xs font-mono">
+                <tbody>
+                  {headerEntries.map(([k, v]) => (
+                    <tr key={k} className="border-b last:border-b-0">
+                      <td className="px-3 py-1.5 text-muted-foreground font-medium whitespace-nowrap align-top w-[220px]">
+                        {k}
+                      </td>
+                      <td className="px-3 py-1.5 break-all">{v}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
 
           <Separator />
         </>
       )}
 
-      <div className="space-y-2 flex-1 min-h-0 flex flex-col">
+      <div className="space-y-2">
         <label className="text-sm font-medium">Body</label>
-        <ScrollArea className="flex-1">
-          <pre className="font-mono text-xs whitespace-pre-wrap break-all p-3 bg-muted rounded-md">
-            {formatBody(body, bodySize)}
-          </pre>
-        </ScrollArea>
+        <pre className="font-mono text-xs whitespace-pre-wrap break-all p-3 bg-muted rounded-md">
+          {formatBody(body, bodySize)}
+        </pre>
       </div>
     </div>
   );
