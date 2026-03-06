@@ -34,7 +34,12 @@ interface RuleFormDialogProps {
 
 const HTTP_METHODS = ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"];
 
-export const RuleFormDialog = ({ open, onOpenChange, editingRule, initialValues }: RuleFormDialogProps) => {
+export const RuleFormDialog = ({
+  open,
+  onOpenChange,
+  editingRule,
+  initialValues,
+}: RuleFormDialogProps) => {
   const { addRule, updateRule } = useInterceptRuleStore();
 
   const [name, setName] = useState("");

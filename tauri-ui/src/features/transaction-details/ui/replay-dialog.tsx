@@ -290,7 +290,10 @@ export function ReplayDialog({ transaction }: ReplayDialogProps) {
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="request" className="mt-4 min-h-0 flex-1 flex flex-col justify-between">
+            <TabsContent
+              value="request"
+              className="mt-4 min-h-0 flex-1 flex flex-col justify-between"
+            >
               <div className="flex-1 min-h-0 overflow-y-auto space-y-4 px-1">
                 <div className="flex gap-2">
                   <Select value={method} onValueChange={(v) => v && setMethod(v)}>
@@ -383,7 +386,6 @@ export function ReplayDialog({ transaction }: ReplayDialogProps) {
                     </div>
                   </div>
                 )}
-
               </div>
 
               <div className="flex-shrink-0 pt-4 space-y-3">

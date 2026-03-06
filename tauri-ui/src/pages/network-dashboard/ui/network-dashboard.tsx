@@ -216,7 +216,9 @@ export const NetworkDashboard = () => {
 
       <RuleFormDialog
         open={interceptRuleDialogOpen}
-        onOpenChange={(open) => { if (!open) closeInterceptRuleDialog(); }}
+        onOpenChange={(open) => {
+          if (!open) closeInterceptRuleDialog();
+        }}
         editingRule={null}
         initialValues={interceptRuleInitialValues}
       />
