@@ -340,9 +340,7 @@ pub fn detect_data_type(headers: &HeaderMap, body: &Bytes) -> DataType {
                 return DataType::Html;
             } else if content_type.contains("css") {
                 return DataType::Css;
-            } else if content_type.contains("javascript") {
-                return DataType::Javascript;
-            } else if content_type.contains("typescript") {
+            } else if content_type.contains("javascript") || content_type.contains("typescript") {
                 return DataType::Javascript;
             } else if content_type.contains("image/") {
                 return DataType::Image;
