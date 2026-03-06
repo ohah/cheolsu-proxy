@@ -1,4 +1,4 @@
-import { Network, Shield, Route } from "lucide-react";
+import { Network, Shield, Route, Plug } from "lucide-react";
 
 import type { SidebarSection } from "./types";
 
@@ -22,6 +22,12 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
     label: "Map Rules",
     icon: Route,
     description: "Map Local / Map Remote rules",
+  },
+  {
+    id: "websocket",
+    label: "WebSocket",
+    icon: Plug,
+    description: "WebSocket connections and messages",
   },
   // {
   //   id: 'performance',

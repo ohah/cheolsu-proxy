@@ -1,9 +1,15 @@
 import { useEffect } from "react";
 import { useThemeProvider, RouterProvider } from "./providers";
 import { Toaster } from "@/shared/ui";
-import { useProxyStore, useInterceptRuleStore, useTransactionStore } from "@/shared/stores";
+import {
+  useProxyStore,
+  useInterceptRuleStore,
+  useTransactionStore,
+  useWebSocketStore,
+} from "@/shared/stores";
 import { listen } from "@tauri-apps/api/event";
 import type { ProxyEventTuple } from "@/entities/proxy";
+import type { WsMessageInfo, WsConnectionEvent } from "@/entities/websocket";
 
 const App: React.FC = () => {
   useThemeProvider();
@@ -11,6 +17,8 @@ const App: React.FC = () => {
   const syncToProxy = useInterceptRuleStore((s) => s.syncToProxy);
   const addTransaction = useTransactionStore((s) => s.addTransaction);
   const paused = useTransactionStore((s) => s.paused);
+  const addWsMessage = useWebSocketStore((s) => s.addMessage);
+  const updateWsConnection = useWebSocketStore((s) => s.updateConnection);
 
   // 앱 시작 시 프록시 초기화 후 저장된 인터셉트 규칙 동기화
   useEffect(() => {
@@ -30,6 +38,24 @@ const App: React.FC = () => {
       unlisten.then((f) => f());
     };
   }, [addTransaction, paused]);
+
+  // WebSocket 메시지 이벤트 수신
+  useEffect(() => {
+    if (paused) return;
+
+    const unlistenMsg = listen<WsMessageInfo>("ws_message", (event) => {
+      addWsMessage(event.payload);
+    });
+    const unlistenConn = listen<WsConnectionEvent>("ws_connection", (event) => {
+      const { connection_id, status, uri, time } = event.payload;
+      updateWsConnection(connection_id, status, uri, time);
+    });
+
+    return () => {
+      unlistenMsg.then((f) => f());
+      unlistenConn.then((f) => f());
+    };
+  }, [addWsMessage, updateWsConnection, paused]);
 
   return (
     <div className="App">

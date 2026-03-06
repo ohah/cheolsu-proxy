@@ -2,6 +2,7 @@ import { createBrowserRouter, RouterProvider as ReactRouterProvider } from "reac
 import { NetworkDashboard } from "@/pages/network-dashboard";
 import { InterceptRulesPage } from "@/pages/intercept-rules";
 import { MapRulesPage } from "@/pages/map-rules";
+import { WebSocketDashboard } from "@/pages/websocket-dashboard";
 
 // React Router v7의 기본 라우터 설정
 export const router = createBrowserRouter([
@@ -35,6 +36,14 @@ export const router = createBrowserRouter([
     handle: {
       title: "Map Rules - Cheolsu Proxy",
       description: "Map Local / Map Remote rules",
+    },
+  },
+  {
+    path: "/websocket",
+    element: <WebSocketDashboard />,
+    handle: {
+      title: "WebSocket - Cheolsu Proxy",
+      description: "WebSocket connections and messages",
     },
   },
   // 향후 추가될 페이지들을 위한 라우트들
