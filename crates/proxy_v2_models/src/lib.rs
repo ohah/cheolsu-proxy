@@ -3,12 +3,14 @@ mod file_storage;
 mod mime_utils;
 mod request;
 mod response;
+mod websocket;
 
 pub use data_type::*;
 pub use file_storage::*;
 pub use mime_utils::*;
 pub use request::*;
 pub use response::*;
+pub use websocket::*;
 
 /// Body 크기 임계값 (테스트용: 0 초과)
 /// 이 크기 이상의 body는 파일시스템에 저장됩니다

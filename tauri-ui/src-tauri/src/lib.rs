@@ -432,19 +432,21 @@ fn handle_cli_mode(app: &tauri::App) -> bool {
     // headless 모드: daemon에 연결하여 이벤트를 stdout에 출력
     let app_handle = app.handle().clone();
     tauri::async_runtime::spawn(async move {
-        match proxy_daemon::ensure_daemon(port, &host, move |event| {
+        match proxy_daemon::ensure_daemon(port, &host, move |msg| {
             if verbose {
-                // verbose 모드에서는 요청/응답 정보를 stdout에 출력
-                if let Some(req) = &event.0 {
-                    println!(
-                        "  [REQ] {} {} ({:?})",
-                        req.method(),
-                        req.uri(),
-                        req.data_type()
-                    );
-                }
-                if let Some(res) = &event.1 {
-                    println!("  [RES] {} ({:?})", res.status(), res.data_type());
+                if let proxy_daemon::DaemonMessage::Event { data: ref event } = msg {
+                    // verbose 모드에서는 요청/응답 정보를 stdout에 출력
+                    if let Some(req) = &event.0 {
+                        println!(
+                            "  [REQ] {} {} ({:?})",
+                            req.method(),
+                            req.uri(),
+                            req.data_type()
+                        );
+                    }
+                    if let Some(res) = &event.1 {
+                        println!("  [RES] {} ({:?})", res.status(), res.data_type());
+                    }
                 }
             }
         })

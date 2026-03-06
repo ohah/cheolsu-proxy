@@ -1,4 +1,6 @@
-use proxy_daemon::{clean_old_cache, ClientCommand, DaemonConnection, InterceptRule};
+use proxy_daemon::{
+    clean_old_cache, ClientCommand, DaemonConnection, DaemonMessage, InterceptRule,
+};
 use std::collections::HashMap;
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -40,8 +42,17 @@ pub async fn start_proxy_v2<R: Runtime>(
     let host = addr.ip().to_string();
 
     let app_clone = app.clone();
-    let conn = match proxy_daemon::ensure_daemon(port, &host, move |event| {
-        let _ = app_clone.emit("proxy_event", event);
+    let conn = match proxy_daemon::ensure_daemon(port, &host, move |msg| match msg {
+        DaemonMessage::Event { data } => {
+            let _ = app_clone.emit("proxy_event", data);
+        }
+        DaemonMessage::WsMessage { data } => {
+            let _ = app_clone.emit("ws_message", data);
+        }
+        DaemonMessage::WsConnection { data } => {
+            let _ = app_clone.emit("ws_connection", data);
+        }
+        _ => {}
     })
     .await
     {
