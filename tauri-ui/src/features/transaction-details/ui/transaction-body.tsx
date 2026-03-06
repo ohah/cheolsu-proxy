@@ -7,15 +7,16 @@ import { Button, Card, CardContent, CardHeader } from "@/shared/ui";
 import type { AppFormInstance } from "../context/form-context";
 import { Editor } from "@monaco-editor/react";
 
-import { getBodyForDisplay, createImageDataUrl } from "../lib/utils";
+import { getBodyForDisplay, createImageDataUrl, extractBinaryFileInfo } from "../lib/utils";
 import {
   dataTypeToMonacoLanguage,
   isImageDataType,
   isMediaDataType,
+  isBinaryDataType,
 } from "@/entities/proxy/model/data-type";
 import { toast } from "sonner";
-import { ImagePreview } from "./image-preview";
 import { MediaPreview } from "./media-preview";
+import { BinaryPreview } from "./binary-preview";
 import { useBodyFile } from "@/hooks/use-body-file";
 
 interface TransactionBodyProps {
@@ -28,6 +29,19 @@ export const TransactionBody = ({ transaction, isEditing = false, form }: Transa
   const { request } = transaction;
 
   if (!request) return null;
+
+  // 바이너리 파일 정보 추출
+  const isNonMediaBinary =
+    isBinaryDataType(request.data_type) && !isMediaDataType(request.data_type);
+  const binaryFileInfo = isNonMediaBinary
+    ? extractBinaryFileInfo(
+        request.uri,
+        request.headers,
+        request.data_type,
+        request.file_path,
+        request.body_size,
+      )
+    : null;
 
   // 파일에서 body를 읽어오는 훅
   const {
@@ -147,6 +161,16 @@ export const TransactionBody = ({ transaction, isEditing = false, form }: Transa
               filePath={request.file_path}
             />
           </div>
+        ) : isNonMediaBinary && binaryFileInfo && !fileLoading && !fileError ? (
+          <BinaryPreview
+            data={actualBody}
+            dataType={request.data_type}
+            bodySize={request.body_size}
+            fileName={binaryFileInfo.fileName}
+            fileExtension={binaryFileInfo.fileExtension}
+            mimeType={binaryFileInfo.mimeType}
+            filePath={request.file_path}
+          />
         ) : form && isEditing ? (
           <form.Field
             name="request.data"
