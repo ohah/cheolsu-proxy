@@ -4419,6 +4419,7 @@ dependencies = [
 name = "proxy_v2_models"
 version = "0.1.0"
 dependencies = [
+ "base64 0.22.1",
  "brotli 3.5.0",
  "bytes",
  "flate2",
