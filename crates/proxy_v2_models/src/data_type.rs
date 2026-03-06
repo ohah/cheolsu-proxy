@@ -20,6 +20,8 @@ pub enum DataType {
     Css,
     /// JavaScript/TypeScript 코드
     Javascript,
+    /// GraphQL 쿼리/뮤테이션
+    GraphQL,
     /// 이미지 파일 (PNG, JPEG, GIF, WebP, SVG 등)
     Image,
     /// 비디오 파일 (MP4, WebM 등)
@@ -49,6 +51,7 @@ impl DataType {
             DataType::Text => "text/plain",
             DataType::Css => "text/css",
             DataType::Javascript => "application/javascript",
+            DataType::GraphQL => "application/json",
             DataType::Image => "image/*",
             DataType::Video => "video/*",
             DataType::Audio => "audio/*",
@@ -68,6 +71,7 @@ impl DataType {
             DataType::Html => "html",
             DataType::Css => "css",
             DataType::Javascript => "javascript",
+            DataType::GraphQL => "graphql",
             DataType::Text => "plaintext",
             DataType::Image
             | DataType::Video
@@ -89,6 +93,7 @@ impl DataType {
                 | DataType::Html
                 | DataType::Css
                 | DataType::Javascript
+                | DataType::GraphQL
                 | DataType::Text
         )
     }
@@ -203,6 +208,16 @@ pub fn detect_data_type(headers: &HeaderMap, body: &Bytes) -> DataType {
             if (trimmed.starts_with('{') || trimmed.starts_with('['))
                 && serde_json::from_str::<serde_json::Value>(trimmed).is_ok()
             {
+                // GraphQL 감지: JSON object에 "query" 문자열 필드가 있으면 GraphQL
+                if trimmed.starts_with('{') {
+                    if let Ok(serde_json::Value::Object(map)) =
+                        serde_json::from_str::<serde_json::Value>(trimmed)
+                    {
+                        if map.get("query").is_some_and(|v| v.is_string()) {
+                            return DataType::GraphQL;
+                        }
+                    }
+                }
                 return DataType::Json;
             }
         }
@@ -332,7 +347,9 @@ pub fn detect_data_type(headers: &HeaderMap, body: &Bytes) -> DataType {
     if let Some(content_type_header) = headers.get("content-type") {
         if let Ok(content_type_str) = content_type_header.to_str() {
             let content_type = content_type_str.to_lowercase();
-            if content_type.contains("json") {
+            if content_type.contains("graphql") {
+                return DataType::GraphQL;
+            } else if content_type.contains("json") {
                 return DataType::Json;
             } else if content_type.contains("xml") {
                 return DataType::Xml;
@@ -645,5 +662,43 @@ mod tests {
         // 바이너리 데이터는 바이너리로 분류
         let binary_data = Bytes::from(vec![0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF0]);
         assert_eq!(detect_data_type(&headers, &binary_data), DataType::Binary);
+    }
+
+    #[test]
+    fn test_graphql_detection() {
+        use http::HeaderValue;
+
+        let headers = HeaderMap::new();
+
+        // JSON body with "query" field → GraphQL
+        let graphql_body =
+            Bytes::from(r#"{"query":"query { user(id: 1) { name } }","variables":{}}"#);
+        assert_eq!(detect_data_type(&headers, &graphql_body), DataType::GraphQL);
+
+        // JSON body without "query" field → Json
+        let json_body = Bytes::from(r#"{"name":"test","value":123}"#);
+        assert_eq!(detect_data_type(&headers, &json_body), DataType::Json);
+
+        // JSON array → Json (not GraphQL)
+        let array_body = Bytes::from(r#"[{"query":"test"}]"#);
+        assert_eq!(detect_data_type(&headers, &array_body), DataType::Json);
+
+        // Content-Type: application/graphql → GraphQL
+        let mut graphql_headers = HeaderMap::new();
+        graphql_headers.insert(
+            "content-type",
+            HeaderValue::from_static("application/graphql+json"),
+        );
+        let body = Bytes::from("some text");
+        assert_eq!(detect_data_type(&graphql_headers, &body), DataType::GraphQL);
+    }
+
+    #[test]
+    fn test_graphql_type_properties() {
+        let gql = DataType::GraphQL;
+        assert_eq!(gql.to_monaco_language(), "graphql");
+        assert_eq!(gql.to_mime_type(), "application/json");
+        assert!(gql.is_text_based());
+        assert!(!gql.is_binary());
     }
 }
