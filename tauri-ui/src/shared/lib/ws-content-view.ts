@@ -101,6 +101,39 @@ function decodeMqttRemainingLength(bytes: Uint8Array, offset: number): [number, 
   return [value, idx];
 }
 
+/**
+ * MQTT 5 Properties 섹션을 건너뛴다.
+ * Properties Length (Variable Byte Integer) + Properties 바이트를 skip.
+ */
+function skipMqtt5Properties(bytes: Uint8Array, offset: number): number {
+  const [propLen, afterLen] = decodeMqttRemainingLength(bytes, offset);
+  return afterLen + propLen;
+}
+
+/**
+ * SUBSCRIBE 토픽 파싱을 시도하고, 모든 QoS가 유효(0-2)한지 검증.
+ * 유효하면 파싱 결과를, 아니면 null을 반환.
+ */
+function tryParseSubscribeTopics(
+  bytes: Uint8Array,
+  offset: number,
+  end: number,
+): { label: string; value: string }[] | null {
+  const subs: string[] = [];
+  let off = offset;
+  while (off < end) {
+    const [topic, newOff] = decodeMqttUtf8String(bytes, off);
+    off = newOff;
+    if (off >= bytes.length) return null;
+    const qos = bytes[off];
+    off += 1;
+    if (qos > 2) return null; // QoS는 0, 1, 2만 유효
+    subs.push(`${topic} (QoS ${qos})`);
+  }
+  if (subs.length === 0) return null;
+  return [{ label: "Subscriptions", value: subs.join(", ") }];
+}
+
 function decodeMqttUtf8String(bytes: Uint8Array, offset: number): [string, number] {
   if (offset + 2 > bytes.length) return ["", offset];
   const len = (bytes[offset] << 8) | bytes[offset + 1];
@@ -199,6 +232,7 @@ export function parseMqtt(base64Payload: string): MqttParsed | null {
     } else if (packetTypeNum === 8) {
       // SUBSCRIBE
       let offset = payloadStart;
+      const end = payloadStart + remainingLength;
       if (offset + 2 <= bytes.length) {
         fields.push({
           label: "Packet ID",
@@ -206,18 +240,22 @@ export function parseMqtt(base64Payload: string): MqttParsed | null {
         });
         offset += 2;
       }
-      const subs: string[] = [];
-      while (offset < payloadStart + remainingLength) {
-        const [topic, newOff] = decodeMqttUtf8String(bytes, offset);
-        offset = newOff;
-        const qos = offset < bytes.length ? bytes[offset] : 0;
-        offset += 1;
-        subs.push(`${topic} (QoS ${qos})`);
+      // MQTT 5: Properties 섹션이 있을 수 있음. 먼저 Properties 건너뛴 후 시도, 실패하면 직접 파싱
+      const mqtt5Offset = skipMqtt5Properties(bytes, offset);
+      const mqtt5Result = tryParseSubscribeTopics(bytes, mqtt5Offset, end);
+      if (mqtt5Result) {
+        fields.push(...mqtt5Result);
+      } else {
+        // MQTT 3.1.1: Properties 없이 바로 토픽 파싱
+        const mqtt3Result = tryParseSubscribeTopics(bytes, offset, end);
+        if (mqtt3Result) {
+          fields.push(...mqtt3Result);
+        }
       }
-      if (subs.length > 0) fields.push({ label: "Subscriptions", value: subs.join(", ") });
     } else if (packetTypeNum === 9) {
       // SUBACK
       let offset = payloadStart;
+      const end = payloadStart + remainingLength;
       if (offset + 2 <= bytes.length) {
         fields.push({
           label: "Packet ID",
@@ -225,10 +263,23 @@ export function parseMqtt(base64Payload: string): MqttParsed | null {
         });
         offset += 2;
       }
+      // MQTT 5: Properties 건너뛰기 시도
+      const mqtt5Offset = skipMqtt5Properties(bytes, offset);
+      const useOffset = mqtt5Offset <= end && mqtt5Offset > offset ? mqtt5Offset : offset;
       const codes: number[] = [];
-      while (offset < payloadStart + remainingLength) {
-        codes.push(bytes[offset]);
-        offset += 1;
+      let codeOff = useOffset;
+      while (codeOff < end) {
+        codes.push(bytes[codeOff]);
+        codeOff += 1;
+      }
+      // MQTT 5 결과가 이상하면 (코드가 모두 > 2일 때) MQTT 3.1.1로 재시도
+      if (codes.length === 0 || codes.every((c) => c > 2)) {
+        codes.length = 0;
+        let fallbackOff = offset;
+        while (fallbackOff < end) {
+          codes.push(bytes[fallbackOff]);
+          fallbackOff += 1;
+        }
       }
       if (codes.length > 0) fields.push({ label: "Return Codes", value: codes.join(", ") });
     }
