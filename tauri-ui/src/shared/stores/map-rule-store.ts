@@ -1,8 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { InterceptRule } from "@/entities/intercept-rule";
-import { updateInterceptRules } from "@/shared/api/proxy";
-import { useInterceptRuleStore } from "./intercept-rule-store";
+import { registerRuleStore, syncAllRulesToProxy } from "./sync-rules";
 
 export interface MapRuleStoreState {
   rules: InterceptRule[];
@@ -52,10 +51,7 @@ export const useMapRuleStore = create<MapRuleStoreState>()(
 
       syncToProxy: async () => {
         try {
-          // Map rules와 Intercept rules를 합쳐서 전송
-          const mapRules = get().rules;
-          const interceptRules = useInterceptRuleStore.getState().rules;
-          await updateInterceptRules([...interceptRules, ...mapRules]);
+          await syncAllRulesToProxy();
         } catch (error) {
           console.error("Failed to sync map rules:", error);
         }
@@ -66,3 +62,5 @@ export const useMapRuleStore = create<MapRuleStoreState>()(
     },
   ),
 );
+
+registerRuleStore(() => useMapRuleStore.getState());
