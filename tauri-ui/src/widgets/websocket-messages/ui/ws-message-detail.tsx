@@ -26,7 +26,10 @@ function formatTimeFull(nanos: number): string {
 export const WsMessageDetail = memo(({ message, onClose }: WsMessageDetailProps) => {
   const isSent = message.direction === "client_to_server";
   const { formatted, isJson } = useMemo(
-    () => (message.is_binary ? { formatted: message.payload, isJson: false } : tryFormatJson(message.payload)),
+    () =>
+      message.is_binary
+        ? { formatted: message.payload, isJson: false }
+        : tryFormatJson(message.payload),
     [message.payload, message.is_binary],
   );
 
@@ -44,8 +47,10 @@ export const WsMessageDetail = memo(({ message, onClose }: WsMessageDetailProps)
           <span
             className={cn(
               "text-xs px-1.5 py-0.5 rounded",
-              message.message_type === "text" && "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
-              message.message_type === "binary" && "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300",
+              message.message_type === "text" &&
+                "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
+              message.message_type === "binary" &&
+                "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300",
             )}
           >
             {message.message_type}

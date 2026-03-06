@@ -74,11 +74,16 @@ const WsMessageRow = memo(
           <span
             className={cn(
               "inline-block px-1.5 py-0.5 rounded text-[10px] font-medium",
-              message.message_type === "text" && "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
-              message.message_type === "binary" && "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300",
-              message.message_type === "ping" && "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300",
-              message.message_type === "pong" && "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300",
-              message.message_type === "close" && "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300",
+              message.message_type === "text" &&
+                "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
+              message.message_type === "binary" &&
+                "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300",
+              message.message_type === "ping" &&
+                "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300",
+              message.message_type === "pong" &&
+                "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300",
+              message.message_type === "close" &&
+                "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300",
             )}
           >
             {messageTypeLabel(message.message_type)}
@@ -143,7 +148,10 @@ export const WsMessageTable = memo(
                 <WsMessageRow
                   key={`${msg.connection_id}-${msg.sequence}`}
                   message={msg}
-                  isSelected={selectedMessage?.sequence === msg.sequence && selectedMessage?.connection_id === msg.connection_id}
+                  isSelected={
+                    selectedMessage?.sequence === msg.sequence &&
+                    selectedMessage?.connection_id === msg.connection_id
+                  }
                   onSelect={() => onSelectMessage(msg)}
                 />
               ))}

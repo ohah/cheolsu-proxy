@@ -3,17 +3,8 @@ import { Trash2, Plug } from "lucide-react";
 
 import { AppSidebar } from "@/shared/app-sidebar";
 import { useProxyStore, useWebSocketStore } from "@/shared/stores";
-import {
-  WsMessageTable,
-  WsMessageDetail,
-  WsConnectionList,
-} from "@/widgets/websocket-messages";
-import {
-  ResizableHandle,
-  ResizablePanel,
-  ResizablePanelGroup,
-  Button,
-} from "@/shared/ui";
+import { WsMessageTable, WsMessageDetail, WsConnectionList } from "@/widgets/websocket-messages";
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup, Button } from "@/shared/ui";
 import type { WsMessageInfo, WsConnection } from "@/entities/websocket";
 
 export const WebSocketDashboard = () => {
@@ -85,10 +76,7 @@ export const WebSocketDashboard = () => {
 
         {/* Main content */}
         <div className="flex-1 overflow-hidden">
-          <ResizablePanelGroup
-            orientation="horizontal"
-            className="flex-1 flex bg-background"
-          >
+          <ResizablePanelGroup orientation="horizontal" className="flex-1 flex bg-background">
             {/* Connection list */}
             <ResizablePanel
               id="ws-connections"
@@ -125,10 +113,7 @@ export const WebSocketDashboard = () => {
                   minSize="20%"
                   className="h-full overflow-hidden"
                 >
-                  <WsMessageDetail
-                    message={selectedMessage}
-                    onClose={handleCloseDetail}
-                  />
+                  <WsMessageDetail message={selectedMessage} onClose={handleCloseDetail} />
                 </ResizablePanel>
               </>
             )}

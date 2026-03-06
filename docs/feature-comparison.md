@@ -26,28 +26,28 @@
 
 ## mitmproxy에만 있는 기능
 
-| 기능                   | 설명                               | 우선순위 |
-| ---------------------- | ---------------------------------- | :------: |
-| HTTP/2, HTTP/3 (QUIC)  | 다중 프로토콜 지원                 |          |
+| 기능                   | 설명                                  | 우선순위  |
+| ---------------------- | ------------------------------------- | :-------: |
+| HTTP/2, HTTP/3 (QUIC)  | 다중 프로토콜 지원                    |           |
 | ~~WebSocket 뷰~~       | ~~WebSocket 메시지 인터셉트 및 표시~~ | 구현 완료 |
-| Transparent Proxy      | OS 레벨 투명 프록시 모드           |          |
-| Reverse Proxy          | 특정 서버로 트래픽 전달            |          |
-| SOCKS Proxy            | SOCKS5 프록시 모드                 |          |
-| Upstream Proxy         | 상위 프록시 체이닝                 |          |
-| Map Local              | 요청을 로컬 파일로 대체            |          |
-| Map Remote             | URL을 다른 URL로 리다이렉트        |          |
-| Anticache              | 캐시 헤더 자동 제거                |          |
-| Anticomp               | 압축 비활성화 (디버깅용)           |          |
-| Sticky Auth/Cookie     | 인증/쿠키 자동 재전송              |          |
-| Server-side Replay     | 저장된 응답으로 서버 모킹          |          |
-| Save/Load (Flow 파일)  | 세션 저장 및 불러오기              |          |
-| HAR Export             | HAR 형식 내보내기                  |          |
-| Python 스크립트 애드온 | 사용자 스크립트로 기능 확장        |          |
-| 콘솔 UI (TUI)          | 터미널 인터랙티브 UI               |          |
-| mitmdump (CLI)         | tcpdump 스타일 CLI 도구            |          |
-| DNS 인터셉트           | DNS 쿼리/응답 조작                 |          |
-| Proxy Authentication   | 프록시 접속 인증                   |          |
-| Content View 확장      | GraphQL, MQTT, Socket.IO, WBXML 등 |          |
+| Transparent Proxy      | OS 레벨 투명 프록시 모드              |           |
+| Reverse Proxy          | 특정 서버로 트래픽 전달               |           |
+| SOCKS Proxy            | SOCKS5 프록시 모드                    |           |
+| Upstream Proxy         | 상위 프록시 체이닝                    |           |
+| Map Local              | 요청을 로컬 파일로 대체               |           |
+| Map Remote             | URL을 다른 URL로 리다이렉트           |           |
+| Anticache              | 캐시 헤더 자동 제거                   |           |
+| Anticomp               | 압축 비활성화 (디버깅용)              |           |
+| Sticky Auth/Cookie     | 인증/쿠키 자동 재전송                 |           |
+| Server-side Replay     | 저장된 응답으로 서버 모킹             |           |
+| Save/Load (Flow 파일)  | 세션 저장 및 불러오기                 |           |
+| HAR Export             | HAR 형식 내보내기                     |           |
+| Python 스크립트 애드온 | 사용자 스크립트로 기능 확장           |           |
+| 콘솔 UI (TUI)          | 터미널 인터랙티브 UI                  |           |
+| mitmdump (CLI)         | tcpdump 스타일 CLI 도구               |           |
+| DNS 인터셉트           | DNS 쿼리/응답 조작                    |           |
+| Proxy Authentication   | 프록시 접속 인증                      |           |
+| Content View 확장      | GraphQL, MQTT, Socket.IO, WBXML 등    |           |
 
 > 우선순위 컬럼은 cheolsu-proxy에 도입할 기능을 선별할 때 사용합니다.
 

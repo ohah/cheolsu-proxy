@@ -1,10 +1,6 @@
 import { create } from "zustand";
 
-import type {
-  WsMessageInfo,
-  WsConnection,
-  WsConnectionStatus,
-} from "@/entities/websocket";
+import type { WsMessageInfo, WsConnection, WsConnectionStatus } from "@/entities/websocket";
 
 interface WebSocketStoreState {
   messages: WsMessageInfo[];
@@ -80,8 +76,7 @@ export const useWebSocketStore = create<WebSocketStoreState>()((set) => ({
       return { connections };
     }),
 
-  setSelectedConnectionId: (id) =>
-    set({ selectedConnectionId: id, selectedMessage: null }),
+  setSelectedConnectionId: (id) => set({ selectedConnectionId: id, selectedMessage: null }),
 
   setSelectedMessage: (message) => set({ selectedMessage: message }),
 
