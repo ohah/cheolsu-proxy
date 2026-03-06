@@ -1,88 +1,123 @@
-# Create or Update a Pull Request
+# PR 생성/업데이트 커맨드
 
-Create or update a PR for the current branch. Follow the steps below.
+변경 사항을 커밋하고, 린트 검사를 수행한 뒤, PR을 생성하거나 기존 PR에 추가한다.
 
-## What the agent should do
+## 1. 변경 사항 분석 및 커밋 분리
 
-1. **Check current branch and PR status**: `git branch --show-current`, `gh pr list --head <current-branch> --state all`
-2. **Determine base**: If the user specifies a base branch (e.g. "base is main", "base feat/xyz"), use that as the merge target.
-   - **If current branch equals base** → Create a new branch from the current one and open a PR with that new branch as head (see "When base and current branch are the same").
-   - Otherwise use the specified base.
-3. **Prepare body**: If `branch-summary.md` exists and fills the required sections (Purpose, Description, How to test, etc., or Title + Work content), use it as the PR body. If sections are missing, fill them before use.
-4. **Create or update PR**:
-   - No open PR → `gh pr create --head <current-branch> --base <base> --title "<title>" --body-file branch-summary.md`
-   - Open PR exists → Update body (and base via PATCH if base was specified and PR is open).
-5. **Push**: If there are unpushed commits, run `git push origin <current-branch>`.
-6. **Labels**: After creating or updating the PR, check `gh label list` and add labels that match the PR (e.g. feat, fix, docs).
+### 커밋 분리 원칙
+- **하나의 커밋 = 하나의 목적** (기능 추가, 버그 수정, 리팩토링, 스타일 등을 절대 섞지 않는다)
+- 관련 없는 변경은 반드시 별도 커밋으로 분리한다
+- 각 커밋은 독립적으로 의미가 있어야 한다
+- 가능한 작은 논리적 단위로 나눈다
 
-## Base branch (apply when user specifies it)
+### 커밋 메시지 형식
+```
+<type>(<scope>): <한국어 설명>
 
-- If the user **specifies a base branch** (e.g. "base is main", "base feat/menu-board"), **always** use that branch as the merge target (base).
-- **On create**: Pass `--base <user-specified-branch>` to `gh pr create`.
-- **On update**: If the PR is **open**, update the base via REST PATCH. If the PR is **closed**, base cannot be changed (update body only).
-  ```bash
-  gh api repos/ohah/cheolsu-proxy/pulls/<PR-number> -X PATCH -f body=@branch-summary.md -f base="<user-specified-branch>"
-  ```
-  (If 422 on base change, treat as closed PR and PATCH body only.)
+<상세 내용 (선택)>
+```
 
-## When base and current branch are the same
+- **type**: `feat` | `fix` | `refactor` | `test` | `docs` | `chore` | `style`
+- **scope** (선택): `proxyapi` | `proxyapi_v2` | `proxy_v2_models` | `proxyapi_models` | `tauri-ui` | `document` | `config`
+- **설명**: 한국어로 작성, 무엇을 왜 변경했는지 명확히
 
-- If the user set base=XXX and **the current branch is also XXX**, self-merge is not allowed. **Create a new branch** from the current one and use that as the PR head.
-- Steps:
-  1. From the current branch (XXX), create a new branch: `git checkout -b feat/xxx-description` (name it by the work).
-  2. If there are uncommitted changes, stage and commit (and push) on the new branch.
-  3. `gh pr create --head <new-branch> --base XXX --title "..." --body-file branch-summary.md --assignee @me`
-  4. Push the new branch: `git push -u origin <new-branch>`
+### 커밋 순서
+1. `git status`와 `git diff`로 모든 변경 사항을 파악한다
+2. 변경 사항을 논리적 단위로 그룹핑한다
+3. 각 그룹별로 관련 파일만 `git add`하여 개별 커밋한다
+4. 커밋 간 의존성이 있다면 의존성 순서대로 커밋한다
 
-## Order of operations
+## 2. 린트 검사 (필수 — 모두 통과해야 PR 생성 가능)
 
-1. **Read user input**: If a base branch is specified, set base accordingly (see above).
-2. **Create or update PR with GitHub CLI**:
-   - If the branch is already pushed → use `--head <branch-name>` when creating.
-   - If base is specified → always pass `--base <base>` on create, or include base in PATCH on update (when PR is open).
+### Rust 린트
+```bash
+cargo fmt --check          # 포맷 검사 (실패 시 cargo fmt --all 실행 후 재커밋)
+cargo check                # 컴파일 검사
+cargo test                 # 테스트 (기존 실패만 있으면 통과로 간주, 새 실패는 수정)
+```
 
-   ```bash
-   gh pr create --head $(git branch --show-current) --base <base> --title "<title>" --body-file branch-summary.md
-   ```
+### TypeScript/Frontend 린트
+```bash
+cd tauri-ui
+npx tsc --noEmit           # 타입 체크
+npx oxlint .               # oxlint 린트 (warning은 허용, error는 수정)
+```
 
-   - If a PR already exists → Update body. If base was specified and PR is open, PATCH body and base.
+### 린트 실패 시
+- 자동 수정 가능한 것은 수정하고 별도 커밋으로 추가한다 (예: `style: oxlint 린트 수정`)
+- 수정 불가능한 기존 에러는 무시하되, 이번 변경에서 추가된 에러는 반드시 수정한다
 
-   ```bash
-   # body only:
-   gh api repos/ohah/cheolsu-proxy/pulls/<PR-number> -X PATCH -f body=@branch-summary.md
-   # body + base:
-   gh api repos/ohah/cheolsu-proxy/pulls/<PR-number> -X PATCH -f body=@branch-summary.md -f base="<base>"
-   ```
+## 3. PR 생성 또는 업데이트
 
-3. **Push**: After create/update, if there are unpushed commits, push so the PR has the latest commits.
+### 기존 PR 확인
+```bash
+gh pr list --head $(git branch --show-current) --state open
+```
+- **기존 PR이 있으면**: 해당 PR에 커밋을 push하고, PR 설명을 업데이트한다
+- **기존 PR이 없으면**: 새 PR을 생성한다
 
-   ```bash
-   git push origin $(git branch --show-current)
-   ```
+### 브랜치 관리
+- 현재 브랜치가 main이면 새 브랜치를 생성한다
+- 브랜치명은 `feat/`, `fix/`, `refactor/` 등 type에 맞는 prefix를 사용한다
 
-4. **If `gh` is not available**: Install [GitHub CLI](https://cli.github.com/) or open the PR in the browser (repo → Compare & pull request for the branch) and paste the contents of `branch-summary.md` as the description.
+### PR 생성
+```bash
+gh pr create \
+  --title "<type>: 한국어 제목" \
+  --assignee ohah \
+  --label <적절한 라벨> \
+  --body "$(cat <<'EOF'
+<PR 본문>
+EOF
+)"
+```
 
-5. **Labels**: On create use `--label <name>` (multiple allowed). On update use `gh pr edit <PR-number> --add-label <name>`. Choose labels from `gh label list` that fit the PR (e.g. feat, fix, docs, config).
+### PR 라벨 규칙
+- `gh label list`로 사용 가능한 라벨을 확인한다
+- 변경 내용에 맞는 라벨을 추가한다 (enhancement, bug, refactor, documentation 등)
+- UI 관련 변경이 포함되면 필요 시 `run-e2e` 라벨도 추가한다
 
-## PR title rules
+### PR Assignee
+- 항상 `ohah`를 assignee로 지정한다
 
-- **If the user provides a title**: Use it as-is.
-- **If the user provides an issue ref** (e.g. `/pr fixes #123`): Use a prefix like `[#123]` and a short subject.
-- **If neither**: Use a short, imperative subject in English (e.g. from the first line of branch-summary or the main change). Prefer lowercase start and no trailing period.
+## 4. PR 본문 작성 규칙
 
-## PR body format
+PR 본문은 **한국어**로 최대한 자세하게 작성한다.
 
-Use `branch-summary.md` as the PR body. It should include at least:
+### 필수 섹션
 
-- **Title** (or Purpose): What this PR is for.
-- **Work content** (or Description): What was changed and why, in prose. If tests were added or updated, say so (e.g. "Tests were added for …" or "Test coverage includes …").
+```markdown
+## 개요
+이 PR의 목적과 배경을 설명한다. 왜 이 변경이 필요한지.
 
-If the repo has `.github/PULL_REQUEST_TEMPLATE.md`, align `branch-summary.md` with its sections (Purpose, Description, How to test, Additional info, Screenshots, etc.) when writing or updating it.
+## 변경 내용
+### 새로 추가된 파일
+- `파일경로` — 설명
 
-## Notes
+### 수정된 파일
+- `파일경로` — 무엇을 왜 변경했는지
 
-- **Language**: Use **English** for PR title and body (per project rules).
-- **Base**: If the user specifies a base branch, always use it for create/update (and create a new head branch when base and current branch are the same).
-- **Body**: Keep `branch-summary.md` up to date and use it only for the PR description; do not commit it unless the project says otherwise.
-- **Push**: After updating the PR body, push any unpushed commits so the PR reflects the latest code.
-- **Labels**: Use `gh label list` and attach labels that match the PR type (feat, fix, docs, etc.).
+### 삭제된 파일
+- `파일경로` — 왜 삭제했는지
+
+## 구현 상세
+기술적인 구현 방식, 아키텍처 결정, 주요 로직 등을 상세히 설명한다.
+
+## 테스트
+- [ ] 테스트 항목 1
+- [ ] 테스트 항목 2
+
+## 스크린샷 (UI 변경 시)
+해당하는 경우 스크린샷을 첨부한다.
+```
+
+## 5. 전체 실행 순서
+
+1. `git status`, `git diff`로 변경 사항 파악
+2. 변경 사항을 논리 단위로 분리하여 개별 커밋
+3. Rust 린트 검사 실행 (`cargo fmt --check`, `cargo check`, `cargo test`)
+4. TypeScript 린트 검사 실행 (`npx tsc --noEmit`, `npx oxlint .`)
+5. 린트 에러 있으면 수정 후 추가 커밋
+6. `gh pr list`로 현재 브랜치의 기존 PR 확인
+7. 기존 PR이 있으면 push + 설명 업데이트, 없으면 새 PR 생성
+8. PR URL을 사용자에게 반환
