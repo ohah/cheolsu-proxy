@@ -20,6 +20,8 @@ interface TableRowProps {
   onDelete: () => void;
   onPin: () => void;
   isPinned: boolean;
+  isChecked: boolean;
+  onCheck: () => void;
 }
 
 export const TableRow = memo(function TableRow({
@@ -28,6 +30,8 @@ export const TableRow = memo(function TableRow({
   onDelete,
   onPin,
   isPinned,
+  isChecked,
+  onCheck,
 }: TableRowProps) {
   const { isSelected } = data;
 
@@ -59,10 +63,26 @@ export const TableRow = memo(function TableRow({
     toast.success(isPinned ? "Transaction unpinned" : "Transaction pinned to top");
   }, [onPin, isPinned]);
 
+  const handleCheckboxClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      onCheck();
+    },
+    [onCheck],
+  );
+
   return (
     <ContextMenu>
       <ContextMenuTrigger>
         <div className={rowClasses} onClick={onSelect}>
+          <div className="flex items-center justify-center w-5" onClick={handleCheckboxClick}>
+            <input
+              type="checkbox"
+              checked={isChecked}
+              onChange={() => {}}
+              className="cursor-pointer accent-primary"
+            />
+          </div>
           <PathCell data={data} />
           <MethodCell data={data} />
           <StatusCell data={data} />

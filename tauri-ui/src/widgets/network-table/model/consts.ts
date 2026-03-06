@@ -6,7 +6,7 @@ export const TABLE_COLUMNS = [
   { key: "time", label: "Time", span: 1 },
 ] as const;
 
-export const GRID_COLS_CLASS = "grid-cols-9";
+export const GRID_COLS_CLASS = "grid-cols-[auto_5fr_1fr_1fr_1fr_1fr]";
 
 export const ROW_BASE_CLASSES =
   "grid gap-4 p-3 border-b border-border cursor-pointer hover:bg-muted/50 transition-colors";

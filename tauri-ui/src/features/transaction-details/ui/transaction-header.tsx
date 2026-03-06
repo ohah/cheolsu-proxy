@@ -8,6 +8,7 @@ import type { AppFormInstance } from "../context/form-context";
 import { Badge, Button, Input } from "@/shared/ui";
 import { generateCurlCommand } from "../lib";
 import { toast } from "sonner";
+import { ReplayDialog } from "./replay-dialog";
 
 interface TransactionHeaderProps {
   transaction: HttpTransaction;
@@ -65,6 +66,7 @@ export const TransactionHeader = ({
         )}
       </div>
       <div className="flex items-center gap-2">
+        <ReplayDialog transaction={transaction} />
         <Button variant="ghost" size="sm" onClick={handleCopyCurl}>
           <Code className="w-4 h-4" />
         </Button>

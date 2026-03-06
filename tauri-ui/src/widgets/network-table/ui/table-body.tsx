@@ -10,18 +10,22 @@ import { TableRow } from "./table-row";
 interface TableBodyProps {
   data: TableRowData[];
   pinnedTransactionIds: Set<string>;
+  checkedTransactionIds: Set<string>;
   createTransactionSelectHandler: (request: HttpTransaction) => () => void;
   createTransactionDeleteHandler: (id: string) => () => void;
   createTransactionPinHandler: (id: string) => () => void;
+  createTransactionCheckHandler: (id: string) => () => void;
   isPinnedSection: boolean;
 }
 
 export const TableBody = ({
   data,
   pinnedTransactionIds,
+  checkedTransactionIds,
   createTransactionSelectHandler,
   createTransactionDeleteHandler,
   createTransactionPinHandler,
+  createTransactionCheckHandler,
   isPinnedSection,
 }: TableBodyProps) => {
   const rowHandlers = useMemo(() => {
@@ -31,7 +35,9 @@ export const TableBody = ({
         onSelect: createTransactionSelectHandler(rowData.transaction),
         onDelete: createTransactionDeleteHandler(id),
         onPin: createTransactionPinHandler(id),
+        onCheck: createTransactionCheckHandler(id),
         isPinned: pinnedTransactionIds.has(id),
+        isChecked: checkedTransactionIds.has(id),
       };
     });
   }, [
@@ -39,7 +45,9 @@ export const TableBody = ({
     createTransactionSelectHandler,
     createTransactionDeleteHandler,
     createTransactionPinHandler,
+    createTransactionCheckHandler,
     pinnedTransactionIds,
+    checkedTransactionIds,
   ]);
 
   const renderItem = useCallback(
@@ -54,6 +62,8 @@ export const TableBody = ({
           onDelete={handlers.onDelete}
           onPin={handlers.onPin}
           isPinned={handlers.isPinned}
+          isChecked={handlers.isChecked}
+          onCheck={handlers.onCheck}
         />
       );
     },

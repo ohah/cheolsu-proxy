@@ -1,4 +1,5 @@
 use proxy_daemon::{clean_old_cache, ClientCommand, DaemonConnection, InterceptRule};
+use std::collections::HashMap;
 use std::net::SocketAddr;
 use std::sync::Arc;
 use tauri::{AppHandle, Emitter, Runtime, State};
@@ -139,6 +140,160 @@ pub async fn update_intercept_rules_v2(
     }
 
     Ok(())
+}
+
+/// 리플레이 요청 파라미터
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct ReplayRequestParams {
+    pub method: String,
+    pub url: String,
+    pub headers: HashMap<String, String>,
+    pub body: Option<String>,
+}
+
+/// 리플레이 응답 결과
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct ReplayResponse {
+    pub status: u16,
+    pub headers: HashMap<String, String>,
+    pub body: Option<String>,
+    pub body_size: usize,
+    pub elapsed_ms: u64,
+}
+
+/// 시퀀스 리플레이 결과 (개별 요청 결과)
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct SequenceReplayResult {
+    pub index: usize,
+    pub url: String,
+    pub method: String,
+    pub response: Option<ReplayResponse>,
+    pub error: Option<String>,
+}
+
+/// HTTP 요청 리플레이 (프록시를 우회하여 직접 전송)
+#[tauri::command]
+pub async fn replay_request(params: ReplayRequestParams) -> Result<ReplayResponse, String> {
+    let client = reqwest::Client::builder()
+        .no_proxy()
+        .danger_accept_invalid_certs(true)
+        .build()
+        .map_err(|e| format!("HTTP 클라이언트 생성 실패: {}", e))?;
+
+    let method: reqwest::Method = params
+        .method
+        .parse()
+        .map_err(|e| format!("잘못된 HTTP 메서드: {}", e))?;
+
+    let mut request_builder = client.request(method, &params.url);
+
+    for (key, value) in &params.headers {
+        // hop-by-hop 헤더 제외
+        let lower = key.to_lowercase();
+        if matches!(
+            lower.as_str(),
+            "host"
+                | "connection"
+                | "keep-alive"
+                | "proxy-authenticate"
+                | "proxy-authorization"
+                | "te"
+                | "trailers"
+                | "transfer-encoding"
+                | "upgrade"
+        ) {
+            continue;
+        }
+        request_builder = request_builder.header(key.as_str(), value.as_str());
+    }
+
+    if let Some(body) = params.body {
+        request_builder = request_builder.body(body);
+    }
+
+    let start = std::time::Instant::now();
+    let response = request_builder
+        .send()
+        .await
+        .map_err(|e| format!("요청 전송 실패: {}", e))?;
+    let elapsed_ms = start.elapsed().as_millis() as u64;
+
+    let status = response.status().as_u16();
+    let headers: HashMap<String, String> = response
+        .headers()
+        .iter()
+        .map(|(k, v)| (k.to_string(), v.to_str().unwrap_or("").to_string()))
+        .collect();
+
+    let body_bytes = response
+        .bytes()
+        .await
+        .map_err(|e| format!("응답 본문 읽기 실패: {}", e))?;
+    let body_size = body_bytes.len();
+
+    // 텍스트로 변환 시도, 실패하면 base64
+    let body = if body_size == 0 {
+        None
+    } else {
+        Some(String::from_utf8(body_bytes.to_vec()).unwrap_or_else(|_| {
+            let engine = base64_engine();
+            format!("base64:{}", base64_encode(&engine, &body_bytes))
+        }))
+    };
+
+    Ok(ReplayResponse {
+        status,
+        headers,
+        body,
+        body_size,
+        elapsed_ms,
+    })
+}
+
+/// 시퀀스 리플레이 (여러 요청을 순서대로 전송)
+#[tauri::command]
+pub async fn replay_sequence(
+    requests: Vec<ReplayRequestParams>,
+) -> Result<Vec<SequenceReplayResult>, String> {
+    let mut results = Vec::new();
+
+    for (index, params) in requests.into_iter().enumerate() {
+        let url = params.url.clone();
+        let method = params.method.clone();
+
+        match replay_request(params).await {
+            Ok(response) => {
+                results.push(SequenceReplayResult {
+                    index,
+                    url,
+                    method,
+                    response: Some(response),
+                    error: None,
+                });
+            }
+            Err(e) => {
+                results.push(SequenceReplayResult {
+                    index,
+                    url,
+                    method,
+                    response: None,
+                    error: Some(e),
+                });
+            }
+        }
+    }
+
+    Ok(results)
+}
+
+fn base64_engine() -> base64::engine::GeneralPurpose {
+    use base64::engine::general_purpose::STANDARD;
+    STANDARD
+}
+
+fn base64_encode(engine: &base64::engine::GeneralPurpose, data: &[u8]) -> String {
+    use base64::Engine;
+    engine.encode(data)
 }
 
 /// 세션 데이터 변경 시 UDS를 통해 daemon에 전달
