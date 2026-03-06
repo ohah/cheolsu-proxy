@@ -152,7 +152,7 @@ export interface MqttParsed {
   payloadLanguage: string;
 }
 
-export function parseMqtt(base64Payload: string): MqttParsed | null {
+export function parseMqtt(base64Payload: string, mqttVersion?: number): MqttParsed | null {
   try {
     const bytes = decodeBase64ToBytes(base64Payload);
     if (bytes.length < 2) return null;
@@ -186,6 +186,11 @@ export function parseMqtt(base64Payload: string): MqttParsed | null {
       fields.push({ label: "Retain", value: String(retain) });
       if (dup) fields.push({ label: "DUP", value: "true" });
       if (packetId !== undefined) fields.push({ label: "Packet ID", value: String(packetId) });
+
+      // MQTT 5: Properties 건너뛰기
+      if (mqttVersion === 5) {
+        offset = skipMqtt5Properties(bytes, offset);
+      }
 
       const payloadBytes = bytes.slice(offset, payloadStart + remainingLength);
       if (payloadBytes.length > 0) {
@@ -229,6 +234,8 @@ export function parseMqtt(base64Payload: string): MqttParsed | null {
         });
         fields.push({ label: "Reason Code", value: String(bytes[payloadStart + 1]) });
       }
+      if (mqttVersion)
+        fields.push({ label: "Version", value: mqttVersion === 5 ? "5.0" : "3.1.1" });
     } else if (packetTypeNum === 8) {
       // SUBSCRIBE
       let offset = payloadStart;
@@ -240,17 +247,11 @@ export function parseMqtt(base64Payload: string): MqttParsed | null {
         });
         offset += 2;
       }
-      // MQTT 5: Properties 섹션이 있을 수 있음. 먼저 Properties 건너뛴 후 시도, 실패하면 직접 파싱
-      const mqtt5Offset = skipMqtt5Properties(bytes, offset);
-      const mqtt5Result = tryParseSubscribeTopics(bytes, mqtt5Offset, end);
-      if (mqtt5Result) {
-        fields.push(...mqtt5Result);
-      } else {
-        // MQTT 3.1.1: Properties 없이 바로 토픽 파싱
-        const mqtt3Result = tryParseSubscribeTopics(bytes, offset, end);
-        if (mqtt3Result) {
-          fields.push(...mqtt3Result);
-        }
+      // MQTT 5: Properties 섹션 건너뛰기
+      const topicOffset = mqttVersion === 5 ? skipMqtt5Properties(bytes, offset) : offset;
+      const result = tryParseSubscribeTopics(bytes, topicOffset, end);
+      if (result) {
+        fields.push(...result);
       }
     } else if (packetTypeNum === 9) {
       // SUBACK
@@ -263,23 +264,13 @@ export function parseMqtt(base64Payload: string): MqttParsed | null {
         });
         offset += 2;
       }
-      // MQTT 5: Properties 건너뛰기 시도
-      const mqtt5Offset = skipMqtt5Properties(bytes, offset);
-      const useOffset = mqtt5Offset <= end && mqtt5Offset > offset ? mqtt5Offset : offset;
+      // MQTT 5: Properties 건너뛰기
+      const codeStart = mqttVersion === 5 ? skipMqtt5Properties(bytes, offset) : offset;
       const codes: number[] = [];
-      let codeOff = useOffset;
+      let codeOff = codeStart;
       while (codeOff < end) {
         codes.push(bytes[codeOff]);
         codeOff += 1;
-      }
-      // MQTT 5 결과가 이상하면 (코드가 모두 > 2일 때) MQTT 3.1.1로 재시도
-      if (codes.length === 0 || codes.every((c) => c > 2)) {
-        codes.length = 0;
-        let fallbackOff = offset;
-        while (fallbackOff < end) {
-          codes.push(bytes[fallbackOff]);
-          fallbackOff += 1;
-        }
       }
       if (codes.length > 0) fields.push({ label: "Return Codes", value: codes.join(", ") });
     }
@@ -311,13 +302,14 @@ export function getWsContentView(
   payload: string,
   isBinary: boolean,
   contentType?: WsContentType,
+  mqttVersion?: number,
 ): { language: string; formatted: string } {
   if (contentType === "socket_io") {
     return { language: "socketio", formatted: formatSocketIO(payload) };
   }
 
   if (contentType === "mqtt") {
-    const parsed = parseMqtt(payload);
+    const parsed = parseMqtt(payload, mqttVersion);
     if (parsed) {
       return { language: parsed.payloadLanguage, formatted: parsed.payload };
     }

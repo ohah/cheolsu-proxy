@@ -28,13 +28,20 @@ export const WsMessageDetail = memo(({ message, onClose }: WsMessageDetailProps)
   const isSent = message.direction === "client_to_server";
 
   const mqttParsed = useMemo(
-    () => (message.content_type === "mqtt" ? parseMqtt(message.payload) : null),
-    [message.payload, message.content_type],
+    () =>
+      message.content_type === "mqtt" ? parseMqtt(message.payload, message.mqtt_version) : null,
+    [message.payload, message.content_type, message.mqtt_version],
   );
 
   const { language, formatted } = useMemo(
-    () => getWsContentView(message.payload, message.is_binary, message.content_type),
-    [message.payload, message.is_binary, message.content_type],
+    () =>
+      getWsContentView(
+        message.payload,
+        message.is_binary,
+        message.content_type,
+        message.mqtt_version,
+      ),
+    [message.payload, message.is_binary, message.content_type, message.mqtt_version],
   );
 
   const metaItems = useMemo(() => {

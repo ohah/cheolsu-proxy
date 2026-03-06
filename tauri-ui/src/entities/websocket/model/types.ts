@@ -14,6 +14,7 @@ export interface WsMessageInfo {
   time: number;
   is_binary: boolean;
   content_type?: WsContentType;
+  mqtt_version?: number;
 }
 
 export type WsConnectionStatus = "connected" | "disconnected";

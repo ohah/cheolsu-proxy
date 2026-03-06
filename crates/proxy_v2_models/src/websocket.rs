@@ -64,6 +64,38 @@ fn is_valid_mqtt_remaining_length(data: &[u8]) -> bool {
     false
 }
 
+/// MQTT CONNECT 패킷에서 프로토콜 버전 바이트를 추출한다.
+/// CONNECT 패킷 구조: Fixed Header + Remaining Length + Protocol Name(UTF-8) + Version(1 byte) + ...
+/// 반환값: 4 = MQTT 3.1.1, 5 = MQTT 5.0
+pub fn extract_mqtt_version_from_connect(base64_payload: &str) -> Option<u8> {
+    let bytes = base64::engine::general_purpose::STANDARD
+        .decode(base64_payload)
+        .ok()?;
+    if bytes.is_empty() || (bytes[0] >> 4) != 1 {
+        return None; // CONNECT가 아님
+    }
+    // Remaining Length 건너뛰기
+    let mut idx = 1;
+    while idx < bytes.len() {
+        let b = bytes[idx];
+        idx += 1;
+        if b & 0x80 == 0 {
+            break;
+        }
+    }
+    // Protocol Name (UTF-8 string: 2-byte length + string)
+    if idx + 2 > bytes.len() {
+        return None;
+    }
+    let name_len = ((bytes[idx] as usize) << 8) | (bytes[idx + 1] as usize);
+    idx += 2 + name_len;
+    // Version byte
+    if idx >= bytes.len() {
+        return None;
+    }
+    Some(bytes[idx])
+}
+
 /// WebSocket 메시지 방향
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
@@ -105,6 +137,9 @@ pub struct WsMessageInfo {
     /// 콘텐츠 타입 (Content View 확장)
     #[serde(default)]
     pub content_type: WsContentType,
+    /// MQTT 프로토콜 버전 (4=3.1.1, 5=5.0). MQTT 메시지인 경우에만 Some.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub mqtt_version: Option<u8>,
 }
 
 /// WebSocket 연결 상태 이벤트
