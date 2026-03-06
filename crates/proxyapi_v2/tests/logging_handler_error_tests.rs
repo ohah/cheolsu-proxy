@@ -3,18 +3,6 @@ use proxyapi_v2::{
     hyper::{Response, StatusCode},
 };
 use std::error::Error;
-use std::sync::Arc;
-use std::sync::Mutex;
-// JsonValue를 간단한 타입으로 대체
-#[derive(Clone, Debug)]
-enum JsonValue {
-    Array(Vec<JsonValue>),
-    Object(std::collections::HashMap<String, JsonValue>),
-    String(String),
-    Number(f64),
-    Bool(bool),
-    Null,
-}
 use tokio;
 
 // LoggingHandler의 핵심 구조체들을 모킹
@@ -63,7 +51,6 @@ impl MockProxiedResponse {
 pub struct TestLoggingHandler {
     pub req: Option<MockProxiedRequest>,
     pub res: Option<MockProxiedResponse>,
-    pub sessions: Arc<Mutex<JsonValue>>,
 }
 
 impl TestLoggingHandler {
@@ -71,7 +58,6 @@ impl TestLoggingHandler {
         Self {
             req: None,
             res: None,
-            sessions: Arc::new(Mutex::new(JsonValue::Array(Vec::new()))),
         }
     }
 
