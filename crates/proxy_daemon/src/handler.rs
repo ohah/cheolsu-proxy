@@ -1,4 +1,3 @@
-use crate::flow_filter::{FlowContext, FlowFilter};
 use crate::protocol::{InterceptAction, InterceptRule};
 use bytes::Bytes;
 use futures_util::stream::StreamExt;
@@ -147,23 +146,38 @@ impl LoggingHandler {
         *rules_guard = rules;
     }
 
-    /// FlowContext에 대해 매칭되는 인터셉트 규칙 검색
-    async fn find_matching_intercept_rules(&self, ctx: &FlowContext<'_>) -> Vec<InterceptRule> {
+    /// 와일드카드 패턴 매칭 (* = 임의 문자열, ? = 단일 문자)
+    fn wildcard_matches(pattern: &str, text: &str) -> bool {
+        let regex_pattern = format!(
+            "(?i){}",
+            regex::escape(pattern)
+                .replace("\\*", ".*")
+                .replace("\\?", ".")
+        );
+        Regex::new(&regex_pattern)
+            .map(|re| re.is_match(text))
+            .unwrap_or(false)
+    }
+
+    /// URL과 메서드가 인터셉트 규칙에 매칭되는지 확인
+    fn rule_matches(rule: &InterceptRule, url: &str, method: &str) -> bool {
+        if !rule.enabled {
+            return false;
+        }
+        if let Some(rule_method) = &rule.method {
+            if rule_method.to_uppercase() != method.to_uppercase() {
+                return false;
+            }
+        }
+        Self::wildcard_matches(&rule.pattern, url)
+    }
+
+    /// 매칭되는 인터셉트 규칙 검색
+    async fn find_matching_intercept_rules(&self, url: &str, method: &str) -> Vec<InterceptRule> {
         let rules_guard = self.intercept_rules.lock().await;
         rules_guard
             .iter()
-            .filter(|rule| {
-                if !rule.enabled {
-                    return false;
-                }
-                match FlowFilter::parse(&rule.filter) {
-                    Ok(filter) => filter.matches(ctx),
-                    Err(e) => {
-                        error!("[Intercept] 필터 파싱 오류 (규칙 {}): {}", rule.id, e);
-                        false
-                    }
-                }
-            })
+            .filter(|rule| Self::rule_matches(rule, url, method))
             .cloned()
             .collect()
     }
@@ -172,11 +186,10 @@ impl LoggingHandler {
     async fn apply_request_intercept(
         &self,
         req: Request<Body>,
-        ctx: &FlowContext<'_>,
+        url: &str,
+        method: &str,
     ) -> RequestOrResponse {
-        let rules = self.find_matching_intercept_rules(ctx).await;
-        let url = ctx.url;
-        let method = ctx.method;
+        let rules = self.find_matching_intercept_rules(url, method).await;
 
         let mut current_req = req;
 
@@ -256,11 +269,10 @@ impl LoggingHandler {
     async fn apply_response_intercept(
         &self,
         mut res: Response<Body>,
-        ctx: &FlowContext<'_>,
+        url: &str,
+        method: &str,
     ) -> Response<Body> {
-        let rules = self.find_matching_intercept_rules(ctx).await;
-        let url = ctx.url;
-        let method = ctx.method;
+        let rules = self.find_matching_intercept_rules(url, method).await;
 
         for rule in &rules {
             if let InterceptAction::ModifyResponse {
@@ -654,18 +666,9 @@ impl HttpHandler for LoggingHandler {
         // 인터셉트 규칙 적용 (차단, 요청 수정)
         let url = proxied_request.uri().to_string();
         let method = proxied_request.method().to_string();
-        let req_headers = restored_req.headers().clone();
-        let req_body_bytes = proxied_request.body().to_vec();
-        let flow_ctx = FlowContext {
-            url: &url,
-            method: &method,
-            request_headers: &req_headers,
-            request_body: &req_body_bytes,
-            response_status: None,
-            response_headers: None,
-            response_body: None,
-        };
-        let result = self.apply_request_intercept(restored_req, &flow_ctx).await;
+        let result = self
+            .apply_request_intercept(restored_req, &url, &method)
+            .await;
 
         // 차단된 경우 로깅 출력
         if let RequestOrResponse::Response(_) = &result {
@@ -684,19 +687,7 @@ impl HttpHandler for LoggingHandler {
         let res = if let Some(req) = &self.req {
             let url = req.uri().to_string();
             let method = req.method().to_string();
-            let req_headers = req.headers().clone();
-            let req_body_bytes = req.body().to_vec();
-            let res_headers = res.headers().clone();
-            let flow_ctx = FlowContext {
-                url: &url,
-                method: &method,
-                request_headers: &req_headers,
-                request_body: &req_body_bytes,
-                response_status: Some(res.status().as_u16()),
-                response_headers: Some(&res_headers),
-                response_body: None,
-            };
-            self.apply_response_intercept(res, &flow_ctx).await
+            self.apply_response_intercept(res, &url, &method).await
         } else {
             res
         };
