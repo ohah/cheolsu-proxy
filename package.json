@@ -28,7 +28,8 @@
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
     "format": "oxfmt",
-    "format:check": "oxfmt --check"
+    "format:check": "oxfmt --check",
+    "dev:mock": "MOCK=true bun run --filter cheolsu-proxy dev -- --port 12308 --host 0.0.0.0"
   },
   "devDependencies": {
     "oxfmt": "latest",
