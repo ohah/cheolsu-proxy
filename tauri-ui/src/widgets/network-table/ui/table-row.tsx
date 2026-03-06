@@ -9,10 +9,17 @@ import {
   PINNED_ROW_CLASSES,
 } from "../model";
 import type { TableRowData } from "../model";
-import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from "@/shared/ui";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from "@/shared/ui";
 import { generateCurlCommand } from "@/features/transaction-details";
+import { useInterceptRuleDialogStore } from "@/shared/stores";
 import { toast } from "sonner";
-import { Code, Pin, PinOff, Trash2 } from "lucide-react";
+import { Code, Pin, PinOff, Shield, Trash2 } from "lucide-react";
 
 interface TableRowProps {
   data: TableRowData;
@@ -58,6 +65,17 @@ export const TableRow = memo(function TableRow({
     toast.success("Transaction deleted");
   }, [onDelete]);
 
+  const openInterceptRuleDialog = useInterceptRuleDialogStore((s) => s.openWithValues);
+
+  const handleClickAddInterceptRule = useCallback(() => {
+    const request = data.transaction.request;
+    if (!request) return;
+    openInterceptRuleDialog({
+      pattern: request.uri,
+      method: request.method,
+    });
+  }, [data, openInterceptRuleDialog]);
+
   const handleClickPinTransaction = useCallback(() => {
     onPin();
     toast.success(isPinned ? "Transaction unpinned" : "Transaction pinned to top");
@@ -102,6 +120,11 @@ export const TableRow = memo(function TableRow({
         <ContextMenuItem onClick={handleClickDeleteTransaction}>
           <Trash2 />
           Delete Transaction
+        </ContextMenuItem>
+        <ContextMenuSeparator />
+        <ContextMenuItem onClick={handleClickAddInterceptRule}>
+          <Shield />
+          Add Intercept Rule
         </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>

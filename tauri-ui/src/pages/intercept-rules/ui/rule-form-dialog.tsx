@@ -23,16 +23,18 @@ import type {
   InterceptAction,
   InterceptActionType,
 } from "@/entities/intercept-rule";
+import type { InterceptRuleInitialValues } from "@/shared/stores";
 
 interface RuleFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   editingRule: InterceptRule | null;
+  initialValues?: InterceptRuleInitialValues | null;
 }
 
 const HTTP_METHODS = ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"];
 
-export const RuleFormDialog = ({ open, onOpenChange, editingRule }: RuleFormDialogProps) => {
+export const RuleFormDialog = ({ open, onOpenChange, editingRule, initialValues }: RuleFormDialogProps) => {
   const { addRule, updateRule } = useInterceptRuleStore();
 
   const [name, setName] = useState("");
@@ -79,6 +81,16 @@ export const RuleFormDialog = ({ open, onOpenChange, editingRule }: RuleFormDial
         setRemoveHeaders(editingRule.action.remove_headers);
         setStatusCode("403");
       }
+    } else if (initialValues) {
+      setName("");
+      setPattern(initialValues.pattern);
+      setMethod(initialValues.method ?? "*");
+      setActionType("block");
+      setStatusCode("403");
+      setBody("");
+      setResponseStatus("");
+      setHeaders([]);
+      setRemoveHeaders([]);
     } else {
       setName("");
       setPattern("");
@@ -90,7 +102,7 @@ export const RuleFormDialog = ({ open, onOpenChange, editingRule }: RuleFormDial
       setHeaders([]);
       setRemoveHeaders([]);
     }
-  }, [open, editingRule]);
+  }, [open, editingRule, initialValues]);
 
   const buildAction = (): InterceptAction => {
     switch (actionType) {
