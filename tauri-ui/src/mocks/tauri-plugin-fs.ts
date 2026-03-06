@@ -31,12 +31,8 @@ export async function writeFile(
   _path: string,
   _data: Uint8Array,
   _options?: { baseDir?: number },
-): Promise<void> {
-}
+): Promise<void> {}
 
-export async function exists(
-  _path: string,
-  _options?: { baseDir?: number },
-): Promise<boolean> {
+export async function exists(_path: string, _options?: { baseDir?: number }): Promise<boolean> {
   return false;
 }

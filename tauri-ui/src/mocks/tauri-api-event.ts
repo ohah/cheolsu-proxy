@@ -6,10 +6,7 @@ type EventCallback<T> = (event: { payload: T }) => void;
 
 const listeners = new Map<string, Set<EventCallback<any>>>();
 
-export async function listen<T>(
-  event: string,
-  handler: EventCallback<T>,
-): Promise<UnlistenFn> {
+export async function listen<T>(event: string, handler: EventCallback<T>): Promise<UnlistenFn> {
   if (!listeners.has(event)) {
     listeners.set(event, new Set());
   }

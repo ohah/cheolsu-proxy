@@ -115,7 +115,13 @@ export const MOCK_TRANSACTIONS: HttpTransaction[] = [
     {
       status: 201,
       headers: { "content-type": "application/json", location: "/v1/users/4" },
-      ...jsonBody({ id: 4, name: "Dave", email: "dave@example.com", role: "user", created_at: "2026-03-06T10:00:00Z" }),
+      ...jsonBody({
+        id: 4,
+        name: "Dave",
+        email: "dave@example.com",
+        role: "user",
+        created_at: "2026-03-06T10:00:00Z",
+      }),
     },
   ),
 
@@ -378,7 +384,10 @@ export const MOCK_TRANSACTIONS: HttpTransaction[] = [
         "x-ratelimit-limit": "100",
         "x-ratelimit-remaining": "0",
       },
-      ...jsonBody({ error: "Too Many Requests", message: "Rate limit exceeded. Retry after 30 seconds" }),
+      ...jsonBody({
+        error: "Too Many Requests",
+        message: "Rate limit exceeded. Retry after 30 seconds",
+      }),
     },
   ),
 

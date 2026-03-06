@@ -13,7 +13,11 @@ const handlers: Record<string, (...args: any[]) => any> = {
     return {
       status: 200,
       headers: { "content-type": "application/json", "x-mock": "true" },
-      body: JSON.stringify({ mock: true, message: "Mock replay response", timestamp: new Date().toISOString() }),
+      body: JSON.stringify({
+        mock: true,
+        message: "Mock replay response",
+        timestamp: new Date().toISOString(),
+      }),
       body_size: 80,
       elapsed_ms: Math.round(200 + Math.random() * 300),
     };
