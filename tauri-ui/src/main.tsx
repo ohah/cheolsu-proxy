@@ -3,7 +3,6 @@ import { createRoot } from "react-dom/client";
 import App from "./app/App";
 import "./main.css";
 import "../styles.css";
-import "./shared/stores/session-store";
 
 const container = document.getElementById("root");
 

@@ -4,9 +4,8 @@ import { z } from "zod";
 import type { HttpTransaction } from "@/entities/proxy";
 import { useAppForm } from "../context/form-context";
 import { formatBodyContent } from "../lib";
-import { useSessionStore } from "@/shared/stores";
 
-// 편집 가능한 필드들에 대한 스키마 (세션 스토어 타입과 일치)
+// 편집 가능한 필드들에 대한 스키마
 const transactionEditSchema = z.object({
   request: z
     .object({
@@ -25,15 +24,6 @@ const transactionEditSchema = z.object({
 });
 
 export type TransactionEditFormData = z.infer<typeof transactionEditSchema>;
-
-// 객체 비교를 위한 헬퍼 함수
-const isEqual = (a: any, b: any): boolean => {
-  if (typeof a !== typeof b) return false;
-  if (typeof a === "object" && a !== null && b !== null) {
-    return JSON.stringify(a) === JSON.stringify(b);
-  }
-  return a === b;
-};
 
 export const useTransactionEdit = (transaction: HttpTransaction) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -75,44 +65,8 @@ export const useTransactionEdit = (transaction: HttpTransaction) => {
     validators: {
       onChange: transactionEditSchema,
     },
-    onSubmit: async ({ value }) => {
-      // 현재 폼 데이터와 원본 데이터를 비교해서 변경된 필드만 추출
-      const originalData = originalDataRef.current;
-      if (!originalData) return;
-
-      // 변경된 필드만 추출
-      const changedFields: Partial<TransactionEditFormData> = {};
-
-      delete (changedFields.response as any)?.body;
-      delete (changedFields.request as any)?.body;
-
-      if (!isEqual(value.request, originalData.request)) {
-        changedFields.request = value.request;
-      }
-
-      if (!isEqual(value.response, originalData.response)) {
-        changedFields.response = value.response;
-      }
-
-      const saveData = {
-        id: crypto.randomUUID(),
-        url: transaction.request?.uri || "",
-        method: transaction.request?.method || "GET",
-        request: changedFields.request,
-        response: {
-          headers: changedFields.response?.headers,
-          status: changedFields.response?.status,
-          data: changedFields.response?.data,
-        },
-      };
-
-      // 변경된 필드가 있는 경우에만 저장
-      if (Object.keys(changedFields).length > 0) {
-        await useSessionStore.getState().addSession(saveData as any);
-        setIsEditing(false);
-      } else {
-        setIsEditing(false);
-      }
+    onSubmit: async () => {
+      setIsEditing(false);
     },
   }) as any;
 

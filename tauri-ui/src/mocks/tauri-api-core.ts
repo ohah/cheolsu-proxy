@@ -6,7 +6,6 @@ const handlers: Record<string, (...args: any[]) => any> = {
   proxy_v2_status: async () => true,
   clean_old_proxy_cache: async () => "Mock: cache cleaned",
   update_intercept_rules_v2: async () => {},
-  store_changed_v2: async () => {},
 
   replay_request: async (_args: { params: any }): Promise<ReplayResponse> => {
     await new Promise((r) => setTimeout(r, 200 + Math.random() * 300));
