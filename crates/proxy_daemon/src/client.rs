@@ -237,6 +237,7 @@ where
                             on_event(data);
                         }
                         Ok(DaemonMessage::Status { .. }) => {}
+                        Ok(DaemonMessage::InterceptRulesUpdated { .. }) => {}
                         Err(e) => {
                             eprintln!("Failed to parse daemon message: {} ({})", trimmed, e);
                         }
