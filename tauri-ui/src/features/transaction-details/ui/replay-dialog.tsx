@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { Play, Loader2, Plus, Trash2 } from "lucide-react";
+import { Play, Loader2, Plus, Trash2, Maximize2, Minimize2 } from "lucide-react";
 import { Editor } from "@monaco-editor/react";
 
 import type { HttpTransaction } from "@/entities/proxy";
@@ -107,7 +107,41 @@ function ResponseView({
   bodySize: number;
   elapsedMs?: number;
 }) {
+  const [expanded, setExpanded] = useState(false);
   const headerEntries = Object.entries(headers);
+
+  if (expanded) {
+    return (
+      <div className="h-full flex flex-col px-1">
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-sm font-medium">Body</label>
+          <Button variant="ghost" size="sm" onClick={() => setExpanded(false)}>
+            <Minimize2 className="w-3.5 h-3.5 mr-1" />
+            Collapse
+          </Button>
+        </div>
+        <div className="flex-1 rounded-md border overflow-hidden">
+          <Editor
+            height="100%"
+            language={detectLanguage(body)}
+            value={formatBody(body, bodySize)}
+            theme="vs-light"
+            options={{
+              readOnly: true,
+              minimap: { enabled: false },
+              fontSize: 12,
+              lineNumbers: "off",
+              scrollBeyondLastLine: false,
+              wordWrap: "on",
+              tabSize: 2,
+              automaticLayout: true,
+              padding: { top: 8, bottom: 8 },
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-full overflow-y-auto space-y-4 px-1">
@@ -148,7 +182,13 @@ function ResponseView({
       )}
 
       <div className="space-y-2">
-        <label className="text-sm font-medium">Body</label>
+        <div className="flex items-center justify-between">
+          <label className="text-sm font-medium">Body</label>
+          <Button variant="ghost" size="sm" onClick={() => setExpanded(true)}>
+            <Maximize2 className="w-3.5 h-3.5 mr-1" />
+            Expand
+          </Button>
+        </div>
         <div className="rounded-md border overflow-hidden">
           <Editor
             height="300px"
@@ -184,6 +224,7 @@ export function ReplayDialog({ transaction }: ReplayDialogProps) {
   const [replayResponse, setReplayResponse] = useState<ReplayResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("request");
+  const [bodyExpanded, setBodyExpanded] = useState(false);
 
   useEffect(() => {
     if (open && request) {
@@ -294,80 +335,109 @@ export function ReplayDialog({ transaction }: ReplayDialogProps) {
               value="request"
               className="mt-4 min-h-0 flex-1 flex flex-col justify-between"
             >
-              <div className="flex-1 min-h-0 overflow-y-auto space-y-4 px-1">
-                <div className="flex gap-2">
-                  <Select value={method} onValueChange={(v) => v && setMethod(v)}>
-                    <SelectTrigger className="w-28">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {HTTP_METHODS.map((m) => (
-                        <SelectItem key={m} value={m}>
-                          {m}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Input
-                    value={url}
-                    onChange={(e) => setUrl(e.target.value)}
-                    placeholder="URL"
-                    className="flex-1 font-mono text-xs"
-                  />
-                </div>
+              <div
+                className={`flex-1 min-h-0 space-y-4 px-1 ${bodyExpanded ? "flex flex-col" : "overflow-y-auto"}`}
+              >
+                {!bodyExpanded && (
+                  <>
+                    <div className="flex gap-2">
+                      <Select value={method} onValueChange={(v) => v && setMethod(v)}>
+                        <SelectTrigger className="w-28">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {HTTP_METHODS.map((m) => (
+                            <SelectItem key={m} value={m}>
+                              {m}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Input
+                        value={url}
+                        onChange={(e) => setUrl(e.target.value)}
+                        placeholder="URL"
+                        className="flex-1 font-mono text-xs"
+                      />
+                    </div>
 
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <label className="text-sm font-medium">Headers ({headers.length})</label>
-                    <Button variant="ghost" size="sm" onClick={addHeader}>
-                      <Plus className="w-3.5 h-3.5 mr-1" />
-                      Add
-                    </Button>
-                  </div>
-                  <div className="rounded-md border">
-                    <table className="w-full text-xs font-mono">
-                      <tbody>
-                        {headers.map((header, i) => (
-                          <tr key={i} className="border-b last:border-b-0 group">
-                            <td className="px-2 py-1 w-[220px]">
-                              <Input
-                                value={header.key}
-                                onChange={(e) => updateHeader(i, "key", e.target.value)}
-                                placeholder="Header name"
-                                className="h-7 text-xs font-mono border-0 shadow-none focus-visible:ring-0 px-1"
-                              />
-                            </td>
-                            <td className="px-2 py-1">
-                              <Input
-                                value={header.value}
-                                onChange={(e) => updateHeader(i, "value", e.target.value)}
-                                placeholder="Value"
-                                className="h-7 text-xs font-mono border-0 shadow-none focus-visible:ring-0 px-1"
-                              />
-                            </td>
-                            <td className="px-1 py-1 w-8">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100"
-                                onClick={() => removeHeader(i)}
-                              >
-                                <Trash2 className="w-3 h-3 text-destructive" />
-                              </Button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <label className="text-sm font-medium">Headers ({headers.length})</label>
+                        <Button variant="ghost" size="sm" onClick={addHeader}>
+                          <Plus className="w-3.5 h-3.5 mr-1" />
+                          Add
+                        </Button>
+                      </div>
+                      <div className="rounded-md border">
+                        <table className="w-full text-xs font-mono">
+                          <tbody>
+                            {headers.map((header, i) => (
+                              <tr key={i} className="border-b last:border-b-0 group">
+                                <td className="px-2 py-1 w-[220px]">
+                                  <Input
+                                    value={header.key}
+                                    onChange={(e) => updateHeader(i, "key", e.target.value)}
+                                    placeholder="Header name"
+                                    className="h-7 text-xs font-mono border-0 shadow-none focus-visible:ring-0 px-1"
+                                  />
+                                </td>
+                                <td className="px-2 py-1">
+                                  <Input
+                                    value={header.value}
+                                    onChange={(e) => updateHeader(i, "value", e.target.value)}
+                                    placeholder="Value"
+                                    className="h-7 text-xs font-mono border-0 shadow-none focus-visible:ring-0 px-1"
+                                  />
+                                </td>
+                                <td className="px-1 py-1 w-8">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100"
+                                    onClick={() => removeHeader(i)}
+                                  >
+                                    <Trash2 className="w-3 h-3 text-destructive" />
+                                  </Button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </>
+                )}
 
                 {method !== "GET" && method !== "HEAD" && (
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Body</label>
-                    <div className="rounded-md border overflow-hidden">
+                  <div
+                    className={`space-y-2 ${bodyExpanded ? "flex-1 flex flex-col min-h-0" : ""}`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-medium">Body</label>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setBodyExpanded(!bodyExpanded)}
+                      >
+                        {bodyExpanded ? (
+                          <>
+                            <Minimize2 className="w-3.5 h-3.5 mr-1" />
+                            Collapse
+                          </>
+                        ) : (
+                          <>
+                            <Maximize2 className="w-3.5 h-3.5 mr-1" />
+                            Expand
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                    <div
+                      className={`rounded-md border overflow-hidden ${bodyExpanded ? "flex-1" : ""}`}
+                    >
                       <Editor
-                        height="200px"
+                        height={bodyExpanded ? "100%" : "200px"}
                         language={bodyLanguage}
                         value={body}
                         onChange={(v) => setBody(v ?? "")}
