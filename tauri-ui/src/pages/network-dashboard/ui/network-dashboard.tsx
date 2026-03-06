@@ -10,34 +10,28 @@ import { ResizableHandle, ResizablePanel, ResizablePanelGroup, Button } from "@/
 import { useDefaultLayout } from "react-resizable-panels";
 import { Play, X } from "lucide-react";
 
-import {
-  useProxyEventControl,
-  useTransactionFilters,
-  useTransactions,
-  useResizablePanelController,
-} from "../hooks";
-import { useProxyStore } from "@/shared/stores";
+import { useTransactionFilters, useResizablePanelController } from "../hooks";
+import { useProxyStore, useTransactionStore } from "@/shared/stores";
 import { HostPathTree } from "@/widgets/host-path-tree/ui/host-path-tree";
 
 export const NetworkDashboard = () => {
   const { isConnected } = useProxyStore();
 
-  const {
-    transactions,
-    addTransaction,
-    clearTransactions,
-    deleteTransaction,
-    selectedTransaction,
-    createTransactionToggleHandler,
-    createTransactionSelectHandler,
-    clearSelectedTransaction,
-    togglePinTransaction,
-    pinnedTransactionIds,
-    checkedTransactionIds,
-    toggleCheckTransaction,
-    checkAllTransactions,
-    clearCheckedTransactions,
-  } = useTransactions();
+  const transactions = useTransactionStore((s) => s.transactions);
+  const selectedTransaction = useTransactionStore((s) => s.selectedTransaction);
+  const pinnedTransactionIds = useTransactionStore((s) => s.pinnedTransactionIds);
+  const checkedTransactionIds = useTransactionStore((s) => s.checkedTransactionIds);
+  const clearTransactions = useTransactionStore((s) => s.clearTransactions);
+  const deleteTransaction = useTransactionStore((s) => s.deleteTransaction);
+  const toggleSelectedTransaction = useTransactionStore((s) => s.toggleSelectedTransaction);
+  const setSelectedTransaction = useTransactionStore((s) => s.setSelectedTransaction);
+  const clearSelectedTransaction = useTransactionStore((s) => s.clearSelectedTransaction);
+  const togglePinTransaction = useTransactionStore((s) => s.togglePinTransaction);
+  const toggleCheckTransaction = useTransactionStore((s) => s.toggleCheckTransaction);
+  const checkAllTransactions = useTransactionStore((s) => s.checkAllTransactions);
+  const clearCheckedTransactions = useTransactionStore((s) => s.clearCheckedTransactions);
+  const paused = useTransactionStore((s) => s.paused);
+  const togglePause = useTransactionStore((s) => s.togglePause);
 
   const {
     filterQueryString,
@@ -55,8 +49,6 @@ export const NetworkDashboard = () => {
     id: "network-dashboard-layout",
     storage: localStorage,
   });
-
-  const { paused, togglePause } = useProxyEventControl({ onTransactionReceived: addTransaction });
 
   const [sequenceReplayOpen, setSequenceReplayOpen] = useState(false);
 
@@ -83,6 +75,20 @@ export const NetworkDashboard = () => {
       toggleCheckTransaction(id);
     },
     [toggleCheckTransaction],
+  );
+
+  const createTransactionToggleHandler = useCallback(
+    (transaction: import("@/entities/proxy").HttpTransaction) => () => {
+      toggleSelectedTransaction(transaction);
+    },
+    [toggleSelectedTransaction],
+  );
+
+  const createTransactionSelectHandler = useCallback(
+    (transaction: import("@/entities/proxy").HttpTransaction) => () => {
+      setSelectedTransaction(transaction);
+    },
+    [setSelectedTransaction],
   );
 
   const handleToggleCheckAll = useCallback(() => {
