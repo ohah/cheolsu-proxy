@@ -164,6 +164,32 @@ impl LoggingHandler {
         Self::wildcard_matches(&rule.pattern, url)
     }
 
+    /// 파일 확장자로 Content-Type 추론
+    fn guess_content_type(file_path: &str) -> String {
+        let ext = std::path::Path::new(file_path)
+            .extension()
+            .and_then(|e| e.to_str())
+            .unwrap_or("")
+            .to_lowercase();
+        match ext.as_str() {
+            "json" => "application/json",
+            "html" | "htm" => "text/html; charset=utf-8",
+            "xml" => "application/xml",
+            "js" | "mjs" => "application/javascript",
+            "css" => "text/css",
+            "txt" => "text/plain; charset=utf-8",
+            "png" => "image/png",
+            "jpg" | "jpeg" => "image/jpeg",
+            "gif" => "image/gif",
+            "svg" => "image/svg+xml",
+            "webp" => "image/webp",
+            "woff" | "woff2" => "font/woff2",
+            "pdf" => "application/pdf",
+            _ => "application/octet-stream",
+        }
+        .to_string()
+    }
+
     /// 매칭되는 인터셉트 규칙 검색
     async fn find_matching_intercept_rules(&self, url: &str, method: &str) -> Vec<InterceptRule> {
         let rules_guard = self.intercept_rules.lock().await;
@@ -250,6 +276,117 @@ impl LoggingHandler {
                 }
                 InterceptAction::ModifyResponse { .. } => {
                     // 응답 수정 규칙은 handle_response에서 처리
+                }
+                InterceptAction::MapLocal {
+                    file_path,
+                    status_code,
+                    headers,
+                } => {
+                    info!(
+                        "[Intercept] Map Local: {} {} -> {} (규칙: {})",
+                        method, url, file_path, rule.name
+                    );
+                    match std::fs::read(file_path) {
+                        Ok(file_bytes) => {
+                            let file_bytes = Bytes::from(file_bytes);
+                            let mut response = Response::builder()
+                                .status(
+                                    StatusCode::from_u16(*status_code).unwrap_or(StatusCode::OK),
+                                )
+                                .header("x-cheolsu-intercepted", "true")
+                                .header("x-cheolsu-intercept-rule", &rule.id)
+                                .header("x-cheolsu-map-local", file_path.as_str());
+
+                            // Content-Type 추론
+                            let content_type = headers
+                                .get("content-type")
+                                .cloned()
+                                .unwrap_or_else(|| Self::guess_content_type(file_path));
+                            response = response.header("content-type", content_type);
+
+                            // 추가 헤더 설정
+                            for (name, value) in headers {
+                                if name.to_lowercase() != "content-type" {
+                                    response = response.header(name.as_str(), value.as_str());
+                                }
+                            }
+
+                            return response
+                                .body(Body::from(http_body_util::Full::new(file_bytes)))
+                                .unwrap_or_else(|_| {
+                                    Response::builder()
+                                        .status(StatusCode::INTERNAL_SERVER_ERROR)
+                                        .body(Body::from("Failed to build map local response"))
+                                        .unwrap()
+                                })
+                                .into();
+                        }
+                        Err(e) => {
+                            error!(
+                                "[Intercept] Map Local 파일 읽기 실패: {} - {}",
+                                file_path, e
+                            );
+                            return Response::builder()
+                                .status(StatusCode::NOT_FOUND)
+                                .header("x-cheolsu-intercepted", "true")
+                                .header("x-cheolsu-map-local-error", e.to_string())
+                                .body(Body::from(format!(
+                                    "Map Local Error: file not found - {}",
+                                    file_path
+                                )))
+                                .unwrap()
+                                .into();
+                        }
+                    }
+                }
+                InterceptAction::MapRemote {
+                    target_url,
+                    preserve_path,
+                } => {
+                    info!(
+                        "[Intercept] Map Remote: {} {} -> {} (규칙: {}, preserve_path={})",
+                        method, url, target_url, rule.name, preserve_path
+                    );
+                    let new_url = if *preserve_path {
+                        // 원본 URL에서 path + query 추출하여 target에 붙임
+                        if let Ok(original) = url.parse::<proxyapi_v2::hyper::Uri>() {
+                            let path_and_query = original
+                                .path_and_query()
+                                .map(|pq| pq.as_str())
+                                .unwrap_or("/");
+                            let base = target_url.trim_end_matches('/');
+                            format!("{}{}", base, path_and_query)
+                        } else {
+                            target_url.clone()
+                        }
+                    } else {
+                        target_url.clone()
+                    };
+
+                    if let Ok(new_uri) = new_url.parse::<proxyapi_v2::hyper::Uri>() {
+                        *current_req.uri_mut() = new_uri;
+                        // Host 헤더도 새 URL에 맞게 변경
+                        if let Some(host) = new_url
+                            .parse::<proxyapi_v2::hyper::Uri>()
+                            .ok()
+                            .and_then(|u| u.host().map(|h| h.to_string()))
+                        {
+                            if let Ok(host_value) = host.parse::<HeaderValue>() {
+                                current_req
+                                    .headers_mut()
+                                    .insert(proxyapi_v2::hyper::header::HOST, host_value);
+                            }
+                        }
+                        current_req
+                            .headers_mut()
+                            .insert("x-cheolsu-intercepted", "true".parse().unwrap());
+                        current_req.headers_mut().insert(
+                            "x-cheolsu-map-remote-original",
+                            url.parse().unwrap_or_else(|_| "unknown".parse().unwrap()),
+                        );
+                    } else {
+                        error!("[Intercept] Map Remote URL 파싱 실패: {}", new_url);
+                    }
                 }
             }
         }

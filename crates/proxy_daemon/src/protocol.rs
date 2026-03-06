@@ -78,10 +78,39 @@ pub enum InterceptAction {
         #[serde(default)]
         set_body: Option<String>,
     },
+    /// 요청을 로컬 파일의 내용으로 응답 (Map Local)
+    #[serde(rename = "map_local")]
+    MapLocal {
+        /// 로컬 파일 경로
+        file_path: String,
+        /// 응답 상태 코드 (기본: 200)
+        #[serde(default = "default_ok_status")]
+        status_code: u16,
+        /// 추가 응답 헤더
+        #[serde(default)]
+        headers: HashMap<String, String>,
+    },
+    /// 요청을 다른 URL로 리다이렉트 (Map Remote)
+    #[serde(rename = "map_remote")]
+    MapRemote {
+        /// 대상 URL (예: http://localhost:3000)
+        target_url: String,
+        /// 원본 경로 유지 여부 (true면 원본 path를 target_url에 붙임)
+        #[serde(default = "default_true")]
+        preserve_path: bool,
+    },
 }
 
 fn default_block_status() -> u16 {
     403
+}
+
+fn default_ok_status() -> u16 {
+    200
+}
+
+fn default_true() -> bool {
+    true
 }
 
 impl std::fmt::Display for InterceptRule {
@@ -98,6 +127,19 @@ impl std::fmt::Display for InterceptRule {
                 } else {
                     "ModifyResponse".to_string()
                 }
+            }
+            InterceptAction::MapLocal {
+                file_path,
+                status_code,
+                ..
+            } => {
+                format!("MapLocal({}, status={})", file_path, status_code)
+            }
+            InterceptAction::MapRemote {
+                target_url,
+                preserve_path,
+            } => {
+                format!("MapRemote({}, preserve_path={})", target_url, preserve_path)
             }
         };
         let method_str = self.method.as_deref().unwrap_or("*");
