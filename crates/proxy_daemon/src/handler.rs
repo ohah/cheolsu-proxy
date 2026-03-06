@@ -1058,6 +1058,8 @@ impl WebSocketHandler for LoggingHandler {
                 .ws_sequence
                 .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
 
+            let content_type = proxy_v2_models::detect_ws_content_type(&payload, is_binary);
+
             let info = WsMessageInfo {
                 connection_id,
                 sequence,
@@ -1069,6 +1071,7 @@ impl WebSocketHandler for LoggingHandler {
                     .timestamp_nanos_opt()
                     .unwrap_or_default(),
                 is_binary,
+                content_type,
             };
 
             let _ = ws_sender.try_send(WsEvent::Message(info));
