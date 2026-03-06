@@ -318,6 +318,19 @@ pub async fn replay_sequence(
     Ok(results)
 }
 
+/// MCP 서버 바이너리의 절대 경로 반환
+#[tauri::command]
+pub fn get_mcp_server_path(app: AppHandle<impl Runtime>) -> Result<String, String> {
+    use tauri::Manager;
+    app.path()
+        .resolve(
+            "binaries/cheolsu-proxy-mcp",
+            tauri::path::BaseDirectory::Resource,
+        )
+        .map(|p| p.display().to_string())
+        .map_err(|e| format!("Failed to resolve MCP server path: {}", e))
+}
+
 fn base64_engine() -> base64::engine::GeneralPurpose {
     use base64::engine::general_purpose::STANDARD;
     STANDARD

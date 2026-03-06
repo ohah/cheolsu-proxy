@@ -62,6 +62,7 @@
     "active": true,
     "targets": ["msi", "nsis", "dmg", "app"],
     "icon": ["icons/logo.png"],
+    "externalBin": ["binaries/cheolsu-proxy-mcp"],
     "macOS": {
       "entitlements": null,
       "exceptionDomain": "",
