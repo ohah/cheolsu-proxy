@@ -1,6 +1,6 @@
 import { memo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Button } from "@/shared/ui";
+import { Button, Tooltip, TooltipTrigger, TooltipContent } from "@/shared/ui";
 import { SIDEBAR_SECTIONS } from "../model";
 import type { SidebarSection } from "../model";
 
@@ -18,8 +18,6 @@ export const SidebarNavigation = memo(({ collapsed }: SidebarNavigationProps) =>
       case "/":
       case "/dashboard":
         return "network";
-      case "/sessions":
-        return "sessions";
       case "/intercept-rules":
         return "intercept-rules";
       default:
@@ -30,13 +28,9 @@ export const SidebarNavigation = memo(({ collapsed }: SidebarNavigationProps) =>
   const activeSection = getActiveSection();
 
   const handleSectionClick = (section: SidebarSection) => {
-    // 라우터 네비게이션으로만 처리
     switch (section.id) {
       case "network":
         navigate("/dashboard");
-        break;
-      case "sessions":
-        navigate("/sessions");
         break;
       case "intercept-rules":
         navigate("/intercept-rules");
@@ -52,7 +46,7 @@ export const SidebarNavigation = memo(({ collapsed }: SidebarNavigationProps) =>
         const Icon = section.icon;
         const isActive = activeSection === section.id;
 
-        return (
+        const button = (
           <Button
             key={section.id}
             variant="ghost"
@@ -62,12 +56,24 @@ export const SidebarNavigation = memo(({ collapsed }: SidebarNavigationProps) =>
                 : "text-sidebar-foreground hover:bg-sidebar-accent/50"
             }`}
             onClick={() => handleSectionClick(section)}
-            title={section.description}
           >
             <Icon className="w-4 h-4" />
             {collapsed ? null : <span className="flex-1 text-left">{section.label}</span>}
           </Button>
         );
+
+        if (collapsed) {
+          return (
+            <Tooltip key={section.id}>
+              <TooltipTrigger render={<div />}>{button}</TooltipTrigger>
+              <TooltipContent side="right" sideOffset={4}>
+                {section.label}
+              </TooltipContent>
+            </Tooltip>
+          );
+        }
+
+        return button;
       })}
     </div>
   );
