@@ -34,13 +34,15 @@ pub struct ProxyLockInfo {
 }
 
 /// 인터셉트 규칙 정의
-/// `filter`는 mitmproxy 스타일 flow filter 표현식 (예: `~u api & ~m POST & ~bq "action=delete"`)
+/// `pattern`은 와일드카드 URL 패턴 (예: `*.example.com/api/*`)
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct InterceptRule {
     pub id: String,
     pub name: String,
     pub enabled: bool,
-    pub filter: String,
+    pub pattern: String,
+    #[serde(default)]
+    pub method: Option<String>,
     pub action: InterceptAction,
 }
 
@@ -100,10 +102,11 @@ impl std::fmt::Display for InterceptRule {
                 }
             }
         };
+        let method_str = self.method.as_deref().unwrap_or("*");
         write!(
             f,
-            "[{}] {} (filter: {}) -> {} [{}]",
-            self.id, self.name, self.filter, action_desc, status
+            "[{}] {} ({} {}) -> {} [{}]",
+            self.id, self.name, method_str, self.pattern, action_desc, status
         )
     }
 }
