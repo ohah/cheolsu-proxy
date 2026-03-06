@@ -483,13 +483,18 @@ pub fn run() {
     #[cfg(debug_assertions)]
     // let devtools = tauri_plugin_devtools::init();
     {
-        let builder = tauri::Builder::default()
+        let mut builder = tauri::Builder::default()
             .plugin(tauri_plugin_cli::init())
             .plugin(tauri_plugin_http::init())
             .plugin(tauri_plugin_opener::init())
             .plugin(tauri_plugin_fs::init())
             .plugin(tauri_plugin_clipboard_manager::init())
             .plugin(tauri_plugin_store::Builder::default().build());
+
+        #[cfg(debug_assertions)]
+        {
+            builder = builder.plugin(tauri_plugin_mcp_bridge::init());
+        }
 
         // DevTools 플러그인 추가 (개발 빌드에서만)
         // #[cfg(debug_assertions)]
