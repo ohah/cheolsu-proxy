@@ -26,3 +26,36 @@ export async function updateInterceptRules(
 ): Promise<void> {
   return invoke("update_intercept_rules_v2", { rules });
 }
+
+export interface ReplayRequestParams {
+  method: string;
+  url: string;
+  headers: Record<string, string>;
+  body?: string;
+}
+
+export interface ReplayResponse {
+  status: number;
+  headers: Record<string, string>;
+  body?: string;
+  body_size: number;
+  elapsed_ms: number;
+}
+
+export interface SequenceReplayResult {
+  index: number;
+  url: string;
+  method: string;
+  response?: ReplayResponse;
+  error?: string;
+}
+
+export async function replayRequest(params: ReplayRequestParams): Promise<ReplayResponse> {
+  return invoke("replay_request", { params });
+}
+
+export async function replaySequence(
+  requests: ReplayRequestParams[],
+): Promise<SequenceReplayResult[]> {
+  return invoke("replay_sequence", { requests });
+}
