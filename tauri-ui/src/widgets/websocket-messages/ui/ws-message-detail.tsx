@@ -96,7 +96,13 @@ export const WsMessageDetail = memo(({ message, onClose }: WsMessageDetailProps)
           <span className="text-muted-foreground">{formatSize(message.size)}</span>
         </div>
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="sm" className="h-6 px-2 text-xs gap-1" title="Replay message" onClick={() => setReplayOpen(true)}>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-6 px-2 text-xs gap-1"
+            title="Replay message"
+            onClick={() => setReplayOpen(true)}
+          >
             <Play className="w-3 h-3" />
             Replay
           </Button>
