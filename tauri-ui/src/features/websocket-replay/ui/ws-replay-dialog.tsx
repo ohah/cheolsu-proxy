@@ -79,7 +79,7 @@ export function WsReplayDialog({ message, open, onOpenChange }: WsReplayDialogPr
       await wsInjectMessage(params);
       setSuccess(true);
     } catch (e: unknown) {
-      const errorMessage = e instanceof Error ? e.message : typeof e === "string" ? e : "전송 실패";
+      const errorMessage = e instanceof Error ? e.message : typeof e === "string" ? e : "Failed to send";
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -153,7 +153,7 @@ export function WsReplayDialog({ message, open, onOpenChange }: WsReplayDialogPr
           )}
           {success && (
             <div className="p-3 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-sm">
-              메시지가 성공적으로 전송되었습니다
+              Message sent successfully
             </div>
           )}
 
