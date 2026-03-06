@@ -105,10 +105,7 @@ export const InterceptRulesPage = () => {
               {rules.map((rule) => {
                 const actionInfo = ACTION_LABELS[rule.action.type];
                 return (
-                  <Card
-                    key={rule.id}
-                    className={`transition-opacity ${!rule.enabled ? "opacity-50" : ""}`}
-                  >
+                  <Card key={rule.id}>
                     <CardContent className="py-4">
                       <div className="flex items-center gap-4">
                         <Switch
@@ -116,7 +113,9 @@ export const InterceptRulesPage = () => {
                           onCheckedChange={() => toggleRule(rule.id)}
                         />
 
-                        <div className="flex-1 min-w-0">
+                        <div
+                          className={`flex-1 min-w-0 transition-opacity ${!rule.enabled ? "opacity-50" : ""}`}
+                        >
                           <div className="flex items-center gap-2 mb-1">
                             <span className="font-medium text-sm truncate">
                               {rule.name || rule.pattern}
