@@ -4,13 +4,358 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 mod proxy_v2;
 mod system_proxy;
+use proxy_daemon::{ClientCommand, DaemonConnection, InterceptAction, InterceptRule};
 use proxy_v2::{
     clean_old_proxy_cache, proxy_v2_status, read_body_file, start_proxy_v2, stop_proxy_v2,
-    store_changed_v2, ProxyV2State,
+    store_changed_v2, update_intercept_rules_v2, ProxyV2State,
 };
 use system_proxy::get_proxy_status_command;
 use tauri::Manager;
 use tauri_plugin_cli::CliExt;
+
+/// CLI 인터셉트 도움말 출력
+fn print_cli_help() {
+    println!();
+    println!("명령어:");
+    println!("  block <url> [status_code]           요청 차단 (기본: 403)");
+    println!("  modify-request <url> [옵션]         요청 수정");
+    println!("  modify-response <url> [옵션]        응답 수정");
+    println!("  rules                               현재 규칙 목록");
+    println!("  remove <id>                         규칙 삭제");
+    println!("  enable <id>                         규칙 활성화");
+    println!("  disable <id>                        규칙 비활성화");
+    println!("  clear                               모든 규칙 삭제");
+    println!("  help                                도움말");
+    println!();
+    println!("옵션:");
+    println!("  --header <name>=<value>             헤더 추가 (여러 개 가능)");
+    println!("  --remove-header <name>              헤더 제거 (여러 개 가능)");
+    println!("  --body <body>                       바디 설정");
+    println!("  --status <code>                     상태 코드 설정 (modify-response 전용)");
+    println!("  --method <METHOD>                   특정 HTTP 메서드만 매칭");
+    println!("  --regex                             URL 패턴을 정규식으로 처리");
+    println!("  --name <name>                       규칙 이름 설정");
+    println!();
+    println!("예시:");
+    println!("  > block ads.example.com");
+    println!("  > block api/v1/secret 403");
+    println!("  > modify-response example.com/api --body '{{\"mocked\":true}}' --status 200");
+    println!("  > modify-request example.com --header X-Debug=true --method GET");
+    println!();
+}
+
+/// CLI 명령어를 파싱하여 인터셉트 규칙으로 변환
+fn parse_cli_command(
+    input: &str,
+    rules: &mut Vec<InterceptRule>,
+    rule_counter: &mut u32,
+) -> Option<Vec<InterceptRule>> {
+    let input = input.trim();
+    if input.is_empty() {
+        return None;
+    }
+
+    // 토큰 분리 (따옴표 내 공백 보존)
+    let tokens = shell_split(input);
+    if tokens.is_empty() {
+        return None;
+    }
+
+    let cmd = tokens[0].to_lowercase();
+    match cmd.as_str() {
+        "help" | "h" | "?" => {
+            print_cli_help();
+            None
+        }
+        "rules" | "list" | "ls" => {
+            if rules.is_empty() {
+                println!("  (규칙 없음)");
+            } else {
+                for rule in rules.iter() {
+                    println!("  {}", rule);
+                }
+            }
+            None
+        }
+        "remove" | "rm" | "delete" => {
+            if tokens.len() < 2 {
+                println!("  사용법: remove <id>");
+                return None;
+            }
+            let id = &tokens[1];
+            let before = rules.len();
+            rules.retain(|r| r.id != *id);
+            if rules.len() < before {
+                println!("  규칙 삭제됨: {}", id);
+                Some(rules.clone())
+            } else {
+                println!("  규칙을 찾을 수 없음: {}", id);
+                None
+            }
+        }
+        "enable" => {
+            if tokens.len() < 2 {
+                println!("  사용법: enable <id>");
+                return None;
+            }
+            let id = &tokens[1];
+            if let Some(rule) = rules.iter_mut().find(|r| r.id == *id) {
+                rule.enabled = true;
+                println!("  규칙 활성화: {}", rule);
+                Some(rules.clone())
+            } else {
+                println!("  규칙을 찾을 수 없음: {}", id);
+                None
+            }
+        }
+        "disable" => {
+            if tokens.len() < 2 {
+                println!("  사용법: disable <id>");
+                return None;
+            }
+            let id = &tokens[1];
+            if let Some(rule) = rules.iter_mut().find(|r| r.id == *id) {
+                rule.enabled = false;
+                println!("  규칙 비활성화: {}", rule);
+                Some(rules.clone())
+            } else {
+                println!("  규칙을 찾을 수 없음: {}", id);
+                None
+            }
+        }
+        "clear" => {
+            rules.clear();
+            println!("  모든 규칙 삭제됨");
+            Some(rules.clone())
+        }
+        "block" => {
+            if tokens.len() < 2 {
+                println!("  사용법: block <filter_expr> [옵션]");
+                println!("  예시: block '~u ads.example.com' --status 403 --body Blocked");
+                return None;
+            }
+            let filter = tokens[1].clone();
+            let opts = parse_common_options(&tokens[2..]);
+            let status_code = opts.status.unwrap_or(403);
+            let body = opts.body.unwrap_or_default();
+
+            *rule_counter += 1;
+            let id = format!("r{}", rule_counter);
+            let name = opts.name.unwrap_or_else(|| format!("Block {}", filter));
+
+            let rule = InterceptRule {
+                id: id.clone(),
+                name,
+                enabled: true,
+                filter,
+                action: InterceptAction::Block { status_code, body },
+            };
+            println!("  규칙 추가: {}", rule);
+            rules.push(rule);
+            Some(rules.clone())
+        }
+        "modify-request" | "mr" => {
+            if tokens.len() < 2 {
+                println!("  사용법: modify-request <filter_expr> [옵션]");
+                println!("  예시: mr '~u api.com & ~m POST' --header X-Auth=token");
+                return None;
+            }
+            let filter = tokens[1].clone();
+            let opts = parse_common_options(&tokens[2..]);
+
+            *rule_counter += 1;
+            let id = format!("r{}", rule_counter);
+            let name = opts.name.unwrap_or_else(|| format!("ModifyReq {}", filter));
+
+            let rule = InterceptRule {
+                id: id.clone(),
+                name,
+                enabled: true,
+                filter,
+                action: InterceptAction::ModifyRequest {
+                    add_headers: opts.add_headers,
+                    remove_headers: opts.remove_headers,
+                    set_body: opts.body,
+                },
+            };
+            println!("  규칙 추가: {}", rule);
+            rules.push(rule);
+            Some(rules.clone())
+        }
+        "modify-response" | "mres" => {
+            if tokens.len() < 2 {
+                println!("  사용법: modify-response <filter_expr> [옵션]");
+                println!("  예시: mres '~u api.com' --status 200 --body '{{\"ok\":true}}'");
+                return None;
+            }
+            let filter = tokens[1].clone();
+            let opts = parse_common_options(&tokens[2..]);
+
+            *rule_counter += 1;
+            let id = format!("r{}", rule_counter);
+            let name = opts.name.unwrap_or_else(|| format!("ModifyRes {}", filter));
+
+            let rule = InterceptRule {
+                id: id.clone(),
+                name,
+                enabled: true,
+                filter,
+                action: InterceptAction::ModifyResponse {
+                    set_status: opts.status,
+                    add_headers: opts.add_headers,
+                    remove_headers: opts.remove_headers,
+                    set_body: opts.body,
+                },
+            };
+            println!("  규칙 추가: {}", rule);
+            rules.push(rule);
+            Some(rules.clone())
+        }
+        _ => {
+            println!("  알 수 없는 명령어: {}. 'help'를 입력하세요.", cmd);
+            None
+        }
+    }
+}
+
+/// 공통 CLI 옵션
+struct CliOptions {
+    add_headers: std::collections::HashMap<String, String>,
+    remove_headers: Vec<String>,
+    body: Option<String>,
+    status: Option<u16>,
+    name: Option<String>,
+}
+
+/// 공통 옵션 파싱
+fn parse_common_options(tokens: &[String]) -> CliOptions {
+    let mut opts = CliOptions {
+        add_headers: std::collections::HashMap::new(),
+        remove_headers: Vec::new(),
+        body: None,
+        status: None,
+        name: None,
+    };
+
+    let mut i = 0;
+    while i < tokens.len() {
+        match tokens[i].as_str() {
+            "--header" | "-H" => {
+                if i + 1 < tokens.len() {
+                    i += 1;
+                    if let Some((k, v)) = tokens[i].split_once('=') {
+                        opts.add_headers.insert(k.to_string(), v.to_string());
+                    }
+                }
+            }
+            "--remove-header" => {
+                if i + 1 < tokens.len() {
+                    i += 1;
+                    opts.remove_headers.push(tokens[i].clone());
+                }
+            }
+            "--body" | "-b" => {
+                if i + 1 < tokens.len() {
+                    i += 1;
+                    opts.body = Some(tokens[i].clone());
+                }
+            }
+            "--status" | "-s" => {
+                if i + 1 < tokens.len() {
+                    i += 1;
+                    opts.status = tokens[i].parse().ok();
+                }
+            }
+            "--name" | "-n" => {
+                if i + 1 < tokens.len() {
+                    i += 1;
+                    opts.name = Some(tokens[i].clone());
+                }
+            }
+            _ => {}
+        }
+        i += 1;
+    }
+
+    opts
+}
+
+/// 셸 스타일 문자열 분리 (따옴표 내 공백 보존)
+fn shell_split(input: &str) -> Vec<String> {
+    let mut tokens = Vec::new();
+    let mut current = String::new();
+    let mut in_single_quote = false;
+    let mut in_double_quote = false;
+    let mut escape_next = false;
+
+    for ch in input.chars() {
+        if escape_next {
+            current.push(ch);
+            escape_next = false;
+            continue;
+        }
+        match ch {
+            '\\' if !in_single_quote => {
+                escape_next = true;
+            }
+            '\'' if !in_double_quote => {
+                in_single_quote = !in_single_quote;
+            }
+            '"' if !in_single_quote => {
+                in_double_quote = !in_double_quote;
+            }
+            ' ' | '\t' if !in_single_quote && !in_double_quote => {
+                if !current.is_empty() {
+                    tokens.push(current.clone());
+                    current.clear();
+                }
+            }
+            _ => {
+                current.push(ch);
+            }
+        }
+    }
+    if !current.is_empty() {
+        tokens.push(current);
+    }
+    tokens
+}
+
+/// CLI에서 STDIN 명령을 읽고 인터셉트 규칙을 관리하는 태스크
+async fn run_cli_intercept_loop(conn: &DaemonConnection) {
+    let mut rules: Vec<InterceptRule> = Vec::new();
+    let mut rule_counter: u32 = 0;
+
+    let stdin = tokio::io::stdin();
+    let reader = tokio::io::BufReader::new(stdin);
+    let mut lines = tokio::io::AsyncBufReadExt::lines(reader);
+
+    print!("> ");
+    let _ = std::io::Write::flush(&mut std::io::stdout());
+
+    loop {
+        match lines.next_line().await {
+            Ok(Some(line)) => {
+                if let Some(updated_rules) = parse_cli_command(&line, &mut rules, &mut rule_counter)
+                {
+                    let cmd = ClientCommand::UpdateInterceptRules {
+                        rules: updated_rules,
+                    };
+                    if let Err(e) = conn.send_command(&cmd).await {
+                        eprintln!("  규칙 전송 실패: {}", e);
+                    }
+                }
+                print!("> ");
+                let _ = std::io::Write::flush(&mut std::io::stdout());
+            }
+            Ok(None) => break,
+            Err(e) => {
+                eprintln!("STDIN 읽기 오류: {}", e);
+                break;
+            }
+        }
+    }
+}
 
 /// headless (CLI) 모드인지 확인하고, headless일 경우 daemon 클라이언트로 동작합니다.
 fn handle_cli_mode(app: &tauri::App) -> bool {
@@ -58,6 +403,8 @@ fn handle_cli_mode(app: &tauri::App) -> bool {
     println!("  Listen : {}:{}", host, port);
     println!("  Verbose: {}", verbose);
     println!("========================================");
+    println!();
+    println!("'help'를 입력하면 인터셉트 명령어를 확인할 수 있습니다.");
 
     // GUI 윈도우 숨기기 (close하면 Tauri가 앱을 종료함)
     if let Some(window) = app.get_webview_window("main") {
@@ -67,25 +414,39 @@ fn handle_cli_mode(app: &tauri::App) -> bool {
     // headless 모드: daemon에 연결하여 이벤트를 stdout에 출력
     let app_handle = app.handle().clone();
     tauri::async_runtime::spawn(async move {
-        match proxy_daemon::ensure_daemon(port, &host, move |_event| {
-            // GUI 모드에서는 app.emit으로 전달, headless에서는 무시
+        match proxy_daemon::ensure_daemon(port, &host, move |event| {
+            if verbose {
+                // verbose 모드에서는 요청/응답 정보를 stdout에 출력
+                if let Some(req) = &event.0 {
+                    println!(
+                        "  [REQ] {} {} ({:?})",
+                        req.method(),
+                        req.uri(),
+                        req.data_type()
+                    );
+                }
+                if let Some(res) = &event.1 {
+                    println!("  [RES] {} ({:?})", res.status(), res.data_type());
+                }
+            }
         })
         .await
         {
             Ok(conn) => {
                 println!("Connected to daemon (port {})", conn.port);
+                println!();
 
-                // Keep connection alive until Ctrl+C
-                match tokio::signal::ctrl_c().await {
-                    Ok(()) => {
-                        println!("\nShutting down...");
+                // CLI 인터셉트 루프와 Ctrl+C를 동시에 대기
+                tokio::select! {
+                    _ = run_cli_intercept_loop(&conn) => {
+                        println!("\nSTDIN 종료됨");
                         conn.disconnect().await;
                         app_handle.exit(0);
                     }
-                    Err(e) => {
-                        eprintln!("Ctrl+C handler error: {}", e);
+                    _ = tokio::signal::ctrl_c() => {
+                        println!("\nShutting down...");
                         conn.disconnect().await;
-                        app_handle.exit(1);
+                        app_handle.exit(0);
                     }
                 }
             }
@@ -152,6 +513,7 @@ pub fn run() {
                 stop_proxy_v2,
                 proxy_v2_status,
                 store_changed_v2,
+                update_intercept_rules_v2,
                 get_proxy_status_command,
                 read_body_file,
                 clean_old_proxy_cache
