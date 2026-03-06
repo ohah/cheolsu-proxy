@@ -81,7 +81,7 @@ const MQTT_PACKET_TYPES: Record<number, string> = {
 function decodeBase64ToBytes(base64: string): Uint8Array {
   const binary = atob(base64);
   const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) {
+  for (let i = 0; i < binary.length; i += 1) {
     bytes[i] = binary.charCodeAt(i);
   }
   return bytes;
@@ -94,7 +94,7 @@ function decodeMqttRemainingLength(bytes: Uint8Array, offset: number): [number, 
   while (idx < bytes.length) {
     const byte = bytes[idx];
     value += (byte & 0x7f) * multiplier;
-    idx++;
+    idx += 1;
     if ((byte & 0x80) === 0) break;
     multiplier *= 128;
   }
@@ -161,12 +161,12 @@ export function formatMqtt(base64Payload: string): string {
       lines.push(`Protocol: ${protocolName}`);
       if (offset < bytes.length) {
         lines.push(`Version: ${bytes[offset]}`);
-        offset++;
+        offset += 1;
       }
       if (offset < bytes.length) {
         const connectFlags = bytes[offset];
         lines.push(`Clean Session: ${(connectFlags & 0x02) !== 0}`);
-        offset++;
+        offset += 1;
       }
       if (offset + 2 <= bytes.length) {
         const keepAlive = (bytes[offset] << 8) | bytes[offset + 1];
@@ -194,7 +194,7 @@ export function formatMqtt(base64Payload: string): string {
         const [topic, newOff] = decodeMqttUtf8String(bytes, offset);
         offset = newOff;
         const qos = offset < bytes.length ? bytes[offset] : 0;
-        offset++;
+        offset += 1;
         subs.push(`  ${topic} (QoS ${qos})`);
       }
       if (subs.length > 0) lines.push(`Subscriptions:\n${subs.join("\n")}`);
@@ -209,7 +209,7 @@ export function formatMqtt(base64Payload: string): string {
       const codes: number[] = [];
       while (offset < payloadStart + remainingLength) {
         codes.push(bytes[offset]);
-        offset++;
+        offset += 1;
       }
       if (codes.length > 0) lines.push(`Return Codes: ${codes.join(", ")}`);
     }
