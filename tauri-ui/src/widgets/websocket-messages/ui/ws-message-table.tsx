@@ -1,7 +1,7 @@
 import { memo, useCallback, useRef, useEffect, useMemo } from "react";
 import { ArrowUp, ArrowDown } from "lucide-react";
 import { cn } from "@/shared/lib";
-import { getMqttPacketType } from "@/shared/lib/ws-content-view";
+import { getMqttSummary } from "@/shared/lib/ws-content-view";
 import type { WsMessageInfo } from "@/entities/websocket";
 
 interface WsMessageTableProps {
@@ -58,8 +58,8 @@ const WsMessageRow = memo(
   }) => {
     const isSent = message.direction === "client_to_server";
     const DirectionIcon = isSent ? ArrowUp : ArrowDown;
-    const mqttType = useMemo(
-      () => (message.content_type === "mqtt" ? getMqttPacketType(message.payload) : null),
+    const mqttSummary = useMemo(
+      () => (message.content_type === "mqtt" ? getMqttSummary(message.payload) : null),
       [message.content_type, message.payload],
     );
 
@@ -76,9 +76,9 @@ const WsMessageRow = memo(
           <DirectionIcon className="w-3 h-3 inline-block" />
         </td>
         <td className="px-2 w-16">
-          {mqttType ? (
+          {mqttSummary ? (
             <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-medium bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300">
-              {mqttType}
+              {mqttSummary.packetType}
             </span>
           ) : (
             <>
@@ -109,7 +109,9 @@ const WsMessageRow = memo(
         </td>
         <td className="px-2 w-20 text-right text-muted-foreground">{formatSize(message.size)}</td>
         <td className="px-2 flex-1 truncate max-w-0">
-          <span className="text-foreground truncate block">{message.payload}</span>
+          <span className="text-foreground truncate block">
+            {mqttSummary?.topic ?? message.payload}
+          </span>
         </td>
         <td className="px-2 pr-4 w-24 text-right text-muted-foreground">
           {formatTime(message.time)}

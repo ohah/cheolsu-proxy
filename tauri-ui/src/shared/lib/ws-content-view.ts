@@ -286,14 +286,38 @@ export function parseMqtt(base64Payload: string, mqttVersion?: number): MqttPars
 }
 
 /**
- * MQTT 패킷 타입명을 반환 (테이블 표시용)
+ * MQTT 패킷 요약 정보를 반환 (테이블 표시용)
  */
-export function getMqttPacketType(base64Payload: string): string | null {
+export function getMqttSummary(
+  base64Payload: string,
+): { packetType: string; topic: string | null } | null {
   try {
     const bytes = decodeBase64ToBytes(base64Payload);
     if (bytes.length < 2) return null;
     const packetTypeNum = bytes[0] >> 4;
-    return MQTT_PACKET_TYPES[packetTypeNum] ?? null;
+    const packetType = MQTT_PACKET_TYPES[packetTypeNum];
+    if (!packetType) return null;
+
+    let topic: string | null = null;
+    // PUBLISH(3), SUBSCRIBE(8): 토픽 추출
+    if (packetTypeNum === 3 || packetTypeNum === 8) {
+      // Remaining Length 건너뛰기
+      let idx = 1;
+      while (idx < bytes.length) {
+        const b = bytes[idx];
+        idx += 1;
+        if ((b & 0x80) === 0) break;
+      }
+      // SUBSCRIBE: Packet ID (2 bytes) 건너뛰기
+      if (packetTypeNum === 8) idx += 2;
+      // UTF-8 string (topic)
+      if (idx + 2 <= bytes.length) {
+        const len = (bytes[idx] << 8) | bytes[idx + 1];
+        topic = new TextDecoder().decode(bytes.slice(idx + 2, idx + 2 + len));
+      }
+    }
+
+    return { packetType, topic };
   } catch {
     return null;
   }
