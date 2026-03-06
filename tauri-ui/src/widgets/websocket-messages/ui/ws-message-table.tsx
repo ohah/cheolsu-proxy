@@ -59,8 +59,11 @@ const WsMessageRow = memo(
     const isSent = message.direction === "client_to_server";
     const DirectionIcon = isSent ? ArrowUp : ArrowDown;
     const mqttSummary = useMemo(
-      () => (message.content_type === "mqtt" ? getMqttSummary(message.payload) : null),
-      [message.content_type, message.payload],
+      () =>
+        message.content_type === "mqtt"
+          ? getMqttSummary(message.payload, message.mqtt_version)
+          : null,
+      [message.content_type, message.payload, message.mqtt_version],
     );
 
     return (
