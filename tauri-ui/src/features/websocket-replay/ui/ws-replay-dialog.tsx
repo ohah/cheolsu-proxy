@@ -110,7 +110,10 @@ export function WsReplayDialog({ message, open, onOpenChange }: WsReplayDialogPr
           {/* Direction selector */}
           <div className="flex items-center gap-3">
             <span className="text-sm text-muted-foreground whitespace-nowrap">Direction:</span>
-            <Select value={direction} onValueChange={(v) => setDirection(v as "to_client" | "to_server")}>
+            <Select
+              value={direction}
+              onValueChange={(v) => setDirection(v as "to_client" | "to_server")}
+            >
               <SelectTrigger className="w-52">
                 <SelectValue />
               </SelectTrigger>
@@ -155,7 +158,11 @@ export function WsReplayDialog({ message, open, onOpenChange }: WsReplayDialogPr
           )}
 
           {/* Send button */}
-          <Button onClick={handleSend} disabled={loading || !payload} className="w-full flex-shrink-0">
+          <Button
+            onClick={handleSend}
+            disabled={loading || !payload}
+            className="w-full flex-shrink-0"
+          >
             {loading ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
