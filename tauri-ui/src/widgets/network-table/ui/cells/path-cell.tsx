@@ -6,7 +6,7 @@ export const PathCell = memo<TableCellProps>(({ data }) => {
   const { authority, pathname } = data;
 
   return (
-    <div className="col-span-5 flex flex-col gap-1">
+    <div className="flex flex-col gap-1 min-w-0">
       <div className="font-mono text-sm truncate" title={authority}>
         {authority}
       </div>

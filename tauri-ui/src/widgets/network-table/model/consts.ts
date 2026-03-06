@@ -1,12 +1,12 @@
 export const TABLE_COLUMNS = [
-  { key: "path", label: "Path", span: 5 },
-  { key: "method", label: "Method", span: 1 },
-  { key: "status", label: "Status", span: 1 },
-  { key: "size", label: "Size", span: 1 },
-  { key: "time", label: "Time", span: 1 },
+  { key: "path", label: "Path" },
+  { key: "method", label: "Method" },
+  { key: "status", label: "Status" },
+  { key: "size", label: "Size" },
+  { key: "time", label: "Time" },
 ] as const;
 
-export const GRID_COLS_CLASS = "grid-cols-[auto_5fr_1fr_1fr_1fr_1fr]";
+export const GRID_COLS_CLASS = "grid-cols-[24px_5fr_1fr_1fr_1fr_1fr]";
 
 export const ROW_BASE_CLASSES =
   "grid gap-4 p-3 border-b border-border cursor-pointer hover:bg-muted/50 transition-colors";
