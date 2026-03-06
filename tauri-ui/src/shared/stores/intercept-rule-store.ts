@@ -29,9 +29,7 @@ export const useInterceptRuleStore = create<InterceptRuleStoreState>()(
 
       toggleRule: (id: string) => {
         set((state) => ({
-          rules: state.rules.map((r) =>
-            r.id === id ? { ...r, enabled: !r.enabled } : r,
-          ),
+          rules: state.rules.map((r) => (r.id === id ? { ...r, enabled: !r.enabled } : r)),
         }));
         get().syncToProxy();
       },

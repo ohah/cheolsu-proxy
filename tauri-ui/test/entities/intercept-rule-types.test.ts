@@ -161,11 +161,7 @@ describe("intercept-rule types", () => {
     });
 
     test("InterceptActionType이 올바른 리터럴 타입이다", () => {
-      const actionTypes: InterceptActionType[] = [
-        "block",
-        "modify_request",
-        "modify_response",
-      ];
+      const actionTypes: InterceptActionType[] = ["block", "modify_request", "modify_response"];
 
       expect(actionTypes).toHaveLength(3);
       expect(actionTypes).toContain("block");

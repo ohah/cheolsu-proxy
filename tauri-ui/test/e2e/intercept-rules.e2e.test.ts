@@ -41,8 +41,8 @@ async function clickRef(ref: string) {
 
 /** placeholder로 input/textarea를 찾아 React 호환 방식으로 값 설정 */
 async function typeByPlaceholder(placeholder: string, text: string) {
-  const escaped = text.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-  const escapedPh = placeholder.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+  const escaped = text.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+  const escapedPh = placeholder.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
   return executeJs(`
     (function() {
       var els = document.querySelectorAll('input, textarea');
@@ -97,7 +97,9 @@ describe("Intercept Rules Page - MCP e2e", () => {
 
   afterAll(async () => {
     // 다이얼로그가 열려있을 수 있으므로 닫기
-    await executeJs("document.querySelector('[data-slot=\"dialog-close\"]')?.click()").catch(() => {});
+    await executeJs("document.querySelector('[data-slot=\"dialog-close\"]')?.click()").catch(
+      () => {},
+    );
     await sleep(300);
     await stopSession();
     await disconnectMcp();

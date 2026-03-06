@@ -4,7 +4,11 @@ import type { SessionStore, SessionStoreState } from "@/entities/session";
 
 const isTauri = !!(window as any).__TAURI_INTERNALS__;
 
-let tauriStore: { get: (key: string) => Promise<any>; set: (key: string, value: any) => Promise<void>; save: () => Promise<void> } | null = null;
+let tauriStore: {
+  get: (key: string) => Promise<any>;
+  set: (key: string, value: any) => Promise<void>;
+  save: () => Promise<void>;
+} | null = null;
 let initialSessions: SessionStore[] = [];
 
 if (isTauri) {

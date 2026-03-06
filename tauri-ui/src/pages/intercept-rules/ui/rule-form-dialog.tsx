@@ -18,7 +18,11 @@ import {
 import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useInterceptRuleStore } from "@/shared/stores";
-import type { InterceptRule, InterceptAction, InterceptActionType } from "@/entities/intercept-rule";
+import type {
+  InterceptRule,
+  InterceptAction,
+  InterceptActionType,
+} from "@/entities/intercept-rule";
 
 interface RuleFormDialogProps {
   open: boolean;
@@ -28,11 +32,7 @@ interface RuleFormDialogProps {
 
 const HTTP_METHODS = ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"];
 
-export const RuleFormDialog = ({
-  open,
-  onOpenChange,
-  editingRule,
-}: RuleFormDialogProps) => {
+export const RuleFormDialog = ({ open, onOpenChange, editingRule }: RuleFormDialogProps) => {
   const { addRule, updateRule } = useInterceptRuleStore();
 
   const [name, setName] = useState("");
@@ -69,7 +69,9 @@ export const RuleFormDialog = ({
         setStatusCode("403");
         setResponseStatus("");
       } else if (editingRule.action.type === "modify_response") {
-        setResponseStatus(editingRule.action.set_status ? String(editingRule.action.set_status) : "");
+        setResponseStatus(
+          editingRule.action.set_status ? String(editingRule.action.set_status) : "",
+        );
         setBody(editingRule.action.set_body ?? "");
         setHeaders(
           Object.entries(editingRule.action.add_headers).map(([key, value]) => ({ key, value })),
@@ -320,7 +322,9 @@ export const RuleFormDialog = ({
           <div className="space-y-1.5">
             <label className="text-sm font-medium">Body</label>
             <Textarea
-              placeholder={actionType === "block" ? "Response body (optional)" : "Set body (optional)"}
+              placeholder={
+                actionType === "block" ? "Response body (optional)" : "Set body (optional)"
+              }
               value={body}
               onChange={(e) => setBody(e.target.value)}
               rows={4}
@@ -333,9 +337,7 @@ export const RuleFormDialog = ({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit}>
-            {editingRule ? "Update" : "Add Rule"}
-          </Button>
+          <Button onClick={handleSubmit}>{editingRule ? "Update" : "Add Rule"}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

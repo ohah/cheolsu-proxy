@@ -8,9 +8,7 @@ import type { InterceptRule } from "../../src/entities/intercept-rule";
 
 // 각 테스트 전에 스토어를 초기화하기 위해 동적으로 가져옴
 async function getStore() {
-  const { useInterceptRuleStore } = await import(
-    "../../src/shared/stores/intercept-rule-store"
-  );
+  const { useInterceptRuleStore } = await import("../../src/shared/stores/intercept-rule-store");
   return useInterceptRuleStore;
 }
 
@@ -26,9 +24,7 @@ function createBlockRule(overrides: Partial<InterceptRule> = {}): InterceptRule 
   };
 }
 
-function createModifyRequestRule(
-  overrides: Partial<InterceptRule> = {},
-): InterceptRule {
+function createModifyRequestRule(overrides: Partial<InterceptRule> = {}): InterceptRule {
   return {
     id: crypto.randomUUID(),
     name: "Test ModifyRequest Rule",
@@ -45,9 +41,7 @@ function createModifyRequestRule(
   };
 }
 
-function createModifyResponseRule(
-  overrides: Partial<InterceptRule> = {},
-): InterceptRule {
+function createModifyResponseRule(overrides: Partial<InterceptRule> = {}): InterceptRule {
   return {
     id: crypto.randomUUID(),
     name: "Test ModifyResponse Rule",
@@ -285,9 +279,7 @@ describe("intercept-rule-store", () => {
     });
 
     test("invoke 실패 시 에러를 콘솔에 출력하고 throw하지 않는다", async () => {
-      (invoke as ReturnType<typeof mock>).mockRejectedValueOnce(
-        new Error("Connection failed"),
-      );
+      (invoke as ReturnType<typeof mock>).mockRejectedValueOnce(new Error("Connection failed"));
 
       // 에러가 throw되지 않아야 한다
       await useInterceptRuleStore.getState().syncToProxy();
