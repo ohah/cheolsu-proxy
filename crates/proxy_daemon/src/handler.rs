@@ -1,3 +1,5 @@
+use crate::flow_filter::{FlowContext, FlowFilter};
+use crate::protocol::{InterceptAction, InterceptRule};
 use bytes::Bytes;
 use futures_util::stream::StreamExt;
 use http_body_util::{BodyExt, StreamBody};
@@ -113,6 +115,7 @@ pub struct LoggingHandler {
     req: Option<ProxiedRequest>,
     res: Option<ProxiedResponse>,
     sessions: Arc<Mutex<serde_json::Value>>,
+    intercept_rules: Arc<Mutex<Vec<InterceptRule>>>,
     cache_dir: Option<std::path::PathBuf>,
 }
 
@@ -126,6 +129,7 @@ impl LoggingHandler {
             req: None,
             res: None,
             sessions: Arc::new(Mutex::new(serde_json::Value::Array(Vec::new()))),
+            intercept_rules: Arc::new(Mutex::new(Vec::new())),
             cache_dir: Some(cache_dir),
         }
     }
@@ -134,6 +138,189 @@ impl LoggingHandler {
     pub async fn update_sessions(&self, sessions: serde_json::Value) {
         let mut sessions_guard = self.sessions.lock().await;
         *sessions_guard = sessions;
+    }
+
+    /// 인터셉트 규칙 업데이트
+    pub async fn update_intercept_rules(&self, rules: Vec<InterceptRule>) {
+        let mut rules_guard = self.intercept_rules.lock().await;
+        info!("[Intercept] 규칙 업데이트: {} 개", rules.len());
+        *rules_guard = rules;
+    }
+
+    /// FlowContext에 대해 매칭되는 인터셉트 규칙 검색
+    async fn find_matching_intercept_rules(&self, ctx: &FlowContext<'_>) -> Vec<InterceptRule> {
+        let rules_guard = self.intercept_rules.lock().await;
+        rules_guard
+            .iter()
+            .filter(|rule| {
+                if !rule.enabled {
+                    return false;
+                }
+                match FlowFilter::parse(&rule.filter) {
+                    Ok(filter) => filter.matches(ctx),
+                    Err(e) => {
+                        error!("[Intercept] 필터 파싱 오류 (규칙 {}): {}", rule.id, e);
+                        false
+                    }
+                }
+            })
+            .cloned()
+            .collect()
+    }
+
+    /// 인터셉트 규칙에 따라 요청을 차단하거나 수정
+    async fn apply_request_intercept(
+        &self,
+        req: Request<Body>,
+        ctx: &FlowContext<'_>,
+    ) -> RequestOrResponse {
+        let rules = self.find_matching_intercept_rules(ctx).await;
+        let url = ctx.url;
+        let method = ctx.method;
+
+        let mut current_req = req;
+
+        for rule in &rules {
+            match &rule.action {
+                InterceptAction::Block { status_code, body } => {
+                    info!(
+                        "[Intercept] 요청 차단: {} {} -> {} (규칙: {})",
+                        method, url, status_code, rule.name
+                    );
+                    let mut response = Response::builder()
+                        .status(StatusCode::from_u16(*status_code).unwrap_or(StatusCode::FORBIDDEN))
+                        .header("x-cheolsu-intercepted", "true")
+                        .header("x-cheolsu-intercept-rule", &rule.id)
+                        .body(Body::from(body.clone()))
+                        .unwrap_or_else(|_| {
+                            Response::builder()
+                                .status(StatusCode::FORBIDDEN)
+                                .body(Body::from("Blocked by intercept rule"))
+                                .unwrap()
+                        });
+                    // Content-Type 설정
+                    if !body.is_empty() {
+                        if body.starts_with('{') || body.starts_with('[') {
+                            response
+                                .headers_mut()
+                                .insert("content-type", "application/json".parse().unwrap());
+                        } else {
+                            response.headers_mut().insert(
+                                "content-type",
+                                "text/plain; charset=utf-8".parse().unwrap(),
+                            );
+                        }
+                    }
+                    return response.into();
+                }
+                InterceptAction::ModifyRequest {
+                    add_headers,
+                    remove_headers,
+                    set_body,
+                } => {
+                    info!(
+                        "[Intercept] 요청 수정: {} {} (규칙: {})",
+                        method, url, rule.name
+                    );
+                    // 헤더 제거
+                    for name in remove_headers {
+                        if let Ok(header_name) = name.parse::<HeaderName>() {
+                            current_req.headers_mut().remove(header_name);
+                        }
+                    }
+                    // 헤더 추가
+                    for (name, value) in add_headers {
+                        if let (Ok(header_name), Ok(header_value)) =
+                            (name.parse::<HeaderName>(), value.parse::<HeaderValue>())
+                        {
+                            current_req.headers_mut().insert(header_name, header_value);
+                        }
+                    }
+                    // 바디 변경
+                    if let Some(new_body) = set_body {
+                        use http_body_util::Full;
+                        *current_req.body_mut() =
+                            Body::from(Full::new(bytes::Bytes::from(new_body.clone())));
+                    }
+                }
+                InterceptAction::ModifyResponse { .. } => {
+                    // 응답 수정 규칙은 handle_response에서 처리
+                }
+            }
+        }
+
+        current_req.into()
+    }
+
+    /// 인터셉트 규칙에 따라 응답을 수정
+    async fn apply_response_intercept(
+        &self,
+        mut res: Response<Body>,
+        ctx: &FlowContext<'_>,
+    ) -> Response<Body> {
+        let rules = self.find_matching_intercept_rules(ctx).await;
+        let url = ctx.url;
+        let method = ctx.method;
+
+        for rule in &rules {
+            if let InterceptAction::ModifyResponse {
+                set_status,
+                add_headers,
+                remove_headers,
+                set_body,
+            } = &rule.action
+            {
+                info!(
+                    "[Intercept] 응답 수정: {} {} (규칙: {})",
+                    method, url, rule.name
+                );
+
+                // 상태 코드 변경
+                if let Some(status) = set_status {
+                    if let Ok(status_code) = StatusCode::from_u16(*status) {
+                        *res.status_mut() = status_code;
+                    }
+                }
+
+                // 헤더 제거
+                for name in remove_headers {
+                    if let Ok(header_name) = name.parse::<HeaderName>() {
+                        res.headers_mut().remove(header_name);
+                    }
+                }
+
+                // 헤더 추가
+                for (name, value) in add_headers {
+                    if let (Ok(header_name), Ok(header_value)) =
+                        (name.parse::<HeaderName>(), value.parse::<HeaderValue>())
+                    {
+                        res.headers_mut().insert(header_name, header_value);
+                    }
+                }
+
+                // 바디 변경
+                if let Some(new_body) = set_body {
+                    use http_body_util::Full;
+                    // Content-Length 업데이트
+                    let body_bytes = bytes::Bytes::from(new_body.clone());
+                    res.headers_mut().remove("content-length");
+                    res.headers_mut().remove("content-encoding");
+                    res.headers_mut().remove("transfer-encoding");
+                    *res.body_mut() = Body::from(Full::new(body_bytes));
+                }
+
+                res.headers_mut()
+                    .insert("x-cheolsu-intercepted", "true".parse().unwrap());
+                res.headers_mut().insert(
+                    "x-cheolsu-intercept-rule",
+                    rule.id
+                        .parse()
+                        .unwrap_or_else(|_| "unknown".parse().unwrap()),
+                );
+            }
+        }
+
+        res
     }
 
     /// 요청 URL이 세션에 있는지 확인하고 매칭되는 세션 반환
@@ -462,15 +649,57 @@ impl HttpHandler for LoggingHandler {
             return restored_req.into();
         }
 
-        self.req = Some(proxied_request);
+        self.req = Some(proxied_request.clone());
 
-        restored_req.into()
+        // 인터셉트 규칙 적용 (차단, 요청 수정)
+        let url = proxied_request.uri().to_string();
+        let method = proxied_request.method().to_string();
+        let req_headers = restored_req.headers().clone();
+        let req_body_bytes = proxied_request.body().to_vec();
+        let flow_ctx = FlowContext {
+            url: &url,
+            method: &method,
+            request_headers: &req_headers,
+            request_body: &req_body_bytes,
+            response_status: None,
+            response_headers: None,
+            response_body: None,
+        };
+        let result = self.apply_request_intercept(restored_req, &flow_ctx).await;
+
+        // 차단된 경우 로깅 출력
+        if let RequestOrResponse::Response(_) = &result {
+            self.send_output().await;
+        }
+
+        result
     }
 
     async fn handle_response(&mut self, _ctx: &HttpContext, res: Response<Body>) -> Response<Body> {
         if res.status() == StatusCode::SWITCHING_PROTOCOLS {
             return res;
         }
+
+        // 인터셉트 규칙으로 응답 수정
+        let res = if let Some(req) = &self.req {
+            let url = req.uri().to_string();
+            let method = req.method().to_string();
+            let req_headers = req.headers().clone();
+            let req_body_bytes = req.body().to_vec();
+            let res_headers = res.headers().clone();
+            let flow_ctx = FlowContext {
+                url: &url,
+                method: &method,
+                request_headers: &req_headers,
+                request_body: &req_body_bytes,
+                response_status: Some(res.status().as_u16()),
+                response_headers: Some(&res_headers),
+                response_body: None,
+            };
+            self.apply_response_intercept(res, &flow_ctx).await
+        } else {
+            res
+        };
 
         if let Some(req) = &self.req {
             let url = req.uri().to_string();
