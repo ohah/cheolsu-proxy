@@ -39,6 +39,10 @@ export default defineConfig({
             link: "/guide/",
           },
           {
+            text: "기능",
+            link: "/features/mcp-server",
+          },
+          {
             text: "기여하기",
             link: "/contributing/",
           },
@@ -60,6 +64,10 @@ export default defineConfig({
             link: "/en/guide/",
           },
           {
+            text: "Features",
+            link: "/en/features/mcp-server",
+          },
+          {
             text: "Contributing",
             link: "/en/contributing/",
           },
@@ -78,6 +86,48 @@ export default defineConfig({
       },
     ],
     sidebar: {
+      "/features/": [
+        {
+          text: "기능",
+          items: [
+            {
+              text: "MCP Server",
+              link: "/features/mcp-server",
+            },
+            {
+              text: "Cheolsu Query",
+              link: "/features/cheolsu-query",
+            },
+            {
+              text: "TLS 지원",
+              link: "/features/tls-support",
+            },
+            {
+              text: "mitmproxy 비교",
+              link: "/features/mitmproxy-comparison",
+            },
+          ],
+        },
+      ],
+      "/en/features/": [
+        {
+          text: "Features",
+          items: [
+            {
+              text: "MCP Server",
+              link: "/en/features/mcp-server",
+            },
+            {
+              text: "Cheolsu Query",
+              link: "/en/features/cheolsu-query",
+            },
+            {
+              text: "TLS Support",
+              link: "/en/features/tls-support",
+            },
+          ],
+        },
+      ],
       "/guide/": [
         {
           text: "가이드",

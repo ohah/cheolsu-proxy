@@ -169,6 +169,7 @@ mitmproxy를 레퍼런스로 한 cheolsu-proxy의 기능 구현 현황을 정리
 
 mitmproxy에는 없지만 cheolsu-proxy에 구현된 기능:
 
+- **MCP Server**: AI 어시스턴트(Claude Code, Cursor 등)에서 캡처된 트래픽을 직접 조회/조작 가능
 - **하이브리드 TLS 엔진**: rustls + OpenSSL 자동 전환 (ClientHello 분석 기반)
 - **데몬 아키텍처**: Unix Domain Socket 기반 다중 클라이언트 지원
 - **시스템 프록시 자동 설정**: macOS networksetup 연동
