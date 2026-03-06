@@ -200,10 +200,10 @@ pub fn detect_data_type(headers: &HeaderMap, body: &Bytes) -> DataType {
         // JSON 감지 (가장 정확한 방법)
         if let Ok(body_str) = std::str::from_utf8(body) {
             let trimmed = body_str.trim();
-            if trimmed.starts_with('{') || trimmed.starts_with('[') {
-                if serde_json::from_str::<serde_json::Value>(trimmed).is_ok() {
-                    return DataType::Json;
-                }
+            if (trimmed.starts_with('{') || trimmed.starts_with('['))
+                && serde_json::from_str::<serde_json::Value>(trimmed).is_ok()
+            {
+                return DataType::Json;
             }
         }
 
