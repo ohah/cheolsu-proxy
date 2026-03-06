@@ -1,37 +1,31 @@
 import { useState } from "react";
-import { useProxyStore, useInterceptRuleStore } from "@/shared/stores";
+import { useProxyStore, useMapRuleStore } from "@/shared/stores";
 import { Card, CardContent, Badge, Button, Switch } from "@/shared/ui";
-import { Plus, Trash2, Pencil, Ban, ArrowUpDown, ArrowDownUp, Eraser } from "lucide-react";
+import { Plus, Trash2, Pencil, FileDown, GitBranch, Eraser } from "lucide-react";
 import { toast } from "sonner";
 import { AppSidebar } from "@/shared/app-sidebar";
 import type { InterceptRule } from "@/entities/intercept-rule";
-import { RuleFormDialog } from "@/features/intercept-rule-form";
+import { MapRuleFormDialog } from "@/features/map-rule-form";
 
-const ACTION_LABELS: Record<
-  string,
-  { label: string; variant: "default" | "secondary" | "destructive" | "outline" }
-> = {
-  block: { label: "Block", variant: "destructive" },
-  modify_request: { label: "Modify Request", variant: "default" },
-  modify_response: { label: "Modify Response", variant: "secondary" },
-  map_local: { label: "Map Local", variant: "outline" },
-  map_remote: { label: "Map Remote", variant: "outline" },
-};
-
-function getActionIcon(type: string) {
+function getMapIcon(type: string) {
   switch (type) {
-    case "block":
-      return <Ban className="w-3.5 h-3.5" />;
-    case "modify_request":
-      return <ArrowUpDown className="w-3.5 h-3.5" />;
-    case "modify_response":
-      return <ArrowDownUp className="w-3.5 h-3.5" />;
+    case "map_local":
+      return <FileDown className="w-3.5 h-3.5" />;
+    case "map_remote":
+      return <GitBranch className="w-3.5 h-3.5" />;
+    default:
+      return null;
   }
 }
 
-export const InterceptRulesPage = () => {
+const MAP_LABELS: Record<string, { label: string; variant: "default" | "secondary" }> = {
+  map_local: { label: "Map Local", variant: "default" },
+  map_remote: { label: "Map Remote", variant: "secondary" },
+};
+
+export const MapRulesPage = () => {
   const { isConnected } = useProxyStore();
-  const { rules, removeRule, toggleRule, clearRules } = useInterceptRuleStore();
+  const { rules, removeRule, toggleRule, clearRules } = useMapRuleStore();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingRule, setEditingRule] = useState<InterceptRule | null>(null);
 
@@ -63,9 +57,9 @@ export const InterceptRulesPage = () => {
         <div className="p-6 space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Intercept Rules</h1>
+              <h1 className="text-2xl font-bold text-foreground">Map Rules</h1>
               <p className="text-muted-foreground">
-                Manage wildcard-based request/response intercept rules
+                Map Local: respond with local files. Map Remote: redirect requests to another URL.
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -89,9 +83,9 @@ export const InterceptRulesPage = () => {
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <div className="text-center space-y-2">
-                  <h3 className="text-lg font-semibold">No intercept rules</h3>
+                  <h3 className="text-lg font-semibold">No map rules</h3>
                   <p className="text-muted-foreground">
-                    Add rules to intercept, block, or modify HTTP requests and responses.
+                    Add rules to map URLs to local files or redirect to other servers.
                   </p>
                   <Button className="mt-4" onClick={handleAdd}>
                     <Plus className="w-4 h-4 mr-1" />
@@ -103,7 +97,10 @@ export const InterceptRulesPage = () => {
           ) : (
             <div className="space-y-3">
               {rules.map((rule) => {
-                const actionInfo = ACTION_LABELS[rule.action.type];
+                const mapInfo = MAP_LABELS[rule.action.type] ?? {
+                  label: rule.action.type,
+                  variant: "default" as const,
+                };
                 return (
                   <Card
                     key={rule.id}
@@ -128,37 +125,27 @@ export const InterceptRulesPage = () => {
                             )}
                           </div>
                           <div className="flex items-center gap-2">
-                            <Badge variant={actionInfo.variant} className="text-xs gap-1">
-                              {getActionIcon(rule.action.type)}
-                              {actionInfo.label}
+                            <Badge variant={mapInfo.variant} className="text-xs gap-1">
+                              {getMapIcon(rule.action.type)}
+                              {mapInfo.label}
                             </Badge>
                             {rule.method && (
                               <Badge variant="outline" className="text-xs">
                                 {rule.method}
                               </Badge>
                             )}
-                            {rule.action.type === "block" && (
-                              <span className="text-xs text-muted-foreground">
-                                Status: {rule.action.status_code}
+                            {rule.action.type === "map_local" && (
+                              <span className="text-xs text-muted-foreground truncate max-w-[300px]">
+                                {(rule.action as { file_path: string }).file_path}
                               </span>
                             )}
-                            {rule.action.type === "modify_response" && rule.action.set_status && (
-                              <span className="text-xs text-muted-foreground">
-                                Status: {rule.action.set_status}
+                            {rule.action.type === "map_remote" && (
+                              <span className="text-xs text-muted-foreground truncate max-w-[300px]">
+                                → {(rule.action as { target_url: string }).target_url}
+                                {(rule.action as { preserve_path: boolean }).preserve_path &&
+                                  " (preserve path)"}
                               </span>
                             )}
-                            {(rule.action.type === "modify_request" ||
-                              rule.action.type === "modify_response") &&
-                              Object.keys(rule.action.add_headers).length > 0 && (
-                                <span className="text-xs text-muted-foreground">
-                                  +{Object.keys(rule.action.add_headers).length} headers
-                                </span>
-                              )}
-                            {(rule.action.type === "modify_request" ||
-                              rule.action.type === "modify_response") &&
-                              rule.action.set_body && (
-                                <span className="text-xs text-muted-foreground">Custom body</span>
-                              )}
                           </div>
                         </div>
 
@@ -191,7 +178,7 @@ export const InterceptRulesPage = () => {
         </div>
       </div>
 
-      <RuleFormDialog open={dialogOpen} onOpenChange={setDialogOpen} editingRule={editingRule} />
+      <MapRuleFormDialog open={dialogOpen} onOpenChange={setDialogOpen} editingRule={editingRule} />
     </div>
   );
 };

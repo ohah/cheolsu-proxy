@@ -136,6 +136,12 @@ export const RuleFormDialog = ({
           remove_headers: removeHeaders.filter((h) => h.trim()),
           set_body: body.trim() || null,
         };
+      default:
+        return {
+          type: "block",
+          status_code: 403,
+          body: "",
+        };
     }
   };
 

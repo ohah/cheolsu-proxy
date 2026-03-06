@@ -20,6 +20,8 @@ export const SidebarNavigation = memo(({ collapsed }: SidebarNavigationProps) =>
         return "network";
       case "/intercept-rules":
         return "intercept-rules";
+      case "/map-rules":
+        return "map-rules";
       default:
         return "network";
     }
@@ -34,6 +36,9 @@ export const SidebarNavigation = memo(({ collapsed }: SidebarNavigationProps) =>
         break;
       case "intercept-rules":
         navigate("/intercept-rules");
+        break;
+      case "map-rules":
+        navigate("/map-rules");
         break;
       default:
         navigate("/dashboard");

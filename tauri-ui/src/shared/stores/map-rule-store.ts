@@ -1,9 +1,20 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { InterceptRule, InterceptRuleStoreState } from "@/entities/intercept-rule";
+import type { InterceptRule } from "@/entities/intercept-rule";
 import { updateInterceptRules } from "@/shared/api/proxy";
+import { useInterceptRuleStore } from "./intercept-rule-store";
 
-export const useInterceptRuleStore = create<InterceptRuleStoreState>()(
+export interface MapRuleStoreState {
+  rules: InterceptRule[];
+  addRule: (rule: InterceptRule) => void;
+  updateRule: (rule: InterceptRule) => void;
+  removeRule: (id: string) => void;
+  toggleRule: (id: string) => void;
+  clearRules: () => void;
+  syncToProxy: () => Promise<void>;
+}
+
+export const useMapRuleStore = create<MapRuleStoreState>()(
   persist(
     (set, get) => ({
       rules: [],
@@ -41,18 +52,17 @@ export const useInterceptRuleStore = create<InterceptRuleStoreState>()(
 
       syncToProxy: async () => {
         try {
-          // Intercept rules와 Map rules를 합쳐서 전송
-          const interceptRules = get().rules;
-          const { useMapRuleStore } = await import("./map-rule-store");
-          const mapRules = useMapRuleStore.getState().rules;
+          // Map rules와 Intercept rules를 합쳐서 전송
+          const mapRules = get().rules;
+          const interceptRules = useInterceptRuleStore.getState().rules;
           await updateInterceptRules([...interceptRules, ...mapRules]);
         } catch (error) {
-          console.error("Failed to sync intercept rules:", error);
+          console.error("Failed to sync map rules:", error);
         }
       },
     }),
     {
-      name: "cheolsu-intercept-rules",
+      name: "cheolsu-map-rules",
     },
   ),
 );
