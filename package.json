@@ -33,7 +33,8 @@
   },
   "devDependencies": {
     "oxfmt": "latest",
-    "oxlint": "latest"
+    "oxlint": "latest",
+    "shadcn": "^3.8.5"
   },
   "packageManager": "bun@latest"
 }
