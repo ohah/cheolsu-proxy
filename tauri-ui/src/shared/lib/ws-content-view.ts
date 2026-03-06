@@ -290,6 +290,7 @@ export function parseMqtt(base64Payload: string, mqttVersion?: number): MqttPars
  */
 export function getMqttSummary(
   base64Payload: string,
+  mqttVersion?: number,
 ): { packetType: string; topic: string | null } | null {
   try {
     const bytes = decodeBase64ToBytes(base64Payload);
@@ -302,14 +303,14 @@ export function getMqttSummary(
     // PUBLISH(3), SUBSCRIBE(8): 토픽 추출
     if (packetTypeNum === 3 || packetTypeNum === 8) {
       // Remaining Length 건너뛰기
-      let idx = 1;
-      while (idx < bytes.length) {
-        const b = bytes[idx];
-        idx += 1;
-        if ((b & 0x80) === 0) break;
-      }
+      const [, payloadStart] = decodeMqttRemainingLength(bytes, 1);
+      let idx = payloadStart;
       // SUBSCRIBE: Packet ID (2 bytes) 건너뛰기
       if (packetTypeNum === 8) idx += 2;
+      // MQTT 5: Properties 건너뛰기
+      if (mqttVersion === 5 && packetTypeNum === 8) {
+        idx = skipMqtt5Properties(bytes, idx);
+      }
       // UTF-8 string (topic)
       if (idx + 2 <= bytes.length) {
         const len = (bytes[idx] << 8) | bytes[idx + 1];
