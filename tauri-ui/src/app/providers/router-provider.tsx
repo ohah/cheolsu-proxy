@@ -1,6 +1,5 @@
 import { createBrowserRouter, RouterProvider as ReactRouterProvider } from "react-router-dom";
 import { NetworkDashboard } from "@/pages/network-dashboard";
-import { SessionsPage } from "@/pages/sessions";
 import { InterceptRulesPage } from "@/pages/intercept-rules";
 
 // React Router v7의 기본 라우터 설정
@@ -19,14 +18,6 @@ export const router = createBrowserRouter([
     handle: {
       title: "Dashboard - Cheolsu Proxy",
       description: "Network traffic monitoring dashboard",
-    },
-  },
-  {
-    path: "/sessions",
-    element: <SessionsPage />,
-    handle: {
-      title: "Sessions - Cheolsu Proxy",
-      description: "View and manage saved HTTP sessions",
     },
   },
   {

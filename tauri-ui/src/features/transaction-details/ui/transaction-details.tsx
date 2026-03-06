@@ -1,7 +1,6 @@
 import type { HttpTransaction } from "@/entities/proxy";
 
 import { ScrollArea, Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui";
-import { useSessionStore } from "@/shared/stores";
 
 import { TransactionHeader } from "./transaction-header";
 import { TransactionHeaders } from "./transaction-headers";
@@ -25,14 +24,6 @@ export function TransactionDetails({
   const { activeTab, tabs, onTabChange } = useTransactionTabs();
   const { isEditing, form, startEditing, cancelEditing, saveChanges } =
     useTransactionEdit(transaction);
-  const deleteSessionByUrl = useSessionStore((state) => state.deleteSessionByUrl);
-
-  const handleDeleteSession = () => {
-    if (request?.id) {
-      deleteSessionByUrl(request.uri);
-      clearSelectedTransaction();
-    }
-  };
 
   if (!request || !response) {
     return null;
@@ -47,7 +38,6 @@ export function TransactionDetails({
         onStartEdit={startEditing}
         onCancelEdit={cancelEditing}
         onSaveEdit={saveChanges}
-        onDeleteSession={handleDeleteSession}
         form={form}
       />
 
