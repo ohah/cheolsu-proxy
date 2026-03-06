@@ -292,14 +292,19 @@ async fn run_proxy(
         .map(|dir| dir.join("tls_passthrough.json"));
     let tls_passthrough = proxyapi_v2::tls_passthrough::TlsPassthrough::new(passthrough_path);
 
+    let proxy_ctx = proxyapi_v2::ProxyContext {
+        tunnel_event_sender: Some(tunnel_tx),
+        tls_passthrough: Some(tls_passthrough),
+        ..Default::default()
+    };
+
     let proxy_builder = ProxyBuilder::new()
         .with_listener(listener)
         .with_ca(ca)
         .with_client(hybrid_client)
         .with_http_handler(handler.clone())
         .with_websocket_handler(handler.clone())
-        .with_tunnel_event_sender(tunnel_tx)
-        .with_tls_passthrough(tls_passthrough)
+        .with_proxy_context(proxy_ctx)
         .build()
         .map_err(|e| format!("Proxy build failed: {}", e))?;
 

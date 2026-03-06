@@ -1,15 +1,13 @@
 use super::context::ProxyContext;
 use crate::{
     Body, HttpHandler, NoopHandler, Proxy, WebSocketHandler,
-    certificate_authority::CertificateAuthority, tls_passthrough::TlsPassthrough,
-    websocket_registry::WebSocketRegistry,
+    certificate_authority::CertificateAuthority,
 };
 use hyper_util::{
     client::legacy::{Client, connect::Connect},
     rt::TokioExecutor,
     server::conn::auto::Builder,
 };
-use proxy_v2_models::RequestInfo;
 use std::{
     future::{Pending, pending},
     net::SocketAddr,
@@ -17,7 +15,6 @@ use std::{
 };
 use thiserror::Error;
 use tokio::net::TcpListener;
-use tokio::sync::mpsc;
 use tokio_rustls::rustls::{ClientConfig, crypto::CryptoProvider};
 use tokio_tungstenite::Connector;
 use tracing::{debug, error, info, warn};
@@ -363,12 +360,6 @@ impl<CA, C, H, W, F> ProxyBuilder<WantsHandlers<CA, C, H, W, F>> {
         })
     }
 
-    /// Set the connector to use when connecting to WebSocket servers.
-    pub fn with_websocket_connector(mut self, connector: Connector) -> Self {
-        self.0.ctx.websocket_connector = Some(connector);
-        self
-    }
-
     /// Set a custom server builder to use for the proxy server.
     pub fn with_server(self, server: Builder<TokioExecutor>) -> Self {
         ProxyBuilder(WantsHandlers {
@@ -394,25 +385,9 @@ impl<CA, C, H, W, F> ProxyBuilder<WantsHandlers<CA, C, H, W, F>> {
         })
     }
 
-    /// Set the tunnel event sender for tunnel mode events.
-    pub fn with_tunnel_event_sender(
-        mut self,
-        tunnel_event_sender: mpsc::Sender<RequestInfo>,
-    ) -> Self {
-        self.0.ctx.tunnel_event_sender = Some(tunnel_event_sender);
-        self
-    }
-
-    /// Set the WebSocket registry for message injection.
-    pub fn with_websocket_registry(mut self, registry: WebSocketRegistry) -> Self {
-        self.0.ctx.websocket_registry = Some(registry);
-        self
-    }
-
-    /// Set the TLS passthrough handler for auto-learning bypass.
-    pub fn with_tls_passthrough(mut self, tls_passthrough: TlsPassthrough) -> Self {
-        self.0.ctx.tls_passthrough = Some(tls_passthrough);
-        self
+    /// Set the proxy context (TLS passthrough, WebSocket registry, tunnel events, etc.)
+    pub fn with_proxy_context(self, ctx: ProxyContext) -> Self {
+        ProxyBuilder(WantsHandlers { ctx, ..self.0 })
     }
 
     /// Build the proxy.
