@@ -1,4 +1,3 @@
-use proxy_v2_models::RequestInfo;
 use std::io::Write;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::net::UnixStream;
@@ -136,14 +135,14 @@ fn daemon_log_file() -> Option<std::fs::File> {
 /// If no daemon is running, spawns one and waits for it to be ready.
 /// Returns a `DaemonConnection` with an active event-forwarding task.
 ///
-/// `on_event` is called for each `RequestInfo` event received from the daemon.
+/// `on_message` is called for each `DaemonMessage` received from the daemon.
 pub async fn ensure_daemon<F>(
     port: u16,
     host: &str,
-    on_event: F,
+    on_message: F,
 ) -> Result<DaemonConnection, String>
 where
-    F: Fn(RequestInfo) + Send + 'static,
+    F: Fn(DaemonMessage) + Send + 'static,
 {
     if is_daemon_running().is_none() {
         check_and_cleanup_stale_lock();
@@ -179,14 +178,14 @@ where
         return Err("Daemon started but UDS socket was not created within 5 seconds".to_string());
     }
 
-    connect_to_daemon(on_event).await
+    connect_to_daemon(on_message).await
 }
 
 /// Connect to an already-running daemon.
-/// `on_event` is called for each `RequestInfo` event received.
-pub async fn connect_to_daemon<F>(on_event: F) -> Result<DaemonConnection, String>
+/// `on_message` is called for each `DaemonMessage` received.
+pub async fn connect_to_daemon<F>(on_message: F) -> Result<DaemonConnection, String>
 where
-    F: Fn(RequestInfo) + Send + 'static,
+    F: Fn(DaemonMessage) + Send + 'static,
 {
     let uds_path = uds_socket_path()?;
     let stream = UnixStream::connect(&uds_path)
@@ -233,11 +232,9 @@ where
                         continue;
                     }
                     match serde_json::from_str::<DaemonMessage>(trimmed) {
-                        Ok(DaemonMessage::Event { data }) => {
-                            on_event(data);
+                        Ok(msg) => {
+                            on_message(msg);
                         }
-                        Ok(DaemonMessage::Status { .. }) => {}
-                        Ok(DaemonMessage::InterceptRulesUpdated { .. }) => {}
                         Err(e) => {
                             eprintln!("Failed to parse daemon message: {} ({})", trimmed, e);
                         }

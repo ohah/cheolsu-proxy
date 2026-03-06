@@ -265,7 +265,9 @@ async fn run_proxy(
     let (tunnel_tx, mut tunnel_rx) =
         tokio::sync::mpsc::channel::<proxy_v2_models::RequestInfo>(100);
 
-    let handler = LoggingHandler::new(tx.clone(), cache_dir);
+    let (ws_tx, mut ws_rx) = tokio::sync::mpsc::channel::<crate::handler::WsEvent>(256);
+
+    let handler = LoggingHandler::new(tx.clone(), cache_dir).with_ws_sender(ws_tx);
 
     // 인터셉트 규칙 초기값 로드
     {
@@ -329,6 +331,23 @@ async fn run_proxy(
             let msg = serde_json::to_string(&DaemonMessage::Event { data: tunnel_event })
                 .unwrap_or_default();
             let _ = event_tx_tunnel.send(msg);
+        }
+    });
+
+    let event_tx_ws = event_tx.clone();
+    tokio::spawn(async move {
+        while let Some(ws_event) = ws_rx.recv().await {
+            let msg = match ws_event {
+                crate::handler::WsEvent::Message(info) => {
+                    serde_json::to_string(&DaemonMessage::WsMessage { data: info })
+                }
+                crate::handler::WsEvent::Connection(event) => {
+                    serde_json::to_string(&DaemonMessage::WsConnection { data: event })
+                }
+            };
+            if let Ok(msg) = msg {
+                let _ = event_tx_ws.send(msg);
+            }
         }
     });
 

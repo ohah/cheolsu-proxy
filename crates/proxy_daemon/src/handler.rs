@@ -7,7 +7,10 @@ use hyper_util::{
     client::legacy::{connect::HttpConnector, Client},
     rt::TokioExecutor,
 };
-use proxy_v2_models::{ProxiedRequest, ProxiedResponse, RequestInfo};
+use proxy_v2_models::{
+    ProxiedRequest, ProxiedResponse, RequestInfo, WsConnectionEvent, WsDirection, WsMessageInfo,
+    WsMessageType,
+};
 use proxyapi_v2::{
     hyper::http::{HeaderMap, HeaderName, HeaderValue, Method, StatusCode},
     hyper::{Request, Response},
@@ -107,10 +110,19 @@ pub fn create_hybrid_client(
         .build(https))
 }
 
+/// WebSocket 이벤트 (메시지 또는 연결 상태)
+#[derive(Clone, Debug)]
+pub enum WsEvent {
+    Message(WsMessageInfo),
+    Connection(WsConnectionEvent),
+}
+
 /// HTTP 및 WebSocket 요청/응답을 로깅하는 핸들러
 #[derive(Clone)]
 pub struct LoggingHandler {
     sender: tokio::sync::mpsc::Sender<RequestInfo>,
+    ws_sender: Option<tokio::sync::mpsc::Sender<WsEvent>>,
+    ws_sequence: Arc<std::sync::atomic::AtomicU64>,
     req: Option<ProxiedRequest>,
     res: Option<ProxiedResponse>,
     intercept_rules: Arc<Mutex<Vec<InterceptRule>>>,
@@ -124,11 +136,18 @@ impl LoggingHandler {
     ) -> Self {
         Self {
             sender,
+            ws_sender: None,
+            ws_sequence: Arc::new(std::sync::atomic::AtomicU64::new(0)),
             req: None,
             res: None,
             intercept_rules: Arc::new(Mutex::new(Vec::new())),
             cache_dir: Some(cache_dir),
         }
+    }
+
+    pub fn with_ws_sender(mut self, ws_sender: tokio::sync::mpsc::Sender<WsEvent>) -> Self {
+        self.ws_sender = Some(ws_sender);
+        self
     }
 
     /// 인터셉트 규칙 업데이트
@@ -994,7 +1013,67 @@ pub fn parse_curl_response(
 }
 
 impl WebSocketHandler for LoggingHandler {
-    async fn handle_message(&mut self, _ctx: &WebSocketContext, msg: Message) -> Option<Message> {
+    async fn handle_message(&mut self, ctx: &WebSocketContext, msg: Message) -> Option<Message> {
+        if let Some(ws_sender) = &self.ws_sender {
+            let (direction, connection_id) = match ctx {
+                WebSocketContext::ClientToServer { dst, .. } => {
+                    (WsDirection::ClientToServer, dst.to_string())
+                }
+                WebSocketContext::ServerToClient { src, .. } => {
+                    (WsDirection::ServerToClient, src.to_string())
+                }
+            };
+
+            let (message_type, payload, size, is_binary) = match &msg {
+                Message::Text(text) => (WsMessageType::Text, text.to_string(), text.len(), false),
+                Message::Binary(data) => {
+                    use base64::Engine;
+                    let encoded = base64::engine::general_purpose::STANDARD.encode(data);
+                    (WsMessageType::Binary, encoded, data.len(), true)
+                }
+                Message::Ping(data) => (
+                    WsMessageType::Ping,
+                    format!("{} bytes", data.len()),
+                    data.len(),
+                    true,
+                ),
+                Message::Pong(data) => (
+                    WsMessageType::Pong,
+                    format!("{} bytes", data.len()),
+                    data.len(),
+                    true,
+                ),
+                Message::Close(frame) => {
+                    let payload = frame
+                        .as_ref()
+                        .map(|f| format!("{}: {}", f.code, f.reason))
+                        .unwrap_or_default();
+                    let size = payload.len();
+                    (WsMessageType::Close, payload, size, false)
+                }
+                Message::Frame(_) => return Some(msg),
+            };
+
+            let sequence = self
+                .ws_sequence
+                .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+
+            let info = WsMessageInfo {
+                connection_id,
+                sequence,
+                direction,
+                message_type,
+                payload,
+                size,
+                time: chrono::Local::now()
+                    .timestamp_nanos_opt()
+                    .unwrap_or_default(),
+                is_binary,
+            };
+
+            let _ = ws_sender.try_send(WsEvent::Message(info));
+        }
+
         Some(msg)
     }
 }

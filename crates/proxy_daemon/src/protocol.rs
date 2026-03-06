@@ -1,4 +1,4 @@
-use proxy_v2_models::RequestInfo;
+use proxy_v2_models::{RequestInfo, WsConnectionEvent, WsMessageInfo};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -11,6 +11,10 @@ pub enum DaemonMessage {
     Status { running: bool, port: u16 },
     #[serde(rename = "intercept_rules_updated")]
     InterceptRulesUpdated { rules: Vec<InterceptRule> },
+    #[serde(rename = "ws_message")]
+    WsMessage { data: WsMessageInfo },
+    #[serde(rename = "ws_connection")]
+    WsConnection { data: WsConnectionEvent },
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
