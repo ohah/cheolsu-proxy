@@ -144,6 +144,11 @@ export const formatBodyContent = (body: Uint8Array, dataType: DataType, bodyJson
     return "";
   }
 
+  // GraphQL 타입이면 query 필드를 추출하여 포맷팅
+  if (dataType === "GraphQL" && bodyJson) {
+    return formatGraphQLBody(bodyJson);
+  }
+
   // JSON 타입이고 body_json이 있으면 바로 포맷팅
   if (dataType === "Json" && bodyJson) {
     return JSON.stringify(bodyJson, null, 2);
@@ -334,6 +339,31 @@ export const extractBinaryFileInfo = (
   }
 
   return { fileName, fileExtension, mimeType };
+};
+
+/**
+ * GraphQL body를 보기 좋게 포맷팅
+ */
+const formatGraphQLBody = (bodyJson: any): string => {
+  const parts: string[] = [];
+
+  if (bodyJson.operationName) {
+    parts.push(`# Operation: ${bodyJson.operationName}`);
+  }
+
+  if (typeof bodyJson.query === "string") {
+    parts.push(bodyJson.query.trim());
+  }
+
+  if (bodyJson.variables && Object.keys(bodyJson.variables).length > 0) {
+    parts.push(`\n# Variables\n${JSON.stringify(bodyJson.variables, null, 2)}`);
+  }
+
+  if (bodyJson.extensions && Object.keys(bodyJson.extensions).length > 0) {
+    parts.push(`\n# Extensions\n${JSON.stringify(bodyJson.extensions, null, 2)}`);
+  }
+
+  return parts.join("\n");
 };
 
 // Re-export data type utilities for convenience

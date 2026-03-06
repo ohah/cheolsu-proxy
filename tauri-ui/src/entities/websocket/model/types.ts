@@ -2,6 +2,8 @@ export type WsDirection = "client_to_server" | "server_to_client";
 
 export type WsMessageType = "text" | "binary" | "ping" | "pong" | "close";
 
+export type WsContentType = "plain" | "socket_io" | "mqtt";
+
 export interface WsMessageInfo {
   connection_id: string;
   sequence: number;
@@ -11,6 +13,7 @@ export interface WsMessageInfo {
   size: number;
   time: number;
   is_binary: boolean;
+  content_type?: WsContentType;
 }
 
 export type WsConnectionStatus = "connected" | "disconnected";
