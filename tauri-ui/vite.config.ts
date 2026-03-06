@@ -12,7 +12,10 @@ const mockAliases = isMock
       "@tauri-apps/api/event": path.resolve(__dirname, "./src/mocks/tauri-api-event.ts"),
       "@tauri-apps/plugin-fs": path.resolve(__dirname, "./src/mocks/tauri-plugin-fs.ts"),
       "@tauri-apps/plugin-store": path.resolve(__dirname, "./src/mocks/tauri-plugin-store.ts"),
-      "@tauri-apps/plugin-clipboard-manager": path.resolve(__dirname, "./src/mocks/tauri-plugin-clipboard-manager.ts"),
+      "@tauri-apps/plugin-clipboard-manager": path.resolve(
+        __dirname,
+        "./src/mocks/tauri-plugin-clipboard-manager.ts",
+      ),
       "@tauri-apps/plugin-http": path.resolve(__dirname, "./src/mocks/tauri-plugin-http.ts"),
       "@tauri-apps/plugin-opener": path.resolve(__dirname, "./src/mocks/tauri-plugin-opener.ts"),
     }
