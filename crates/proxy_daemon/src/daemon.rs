@@ -453,7 +453,7 @@ pub async fn handle_client(
                                 Err(e) => {
                                     let result = DaemonMessage::WsInjectResult {
                                         success: false,
-                                        error: Some(format!("Base64 디코딩 실패: {}", e)),
+                                        error: Some(format!("Base64 decode failed: {}", e)),
                                     };
                                     let mut line =
                                         serde_json::to_string(&result).unwrap_or_default();
@@ -471,7 +471,7 @@ pub async fn handle_client(
                         let result = match direction.as_str() {
                             "to_client" => ws_registry.inject_to_client(&connection_id, msg).await,
                             "to_server" => ws_registry.inject_to_server(&connection_id, msg).await,
-                            _ => Err(format!("잘못된 direction: {}", direction)),
+                            _ => Err(format!("Invalid direction: {}", direction)),
                         };
 
                         let response = match result {
