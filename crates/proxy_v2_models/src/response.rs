@@ -40,6 +40,7 @@ impl ProxiedResponse {
 
         // 압축 해제된 데이터 생성 (타우리 UI용)
         let decompressed_body = if data_type == DataType::Json
+            || data_type == DataType::GraphQL
             || headers
                 .get("content-encoding")
                 .map(|h| h.to_str().unwrap_or("").to_lowercase().contains("gzip"))
@@ -59,8 +60,8 @@ impl ProxiedResponse {
             None
         };
 
-        // JSON 타입인 경우 파싱 시도
-        let body_json = if data_type == DataType::Json {
+        // JSON 타입인 경우 파싱 시도 (GraphQL도 JSON 기반)
+        let body_json = if data_type == DataType::Json || data_type == DataType::GraphQL {
             // 압축 해제 (필요한 경우)
             let body_to_parse = decompress_body_if_needed(&headers, &body);
 
