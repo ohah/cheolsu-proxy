@@ -135,6 +135,8 @@ async fn daemon_main(port: u16, host: String) -> i32 {
     let (shutdown_tx, mut shutdown_rx) = tokio::sync::mpsc::channel::<()>(1);
 
     let (session_tx, session_rx) = watch::channel(serde_json::Value::Array(Vec::new()));
+    let (intercept_tx, intercept_rx) =
+        watch::channel::<Vec<crate::protocol::InterceptRule>>(Vec::new());
 
     let addr: std::net::SocketAddr = format!("{}:{}", host, port)
         .parse()
@@ -146,7 +148,7 @@ async fn daemon_main(port: u16, host: String) -> i32 {
 
     let event_tx_proxy = event_tx.clone();
     let proxy_handle = tokio::spawn(async move {
-        if let Err(code) = run_proxy(addr, event_tx_proxy, session_rx).await {
+        if let Err(code) = run_proxy(addr, event_tx_proxy, session_rx, intercept_rx).await {
             error!("Proxy error: {}", code);
         }
     });
@@ -201,9 +203,10 @@ async fn daemon_main(port: u16, host: String) -> i32 {
                         let client_count_clone = client_count.clone();
                         let shutdown_tx_clone = shutdown_tx.clone();
                         let session_tx_clone = session_tx.clone();
+                        let intercept_tx_clone = intercept_tx.clone();
 
                         tokio::spawn(async move {
-                            handle_client(stream, event_rx, session_tx_clone, port)
+                            handle_client(stream, event_rx, session_tx_clone, intercept_tx_clone, port)
                                 .await;
 
                             let remaining = client_count_clone.fetch_sub(1, Ordering::SeqCst) - 1;
@@ -247,6 +250,7 @@ async fn run_proxy(
     addr: std::net::SocketAddr,
     event_tx: broadcast::Sender<String>,
     mut session_rx: watch::Receiver<serde_json::Value>,
+    mut intercept_rx: watch::Receiver<Vec<crate::protocol::InterceptRule>>,
 ) -> Result<(), String> {
     use proxyapi_v2::builder::ProxyBuilder;
     use proxyapi_v2::certificate_authority::{
@@ -271,11 +275,27 @@ async fn run_proxy(
         handler.update_sessions(sessions).await;
     }
 
-    let handler_for_updates = handler.clone();
+    let handler_for_session_updates = handler.clone();
     tokio::spawn(async move {
         while session_rx.changed().await.is_ok() {
             let sessions = session_rx.borrow().clone();
-            handler_for_updates.update_sessions(sessions).await;
+            handler_for_session_updates.update_sessions(sessions).await;
+        }
+    });
+
+    // 인터셉트 규칙 초기값 로드
+    {
+        let rules = intercept_rx.borrow().clone();
+        handler.update_intercept_rules(rules).await;
+    }
+
+    let handler_for_intercept_updates = handler.clone();
+    tokio::spawn(async move {
+        while intercept_rx.changed().await.is_ok() {
+            let rules = intercept_rx.borrow().clone();
+            handler_for_intercept_updates
+                .update_intercept_rules(rules)
+                .await;
         }
     });
 
@@ -342,6 +362,7 @@ pub async fn handle_client(
     stream: UnixStream,
     mut event_rx: broadcast::Receiver<String>,
     session_tx: watch::Sender<serde_json::Value>,
+    intercept_tx: watch::Sender<Vec<crate::protocol::InterceptRule>>,
     port: u16,
 ) {
     let (reader, writer) = stream.into_split();
@@ -405,6 +426,10 @@ pub async fn handle_client(
                     }
                     Ok(ClientCommand::UpdateSessions { data }) => {
                         let _ = session_tx.send(data);
+                    }
+                    Ok(ClientCommand::UpdateInterceptRules { rules }) => {
+                        info!("Intercept rules updated from client: {} rules", rules.len());
+                        let _ = intercept_tx.send(rules);
                     }
                     Ok(ClientCommand::Stop) => {
                         break;
@@ -666,5 +691,144 @@ mod tests {
         assert!(matches!(parsed[0], ClientCommand::Subscribe));
         assert!(matches!(parsed[1], ClientCommand::UpdateSessions { .. }));
         assert!(matches!(parsed[2], ClientCommand::Stop));
+    }
+
+    #[test]
+    fn test_intercept_rule_block_serialization() {
+        use crate::protocol::{InterceptAction, InterceptRule};
+        let rule = InterceptRule {
+            id: "r1".to_string(),
+            name: "Block ads".to_string(),
+            enabled: true,
+            filter: "~d ads.example.com".to_string(),
+            action: InterceptAction::Block {
+                status_code: 403,
+                body: "Blocked".to_string(),
+            },
+        };
+        let json = serde_json::to_string(&rule).unwrap();
+        let parsed: InterceptRule = serde_json::from_str(&json).unwrap();
+        assert_eq!(parsed.id, "r1");
+        assert_eq!(parsed.filter, "~d ads.example.com");
+        assert!(parsed.enabled);
+        match parsed.action {
+            InterceptAction::Block { status_code, body } => {
+                assert_eq!(status_code, 403);
+                assert_eq!(body, "Blocked");
+            }
+            _ => panic!("Expected Block action"),
+        }
+    }
+
+    #[test]
+    fn test_intercept_rule_modify_response_serialization() {
+        use crate::protocol::{InterceptAction, InterceptRule};
+        let mut headers = std::collections::HashMap::new();
+        headers.insert("X-Test".to_string(), "value".to_string());
+        let rule = InterceptRule {
+            id: "r2".to_string(),
+            name: "Modify API".to_string(),
+            enabled: true,
+            filter: "~d api.example.com & ~m GET".to_string(),
+            action: InterceptAction::ModifyResponse {
+                set_status: Some(200),
+                add_headers: headers,
+                remove_headers: vec!["X-Remove".to_string()],
+                set_body: Some(r#"{"mocked":true}"#.to_string()),
+            },
+        };
+        let json = serde_json::to_string(&rule).unwrap();
+        let parsed: InterceptRule = serde_json::from_str(&json).unwrap();
+        assert_eq!(parsed.filter, "~d api.example.com & ~m GET");
+        match parsed.action {
+            InterceptAction::ModifyResponse {
+                set_status,
+                set_body,
+                ..
+            } => {
+                assert_eq!(set_status, Some(200));
+                assert_eq!(set_body, Some(r#"{"mocked":true}"#.to_string()));
+            }
+            _ => panic!("Expected ModifyResponse action"),
+        }
+    }
+
+    #[test]
+    fn test_update_intercept_rules_command_serialization() {
+        use crate::protocol::{InterceptAction, InterceptRule};
+        let rules = vec![InterceptRule {
+            id: "r1".to_string(),
+            name: "Test".to_string(),
+            enabled: true,
+            filter: "~u test.com".to_string(),
+            action: InterceptAction::Block {
+                status_code: 403,
+                body: String::new(),
+            },
+        }];
+        let cmd = ClientCommand::UpdateInterceptRules {
+            rules: rules.clone(),
+        };
+        let json = serde_json::to_string(&cmd).unwrap();
+        let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert_eq!(parsed["cmd"], "update_intercept_rules");
+        assert_eq!(parsed["rules"].as_array().unwrap().len(), 1);
+
+        let parsed_cmd: ClientCommand = serde_json::from_str(&json).unwrap();
+        match parsed_cmd {
+            ClientCommand::UpdateInterceptRules { rules } => {
+                assert_eq!(rules.len(), 1);
+                assert_eq!(rules[0].id, "r1");
+            }
+            _ => panic!("Expected UpdateInterceptRules"),
+        }
+    }
+
+    #[test]
+    fn test_intercept_rule_json_deserialization() {
+        let json = r#"{
+            "id": "r1",
+            "name": "Block",
+            "enabled": true,
+            "filter": "~u ads",
+            "action": {
+                "type": "block",
+                "status_code": 403,
+                "body": "No"
+            }
+        }"#;
+        let rule: crate::protocol::InterceptRule = serde_json::from_str(json).unwrap();
+        assert_eq!(rule.id, "r1");
+        assert_eq!(rule.filter, "~u ads");
+    }
+
+    #[test]
+    fn test_intercept_rule_modify_request_deserialization() {
+        let json = r#"{
+            "id": "r3",
+            "name": "Add header",
+            "enabled": true,
+            "filter": "~u \"api\\.test\\.com\" & ~m POST",
+            "action": {
+                "type": "modify_request",
+                "add_headers": {"Authorization": "Bearer token123"},
+                "remove_headers": ["Cookie"]
+            }
+        }"#;
+        let rule: crate::protocol::InterceptRule = serde_json::from_str(json).unwrap();
+        assert_eq!(rule.id, "r3");
+        assert!(rule.filter.contains("~m POST"));
+        match rule.action {
+            crate::protocol::InterceptAction::ModifyRequest {
+                add_headers,
+                remove_headers,
+                set_body,
+            } => {
+                assert_eq!(add_headers.get("Authorization").unwrap(), "Bearer token123");
+                assert_eq!(remove_headers, vec!["Cookie"]);
+                assert!(set_body.is_none());
+            }
+            _ => panic!("Expected ModifyRequest"),
+        }
     }
 }
