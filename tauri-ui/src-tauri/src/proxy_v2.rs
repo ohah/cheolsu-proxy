@@ -1,4 +1,4 @@
-use proxy_daemon::{clean_old_cache, ClientCommand, DaemonConnection};
+use proxy_daemon::{clean_old_cache, ClientCommand, DaemonConnection, InterceptRule};
 use std::net::SocketAddr;
 use std::sync::Arc;
 use tauri::{AppHandle, Emitter, Runtime, State};
@@ -120,6 +120,25 @@ pub async fn clean_old_proxy_cache(days: u64) -> Result<String, String> {
         )),
         Err(e) => Err(format!("오래된 캐시 정리 실패: {}", e)),
     }
+}
+
+/// 인터셉트 규칙 업데이트
+#[tauri::command]
+pub async fn update_intercept_rules_v2(
+    proxy: tauri::State<'_, ProxyV2State>,
+    rules: Vec<InterceptRule>,
+) -> Result<(), String> {
+    let proxy_guard = proxy.lock().await;
+
+    if let Some(conn) = proxy_guard.as_ref() {
+        let cmd = ClientCommand::UpdateInterceptRules { rules };
+        conn.send_command(&cmd).await?;
+        println!("Daemon에 인터셉트 규칙 업데이트 완료");
+    } else {
+        return Err("프록시가 실행 중이 아닙니다".to_string());
+    }
+
+    Ok(())
 }
 
 /// 세션 데이터 변경 시 UDS를 통해 daemon에 전달
