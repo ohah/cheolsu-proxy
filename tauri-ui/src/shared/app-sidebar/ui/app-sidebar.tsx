@@ -1,6 +1,7 @@
 import { cn } from "@/shared/lib";
 
 import { SidebarHeader } from "./sidebar-header";
+import { SidebarMcp } from "./sidebar-mcp";
 import { SidebarNavigation } from "./sidebar-navigation";
 import { SidebarStatus } from "./sidebar-status";
 
@@ -29,6 +30,7 @@ export function AppSidebar({ isConnected = true, version }: AppSidebarProps) {
         <SidebarNavigation collapsed={collapsed} />
       </div>
 
+      <SidebarMcp collapsed={collapsed} />
       <SidebarStatus collapsed={collapsed} isConnected={isConnected} version={version} />
     </div>
   );

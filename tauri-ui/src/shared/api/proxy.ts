@@ -70,3 +70,7 @@ export async function replaySequence(
 ): Promise<SequenceReplayResult[]> {
   return invoke("replay_sequence", { requests });
 }
+
+export async function getMcpServerPath(): Promise<string> {
+  return invoke("get_mcp_server_path");
+}
