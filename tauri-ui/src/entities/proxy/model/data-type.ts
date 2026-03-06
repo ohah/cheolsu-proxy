@@ -6,6 +6,7 @@ export type DataType =
   | "Text"
   | "Css"
   | "Javascript"
+  | "GraphQL"
   | "Image"
   | "Video"
   | "Audio"
@@ -30,6 +31,8 @@ export const dataTypeToMonacoLanguage = (dataType: DataType): string => {
       return "css";
     case "Javascript":
       return "javascript";
+    case "GraphQL":
+      return "graphql";
     case "Text":
       return "plaintext";
     case "Image":
@@ -60,6 +63,8 @@ export const dataTypeToMimeType = (dataType: DataType): string => {
       return "text/css";
     case "Javascript":
       return "application/javascript";
+    case "GraphQL":
+      return "application/json";
     case "Text":
       return "text/plain";
     case "Image":
@@ -97,6 +102,8 @@ export const dataTypeToDisplayName = (dataType: DataType): string => {
       return "CSS";
     case "Javascript":
       return "JavaScript";
+    case "GraphQL":
+      return "GraphQL";
     case "Text":
       return "Plain Text";
     case "Image":
@@ -134,6 +141,8 @@ export const dataTypeToIcon = (dataType: DataType): string => {
       return "🎨";
     case "Javascript":
       return "⚡";
+    case "GraphQL":
+      return "⚡";
     case "Text":
       return "📄";
     case "Image":
@@ -160,7 +169,7 @@ export const dataTypeToIcon = (dataType: DataType): string => {
  * 데이터 타입이 텍스트 기반인지 확인
  */
 export const isTextBasedDataType = (dataType: DataType): boolean => {
-  return ["Json", "Xml", "Html", "Css", "Javascript", "Text"].includes(dataType);
+  return ["Json", "Xml", "Html", "Css", "Javascript", "GraphQL", "Text"].includes(dataType);
 };
 
 /**

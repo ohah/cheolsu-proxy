@@ -3,21 +3,13 @@ import { ArrowUp, ArrowDown, X, Play } from "lucide-react";
 import { Editor } from "@monaco-editor/react";
 import { Button } from "@/shared/ui";
 import { cn } from "@/shared/lib";
+import { getWsContentView } from "@/shared/lib/ws-content-view";
 import type { WsMessageInfo } from "@/entities/websocket";
 import { WsReplayDialog } from "@/features/websocket-replay";
 
 interface WsMessageDetailProps {
   message: WsMessageInfo;
   onClose: () => void;
-}
-
-function tryFormatJson(text: string): { formatted: string; isJson: boolean } {
-  try {
-    const parsed = JSON.parse(text);
-    return { formatted: JSON.stringify(parsed, null, 2), isJson: true };
-  } catch {
-    return { formatted: text, isJson: false };
-  }
 }
 
 function formatTimeFull(nanos: number): string {
@@ -31,28 +23,13 @@ function formatSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function detectLanguage(payload: string, isBinary: boolean, isJson: boolean): string {
-  if (isBinary) return "plaintext";
-  if (isJson) return "json";
-  const trimmed = payload.trimStart();
-  if (trimmed.startsWith("<")) return "xml";
-  return "plaintext";
-}
-
 export const WsMessageDetail = memo(({ message, onClose }: WsMessageDetailProps) => {
   const [replayOpen, setReplayOpen] = useState(false);
   const isSent = message.direction === "client_to_server";
-  const { formatted, isJson } = useMemo(
-    () =>
-      message.is_binary
-        ? { formatted: message.payload, isJson: false }
-        : tryFormatJson(message.payload),
-    [message.payload, message.is_binary],
-  );
 
-  const language = useMemo(
-    () => detectLanguage(message.payload, message.is_binary, isJson),
-    [message.payload, message.is_binary, isJson],
+  const { language, formatted } = useMemo(
+    () => getWsContentView(message.payload, message.is_binary, message.content_type),
+    [message.payload, message.is_binary, message.content_type],
   );
 
   const metaItems = [
@@ -93,6 +70,11 @@ export const WsMessageDetail = memo(({ message, onClose }: WsMessageDetailProps)
           >
             {message.message_type}
           </span>
+          {message.content_type && message.content_type !== "plain" && (
+            <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300">
+              {message.content_type === "socket_io" ? "Socket.IO" : "MQTT"}
+            </span>
+          )}
           <span className="text-muted-foreground">{formatSize(message.size)}</span>
         </div>
         <div className="flex items-center gap-1">

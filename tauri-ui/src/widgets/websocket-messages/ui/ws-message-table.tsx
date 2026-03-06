@@ -88,6 +88,11 @@ const WsMessageRow = memo(
           >
             {messageTypeLabel(message.message_type)}
           </span>
+          {message.content_type && message.content_type !== "plain" && (
+            <span className="inline-block ml-1 px-1 py-0.5 rounded text-[9px] font-medium bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300">
+              {message.content_type === "socket_io" ? "SIO" : "MQTT"}
+            </span>
+          )}
         </td>
         <td className="px-2 w-20 text-right text-muted-foreground">{formatSize(message.size)}</td>
         <td className="px-2 flex-1 truncate max-w-0">
