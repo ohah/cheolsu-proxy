@@ -12,27 +12,15 @@ use std::sync::Mutex;
 use tokio::net::TcpListener;
 use tokio::sync::oneshot::Sender;
 use tokio::time::Duration;
-// JsonValue를 간단한 타입으로 대체
-#[derive(Clone, Debug)]
-enum JsonValue {
-    Array(Vec<JsonValue>),
-    Object(std::collections::HashMap<String, JsonValue>),
-    String(String),
-    Number(f64),
-    Bool(bool),
-    Null,
-}
 
 // 실제 LoggingHandler를 모방한 테스트용 핸들러
 pub struct TestLoggingHandler {
-    pub sessions: Arc<Mutex<JsonValue>>,
     pub error_count: Arc<Mutex<u32>>,
 }
 
 impl Clone for TestLoggingHandler {
     fn clone(&self) -> Self {
         Self {
-            sessions: Arc::clone(&self.sessions),
             error_count: Arc::clone(&self.error_count),
         }
     }
@@ -41,7 +29,6 @@ impl Clone for TestLoggingHandler {
 impl TestLoggingHandler {
     pub fn new() -> Self {
         Self {
-            sessions: Arc::new(Mutex::new(JsonValue::Array(Vec::new()))),
             error_count: Arc::new(Mutex::new(0)),
         }
     }

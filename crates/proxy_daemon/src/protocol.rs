@@ -18,8 +18,6 @@ pub enum DaemonMessage {
 pub enum ClientCommand {
     #[serde(rename = "subscribe")]
     Subscribe,
-    #[serde(rename = "update_sessions")]
-    UpdateSessions { data: serde_json::Value },
     #[serde(rename = "update_intercept_rules")]
     UpdateInterceptRules { rules: Vec<InterceptRule> },
     #[serde(rename = "stop")]

@@ -134,7 +134,6 @@ async fn daemon_main(port: u16, host: String) -> i32 {
 
     let (shutdown_tx, mut shutdown_rx) = tokio::sync::mpsc::channel::<()>(1);
 
-    let (session_tx, session_rx) = watch::channel(serde_json::Value::Array(Vec::new()));
     let (intercept_tx, intercept_rx) =
         watch::channel::<Vec<crate::protocol::InterceptRule>>(Vec::new());
 
@@ -148,7 +147,7 @@ async fn daemon_main(port: u16, host: String) -> i32 {
 
     let event_tx_proxy = event_tx.clone();
     let proxy_handle = tokio::spawn(async move {
-        if let Err(code) = run_proxy(addr, event_tx_proxy, session_rx, intercept_rx).await {
+        if let Err(code) = run_proxy(addr, event_tx_proxy, intercept_rx).await {
             error!("Proxy error: {}", code);
         }
     });
@@ -202,11 +201,10 @@ async fn daemon_main(port: u16, host: String) -> i32 {
                         let event_rx = event_tx.subscribe();
                         let client_count_clone = client_count.clone();
                         let shutdown_tx_clone = shutdown_tx.clone();
-                        let session_tx_clone = session_tx.clone();
                         let intercept_tx_clone = intercept_tx.clone();
 
                         tokio::spawn(async move {
-                            handle_client(stream, event_rx, session_tx_clone, intercept_tx_clone, port)
+                            handle_client(stream, event_rx, intercept_tx_clone, port)
                                 .await;
 
                             let remaining = client_count_clone.fetch_sub(1, Ordering::SeqCst) - 1;
@@ -249,7 +247,6 @@ fn cleanup(port: u16, uds_path: &Path) {
 async fn run_proxy(
     addr: std::net::SocketAddr,
     event_tx: broadcast::Sender<String>,
-    mut session_rx: watch::Receiver<serde_json::Value>,
     mut intercept_rx: watch::Receiver<Vec<crate::protocol::InterceptRule>>,
 ) -> Result<(), String> {
     use proxyapi_v2::builder::ProxyBuilder;
@@ -269,19 +266,6 @@ async fn run_proxy(
         tokio::sync::mpsc::channel::<proxy_v2_models::RequestInfo>(100);
 
     let handler = LoggingHandler::new(tx.clone(), cache_dir);
-
-    {
-        let sessions = session_rx.borrow().clone();
-        handler.update_sessions(sessions).await;
-    }
-
-    let handler_for_session_updates = handler.clone();
-    tokio::spawn(async move {
-        while session_rx.changed().await.is_ok() {
-            let sessions = session_rx.borrow().clone();
-            handler_for_session_updates.update_sessions(sessions).await;
-        }
-    });
 
     // 인터셉트 규칙 초기값 로드
     {
@@ -361,7 +345,6 @@ async fn run_proxy(
 pub async fn handle_client(
     stream: UnixStream,
     mut event_rx: broadcast::Receiver<String>,
-    session_tx: watch::Sender<serde_json::Value>,
     intercept_tx: watch::Sender<Vec<crate::protocol::InterceptRule>>,
     port: u16,
 ) {
@@ -424,9 +407,6 @@ pub async fn handle_client(
                     Ok(ClientCommand::Subscribe) => {
                         subscribed.store(true, std::sync::atomic::Ordering::Relaxed);
                     }
-                    Ok(ClientCommand::UpdateSessions { data }) => {
-                        let _ = session_tx.send(data);
-                    }
                     Ok(ClientCommand::UpdateInterceptRules { rules }) => {
                         info!("Intercept rules updated from client: {} rules", rules.len());
                         let _ = intercept_tx.send(rules);
@@ -480,29 +460,6 @@ mod tests {
         let json = r#"{"cmd":"stop"}"#;
         let cmd: ClientCommand = serde_json::from_str(json).unwrap();
         assert!(matches!(cmd, ClientCommand::Stop));
-    }
-
-    #[test]
-    fn test_client_command_update_sessions_serialization() {
-        let data = serde_json::json!([{"url": "https://example.com", "method": "GET"}]);
-        let cmd = ClientCommand::UpdateSessions { data: data.clone() };
-        let json = serde_json::to_string(&cmd).unwrap();
-        let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
-        assert_eq!(parsed["cmd"], "update_sessions");
-        assert_eq!(parsed["data"], data);
-    }
-
-    #[test]
-    fn test_client_command_update_sessions_deserialization() {
-        let json = r#"{"cmd":"update_sessions","data":[{"url":"https://example.com"}]}"#;
-        let cmd: ClientCommand = serde_json::from_str(json).unwrap();
-        match cmd {
-            ClientCommand::UpdateSessions { data } => {
-                assert!(data.is_array());
-                assert_eq!(data.as_array().unwrap().len(), 1);
-            }
-            _ => panic!("Expected UpdateSessions"),
-        }
     }
 
     #[test]
@@ -667,13 +624,7 @@ mod tests {
 
     #[test]
     fn test_mixed_commands_newline_protocol() {
-        let commands = vec![
-            ClientCommand::Subscribe,
-            ClientCommand::UpdateSessions {
-                data: serde_json::json!([]),
-            },
-            ClientCommand::Stop,
-        ];
+        let commands = vec![ClientCommand::Subscribe, ClientCommand::Stop];
 
         let mut wire = String::new();
         for cmd in &commands {
@@ -687,10 +638,9 @@ mod tests {
             .map(|l| serde_json::from_str(l).unwrap())
             .collect();
 
-        assert_eq!(parsed.len(), 3);
+        assert_eq!(parsed.len(), 2);
         assert!(matches!(parsed[0], ClientCommand::Subscribe));
-        assert!(matches!(parsed[1], ClientCommand::UpdateSessions { .. }));
-        assert!(matches!(parsed[2], ClientCommand::Stop));
+        assert!(matches!(parsed[1], ClientCommand::Stop));
     }
 
     #[test]

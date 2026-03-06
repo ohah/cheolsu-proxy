@@ -113,7 +113,6 @@ pub struct LoggingHandler {
     sender: tokio::sync::mpsc::Sender<RequestInfo>,
     req: Option<ProxiedRequest>,
     res: Option<ProxiedResponse>,
-    sessions: Arc<Mutex<serde_json::Value>>,
     intercept_rules: Arc<Mutex<Vec<InterceptRule>>>,
     cache_dir: Option<std::path::PathBuf>,
 }
@@ -127,16 +126,9 @@ impl LoggingHandler {
             sender,
             req: None,
             res: None,
-            sessions: Arc::new(Mutex::new(serde_json::Value::Array(Vec::new()))),
             intercept_rules: Arc::new(Mutex::new(Vec::new())),
             cache_dir: Some(cache_dir),
         }
-    }
-
-    /// 세션 데이터 업데이트
-    pub async fn update_sessions(&self, sessions: serde_json::Value) {
-        let mut sessions_guard = self.sessions.lock().await;
-        *sessions_guard = sessions;
     }
 
     /// 인터셉트 규칙 업데이트
@@ -333,80 +325,6 @@ impl LoggingHandler {
         }
 
         res
-    }
-
-    /// 요청 URL이 세션에 있는지 확인하고 매칭되는 세션 반환
-    async fn find_matching_session(&self, url: &str, method: &str) -> Option<serde_json::Value> {
-        let sessions_guard = self.sessions.lock().await;
-        if let serde_json::Value::Array(sessions) = &*sessions_guard {
-            sessions
-                .iter()
-                .find(|session| {
-                    let session_url = session.get("url").and_then(|v| v.as_str()).unwrap_or("");
-                    let session_method = session
-                        .get("method")
-                        .and_then(|v| v.as_str())
-                        .unwrap_or("GET");
-
-                    (url.contains(session_url) || session_url.contains(url))
-                        && session_method.to_uppercase() == method.to_uppercase()
-                })
-                .cloned()
-        } else {
-            None
-        }
-    }
-
-    /// 세션 데이터로부터 HTTP 응답을 생성하는 메서드
-    fn create_response_from_session(&self, response_data: &serde_json::Value) -> Response<Body> {
-        let status_code = response_data
-            .get("status")
-            .and_then(|v| v.as_u64())
-            .unwrap_or(200) as u16;
-
-        let mut headers: HeaderMap = response_data
-            .get("headers")
-            .and_then(serde_json::Value::as_object)
-            .map(|obj| {
-                obj.iter()
-                    .filter_map(|(k, v)| {
-                        if k.to_lowercase() == "content-length" {
-                            return None;
-                        }
-                        Some((k.parse().ok()?, v.as_str()?.parse().ok()?))
-                    })
-                    .collect()
-            })
-            .unwrap_or_default();
-
-        if !headers.contains_key("content-type") {
-            headers.insert("content-type", "application/json".parse().unwrap());
-        }
-
-        headers.insert("x-cheolsu-proxy-session", "true".parse().unwrap());
-        headers.insert("x-cheolsu-proxy-version", "v2".parse().unwrap());
-
-        let body = if let Some(data) = response_data.get("data") {
-            match data {
-                serde_json::Value::String(s) => Body::from(s.clone()),
-                serde_json::Value::Object(_) | serde_json::Value::Array(_) => {
-                    let json_string = serde_json::to_string(data).unwrap_or_default();
-                    Body::from(json_string)
-                }
-                _ => {
-                    let string_data = data.to_string();
-                    Body::from(string_data)
-                }
-            }
-        } else {
-            Body::empty()
-        };
-
-        let mut response = Response::new(body);
-        *response.status_mut() = StatusCode::from_u16(status_code).unwrap_or(StatusCode::OK);
-        *response.headers_mut() = headers;
-
-        response
     }
 
     /// 요청과 응답을 묶어서 전송
@@ -691,41 +609,6 @@ impl HttpHandler for LoggingHandler {
         } else {
             res
         };
-
-        if let Some(req) = &self.req {
-            let url = req.uri().to_string();
-            let method = req.method().to_string();
-
-            if let Some(session) = self.find_matching_session(&url, &method).await {
-                let default_response = serde_json::Value::Object(serde_json::Map::new());
-                let response_data = session.get("response").unwrap_or(&default_response);
-                let mut session_response = self.create_response_from_session(response_data);
-
-                let session_body_bytes =
-                    match Self::body_to_bytes_from_mut(&mut session_response.body_mut()).await {
-                        Ok(bytes) => bytes,
-                        Err(_) => Bytes::from("세션 응답 읽기 실패"),
-                    };
-
-                let session_proxied_response = ProxiedResponse::new(
-                    session_response.status(),
-                    session_response.version(),
-                    session_response.headers().clone(),
-                    session_body_bytes.clone(),
-                    chrono::Local::now()
-                        .timestamp_nanos_opt()
-                        .unwrap_or_default(),
-                );
-
-                self.res = Some(session_proxied_response);
-
-                self.send_output().await;
-
-                use http_body_util::Full;
-                *session_response.body_mut() = Body::from(Full::new(session_body_bytes));
-                return session_response;
-            }
-        }
 
         let is_sse = res
             .headers()
