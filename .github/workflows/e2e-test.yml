@@ -34,6 +34,7 @@ jobs:
         with:
           toolchain: stable
           cache: true
+          rustflags: "-A private_interfaces"
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
