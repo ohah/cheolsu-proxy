@@ -974,3 +974,207 @@ impl WebSocketHandler for LoggingHandler {
         Some(msg)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::protocol::{InterceptAction, InterceptRule};
+
+    // --- wildcard_matches 테스트 ---
+
+    #[test]
+    fn test_wildcard_star_prefix() {
+        // *패턴 → URL 뒷부분 매칭
+        assert!(LoggingHandler::wildcard_matches(
+            "*ads.example.com*",
+            "https://ads.example.com/banner"
+        ));
+    }
+
+    #[test]
+    fn test_wildcard_subdomain_and_path() {
+        assert!(LoggingHandler::wildcard_matches(
+            "*.example.com/api/*",
+            "https://sub.example.com/api/v1/users"
+        ));
+    }
+
+    #[test]
+    fn test_wildcard_no_match() {
+        assert!(!LoggingHandler::wildcard_matches(
+            "*ads.example.com*",
+            "https://other.com/page"
+        ));
+    }
+
+    #[test]
+    fn test_wildcard_exact_domain() {
+        assert!(LoggingHandler::wildcard_matches(
+            "*example.com*",
+            "https://example.com"
+        ));
+    }
+
+    #[test]
+    fn test_wildcard_path_only() {
+        assert!(LoggingHandler::wildcard_matches(
+            "*/api/v1/*",
+            "https://any.com/api/v1/users"
+        ));
+        assert!(!LoggingHandler::wildcard_matches(
+            "*/api/v1/*",
+            "https://any.com/api/v2/users"
+        ));
+    }
+
+    #[test]
+    fn test_wildcard_question_mark() {
+        assert!(LoggingHandler::wildcard_matches(
+            "*api/v?/users*",
+            "https://example.com/api/v1/users"
+        ));
+        assert!(LoggingHandler::wildcard_matches(
+            "*api/v?/users*",
+            "https://example.com/api/v2/users"
+        ));
+        assert!(!LoggingHandler::wildcard_matches(
+            "*api/v?/users*",
+            "https://example.com/api/v10/users"
+        ));
+    }
+
+    #[test]
+    fn test_wildcard_case_insensitive() {
+        assert!(LoggingHandler::wildcard_matches(
+            "*Example.COM*",
+            "https://example.com/page"
+        ));
+    }
+
+    #[test]
+    fn test_wildcard_catch_all() {
+        assert!(LoggingHandler::wildcard_matches(
+            "*",
+            "https://anything.com/any/path"
+        ));
+    }
+
+    #[test]
+    fn test_wildcard_no_wildcards_partial() {
+        // 와일드카드 없으면 부분 매칭 (regex is_match)
+        assert!(LoggingHandler::wildcard_matches(
+            "example.com",
+            "https://example.com/api"
+        ));
+    }
+
+    #[test]
+    fn test_wildcard_special_chars_escaped() {
+        // 정규식 특수문자가 이스케이프 되는지
+        assert!(LoggingHandler::wildcard_matches(
+            "*example.com/api?key=*",
+            "https://example.com/api?key=value"
+        ));
+    }
+
+    // --- rule_matches 테스트 ---
+
+    fn make_rule(pattern: &str, method: Option<&str>, enabled: bool) -> InterceptRule {
+        InterceptRule {
+            id: "test".to_string(),
+            name: "Test".to_string(),
+            enabled,
+            pattern: pattern.to_string(),
+            method: method.map(|m| m.to_string()),
+            action: InterceptAction::Block {
+                status_code: 403,
+                body: String::new(),
+            },
+        }
+    }
+
+    #[test]
+    fn test_rule_matches_basic() {
+        let rule = make_rule("*example.com*", None, true);
+        assert!(LoggingHandler::rule_matches(
+            &rule,
+            "https://example.com/api",
+            "GET"
+        ));
+    }
+
+    #[test]
+    fn test_rule_matches_with_method() {
+        let rule = make_rule("*api.com*", Some("POST"), true);
+        assert!(LoggingHandler::rule_matches(
+            &rule,
+            "https://api.com/v1",
+            "POST"
+        ));
+        assert!(!LoggingHandler::rule_matches(
+            &rule,
+            "https://api.com/v1",
+            "GET"
+        ));
+    }
+
+    #[test]
+    fn test_rule_matches_method_case_insensitive() {
+        let rule = make_rule("*api.com*", Some("post"), true);
+        assert!(LoggingHandler::rule_matches(
+            &rule,
+            "https://api.com/v1",
+            "POST"
+        ));
+    }
+
+    #[test]
+    fn test_rule_matches_disabled() {
+        let rule = make_rule("*example.com*", None, false);
+        assert!(!LoggingHandler::rule_matches(
+            &rule,
+            "https://example.com/api",
+            "GET"
+        ));
+    }
+
+    #[test]
+    fn test_rule_matches_no_method_filter_matches_all() {
+        let rule = make_rule("*example.com*", None, true);
+        assert!(LoggingHandler::rule_matches(
+            &rule,
+            "https://example.com",
+            "GET"
+        ));
+        assert!(LoggingHandler::rule_matches(
+            &rule,
+            "https://example.com",
+            "POST"
+        ));
+        assert!(LoggingHandler::rule_matches(
+            &rule,
+            "https://example.com",
+            "DELETE"
+        ));
+    }
+
+    #[test]
+    fn test_rule_matches_complex_pattern() {
+        let rule = make_rule("*.example.com/api/*/users", Some("GET"), true);
+        assert!(LoggingHandler::rule_matches(
+            &rule,
+            "https://sub.example.com/api/v1/users",
+            "GET"
+        ));
+        assert!(!LoggingHandler::rule_matches(
+            &rule,
+            "https://sub.example.com/api/v1/posts",
+            "GET"
+        ));
+        assert!(!LoggingHandler::rule_matches(
+            &rule,
+            "https://sub.example.com/api/v1/users",
+            "POST"
+        ));
+    }
+}
