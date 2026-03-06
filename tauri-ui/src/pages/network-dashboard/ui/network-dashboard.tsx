@@ -13,7 +13,7 @@ import { Play, X } from "lucide-react";
 import { useTransactionFilters, useResizablePanelController } from "../hooks";
 import { useProxyStore, useTransactionStore, useInterceptRuleDialogStore } from "@/shared/stores";
 import { HostPathTree } from "@/widgets/host-path-tree/ui/host-path-tree";
-import { RuleFormDialog } from "@/pages/intercept-rules/ui/rule-form-dialog";
+import { RuleFormDialog } from "@/features/intercept-rule-form";
 
 export const NetworkDashboard = () => {
   const { isConnected } = useProxyStore();
