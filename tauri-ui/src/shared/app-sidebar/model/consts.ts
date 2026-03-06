@@ -1,4 +1,4 @@
-import { Network, Shield } from "lucide-react";
+import { Network, Shield, Route } from "lucide-react";
 
 import type { SidebarSection } from "./types";
 
@@ -16,6 +16,12 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
     label: "Intercept Rules",
     icon: Shield,
     description: "Manage request/response intercept rules",
+  },
+  {
+    id: "map-rules",
+    label: "Map Rules",
+    icon: Route,
+    description: "Map Local / Map Remote rules",
   },
   // {
   //   id: 'performance',

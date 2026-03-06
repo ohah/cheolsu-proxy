@@ -1,4 +1,9 @@
-export type InterceptActionType = "block" | "modify_request" | "modify_response";
+export type InterceptActionType =
+  | "block"
+  | "modify_request"
+  | "modify_response"
+  | "map_local"
+  | "map_remote";
 
 export interface BlockAction {
   type: "block";
@@ -21,7 +26,25 @@ export interface ModifyResponseAction {
   set_body: string | null;
 }
 
-export type InterceptAction = BlockAction | ModifyRequestAction | ModifyResponseAction;
+export interface MapLocalAction {
+  type: "map_local";
+  file_path: string;
+  status_code: number;
+  headers: Record<string, string>;
+}
+
+export interface MapRemoteAction {
+  type: "map_remote";
+  target_url: string;
+  preserve_path: boolean;
+}
+
+export type InterceptAction =
+  | BlockAction
+  | ModifyRequestAction
+  | ModifyResponseAction
+  | MapLocalAction
+  | MapRemoteAction;
 
 export interface InterceptRule {
   id: string;
