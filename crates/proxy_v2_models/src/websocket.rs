@@ -203,26 +203,17 @@ mod tests {
 
     #[test]
     fn test_detect_socketio_connect() {
-        assert_eq!(
-            detect_ws_content_type("40", false),
-            WsContentType::SocketIO,
-        );
+        assert_eq!(detect_ws_content_type("40", false), WsContentType::SocketIO,);
     }
 
     #[test]
     fn test_detect_socketio_disconnect() {
-        assert_eq!(
-            detect_ws_content_type("41", false),
-            WsContentType::SocketIO,
-        );
+        assert_eq!(detect_ws_content_type("41", false), WsContentType::SocketIO,);
     }
 
     #[test]
     fn test_detect_socketio_ack() {
-        assert_eq!(
-            detect_ws_content_type("43", false),
-            WsContentType::SocketIO,
-        );
+        assert_eq!(detect_ws_content_type("43", false), WsContentType::SocketIO,);
     }
 
     #[test]
@@ -311,10 +302,7 @@ mod tests {
     fn test_detect_not_mqtt_hello() {
         // "hello"를 base64 인코딩하면 MQTT로 오탐지되지 않아야 함
         let text = encode(b"hello");
-        assert_eq!(
-            detect_ws_content_type(&text, true),
-            WsContentType::Plain,
-        );
+        assert_eq!(detect_ws_content_type(&text, true), WsContentType::Plain,);
     }
 
     #[test]
@@ -396,10 +384,7 @@ mod tests {
 
     #[test]
     fn test_extract_version_invalid_base64() {
-        assert_eq!(
-            extract_mqtt_version_from_connect("!!!not-base64!!!"),
-            None,
-        );
+        assert_eq!(extract_mqtt_version_from_connect("!!!not-base64!!!"), None,);
     }
 
     #[test]
