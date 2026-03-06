@@ -47,7 +47,7 @@
 | mitmdump (CLI)         | tcpdump 스타일 CLI 도구               |           |
 | DNS 인터셉트           | DNS 쿼리/응답 조작                    |           |
 | Proxy Authentication   | 프록시 접속 인증                      |           |
-| Content View 확장      | GraphQL, MQTT, Socket.IO, WBXML 등    |           |
+| Content View 확장      | GraphQL, MQTT, Socket.IO, WBXML 등    | 부분 구현 |
 
 > 우선순위 컬럼은 cheolsu-proxy에 도입할 기능을 선별할 때 사용합니다.
 
