@@ -64,6 +64,29 @@ function formatBody(body: string | undefined | null, bodySize?: number): string 
   }
 }
 
+function getResponseBody(response: HttpTransaction["response"]): string | null {
+  if (!response) return null;
+
+  // body_json이 있으면 우선 사용
+  if (response.body_json !== undefined && response.body_json !== null) {
+    return typeof response.body_json === "string"
+      ? response.body_json
+      : JSON.stringify(response.body_json, null, 2);
+  }
+
+  // Uint8Array body가 있으면 변환
+  if (response.body && response.data_type && isTextBasedDataType(response.data_type)) {
+    return uint8ArrayToString(response.body, response.data_type);
+  }
+
+  // body가 있지만 텍스트가 아닌 경우
+  if (response.body_size > 0) {
+    return `[Binary data - ${response.body_size} bytes]`;
+  }
+
+  return null;
+}
+
 function ResponseView({
   status,
   headers,
@@ -77,6 +100,8 @@ function ResponseView({
   bodySize: number;
   elapsedMs?: number;
 }) {
+  const headerEntries = Object.entries(headers);
+
   return (
     <div className="space-y-4 flex-1 flex flex-col min-h-0">
       <div className="flex items-center gap-4 flex-shrink-0">
@@ -91,31 +116,35 @@ function ResponseView({
 
       <Separator />
 
-      <div className="space-y-2 flex-shrink-0">
-        <label className="text-sm font-medium">Headers</label>
-        <ScrollArea className="max-h-[200px]">
-          <div className="rounded-md border">
-            <table className="w-full text-xs font-mono">
-              <tbody>
-                {Object.entries(headers).map(([k, v]) => (
-                  <tr key={k} className="border-b last:border-b-0">
-                    <td className="px-3 py-1.5 text-muted-foreground font-medium whitespace-nowrap align-top w-[200px]">
-                      {k}
-                    </td>
-                    <td className="px-3 py-1.5 break-all">{v}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      {headerEntries.length > 0 && (
+        <>
+          <div className="space-y-2 flex-shrink-0">
+            <label className="text-sm font-medium">Headers ({headerEntries.length})</label>
+            <ScrollArea className="max-h-[250px]">
+              <div className="rounded-md border">
+                <table className="w-full text-xs font-mono">
+                  <tbody>
+                    {headerEntries.map(([k, v]) => (
+                      <tr key={k} className="border-b last:border-b-0">
+                        <td className="px-3 py-1.5 text-muted-foreground font-medium whitespace-nowrap align-top w-[220px]">
+                          {k}
+                        </td>
+                        <td className="px-3 py-1.5 break-all">{v}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </ScrollArea>
           </div>
-        </ScrollArea>
-      </div>
 
-      <Separator />
+          <Separator />
+        </>
+      )}
 
       <div className="space-y-2 flex-1 min-h-0 flex flex-col">
         <label className="text-sm font-medium">Body</label>
-        <ScrollArea className="flex-1 min-h-[150px] max-h-[300px]">
+        <ScrollArea className="flex-1">
           <pre className="font-mono text-xs whitespace-pre-wrap break-all p-3 bg-muted rounded-md">
             {formatBody(body, bodySize)}
           </pre>
@@ -144,6 +173,12 @@ export function ReplayDialog({ transaction }: ReplayDialogProps) {
       setHeaders(headersToEntries(request.headers || {}));
       if (request.body && request.data_type && isTextBasedDataType(request.data_type)) {
         setBody(uint8ArrayToString(request.body, request.data_type));
+      } else if (request.body_json) {
+        setBody(
+          typeof request.body_json === "string"
+            ? request.body_json
+            : JSON.stringify(request.body_json, null, 2),
+        );
       } else {
         setBody("");
       }
@@ -184,17 +219,11 @@ export function ReplayDialog({ transaction }: ReplayDialogProps) {
     setHeaders(updated);
   };
 
-  const originalResponseBody =
-    originalResponse?.body && originalResponse.data_type && isTextBasedDataType(originalResponse.data_type)
-      ? uint8ArrayToString(originalResponse.body, originalResponse.data_type)
-      : originalResponse?.body_json
-        ? JSON.stringify(originalResponse.body_json, null, 2)
-        : null;
-
+  const originalResponseBody = getResponseBody(originalResponse);
   const hasOriginalResponse = !!originalResponse;
   const hasReplayResponse = !!replayResponse;
 
-  const tabCount = 1 + (hasOriginalResponse ? 1 : 0) + 1; // request + original? + replay
+  const tabCount = 1 + (hasOriginalResponse ? 1 : 0) + 1;
 
   return (
     <>
@@ -203,8 +232,8 @@ export function ReplayDialog({ transaction }: ReplayDialogProps) {
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-4xl max-h-[85vh] flex flex-col">
-          <DialogHeader>
+        <DialogContent className="!max-w-none w-[calc(100vw-4rem)] h-[calc(100vh-4rem)] flex flex-col">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle>Traffic Replay</DialogTitle>
           </DialogHeader>
 
@@ -213,7 +242,9 @@ export function ReplayDialog({ transaction }: ReplayDialogProps) {
             onValueChange={setActiveTab}
             className="flex-1 flex flex-col min-h-0"
           >
-            <TabsList className={`grid w-full flex-shrink-0 ${tabCount === 3 ? "grid-cols-3" : "grid-cols-2"}`}>
+            <TabsList
+              className={`grid w-full flex-shrink-0 ${tabCount === 3 ? "grid-cols-3" : "grid-cols-2"}`}
+            >
               <TabsTrigger value="request">Request</TabsTrigger>
               {hasOriginalResponse && (
                 <TabsTrigger value="response">
@@ -239,111 +270,113 @@ export function ReplayDialog({ transaction }: ReplayDialogProps) {
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="request" className="flex-1 mt-4 space-y-4 min-h-0 overflow-y-auto">
-              <div className="flex gap-2">
-                <Select value={method} onValueChange={(v) => v && setMethod(v)}>
-                  <SelectTrigger className="w-28">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {HTTP_METHODS.map((m) => (
-                      <SelectItem key={m} value={m}>
-                        {m}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Input
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                  placeholder="URL"
-                  className="flex-1 font-mono text-xs"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium">Headers</label>
-                  <Button variant="ghost" size="sm" onClick={addHeader}>
-                    <Plus className="w-3.5 h-3.5 mr-1" />
-                    Add
-                  </Button>
-                </div>
-                <ScrollArea className="max-h-[250px]">
-                  <div className="rounded-md border">
-                    <table className="w-full text-xs font-mono">
-                      <tbody>
-                        {headers.map((header, i) => (
-                          <tr key={i} className="border-b last:border-b-0 group">
-                            <td className="px-2 py-1 w-[200px]">
-                              <Input
-                                value={header.key}
-                                onChange={(e) => updateHeader(i, "key", e.target.value)}
-                                placeholder="Header name"
-                                className="h-7 text-xs font-mono border-0 shadow-none focus-visible:ring-0 px-1"
-                              />
-                            </td>
-                            <td className="px-2 py-1">
-                              <Input
-                                value={header.value}
-                                onChange={(e) => updateHeader(i, "value", e.target.value)}
-                                placeholder="Value"
-                                className="h-7 text-xs font-mono border-0 shadow-none focus-visible:ring-0 px-1"
-                              />
-                            </td>
-                            <td className="px-1 py-1 w-8">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100"
-                                onClick={() => removeHeader(i)}
-                              >
-                                <Trash2 className="w-3 h-3 text-destructive" />
-                              </Button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </ScrollArea>
-              </div>
-
-              {method !== "GET" && method !== "HEAD" && (
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Body</label>
-                  <Textarea
-                    value={body}
-                    onChange={(e) => setBody(e.target.value)}
-                    placeholder="Request body"
-                    className="font-mono text-xs min-h-[100px] resize-y"
+            <TabsContent value="request" className="flex-1 mt-4 min-h-0 overflow-y-auto">
+              <div className="space-y-4">
+                <div className="flex gap-2">
+                  <Select value={method} onValueChange={(v) => v && setMethod(v)}>
+                    <SelectTrigger className="w-28">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {HTTP_METHODS.map((m) => (
+                        <SelectItem key={m} value={m}>
+                          {m}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                    placeholder="URL"
+                    className="flex-1 font-mono text-xs"
                   />
                 </div>
-              )}
 
-              <Button onClick={handleReplay} disabled={loading || !url} className="w-full">
-                {loading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Sending...
-                  </>
-                ) : (
-                  <>
-                    <Play className="w-4 h-4 mr-2" />
-                    Send Request
-                  </>
-                )}
-              </Button>
-
-              {error && (
-                <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm">
-                  {error}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-medium">Headers ({headers.length})</label>
+                    <Button variant="ghost" size="sm" onClick={addHeader}>
+                      <Plus className="w-3.5 h-3.5 mr-1" />
+                      Add
+                    </Button>
+                  </div>
+                  <ScrollArea className="max-h-[300px]">
+                    <div className="rounded-md border">
+                      <table className="w-full text-xs font-mono">
+                        <tbody>
+                          {headers.map((header, i) => (
+                            <tr key={i} className="border-b last:border-b-0 group">
+                              <td className="px-2 py-1 w-[220px]">
+                                <Input
+                                  value={header.key}
+                                  onChange={(e) => updateHeader(i, "key", e.target.value)}
+                                  placeholder="Header name"
+                                  className="h-7 text-xs font-mono border-0 shadow-none focus-visible:ring-0 px-1"
+                                />
+                              </td>
+                              <td className="px-2 py-1">
+                                <Input
+                                  value={header.value}
+                                  onChange={(e) => updateHeader(i, "value", e.target.value)}
+                                  placeholder="Value"
+                                  className="h-7 text-xs font-mono border-0 shadow-none focus-visible:ring-0 px-1"
+                                />
+                              </td>
+                              <td className="px-1 py-1 w-8">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100"
+                                  onClick={() => removeHeader(i)}
+                                >
+                                  <Trash2 className="w-3 h-3 text-destructive" />
+                                </Button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </ScrollArea>
                 </div>
-              )}
+
+                {method !== "GET" && method !== "HEAD" && (
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Body</label>
+                    <Textarea
+                      value={body}
+                      onChange={(e) => setBody(e.target.value)}
+                      placeholder="Request body"
+                      className="font-mono text-xs min-h-[120px] resize-y"
+                    />
+                  </div>
+                )}
+
+                <Button onClick={handleReplay} disabled={loading || !url} className="w-full">
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Play className="w-4 h-4 mr-2" />
+                      Send Request
+                    </>
+                  )}
+                </Button>
+
+                {error && (
+                  <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm">
+                    {error}
+                  </div>
+                )}
+              </div>
             </TabsContent>
 
             {hasOriginalResponse && (
-              <TabsContent value="response" className="flex-1 mt-4 min-h-0 flex flex-col overflow-y-auto">
+              <TabsContent value="response" className="flex-1 mt-4 min-h-0 overflow-y-auto">
                 <ResponseView
                   status={originalResponse.status}
                   headers={originalResponse.headers || {}}
@@ -353,7 +386,7 @@ export function ReplayDialog({ transaction }: ReplayDialogProps) {
               </TabsContent>
             )}
 
-            <TabsContent value="replay" className="flex-1 mt-4 min-h-0 flex flex-col overflow-y-auto">
+            <TabsContent value="replay" className="flex-1 mt-4 min-h-0 overflow-y-auto">
               {hasReplayResponse ? (
                 <ResponseView
                   status={replayResponse.status}
