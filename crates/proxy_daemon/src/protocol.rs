@@ -15,6 +15,11 @@ pub enum DaemonMessage {
     WsMessage { data: WsMessageInfo },
     #[serde(rename = "ws_connection")]
     WsConnection { data: WsConnectionEvent },
+    #[serde(rename = "ws_inject_result")]
+    WsInjectResult {
+        success: bool,
+        error: Option<String>,
+    },
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -26,6 +31,13 @@ pub enum ClientCommand {
     UpdateInterceptRules { rules: Vec<InterceptRule> },
     #[serde(rename = "stop")]
     Stop,
+    #[serde(rename = "ws_inject")]
+    WsInject {
+        connection_id: String,
+        direction: String,
+        payload: String,
+        is_binary: bool,
+    },
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
