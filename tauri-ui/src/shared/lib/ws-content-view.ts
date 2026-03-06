@@ -119,8 +119,9 @@ function tryParseSubscribeTopics(
   offset: number,
   end: number,
 ): { label: string; value: string }[] | null {
-  const subs: string[] = [];
+  const result: { label: string; value: string }[] = [];
   let off = offset;
+  let idx = 1;
   while (off < end) {
     const [topic, newOff] = decodeMqttUtf8String(bytes, off);
     off = newOff;
@@ -128,10 +129,13 @@ function tryParseSubscribeTopics(
     const qos = bytes[off];
     off += 1;
     if (qos > 2) return null; // QoS는 0, 1, 2만 유효
-    subs.push(`${topic} (QoS ${qos})`);
+    const prefix = result.length === 0 ? "Topic" : `Topic ${idx}`;
+    result.push({ label: prefix, value: topic });
+    result.push({ label: `QoS`, value: String(qos) });
+    idx += 1;
   }
-  if (subs.length === 0) return null;
-  return [{ label: "Subscriptions", value: subs.join(", ") }];
+  if (result.length === 0) return null;
+  return result;
 }
 
 function decodeMqttUtf8String(bytes: Uint8Array, offset: number): [string, number] {
