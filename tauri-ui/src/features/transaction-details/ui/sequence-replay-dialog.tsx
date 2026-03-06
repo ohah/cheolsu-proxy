@@ -112,7 +112,7 @@ export function SequenceReplayDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-2xl max-h-[80vh] flex flex-col">
+      <DialogContent className="sm:max-w-4xl max-h-[85vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>Sequence Replay ({transactions.length} requests)</DialogTitle>
         </DialogHeader>

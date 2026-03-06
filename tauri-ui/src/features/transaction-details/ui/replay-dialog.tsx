@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { Play, Loader2 } from "lucide-react";
+import { Play, Loader2, Plus, Trash2 } from "lucide-react";
 
 import type { HttpTransaction } from "@/entities/proxy";
 import { isTextBasedDataType } from "@/entities/proxy/model/data-type";
@@ -34,34 +34,106 @@ interface ReplayDialogProps {
   transaction: HttpTransaction;
 }
 
-function headersToText(headers: Record<string, string>): string {
-  return Object.entries(headers)
-    .map(([k, v]) => `${k}: ${v}`)
-    .join("\n");
+interface HeaderEntry {
+  key: string;
+  value: string;
 }
 
-function textToHeaders(text: string): Record<string, string> {
+function headersToEntries(headers: Record<string, string>): HeaderEntry[] {
+  return Object.entries(headers).map(([key, value]) => ({ key, value }));
+}
+
+function entriesToHeaders(entries: HeaderEntry[]): Record<string, string> {
   const headers: Record<string, string> = {};
-  for (const line of text.split("\n")) {
-    const idx = line.indexOf(":");
-    if (idx > 0) {
-      const key = line.slice(0, idx).trim();
-      const value = line.slice(idx + 1).trim();
-      if (key) headers[key] = value;
-    }
+  for (const { key, value } of entries) {
+    const k = key.trim();
+    if (k) headers[k] = value;
   }
   return headers;
 }
 
+function formatBody(body: string | undefined | null, bodySize?: number): string {
+  if (!body) return "(empty)";
+  if (body.startsWith("base64:")) {
+    return `[Binary data - ${bodySize ?? 0} bytes]`;
+  }
+  try {
+    return JSON.stringify(JSON.parse(body), null, 2);
+  } catch {
+    return body;
+  }
+}
+
+function ResponseView({
+  status,
+  headers,
+  body,
+  bodySize,
+  elapsedMs,
+}: {
+  status: number;
+  headers: Record<string, string>;
+  body?: string | null;
+  bodySize: number;
+  elapsedMs?: number;
+}) {
+  return (
+    <div className="space-y-4 flex-1 flex flex-col min-h-0">
+      <div className="flex items-center gap-4 flex-shrink-0">
+        <Badge variant="outline" className={`text-sm ${getStatusColor(status)}`}>
+          {status}
+        </Badge>
+        {elapsedMs !== undefined && (
+          <span className="text-xs text-muted-foreground">{elapsedMs}ms</span>
+        )}
+        <span className="text-xs text-muted-foreground">{bodySize} bytes</span>
+      </div>
+
+      <Separator />
+
+      <div className="space-y-2 flex-shrink-0">
+        <label className="text-sm font-medium">Headers</label>
+        <ScrollArea className="max-h-[200px]">
+          <div className="rounded-md border">
+            <table className="w-full text-xs font-mono">
+              <tbody>
+                {Object.entries(headers).map(([k, v]) => (
+                  <tr key={k} className="border-b last:border-b-0">
+                    <td className="px-3 py-1.5 text-muted-foreground font-medium whitespace-nowrap align-top w-[200px]">
+                      {k}
+                    </td>
+                    <td className="px-3 py-1.5 break-all">{v}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </ScrollArea>
+      </div>
+
+      <Separator />
+
+      <div className="space-y-2 flex-1 min-h-0 flex flex-col">
+        <label className="text-sm font-medium">Body</label>
+        <ScrollArea className="flex-1 min-h-[150px] max-h-[300px]">
+          <pre className="font-mono text-xs whitespace-pre-wrap break-all p-3 bg-muted rounded-md">
+            {formatBody(body, bodySize)}
+          </pre>
+        </ScrollArea>
+      </div>
+    </div>
+  );
+}
+
 export function ReplayDialog({ transaction }: ReplayDialogProps) {
-  const { request } = transaction;
+  const { request, response: originalResponse } = transaction;
   const [open, setOpen] = useState(false);
   const [method, setMethod] = useState(request?.method || "GET");
   const [url, setUrl] = useState(request?.uri || "");
-  const [headersText, setHeadersText] = useState("");
+  const [headers, setHeaders] = useState<HeaderEntry[]>([]);
   const [body, setBody] = useState("");
   const [loading, setLoading] = useState(false);
-  const [response, setResponse] = useState<ReplayResponse | null>(null);
+  const [replayResponse, setReplayResponse] = useState<ReplayResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("request");
 
@@ -69,13 +141,13 @@ export function ReplayDialog({ transaction }: ReplayDialogProps) {
     if (open && request) {
       setMethod(request.method);
       setUrl(request.uri);
-      setHeadersText(headersToText(request.headers || {}));
+      setHeaders(headersToEntries(request.headers || {}));
       if (request.body && request.data_type && isTextBasedDataType(request.data_type)) {
         setBody(uint8ArrayToString(request.body, request.data_type));
       } else {
         setBody("");
       }
-      setResponse(null);
+      setReplayResponse(null);
       setError(null);
       setActiveTab("request");
     }
@@ -84,37 +156,45 @@ export function ReplayDialog({ transaction }: ReplayDialogProps) {
   const handleReplay = useCallback(async () => {
     setLoading(true);
     setError(null);
-    setResponse(null);
+    setReplayResponse(null);
 
     const params: ReplayRequestParams = {
       method,
       url,
-      headers: textToHeaders(headersText),
+      headers: entriesToHeaders(headers),
       body: body || undefined,
     };
 
     try {
       const res = await replayRequest(params);
-      setResponse(res);
-      setActiveTab("response");
+      setReplayResponse(res);
+      setActiveTab("replay");
     } catch (e: any) {
       setError(typeof e === "string" ? e : e.message || "요청 실패");
     } finally {
       setLoading(false);
     }
-  }, [method, url, headersText, body]);
+  }, [method, url, headers, body]);
 
-  const formatResponseBody = (res: ReplayResponse): string => {
-    if (!res.body) return "(empty)";
-    if (res.body.startsWith("base64:")) {
-      return `[Binary data - ${res.body_size} bytes]`;
-    }
-    try {
-      return JSON.stringify(JSON.parse(res.body), null, 2);
-    } catch {
-      return res.body;
-    }
+  const addHeader = () => setHeaders([...headers, { key: "", value: "" }]);
+  const removeHeader = (index: number) => setHeaders(headers.filter((_, i) => i !== index));
+  const updateHeader = (index: number, field: "key" | "value", value: string) => {
+    const updated = [...headers];
+    updated[index] = { ...updated[index], [field]: value };
+    setHeaders(updated);
   };
+
+  const originalResponseBody =
+    originalResponse?.body && originalResponse.data_type && isTextBasedDataType(originalResponse.data_type)
+      ? uint8ArrayToString(originalResponse.body, originalResponse.data_type)
+      : originalResponse?.body_json
+        ? JSON.stringify(originalResponse.body_json, null, 2)
+        : null;
+
+  const hasOriginalResponse = !!originalResponse;
+  const hasReplayResponse = !!replayResponse;
+
+  const tabCount = 1 + (hasOriginalResponse ? 1 : 0) + 1; // request + original? + replay
 
   return (
     <>
@@ -123,7 +203,7 @@ export function ReplayDialog({ transaction }: ReplayDialogProps) {
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-2xl max-h-[80vh] flex flex-col">
+        <DialogContent className="sm:max-w-4xl max-h-[85vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>Traffic Replay</DialogTitle>
           </DialogHeader>
@@ -133,22 +213,33 @@ export function ReplayDialog({ transaction }: ReplayDialogProps) {
             onValueChange={setActiveTab}
             className="flex-1 flex flex-col min-h-0"
           >
-            <TabsList className="grid w-full grid-cols-2 flex-shrink-0">
+            <TabsList className={`grid w-full flex-shrink-0 ${tabCount === 3 ? "grid-cols-3" : "grid-cols-2"}`}>
               <TabsTrigger value="request">Request</TabsTrigger>
-              <TabsTrigger value="response">
-                Response
-                {response && (
+              {hasOriginalResponse && (
+                <TabsTrigger value="response">
+                  Original
                   <Badge
                     variant="outline"
-                    className={`ml-2 text-xs ${getStatusColor(response.status)}`}
+                    className={`ml-2 text-xs ${getStatusColor(originalResponse.status)}`}
                   >
-                    {response.status}
+                    {originalResponse.status}
+                  </Badge>
+                </TabsTrigger>
+              )}
+              <TabsTrigger value="replay">
+                Replay
+                {hasReplayResponse && (
+                  <Badge
+                    variant="outline"
+                    className={`ml-2 text-xs ${getStatusColor(replayResponse.status)}`}
+                  >
+                    {replayResponse.status}
                   </Badge>
                 )}
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="request" className="flex-1 mt-4 space-y-4 min-h-0">
+            <TabsContent value="request" className="flex-1 mt-4 space-y-4 min-h-0 overflow-y-auto">
               <div className="flex gap-2">
                 <Select value={method} onValueChange={(v) => v && setMethod(v)}>
                   <SelectTrigger className="w-28">
@@ -171,13 +262,51 @@ export function ReplayDialog({ transaction }: ReplayDialogProps) {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">Headers</label>
-                <Textarea
-                  value={headersText}
-                  onChange={(e) => setHeadersText(e.target.value)}
-                  placeholder="Content-Type: application/json"
-                  className="font-mono text-xs min-h-[100px] resize-y"
-                />
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium">Headers</label>
+                  <Button variant="ghost" size="sm" onClick={addHeader}>
+                    <Plus className="w-3.5 h-3.5 mr-1" />
+                    Add
+                  </Button>
+                </div>
+                <ScrollArea className="max-h-[250px]">
+                  <div className="rounded-md border">
+                    <table className="w-full text-xs font-mono">
+                      <tbody>
+                        {headers.map((header, i) => (
+                          <tr key={i} className="border-b last:border-b-0 group">
+                            <td className="px-2 py-1 w-[200px]">
+                              <Input
+                                value={header.key}
+                                onChange={(e) => updateHeader(i, "key", e.target.value)}
+                                placeholder="Header name"
+                                className="h-7 text-xs font-mono border-0 shadow-none focus-visible:ring-0 px-1"
+                              />
+                            </td>
+                            <td className="px-2 py-1">
+                              <Input
+                                value={header.value}
+                                onChange={(e) => updateHeader(i, "value", e.target.value)}
+                                placeholder="Value"
+                                className="h-7 text-xs font-mono border-0 shadow-none focus-visible:ring-0 px-1"
+                              />
+                            </td>
+                            <td className="px-1 py-1 w-8">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100"
+                                onClick={() => removeHeader(i)}
+                              >
+                                <Trash2 className="w-3 h-3 text-destructive" />
+                              </Button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </ScrollArea>
               </div>
 
               {method !== "GET" && method !== "HEAD" && (
@@ -213,51 +342,29 @@ export function ReplayDialog({ transaction }: ReplayDialogProps) {
               )}
             </TabsContent>
 
-            <TabsContent value="response" className="flex-1 mt-4 min-h-0 flex flex-col">
-              {response ? (
-                <div className="space-y-4 flex-1 flex flex-col min-h-0">
-                  <div className="flex items-center gap-4 flex-shrink-0">
-                    <Badge
-                      variant="outline"
-                      className={`text-sm ${getStatusColor(response.status)}`}
-                    >
-                      {response.status}
-                    </Badge>
-                    <span className="text-xs text-muted-foreground">{response.elapsed_ms}ms</span>
-                    <span className="text-xs text-muted-foreground">
-                      {response.body_size} bytes
-                    </span>
-                  </div>
+            {hasOriginalResponse && (
+              <TabsContent value="response" className="flex-1 mt-4 min-h-0 flex flex-col overflow-y-auto">
+                <ResponseView
+                  status={originalResponse.status}
+                  headers={originalResponse.headers || {}}
+                  body={originalResponseBody}
+                  bodySize={originalResponse.body_size}
+                />
+              </TabsContent>
+            )}
 
-                  <Separator />
-
-                  <div className="space-y-2 flex-shrink-0">
-                    <label className="text-sm font-medium">Response Headers</label>
-                    <ScrollArea className="max-h-[120px]">
-                      <div className="font-mono text-xs space-y-0.5">
-                        {Object.entries(response.headers).map(([k, v]) => (
-                          <div key={k}>
-                            <span className="text-muted-foreground">{k}:</span> {v}
-                          </div>
-                        ))}
-                      </div>
-                    </ScrollArea>
-                  </div>
-
-                  <Separator />
-
-                  <div className="space-y-2 flex-1 min-h-0 flex flex-col">
-                    <label className="text-sm font-medium">Response Body</label>
-                    <ScrollArea className="flex-1 min-h-[150px] max-h-[300px]">
-                      <pre className="font-mono text-xs whitespace-pre-wrap break-all p-2 bg-muted rounded-md">
-                        {formatResponseBody(response)}
-                      </pre>
-                    </ScrollArea>
-                  </div>
-                </div>
+            <TabsContent value="replay" className="flex-1 mt-4 min-h-0 flex flex-col overflow-y-auto">
+              {hasReplayResponse ? (
+                <ResponseView
+                  status={replayResponse.status}
+                  headers={replayResponse.headers}
+                  body={replayResponse.body}
+                  bodySize={replayResponse.body_size}
+                  elapsedMs={replayResponse.elapsed_ms}
+                />
               ) : (
                 <div className="flex items-center justify-center h-40 text-muted-foreground text-sm">
-                  Send a request to see the response
+                  Send a request to see the replay response
                 </div>
               )}
             </TabsContent>
