@@ -1,0 +1,96 @@
+name: E2E Test
+
+on:
+  pull_request:
+    types: [labeled]
+
+jobs:
+  e2e-test:
+    name: E2E Tests (Linux)
+    runs-on: ubuntu-latest
+    if: github.event.label.name == 'run-e2e'
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Tauri Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            libssl-dev \
+            libgtk-3-dev \
+            libsoup-3.0-dev \
+            javascriptcoregtk-4.1 \
+            xvfb
+
+      - name: Setup Rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: stable
+          cache: true
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build Tauri app (debug)
+        working-directory: tauri-ui
+        run: bun run tauri build --debug
+        env:
+          IS_PROXY: "false"
+
+      - name: Run E2E tests
+        working-directory: tauri-ui
+        run: |
+          # Tauri 앱을 Xvfb 가상 디스플레이에서 실행
+          export DISPLAY=:99
+          Xvfb :99 -screen 0 1280x720x24 &
+          sleep 2
+
+          # debug 빌드된 앱 실행
+          ./src-tauri/target/debug/cheolsu-proxy &
+          APP_PID=$!
+
+          # MCP bridge WebSocket 대기 (최대 30초)
+          for i in $(seq 1 30); do
+            if ss -tlnp | grep -q ':9223'; then
+              echo "Tauri app ready on port 9223 (${i}s)"
+              break
+            fi
+            sleep 1
+          done
+
+          # e2e 테스트 실행
+          bun test --timeout 60000 test/e2e || E2E_EXIT=$?
+
+          # 앱 종료
+          kill $APP_PID 2>/dev/null || true
+          exit ${E2E_EXIT:-0}
+        env:
+          IS_PROXY: "false"
+
+      - name: Remove run-e2e label
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            try {
+              await github.rest.issues.removeLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.pull_request.number,
+                name: 'run-e2e'
+              });
+            } catch (e) {
+              // 라벨이 이미 제거된 경우 무시
+            }
