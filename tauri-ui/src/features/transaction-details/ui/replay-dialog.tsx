@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { Play, Loader2, Plus, Trash2 } from "lucide-react";
+import { Editor } from "@monaco-editor/react";
 
 import type { HttpTransaction } from "@/entities/proxy";
 import { isTextBasedDataType } from "@/entities/proxy/model/data-type";
@@ -11,7 +12,6 @@ import {
   DialogTitle,
   Button,
   Badge,
-  Textarea,
   Input,
   Tabs,
   TabsContent,
@@ -49,6 +49,14 @@ function entriesToHeaders(entries: HeaderEntry[]): Record<string, string> {
     if (k) headers[k] = value;
   }
   return headers;
+}
+
+function detectLanguage(body: string | undefined | null): string {
+  if (!body) return "plaintext";
+  const trimmed = body.trimStart();
+  if (trimmed.startsWith("{") || trimmed.startsWith("[")) return "json";
+  if (trimmed.startsWith("<")) return "xml";
+  return "plaintext";
 }
 
 function formatBody(body: string | undefined | null, bodySize?: number): string {
@@ -102,7 +110,7 @@ function ResponseView({
   const headerEntries = Object.entries(headers);
 
   return (
-    <div className="h-full overflow-y-auto space-y-4 pr-2">
+    <div className="h-full overflow-y-auto space-y-4 px-1">
       <div className="flex items-center gap-4">
         <Badge variant="outline" className={`text-sm ${getStatusColor(status)}`}>
           {status}
@@ -141,9 +149,25 @@ function ResponseView({
 
       <div className="space-y-2">
         <label className="text-sm font-medium">Body</label>
-        <pre className="font-mono text-xs whitespace-pre-wrap break-all p-3 bg-muted rounded-md">
-          {formatBody(body, bodySize)}
-        </pre>
+        <div className="rounded-md border overflow-hidden">
+          <Editor
+            height="300px"
+            language={detectLanguage(body)}
+            value={formatBody(body, bodySize)}
+            theme="vs-light"
+            options={{
+              readOnly: true,
+              minimap: { enabled: false },
+              fontSize: 12,
+              lineNumbers: "off",
+              scrollBeyondLastLine: false,
+              wordWrap: "on",
+              tabSize: 2,
+              automaticLayout: true,
+              padding: { top: 8, bottom: 8 },
+            }}
+          />
+        </div>
       </div>
     </div>
   );
@@ -214,6 +238,7 @@ export function ReplayDialog({ transaction }: ReplayDialogProps) {
     setHeaders(updated);
   };
 
+  const bodyLanguage = detectLanguage(body);
   const originalResponseBody = getResponseBody(originalResponse);
   const hasOriginalResponse = !!originalResponse;
   const hasReplayResponse = !!replayResponse;
@@ -266,7 +291,7 @@ export function ReplayDialog({ transaction }: ReplayDialogProps) {
             </TabsList>
 
             <TabsContent value="request" className="mt-4 min-h-0 flex-1 flex flex-col justify-between">
-              <div className="flex-1 min-h-0 overflow-y-auto space-y-4 pr-2">
+              <div className="flex-1 min-h-0 overflow-y-auto space-y-4 px-1">
                 <div className="flex gap-2">
                   <Select value={method} onValueChange={(v) => v && setMethod(v)}>
                     <SelectTrigger className="w-28">
@@ -337,12 +362,25 @@ export function ReplayDialog({ transaction }: ReplayDialogProps) {
                 {method !== "GET" && method !== "HEAD" && (
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Body</label>
-                    <Textarea
-                      value={body}
-                      onChange={(e) => setBody(e.target.value)}
-                      placeholder="Request body"
-                      className="font-mono text-xs min-h-[120px] resize-y"
-                    />
+                    <div className="rounded-md border overflow-hidden">
+                      <Editor
+                        height="200px"
+                        language={bodyLanguage}
+                        value={body}
+                        onChange={(v) => setBody(v ?? "")}
+                        theme="vs-light"
+                        options={{
+                          minimap: { enabled: false },
+                          fontSize: 12,
+                          lineNumbers: "off",
+                          scrollBeyondLastLine: false,
+                          wordWrap: "on",
+                          tabSize: 2,
+                          automaticLayout: true,
+                          padding: { top: 8, bottom: 8 },
+                        }}
+                      />
+                    </div>
                   </div>
                 )}
 
