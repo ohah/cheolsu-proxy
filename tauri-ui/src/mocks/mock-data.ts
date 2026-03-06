@@ -3,7 +3,8 @@ import type { DataType } from "@/entities/proxy/model/data-type";
 
 let idCounter = 0;
 function nextId(): string {
-  return `mock-${++idCounter}-${Date.now()}`;
+  idCounter += 1;
+  return `mock-${idCounter}-${Date.now()}`;
 }
 
 function makeRequest(

@@ -24,8 +24,6 @@ export async function readFile(
   _path: string,
   _options?: { baseDir?: number },
 ): Promise<Uint8Array> {
-  // 빈 바이트 배열 반환
-  console.warn("[Mock] readFile called:", _path);
   return new Uint8Array(0);
 }
 
@@ -34,7 +32,6 @@ export async function writeFile(
   _data: Uint8Array,
   _options?: { baseDir?: number },
 ): Promise<void> {
-  console.warn("[Mock] writeFile called:", _path);
 }
 
 export async function exists(

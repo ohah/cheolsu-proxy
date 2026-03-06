@@ -45,6 +45,5 @@ export async function invoke<T>(cmd: string, args?: Record<string, unknown>): Pr
   if (handler) {
     return handler(args) as Promise<T>;
   }
-  console.warn(`[Mock] Unknown invoke command: ${cmd}`, args);
   return undefined as T;
 }

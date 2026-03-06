@@ -46,7 +46,8 @@ function startMockStream(handler: EventCallback<ProxyEventTuple>) {
       return;
     }
 
-    const tx = MOCK_TRANSACTIONS[index++];
+    const tx = MOCK_TRANSACTIONS[index];
+    index += 1;
     handler({ payload: [tx.request, tx.response] });
 
     setTimeout(sendNext, 80 + Math.random() * 200);
@@ -81,7 +82,8 @@ function startRandomStream() {
   let counter = 1000;
 
   const generate = () => {
-    const id = `mock-rand-${++counter}-${Date.now()}`;
+    counter += 1;
+    const id = `mock-rand-${counter}-${Date.now()}`;
     const method = methods[Math.floor(Math.random() * methods.length)];
     const host = hosts[Math.floor(Math.random() * hosts.length)];
     const path = paths[Math.floor(Math.random() * paths.length)];
