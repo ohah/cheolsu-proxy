@@ -297,6 +297,10 @@ impl LoggingHandler {
                                 .header("x-cheolsu-intercept-rule", &rule.id)
                                 .header("x-cheolsu-map-local", file_path.as_str());
 
+                            // Content-Length 설정
+                            response =
+                                response.header("content-length", file_bytes.len().to_string());
+
                             // Content-Type 추론
                             let content_type = headers
                                 .get("content-type")
