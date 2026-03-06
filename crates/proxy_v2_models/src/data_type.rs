@@ -363,7 +363,7 @@ pub fn detect_data_type(headers: &HeaderMap, body: &Bytes) -> DataType {
         DataType::Empty
     } else {
         // 간단한 텍스트/바이너리 구분만 수행
-        if let Ok(_) = std::str::from_utf8(body) {
+        if std::str::from_utf8(body).is_ok() {
             DataType::Text
         } else {
             DataType::Binary
