@@ -18,6 +18,7 @@ const mockAliases = isMock
       ),
       "@tauri-apps/plugin-http": path.resolve(__dirname, "./src/mocks/tauri-plugin-http.ts"),
       "@tauri-apps/plugin-opener": path.resolve(__dirname, "./src/mocks/tauri-plugin-opener.ts"),
+      "@tauri-apps/plugin-dialog": path.resolve(__dirname, "./src/mocks/tauri-plugin-dialog.ts"),
     }
   : {};
 
