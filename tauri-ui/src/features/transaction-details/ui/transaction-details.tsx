@@ -51,7 +51,7 @@ export function TransactionDetails({
         form={form}
       />
 
-      <ScrollArea className="flex-1 overflow-auto p-4 [&>div>div]:!flex">
+      <ScrollArea className="flex-1 overflow-auto p-4 [&_[data-slot=scroll-area-viewport]]:!flex [&_[data-slot=scroll-area-viewport]>div]:!w-full">
         <div className="h-full w-full">
           <Tabs value={activeTab} onValueChange={onTabChange} className="h-full flex flex-col">
             <TabsList
