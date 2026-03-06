@@ -29,7 +29,7 @@
 | 기능                   | 설명                               | 우선순위 |
 | ---------------------- | ---------------------------------- | :------: |
 | HTTP/2, HTTP/3 (QUIC)  | 다중 프로토콜 지원                 |          |
-| WebSocket 뷰           | WebSocket 메시지 인터셉트 및 표시  |          |
+| ~~WebSocket 뷰~~       | ~~WebSocket 메시지 인터셉트 및 표시~~ | 구현 완료 |
 | Transparent Proxy      | OS 레벨 투명 프록시 모드           |          |
 | Reverse Proxy          | 특정 서버로 트래픽 전달            |          |
 | SOCKS Proxy            | SOCKS5 프록시 모드                 |          |
