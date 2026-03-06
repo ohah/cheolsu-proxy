@@ -818,7 +818,10 @@ pub(crate) fn analyze_tls_connection(
 }
 
 /// TLS 처리 전략을 결정합니다 (순수 함수)
-pub(crate) fn determine_tls_strategy(authority: &Authority, tls_info: &TlsConnectionInfo) -> TlsStrategy {
+pub(crate) fn determine_tls_strategy(
+    authority: &Authority,
+    tls_info: &TlsConnectionInfo,
+) -> TlsStrategy {
     let host = authority.host();
 
     info!("🎯 [STRATEGY] 전략 결정 분석:");
