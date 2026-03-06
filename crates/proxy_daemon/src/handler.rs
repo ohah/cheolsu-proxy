@@ -123,6 +123,7 @@ pub struct LoggingHandler {
     sender: tokio::sync::mpsc::Sender<RequestInfo>,
     ws_sender: Option<tokio::sync::mpsc::Sender<WsEvent>>,
     ws_sequence: Arc<std::sync::atomic::AtomicU64>,
+    mqtt_versions: Arc<std::sync::Mutex<std::collections::HashMap<String, u8>>>,
     req: Option<ProxiedRequest>,
     res: Option<ProxiedResponse>,
     intercept_rules: Arc<Mutex<Vec<InterceptRule>>>,
@@ -138,6 +139,7 @@ impl LoggingHandler {
             sender,
             ws_sender: None,
             ws_sequence: Arc::new(std::sync::atomic::AtomicU64::new(0)),
+            mqtt_versions: Arc::new(std::sync::Mutex::new(std::collections::HashMap::new())),
             req: None,
             res: None,
             intercept_rules: Arc::new(Mutex::new(Vec::new())),
@@ -1060,6 +1062,27 @@ impl WebSocketHandler for LoggingHandler {
 
             let content_type = proxy_v2_models::detect_ws_content_type(&payload, is_binary);
 
+            // MQTT 메시지인 경우 버전 추적
+            let mqtt_version = if content_type == proxy_v2_models::WsContentType::Mqtt {
+                // CONNECT 패킷이면 버전을 추출하여 저장
+                if let Some(ver) = proxy_v2_models::extract_mqtt_version_from_connect(&payload) {
+                    self.mqtt_versions
+                        .lock()
+                        .unwrap()
+                        .insert(connection_id.clone(), ver);
+                    Some(ver)
+                } else {
+                    // 다른 MQTT 패킷이면 저장된 버전 참조
+                    self.mqtt_versions
+                        .lock()
+                        .unwrap()
+                        .get(&connection_id)
+                        .copied()
+                }
+            } else {
+                None
+            };
+
             let info = WsMessageInfo {
                 connection_id,
                 sequence,
@@ -1072,6 +1095,7 @@ impl WebSocketHandler for LoggingHandler {
                     .unwrap_or_default(),
                 is_binary,
                 content_type,
+                mqtt_version,
             };
 
             let _ = ws_sender.try_send(WsEvent::Message(info));
