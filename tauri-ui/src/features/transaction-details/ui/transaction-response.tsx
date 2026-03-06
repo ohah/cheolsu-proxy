@@ -7,15 +7,16 @@ import { Button, Card, CardContent, CardHeader } from "@/shared/ui";
 import type { AppFormInstance } from "../context/form-context";
 import { Editor } from "@monaco-editor/react";
 
-import { getBodyForDisplay, createImageDataUrl } from "../lib/utils";
+import { getBodyForDisplay, createImageDataUrl, extractBinaryFileInfo } from "../lib/utils";
 import {
   dataTypeToMonacoLanguage,
   isImageDataType,
   isMediaDataType,
+  isBinaryDataType,
 } from "@/entities/proxy/model/data-type";
 import { toast } from "sonner";
-import { ImagePreview } from "./image-preview";
 import { MediaPreview } from "./media-preview";
+import { BinaryPreview } from "./binary-preview";
 import { useBodyFile } from "@/hooks/use-body-file";
 
 interface TransactionResponseProps {
@@ -32,6 +33,19 @@ export const TransactionResponse = ({
   const { response } = transaction;
 
   if (!response) return null;
+
+  // 바이너리 파일 정보 추출
+  const isNonMediaBinary =
+    isBinaryDataType(response.data_type) && !isMediaDataType(response.data_type);
+  const binaryFileInfo = isNonMediaBinary
+    ? extractBinaryFileInfo(
+        transaction.request?.uri || "",
+        response.headers,
+        response.data_type,
+        response.file_path,
+        response.body_size,
+      )
+    : null;
 
   // 파일에서 body를 읽어오는 훅
   const {
@@ -146,6 +160,16 @@ export const TransactionResponse = ({
               filePath={response.file_path}
             />
           </div>
+        ) : isNonMediaBinary && binaryFileInfo && !fileLoading && !fileError ? (
+          <BinaryPreview
+            data={actualBody}
+            dataType={response.data_type}
+            bodySize={response.body_size}
+            fileName={binaryFileInfo.fileName}
+            fileExtension={binaryFileInfo.fileExtension}
+            mimeType={binaryFileInfo.mimeType}
+            filePath={response.file_path}
+          />
         ) : form && isEditing ? (
           <form.Field
             name="response.data"
