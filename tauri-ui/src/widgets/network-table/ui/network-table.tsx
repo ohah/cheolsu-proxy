@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useMemo } from "react";
 
 import type { HttpTransaction } from "@/entities/proxy";
 

@@ -276,7 +276,7 @@ export const MediaPreview = ({
         }
 
         // Blob 생성
-        const blob = new Blob([fileData], { type: detectedMimeType });
+        const blob = new Blob([fileData as BlobPart], { type: detectedMimeType });
         const url = URL.createObjectURL(blob);
         setMediaUrl(url);
       } catch (err) {
