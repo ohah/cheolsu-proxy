@@ -14,3 +14,7 @@ export * from "./sonner";
 export * from "./virtualized-scroll-area";
 export * from "./context-menu";
 export * from "./tooltip";
+export * from "./switch";
+export * from "./dialog";
+export * from "./popover";
+export * from "./separator";

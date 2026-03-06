@@ -1,11 +1,24 @@
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
-import { load } from "@tauri-apps/plugin-store";
 import type { SessionStore, SessionStoreState } from "@/entities/session";
 
-const tauriStore = await load("session.json");
+const isTauri = !!(window as any).__TAURI_INTERNALS__;
+
+let tauriStore: { get: (key: string) => Promise<any>; set: (key: string, value: any) => Promise<void>; save: () => Promise<void> } | null = null;
+let initialSessions: SessionStore[] = [];
+
+if (isTauri) {
+  try {
+    const { load } = await import("@tauri-apps/plugin-store");
+    tauriStore = await load("session.json");
+    initialSessions = ((await tauriStore!.get("sessions")) as SessionStore[]) ?? [];
+  } catch (error) {
+    console.warn("Failed to load Tauri store:", error);
+  }
+}
 
 const notifyStoreChange = async () => {
+  if (!isTauri) return;
   try {
     const { invoke } = await import("@tauri-apps/api/core");
     console.log("notifyStoreChange");
@@ -14,8 +27,6 @@ const notifyStoreChange = async () => {
     console.error("Failed to notify store change:", error);
   }
 };
-
-const initialSessions = (await tauriStore.get("sessions")) as SessionStore[];
 
 const useSessionStore = create<SessionStoreState>()(
   subscribeWithSelector((set) => ({
@@ -56,6 +67,7 @@ const useSessionStore = create<SessionStoreState>()(
 useSessionStore.subscribe(
   (state) => state.sessions,
   async (sessions) => {
+    if (!tauriStore) return;
     try {
       await tauriStore.set("sessions", sessions);
       await tauriStore.save();
