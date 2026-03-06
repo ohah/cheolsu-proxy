@@ -700,7 +700,8 @@ mod tests {
             id: "r1".to_string(),
             name: "Block ads".to_string(),
             enabled: true,
-            filter: "~d ads.example.com".to_string(),
+            pattern: "*ads.example.com*".to_string(),
+            method: None,
             action: InterceptAction::Block {
                 status_code: 403,
                 body: "Blocked".to_string(),
@@ -709,7 +710,7 @@ mod tests {
         let json = serde_json::to_string(&rule).unwrap();
         let parsed: InterceptRule = serde_json::from_str(&json).unwrap();
         assert_eq!(parsed.id, "r1");
-        assert_eq!(parsed.filter, "~d ads.example.com");
+        assert_eq!(parsed.pattern, "*ads.example.com*");
         assert!(parsed.enabled);
         match parsed.action {
             InterceptAction::Block { status_code, body } => {
@@ -729,7 +730,8 @@ mod tests {
             id: "r2".to_string(),
             name: "Modify API".to_string(),
             enabled: true,
-            filter: "~d api.example.com & ~m GET".to_string(),
+            pattern: "*api.example.com*".to_string(),
+            method: Some("GET".to_string()),
             action: InterceptAction::ModifyResponse {
                 set_status: Some(200),
                 add_headers: headers,
@@ -739,7 +741,8 @@ mod tests {
         };
         let json = serde_json::to_string(&rule).unwrap();
         let parsed: InterceptRule = serde_json::from_str(&json).unwrap();
-        assert_eq!(parsed.filter, "~d api.example.com & ~m GET");
+        assert_eq!(parsed.pattern, "*api.example.com*");
+        assert_eq!(parsed.method, Some("GET".to_string()));
         match parsed.action {
             InterceptAction::ModifyResponse {
                 set_status,
@@ -760,7 +763,8 @@ mod tests {
             id: "r1".to_string(),
             name: "Test".to_string(),
             enabled: true,
-            filter: "~u test.com".to_string(),
+            pattern: "*test.com*".to_string(),
+            method: None,
             action: InterceptAction::Block {
                 status_code: 403,
                 body: String::new(),
@@ -790,7 +794,7 @@ mod tests {
             "id": "r1",
             "name": "Block",
             "enabled": true,
-            "filter": "~u ads",
+            "pattern": "*ads*",
             "action": {
                 "type": "block",
                 "status_code": 403,
@@ -799,7 +803,8 @@ mod tests {
         }"#;
         let rule: crate::protocol::InterceptRule = serde_json::from_str(json).unwrap();
         assert_eq!(rule.id, "r1");
-        assert_eq!(rule.filter, "~u ads");
+        assert_eq!(rule.pattern, "*ads*");
+        assert!(rule.method.is_none());
     }
 
     #[test]
@@ -808,7 +813,8 @@ mod tests {
             "id": "r3",
             "name": "Add header",
             "enabled": true,
-            "filter": "~u \"api\\.test\\.com\" & ~m POST",
+            "pattern": "*api.test.com*",
+            "method": "POST",
             "action": {
                 "type": "modify_request",
                 "add_headers": {"Authorization": "Bearer token123"},
@@ -817,7 +823,8 @@ mod tests {
         }"#;
         let rule: crate::protocol::InterceptRule = serde_json::from_str(json).unwrap();
         assert_eq!(rule.id, "r3");
-        assert!(rule.filter.contains("~m POST"));
+        assert_eq!(rule.pattern, "*api.test.com*");
+        assert_eq!(rule.method, Some("POST".to_string()));
         match rule.action {
             crate::protocol::InterceptAction::ModifyRequest {
                 add_headers,
