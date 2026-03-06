@@ -5,7 +5,7 @@ import { Plus, Trash2, Pencil, Ban, ArrowUpDown, ArrowDownUp, Eraser } from "luc
 import { toast } from "sonner";
 import { AppSidebar } from "@/shared/app-sidebar";
 import type { InterceptRule, InterceptActionType } from "@/entities/intercept-rule";
-import { RuleFormDialog } from "./rule-form-dialog";
+import { RuleFormDialog } from "@/features/intercept-rule-form";
 
 const ACTION_LABELS: Record<
   InterceptActionType,
