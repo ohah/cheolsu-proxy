@@ -7,7 +7,7 @@ import type { ProxyEventTuple } from "@/entities/proxy";
 
 const App: React.FC = () => {
   useThemeProvider();
-  const { initializeProxy } = useProxyStore();
+  const initializeProxy = useProxyStore((s) => s.initializeProxy);
   const syncToProxy = useInterceptRuleStore((s) => s.syncToProxy);
   const addTransaction = useTransactionStore((s) => s.addTransaction);
   const paused = useTransactionStore((s) => s.paused);
