@@ -93,7 +93,9 @@ const WsMessageRow = memo(
         <td className="px-2 flex-1 truncate max-w-0">
           <span className="text-foreground truncate block">{message.payload}</span>
         </td>
-        <td className="px-2 w-24 text-right text-muted-foreground">{formatTime(message.time)}</td>
+        <td className="px-2 pr-4 w-24 text-right text-muted-foreground">
+          {formatTime(message.time)}
+        </td>
       </tr>
     );
   },
@@ -136,7 +138,7 @@ export const WsMessageTable = memo(
                 <th className="px-2 w-16 text-left">Type</th>
                 <th className="px-2 w-20 text-right">Size</th>
                 <th className="px-2 text-left">Data</th>
-                <th className="px-2 w-24 text-right">Time</th>
+                <th className="px-2 pr-4 w-24 text-right">Time</th>
               </tr>
             </thead>
           </table>
