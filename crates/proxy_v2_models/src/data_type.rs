@@ -583,8 +583,8 @@ mod tests {
 
     #[test]
     fn test_gzip_decompression() {
-        use flate2::write::GzEncoder;
         use flate2::Compression;
+        use flate2::write::GzEncoder;
         use std::io::Write;
 
         let headers = HeaderMap::new();
