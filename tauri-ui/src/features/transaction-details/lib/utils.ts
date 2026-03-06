@@ -225,6 +225,117 @@ export const generateCurlCommand = (transaction: HttpTransaction): string => {
   return curlCommand;
 };
 
+/**
+ * URL 경로에서 파일 이름을 추출
+ */
+export const getFileNameFromUrl = (uri: string): string | null => {
+  try {
+    const url = new URL(uri);
+    const pathSegments = url.pathname.split("/").filter(Boolean);
+    const lastSegment = pathSegments[pathSegments.length - 1];
+    if (lastSegment && lastSegment.includes(".")) {
+      return decodeURIComponent(lastSegment);
+    }
+    return null;
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * Content-Disposition 헤더에서 파일 이름을 추출
+ */
+export const getFileNameFromContentDisposition = (
+  headers: Record<string, string>,
+): string | null => {
+  const disposition = headers["content-disposition"];
+  if (!disposition) return null;
+
+  const utf8Match = disposition.match(/filename\*=(?:UTF-8''|utf-8'')([^;]+)/i);
+  if (utf8Match) {
+    try {
+      return decodeURIComponent(utf8Match[1]);
+    } catch {
+      return utf8Match[1];
+    }
+  }
+
+  const quotedMatch = disposition.match(/filename="([^"]+)"/i);
+  if (quotedMatch) return quotedMatch[1];
+
+  const plainMatch = disposition.match(/filename=([^;\s]+)/i);
+  if (plainMatch) return plainMatch[1];
+
+  return null;
+};
+
+/**
+ * file_path에서 확장자를 추출
+ */
+export const getExtensionFromPath = (path: string): string => {
+  const fileName = path.split("/").pop() || "";
+  const dotIndex = fileName.lastIndexOf(".");
+  if (dotIndex > 0) {
+    return fileName.substring(dotIndex + 1).toLowerCase();
+  }
+  return "";
+};
+
+/**
+ * 바이너리 데이터의 파일 정보를 추출
+ */
+export const extractBinaryFileInfo = (
+  uri: string,
+  headers: Record<string, string>,
+  dataType: DataType,
+  filePath?: string,
+  bodySize?: number,
+): { fileName: string; fileExtension: string; mimeType: string } => {
+  const contentType = headers["content-type"] || "";
+  const mimeType = contentType.split(";")[0].trim();
+
+  let fileExtension = "";
+  if (filePath) {
+    fileExtension = getExtensionFromPath(filePath);
+  }
+  if (!fileExtension && mimeType) {
+    const mimeToExt: Record<string, string> = {
+      "application/pdf": "pdf",
+      "application/zip": "zip",
+      "application/x-rar-compressed": "rar",
+      "application/x-7z-compressed": "7z",
+      "application/gzip": "gz",
+      "application/x-tar": "tar",
+      "application/octet-stream": "bin",
+      "application/wasm": "wasm",
+      "font/woff": "woff",
+      "font/woff2": "woff2",
+      "font/ttf": "ttf",
+      "font/otf": "otf",
+    };
+    fileExtension = mimeToExt[mimeType] || "";
+  }
+  if (!fileExtension) {
+    const typeToExt: Record<string, string> = {
+      Document: "pdf",
+      Archive: "zip",
+      Binary: "bin",
+    };
+    fileExtension = typeToExt[dataType] || "bin";
+  }
+
+  let fileName = getFileNameFromContentDisposition(headers);
+  if (!fileName) {
+    fileName = getFileNameFromUrl(uri);
+  }
+  if (!fileName) {
+    const size = bodySize ? `_${bodySize}` : "";
+    fileName = `file${size}.${fileExtension}`;
+  }
+
+  return { fileName, fileExtension, mimeType };
+};
+
 // Re-export data type utilities for convenience
 export {
   dataTypeToMonacoLanguage,
