@@ -7,7 +7,7 @@ mod system_proxy;
 use proxy_daemon::{ClientCommand, DaemonConnection, InterceptAction, InterceptRule};
 use proxy_v2::{
     clean_old_proxy_cache, proxy_v2_status, read_body_file, replay_request, replay_sequence,
-    start_proxy_v2, stop_proxy_v2, store_changed_v2, update_intercept_rules_v2, ProxyV2State,
+    start_proxy_v2, stop_proxy_v2, update_intercept_rules_v2, ProxyV2State,
 };
 use system_proxy::get_proxy_status_command;
 use tauri::Manager;
@@ -535,7 +535,6 @@ pub fn run() {
                 start_proxy_v2,
                 stop_proxy_v2,
                 proxy_v2_status,
-                store_changed_v2,
                 update_intercept_rules_v2,
                 get_proxy_status_command,
                 read_body_file,
