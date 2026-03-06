@@ -36,6 +36,7 @@ chrono = { version = "0.4", features = ["serde"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["fmt", "registry", "env-filter"] }
 tracing-appender = "0.2"
+tauri-plugin-mcp-bridge = "0.9"
 
 [dev-dependencies]
 tempfile = "3"
