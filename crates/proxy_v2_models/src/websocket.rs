@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 pub enum WsContentType {
     #[default]
     Plain,
+    #[serde(rename = "socket_io")]
     SocketIO,
     Mqtt,
 }
@@ -159,25 +160,81 @@ pub enum WsConnectionEvent {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use base64::Engine;
+
+    fn encode(bytes: &[u8]) -> String {
+        base64::engine::general_purpose::STANDARD.encode(bytes)
+    }
+
+    /// MQTT UTF-8 String 인코딩 헬퍼
+    fn mqtt_string(s: &str) -> Vec<u8> {
+        let bytes = s.as_bytes();
+        let len = bytes.len() as u16;
+        let mut v = vec![(len >> 8) as u8, (len & 0xff) as u8];
+        v.extend_from_slice(bytes);
+        v
+    }
+
+    /// MQTT CONNECT 패킷 생성 헬퍼
+    fn build_connect_packet(version: u8) -> Vec<u8> {
+        let mut var_header = mqtt_string("MQTT");
+        var_header.push(version);
+        var_header.push(0x02); // Clean Session
+        var_header.extend_from_slice(&[0x00, 0x3c]); // Keep Alive = 60s
+        var_header.extend(mqtt_string("test-client"));
+
+        let remaining_len = var_header.len() as u8;
+        let mut packet = vec![0x10, remaining_len]; // CONNECT = 1 << 4
+        packet.extend(var_header);
+        packet
+    }
+
+    // ============================================================
+    // detect_ws_content_type 테스트
+    // ============================================================
 
     #[test]
-    fn test_detect_socketio() {
-        // Socket.IO EVENT: 42["chat","hello"]
+    fn test_detect_socketio_event() {
         assert_eq!(
             detect_ws_content_type(r#"42["chat","hello"]"#, false),
             WsContentType::SocketIO,
         );
+    }
 
-        // Socket.IO CONNECT: 40
-        assert_eq!(detect_ws_content_type("40", false), WsContentType::SocketIO,);
+    #[test]
+    fn test_detect_socketio_connect() {
+        assert_eq!(
+            detect_ws_content_type("40", false),
+            WsContentType::SocketIO,
+        );
+    }
 
-        // Not Socket.IO: regular text
+    #[test]
+    fn test_detect_socketio_disconnect() {
+        assert_eq!(
+            detect_ws_content_type("41", false),
+            WsContentType::SocketIO,
+        );
+    }
+
+    #[test]
+    fn test_detect_socketio_ack() {
+        assert_eq!(
+            detect_ws_content_type("43", false),
+            WsContentType::SocketIO,
+        );
+    }
+
+    #[test]
+    fn test_detect_plain_text() {
         assert_eq!(
             detect_ws_content_type("hello world", false),
             WsContentType::Plain,
         );
+    }
 
-        // Not Socket.IO: JSON
+    #[test]
+    fn test_detect_plain_json() {
         assert_eq!(
             detect_ws_content_type(r#"{"type":"ping"}"#, false),
             WsContentType::Plain,
@@ -185,26 +242,207 @@ mod tests {
     }
 
     #[test]
-    fn test_detect_mqtt() {
-        use base64::Engine;
+    fn test_detect_plain_single_digit() {
+        // "4" 단독은 Socket.IO가 아님 (두 번째 digit 필요)
+        assert_eq!(detect_ws_content_type("4", false), WsContentType::Plain);
+    }
 
-        // MQTT CONNECT packet (type=1, remaining length=0)
-        let connect_packet = vec![0x10, 0x00];
-        let encoded = base64::engine::general_purpose::STANDARD.encode(&connect_packet);
-        assert_eq!(detect_ws_content_type(&encoded, true), WsContentType::Mqtt,);
+    #[test]
+    fn test_detect_plain_non_message_engineio() {
+        // Engine.IO ping(2), pong(3) 등은 Socket.IO가 아님
+        assert_eq!(
+            detect_ws_content_type("2probe", false),
+            WsContentType::Plain,
+        );
+    }
 
-        // MQTT PUBLISH packet (type=3)
-        let publish_packet = vec![0x30, 0x05, 0x00, 0x01, b'a', b'h', b'i'];
-        let encoded = base64::engine::general_purpose::STANDARD.encode(&publish_packet);
-        assert_eq!(detect_ws_content_type(&encoded, true), WsContentType::Mqtt,);
+    #[test]
+    fn test_detect_mqtt_connect() {
+        let packet = vec![0x10, 0x00]; // CONNECT, remaining length=0
+        assert_eq!(
+            detect_ws_content_type(&encode(&packet), true),
+            WsContentType::Mqtt,
+        );
+    }
 
-        // Not MQTT: invalid packet type (0 or 15)
-        let invalid_packet = vec![0x00, 0x00];
-        let encoded = base64::engine::general_purpose::STANDARD.encode(&invalid_packet);
-        assert_eq!(detect_ws_content_type(&encoded, true), WsContentType::Plain,);
+    #[test]
+    fn test_detect_mqtt_publish() {
+        let packet = vec![0x30, 0x05, 0x00, 0x01, b'a', b'h', b'i'];
+        assert_eq!(
+            detect_ws_content_type(&encode(&packet), true),
+            WsContentType::Mqtt,
+        );
+    }
 
-        // Not MQTT: regular base64 text
-        let text = base64::engine::general_purpose::STANDARD.encode(b"hello");
-        assert_eq!(detect_ws_content_type(&text, true), WsContentType::Plain,);
+    #[test]
+    fn test_detect_mqtt_pingreq() {
+        let packet = vec![0xc0, 0x00]; // PINGREQ
+        assert_eq!(
+            detect_ws_content_type(&encode(&packet), true),
+            WsContentType::Mqtt,
+        );
+    }
+
+    #[test]
+    fn test_detect_mqtt_disconnect() {
+        let packet = vec![0xe0, 0x00]; // DISCONNECT
+        assert_eq!(
+            detect_ws_content_type(&encode(&packet), true),
+            WsContentType::Mqtt,
+        );
+    }
+
+    #[test]
+    fn test_detect_not_mqtt_invalid_type() {
+        // packet type 0과 15는 유효하지 않음
+        let packet = vec![0x00, 0x00];
+        assert_eq!(
+            detect_ws_content_type(&encode(&packet), true),
+            WsContentType::Plain,
+        );
+        let packet = vec![0xf0, 0x00];
+        assert_eq!(
+            detect_ws_content_type(&encode(&packet), true),
+            WsContentType::Plain,
+        );
+    }
+
+    #[test]
+    fn test_detect_not_mqtt_hello() {
+        // "hello"를 base64 인코딩하면 MQTT로 오탐지되지 않아야 함
+        let text = encode(b"hello");
+        assert_eq!(
+            detect_ws_content_type(&text, true),
+            WsContentType::Plain,
+        );
+    }
+
+    #[test]
+    fn test_detect_not_mqtt_remaining_length_mismatch() {
+        // Remaining Length가 실제 데이터와 불일치
+        let packet = vec![0x30, 0x0a, 0x00, 0x01, b'x']; // remaining=10이지만 실제=3
+        assert_eq!(
+            detect_ws_content_type(&encode(&packet), true),
+            WsContentType::Plain,
+        );
+    }
+
+    // ============================================================
+    // is_valid_mqtt_remaining_length 테스트
+    // ============================================================
+
+    #[test]
+    fn test_remaining_length_zero() {
+        assert!(is_valid_mqtt_remaining_length(&[0x00]));
+    }
+
+    #[test]
+    fn test_remaining_length_exact_match() {
+        // remaining length = 3, 뒤에 3바이트
+        assert!(is_valid_mqtt_remaining_length(&[0x03, 0xaa, 0xbb, 0xcc]));
+    }
+
+    #[test]
+    fn test_remaining_length_mismatch() {
+        // remaining length = 5, 뒤에 2바이트
+        assert!(!is_valid_mqtt_remaining_length(&[0x05, 0xaa, 0xbb]));
+    }
+
+    #[test]
+    fn test_remaining_length_multibyte() {
+        // 128 = 0x80 0x01 (variable byte integer)
+        // 뒤에 정확히 128바이트
+        let mut data = vec![0x80, 0x01];
+        data.extend(vec![0x00; 128]);
+        assert!(is_valid_mqtt_remaining_length(&data));
+    }
+
+    #[test]
+    fn test_remaining_length_empty() {
+        assert!(!is_valid_mqtt_remaining_length(&[]));
+    }
+
+    // ============================================================
+    // extract_mqtt_version_from_connect 테스트
+    // ============================================================
+
+    #[test]
+    fn test_extract_mqtt_version_311() {
+        let packet = build_connect_packet(4);
+        let result = extract_mqtt_version_from_connect(&encode(&packet));
+        assert_eq!(result, Some(4));
+    }
+
+    #[test]
+    fn test_extract_mqtt_version_50() {
+        let packet = build_connect_packet(5);
+        let result = extract_mqtt_version_from_connect(&encode(&packet));
+        assert_eq!(result, Some(5));
+    }
+
+    #[test]
+    fn test_extract_version_not_connect() {
+        // PUBLISH 패킷 — CONNECT가 아니므로 None
+        let packet = vec![0x30, 0x00];
+        assert_eq!(extract_mqtt_version_from_connect(&encode(&packet)), None);
+    }
+
+    #[test]
+    fn test_extract_version_too_short() {
+        // CONNECT 헤더만 있고 데이터 부족
+        let packet = vec![0x10, 0x02, 0x00];
+        assert_eq!(extract_mqtt_version_from_connect(&encode(&packet)), None);
+    }
+
+    #[test]
+    fn test_extract_version_invalid_base64() {
+        assert_eq!(
+            extract_mqtt_version_from_connect("!!!not-base64!!!"),
+            None,
+        );
+    }
+
+    #[test]
+    fn test_extract_version_empty() {
+        assert_eq!(extract_mqtt_version_from_connect(""), None);
+    }
+
+    // ============================================================
+    // WsContentType serde 테스트
+    // ============================================================
+
+    #[test]
+    fn test_ws_content_type_default() {
+        assert_eq!(WsContentType::default(), WsContentType::Plain);
+    }
+
+    #[test]
+    fn test_ws_content_type_serde_roundtrip() {
+        let types = vec![
+            WsContentType::Plain,
+            WsContentType::SocketIO,
+            WsContentType::Mqtt,
+        ];
+        for ct in types {
+            let json = serde_json::to_string(&ct).unwrap();
+            let deserialized: WsContentType = serde_json::from_str(&json).unwrap();
+            assert_eq!(ct, deserialized);
+        }
+    }
+
+    #[test]
+    fn test_ws_content_type_snake_case_serialization() {
+        assert_eq!(
+            serde_json::to_string(&WsContentType::SocketIO).unwrap(),
+            "\"socket_io\"",
+        );
+        assert_eq!(
+            serde_json::to_string(&WsContentType::Mqtt).unwrap(),
+            "\"mqtt\"",
+        );
+        assert_eq!(
+            serde_json::to_string(&WsContentType::Plain).unwrap(),
+            "\"plain\"",
+        );
     }
 }
