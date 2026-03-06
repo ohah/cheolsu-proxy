@@ -20,6 +20,8 @@ export const SidebarNavigation = memo(({ collapsed }: SidebarNavigationProps) =>
         return "network";
       case "/sessions":
         return "sessions";
+      case "/intercept-rules":
+        return "intercept-rules";
       default:
         return "network";
     }
@@ -36,10 +38,9 @@ export const SidebarNavigation = memo(({ collapsed }: SidebarNavigationProps) =>
       case "sessions":
         navigate("/sessions");
         break;
-      // 향후 다른 섹션들에 대한 라우팅 추가
-      // case 'performance':
-      //   navigate('/performance');
-      //   break;
+      case "intercept-rules":
+        navigate("/intercept-rules");
+        break;
       default:
         navigate("/dashboard");
     }

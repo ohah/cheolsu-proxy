@@ -1,6 +1,7 @@
 import { createBrowserRouter, RouterProvider as ReactRouterProvider } from "react-router-dom";
 import { NetworkDashboard } from "@/pages/network-dashboard";
 import { SessionsPage } from "@/pages/sessions";
+import { InterceptRulesPage } from "@/pages/intercept-rules";
 
 // React Router v7의 기본 라우터 설정
 export const router = createBrowserRouter([
@@ -26,6 +27,14 @@ export const router = createBrowserRouter([
     handle: {
       title: "Sessions - Cheolsu Proxy",
       description: "View and manage saved HTTP sessions",
+    },
+  },
+  {
+    path: "/intercept-rules",
+    element: <InterceptRulesPage />,
+    handle: {
+      title: "Intercept Rules - Cheolsu Proxy",
+      description: "Manage request/response intercept rules",
     },
   },
   // 향후 추가될 페이지들을 위한 라우트들

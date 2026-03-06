@@ -1,4 +1,4 @@
-import { Network, Database } from "lucide-react";
+import { Network, Database, Shield } from "lucide-react";
 
 import type { SidebarSection } from "./types";
 
@@ -16,6 +16,12 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
     label: "Sessions",
     icon: Database,
     description: "Saved HTTP sessions and data",
+  },
+  {
+    id: "intercept-rules",
+    label: "Intercept Rules",
+    icon: Shield,
+    description: "Manage request/response intercept rules",
   },
   // {
   //   id: 'performance',
