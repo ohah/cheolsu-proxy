@@ -85,18 +85,15 @@ export const useTransactions = () => {
     });
   }, []);
 
-  const checkAllTransactions = useCallback(
-    (transactionIds: string[]) => {
-      setCheckedTransactionIds((prev) => {
-        const allChecked = transactionIds.every((id) => prev.has(id));
-        if (allChecked) {
-          return new Set();
-        }
-        return new Set(transactionIds);
-      });
-    },
-    [],
-  );
+  const checkAllTransactions = useCallback((transactionIds: string[]) => {
+    setCheckedTransactionIds((prev) => {
+      const allChecked = transactionIds.every((id) => prev.has(id));
+      if (allChecked) {
+        return new Set();
+      }
+      return new Set(transactionIds);
+    });
+  }, []);
 
   const clearCheckedTransactions = useCallback(() => {
     setCheckedTransactionIds(new Set());

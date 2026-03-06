@@ -118,7 +118,11 @@ export const NetworkDashboard = () => {
           <ResizablePanelGroup
             orientation="horizontal"
             defaultLayout={
-              defaultLayout ?? { "host-path-tree": 25, "network-table": 75, "transaction-details": 0 }
+              defaultLayout ?? {
+                "host-path-tree": 25,
+                "network-table": 75,
+                "transaction-details": 0,
+              }
             }
             onLayoutChanged={onLayoutChanged}
             className="flex-1 flex border border-b-0 shadow-[0_0_10px_0_rgba(0,0,0,0.05)] bg-background"
@@ -174,14 +178,8 @@ export const NetworkDashboard = () => {
 
           {checkedTransactionIds.size > 0 && (
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-3 bg-primary text-primary-foreground px-4 py-2.5 rounded-lg shadow-lg z-10">
-              <span className="text-sm font-medium">
-                {checkedTransactionIds.size}개 선택됨
-              </span>
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={() => setSequenceReplayOpen(true)}
-              >
+              <span className="text-sm font-medium">{checkedTransactionIds.size}개 선택됨</span>
+              <Button size="sm" variant="secondary" onClick={() => setSequenceReplayOpen(true)}>
                 <Play className="w-4 h-4 mr-1" />
                 Replay
               </Button>

@@ -3,11 +3,7 @@ import { Play, Loader2 } from "lucide-react";
 
 import type { HttpTransaction } from "@/entities/proxy";
 import { isTextBasedDataType } from "@/entities/proxy/model/data-type";
-import {
-  replayRequest,
-  type ReplayRequestParams,
-  type ReplayResponse,
-} from "@/shared/api/proxy";
+import { replayRequest, type ReplayRequestParams, type ReplayResponse } from "@/shared/api/proxy";
 import {
   Dialog,
   DialogContent,

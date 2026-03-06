@@ -169,8 +169,7 @@ export function SequenceReplayDialog({
               )}
               {results.length > 0 && results[0].response && (
                 <span className="text-xs text-muted-foreground">
-                  총{" "}
-                  {results.reduce((sum, r) => sum + (r.response?.elapsed_ms ?? 0), 0)}
+                  총 {results.reduce((sum, r) => sum + (r.response?.elapsed_ms ?? 0), 0)}
                   ms
                 </span>
               )}
