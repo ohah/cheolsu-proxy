@@ -30,37 +30,26 @@ pub fn save_body_to_file(
     use std::io::Write;
 
     // 확장자 결정: MIME 타입 -> 파일 헤더 -> 데이터 타입 순으로 시도
+    let fallback_ext = detect_file_extension_from_header(body).unwrap_or(match data_type {
+        DataType::Image => "img",
+        DataType::Video => "video",
+        DataType::Audio => "audio",
+        _ => "body",
+    });
+
     let extension = if let Some(content_type) = headers.get("content-type") {
         if let Ok(mime_type) = content_type.to_str() {
             let mime_ext = get_extension_from_mime_type(mime_type);
             if !mime_ext.is_empty() {
                 mime_ext
             } else {
-                // MIME 타입에서 확장자를 찾을 수 없으면 파일 헤더 확인
-                detect_file_extension_from_header(body).unwrap_or_else(|| match data_type {
-                    DataType::Image => "img",
-                    DataType::Video => "video",
-                    DataType::Audio => "audio",
-                    _ => "body",
-                })
+                fallback_ext
             }
         } else {
-            // MIME 타입 파싱 실패 시 파일 헤더 확인
-            detect_file_extension_from_header(body).unwrap_or_else(|| match data_type {
-                DataType::Image => "img",
-                DataType::Video => "video",
-                DataType::Audio => "audio",
-                _ => "body",
-            })
+            fallback_ext
         }
     } else {
-        // Content-Type 헤더가 없는 경우 파일 헤더 확인
-        detect_file_extension_from_header(body).unwrap_or_else(|| match data_type {
-            DataType::Image => "img",
-            DataType::Video => "video",
-            DataType::Audio => "audio",
-            _ => "body",
-        })
+        fallback_ext
     };
 
     // 파일명 생성: 확장자가 있으면 점 포함, 없으면 점 없음
