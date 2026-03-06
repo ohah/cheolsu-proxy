@@ -11,8 +11,9 @@ import { useDefaultLayout } from "react-resizable-panels";
 import { Play, X } from "lucide-react";
 
 import { useTransactionFilters, useResizablePanelController } from "../hooks";
-import { useProxyStore, useTransactionStore } from "@/shared/stores";
+import { useProxyStore, useTransactionStore, useInterceptRuleDialogStore } from "@/shared/stores";
 import { HostPathTree } from "@/widgets/host-path-tree/ui/host-path-tree";
+import { RuleFormDialog } from "@/pages/intercept-rules/ui/rule-form-dialog";
 
 export const NetworkDashboard = () => {
   const { isConnected } = useProxyStore();
@@ -51,6 +52,10 @@ export const NetworkDashboard = () => {
   });
 
   const [sequenceReplayOpen, setSequenceReplayOpen] = useState(false);
+
+  const interceptRuleDialogOpen = useInterceptRuleDialogStore((s) => s.open);
+  const interceptRuleInitialValues = useInterceptRuleDialogStore((s) => s.initialValues);
+  const closeInterceptRuleDialog = useInterceptRuleDialogStore((s) => s.close);
 
   const createTransactionDeleteHandler = useCallback(
     (id: string) => () => {
@@ -207,6 +212,13 @@ export const NetworkDashboard = () => {
         onOpenChange={setSequenceReplayOpen}
         transactions={checkedTransactions}
         onComplete={clearCheckedTransactions}
+      />
+
+      <RuleFormDialog
+        open={interceptRuleDialogOpen}
+        onOpenChange={(open) => { if (!open) closeInterceptRuleDialog(); }}
+        editingRule={null}
+        initialValues={interceptRuleInitialValues}
       />
     </div>
   );
