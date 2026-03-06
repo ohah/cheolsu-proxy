@@ -1,9 +1,10 @@
-import { memo, useMemo } from "react";
-import { ArrowUp, ArrowDown, X } from "lucide-react";
+import { memo, useMemo, useState } from "react";
+import { ArrowUp, ArrowDown, X, Play } from "lucide-react";
 import { Editor } from "@monaco-editor/react";
 import { Button } from "@/shared/ui";
 import { cn } from "@/shared/lib";
 import type { WsMessageInfo } from "@/entities/websocket";
+import { WsReplayDialog } from "@/features/websocket-replay";
 
 interface WsMessageDetailProps {
   message: WsMessageInfo;
@@ -39,6 +40,7 @@ function detectLanguage(payload: string, isBinary: boolean, isJson: boolean): st
 }
 
 export const WsMessageDetail = memo(({ message, onClose }: WsMessageDetailProps) => {
+  const [replayOpen, setReplayOpen] = useState(false);
   const isSent = message.direction === "client_to_server";
   const { formatted, isJson } = useMemo(
     () =>
@@ -93,9 +95,15 @@ export const WsMessageDetail = memo(({ message, onClose }: WsMessageDetailProps)
           </span>
           <span className="text-muted-foreground">{formatSize(message.size)}</span>
         </div>
-        <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={onClose}>
-          <X className="w-3.5 h-3.5" />
-        </Button>
+        <div className="flex items-center gap-1">
+          <Button variant="ghost" size="sm" className="h-6 px-2 text-xs gap-1" title="Replay message" onClick={() => setReplayOpen(true)}>
+            <Play className="w-3 h-3" />
+            Replay
+          </Button>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={onClose}>
+            <X className="w-3.5 h-3.5" />
+          </Button>
+        </div>
       </div>
 
       {/* Meta info - DevTools style key-value grid */}
@@ -141,6 +149,8 @@ export const WsMessageDetail = memo(({ message, onClose }: WsMessageDetailProps)
           }}
         />
       </div>
+
+      <WsReplayDialog message={message} open={replayOpen} onOpenChange={setReplayOpen} />
     </div>
   );
 });
