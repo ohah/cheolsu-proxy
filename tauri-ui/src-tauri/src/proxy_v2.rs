@@ -3,7 +3,6 @@ use std::collections::HashMap;
 use std::net::SocketAddr;
 use std::sync::Arc;
 use tauri::{AppHandle, Emitter, Runtime, State};
-use tauri_plugin_store::{JsonValue, StoreExt};
 use tokio::sync::Mutex;
 
 /// 프록시 상태: daemon과의 연결을 관리
@@ -56,15 +55,6 @@ pub async fn start_proxy_v2<R: Runtime>(
             });
         }
     };
-
-    // 세션 데이터를 daemon에 전송
-    if let Ok(store) = app.store("session.json") {
-        let sessions = store.get("sessions").unwrap_or_default();
-        let cmd = ClientCommand::UpdateSessions { data: sessions };
-        if let Err(e) = conn.send_command(&cmd).await {
-            eprintln!("Failed to send initial sessions: {}", e);
-        }
-    }
 
     let mut proxy_guard = proxy.lock().await;
     proxy_guard.replace(conn);
@@ -294,37 +284,4 @@ fn base64_engine() -> base64::engine::GeneralPurpose {
 fn base64_encode(engine: &base64::engine::GeneralPurpose, data: &[u8]) -> String {
     use base64::Engine;
     engine.encode(data)
-}
-
-/// 세션 데이터 변경 시 UDS를 통해 daemon에 전달
-#[tauri::command]
-pub async fn store_changed_v2<R: Runtime>(
-    app: AppHandle<R>,
-    proxy: State<'_, ProxyV2State>,
-) -> Result<(), String> {
-    let proxy_guard = proxy.lock().await;
-
-    if proxy_guard.is_none() {
-        println!("store_changed_v2: Proxy가 실행 중이 아니므로 세션 업데이트를 무시합니다");
-        return Ok(());
-    }
-
-    let store = app.store("session.json").map_err(|e| e.to_string())?;
-    let sessions = store.get("sessions").unwrap_or_default();
-
-    let session_count = if let JsonValue::Array(arr) = &sessions {
-        arr.len()
-    } else {
-        0
-    };
-
-    println!("세션 데이터 업데이트: {} 개의 세션", session_count);
-
-    if let Some(conn) = proxy_guard.as_ref() {
-        let cmd = ClientCommand::UpdateSessions { data: sessions };
-        conn.send_command(&cmd).await?;
-        println!("Daemon에 세션 데이터 업데이트 완료");
-    }
-
-    Ok(())
 }
