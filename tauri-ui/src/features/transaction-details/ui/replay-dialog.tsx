@@ -102,7 +102,7 @@ function ResponseView({
   const headerEntries = Object.entries(headers);
 
   return (
-    <div className="h-full overflow-y-auto space-y-4">
+    <div className="h-full overflow-y-auto space-y-4 pr-2">
       <div className="flex items-center gap-4">
         <Badge variant="outline" className={`text-sm ${getStatusColor(status)}`}>
           {status}
@@ -266,7 +266,7 @@ export function ReplayDialog({ transaction }: ReplayDialogProps) {
             </TabsList>
 
             <TabsContent value="request" className="mt-4 min-h-0 flex-1 flex flex-col justify-between">
-              <div className="flex-1 min-h-0 overflow-y-auto space-y-4">
+              <div className="flex-1 min-h-0 overflow-y-auto space-y-4 pr-2">
                 <div className="flex gap-2">
                   <Select value={method} onValueChange={(v) => v && setMethod(v)}>
                     <SelectTrigger className="w-28">
