@@ -108,85 +108,102 @@ function decodeMqttUtf8String(bytes: Uint8Array, offset: number): [string, numbe
   return [str, offset + 2 + len];
 }
 
-export function formatMqtt(base64Payload: string): string {
+export interface MqttMeta {
+  packetType: string;
+  fields: { label: string; value: string }[];
+}
+
+export interface MqttParsed {
+  meta: MqttMeta;
+  payload: string;
+  payloadLanguage: string;
+}
+
+export function parseMqtt(base64Payload: string): MqttParsed | null {
   try {
     const bytes = decodeBase64ToBytes(base64Payload);
-    if (bytes.length < 2) return base64Payload;
+    if (bytes.length < 2) return null;
 
-    const packetType = bytes[0] >> 4;
+    const packetTypeNum = bytes[0] >> 4;
     const flags = bytes[0] & 0x0f;
-    const typeName = MQTT_PACKET_TYPES[packetType] ?? `UNKNOWN(${packetType})`;
+    const packetType = MQTT_PACKET_TYPES[packetTypeNum] ?? `UNKNOWN(${packetTypeNum})`;
     const [remainingLength, payloadStart] = decodeMqttRemainingLength(bytes, 1);
-    const lines: string[] = [`# MQTT ${typeName}`];
+    const fields: { label: string; value: string }[] = [];
+    let payload = "";
+    let payloadLanguage = "plaintext";
 
-    if (packetType === 3) {
+    if (packetTypeNum === 3) {
       // PUBLISH
-      const dup = (flags & 0x08) !== 0;
       const qos = (flags & 0x06) >> 1;
       const retain = (flags & 0x01) !== 0;
+      const dup = (flags & 0x08) !== 0;
 
       let offset = payloadStart;
       const [topic, newOffset] = decodeMqttUtf8String(bytes, offset);
       offset = newOffset;
 
-      // Packet ID for QoS > 0
       let packetId: number | undefined;
       if (qos > 0 && offset + 2 <= bytes.length) {
         packetId = (bytes[offset] << 8) | bytes[offset + 1];
         offset += 2;
       }
 
-      lines.push(`Topic: ${topic}`);
-      lines.push(`QoS: ${qos}`);
-      lines.push(`Retain: ${retain}`);
-      if (dup) lines.push(`DUP: true`);
-      if (packetId !== undefined) lines.push(`Packet ID: ${packetId}`);
+      fields.push({ label: "Topic", value: topic });
+      fields.push({ label: "QoS", value: String(qos) });
+      fields.push({ label: "Retain", value: String(retain) });
+      if (dup) fields.push({ label: "DUP", value: "true" });
+      if (packetId !== undefined) fields.push({ label: "Packet ID", value: String(packetId) });
 
-      // Payload
       const payloadBytes = bytes.slice(offset, payloadStart + remainingLength);
       if (payloadBytes.length > 0) {
         const payloadText = new TextDecoder("utf-8", { fatal: false }).decode(payloadBytes);
         try {
           const json = JSON.parse(payloadText);
-          lines.push(`Payload:\n${JSON.stringify(json, null, 2)}`);
+          payload = JSON.stringify(json, null, 2);
+          payloadLanguage = "json";
         } catch {
-          lines.push(`Payload:\n${payloadText}`);
+          payload = payloadText;
         }
       }
-    } else if (packetType === 1) {
+    } else if (packetTypeNum === 1) {
       // CONNECT
       let offset = payloadStart;
       const [protocolName, off1] = decodeMqttUtf8String(bytes, offset);
       offset = off1;
-      lines.push(`Protocol: ${protocolName}`);
+      fields.push({ label: "Protocol", value: protocolName });
       if (offset < bytes.length) {
-        lines.push(`Version: ${bytes[offset]}`);
+        fields.push({ label: "Version", value: String(bytes[offset]) });
         offset += 1;
       }
       if (offset < bytes.length) {
         const connectFlags = bytes[offset];
-        lines.push(`Clean Session: ${(connectFlags & 0x02) !== 0}`);
+        fields.push({ label: "Clean Session", value: String((connectFlags & 0x02) !== 0) });
         offset += 1;
       }
       if (offset + 2 <= bytes.length) {
         const keepAlive = (bytes[offset] << 8) | bytes[offset + 1];
-        lines.push(`Keep Alive: ${keepAlive}s`);
+        fields.push({ label: "Keep Alive", value: `${keepAlive}s` });
         offset += 2;
       }
       const [clientId] = decodeMqttUtf8String(bytes, offset);
-      if (clientId) lines.push(`Client ID: ${clientId}`);
-    } else if (packetType === 2) {
+      if (clientId) fields.push({ label: "Client ID", value: clientId });
+    } else if (packetTypeNum === 2) {
       // CONNACK
       if (payloadStart + 1 < bytes.length) {
-        lines.push(`Session Present: ${(bytes[payloadStart] & 0x01) !== 0}`);
-        lines.push(`Reason Code: ${bytes[payloadStart + 1]}`);
+        fields.push({
+          label: "Session Present",
+          value: String((bytes[payloadStart] & 0x01) !== 0),
+        });
+        fields.push({ label: "Reason Code", value: String(bytes[payloadStart + 1]) });
       }
-    } else if (packetType === 8) {
+    } else if (packetTypeNum === 8) {
       // SUBSCRIBE
       let offset = payloadStart;
       if (offset + 2 <= bytes.length) {
-        const packetId = (bytes[offset] << 8) | bytes[offset + 1];
-        lines.push(`Packet ID: ${packetId}`);
+        fields.push({
+          label: "Packet ID",
+          value: String((bytes[offset] << 8) | bytes[offset + 1]),
+        });
         offset += 2;
       }
       const subs: string[] = [];
@@ -195,15 +212,17 @@ export function formatMqtt(base64Payload: string): string {
         offset = newOff;
         const qos = offset < bytes.length ? bytes[offset] : 0;
         offset += 1;
-        subs.push(`  ${topic} (QoS ${qos})`);
+        subs.push(`${topic} (QoS ${qos})`);
       }
-      if (subs.length > 0) lines.push(`Subscriptions:\n${subs.join("\n")}`);
-    } else if (packetType === 9) {
+      if (subs.length > 0) fields.push({ label: "Subscriptions", value: subs.join(", ") });
+    } else if (packetTypeNum === 9) {
       // SUBACK
       let offset = payloadStart;
       if (offset + 2 <= bytes.length) {
-        const packetId = (bytes[offset] << 8) | bytes[offset + 1];
-        lines.push(`Packet ID: ${packetId}`);
+        fields.push({
+          label: "Packet ID",
+          value: String((bytes[offset] << 8) | bytes[offset + 1]),
+        });
         offset += 2;
       }
       const codes: number[] = [];
@@ -211,12 +230,26 @@ export function formatMqtt(base64Payload: string): string {
         codes.push(bytes[offset]);
         offset += 1;
       }
-      if (codes.length > 0) lines.push(`Return Codes: ${codes.join(", ")}`);
+      if (codes.length > 0) fields.push({ label: "Return Codes", value: codes.join(", ") });
     }
 
-    return lines.join("\n");
+    return { meta: { packetType, fields }, payload, payloadLanguage };
   } catch {
-    return base64Payload;
+    return null;
+  }
+}
+
+/**
+ * MQTT 패킷 타입명을 반환 (테이블 표시용)
+ */
+export function getMqttPacketType(base64Payload: string): string | null {
+  try {
+    const bytes = decodeBase64ToBytes(base64Payload);
+    if (bytes.length < 2) return null;
+    const packetTypeNum = bytes[0] >> 4;
+    return MQTT_PACKET_TYPES[packetTypeNum] ?? null;
+  } catch {
+    return null;
   }
 }
 
@@ -233,7 +266,11 @@ export function getWsContentView(
   }
 
   if (contentType === "mqtt") {
-    return { language: "mqtt", formatted: formatMqtt(payload) };
+    const parsed = parseMqtt(payload);
+    if (parsed) {
+      return { language: parsed.payloadLanguage, formatted: parsed.payload };
+    }
+    return { language: "plaintext", formatted: payload };
   }
 
   // Plain - 기존 로직

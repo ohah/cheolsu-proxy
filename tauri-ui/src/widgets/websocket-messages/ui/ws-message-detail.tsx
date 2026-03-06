@@ -3,7 +3,7 @@ import { ArrowUp, ArrowDown, X, Play } from "lucide-react";
 import { Editor } from "@monaco-editor/react";
 import { Button } from "@/shared/ui";
 import { cn } from "@/shared/lib";
-import { getWsContentView } from "@/shared/lib/ws-content-view";
+import { getWsContentView, parseMqtt } from "@/shared/lib/ws-content-view";
 import type { WsMessageInfo } from "@/entities/websocket";
 import { WsReplayDialog } from "@/features/websocket-replay";
 
@@ -27,19 +27,40 @@ export const WsMessageDetail = memo(({ message, onClose }: WsMessageDetailProps)
   const [replayOpen, setReplayOpen] = useState(false);
   const isSent = message.direction === "client_to_server";
 
+  const mqttParsed = useMemo(
+    () => (message.content_type === "mqtt" ? parseMqtt(message.payload) : null),
+    [message.payload, message.content_type],
+  );
+
   const { language, formatted } = useMemo(
     () => getWsContentView(message.payload, message.is_binary, message.content_type),
     [message.payload, message.is_binary, message.content_type],
   );
 
-  const metaItems = [
-    { label: "Direction", value: isSent ? "Sent (Client → Server)" : "Received (Server → Client)" },
-    { label: "Type", value: message.message_type },
-    { label: "Size", value: formatSize(message.size) },
-    { label: "Time", value: formatTimeFull(message.time) },
-    { label: "Connection", value: message.connection_id },
-    { label: "Sequence", value: `#${message.sequence}` },
-  ];
+  const metaItems = useMemo(() => {
+    const items = [
+      {
+        label: "Direction",
+        value: isSent ? "Sent (Client → Server)" : "Received (Server → Client)",
+      },
+      {
+        label: "Type",
+        value: mqttParsed ? `MQTT ${mqttParsed.meta.packetType}` : message.message_type,
+      },
+      { label: "Size", value: formatSize(message.size) },
+      { label: "Time", value: formatTimeFull(message.time) },
+      { label: "Connection", value: message.connection_id },
+      { label: "Sequence", value: `#${message.sequence}` },
+    ];
+
+    if (mqttParsed) {
+      for (const field of mqttParsed.meta.fields) {
+        items.push({ label: field.label, value: field.value });
+      }
+    }
+
+    return items;
+  }, [message, isSent, mqttParsed]);
 
   return (
     <div className="h-full flex flex-col bg-card">

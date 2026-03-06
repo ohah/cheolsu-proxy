@@ -1,6 +1,7 @@
-import { memo, useCallback, useRef, useEffect } from "react";
+import { memo, useCallback, useRef, useEffect, useMemo } from "react";
 import { ArrowUp, ArrowDown } from "lucide-react";
 import { cn } from "@/shared/lib";
+import { getMqttPacketType } from "@/shared/lib/ws-content-view";
 import type { WsMessageInfo } from "@/entities/websocket";
 
 interface WsMessageTableProps {
@@ -57,6 +58,10 @@ const WsMessageRow = memo(
   }) => {
     const isSent = message.direction === "client_to_server";
     const DirectionIcon = isSent ? ArrowUp : ArrowDown;
+    const mqttType = useMemo(
+      () => (message.content_type === "mqtt" ? getMqttPacketType(message.payload) : null),
+      [message.content_type, message.payload],
+    );
 
     return (
       <tr
@@ -71,27 +76,35 @@ const WsMessageRow = memo(
           <DirectionIcon className="w-3 h-3 inline-block" />
         </td>
         <td className="px-2 w-16">
-          <span
-            className={cn(
-              "inline-block px-1.5 py-0.5 rounded text-[10px] font-medium",
-              message.message_type === "text" &&
-                "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
-              message.message_type === "binary" &&
-                "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300",
-              message.message_type === "ping" &&
-                "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300",
-              message.message_type === "pong" &&
-                "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300",
-              message.message_type === "close" &&
-                "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300",
-            )}
-          >
-            {messageTypeLabel(message.message_type)}
-          </span>
-          {message.content_type && message.content_type !== "plain" && (
-            <span className="inline-block ml-1 px-1 py-0.5 rounded text-[9px] font-medium bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300">
-              {message.content_type === "socket_io" ? "SIO" : "MQTT"}
+          {mqttType ? (
+            <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-medium bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300">
+              {mqttType}
             </span>
+          ) : (
+            <>
+              <span
+                className={cn(
+                  "inline-block px-1.5 py-0.5 rounded text-[10px] font-medium",
+                  message.message_type === "text" &&
+                    "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
+                  message.message_type === "binary" &&
+                    "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300",
+                  message.message_type === "ping" &&
+                    "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300",
+                  message.message_type === "pong" &&
+                    "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300",
+                  message.message_type === "close" &&
+                    "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300",
+                )}
+              >
+                {messageTypeLabel(message.message_type)}
+              </span>
+              {message.content_type === "socket_io" && (
+                <span className="inline-block ml-1 px-1 py-0.5 rounded text-[9px] font-medium bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300">
+                  SIO
+                </span>
+              )}
+            </>
           )}
         </td>
         <td className="px-2 w-20 text-right text-muted-foreground">{formatSize(message.size)}</td>
