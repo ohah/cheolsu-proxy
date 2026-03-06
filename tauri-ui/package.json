@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "vite",
+    "dev:mock": "MOCK=true vite",
     "build": "vite build",
     "preview": "vite preview",
     "tauri-dev": "npm run log:backup && tauri dev",
