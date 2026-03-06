@@ -5,7 +5,7 @@ import { HTTP_METHODS, STATUS_CODES } from "../model";
 export const createCompletionProvider = (monaco: Monaco): IDisposable => {
   return monaco.languages.registerCompletionItemProvider("cheolsu-query", {
     triggerCharacters: ['"', ",", " ", "|", "!", "="],
-    provideCompletionItems: (model, position) => {
+    provideCompletionItems: (model: any, position: any) => {
       const textUntilPosition = model.getValueInRange({
         startLineNumber: 1,
         startColumn: 1,

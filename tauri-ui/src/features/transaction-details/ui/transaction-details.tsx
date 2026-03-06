@@ -7,7 +7,7 @@ import { TransactionHeaders } from "./transaction-headers";
 import { TransactionBody } from "./transaction-body";
 import { TransactionResponse } from "./transaction-response";
 
-import { useTransactionTabs, useTransactionEdit } from "../hooks";
+import { useTransactionTabs } from "../hooks";
 import { TRANSACTION_DETAILS_TAB_LABELS, TRANSACTION_DETAILS_TABS } from "../model";
 
 interface TransactionDetailsProps {
@@ -22,8 +22,6 @@ export function TransactionDetails({
   const { request, response } = transaction;
 
   const { activeTab, tabs, onTabChange } = useTransactionTabs();
-  const { isEditing, form, startEditing, cancelEditing, saveChanges } =
-    useTransactionEdit(transaction);
 
   if (!request || !response) {
     return null;
@@ -34,11 +32,6 @@ export function TransactionDetails({
       <TransactionHeader
         transaction={transaction}
         clearSelectedTransaction={clearSelectedTransaction}
-        isEditing={isEditing}
-        onStartEdit={startEditing}
-        onCancelEdit={cancelEditing}
-        onSaveEdit={saveChanges}
-        form={form}
       />
 
       <ScrollArea className="flex-1 overflow-auto p-4 [&_[data-slot=scroll-area-viewport]]:!flex [&_[data-slot=scroll-area-viewport]>div]:!w-full">
@@ -56,15 +49,15 @@ export function TransactionDetails({
             </TabsList>
 
             <TabsContent value={TRANSACTION_DETAILS_TABS.HEADERS} className="flex-1 mt-4">
-              <TransactionHeaders transaction={transaction} isEditing={isEditing} form={form} />
+              <TransactionHeaders transaction={transaction} />
             </TabsContent>
 
             <TabsContent value={TRANSACTION_DETAILS_TABS.BODY} className="flex-1 mt-4">
-              <TransactionBody transaction={transaction} isEditing={isEditing} form={form} />
+              <TransactionBody transaction={transaction} />
             </TabsContent>
 
             <TabsContent value={TRANSACTION_DETAILS_TABS.RESPONSE} className="flex-1 mt-4">
-              <TransactionResponse transaction={transaction} isEditing={isEditing} form={form} />
+              <TransactionResponse transaction={transaction} />
             </TabsContent>
           </Tabs>
         </div>

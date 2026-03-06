@@ -4,7 +4,6 @@ import { writeImage, writeText } from "@tauri-apps/plugin-clipboard-manager";
 import type { HttpTransaction } from "@/entities/proxy";
 
 import { Button, Card, CardContent, CardHeader } from "@/shared/ui";
-import type { AppFormInstance } from "../context/form-context";
 import { Editor } from "@monaco-editor/react";
 
 import { getBodyForDisplay, createImageDataUrl, extractBinaryFileInfo } from "../lib/utils";
@@ -21,15 +20,9 @@ import { useBodyFile } from "@/hooks/use-body-file";
 
 interface TransactionResponseProps {
   transaction: HttpTransaction;
-  isEditing?: boolean;
-  form?: AppFormInstance;
 }
 
-export const TransactionResponse = ({
-  transaction,
-  isEditing = false,
-  form,
-}: TransactionResponseProps) => {
+export const TransactionResponse = ({ transaction }: TransactionResponseProps) => {
   const { response } = transaction;
 
   if (!response) return null;
@@ -134,7 +127,6 @@ export const TransactionResponse = ({
             {response.file_path && (
               <div className="flex items-center gap-1 text-sm text-muted-foreground">
                 <FileText className="w-4 h-4" />
-                {/* <span>{isMediaDataType(response.data_type) ? '미디어 파일' : '파일에서 로드됨'}</span> */}
                 {fileLoading && <Loader2 className="w-3 h-3 animate-spin" />}
                 {fileError && <span className="text-destructive">오류</span>}
               </div>
@@ -169,33 +161,6 @@ export const TransactionResponse = ({
             fileExtension={binaryFileInfo.fileExtension}
             mimeType={binaryFileInfo.mimeType}
             filePath={response.file_path}
-          />
-        ) : form && isEditing ? (
-          <form.Field
-            name="response.data"
-            children={(field) => (
-              <div className="h-[calc(100vh-300px)] border rounded-md overflow-hidden">
-                <Editor
-                  height="calc(100vh - 300px)"
-                  language={dataTypeToMonacoLanguage(response.data_type)}
-                  value={(field.state.value as string) || ""}
-                  onChange={(value) => field.handleChange(value || "")}
-                  options={{
-                    minimap: { enabled: false },
-                    scrollBeyondLastLine: false,
-                    fontSize: 12,
-                    lineNumbers: "on",
-                    wordWrap: "on",
-                    automaticLayout: true,
-                    padding: { top: 8, bottom: 8 },
-                    scrollbar: {
-                      vertical: "auto",
-                      horizontal: "auto",
-                    },
-                  }}
-                />
-              </div>
-            )}
           />
         ) : (
           <div className="h-[calc(100vh-300px)] border rounded-md overflow-hidden">
