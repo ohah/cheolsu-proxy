@@ -12,7 +12,10 @@
     "tauri:dev:log": "bun run log:backup && LOG=true tauri dev",
     "log:backup": "cd src-tauri/logs && TODAY=$(date +%Y-%m-%d) && echo \"TODAY: $TODAY\" && echo \"Checking file: proxy.log.$TODAY\" && if [ -f proxy.log.$TODAY ]; then echo \"File exists, starting backup process\" && for i in {99..1}; do if [ -f proxy.log.$TODAY.old$i ]; then echo \"Moving proxy.log.$TODAY.old$i to proxy.log.$TODAY.old$((i+1))\" && mv proxy.log.$TODAY.old$i proxy.log.$TODAY.old$((i+1)); fi; done && echo \"Moving proxy.log.$TODAY to proxy.log.$TODAY.old1\" && mv proxy.log.$TODAY proxy.log.$TODAY.old1 && echo \"Backup completed\"; else echo \"File does not exist\"; fi",
     "log:generate": "npm run log:backup && cd /Users/yoon/Documents/workspace/proxelar && timeout 20s cargo run -p proxyapi_v2 --example log",
-    "log:clean": "cd src-tauri/logs && TODAY=$(date +%Y-%m-%d) && rm -f proxy.log.$TODAY.old*"
+    "log:clean": "cd src-tauri/logs && TODAY=$(date +%Y-%m-%d) && rm -f proxy.log.$TODAY.old*",
+    "test": "bun test --preload ./test/setup.ts test/stores test/entities",
+    "test:e2e": "bun test --timeout 60000 test/e2e",
+    "test:all": "bun run test && bun run test:e2e"
   },
   "dependencies": {
     "@base-ui/react": "^1.2.0",
@@ -42,8 +45,14 @@
     "zustand": "^5.0.11"
   },
   "devDependencies": {
+    "@anthropic-ai/sdk": "^0.78.0",
+    "@happy-dom/global-registrator": "^20.8.3",
+    "@hypothesi/tauri-mcp-server": "^0.9.0",
+    "@modelcontextprotocol/sdk": "^1.27.1",
     "@tailwindcss/vite": "^4.2.1",
     "@tauri-apps/cli": "2.10.1",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/react": "^16.3.2",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.4",
