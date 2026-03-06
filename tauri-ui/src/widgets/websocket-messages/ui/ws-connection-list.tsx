@@ -11,7 +11,12 @@ interface WsConnectionListProps {
 }
 
 export const WsConnectionList = memo(
-  ({ connections, selectedConnectionId, onSelectConnection, messageCounts }: WsConnectionListProps) => {
+  ({
+    connections,
+    selectedConnectionId,
+    onSelectConnection,
+    messageCounts,
+  }: WsConnectionListProps) => {
     if (connections.length === 0) {
       return (
         <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm p-4">
@@ -32,9 +37,7 @@ export const WsConnectionList = memo(
           onClick={() => onSelectConnection(null)}
         >
           <span className="font-medium">All Connections</span>
-          <span className="ml-2 text-xs text-muted-foreground">
-            ({connections.length})
-          </span>
+          <span className="ml-2 text-xs text-muted-foreground">({connections.length})</span>
         </div>
         {connections.map((conn) => {
           const isSelected = selectedConnectionId === conn.id;
