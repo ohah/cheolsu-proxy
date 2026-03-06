@@ -13,7 +13,6 @@ import {
   Badge,
   Textarea,
   Input,
-  ScrollArea,
   Tabs,
   TabsContent,
   TabsList,
@@ -297,44 +296,42 @@ export function ReplayDialog({ transaction }: ReplayDialogProps) {
                       Add
                     </Button>
                   </div>
-                  <ScrollArea className="max-h-[300px]">
-                    <div className="rounded-md border">
-                      <table className="w-full text-xs font-mono">
-                        <tbody>
-                          {headers.map((header, i) => (
-                            <tr key={i} className="border-b last:border-b-0 group">
-                              <td className="px-2 py-1 w-[220px]">
-                                <Input
-                                  value={header.key}
-                                  onChange={(e) => updateHeader(i, "key", e.target.value)}
-                                  placeholder="Header name"
-                                  className="h-7 text-xs font-mono border-0 shadow-none focus-visible:ring-0 px-1"
-                                />
-                              </td>
-                              <td className="px-2 py-1">
-                                <Input
-                                  value={header.value}
-                                  onChange={(e) => updateHeader(i, "value", e.target.value)}
-                                  placeholder="Value"
-                                  className="h-7 text-xs font-mono border-0 shadow-none focus-visible:ring-0 px-1"
-                                />
-                              </td>
-                              <td className="px-1 py-1 w-8">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100"
-                                  onClick={() => removeHeader(i)}
-                                >
-                                  <Trash2 className="w-3 h-3 text-destructive" />
-                                </Button>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </ScrollArea>
+                  <div className="rounded-md border">
+                    <table className="w-full text-xs font-mono">
+                      <tbody>
+                        {headers.map((header, i) => (
+                          <tr key={i} className="border-b last:border-b-0 group">
+                            <td className="px-2 py-1 w-[220px]">
+                              <Input
+                                value={header.key}
+                                onChange={(e) => updateHeader(i, "key", e.target.value)}
+                                placeholder="Header name"
+                                className="h-7 text-xs font-mono border-0 shadow-none focus-visible:ring-0 px-1"
+                              />
+                            </td>
+                            <td className="px-2 py-1">
+                              <Input
+                                value={header.value}
+                                onChange={(e) => updateHeader(i, "value", e.target.value)}
+                                placeholder="Value"
+                                className="h-7 text-xs font-mono border-0 shadow-none focus-visible:ring-0 px-1"
+                              />
+                            </td>
+                            <td className="px-1 py-1 w-8">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100"
+                                onClick={() => removeHeader(i)}
+                              >
+                                <Trash2 className="w-3 h-3 text-destructive" />
+                              </Button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
 
                 {method !== "GET" && method !== "HEAD" && (
