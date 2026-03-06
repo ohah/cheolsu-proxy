@@ -143,6 +143,37 @@ pub async fn update_intercept_rules_v2(
     Ok(())
 }
 
+/// WebSocket 메시지 주입 파라미터
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct WsInjectParams {
+    pub connection_id: String,
+    pub direction: String,
+    pub payload: String,
+    pub is_binary: bool,
+}
+
+/// WebSocket 메시지 주입 (활성 연결에 메시지 전송)
+#[tauri::command]
+pub async fn ws_inject_message(
+    proxy: State<'_, ProxyV2State>,
+    params: WsInjectParams,
+) -> Result<(), String> {
+    let proxy_guard = proxy.lock().await;
+
+    if let Some(conn) = proxy_guard.as_ref() {
+        let cmd = ClientCommand::WsInject {
+            connection_id: params.connection_id,
+            direction: params.direction,
+            payload: params.payload,
+            is_binary: params.is_binary,
+        };
+        conn.send_command(&cmd).await?;
+        Ok(())
+    } else {
+        Err("프록시가 실행 중이 아닙니다".to_string())
+    }
+}
+
 /// 리플레이 요청 파라미터
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct ReplayRequestParams {

@@ -54,6 +54,17 @@ export async function replayRequest(params: ReplayRequestParams): Promise<Replay
   return invoke("replay_request", { params });
 }
 
+export interface WsInjectParams {
+  connection_id: string;
+  direction: "to_client" | "to_server";
+  payload: string;
+  is_binary: boolean;
+}
+
+export async function wsInjectMessage(params: WsInjectParams): Promise<void> {
+  return invoke("ws_inject_message", { params });
+}
+
 export async function replaySequence(
   requests: ReplayRequestParams[],
 ): Promise<SequenceReplayResult[]> {
