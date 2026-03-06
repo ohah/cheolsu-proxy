@@ -318,9 +318,12 @@ fn spawn_message_forwarder_with_inject(
                     match injected {
                         Some(message) => {
                             debug!("주입 메시지 전달");
-                            if let Err(e) = sink.send(message).await {
-                                debug!(error = %e, "주입 메시지 전송 실패 (연결 종료 중)");
-                                break;
+                            let modified = handler.handle_message(&ctx, message).await;
+                            if let Some(message) = modified {
+                                if let Err(e) = sink.send(message).await {
+                                    debug!(error = %e, "주입 메시지 전송 실패 (연결 종료 중)");
+                                    break;
+                                }
                             }
                         }
                         None => {
