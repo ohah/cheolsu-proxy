@@ -6,10 +6,10 @@ mod proxy_v2;
 mod system_proxy;
 use proxy_daemon::{ClientCommand, DaemonConnection, InterceptAction, InterceptRule};
 use proxy_v2::{
-    check_cli_installed, clean_old_proxy_cache, get_mcp_server_path, install_cli, proxy_v2_status,
-    read_body_file, replay_request, replay_sequence, start_proxy_v2, stop_proxy_v2, uninstall_cli,
-    update_intercept_rules_v2, update_server_replay, update_upstream_proxy, ws_inject_message,
-    ProxyV2State,
+    check_cli_installed, clean_old_proxy_cache, get_mcp_server_path, install_cli, load_script,
+    proxy_v2_status, read_body_file, replay_request, replay_sequence, start_proxy_v2,
+    stop_proxy_v2, uninstall_cli, unload_script, update_intercept_rules_v2, update_server_replay,
+    update_upstream_proxy, ws_inject_message, ProxyV2State,
 };
 use system_proxy::get_proxy_status_command;
 use tauri::Manager;
@@ -552,7 +552,9 @@ pub fn run() {
                 get_mcp_server_path,
                 install_cli,
                 uninstall_cli,
-                check_cli_installed
+                check_cli_installed,
+                load_script,
+                unload_script
             ])
             .run(tauri::generate_context!())
             .expect("error while running tauri application");
