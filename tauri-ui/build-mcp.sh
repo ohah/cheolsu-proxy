@@ -1,5 +1,5 @@
 #!/bin/bash
-# MCP 서버 바이너리를 빌드하고 Tauri externalBin 경로에 복사하는 스크립트
+# MCP 서버 및 TUI 바이너리를 빌드하고 Tauri externalBin 경로에 복사하는 스크립트
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -19,6 +19,12 @@ fi
 echo "Building cheolsu-proxy-mcp ($PROFILE)..."
 cargo build -p cheolsu-proxy-mcp $CARGO_FLAGS --manifest-path "$WORKSPACE_ROOT/Cargo.toml"
 
+echo "Building cheolsu TUI ($PROFILE)..."
+cargo build -p cheolsu-proxy-tui $CARGO_FLAGS --manifest-path "$WORKSPACE_ROOT/Cargo.toml"
+
 mkdir -p "$BINARIES_DIR"
 cp "$WORKSPACE_ROOT/target/$PROFILE_DIR/cheolsu-proxy-mcp" "$BINARIES_DIR/cheolsu-proxy-mcp-$TARGET_TRIPLE"
 echo "Copied to $BINARIES_DIR/cheolsu-proxy-mcp-$TARGET_TRIPLE"
+
+cp "$WORKSPACE_ROOT/target/$PROFILE_DIR/cheolsu" "$BINARIES_DIR/cheolsu-$TARGET_TRIPLE"
+echo "Copied to $BINARIES_DIR/cheolsu-$TARGET_TRIPLE"
