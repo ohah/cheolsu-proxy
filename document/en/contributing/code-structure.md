@@ -46,6 +46,12 @@ members = [
 
 `proxy_v2_models` is not a workspace member but is a separate crate that other workspace members reference as a dependency.
 
+#### Key Modules
+- **har.rs**: HAR 1.2 format conversion module (`build_har()`, `build_har_json()`)
+- **request.rs / response.rs**: HTTP request/response models
+- **data_type.rs**: Data type classification
+- **file_storage.rs**: Body file storage management
+
 ## Backend Structure
 
 ### 1. proxyapi_v2/ (Main Proxy Engine)
@@ -363,6 +369,7 @@ desktop/src/
 
 - **network-table/**: Table-related features (filtering, sorting, etc.)
 - **transaction-details/**: Transaction detail view
+- **har-export/**: Export transactions in HAR 1.2 format
 - **websocket-test/**: WebSocket test functionality
 
 #### 5. entities/ (Entity Layer)

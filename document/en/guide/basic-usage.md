@@ -26,6 +26,23 @@ A simple guide for first-time users of Cheolsu Proxy.
 1. Make any network request
 2. Check if the request is updated on the screen.
 
+## 📦 HAR Export
+
+You can export captured HTTP transactions in HAR (HTTP Archive) 1.2 format.
+
+### Desktop
+
+1. Capture traffic on the network dashboard
+2. Click the **Download** button in the header
+3. Choose a save location and a `.har` file will be created
+
+### TUI
+
+1. Press `e` on the network screen
+2. A `cheolsu-proxy-YYYYMMDD-HHMMSS.har` file will be created in the current directory
+
+> HAR files can be opened with Chrome DevTools, Firefox, Charles Proxy, and other tools.
+
 ## 🛑 Stop Proxy
 
 ### Stop the Proxy
