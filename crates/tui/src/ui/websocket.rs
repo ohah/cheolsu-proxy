@@ -24,7 +24,7 @@ fn draw_connections(f: &mut Frame, app: &App, area: Rect) {
             let status = if conn.active {
                 Span::styled("●", Style::default().fg(Color::Green))
             } else {
-                Span::styled("●", Style::default().fg(Color::DarkGray))
+                Span::styled("●", Style::default().fg(Color::Gray))
             };
 
             let selected = app.selected_ws_conn == Some(i);
@@ -45,7 +45,7 @@ fn draw_connections(f: &mut Frame, app: &App, area: Rect) {
     let table = Table::new(rows, [Constraint::Length(2), Constraint::Min(10)]).block(
         Block::default()
             .borders(Borders::ALL)
-            .border_style(Style::default().fg(Color::DarkGray))
+            .border_style(Style::default().fg(Color::Gray))
             .title(format!(" Connections ({}) ", app.ws_connections.len())),
     );
 
@@ -129,7 +129,7 @@ fn draw_messages(f: &mut Frame, app: &App, area: Rect) {
     .block(
         Block::default()
             .borders(Borders::ALL)
-            .border_style(Style::default().fg(Color::DarkGray))
+            .border_style(Style::default().fg(Color::Gray))
             .title(title),
     );
 

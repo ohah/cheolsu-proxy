@@ -17,11 +17,11 @@ pub fn draw(f: &mut Frame, app: &App, area: Rect) {
 fn draw_rules_list(f: &mut Frame, app: &App, area: Rect) {
     if app.rules.is_empty() {
         let empty = Paragraph::new("  규칙이 없습니다")
-            .style(Style::default().fg(Color::DarkGray))
+            .style(Style::default().fg(Color::Gray))
             .block(
                 Block::default()
                     .borders(Borders::ALL)
-                    .border_style(Style::default().fg(Color::DarkGray))
+                    .border_style(Style::default().fg(Color::Gray))
                     .title(" Intercept Rules "),
             );
         f.render_widget(empty, area);
@@ -106,7 +106,7 @@ fn draw_rules_list(f: &mut Frame, app: &App, area: Rect) {
     .block(
         Block::default()
             .borders(Borders::ALL)
-            .border_style(Style::default().fg(Color::DarkGray))
+            .border_style(Style::default().fg(Color::Gray))
             .title(format!(" Intercept Rules ({}) ", app.rules.len())),
     );
 
@@ -127,7 +127,7 @@ fn draw_rules_help(f: &mut Frame, area: Rect) {
     .block(
         Block::default()
             .borders(Borders::ALL)
-            .border_style(Style::default().fg(Color::DarkGray)),
+            .border_style(Style::default().fg(Color::Gray)),
     );
 
     f.render_widget(help, area);

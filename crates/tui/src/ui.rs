@@ -30,10 +30,10 @@ fn draw_tabs(f: &mut Frame, app: &App, area: Rect) {
         .map(|t| {
             let style = if *t == app.tab {
                 Style::default()
-                    .fg(Color::Yellow)
+                    .fg(Color::Cyan)
                     .add_modifier(Modifier::BOLD)
             } else {
-                Style::default().fg(Color::DarkGray)
+                Style::default().fg(Color::White)
             };
             Line::from(Span::styled(t.title(), style))
         })
@@ -43,10 +43,15 @@ fn draw_tabs(f: &mut Frame, app: &App, area: Rect) {
         .block(
             Block::default()
                 .borders(Borders::ALL)
-                .border_style(Style::default().fg(Color::DarkGray))
-                .title(" Cheolsu Proxy "),
+                .border_style(Style::default().fg(Color::Gray))
+                .title(Span::styled(
+                    " Cheolsu Proxy ",
+                    Style::default()
+                        .fg(Color::Cyan)
+                        .add_modifier(Modifier::BOLD),
+                )),
         )
-        .highlight_style(Style::default().fg(Color::Yellow))
+        .highlight_style(Style::default().fg(Color::Cyan))
         .select(Tab::ALL.iter().position(|t| *t == app.tab).unwrap_or(0))
         .divider("│");
 
@@ -71,12 +76,12 @@ fn draw_status_bar(f: &mut Frame, app: &App, area: Rect) {
 
     let port_info = Span::styled(
         format!("  {}:{}", app.host, app.port),
-        Style::default().fg(Color::DarkGray),
+        Style::default().fg(Color::Gray),
     );
 
     let help = Span::styled(
         "  Tab: 탭전환 | q: 종료",
-        Style::default().fg(Color::DarkGray),
+        Style::default().fg(Color::Gray),
     );
 
     let paused = if app.paused {
