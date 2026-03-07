@@ -44,13 +44,13 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Build Tauri app (debug)
-        working-directory: tauri-ui
+        working-directory: desktop
         run: bun run tauri build --debug
         env:
           IS_PROXY: "false"
 
       - name: Run E2E tests
-        working-directory: tauri-ui
+        working-directory: desktop
         run: |
           # Tauri 앱을 Xvfb 가상 디스플레이에서 실행
           export DISPLAY=:99

@@ -80,7 +80,7 @@ async function sleep(ms: number) {
  * Intercept Rules 페이지 e2e 테스트 (MCP Server Tauri)
  *
  * 실행 전 Tauri 앱이 dev 모드로 떠 있어야 합니다:
- *   cd tauri-ui && bun run tauri-dev
+ *   cd desktop && bun run tauri-dev
  */
 describe("Intercept Rules Page - MCP e2e", () => {
   beforeAll(async () => {

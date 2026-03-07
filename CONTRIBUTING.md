@@ -48,7 +48,7 @@ We appreciate contributions of any size, from small bug fixes to major new featu
 - start development
 
 ```bash
-cd tauri-ui
+cd desktop
 bun install
 bun tauri dev
 ```
@@ -56,7 +56,7 @@ bun tauri dev
 - package and release
 
 ```bash
-cd tauri-ui
+cd desktop
 bun tauri build
 ```
 

@@ -90,7 +90,7 @@ cd cheolsu-proxy
 
 # Install dependencies
 cargo build
-cd tauri-ui && bun install
+cd desktop && bun install
 ```
 
 ## Development Workflow
@@ -118,7 +118,7 @@ git checkout -b fix/your-bug-fix
 
 ```bash
 # Run development server
-cd tauri-ui
+cd desktop
 bun run tauri dev
 
 # Run tests
@@ -226,7 +226,7 @@ cargo test --test integration_test
 
 ```bash
 # Test Tauri app
-cd tauri-ui
+cd desktop
 bun run tauri test
 ```
 
@@ -291,11 +291,11 @@ Closes #123
 ```bash
 # Update dependencies
 cargo update
-cd tauri-ui && bun update
+cd desktop && bun update
 
 # Clear cache
 cargo clean
-cd tauri-ui && rm -rf node_modules && bun install
+cd desktop && rm -rf node_modules && bun install
 ```
 
 **Test failure**:
@@ -315,7 +315,7 @@ cargo test test_name -- --nocapture
 cargo install tauri-cli --force
 
 # Reinstall dependencies
-cd tauri-ui && bun install
+cd desktop && bun install
 ```
 
 ## Community

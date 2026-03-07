@@ -18,7 +18,7 @@ cheolsu-proxy/
 ├── CONTRIBUTING_KO.md         # Contributing guide (Korean)
 ├── document/                  # Documentation (existing)
 ├── assets/                    # Project assets
-├── tauri-ui/                  # Frontend (React + TypeScript)
+├── desktop/                  # Frontend (React + TypeScript)
 ├── proxyapi/                  # Legacy proxy API
 ├── proxyapi_models/           # Legacy models
 ├── proxyapi_v2/               # New proxy API
@@ -35,7 +35,7 @@ members = [
     "proxyapi",
     "proxyapi_v2",
     "proxyapi_models",
-    "tauri-ui/src-tauri"
+    "desktop/src-tauri"
 ]
 
 [workspace.dependencies]
@@ -152,12 +152,12 @@ impl Proxy {
 }
 ```
 
-## Frontend Structure (tauri-ui/)
+## Frontend Structure (desktop/)
 
 ### FSD (Feature-Sliced Design) Architecture
 
 ```
-tauri-ui/src/
+desktop/src/
 ├── main.tsx                   # Application entry point
 ├── main.css                   # Global styles
 ├── app/                       # Application layer
@@ -379,7 +379,7 @@ tauri-ui/src/
 - **stores/**: Zustand state management
 - **assets/**: Static assets
 
-## Tauri Backend (tauri-ui/src-tauri/)
+## Tauri Backend (desktop/src-tauri/)
 
 ```
 src-tauri/
@@ -552,10 +552,10 @@ __tests__/
 cargo build
 
 # Frontend build
-cd tauri-ui && bun run build
+cd desktop && bun run build
 
 # Tauri app build
-cd tauri-ui && bun run tauri build
+cd desktop && bun run tauri build
 ```
 
 ### Production Build
@@ -565,7 +565,7 @@ cd tauri-ui && bun run tauri build
 cargo build --release
 
 # Tauri app packaging
-cd tauri-ui && bun run tauri build -- --target universal-apple-darwin
+cd desktop && bun run tauri build -- --target universal-apple-darwin
 ```
 
 ## Performance Optimization

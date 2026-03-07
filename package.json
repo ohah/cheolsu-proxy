@@ -13,7 +13,7 @@
   "license": "MIT",
   "author": "Cheolsu Proxy Team",
   "workspaces": [
-    "tauri-ui",
+    "desktop",
     "document"
   ],
   "type": "module",

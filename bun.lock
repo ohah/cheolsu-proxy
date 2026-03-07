@@ -10,20 +10,7 @@
         "shadcn": "^3.8.5",
       },
     },
-    "document": {
-      "name": "cheolsu-proxy-document",
-      "version": "1.0.0",
-      "dependencies": {
-        "react": "^19.2.0",
-        "react-dom": "^19.2.0",
-      },
-      "devDependencies": {
-        "@rspress/core": "2.0.3",
-        "@types/react": "^19.2.2",
-        "@types/react-dom": "^19.2.2",
-      },
-    },
-    "tauri-ui": {
+    "desktop": {
       "name": "cheolsu-proxy",
       "version": "0.1.0",
       "dependencies": {
@@ -74,6 +61,19 @@
         "oxlint": "^1.51.0",
         "typescript": "^5.9.3",
         "vite": "^7.3.1",
+      },
+    },
+    "document": {
+      "name": "cheolsu-proxy-document",
+      "version": "1.0.0",
+      "dependencies": {
+        "react": "^19.2.0",
+        "react-dom": "^19.2.0",
+      },
+      "devDependencies": {
+        "@rspress/core": "2.0.3",
+        "@types/react": "^19.2.2",
+        "@types/react-dom": "^19.2.2",
       },
     },
   },
@@ -764,7 +764,7 @@
 
     "character-reference-invalid": ["character-reference-invalid@2.0.1", "", {}, "sha512-iBZ4F4wRbyORVsu0jPV7gXkOsGYjGHPmAyv+HiHG8gi5PtC9KI2j1+v8/tlibRvjoWX027ypmG/n0HtO5t7unw=="],
 
-    "cheolsu-proxy": ["cheolsu-proxy@workspace:tauri-ui"],
+    "cheolsu-proxy": ["cheolsu-proxy@workspace:desktop"],
 
     "cheolsu-proxy-document": ["cheolsu-proxy-document@workspace:document"],
 

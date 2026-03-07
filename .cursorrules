@@ -13,7 +13,7 @@ rust nightly (mise.toml)
 포맷/린트: oxfmt, oxlint
 
 ## 프로젝트 구조
-- 프론트엔드는 tauri-ui/src 디렉토리에 배치됩니다.
+- 프론트엔드는 desktop/src 디렉토리에 배치됩니다.
 - 백엔드는 cargo의 모노레포 구조로 구성되어 있습니다.
   - src-tauri
   - proxyyapi (Legacy)

@@ -18,7 +18,7 @@ cheolsu-proxy/
 ├── CONTRIBUTING_KO.md         # 기여 가이드 (한국어)
 ├── document/                  # 문서 (기존)
 ├── assets/                    # 프로젝트 에셋
-├── tauri-ui/                  # 프론트엔드 (React + TypeScript)
+├── desktop/                  # 프론트엔드 (React + TypeScript)
 ├── proxyapi/                  # 레거시 프록시 API
 ├── proxyapi_models/           # 레거시 모델
 ├── proxyapi_v2/               # 새로운 프록시 API
@@ -36,7 +36,7 @@ members = [
     "proxyapi",
     "proxyapi_v2",
     "proxyapi_models",
-    "tauri-ui/src-tauri",
+    "desktop/src-tauri",
 ]
 
 [workspace.dependencies]
@@ -153,12 +153,12 @@ impl Proxy {
 }
 ```
 
-## 프론트엔드 구조 (tauri-ui/)
+## 프론트엔드 구조 (desktop/)
 
 ### FSD (Feature-Sliced Design) 아키텍처
 
 ```
-tauri-ui/src/
+desktop/src/
 ├── main.tsx                   # 애플리케이션 진입점
 ├── main.css                   # 글로벌 스타일
 ├── app/                       # 애플리케이션 레이어
@@ -380,7 +380,7 @@ tauri-ui/src/
 - **stores/**: Zustand 상태 관리
 - **assets/**: 정적 에셋
 
-## Tauri 백엔드 (tauri-ui/src-tauri/)
+## Tauri 백엔드 (desktop/src-tauri/)
 
 ```
 src-tauri/
