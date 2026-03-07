@@ -1,6 +1,6 @@
 use proxy_daemon::{
     clean_old_cache, ClientCommand, DaemonConnection, DaemonMessage, InterceptRule,
-    UpstreamProxyConfig,
+    ServerReplayEntry, UpstreamProxyConfig,
 };
 use std::collections::HashMap;
 use std::net::SocketAddr;
@@ -361,6 +361,25 @@ pub async fn update_upstream_proxy(
         let cmd = ClientCommand::UpdateUpstreamProxy { config };
         conn.send_command(&cmd).await?;
         tracing::info!("Daemon에 upstream proxy 설정 업데이트 완료");
+    } else {
+        return Err("프록시가 실행 중이 아닙니다".to_string());
+    }
+
+    Ok(())
+}
+
+/// 서버 리플레이 엔트리 업데이트
+#[tauri::command]
+pub async fn update_server_replay(
+    proxy: State<'_, ProxyV2State>,
+    entries: Vec<ServerReplayEntry>,
+) -> Result<(), String> {
+    let proxy_guard = proxy.lock().await;
+
+    if let Some(conn) = proxy_guard.as_ref() {
+        let cmd = ClientCommand::UpdateServerReplay { entries };
+        conn.send_command(&cmd).await?;
+        tracing::info!("Daemon에 서버 리플레이 엔트리 업데이트 완료");
     } else {
         return Err("프록시가 실행 중이 아닙니다".to_string());
     }
