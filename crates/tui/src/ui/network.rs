@@ -4,7 +4,7 @@ use ratatui::widgets::*;
 use super::{format_size, format_time};
 use crate::app::App;
 
-pub fn draw(f: &mut Frame, app: &App, area: Rect) {
+pub fn draw(f: &mut Frame, app: &mut App, area: Rect) {
     if app.show_detail && app.selected_transaction.is_some() {
         // Split view: list + detail
         let chunks = Layout::default()
@@ -18,7 +18,7 @@ pub fn draw(f: &mut Frame, app: &App, area: Rect) {
     }
 }
 
-fn draw_transaction_list(f: &mut Frame, app: &App, area: Rect) {
+fn draw_transaction_list(f: &mut Frame, app: &mut App, area: Rect) {
     let header = Row::new(vec![
         Cell::from("Time"),
         Cell::from("Method"),
@@ -36,19 +36,9 @@ fn draw_transaction_list(f: &mut Frame, app: &App, area: Rect) {
     let rows: Vec<Row> = app
         .transactions
         .iter()
-        .enumerate()
-        .map(|(i, info)| {
+        .map(|info| {
             let (method, uri, time, status, size) = extract_transaction_info(info);
             let status_style = status_color(status);
-
-            let selected = app.selected_transaction == Some(i);
-            let style = if selected {
-                Style::default()
-                    .bg(Color::Rgb(50, 60, 140))
-                    .fg(Color::White)
-            } else {
-                Style::default()
-            };
 
             Row::new(vec![
                 Cell::from(format_time(time)),
@@ -57,7 +47,6 @@ fn draw_transaction_list(f: &mut Frame, app: &App, area: Rect) {
                 Cell::from(status.to_string()).style(status_style),
                 Cell::from(format_size(size)),
             ])
-            .style(style)
         })
         .collect();
 
@@ -89,7 +78,7 @@ fn draw_transaction_list(f: &mut Frame, app: &App, area: Rect) {
     )
     .row_highlight_style(Style::default().bg(Color::Rgb(50, 60, 140)).fg(Color::White));
 
-    f.render_widget(table, area);
+    f.render_stateful_widget(table, area, &mut app.network_table_state);
 }
 
 fn draw_transaction_detail(f: &mut Frame, app: &App, area: Rect) {

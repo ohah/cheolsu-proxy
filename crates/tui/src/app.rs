@@ -8,6 +8,7 @@ use proxy_daemon::{
 };
 use proxy_v2_models::{RequestInfo, WsConnectionEvent, WsMessageInfo};
 use ratatui::prelude::*;
+use ratatui::widgets::TableState;
 use std::io;
 use std::time::Duration;
 use tokio::sync::mpsc;
@@ -41,6 +42,11 @@ pub struct App {
 
     // Rule form
     pub rule_form: Option<RuleForm>,
+
+    // Table states (for scroll)
+    pub network_table_state: TableState,
+    pub ws_conn_table_state: TableState,
+    pub rules_table_state: TableState,
 
     // Status message
     pub status_message: Option<(String, std::time::Instant)>,
@@ -259,6 +265,9 @@ impl App {
             rules: Vec::new(),
             selected_rule: None,
             rule_form: None,
+            network_table_state: TableState::default(),
+            ws_conn_table_state: TableState::default(),
+            rules_table_state: TableState::default(),
             status_message: None,
             conn: None,
             event_tx: None,
@@ -282,6 +291,11 @@ impl App {
 
         // Main loop
         while self.running {
+            // Sync table states for scroll
+            self.network_table_state.select(self.selected_transaction);
+            self.ws_conn_table_state.select(self.selected_ws_conn);
+            self.rules_table_state.select(self.selected_rule);
+
             terminal.draw(|f| ui::draw(f, self))?;
 
             if let Some(event) = events.next().await {

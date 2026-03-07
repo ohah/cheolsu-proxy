@@ -4,11 +4,11 @@ use ratatui::widgets::*;
 
 use crate::app::{App, RuleFormField};
 
-pub fn draw(f: &mut Frame, app: &App, area: Rect) {
+pub fn draw(f: &mut Frame, app: &mut App, area: Rect) {
     draw_rules_list(f, app, area);
 }
 
-fn draw_rules_list(f: &mut Frame, app: &App, area: Rect) {
+fn draw_rules_list(f: &mut Frame, app: &mut App, area: Rect) {
     if app.rules.is_empty() {
         let empty = Paragraph::new("  No rules defined. Press 'a' to add.")
             .style(Style::default().fg(Color::Gray))
@@ -39,7 +39,7 @@ fn draw_rules_list(f: &mut Frame, app: &App, area: Rect) {
         .rules
         .iter()
         .enumerate()
-        .map(|(i, rule)| {
+        .map(|(_i, rule)| {
             let enabled = if rule.enabled {
                 Cell::from("✓").style(Style::default().fg(Color::Green))
             } else {
@@ -68,15 +68,6 @@ fn draw_rules_list(f: &mut Frame, app: &App, area: Rect) {
 
             let method = rule.method.as_deref().unwrap_or("*");
 
-            let selected = app.selected_rule == Some(i);
-            let style = if selected {
-                Style::default()
-                    .bg(Color::Rgb(50, 60, 140))
-                    .fg(Color::White)
-            } else {
-                Style::default()
-            };
-
             Row::new(vec![
                 enabled,
                 Cell::from(rule.name.clone()),
@@ -84,7 +75,6 @@ fn draw_rules_list(f: &mut Frame, app: &App, area: Rect) {
                 Cell::from(method.to_string()),
                 Cell::from(action),
             ])
-            .style(style)
         })
         .collect();
 
@@ -99,6 +89,11 @@ fn draw_rules_list(f: &mut Frame, app: &App, area: Rect) {
         ],
     )
     .header(header)
+    .row_highlight_style(
+        Style::default()
+            .bg(Color::Rgb(50, 60, 140))
+            .fg(Color::White),
+    )
     .block(
         Block::default()
             .borders(Borders::ALL)
@@ -110,7 +105,7 @@ fn draw_rules_list(f: &mut Frame, app: &App, area: Rect) {
             ),
     );
 
-    f.render_widget(table, area);
+    f.render_stateful_widget(table, area, &mut app.rules_table_state);
 }
 
 pub fn draw_rule_form(f: &mut Frame, app: &App, area: Rect) {
