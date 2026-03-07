@@ -109,7 +109,8 @@ where
             builder
                 .http1()
                 .title_case_headers(true)
-                .preserve_header_case(true);
+                .preserve_header_case(true)
+                .max_buf_size(1024 * 64);
             builder
         });
 
