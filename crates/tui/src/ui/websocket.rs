@@ -2,8 +2,8 @@ use proxy_v2_models::{WsDirection, WsMessageType};
 use ratatui::prelude::*;
 use ratatui::widgets::*;
 
-use crate::app::App;
 use super::format_time;
+use crate::app::App;
 
 pub fn draw(f: &mut Frame, app: &App, area: Rect) {
     let chunks = Layout::default()
@@ -42,11 +42,7 @@ fn draw_connections(f: &mut Frame, app: &App, area: Rect) {
         })
         .collect();
 
-    let table = Table::new(
-        rows,
-        [Constraint::Length(2), Constraint::Min(10)],
-    )
-    .block(
+    let table = Table::new(rows, [Constraint::Length(2), Constraint::Min(10)]).block(
         Block::default()
             .borders(Borders::ALL)
             .border_style(Style::default().fg(Color::DarkGray))
@@ -62,7 +58,8 @@ fn draw_messages(f: &mut Frame, app: &App, area: Rect) {
         .and_then(|i| app.ws_connections.get(i))
         .map(|c| c.connection_id.clone());
 
-    let filtered: Vec<&proxy_v2_models::WsMessageInfo> = if let Some(ref conn_id) = selected_conn_id {
+    let filtered: Vec<&proxy_v2_models::WsMessageInfo> = if let Some(ref conn_id) = selected_conn_id
+    {
         app.ws_messages
             .iter()
             .filter(|m| m.connection_id == *conn_id)
@@ -116,10 +113,7 @@ fn draw_messages(f: &mut Frame, app: &App, area: Rect) {
         })
         .collect();
 
-    let title = format!(
-        " Messages ({}) ",
-        filtered.len()
-    );
+    let title = format!(" Messages ({}) ", filtered.len());
 
     let table = Table::new(
         rows,

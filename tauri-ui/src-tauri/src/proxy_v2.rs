@@ -460,10 +460,7 @@ pub fn install_cli(app: AppHandle<impl Runtime>) -> Result<String, String> {
             // 직접 생성 실패 → 관리자 권한으로 재시도
             #[cfg(target_os = "macos")]
             {
-                let cmd = format!(
-                    "rm -f {} && ln -sf {} {}",
-                    link_path, tui_path, link_path
-                );
+                let cmd = format!("rm -f {} && ln -sf {} {}", link_path, tui_path, link_path);
                 run_with_admin_privileges(&cmd)?;
             }
 

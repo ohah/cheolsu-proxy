@@ -1,8 +1,8 @@
 use ratatui::prelude::*;
 use ratatui::widgets::*;
 
-use crate::app::App;
 use super::{format_size, format_time};
+use crate::app::App;
 
 pub fn draw(f: &mut Frame, app: &App, area: Rect) {
     if app.show_detail && app.selected_transaction.is_some() {
@@ -106,14 +106,13 @@ fn draw_transaction_detail(f: &mut Frame, app: &App, area: Rect) {
                 .fg(Color::Cyan)
                 .add_modifier(Modifier::BOLD),
         )));
-        lines.push(Line::from(format!(
-            "{} {}",
-            req.method(),
-            req.uri()
-        )));
+        lines.push(Line::from(format!("{} {}", req.method(), req.uri())));
         lines.push(Line::from(format!("Version: {:?}", req.version())));
         lines.push(Line::from(format!("Type: {:?}", req.data_type())));
-        lines.push(Line::from(format!("Size: {}", format_size(req.body_size()))));
+        lines.push(Line::from(format!(
+            "Size: {}",
+            format_size(req.body_size())
+        )));
         lines.push(Line::from(""));
 
         // 헤더
@@ -141,7 +140,10 @@ fn draw_transaction_detail(f: &mut Frame, app: &App, area: Rect) {
         )));
         lines.push(Line::from(format!("Status: {}", res.status())));
         lines.push(Line::from(format!("Type: {:?}", res.data_type())));
-        lines.push(Line::from(format!("Size: {}", format_size(res.body_size()))));
+        lines.push(Line::from(format!(
+            "Size: {}",
+            format_size(res.body_size())
+        )));
         lines.push(Line::from(""));
 
         // 헤더
@@ -171,7 +173,9 @@ fn draw_transaction_detail(f: &mut Frame, app: &App, area: Rect) {
     f.render_widget(paragraph, area);
 }
 
-fn extract_transaction_info(info: &proxy_v2_models::RequestInfo) -> (String, String, i64, u16, usize) {
+fn extract_transaction_info(
+    info: &proxy_v2_models::RequestInfo,
+) -> (String, String, i64, u16, usize) {
     let method = info
         .0
         .as_ref()
@@ -182,21 +186,9 @@ fn extract_transaction_info(info: &proxy_v2_models::RequestInfo) -> (String, Str
         .as_ref()
         .map(|r| r.uri().to_string())
         .unwrap_or_default();
-    let time = info
-        .0
-        .as_ref()
-        .map(|r| r.time())
-        .unwrap_or(0);
-    let status = info
-        .1
-        .as_ref()
-        .map(|r| r.status().as_u16())
-        .unwrap_or(0);
-    let size = info
-        .1
-        .as_ref()
-        .map(|r| r.body_size())
-        .unwrap_or(0);
+    let time = info.0.as_ref().map(|r| r.time()).unwrap_or(0);
+    let status = info.1.as_ref().map(|r| r.status().as_u16()).unwrap_or(0);
+    let size = info.1.as_ref().map(|r| r.body_size()).unwrap_or(0);
 
     (method, uri, time, status, size)
 }

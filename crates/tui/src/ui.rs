@@ -14,7 +14,7 @@ pub fn draw(f: &mut Frame, app: &App) {
         .direction(Direction::Vertical)
         .constraints([
             Constraint::Length(3), // 탭 바
-            Constraint::Min(0),   // 콘텐츠
+            Constraint::Min(0),    // 콘텐츠
             Constraint::Length(1), // 상태 바
         ])
         .split(f.area());

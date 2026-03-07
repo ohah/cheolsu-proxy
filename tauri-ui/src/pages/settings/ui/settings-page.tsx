@@ -173,17 +173,14 @@ export function SettingsPage() {
             </h2>
             <p className="text-sm text-muted-foreground">
               <Trans>
-                Install the <code className="text-xs bg-muted px-1 py-0.5 rounded">cheolsu</code> command to use the TUI from your terminal
+                Install the <code className="text-xs bg-muted px-1 py-0.5 rounded">cheolsu</code>{" "}
+                command to use the TUI from your terminal
               </Trans>
             </p>
           </div>
           <div className="flex items-center gap-3">
             <Button onClick={handleInstallCli} disabled={cliInstalling}>
-              {cliInstalling
-                ? t`Installing...`
-                : cliInstalled
-                  ? t`Reinstall`
-                  : t`Install`}
+              {cliInstalling ? t`Installing...` : cliInstalled ? t`Reinstall` : t`Install`}
             </Button>
             {cliInstalled && (
               <Button variant="outline" onClick={handleUninstallCli} disabled={cliInstalling}>
@@ -196,9 +193,7 @@ export function SettingsPage() {
               </Badge>
             )}
           </div>
-          {cliMessage && (
-            <p className="text-xs text-muted-foreground">{cliMessage}</p>
-          )}
+          {cliMessage && <p className="text-xs text-muted-foreground">{cliMessage}</p>}
         </div>
 
         {/* Upstream Proxy Section */}
