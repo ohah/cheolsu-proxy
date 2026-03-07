@@ -88,7 +88,7 @@ fn draw_status_bar(f: &mut Frame, app: &App, area: Rect) {
         Tab::Network => "  j/k: nav | Enter: detail | y/Y: copy | Space: pause | c: clear",
         Tab::WebSocket => "  j/k: nav | y: copy URI | Y: copy msgs | c: clear",
         Tab::InterceptRules => "  j/k: nav | a: add | t: toggle | d: delete | C: clear all",
-        Tab::Settings => "",
+        Tab::Settings => "  j/k: nav | Enter/Space: toggle/edit | Esc: cancel",
     };
     let help = Span::styled(
         format!("  Tab: switch | q: quit{}", tab_help),

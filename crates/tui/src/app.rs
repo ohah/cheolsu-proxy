@@ -5,6 +5,7 @@ use crossterm::{
 };
 use proxy_daemon::{
     ClientCommand, DaemonConnection, DaemonMessage, InterceptAction, InterceptRule,
+    UpstreamProxyAuth, UpstreamProxyConfig,
 };
 use proxy_v2_models::{RequestInfo, WsConnectionEvent, WsMessageInfo};
 use ratatui::prelude::*;
@@ -49,12 +50,115 @@ pub struct App {
     pub ws_conn_table_state: TableState,
     pub rules_table_state: TableState,
 
+    // Upstream Proxy
+    pub upstream_form: UpstreamProxyForm,
+
     // Status message
     pub status_message: Option<(String, std::time::Instant)>,
 
     // Connection
     conn: Option<DaemonConnection>,
     event_tx: Option<mpsc::UnboundedSender<Event>>,
+}
+
+/// Upstream proxy settings form
+#[derive(Debug, Clone)]
+pub struct UpstreamProxyForm {
+    pub enabled: bool,
+    pub field: UpstreamProxyField,
+    pub editing: bool,
+    pub host: String,
+    pub port: String,
+    pub username: String,
+    pub password: String,
+    pub bypass: String,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum UpstreamProxyField {
+    Enabled,
+    Host,
+    Port,
+    Username,
+    Password,
+    Bypass,
+}
+
+impl UpstreamProxyField {
+    pub const ALL: [UpstreamProxyField; 6] = [
+        Self::Enabled,
+        Self::Host,
+        Self::Port,
+        Self::Username,
+        Self::Password,
+        Self::Bypass,
+    ];
+
+    pub fn next(&self) -> Self {
+        let idx = Self::ALL.iter().position(|f| f == self).unwrap_or(0);
+        Self::ALL[(idx + 1) % Self::ALL.len()]
+    }
+
+    pub fn prev(&self) -> Self {
+        let idx = Self::ALL.iter().position(|f| f == self).unwrap_or(0);
+        if idx == 0 {
+            Self::ALL[Self::ALL.len() - 1]
+        } else {
+            Self::ALL[idx - 1]
+        }
+    }
+
+    pub fn label(&self) -> &'static str {
+        match self {
+            Self::Enabled => "Enabled",
+            Self::Host => "Host",
+            Self::Port => "Port",
+            Self::Username => "Username",
+            Self::Password => "Password",
+            Self::Bypass => "Bypass",
+        }
+    }
+}
+
+impl UpstreamProxyForm {
+    pub fn new() -> Self {
+        Self {
+            enabled: false,
+            field: UpstreamProxyField::Enabled,
+            editing: false,
+            host: String::new(),
+            port: "8080".to_string(),
+            username: String::new(),
+            password: String::new(),
+            bypass: "localhost".to_string(),
+        }
+    }
+
+    pub fn to_config(&self) -> Option<UpstreamProxyConfig> {
+        if !self.enabled || self.host.is_empty() {
+            return None;
+        }
+        let auth = if !self.username.is_empty() {
+            Some(UpstreamProxyAuth {
+                username: self.username.clone(),
+                password: self.password.clone(),
+            })
+        } else {
+            None
+        };
+        let bypass = self
+            .bypass
+            .split(',')
+            .map(|s| s.trim().to_string())
+            .filter(|s| !s.is_empty())
+            .collect();
+        Some(UpstreamProxyConfig {
+            host: self.host.clone(),
+            port: self.port.parse().unwrap_or(8080),
+            auth,
+            bypass,
+        })
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -270,6 +374,7 @@ impl App {
             network_table_state: TableState::default(),
             ws_conn_table_state: TableState::default(),
             rules_table_state: TableState::default(),
+            upstream_form: UpstreamProxyForm::new(),
             status_message: None,
             conn: None,
             event_tx: None,
@@ -411,6 +516,12 @@ impl App {
             return;
         }
 
+        // If upstream proxy form is in editing mode, handle it
+        if self.tab == Tab::Settings && self.upstream_form.editing {
+            self.handle_settings_key(key).await;
+            return;
+        }
+
         // Global keys: q/Ctrl+c to quit
         if key.code == KeyCode::Char('q')
             || (key.code == KeyCode::Char('c') && key.modifiers.contains(KeyModifiers::CONTROL))
@@ -453,7 +564,7 @@ impl App {
             Tab::Network => self.handle_network_key(key).await,
             Tab::WebSocket => self.handle_ws_key(key),
             Tab::InterceptRules => self.handle_rules_key(key).await,
-            Tab::Settings => {}
+            Tab::Settings => self.handle_settings_key(key).await,
         }
     }
 
@@ -799,6 +910,72 @@ impl App {
                     });
                 }
             }
+        }
+    }
+
+    async fn handle_settings_key(&mut self, key: KeyEvent) {
+        if self.upstream_form.editing {
+            // Text input mode
+            match key.code {
+                KeyCode::Esc => {
+                    self.upstream_form.editing = false;
+                }
+                KeyCode::Enter => {
+                    self.upstream_form.editing = false;
+                    self.send_upstream_update().await;
+                }
+                KeyCode::Char(c) => {
+                    let field = match self.upstream_form.field {
+                        UpstreamProxyField::Host => &mut self.upstream_form.host,
+                        UpstreamProxyField::Port => &mut self.upstream_form.port,
+                        UpstreamProxyField::Username => &mut self.upstream_form.username,
+                        UpstreamProxyField::Password => &mut self.upstream_form.password,
+                        UpstreamProxyField::Bypass => &mut self.upstream_form.bypass,
+                        _ => return,
+                    };
+                    field.push(c);
+                }
+                KeyCode::Backspace => {
+                    let field = match self.upstream_form.field {
+                        UpstreamProxyField::Host => &mut self.upstream_form.host,
+                        UpstreamProxyField::Port => &mut self.upstream_form.port,
+                        UpstreamProxyField::Username => &mut self.upstream_form.username,
+                        UpstreamProxyField::Password => &mut self.upstream_form.password,
+                        UpstreamProxyField::Bypass => &mut self.upstream_form.bypass,
+                        _ => return,
+                    };
+                    field.pop();
+                }
+                _ => {}
+            }
+            return;
+        }
+
+        // Navigation mode
+        match key.code {
+            KeyCode::Up | KeyCode::Char('k') => {
+                self.upstream_form.field = self.upstream_form.field.prev();
+            }
+            KeyCode::Down | KeyCode::Char('j') => {
+                self.upstream_form.field = self.upstream_form.field.next();
+            }
+            KeyCode::Enter | KeyCode::Char(' ') => {
+                if self.upstream_form.field == UpstreamProxyField::Enabled {
+                    self.upstream_form.enabled = !self.upstream_form.enabled;
+                    self.send_upstream_update().await;
+                } else {
+                    self.upstream_form.editing = true;
+                }
+            }
+            _ => {}
+        }
+    }
+
+    async fn send_upstream_update(&self) {
+        if let Some(conn) = &self.conn {
+            let config = self.upstream_form.to_config();
+            let cmd = ClientCommand::UpdateUpstreamProxy { config };
+            let _ = conn.send_command(&cmd).await;
         }
     }
 
