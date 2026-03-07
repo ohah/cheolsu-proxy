@@ -220,9 +220,16 @@ where
             registry.register(conn_id.clone(), injector).await;
         }
 
-        let websocket_handler = self.websocket_handler;
+        let mut websocket_handler = self.websocket_handler;
         let websocket_registry = self.ctx.websocket_registry;
         let client_addr = self.client_addr;
+
+        // Notify handler of new connection
+        let connected_ctx = WebSocketContext::ServerToClient {
+            src: uri.clone(),
+            dst: client_addr,
+        };
+        websocket_handler.on_connected(&connected_ctx).await;
 
         // 서버→클라이언트 (+ 주입 메시지)
         debug!("서버→클라이언트 메시지 전달기 시작");
@@ -333,6 +340,9 @@ fn spawn_message_forwarder_with_inject(
                 }
             }
         }
+
+        // Notify handler of disconnection
+        handler.on_disconnected(&ctx).await;
 
         // 레지스트리에서 연결 해제
         if let Some(ref registry) = registry {

@@ -1066,6 +1066,39 @@ pub fn parse_curl_response(
 }
 
 impl WebSocketHandler for LoggingHandler {
+    async fn on_connected(&mut self, ctx: &WebSocketContext) {
+        if let Some(ws_sender) = &self.ws_sender {
+            let (connection_id, uri) = match ctx {
+                WebSocketContext::ClientToServer { dst, .. } => (dst.to_string(), dst.to_string()),
+                WebSocketContext::ServerToClient { src, .. } => (src.to_string(), src.to_string()),
+            };
+            let event = WsConnectionEvent::Connected {
+                connection_id,
+                uri,
+                time: chrono::Local::now()
+                    .timestamp_nanos_opt()
+                    .unwrap_or_default(),
+            };
+            let _ = ws_sender.try_send(WsEvent::Connection(event));
+        }
+    }
+
+    async fn on_disconnected(&mut self, ctx: &WebSocketContext) {
+        if let Some(ws_sender) = &self.ws_sender {
+            let connection_id = match ctx {
+                WebSocketContext::ClientToServer { dst, .. } => dst.to_string(),
+                WebSocketContext::ServerToClient { src, .. } => src.to_string(),
+            };
+            let event = WsConnectionEvent::Disconnected {
+                connection_id,
+                time: chrono::Local::now()
+                    .timestamp_nanos_opt()
+                    .unwrap_or_default(),
+            };
+            let _ = ws_sender.try_send(WsEvent::Connection(event));
+        }
+    }
+
     async fn handle_message(&mut self, ctx: &WebSocketContext, msg: Message) -> Option<Message> {
         if let Some(ws_sender) = &self.ws_sender {
             let (direction, connection_id) = match ctx {

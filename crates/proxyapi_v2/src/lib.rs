@@ -225,6 +225,16 @@ pub trait WebSocketHandler: Clone + Send + Sync + 'static {
         }
     }
 
+    /// Called when a WebSocket connection is established.
+    fn on_connected(&mut self, _ctx: &WebSocketContext) -> impl Future<Output = ()> + Send {
+        async {}
+    }
+
+    /// Called when a WebSocket connection is closed.
+    fn on_disconnected(&mut self, _ctx: &WebSocketContext) -> impl Future<Output = ()> + Send {
+        async {}
+    }
+
     /// This handler will be called for each WebSocket message. It can return an optional modified
     /// message. If None is returned the message will not be forwarded.
     fn handle_message(
