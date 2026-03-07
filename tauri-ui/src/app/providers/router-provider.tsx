@@ -8,6 +8,7 @@ import { InterceptRulesPage } from "@/pages/intercept-rules";
 import { MapRulesPage } from "@/pages/map-rules";
 import { WebSocketDashboard } from "@/pages/websocket-dashboard";
 import { SettingsPage } from "@/pages/settings";
+import { ServerReplayPage } from "@/pages/server-replay";
 import { AppSidebar } from "@/shared/app-sidebar";
 
 function RootLayout() {
@@ -42,6 +43,10 @@ export const router = createBrowserRouter([
       {
         path: "/websocket",
         element: <WebSocketDashboard />,
+      },
+      {
+        path: "/server-replay",
+        element: <ServerReplayPage />,
       },
       {
         path: "/settings",

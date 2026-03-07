@@ -1,4 +1,4 @@
-import { Network, Shield, Route, Plug, Settings } from "lucide-react";
+import { Network, Shield, Route, Plug, Settings, Database } from "lucide-react";
 import { msg } from "@lingui/core/macro";
 
 import type { SidebarSection } from "./types";
@@ -29,6 +29,12 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
     label: msg`Map Rules`,
     icon: Route,
     description: msg`Map Local / Map Remote rules`,
+  },
+  {
+    id: "server-replay",
+    label: msg`Server Replay`,
+    icon: Database,
+    description: msg`Return cached responses for matching requests`,
   },
   {
     id: "settings",
