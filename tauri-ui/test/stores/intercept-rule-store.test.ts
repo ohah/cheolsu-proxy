@@ -66,6 +66,9 @@ describe("intercept-rule-store", () => {
     useInterceptRuleStore = await getStore();
     // 스토어 초기화
     useInterceptRuleStore.setState({ rules: [] });
+    // map-rule-store도 초기화 (syncAllRulesToProxy가 모든 스토어를 합치므로)
+    const { useMapRuleStore } = await import("../../src/shared/stores/map-rule-store");
+    useMapRuleStore.setState({ rules: [] });
     (invoke as ReturnType<typeof mock>).mockClear();
   });
 
@@ -283,6 +286,42 @@ describe("intercept-rule-store", () => {
 
       // 에러가 throw되지 않아야 한다
       await useInterceptRuleStore.getState().syncToProxy();
+    });
+  });
+
+  describe("setRules", () => {
+    test("외부에서 규칙 목록을 덮어쓸 수 있다", () => {
+      const rule1 = createBlockRule({ name: "Existing" });
+      useInterceptRuleStore.getState().addRule(rule1);
+
+      const newRules = [
+        createBlockRule({ name: "From MCP 1" }),
+        createModifyRequestRule({ name: "From MCP 2" }),
+      ];
+      useInterceptRuleStore.getState().setRules(newRules);
+
+      const { rules } = useInterceptRuleStore.getState();
+      expect(rules).toHaveLength(2);
+      expect(rules[0].name).toBe("From MCP 1");
+      expect(rules[1].name).toBe("From MCP 2");
+    });
+
+    test("빈 배열로 설정하면 모든 규칙이 제거된다", () => {
+      useInterceptRuleStore.getState().addRule(createBlockRule());
+      useInterceptRuleStore.getState().addRule(createModifyResponseRule());
+
+      useInterceptRuleStore.getState().setRules([]);
+
+      expect(useInterceptRuleStore.getState().rules).toHaveLength(0);
+    });
+
+    test("setRules는 syncToProxy를 호출하지 않는다", () => {
+      (invoke as ReturnType<typeof mock>).mockClear();
+
+      useInterceptRuleStore.getState().setRules([createBlockRule()]);
+
+      // setRules는 외부 동기화용이므로 다시 프록시에 전파하지 않아야 한다
+      expect(invoke).not.toHaveBeenCalled();
     });
   });
 });
