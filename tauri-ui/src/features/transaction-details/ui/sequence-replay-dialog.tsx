@@ -1,5 +1,7 @@
 import { useState, useCallback } from "react";
 import { Loader2, Play, CheckCircle, XCircle } from "lucide-react";
+import { Trans } from "@lingui/react/macro";
+import { useLingui } from "@lingui/react/macro";
 
 import type { HttpTransaction } from "@/entities/proxy";
 import { isTextBasedDataType } from "@/entities/proxy/model/data-type";
@@ -69,6 +71,7 @@ export function SequenceReplayDialog({
   transactions,
   onComplete,
 }: SequenceReplayDialogProps) {
+  const { t } = useLingui();
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<SequenceReplayResult[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -85,7 +88,7 @@ export function SequenceReplayDialog({
     }
 
     if (requests.length === 0) {
-      setError("리플레이할 유효한 요청이 없습니다");
+      setError(t`No valid requests to replay`);
       setLoading(false);
       return;
     }
@@ -94,7 +97,7 @@ export function SequenceReplayDialog({
       const res = await replaySequence(requests);
       setResults(res);
     } catch (e: any) {
-      setError(typeof e === "string" ? e : e.message || "시퀀스 리플레이 실패");
+      setError(typeof e === "string" ? e : e.message || t`Sequence replay failed`);
     } finally {
       setLoading(false);
     }
@@ -114,13 +117,15 @@ export function SequenceReplayDialog({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-4xl max-h-[85vh] flex flex-col">
         <DialogHeader>
-          <DialogTitle>Sequence Replay ({transactions.length} requests)</DialogTitle>
+          <DialogTitle>
+            <Trans>Sequence Replay ({transactions.length} requests)</Trans>
+          </DialogTitle>
         </DialogHeader>
 
         {!results && !loading && (
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              {transactions.length}개의 요청을 순서대로 재전송합니다.
+              <Trans>{transactions.length} requests will be sent sequentially.</Trans>
             </p>
             <ScrollArea className="max-h-[300px]">
               <div className="space-y-2">
@@ -150,7 +155,9 @@ export function SequenceReplayDialog({
         {loading && (
           <div className="flex flex-col items-center justify-center py-12 gap-4">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            <p className="text-sm text-muted-foreground">요청을 순서대로 전송 중...</p>
+            <p className="text-sm text-muted-foreground">
+              <Trans>Sending requests sequentially...</Trans>
+            </p>
           </div>
         )}
 
@@ -159,18 +166,23 @@ export function SequenceReplayDialog({
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-1 text-sm">
                 <CheckCircle className="w-4 h-4 text-green-500" />
-                <span>{successCount} 성공</span>
+                <span>
+                  <Trans>{successCount} succeeded</Trans>
+                </span>
               </div>
               {failCount > 0 && (
                 <div className="flex items-center gap-1 text-sm">
                   <XCircle className="w-4 h-4 text-destructive" />
-                  <span>{failCount} 실패</span>
+                  <span>
+                    <Trans>{failCount} failed</Trans>
+                  </span>
                 </div>
               )}
               {results.length > 0 && results[0].response && (
                 <span className="text-xs text-muted-foreground">
-                  총 {results.reduce((sum, r) => sum + (r.response?.elapsed_ms ?? 0), 0)}
-                  ms
+                  <Trans>
+                    Total {results.reduce((sum, r) => sum + (r.response?.elapsed_ms ?? 0), 0)}ms
+                  </Trans>
                 </span>
               )}
             </div>
@@ -226,17 +238,19 @@ export function SequenceReplayDialog({
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Sending...
+                  <Trans>Sending...</Trans>
                 </>
               ) : (
                 <>
                   <Play className="w-4 h-4 mr-2" />
-                  Start Replay
+                  <Trans>Start Replay</Trans>
                 </>
               )}
             </Button>
           ) : (
-            <Button onClick={handleClose}>Close</Button>
+            <Button onClick={handleClose}>
+              <Trans>Close</Trans>
+            </Button>
           )}
         </DialogFooter>
       </DialogContent>

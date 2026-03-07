@@ -1,4 +1,6 @@
 import { memo } from "react";
+import { Trans } from "@lingui/react/macro";
+import { useLingui } from "@lingui/react/macro";
 import { Plug, PlugZap } from "lucide-react";
 import { cn } from "@/shared/lib";
 import type { WsConnection } from "@/entities/websocket";
@@ -17,10 +19,12 @@ export const WsConnectionList = memo(
     onSelectConnection,
     messageCounts,
   }: WsConnectionListProps) => {
+    const { t } = useLingui();
+
     if (connections.length === 0) {
       return (
         <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm p-4">
-          No active WebSocket connections
+          <Trans>No active WebSocket connections</Trans>
         </div>
       );
     }
@@ -36,7 +40,9 @@ export const WsConnectionList = memo(
           )}
           onClick={() => onSelectConnection(null)}
         >
-          <span className="font-medium">All Connections</span>
+          <span className="font-medium">
+            <Trans>All Connections</Trans>
+          </span>
           <span className="ml-2 text-xs text-muted-foreground">({connections.length})</span>
         </div>
         {connections.map((conn) => {
@@ -72,7 +78,7 @@ export const WsConnectionList = memo(
                   {displayUri}
                 </span>
                 <span className="text-[10px] text-muted-foreground flex-shrink-0">
-                  {count} msgs
+                  {count} {t`msgs`}
                 </span>
               </div>
             </div>

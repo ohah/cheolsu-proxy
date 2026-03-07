@@ -1,4 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
+import { Trans } from "@lingui/react/macro";
+import { useLingui } from "@lingui/react/macro";
 import { Play, Loader2 } from "lucide-react";
 import { Editor } from "@monaco-editor/react";
 
@@ -46,6 +48,7 @@ function formatPayload(payload: string, isBinary: boolean): string {
 }
 
 export function WsReplayDialog({ message, open, onOpenChange }: WsReplayDialogProps) {
+  const { t } = useLingui();
   const [direction, setDirection] = useState<"to_client" | "to_server">(
     message.direction === "client_to_server" ? "to_server" : "to_client",
   );
@@ -80,7 +83,7 @@ export function WsReplayDialog({ message, open, onOpenChange }: WsReplayDialogPr
       setSuccess(true);
     } catch (e: unknown) {
       const errorMessage =
-        e instanceof Error ? e.message : typeof e === "string" ? e : "Failed to send";
+        e instanceof Error ? e.message : typeof e === "string" ? e : t`Failed to send`;
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -93,13 +96,17 @@ export function WsReplayDialog({ message, open, onOpenChange }: WsReplayDialogPr
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="!max-w-2xl h-[70vh] flex flex-col">
         <DialogHeader className="flex-shrink-0">
-          <DialogTitle>WebSocket Replay</DialogTitle>
+          <DialogTitle>
+            <Trans>WebSocket Replay</Trans>
+          </DialogTitle>
         </DialogHeader>
 
         <div className="flex-1 flex flex-col min-h-0 gap-4">
           {/* Connection info */}
           <div className="flex items-center gap-3 text-xs">
-            <span className="text-muted-foreground">Connection:</span>
+            <span className="text-muted-foreground">
+              <Trans>Connection</Trans>:
+            </span>
             <code className="font-mono text-foreground bg-muted px-2 py-0.5 rounded truncate max-w-[400px]">
               {message.connection_id}
             </code>
@@ -110,7 +117,9 @@ export function WsReplayDialog({ message, open, onOpenChange }: WsReplayDialogPr
 
           {/* Direction selector */}
           <div className="flex items-center gap-3">
-            <span className="text-sm text-muted-foreground whitespace-nowrap">Direction:</span>
+            <span className="text-sm text-muted-foreground whitespace-nowrap">
+              <Trans>Direction</Trans>:
+            </span>
             <Select
               value={direction}
               onValueChange={(v) => setDirection(v as "to_client" | "to_server")}
@@ -119,15 +128,17 @@ export function WsReplayDialog({ message, open, onOpenChange }: WsReplayDialogPr
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="to_server">To Server (Client → Server)</SelectItem>
-                <SelectItem value="to_client">To Client (Server → Client)</SelectItem>
+                <SelectItem value="to_server">{t`To Server (Client → Server)`}</SelectItem>
+                <SelectItem value="to_client">{t`To Client (Server → Client)`}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           {/* Payload editor */}
           <div className="flex-1 min-h-0 flex flex-col">
-            <label className="text-sm font-medium mb-2">Payload</label>
+            <label className="text-sm font-medium mb-2">
+              <Trans>Payload</Trans>
+            </label>
             <div className="flex-1 rounded-md border overflow-hidden">
               <Editor
                 height="100%"
@@ -154,7 +165,7 @@ export function WsReplayDialog({ message, open, onOpenChange }: WsReplayDialogPr
           )}
           {success && (
             <div className="p-3 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-sm">
-              Message sent successfully
+              <Trans>Message sent successfully</Trans>
             </div>
           )}
 
@@ -167,12 +178,12 @@ export function WsReplayDialog({ message, open, onOpenChange }: WsReplayDialogPr
             {loading ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Sending...
+                <Trans>Sending...</Trans>
               </>
             ) : (
               <>
                 <Play className="w-4 h-4 mr-2" />
-                Send Message
+                <Trans>Send Message</Trans>
               </>
             )}
           </Button>

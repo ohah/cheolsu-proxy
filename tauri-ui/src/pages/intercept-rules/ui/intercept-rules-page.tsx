@@ -1,21 +1,12 @@
 import { useState } from "react";
+import { Trans } from "@lingui/react/macro";
+import { useLingui } from "@lingui/react/macro";
 import { useInterceptRuleStore } from "@/shared/stores";
 import { Card, CardContent, Badge, Button, Switch } from "@/shared/ui";
 import { Plus, Trash2, Pencil, Ban, ArrowUpDown, ArrowDownUp, Eraser } from "lucide-react";
 import { toast } from "sonner";
 import type { InterceptRule } from "@/entities/intercept-rule";
 import { RuleFormDialog } from "@/features/intercept-rule-form";
-
-const ACTION_LABELS: Record<
-  string,
-  { label: string; variant: "default" | "secondary" | "destructive" | "outline" }
-> = {
-  block: { label: "Block", variant: "destructive" },
-  modify_request: { label: "Modify Request", variant: "default" },
-  modify_response: { label: "Modify Response", variant: "secondary" },
-  map_local: { label: "Map Local", variant: "outline" },
-  map_remote: { label: "Map Remote", variant: "outline" },
-};
 
 function getActionIcon(type: string) {
   switch (type) {
@@ -28,10 +19,30 @@ function getActionIcon(type: string) {
   }
 }
 
+const ACTION_LABELS: Record<
+  string,
+  { labelKey: string; variant: "default" | "secondary" | "destructive" | "outline" }
+> = {
+  block: { labelKey: "block", variant: "destructive" },
+  modify_request: { labelKey: "modify_request", variant: "default" },
+  modify_response: { labelKey: "modify_response", variant: "secondary" },
+  map_local: { labelKey: "map_local", variant: "outline" },
+  map_remote: { labelKey: "map_remote", variant: "outline" },
+};
+
 export const InterceptRulesPage = () => {
+  const { t } = useLingui();
   const { rules, removeRule, toggleRule, clearRules } = useInterceptRuleStore();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingRule, setEditingRule] = useState<InterceptRule | null>(null);
+
+  const actionLabelMap: Record<string, string> = {
+    block: t`Block`,
+    modify_request: t`Modify Request`,
+    modify_response: t`Modify Response`,
+    map_local: t`Map Local`,
+    map_remote: t`Map Remote`,
+  };
 
   const handleAdd = () => {
     setEditingRule(null);
@@ -45,12 +56,12 @@ export const InterceptRulesPage = () => {
 
   const handleDelete = (id: string) => {
     removeRule(id);
-    toast.success("Rule deleted");
+    toast.success(t`Rule deleted`);
   };
 
   const handleClearAll = () => {
     clearRules();
-    toast.success("All rules cleared");
+    toast.success(t`All rules cleared`);
   };
 
   return (
@@ -59,24 +70,26 @@ export const InterceptRulesPage = () => {
         <div className="p-6 space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Intercept Rules</h1>
+              <h1 className="text-2xl font-bold text-foreground">
+                <Trans>Intercept Rules</Trans>
+              </h1>
               <p className="text-muted-foreground">
-                Manage wildcard-based request/response intercept rules
+                <Trans>Manage wildcard-based request/response intercept rules</Trans>
               </p>
             </div>
             <div className="flex items-center gap-2">
               <Badge variant="outline" className="text-sm">
-                {rules.length} rules
+                {rules.length} <Trans>rules</Trans>
               </Badge>
               {rules.length > 0 && (
                 <Button variant="outline" size="sm" onClick={handleClearAll}>
                   <Eraser className="w-4 h-4 mr-1" />
-                  Clear All
+                  <Trans>Clear All</Trans>
                 </Button>
               )}
               <Button size="sm" onClick={handleAdd}>
                 <Plus className="w-4 h-4 mr-1" />
-                Add Rule
+                <Trans>Add Rule</Trans>
               </Button>
             </div>
           </div>
@@ -85,13 +98,17 @@ export const InterceptRulesPage = () => {
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <div className="text-center space-y-2">
-                  <h3 className="text-lg font-semibold">No intercept rules</h3>
+                  <h3 className="text-lg font-semibold">
+                    <Trans>No intercept rules</Trans>
+                  </h3>
                   <p className="text-muted-foreground">
-                    Add rules to intercept, block, or modify HTTP requests and responses.
+                    <Trans>
+                      Add rules to intercept, block, or modify HTTP requests and responses.
+                    </Trans>
                   </p>
                   <Button className="mt-4" onClick={handleAdd}>
                     <Plus className="w-4 h-4 mr-1" />
-                    Add your first rule
+                    <Trans>Add your first rule</Trans>
                   </Button>
                 </div>
               </CardContent>
@@ -125,7 +142,7 @@ export const InterceptRulesPage = () => {
                           <div className="flex items-center gap-2">
                             <Badge variant={actionInfo.variant} className="text-xs gap-1">
                               {getActionIcon(rule.action.type)}
-                              {actionInfo.label}
+                              {actionLabelMap[actionInfo.labelKey]}
                             </Badge>
                             {rule.method && (
                               <Badge variant="outline" className="text-xs">
@@ -134,25 +151,28 @@ export const InterceptRulesPage = () => {
                             )}
                             {rule.action.type === "block" && (
                               <span className="text-xs text-muted-foreground">
-                                Status: {rule.action.status_code}
+                                <Trans>Status</Trans>: {rule.action.status_code}
                               </span>
                             )}
                             {rule.action.type === "modify_response" && rule.action.set_status && (
                               <span className="text-xs text-muted-foreground">
-                                Status: {rule.action.set_status}
+                                <Trans>Status</Trans>: {rule.action.set_status}
                               </span>
                             )}
                             {(rule.action.type === "modify_request" ||
                               rule.action.type === "modify_response") &&
                               Object.keys(rule.action.add_headers).length > 0 && (
                                 <span className="text-xs text-muted-foreground">
-                                  +{Object.keys(rule.action.add_headers).length} headers
+                                  +{Object.keys(rule.action.add_headers).length}{" "}
+                                  <Trans>headers</Trans>
                                 </span>
                               )}
                             {(rule.action.type === "modify_request" ||
                               rule.action.type === "modify_response") &&
                               rule.action.set_body && (
-                                <span className="text-xs text-muted-foreground">Custom body</span>
+                                <span className="text-xs text-muted-foreground">
+                                  <Trans>Custom body</Trans>
+                                </span>
                               )}
                           </div>
                         </div>
@@ -162,7 +182,7 @@ export const InterceptRulesPage = () => {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleEdit(rule)}
-                            title="Edit rule"
+                            title={t`Edit rule`}
                           >
                             <Pencil className="w-4 h-4" />
                           </Button>
@@ -170,7 +190,7 @@ export const InterceptRulesPage = () => {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleDelete(rule.id)}
-                            title="Delete rule"
+                            title={t`Delete rule`}
                             className="text-destructive hover:text-destructive"
                           >
                             <Trash2 className="w-4 h-4" />

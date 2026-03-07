@@ -1,4 +1,6 @@
 import { memo, useMemo, useState } from "react";
+import { Trans } from "@lingui/react/macro";
+import { useLingui } from "@lingui/react/macro";
 import { ArrowUp, ArrowDown, X, Play } from "lucide-react";
 import { Editor } from "@monaco-editor/react";
 import { Button } from "@/shared/ui";
@@ -24,6 +26,7 @@ function formatSize(bytes: number): string {
 }
 
 export const WsMessageDetail = memo(({ message, onClose }: WsMessageDetailProps) => {
+  const { t } = useLingui();
   const [replayOpen, setReplayOpen] = useState(false);
   const isSent = message.direction === "client_to_server";
 
@@ -47,17 +50,17 @@ export const WsMessageDetail = memo(({ message, onClose }: WsMessageDetailProps)
   const metaItems = useMemo(() => {
     const items = [
       {
-        label: "Direction",
-        value: isSent ? "Sent (Client → Server)" : "Received (Server → Client)",
+        label: t`Direction`,
+        value: isSent ? t`Sent (Client → Server)` : t`Received (Server → Client)`,
       },
       {
-        label: "Type",
+        label: t`Type`,
         value: mqttParsed ? `MQTT ${mqttParsed.meta.packetType}` : message.message_type,
       },
-      { label: "Size", value: formatSize(message.size) },
-      { label: "Time", value: formatTimeFull(message.time) },
-      { label: "Connection", value: message.connection_id },
-      { label: "Sequence", value: `#${message.sequence}` },
+      { label: t`Size`, value: formatSize(message.size) },
+      { label: t`Time`, value: formatTimeFull(message.time) },
+      { label: t`Connection`, value: message.connection_id },
+      { label: t`Sequence`, value: `#${message.sequence}` },
     ];
 
     if (mqttParsed) {
@@ -79,7 +82,7 @@ export const WsMessageDetail = memo(({ message, onClose }: WsMessageDetailProps)
           ) : (
             <ArrowDown className="w-3.5 h-3.5 text-rose-500" />
           )}
-          <span>{isSent ? "Sent" : "Received"}</span>
+          <span>{isSent ? t`Sent` : t`Received`}</span>
           <span className="text-muted-foreground">·</span>
           <span
             className={cn(
@@ -110,11 +113,11 @@ export const WsMessageDetail = memo(({ message, onClose }: WsMessageDetailProps)
             variant="ghost"
             size="sm"
             className="h-6 px-2 text-xs gap-1"
-            title="Replay message"
+            title={t`Replay message`}
             onClick={() => setReplayOpen(true)}
           >
             <Play className="w-3 h-3" />
-            Replay
+            <Trans>Replay</Trans>
           </Button>
           <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={onClose}>
             <X className="w-3.5 h-3.5" />

@@ -1,5 +1,6 @@
 import { memo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useLingui } from "@lingui/react";
 import { Button, Tooltip, TooltipTrigger, TooltipContent } from "@/shared/ui";
 import { SIDEBAR_SECTIONS } from "../model";
 import type { SidebarSection } from "../model";
@@ -11,6 +12,7 @@ interface SidebarNavigationProps {
 export const SidebarNavigation = memo(({ collapsed }: SidebarNavigationProps) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { _ } = useLingui();
 
   // 현재 경로를 기반으로 활성 섹션 결정
   const getActiveSection = () => {
@@ -73,7 +75,7 @@ export const SidebarNavigation = memo(({ collapsed }: SidebarNavigationProps) =>
             onClick={() => handleSectionClick(section)}
           >
             <Icon className="w-4 h-4" />
-            {collapsed ? null : <span className="flex-1 text-left">{section.label}</span>}
+            {collapsed ? null : <span className="flex-1 text-left">{_(section.label)}</span>}
           </Button>
         );
 
@@ -82,7 +84,7 @@ export const SidebarNavigation = memo(({ collapsed }: SidebarNavigationProps) =>
             <Tooltip key={section.id}>
               <TooltipTrigger render={<div />}>{button}</TooltipTrigger>
               <TooltipContent side="right" sideOffset={4}>
-                {section.label}
+                {_(section.label)}
               </TooltipContent>
             </Tooltip>
           );
