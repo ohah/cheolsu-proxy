@@ -307,8 +307,8 @@ async fn run_proxy(
 
     let initial_upstream = upstream_rx.borrow().clone();
 
-    let hybrid_client = create_hybrid_client(initial_upstream.clone())
-        .map_err(|e| format!("Client creation failed: {}", e))?;
+    let hybrid_client =
+        create_hybrid_client(upstream_rx).map_err(|e| format!("Client creation failed: {}", e))?;
 
     let listener = TcpListener::bind(addr)
         .await
