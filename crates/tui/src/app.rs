@@ -474,6 +474,33 @@ impl App {
                 KeyCode::Home | KeyCode::Char('g') => {
                     self.detail_scroll = 0;
                 }
+                KeyCode::Char('y') => {
+                    // Copy URL
+                    if let Some(idx) = self.selected_transaction {
+                        if let Some(info) = self.transactions.get(idx) {
+                            if let Some(req) = &info.0 {
+                                if copy_to_clipboard(&req.uri().to_string()) {
+                                    self.set_status("URL copied to clipboard");
+                                }
+                            }
+                        }
+                    }
+                }
+                KeyCode::Char('c') => {
+                    // Copy as cURL
+                    if let Some(idx) = self.selected_transaction {
+                        if let Some(info) = self.transactions.get(idx) {
+                            let curl = format_curl_command(info);
+                            if copy_to_clipboard(&curl) {
+                                self.set_status("cURL command copied to clipboard");
+                            }
+                        }
+                    }
+                }
+                KeyCode::Char('r') => {
+                    // Replay request
+                    self.replay_selected_request();
+                }
                 _ => {}
             }
             return;
@@ -508,35 +535,24 @@ impl App {
             KeyCode::Char(' ') => {
                 self.paused = !self.paused;
             }
-            KeyCode::Char('c') => {
+            KeyCode::Char('x') => {
                 self.transactions.clear();
                 self.selected_transaction = None;
+                self.set_status("All requests cleared");
             }
             KeyCode::Char('y') => {
                 // Copy selected request URL to clipboard
                 if let Some(idx) = self.selected_transaction {
                     if let Some(info) = self.transactions.get(idx) {
                         if let Some(req) = &info.0 {
-                            let url = req.uri().to_string();
-                            if copy_to_clipboard(&url) {
+                            if copy_to_clipboard(&req.uri().to_string()) {
                                 self.set_status("URL copied to clipboard");
                             }
                         }
                     }
                 }
             }
-            KeyCode::Char('Y') => {
-                // Copy full request/response detail
-                if let Some(idx) = self.selected_transaction {
-                    if let Some(info) = self.transactions.get(idx) {
-                        let detail = format_transaction_detail(info);
-                        if copy_to_clipboard(&detail) {
-                            self.set_status("Request/Response copied to clipboard");
-                        }
-                    }
-                }
-            }
-            KeyCode::Char('C') => {
+            KeyCode::Char('c') => {
                 // Copy as cURL
                 if let Some(idx) = self.selected_transaction {
                     if let Some(info) = self.transactions.get(idx) {
@@ -548,38 +564,7 @@ impl App {
                 }
             }
             KeyCode::Char('r') => {
-                // Replay request
-                if let Some(idx) = self.selected_transaction {
-                    if let Some(info) = self.transactions.get(idx) {
-                        if let Some(req) = &info.0 {
-                            let method = req.method().to_string();
-                            let uri = req.uri().to_string();
-                            let headers = req.headers().clone();
-                            let body = req.body().cloned();
-                            self.set_status(&format!("Replaying {} {}...", method, uri));
-                            tokio::spawn(async move {
-                                let client = reqwest::Client::builder()
-                                    .danger_accept_invalid_certs(true)
-                                    .build()
-                                    .unwrap();
-                                let method: reqwest::Method =
-                                    method.parse().unwrap_or(reqwest::Method::GET);
-                                let mut builder = client.request(method, &uri);
-                                for (name, value) in headers.iter() {
-                                    if let Ok(v) = value.to_str() {
-                                        builder = builder.header(name.as_str(), v);
-                                    }
-                                }
-                                if let Some(body) = body {
-                                    if !body.is_empty() {
-                                        builder = builder.body(body);
-                                    }
-                                }
-                                let _ = builder.send().await;
-                            });
-                        }
-                    }
-                }
+                self.replay_selected_request();
             }
             KeyCode::Home | KeyCode::Char('g') => {
                 self.selected_transaction = Some(0);
@@ -783,6 +768,40 @@ impl App {
         }
     }
 
+    fn replay_selected_request(&mut self) {
+        if let Some(idx) = self.selected_transaction {
+            if let Some(info) = self.transactions.get(idx) {
+                if let Some(req) = &info.0 {
+                    let method = req.method().to_string();
+                    let uri = req.uri().to_string();
+                    let headers = req.headers().clone();
+                    let body = req.body().cloned();
+                    self.set_status(&format!("Replaying {} {}...", method, uri));
+                    tokio::spawn(async move {
+                        let client = reqwest::Client::builder()
+                            .danger_accept_invalid_certs(true)
+                            .build()
+                            .unwrap();
+                        let method: reqwest::Method =
+                            method.parse().unwrap_or(reqwest::Method::GET);
+                        let mut builder = client.request(method, &uri);
+                        for (name, value) in headers.iter() {
+                            if let Ok(v) = value.to_str() {
+                                builder = builder.header(name.as_str(), v);
+                            }
+                        }
+                        if let Some(body) = body {
+                            if !body.is_empty() {
+                                builder = builder.body(body);
+                            }
+                        }
+                        let _ = builder.send().await;
+                    });
+                }
+            }
+        }
+    }
+
     async fn send_rules_update(&self) {
         if let Some(conn) = &self.conn {
             let cmd = ClientCommand::UpdateInterceptRules {
@@ -872,34 +891,4 @@ fn format_curl_command(info: &RequestInfo) -> String {
     }
 
     parts.join(" \\\n")
-}
-
-fn format_transaction_detail(info: &RequestInfo) -> String {
-    let mut out = String::new();
-
-    if let Some(req) = &info.0 {
-        out.push_str(&format!("{} {}\n", req.method(), req.uri()));
-        out.push_str(&format!("Version: {:?}\n", req.version()));
-        for (name, value) in req.headers().iter() {
-            out.push_str(&format!(
-                "{}: {}\n",
-                name,
-                value.to_str().unwrap_or("<binary>")
-            ));
-        }
-        out.push('\n');
-    }
-
-    if let Some(res) = &info.1 {
-        out.push_str(&format!("Status: {}\n", res.status()));
-        for (name, value) in res.headers().iter() {
-            out.push_str(&format!(
-                "{}: {}\n",
-                name,
-                value.to_str().unwrap_or("<binary>")
-            ));
-        }
-    }
-
-    out
 }
