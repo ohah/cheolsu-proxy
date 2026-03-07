@@ -1,4 +1,5 @@
 import { cn } from "@/shared/lib";
+import { useProxyStore } from "@/shared/stores";
 
 import { SidebarHeader } from "./sidebar-header";
 import { SidebarMcp } from "./sidebar-mcp";
@@ -7,12 +8,8 @@ import { SidebarStatus } from "./sidebar-status";
 
 import { useSidebarCollapse } from "../hooks";
 
-interface AppSidebarProps {
-  isConnected?: boolean;
-  version?: string;
-}
-
-export function AppSidebar({ isConnected = true, version }: AppSidebarProps) {
+export function AppSidebar() {
+  const { isConnected } = useProxyStore();
   const { collapsed, toggleCollapse } = useSidebarCollapse();
 
   return (
@@ -31,7 +28,7 @@ export function AppSidebar({ isConnected = true, version }: AppSidebarProps) {
       </div>
 
       <SidebarMcp collapsed={collapsed} />
-      <SidebarStatus collapsed={collapsed} isConnected={isConnected} version={version} />
+      <SidebarStatus collapsed={collapsed} isConnected={isConnected} />
     </div>
   );
 }
