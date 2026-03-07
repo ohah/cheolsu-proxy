@@ -575,6 +575,12 @@ pub fn check_cli_installed() -> bool {
     link_path.exists()
 }
 
+/// HAR 파일 내보내기 (지정된 경로에 JSON 문자열 저장)
+#[tauri::command]
+pub async fn export_har_file(path: String, content: String) -> Result<(), String> {
+    std::fs::write(&path, content).map_err(|e| format!("HAR 파일 저장 실패: {} - {}", path, e))
+}
+
 fn base64_engine() -> base64::engine::GeneralPurpose {
     use base64::engine::general_purpose::STANDARD;
     STANDARD

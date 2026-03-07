@@ -114,6 +114,7 @@ export const NetworkDashboard = () => {
           filteredCount={filteredCount}
           totalCount={totalCount}
           paused={paused}
+          transactions={filteredTransactions}
           togglePause={togglePause}
           onFilterQueryChange={onFilterQueryChange}
           onApplyFilter={onApplyFilter}
