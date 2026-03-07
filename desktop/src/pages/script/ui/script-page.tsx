@@ -274,7 +274,7 @@ export function ScriptPage() {
           </ResizablePanel>
 
           {/* Drag Handle */}
-          <ResizableHandle className="my-1 h-px data-[resize-handle-state=hover]:bg-primary data-[resize-handle-state=drag]:bg-primary" />
+          <ResizableHandle className="!w-full !h-1.5 my-0.5 rounded bg-transparent hover:bg-primary/20 data-[resize-handle-state=drag]:bg-primary/30 cursor-row-resize after:!hidden" />
 
           {/* Console Panel */}
           <ResizablePanel defaultSize={30} minSize={10}>
