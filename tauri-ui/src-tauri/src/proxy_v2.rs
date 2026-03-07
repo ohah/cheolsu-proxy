@@ -1,5 +1,6 @@
 use proxy_daemon::{
     clean_old_cache, ClientCommand, DaemonConnection, DaemonMessage, InterceptRule,
+    UpstreamProxyConfig,
 };
 use std::collections::HashMap;
 use std::net::SocketAddr;
@@ -346,6 +347,25 @@ pub fn get_mcp_server_path(app: AppHandle<impl Runtime>) -> Result<String, Strin
         .resolve(&sidecar_name, tauri::path::BaseDirectory::Resource)
         .map(|p| p.display().to_string())
         .map_err(|e| format!("Failed to resolve MCP server path: {}", e))
+}
+
+/// Upstream proxy 설정 업데이트
+#[tauri::command]
+pub async fn update_upstream_proxy(
+    proxy: State<'_, ProxyV2State>,
+    config: Option<UpstreamProxyConfig>,
+) -> Result<(), String> {
+    let proxy_guard = proxy.lock().await;
+
+    if let Some(conn) = proxy_guard.as_ref() {
+        let cmd = ClientCommand::UpdateUpstreamProxy { config };
+        conn.send_command(&cmd).await?;
+        println!("Daemon에 upstream proxy 설정 업데이트 완료");
+    } else {
+        return Err("프록시가 실행 중이 아닙니다".to_string());
+    }
+
+    Ok(())
 }
 
 fn base64_engine() -> base64::engine::GeneralPurpose {

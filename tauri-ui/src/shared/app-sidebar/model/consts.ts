@@ -1,4 +1,4 @@
-import { Network, Shield, Route, Plug } from "lucide-react";
+import { Network, Shield, Route, Plug, Settings } from "lucide-react";
 
 import type { SidebarSection } from "./types";
 
@@ -29,34 +29,10 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
     icon: Plug,
     description: "WebSocket connections and messages",
   },
-  // {
-  //   id: 'performance',
-  //   label: 'Performance',
-  //   icon: Activity,
-  //   description: 'Request timing and performance metrics'
-  // },
-  // {
-  //   id: 'errors',
-  //   label: 'Errors',
-  //   icon: AlertTriangle,
-  //   description: 'Failed requests and errors'
-  // },
-  // {
-  //   id: 'security',
-  //   label: 'Security',
-  //   icon: CheckCircle,
-  //   description: 'Security issues and warnings'
-  // },
-  // {
-  //   id: 'timing',
-  //   label: 'Timing',
-  //   icon: Clock,
-  //   description: 'Request and response timing'
-  // },
-  // {
-  //   id: 'analytics',
-  //   label: 'Analytics',
-  //   icon: BarChart3,
-  //   description: 'Request analytics and insights'
-  // },
+  {
+    id: "settings",
+    label: "Settings",
+    icon: Settings,
+    description: "Proxy settings and configuration",
+  },
 ];
