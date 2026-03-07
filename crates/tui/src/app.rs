@@ -326,8 +326,9 @@ impl App {
                 self.connected = true;
                 self.conn = Some(conn);
             }
-            Err(_e) => {
+            Err(e) => {
                 self.connected = false;
+                self.set_status(&format!("Daemon error: {}", e));
             }
         }
     }
