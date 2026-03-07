@@ -54,8 +54,18 @@ msgstr "Action"
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:345
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:288
 #: src/features/transaction-details/ui/replay-dialog.tsx:381
+#: src/pages/server-replay/ui/server-replay-page.tsx:170
 msgid "Add"
 msgstr "Add"
+
+#: src/pages/server-replay/ui/server-replay-page.tsx:193
+msgid "Add captured traffic to replay stored responses for matching requests."
+msgstr "Add captured traffic to replay stored responses for matching requests."
+
+#: src/pages/server-replay/ui/server-replay-page.tsx:110
+#: src/pages/server-replay/ui/server-replay-page.tsx:199
+msgid "Add from Traffic"
+msgstr "Add from Traffic"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:310
 msgid "Add Headers"
@@ -90,9 +100,21 @@ msgstr "Add this to your AI assistant's MCP configuration:"
 msgid "Add your first rule"
 msgstr "Add your first rule"
 
+#: src/pages/server-replay/ui/server-replay-page.tsx:166
+msgid "Added"
+msgstr "Added"
+
+#: src/pages/server-replay/ui/server-replay-page.tsx:65
+msgid "Added to server replay"
+msgstr "Added to server replay"
+
 #: src/widgets/websocket-messages/ui/ws-connection-list.tsx:44
 msgid "All Connections"
 msgstr "All Connections"
+
+#: src/pages/server-replay/ui/server-replay-page.tsx:72
+msgid "All entries cleared"
+msgstr "All entries cleared"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:244
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:223
@@ -116,6 +138,10 @@ msgstr "Apply:"
 msgid "Authentication"
 msgstr "Authentication"
 
+#: src/pages/server-replay/ui/server-replay-page.tsx:124
+msgid "available"
+msgstr "available"
+
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:266
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:40
 msgid "Block"
@@ -132,10 +158,18 @@ msgstr "Body"
 msgid "Bypass List"
 msgstr "Bypass List"
 
+#: src/pages/server-replay/ui/server-replay-page.tsx:229
+msgid "bytes body"
+msgstr "bytes body"
+
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:384
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:345
 msgid "Cancel"
 msgstr "Cancel"
+
+#: src/pages/server-replay/ui/server-replay-page.tsx:61
+msgid "Cannot add: no response data"
+msgstr "Cannot add: no response data"
 
 #: src/shared/app-sidebar/ui/sidebar-header.tsx:38
 msgid "Cheolsu Proxy Logo"
@@ -147,6 +181,7 @@ msgstr "Clear all"
 
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:87
 #: src/pages/map-rules/ui/map-rules-page.tsx:80
+#: src/pages/server-replay/ui/server-replay-page.tsx:105
 msgid "Clear All"
 msgstr "Clear All"
 
@@ -211,6 +246,10 @@ msgstr "Dir"
 msgid "Direction"
 msgstr "Direction"
 
+#: src/pages/server-replay/ui/server-replay-page.tsx:96
+msgid "Disabled"
+msgstr "Disabled"
+
 #: src/shared/app-sidebar/ui/sidebar-status.tsx:27
 #: src/shared/app-sidebar/ui/sidebar-status.tsx:42
 msgid "Disconnected"
@@ -228,6 +267,14 @@ msgstr "Edit rule"
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:199
 msgid "Edit Rule"
 msgstr "Edit Rule"
+
+#: src/pages/server-replay/ui/server-replay-page.tsx:96
+msgid "Enabled"
+msgstr "Enabled"
+
+#: src/pages/server-replay/ui/server-replay-page.tsx:100
+msgid "entries"
+msgstr "entries"
 
 #: src/features/query-filter-editor/ui/filter-help-tooltip.tsx:65
 msgid "Exclude OPTIONS method"
@@ -265,6 +312,7 @@ msgid "Header name to remove"
 msgstr "Header name to remove"
 
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:167
+#: src/pages/server-replay/ui/server-replay-page.tsx:225
 msgid "headers"
 msgstr "headers"
 
@@ -410,6 +458,10 @@ msgstr "Network"
 msgid "No active WebSocket connections"
 msgstr "No active WebSocket connections"
 
+#: src/pages/server-replay/ui/server-replay-page.tsx:129
+msgid "No captured traffic with responses available. Capture some traffic first."
+msgstr "No captured traffic with responses available. Capture some traffic first."
+
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:102
 msgid "No intercept rules"
 msgstr "No intercept rules"
@@ -417,6 +469,10 @@ msgstr "No intercept rules"
 #: src/pages/map-rules/ui/map-rules-page.tsx:95
 msgid "No map rules"
 msgstr "No map rules"
+
+#: src/pages/server-replay/ui/server-replay-page.tsx:190
+msgid "No replay entries"
+msgstr "No replay entries"
 
 #: src/widgets/network-table/ui/table-body.tsx:78
 msgid "No transactions to display"
@@ -463,7 +519,7 @@ msgstr "Preserve Path"
 msgid "Proxy configuration and preferences"
 msgstr "Proxy configuration and preferences"
 
-#: src/shared/app-sidebar/model/consts.ts:37
+#: src/shared/app-sidebar/model/consts.ts:43
 msgid "Proxy settings and configuration"
 msgstr "Proxy settings and configuration"
 
@@ -486,6 +542,10 @@ msgstr "Received"
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:54
 msgid "Received (Server → Client)"
 msgstr "Received (Server → Client)"
+
+#: src/pages/server-replay/ui/server-replay-page.tsx:238
+msgid "Remove entry"
+msgstr "Remove entry"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:341
 msgid "Remove Headers"
@@ -532,6 +592,14 @@ msgstr "Response Status Code"
 msgid "Resume recording"
 msgstr "Resume recording"
 
+#: src/shared/app-sidebar/model/consts.ts:37
+msgid "Return cached responses for matching requests"
+msgstr "Return cached responses for matching requests"
+
+#: src/pages/server-replay/ui/server-replay-page.tsx:87
+msgid "Return cached responses for matching requests instead of forwarding to the server"
+msgstr "Return cached responses for matching requests instead of forwarding to the server"
+
 #: src/pages/settings/ui/settings-page.tsx:139
 msgid "Route traffic through an external proxy server"
 msgstr "Route traffic through an external proxy server"
@@ -572,6 +640,10 @@ msgstr "Saved"
 #: src/pages/settings/ui/settings-page.tsx:224
 msgid "Saving..."
 msgstr "Saving..."
+
+#: src/pages/server-replay/ui/server-replay-page.tsx:121
+msgid "Select from captured traffic"
+msgstr "Select from captured traffic"
 
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:100
 msgid "Select local file"
@@ -620,12 +692,17 @@ msgstr "Sequence Replay ({0} requests)"
 msgid "Sequence replay failed"
 msgstr "Sequence replay failed"
 
+#: src/pages/server-replay/ui/server-replay-page.tsx:84
+#: src/shared/app-sidebar/model/consts.ts:35
+msgid "Server Replay"
+msgstr "Server Replay"
+
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:372
 msgid "Set body (optional)"
 msgstr "Set body (optional)"
 
 #: src/pages/settings/ui/settings-page.tsx:103
-#: src/shared/app-sidebar/model/consts.ts:35
+#: src/shared/app-sidebar/model/consts.ts:41
 msgid "Settings"
 msgstr "Settings"
 
