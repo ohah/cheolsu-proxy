@@ -1,4 +1,5 @@
 use crate::tls_passthrough::TlsPassthrough;
+use crate::upstream_proxy::UpstreamProxyConfig;
 use crate::websocket_registry::WebSocketRegistry;
 use proxy_v2_models::RequestInfo;
 use tokio::sync::mpsc;
@@ -13,6 +14,7 @@ pub struct ProxyContext {
     pub tunnel_event_sender: Option<mpsc::Sender<RequestInfo>>,
     pub tls_passthrough: Option<TlsPassthrough>,
     pub websocket_registry: Option<WebSocketRegistry>,
+    pub upstream_proxy: Option<UpstreamProxyConfig>,
 }
 
 impl ProxyContext {

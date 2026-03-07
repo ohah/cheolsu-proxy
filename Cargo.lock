@@ -4494,6 +4494,7 @@ version = "0.23.0"
 dependencies = [
  "async-compression",
  "async-http-proxy",
+ "base64 0.22.1",
  "bstr",
  "bytes",
  "criterion",

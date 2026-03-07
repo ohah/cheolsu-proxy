@@ -1,0 +1,279 @@
+use http::Uri;
+use hyper::rt::{Read, ReadBufCursor, Write};
+use hyper_util::client::legacy::connect::{Connected, Connection};
+use hyper_util::rt::TokioIo;
+use serde::{Deserialize, Serialize};
+use std::future::Future;
+use std::io;
+use std::pin::Pin;
+use std::task::{Context, Poll};
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::net::TcpStream;
+use tower::Service;
+use tracing::{debug, error};
+
+/// Upstream proxy 설정
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpstreamProxyConfig {
+    pub host: String,
+    pub port: u16,
+    #[serde(default)]
+    pub auth: Option<UpstreamProxyAuth>,
+    #[serde(default)]
+    pub bypass: Vec<String>,
+}
+
+/// Upstream proxy 인증 정보
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpstreamProxyAuth {
+    pub username: String,
+    pub password: String,
+}
+
+impl UpstreamProxyConfig {
+    pub fn address(&self) -> String {
+        format!("{}:{}", self.host, self.port)
+    }
+
+    pub fn should_bypass(&self, host: &str) -> bool {
+        self.bypass.iter().any(|pattern| {
+            if pattern == "localhost" {
+                host == "localhost" || host == "127.0.0.1" || host == "::1"
+            } else if pattern.starts_with("*.") {
+                host.ends_with(&pattern[1..]) || host == &pattern[2..]
+            } else if pattern.starts_with('*') {
+                host.ends_with(&pattern[1..])
+            } else {
+                host == pattern
+            }
+        })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// TCP 연결 헬퍼 (CONNECT 터널용)
+// ---------------------------------------------------------------------------
+
+/// 대상 서버에 TCP 연결. upstream proxy가 있으면 CONNECT 터널을 통해 연결.
+pub async fn connect_to_target(
+    target: &str,
+    upstream: Option<&UpstreamProxyConfig>,
+) -> Result<TcpStream, Box<dyn std::error::Error + Send + Sync>> {
+    let host = target.split(':').next().unwrap_or(target);
+
+    match upstream {
+        Some(config) if !config.should_bypass(host) => {
+            debug!(
+                target,
+                upstream = %config.address(),
+                "Upstream proxy를 통해 연결"
+            );
+            connect_via_upstream(config, target).await
+        }
+        _ => Ok(TcpStream::connect(target).await?),
+    }
+}
+
+/// Upstream proxy에 CONNECT 터널을 생성하여 대상에 연결
+async fn connect_via_upstream(
+    config: &UpstreamProxyConfig,
+    target: &str,
+) -> Result<TcpStream, Box<dyn std::error::Error + Send + Sync>> {
+    let mut stream = TcpStream::connect(config.address()).await.map_err(|e| {
+        error!(
+            upstream = %config.address(),
+            error = %e,
+            "Upstream proxy 연결 실패"
+        );
+        e
+    })?;
+
+    let mut connect_req = format!("CONNECT {} HTTP/1.1\r\nHost: {}\r\n", target, target);
+
+    if let Some(auth) = &config.auth {
+        use base64::Engine;
+        let credentials = base64::engine::general_purpose::STANDARD
+            .encode(format!("{}:{}", auth.username, auth.password));
+        connect_req.push_str(&format!("Proxy-Authorization: Basic {}\r\n", credentials));
+    }
+
+    connect_req.push_str("\r\n");
+    stream.write_all(connect_req.as_bytes()).await?;
+
+    // 응답 헤더를 \r\n\r\n 까지 읽기
+    let mut response = Vec::with_capacity(256);
+    let mut buf = [0u8; 1];
+    loop {
+        stream.read_exact(&mut buf).await?;
+        response.push(buf[0]);
+        if response.len() >= 4 && response[response.len() - 4..] == *b"\r\n\r\n" {
+            break;
+        }
+        if response.len() > 4096 {
+            return Err("Upstream proxy 응답이 너무 큼".into());
+        }
+    }
+
+    let response_str = String::from_utf8_lossy(&response);
+    let status_line = response_str.lines().next().unwrap_or("");
+
+    if !status_line.contains("200") {
+        return Err(format!("Upstream proxy CONNECT 실패: {}", status_line).into());
+    }
+
+    debug!(target, "Upstream proxy CONNECT 터널 수립 완료");
+    Ok(stream)
+}
+
+// ---------------------------------------------------------------------------
+// hyper 클라이언트용 커스텀 커넥터
+// ---------------------------------------------------------------------------
+
+/// TcpStream 래퍼 — hyper Connection trait 구현
+pub struct UpstreamStream(TokioIo<TcpStream>);
+
+impl Connection for UpstreamStream {
+    fn connected(&self) -> Connected {
+        Connected::new()
+    }
+}
+
+impl Read for UpstreamStream {
+    fn poll_read(
+        mut self: Pin<&mut Self>,
+        cx: &mut Context<'_>,
+        buf: ReadBufCursor<'_>,
+    ) -> Poll<io::Result<()>> {
+        Pin::new(&mut self.0).poll_read(cx, buf)
+    }
+}
+
+impl Write for UpstreamStream {
+    fn poll_write(
+        mut self: Pin<&mut Self>,
+        cx: &mut Context<'_>,
+        buf: &[u8],
+    ) -> Poll<io::Result<usize>> {
+        Pin::new(&mut self.0).poll_write(cx, buf)
+    }
+
+    fn poll_flush(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<()>> {
+        Pin::new(&mut self.0).poll_flush(cx)
+    }
+
+    fn poll_shutdown(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<()>> {
+        Pin::new(&mut self.0).poll_shutdown(cx)
+    }
+}
+
+impl Unpin for UpstreamStream {}
+
+/// Upstream proxy를 경유하는 HTTP 커넥터
+#[derive(Clone)]
+pub struct ProxyHttpConnector {
+    upstream: Option<UpstreamProxyConfig>,
+}
+
+impl ProxyHttpConnector {
+    pub fn new(upstream: Option<UpstreamProxyConfig>) -> Self {
+        Self { upstream }
+    }
+}
+
+impl Service<Uri> for ProxyHttpConnector {
+    type Response = UpstreamStream;
+    type Error = Box<dyn std::error::Error + Send + Sync>;
+    type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send>>;
+
+    fn poll_ready(&mut self, _cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
+        Poll::Ready(Ok(()))
+    }
+
+    fn call(&mut self, uri: Uri) -> Self::Future {
+        let upstream = self.upstream.clone();
+
+        Box::pin(async move {
+            let host = uri.host().unwrap_or("");
+            let is_https = uri.scheme_str() == Some("https");
+            let port = uri.port_u16().unwrap_or(if is_https { 443 } else { 80 });
+
+            let should_proxy = match &upstream {
+                Some(config) => !config.should_bypass(host),
+                None => false,
+            };
+
+            let stream = if should_proxy {
+                let config = upstream.as_ref().unwrap();
+                if is_https {
+                    // HTTPS: CONNECT 터널을 통해 연결
+                    let target = format!("{}:{}", host, port);
+                    connect_via_upstream(config, &target).await?
+                } else {
+                    // HTTP: upstream proxy에 직접 연결 (hyper가 full URL로 요청 전송)
+                    TcpStream::connect(config.address()).await?
+                }
+            } else {
+                // 직접 연결 (바이패스 또는 upstream 미설정)
+                let addr = format!("{}:{}", host, port);
+                TcpStream::connect(&addr).await?
+            };
+
+            Ok(UpstreamStream(TokioIo::new(stream)))
+        })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn bypass_localhost() {
+        let config = UpstreamProxyConfig {
+            host: "proxy.company.com".into(),
+            port: 8080,
+            auth: None,
+            bypass: vec!["localhost".into()],
+        };
+        assert!(config.should_bypass("localhost"));
+        assert!(config.should_bypass("127.0.0.1"));
+        assert!(config.should_bypass("::1"));
+        assert!(!config.should_bypass("example.com"));
+    }
+
+    #[test]
+    fn bypass_wildcard() {
+        let config = UpstreamProxyConfig {
+            host: "proxy.company.com".into(),
+            port: 8080,
+            auth: None,
+            bypass: vec!["*.internal.com".into(), "10.0.0.1".into()],
+        };
+        assert!(config.should_bypass("api.internal.com"));
+        assert!(config.should_bypass("internal.com"));
+        assert!(config.should_bypass("10.0.0.1"));
+        assert!(!config.should_bypass("external.com"));
+    }
+
+    #[test]
+    fn no_bypass_when_empty() {
+        let config = UpstreamProxyConfig {
+            host: "proxy.company.com".into(),
+            port: 8080,
+            auth: None,
+            bypass: vec![],
+        };
+        assert!(!config.should_bypass("anything.com"));
+    }
+
+    #[test]
+    fn address_format() {
+        let config = UpstreamProxyConfig {
+            host: "proxy.example.com".into(),
+            port: 3128,
+            auth: None,
+            bypass: vec![],
+        };
+        assert_eq!(config.address(), "proxy.example.com:3128");
+    }
+}
