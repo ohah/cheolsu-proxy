@@ -50,7 +50,7 @@ msgstr "200 (선택사항)"
 msgid "Action"
 msgstr "동작"
 
-#: src/pages/script/ui/script-page.tsx:172
+#: src/pages/script/ui/script-page.tsx:170
 msgid "Active"
 msgstr "활성"
 
@@ -158,7 +158,7 @@ msgstr "차단"
 msgid "Body"
 msgstr "본문"
 
-#: src/pages/script/ui/script-page.tsx:257
+#: src/pages/script/ui/script-page.tsx:258
 msgid "Browse"
 msgstr "찾아보기"
 
@@ -183,7 +183,7 @@ msgstr "추가할 수 없습니다: 응답 데이터 없음"
 msgid "Cheolsu Proxy Logo"
 msgstr "Cheolsu Proxy 로고"
 
-#: src/pages/script/ui/script-page.tsx:282
+#: src/pages/script/ui/script-page.tsx:289
 msgid "Clear"
 msgstr "지우기"
 
@@ -228,7 +228,7 @@ msgstr "연결"
 msgid "connections"
 msgstr "연결"
 
-#: src/pages/script/ui/script-page.tsx:272
+#: src/pages/script/ui/script-page.tsx:277
 msgid "Console"
 msgstr "콘솔"
 
@@ -284,7 +284,7 @@ msgstr "규칙 수정"
 msgid "Edit Rule"
 msgstr "규칙 수정"
 
-#: src/pages/script/ui/script-page.tsx:197
+#: src/pages/script/ui/script-page.tsx:198
 msgid "Editor"
 msgstr "에디터"
 
@@ -317,7 +317,7 @@ msgstr "실패 — 프록시가 실행 중인가요?"
 msgid "Failed to send"
 msgstr "전송 실패"
 
-#: src/pages/script/ui/script-page.tsx:200
+#: src/pages/script/ui/script-page.tsx:201
 msgid "File"
 msgstr "파일"
 
@@ -359,7 +359,7 @@ msgstr "호스트 트리"
 msgid "HTTP requests and responses"
 msgstr "HTTP 요청 및 응답"
 
-#: src/pages/script/ui/script-page.tsx:172
+#: src/pages/script/ui/script-page.tsx:170
 msgid "Inactive"
 msgstr "비활성"
 
@@ -388,11 +388,11 @@ msgstr "인터셉트 규칙"
 msgid "Language"
 msgstr "언어"
 
-#: src/pages/script/ui/script-page.tsx:260
+#: src/pages/script/ui/script-page.tsx:261
 msgid "Load"
 msgstr "로드"
 
-#: src/pages/script/ui/script-page.tsx:243
+#: src/pages/script/ui/script-page.tsx:244
 msgid "Load a script file from disk. The file will be watched for changes and auto-reloaded."
 msgstr "디스크에서 스크립트 파일을 로드합니다. 파일 변경 시 자동으로 리로드됩니다."
 
@@ -400,8 +400,8 @@ msgstr "디스크에서 스크립트 파일을 로드합니다. 파일 변경 �
 msgid "Load and manage proxy scripts"
 msgstr "프록시 스크립트 로드 및 관리"
 
-#: src/pages/script/ui/script-page.tsx:210
-#: src/pages/script/ui/script-page.tsx:260
+#: src/pages/script/ui/script-page.tsx:211
+#: src/pages/script/ui/script-page.tsx:261
 msgid "Loading..."
 msgstr "로딩 중..."
 
@@ -523,7 +523,7 @@ msgstr "활성 WebSocket 연결 없음"
 msgid "No captured traffic with responses available. Capture some traffic first."
 msgstr "응답이 있는 캡처된 트래픽이 없습니다. 먼저 트래픽을 캡처하세요."
 
-#: src/pages/script/ui/script-page.tsx:288
+#: src/pages/script/ui/script-page.tsx:295
 msgid "No console output yet"
 msgstr "콘솔 출력이 아직 없습니다"
 
@@ -547,7 +547,7 @@ msgstr "표시할 트랜잭션이 없습니다"
 msgid "No valid requests to replay"
 msgstr "리플레이할 유효한 요청이 없습니다"
 
-#: src/pages/script/ui/script-page.tsx:207
+#: src/pages/script/ui/script-page.tsx:208
 msgid "Open File"
 msgstr "파일 열기"
 
@@ -616,7 +616,7 @@ msgstr "수신 (서버 → 클라이언트)"
 msgid "Reinstall"
 msgstr "재설치"
 
-#: src/pages/script/ui/script-page.tsx:177
+#: src/pages/script/ui/script-page.tsx:175
 msgid "Reload"
 msgstr "리로드"
 
@@ -706,7 +706,7 @@ msgstr "규칙이 수정되었습니다"
 msgid "rules"
 msgstr "규칙"
 
-#: src/pages/script/ui/script-page.tsx:210
+#: src/pages/script/ui/script-page.tsx:211
 msgid "Run"
 msgstr "실행"
 
@@ -722,12 +722,12 @@ msgstr "저장됨"
 msgid "Saving..."
 msgstr "저장 중..."
 
-#: src/pages/script/ui/script-page.tsx:164
+#: src/pages/script/ui/script-page.tsx:162
 #: src/shared/app-sidebar/model/consts.ts:41
 msgid "Script"
 msgstr "스크립트"
 
-#: src/pages/script/ui/script-page.tsx:251
+#: src/pages/script/ui/script-page.tsx:252
 msgid "Script file path (.js, .ts)"
 msgstr "스크립트 파일 경로 (.js, .ts)"
 
@@ -735,15 +735,15 @@ msgstr "스크립트 파일 경로 (.js, .ts)"
 msgid "Script loaded"
 msgstr "스크립트가 로드되었습니다"
 
-#: src/pages/script/ui/script-page.tsx:66
+#: src/pages/script/ui/script-page.tsx:67
 msgid "Script loaded from editor"
 msgstr "에디터에서 스크립트가 로드되었습니다"
 
-#: src/pages/script/ui/script-page.tsx:124
+#: src/pages/script/ui/script-page.tsx:121
 msgid "Script reloaded"
 msgstr "스크립트가 리로드되었습니다"
 
-#: src/pages/script/ui/script-page.tsx:113
+#: src/pages/script/ui/script-page.tsx:110
 msgid "Script unloaded"
 msgstr "스크립트가 언로드되었습니다"
 
@@ -876,7 +876,7 @@ msgstr "타입"
 msgid "Uninstall"
 msgstr "제거"
 
-#: src/pages/script/ui/script-page.tsx:180
+#: src/pages/script/ui/script-page.tsx:178
 msgid "Unload"
 msgstr "언로드"
 
@@ -940,6 +940,6 @@ msgstr "WebSocket 리플레이"
 msgid "Works with Claude Code, Cursor, Claude Desktop, and other MCP-compatible clients."
 msgstr "Claude Code, Cursor, Claude Desktop 및 기타 MCP 호환 클라이언트에서 사용 가능합니다."
 
-#: src/pages/script/ui/script-page.tsx:167
+#: src/pages/script/ui/script-page.tsx:165
 msgid "Write or load JavaScript/TypeScript proxy scripts"
 msgstr "JavaScript/TypeScript 프록시 스크립트 작성 또는 로드"
