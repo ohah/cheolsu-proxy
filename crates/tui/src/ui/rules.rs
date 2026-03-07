@@ -101,7 +101,7 @@ fn draw_rules_list(f: &mut Frame, app: &mut App, area: Rect) {
             .title(format!(" Intercept Rules ({}) ", app.rules.len()))
             .title_bottom(
                 Line::from(" j/k: navigate | a: add | t: toggle | d: delete | C: clear all ")
-                    .style(Style::default().fg(Color::DarkGray)),
+                    .style(Style::default().fg(Color::Cyan)),
             ),
     );
 
