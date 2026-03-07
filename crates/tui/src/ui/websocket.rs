@@ -46,7 +46,7 @@ fn draw_connections(f: &mut Frame, app: &mut App, area: Rect) {
                 .title(format!(" Connections ({}) ", app.ws_connections.len()))
                 .title_bottom(
                     Line::from(" j/k: navigate | y: copy URI | c: clear ")
-                        .style(Style::default().fg(Color::DarkGray)),
+                        .style(Style::default().fg(Color::Cyan)),
                 ),
         );
 
@@ -133,7 +133,7 @@ fn draw_messages(f: &mut Frame, app: &App, area: Rect) {
             .border_style(Style::default().fg(Color::Gray))
             .title(title)
             .title_bottom(
-                Line::from(" Y: copy messages ").style(Style::default().fg(Color::DarkGray)),
+                Line::from(" Y: copy messages ").style(Style::default().fg(Color::Cyan)),
             ),
     );
 
