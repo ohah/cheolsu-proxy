@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { Button, Input, Switch, Badge } from "@/shared/ui";
+import { AppSidebar } from "@/shared/app-sidebar";
+import { useProxyStore } from "@/shared/stores";
 
 interface UpstreamProxyConfig {
   host: string;
@@ -10,6 +12,7 @@ interface UpstreamProxyConfig {
 }
 
 export function SettingsPage() {
+  const { isConnected } = useProxyStore();
   const [enabled, setEnabled] = useState(false);
   const [host, setHost] = useState("");
   const [port, setPort] = useState("8080");
@@ -72,106 +75,112 @@ export function SettingsPage() {
   }, [enabled, host, port, useAuth, username, password, bypass]);
 
   return (
-    <div className="flex-1 overflow-auto p-6">
-      <div className="max-w-2xl mx-auto space-y-8">
-        <div>
-          <h1 className="text-2xl font-bold">Settings</h1>
-          <p className="text-sm text-muted-foreground mt-1">Proxy configuration and preferences</p>
-        </div>
+    <div className="flex h-[100vh] w-full">
+      <AppSidebar isConnected={isConnected} />
 
-        {/* Upstream Proxy Section */}
-        <div className="border rounded-lg p-5 space-y-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-lg font-semibold">Upstream Proxy</h2>
-              <p className="text-sm text-muted-foreground">
-                Route traffic through an external proxy server
-              </p>
-            </div>
-            <Switch checked={enabled} onCheckedChange={setEnabled} />
+      <div className="flex-1 overflow-auto p-6">
+        <div className="max-w-2xl mx-auto space-y-8">
+          <div>
+            <h1 className="text-2xl font-bold">Settings</h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Proxy configuration and preferences
+            </p>
           </div>
 
-          {enabled && (
-            <div className="space-y-4 pt-2">
-              {/* Host & Port */}
-              <div className="flex gap-3">
-                <div className="flex-1">
-                  <label className="text-sm font-medium mb-1.5 block">Host</label>
-                  <Input
-                    placeholder="proxy.company.com"
-                    value={host}
-                    onChange={(e) => setHost(e.target.value)}
-                  />
-                </div>
-                <div className="w-28">
-                  <label className="text-sm font-medium mb-1.5 block">Port</label>
-                  <Input
-                    type="number"
-                    placeholder="8080"
-                    value={port}
-                    onChange={(e) => setPort(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              {/* Authentication */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <Switch checked={useAuth} onCheckedChange={setUseAuth} />
-                  <label className="text-sm font-medium">Authentication</label>
-                </div>
-                {useAuth && (
-                  <div className="flex gap-3 pl-1">
-                    <div className="flex-1">
-                      <Input
-                        placeholder="Username"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <Input
-                        type="password"
-                        placeholder="Password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Bypass */}
+          {/* Upstream Proxy Section */}
+          <div className="border rounded-lg p-5 space-y-5">
+            <div className="flex items-center justify-between">
               <div>
-                <label className="text-sm font-medium mb-1.5 block">Bypass List</label>
-                <Input
-                  placeholder="localhost, 127.0.0.1, *.internal.com"
-                  value={bypass}
-                  onChange={(e) => setBypass(e.target.value)}
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Comma-separated list of hosts to connect directly (supports *.domain.com
-                  wildcards)
+                <h2 className="text-lg font-semibold">Upstream Proxy</h2>
+                <p className="text-sm text-muted-foreground">
+                  Route traffic through an external proxy server
                 </p>
               </div>
+              <Switch checked={enabled} onCheckedChange={setEnabled} />
             </div>
-          )}
 
-          {/* Save Button */}
-          <div className="flex items-center gap-3 pt-2">
-            <Button onClick={handleSave} disabled={saving}>
-              {saving ? "Saving..." : "Save"}
-            </Button>
-            {status === "saved" && (
-              <Badge variant="outline" className="text-green-600 border-green-600">
-                Saved
-              </Badge>
+            {enabled && (
+              <div className="space-y-4 pt-2">
+                {/* Host & Port */}
+                <div className="flex gap-3">
+                  <div className="flex-1">
+                    <label className="text-sm font-medium mb-1.5 block">Host</label>
+                    <Input
+                      placeholder="proxy.company.com"
+                      value={host}
+                      onChange={(e) => setHost(e.target.value)}
+                    />
+                  </div>
+                  <div className="w-28">
+                    <label className="text-sm font-medium mb-1.5 block">Port</label>
+                    <Input
+                      type="number"
+                      placeholder="8080"
+                      value={port}
+                      onChange={(e) => setPort(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                {/* Authentication */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Switch checked={useAuth} onCheckedChange={setUseAuth} />
+                    <label className="text-sm font-medium">Authentication</label>
+                  </div>
+                  {useAuth && (
+                    <div className="flex gap-3 pl-1">
+                      <div className="flex-1">
+                        <Input
+                          placeholder="Username"
+                          value={username}
+                          onChange={(e) => setUsername(e.target.value)}
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <Input
+                          type="password"
+                          placeholder="Password"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Bypass */}
+                <div>
+                  <label className="text-sm font-medium mb-1.5 block">Bypass List</label>
+                  <Input
+                    placeholder="localhost, 127.0.0.1, *.internal.com"
+                    value={bypass}
+                    onChange={(e) => setBypass(e.target.value)}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Comma-separated list of hosts to connect directly (supports *.domain.com
+                    wildcards)
+                  </p>
+                </div>
+              </div>
             )}
-            {status === "error" && (
-              <Badge variant="outline" className="text-red-600 border-red-600">
-                Failed — is the proxy running?
-              </Badge>
-            )}
+
+            {/* Save Button */}
+            <div className="flex items-center gap-3 pt-2">
+              <Button onClick={handleSave} disabled={saving}>
+                {saving ? "Saving..." : "Save"}
+              </Button>
+              {status === "saved" && (
+                <Badge variant="outline" className="text-green-600 border-green-600">
+                  Saved
+                </Badge>
+              )}
+              {status === "error" && (
+                <Badge variant="outline" className="text-red-600 border-red-600">
+                  Failed — is the proxy running?
+                </Badge>
+              )}
+            </div>
           </div>
         </div>
       </div>
