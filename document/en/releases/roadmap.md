@@ -2,22 +2,31 @@
 
 Check the upcoming features planned for Cheolsu Proxy.
 
-## 📋 Development Roadmap
+## Development Roadmap
 
 ### Planned Features
 
 - **Platform Support**:
   - Windows support
 
+- **Proxy Modes**:
+  - Reverse Proxy
+  - Transparent Proxy
+  - SOCKS5 Proxy
+
+- **Export/Import**:
+  - HAR export
+  - Session save/load
+
 - **Advanced Features**:
+  - Server-side Replay (response mocking)
   - Log analysis features
   - Performance optimization
 
 - **Extension Features**:
   - Plugin system
-  - API support
 
-## 🔄 Update Notifications
+## Update Notifications
 
 To receive notifications when new releases are available:
 
@@ -25,7 +34,7 @@ To receive notifications when new releases are available:
 2. Click **Watch** button
 3. Select **Releases only**
 
-## 📞 Feedback
+## Feedback
 
 For feature requests or suggestions:
 

@@ -9,15 +9,22 @@
 | 기능                    | mitmproxy | cheolsu-proxy | 비고                                 |
 | ----------------------- | :-------: | :-----------: | ------------------------------------ |
 | HTTP/HTTPS 인터셉트     |     O     |       O       |                                      |
+| HTTP/2                  |     O     |       O       | ALPN 협상                            |
+| WebSocket               |     O     |       O       | 메시지 주입 포함                     |
 | TLS 인증서 자동 생성    |     O     |       O       | rcgen / OpenSSL 선택 가능            |
+| TLS Passthrough         |     O     |       O       | 자동 바이패스                        |
 | 요청/응답 상세 보기     |     O     |       O       |                                      |
 | 헤더/바디 표시          |     O     |       O       |                                      |
 | JSON/XML/HTML 구문 강조 |     O     |       O       | Monaco Editor 기반                   |
+| GraphQL 구문 강조       |     O     |       O       | Monaco Editor 기반                   |
 | 이미지/미디어 미리보기  |     O     |       O       | 이미지, 비디오, 오디오               |
 | 바이너리 파일 감지      |     O     |       O       | 40개+ 파일 시그니처                  |
 | 요청 리플레이           |     O     |       O       | 개별 + 시퀀스 리플레이               |
 | 요청 차단 (Block)       |     O     |       O       | 상태코드/응답 지정 가능              |
 | 헤더/바디 수정 규칙     |     O     |       O       | ModifyRequest / ModifyResponse       |
+| Map Local               |     O     |       O       | Content-Type 자동 감지               |
+| Map Remote              |     O     |       O       | 경로 보존 옵션 지원                  |
+| Upstream Proxy          |     O     |       O       | CONNECT 터널, Basic 인증, Bypass     |
 | 필터링/검색             |     O     |       O       | mitmproxy: DSL, cheolsu: 쿼리 에디터 |
 | cURL 복사               |     O     |       O       |                                      |
 | gzip/brotli 압축 해제   |     O     |       O       |                                      |
@@ -26,36 +33,31 @@
 
 ## mitmproxy에만 있는 기능
 
-| 기능                   | 설명                                  | 우선순위  |
-| ---------------------- | ------------------------------------- | :-------: |
-| HTTP/2, HTTP/3 (QUIC)  | 다중 프로토콜 지원                    |           |
-| ~~WebSocket 뷰~~       | ~~WebSocket 메시지 인터셉트 및 표시~~ | 구현 완료 |
-| Transparent Proxy      | OS 레벨 투명 프록시 모드              |           |
-| Reverse Proxy          | 특정 서버로 트래픽 전달               |           |
-| SOCKS Proxy            | SOCKS5 프록시 모드                    |           |
-| Upstream Proxy         | 상위 프록시 체이닝                    |           |
-| Map Local              | 요청을 로컬 파일로 대체               |           |
-| Map Remote             | URL을 다른 URL로 리다이렉트           |           |
-| Anticache              | 캐시 헤더 자동 제거                   |           |
-| Anticomp               | 압축 비활성화 (디버깅용)              |           |
-| Sticky Auth/Cookie     | 인증/쿠키 자동 재전송                 |           |
-| Server-side Replay     | 저장된 응답으로 서버 모킹             |           |
-| Save/Load (Flow 파일)  | 세션 저장 및 불러오기                 |           |
-| HAR Export             | HAR 형식 내보내기                     |           |
-| Python 스크립트 애드온 | 사용자 스크립트로 기능 확장           |           |
-| 콘솔 UI (TUI)          | 터미널 인터랙티브 UI                  |           |
-| mitmdump (CLI)         | tcpdump 스타일 CLI 도구               |           |
-| DNS 인터셉트           | DNS 쿼리/응답 조작                    |           |
-| Proxy Authentication   | 프록시 접속 인증                      |           |
-| Content View 확장      | GraphQL, MQTT, Socket.IO, WBXML 등    | 부분 구현 |
-
-> 우선순위 컬럼은 cheolsu-proxy에 도입할 기능을 선별할 때 사용합니다.
+| 기능                   | 설명                        |
+| ---------------------- | --------------------------- |
+| HTTP/3 (QUIC)          | 다중 프로토콜 지원          |
+| Transparent Proxy      | OS 레벨 투명 프록시 모드    |
+| Reverse Proxy          | 특정 서버로 트래픽 전달     |
+| SOCKS Proxy            | SOCKS5 프록시 모드          |
+| Sticky Auth/Cookie     | 인증/쿠키 자동 재전송       |
+| Server-side Replay     | 저장된 응답으로 서버 모킹   |
+| Save/Load (Flow 파일)  | 세션 저장 및 불러오기       |
+| HAR Export             | HAR 형식 내보내기           |
+| Python 스크립트 애드온 | 사용자 스크립트로 기능 확장 |
+| 콘솔 UI (TUI)          | 터미널 인터랙티브 UI        |
+| mitmdump (CLI)         | tcpdump 스타일 CLI 도구     |
+| DNS 인터셉트           | DNS 쿼리/응답 조작          |
+| Proxy Authentication   | 프록시 접속 인증            |
+| Raw TCP / UDP          | 비 HTTP 프로토콜 지원       |
+| Content View 확장      | Protobuf 등                 |
 
 ## cheolsu-proxy에만 있는 기능
 
 | 기능                    | 설명                                                   |
 | ----------------------- | ------------------------------------------------------ |
 | 네이티브 데스크톱 앱    | Tauri 기반 (경량, 저메모리)                            |
+| MCP Server              | AI 어시스턴트(Claude Code, Cursor 등)에서 트래픽 조회  |
+| 하이브리드 TLS 엔진     | rustls + OpenSSL 자동 전환 (ClientHello 분석 기반)     |
 | 시퀀스 리플레이         | 여러 요청을 순차 배치 실행                             |
 | 호스트/경로 트리 뷰     | 트래픽을 호스트별 트리 구조로 그룹핑                   |
 | 핀/체크박스 선택        | 트랜잭션 고정 및 다중 선택                             |
@@ -63,6 +65,8 @@
 | 시스템 프록시 자동 관리 | 앱 시작/종료 시 자동 설정/해제                         |
 | 백그라운드 데몬         | UDS 기반 독립 데몬 프로세스                            |
 | CLI 인터셉트 셸         | headless 모드에서 규칙 관리 (block, modify-request 등) |
+| 스트리밍 응답 최적화    | SSE, Chunked, NDJSON 자동 감지 및 최적화               |
+| 세션별 캐시 격리        | 세션 해시 기반 독립 캐시 디렉토리                      |
 
 ## 아키텍처 차이
 
