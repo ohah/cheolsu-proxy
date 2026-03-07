@@ -2,7 +2,7 @@ use proxy_daemon::InterceptAction;
 use ratatui::prelude::*;
 use ratatui::widgets::*;
 
-use crate::app::App;
+use crate::app::{App, RuleFormField};
 
 pub fn draw(f: &mut Frame, app: &App, area: Rect) {
     let chunks = Layout::default()
@@ -16,7 +16,7 @@ pub fn draw(f: &mut Frame, app: &App, area: Rect) {
 
 fn draw_rules_list(f: &mut Frame, app: &App, area: Rect) {
     if app.rules.is_empty() {
-        let empty = Paragraph::new("  규칙이 없습니다")
+        let empty = Paragraph::new("  No rules defined. Press 'a' to add.")
             .style(Style::default().fg(Color::Gray))
             .block(
                 Block::default()
@@ -115,14 +115,16 @@ fn draw_rules_list(f: &mut Frame, app: &App, area: Rect) {
 
 fn draw_rules_help(f: &mut Frame, area: Rect) {
     let help = Paragraph::new(Line::from(vec![
+        Span::styled("a", Style::default().fg(Color::Yellow)),
+        Span::raw(": add  "),
         Span::styled("t", Style::default().fg(Color::Yellow)),
-        Span::raw(": 토글  "),
+        Span::raw(": toggle  "),
         Span::styled("d", Style::default().fg(Color::Yellow)),
-        Span::raw(": 삭제  "),
+        Span::raw(": delete  "),
         Span::styled("C", Style::default().fg(Color::Yellow)),
-        Span::raw(": 전체삭제  "),
+        Span::raw(": clear all  "),
         Span::styled("j/k", Style::default().fg(Color::Yellow)),
-        Span::raw(": 이동"),
+        Span::raw(": navigate"),
     ]))
     .block(
         Block::default()
@@ -131,6 +133,201 @@ fn draw_rules_help(f: &mut Frame, area: Rect) {
     );
 
     f.render_widget(help, area);
+}
+
+pub fn draw_rule_form(f: &mut Frame, app: &App, area: Rect) {
+    let form = match &app.rule_form {
+        Some(form) => form,
+        None => return,
+    };
+
+    // Center the popup
+    let popup_area = centered_rect(60, 70, area);
+
+    // Clear background
+    f.render_widget(Clear, popup_area);
+
+    let block = Block::default()
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(Color::Cyan))
+        .title(" Add Rule (Enter: save, Esc: cancel) ");
+
+    let inner = block.inner(popup_area);
+    f.render_widget(block, popup_area);
+
+    let chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([
+            Constraint::Length(3), // Name
+            Constraint::Length(3), // Pattern
+            Constraint::Length(3), // Method
+            Constraint::Length(3), // Action Type
+            Constraint::Length(3), // Dynamic field 1
+            Constraint::Length(3), // Dynamic field 2
+            Constraint::Min(0),    // Spacer
+        ])
+        .split(inner);
+
+    // Name
+    draw_input_field(
+        f,
+        "Name",
+        &form.name,
+        form.field == RuleFormField::Name,
+        chunks[0],
+    );
+
+    // Pattern
+    draw_input_field(
+        f,
+        "Pattern *",
+        &form.pattern,
+        form.field == RuleFormField::Pattern,
+        chunks[1],
+    );
+
+    // Method
+    let method_display = form.method.as_deref().unwrap_or("ALL");
+    draw_select_field(
+        f,
+        "Method",
+        method_display,
+        form.field == RuleFormField::Method,
+        chunks[2],
+    );
+
+    // Action Type
+    draw_select_field(
+        f,
+        "Action",
+        form.action_type.label(),
+        form.field == RuleFormField::ActionType,
+        chunks[3],
+    );
+
+    // Dynamic fields based on action type
+    match form.action_type {
+        crate::app::ActionType::Block => {
+            draw_input_field(
+                f,
+                "Status Code",
+                &form.status_code,
+                form.field == RuleFormField::StatusCode,
+                chunks[4],
+            );
+            draw_input_field(
+                f,
+                "Body",
+                &form.body,
+                form.field == RuleFormField::Body,
+                chunks[5],
+            );
+        }
+        crate::app::ActionType::ModifyRequest | crate::app::ActionType::ModifyResponse => {
+            draw_input_field(
+                f,
+                "Body",
+                &form.body,
+                form.field == RuleFormField::Body,
+                chunks[4],
+            );
+            // Empty
+            f.render_widget(Paragraph::new(""), chunks[5]);
+        }
+        crate::app::ActionType::MapLocal => {
+            draw_input_field(
+                f,
+                "File Path",
+                &form.file_path,
+                form.field == RuleFormField::FilePath,
+                chunks[4],
+            );
+            draw_input_field(
+                f,
+                "Status Code",
+                &form.status_code,
+                form.field == RuleFormField::StatusCode,
+                chunks[5],
+            );
+        }
+        crate::app::ActionType::MapRemote => {
+            draw_input_field(
+                f,
+                "Target URL",
+                &form.target_url,
+                form.field == RuleFormField::TargetUrl,
+                chunks[4],
+            );
+            // Empty
+            f.render_widget(Paragraph::new(""), chunks[5]);
+        }
+    }
+}
+
+fn draw_input_field(f: &mut Frame, label: &str, value: &str, active: bool, area: Rect) {
+    let border_style = if active {
+        Style::default().fg(Color::Cyan)
+    } else {
+        Style::default().fg(Color::Gray)
+    };
+
+    let display = if active {
+        format!("{}▎", value)
+    } else {
+        value.to_string()
+    };
+
+    let input = Paragraph::new(display).block(
+        Block::default()
+            .borders(Borders::ALL)
+            .border_style(border_style)
+            .title(format!(" {} ", label)),
+    );
+
+    f.render_widget(input, area);
+}
+
+fn draw_select_field(f: &mut Frame, label: &str, value: &str, active: bool, area: Rect) {
+    let border_style = if active {
+        Style::default().fg(Color::Cyan)
+    } else {
+        Style::default().fg(Color::Gray)
+    };
+
+    let display = if active {
+        format!("◄ {} ►", value)
+    } else {
+        value.to_string()
+    };
+
+    let input = Paragraph::new(display).block(
+        Block::default()
+            .borders(Borders::ALL)
+            .border_style(border_style)
+            .title(format!(" {} ", label)),
+    );
+
+    f.render_widget(input, area);
+}
+
+fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
+    let popup_layout = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([
+            Constraint::Percentage((100 - percent_y) / 2),
+            Constraint::Percentage(percent_y),
+            Constraint::Percentage((100 - percent_y) / 2),
+        ])
+        .split(r);
+
+    Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([
+            Constraint::Percentage((100 - percent_x) / 2),
+            Constraint::Percentage(percent_x),
+            Constraint::Percentage((100 - percent_x) / 2),
+        ])
+        .split(popup_layout[1])[1]
 }
 
 fn truncate(s: &str, max: usize) -> String {

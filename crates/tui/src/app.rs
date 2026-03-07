@@ -3,7 +3,9 @@ use crossterm::{
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
-use proxy_daemon::{ClientCommand, DaemonConnection, DaemonMessage, InterceptRule};
+use proxy_daemon::{
+    ClientCommand, DaemonConnection, DaemonMessage, InterceptAction, InterceptRule,
+};
 use proxy_v2_models::{RequestInfo, WsConnectionEvent, WsMessageInfo};
 use ratatui::prelude::*;
 use std::io;
@@ -14,7 +16,7 @@ use crate::event::{Event, EventHandler};
 use crate::tabs::Tab;
 use crate::ui;
 
-/// TUI 앱 상태
+/// TUI app state
 pub struct App {
     pub port: u16,
     pub host: String,
@@ -37,6 +39,12 @@ pub struct App {
     pub rules: Vec<InterceptRule>,
     pub selected_rule: Option<usize>,
 
+    // Rule form
+    pub rule_form: Option<RuleForm>,
+
+    // Status message
+    pub status_message: Option<(String, std::time::Instant)>,
+
     // Connection
     conn: Option<DaemonConnection>,
     event_tx: Option<mpsc::UnboundedSender<Event>>,
@@ -48,6 +56,189 @@ pub struct WsConnection {
     pub uri: String,
     pub time: i64,
     pub active: bool,
+}
+
+/// Rule creation form
+#[derive(Debug, Clone)]
+pub struct RuleForm {
+    pub field: RuleFormField,
+    pub name: String,
+    pub pattern: String,
+    pub method: Option<String>,
+    pub action_type: ActionType,
+    pub status_code: String,
+    pub body: String,
+    pub target_url: String,
+    pub file_path: String,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RuleFormField {
+    Name,
+    Pattern,
+    Method,
+    ActionType,
+    StatusCode,
+    Body,
+    TargetUrl,
+    FilePath,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ActionType {
+    Block,
+    ModifyRequest,
+    ModifyResponse,
+    MapLocal,
+    MapRemote,
+}
+
+impl ActionType {
+    pub const ALL: [ActionType; 5] = [
+        ActionType::Block,
+        ActionType::ModifyRequest,
+        ActionType::ModifyResponse,
+        ActionType::MapLocal,
+        ActionType::MapRemote,
+    ];
+
+    pub fn label(&self) -> &'static str {
+        match self {
+            ActionType::Block => "Block",
+            ActionType::ModifyRequest => "Modify Request",
+            ActionType::ModifyResponse => "Modify Response",
+            ActionType::MapLocal => "Map Local",
+            ActionType::MapRemote => "Map Remote",
+        }
+    }
+
+    pub fn next(&self) -> ActionType {
+        let idx = Self::ALL.iter().position(|a| a == self).unwrap_or(0);
+        Self::ALL[(idx + 1) % Self::ALL.len()]
+    }
+
+    pub fn prev(&self) -> ActionType {
+        let idx = Self::ALL.iter().position(|a| a == self).unwrap_or(0);
+        if idx == 0 {
+            Self::ALL[Self::ALL.len() - 1]
+        } else {
+            Self::ALL[idx - 1]
+        }
+    }
+}
+
+impl RuleFormField {
+    fn next(&self, action_type: ActionType) -> RuleFormField {
+        match self {
+            RuleFormField::Name => RuleFormField::Pattern,
+            RuleFormField::Pattern => RuleFormField::Method,
+            RuleFormField::Method => RuleFormField::ActionType,
+            RuleFormField::ActionType => match action_type {
+                ActionType::Block => RuleFormField::StatusCode,
+                ActionType::ModifyRequest | ActionType::ModifyResponse => RuleFormField::Body,
+                ActionType::MapLocal => RuleFormField::FilePath,
+                ActionType::MapRemote => RuleFormField::TargetUrl,
+            },
+            RuleFormField::StatusCode => RuleFormField::Body,
+            RuleFormField::Body => RuleFormField::Name,
+            RuleFormField::TargetUrl => RuleFormField::Name,
+            RuleFormField::FilePath => RuleFormField::StatusCode,
+        }
+    }
+
+    fn prev(&self, action_type: ActionType) -> RuleFormField {
+        match self {
+            RuleFormField::Name => match action_type {
+                ActionType::Block | ActionType::ModifyResponse => RuleFormField::Body,
+                ActionType::ModifyRequest => RuleFormField::Body,
+                ActionType::MapLocal => RuleFormField::StatusCode,
+                ActionType::MapRemote => RuleFormField::TargetUrl,
+            },
+            RuleFormField::Pattern => RuleFormField::Name,
+            RuleFormField::Method => RuleFormField::Pattern,
+            RuleFormField::ActionType => RuleFormField::Method,
+            RuleFormField::StatusCode => match action_type {
+                ActionType::MapLocal => RuleFormField::FilePath,
+                _ => RuleFormField::ActionType,
+            },
+            RuleFormField::Body => match action_type {
+                ActionType::Block => RuleFormField::StatusCode,
+                _ => RuleFormField::ActionType,
+            },
+            RuleFormField::TargetUrl => RuleFormField::ActionType,
+            RuleFormField::FilePath => RuleFormField::ActionType,
+        }
+    }
+}
+
+impl RuleForm {
+    fn new() -> Self {
+        Self {
+            field: RuleFormField::Name,
+            name: String::new(),
+            pattern: String::new(),
+            method: None,
+            action_type: ActionType::Block,
+            status_code: "403".to_string(),
+            body: String::new(),
+            target_url: String::new(),
+            file_path: String::new(),
+        }
+    }
+
+    fn to_rule(&self) -> Option<InterceptRule> {
+        if self.pattern.is_empty() {
+            return None;
+        }
+
+        let action = match self.action_type {
+            ActionType::Block => InterceptAction::Block {
+                status_code: self.status_code.parse().unwrap_or(403),
+                body: self.body.clone(),
+            },
+            ActionType::ModifyRequest => InterceptAction::ModifyRequest {
+                add_headers: std::collections::HashMap::new(),
+                remove_headers: Vec::new(),
+                set_body: if self.body.is_empty() {
+                    None
+                } else {
+                    Some(self.body.clone())
+                },
+            },
+            ActionType::ModifyResponse => InterceptAction::ModifyResponse {
+                set_status: self.status_code.parse().ok(),
+                add_headers: std::collections::HashMap::new(),
+                remove_headers: Vec::new(),
+                set_body: if self.body.is_empty() {
+                    None
+                } else {
+                    Some(self.body.clone())
+                },
+            },
+            ActionType::MapLocal => InterceptAction::MapLocal {
+                file_path: self.file_path.clone(),
+                status_code: self.status_code.parse().unwrap_or(200),
+                headers: std::collections::HashMap::new(),
+            },
+            ActionType::MapRemote => InterceptAction::MapRemote {
+                target_url: self.target_url.clone(),
+                preserve_path: true,
+            },
+        };
+
+        Some(InterceptRule {
+            id: uuid::Uuid::new_v4().to_string(),
+            name: if self.name.is_empty() {
+                self.pattern.clone()
+            } else {
+                self.name.clone()
+            },
+            enabled: true,
+            pattern: self.pattern.clone(),
+            method: self.method.clone(),
+            action,
+        })
+    }
 }
 
 impl App {
@@ -67,27 +258,29 @@ impl App {
             selected_ws_conn: None,
             rules: Vec::new(),
             selected_rule: None,
+            rule_form: None,
+            status_message: None,
             conn: None,
             event_tx: None,
         }
     }
 
     pub async fn run(&mut self) -> Result<(), Box<dyn std::error::Error>> {
-        // 터미널 초기화
+        // Initialize terminal
         enable_raw_mode()?;
         let mut stdout = io::stdout();
         execute!(stdout, EnterAlternateScreen)?;
         let backend = CrosstermBackend::new(stdout);
         let mut terminal = Terminal::new(backend)?;
 
-        // 이벤트 핸들러
+        // Event handler
         let (mut events, event_tx) = EventHandler::new(Duration::from_millis(250));
         self.event_tx = Some(event_tx.clone());
 
-        // 데몬 연결
+        // Connect to daemon
         self.connect_daemon(event_tx.clone()).await;
 
-        // 메인 루프
+        // Main loop
         while self.running {
             terminal.draw(|f| ui::draw(f, self))?;
 
@@ -95,13 +288,20 @@ impl App {
                 match event {
                     Event::Key(key) => self.handle_key(key).await,
                     Event::Daemon(msg) => self.handle_daemon_message(msg),
-                    Event::Resize => {} // ratatui가 자동 처리
-                    Event::Tick => {}
+                    Event::Resize => {} // ratatui handles automatically
+                    Event::Tick => {
+                        // Clear expired status messages
+                        if let Some((_, time)) = &self.status_message {
+                            if time.elapsed() > Duration::from_secs(3) {
+                                self.status_message = None;
+                            }
+                        }
+                    }
                 }
             }
         }
 
-        // 정리
+        // Cleanup
         disable_raw_mode()?;
         execute!(terminal.backend_mut(), LeaveAlternateScreen)?;
         terminal.show_cursor()?;
@@ -137,10 +337,10 @@ impl App {
             DaemonMessage::Event { data } => {
                 if !self.paused {
                     self.transactions.push(data);
-                    // 최대 5000개 유지
+                    // Keep max 5000
                     if self.transactions.len() > 5000 {
                         self.transactions.drain(0..1000);
-                        // 선택 인덱스 조정
+                        // Adjust selection index
                         if let Some(ref mut idx) = self.selected_transaction {
                             *idx = idx.saturating_sub(1000);
                         }
@@ -183,8 +383,18 @@ impl App {
         }
     }
 
+    fn set_status(&mut self, msg: &str) {
+        self.status_message = Some((msg.to_string(), std::time::Instant::now()));
+    }
+
     async fn handle_key(&mut self, key: KeyEvent) {
-        // 글로벌 키: q/Ctrl+c로 종료
+        // If rule form is open, handle form input
+        if self.rule_form.is_some() {
+            self.handle_rule_form_key(key).await;
+            return;
+        }
+
+        // Global keys: q/Ctrl+c to quit
         if key.code == KeyCode::Char('q')
             || (key.code == KeyCode::Char('c') && key.modifiers.contains(KeyModifiers::CONTROL))
         {
@@ -192,7 +402,7 @@ impl App {
             return;
         }
 
-        // 탭 전환
+        // Tab switching
         match key.code {
             KeyCode::Tab => {
                 self.tab = self.tab.next();
@@ -221,7 +431,7 @@ impl App {
             _ => {}
         }
 
-        // 탭별 키 처리
+        // Tab-specific keys
         match self.tab {
             Tab::Network => self.handle_network_key(key).await,
             Tab::WebSocket => self.handle_ws_key(key),
@@ -262,6 +472,30 @@ impl App {
             KeyCode::Char('c') => {
                 self.transactions.clear();
                 self.selected_transaction = None;
+            }
+            KeyCode::Char('y') => {
+                // Copy selected request URL to clipboard
+                if let Some(idx) = self.selected_transaction {
+                    if let Some(info) = self.transactions.get(idx) {
+                        if let Some(req) = &info.0 {
+                            let url = req.uri().to_string();
+                            if copy_to_clipboard(&url) {
+                                self.set_status("URL copied to clipboard");
+                            }
+                        }
+                    }
+                }
+            }
+            KeyCode::Char('Y') => {
+                // Copy full request/response detail
+                if let Some(idx) = self.selected_transaction {
+                    if let Some(info) = self.transactions.get(idx) {
+                        let detail = format_transaction_detail(info);
+                        if copy_to_clipboard(&detail) {
+                            self.set_status("Request/Response copied to clipboard");
+                        }
+                    }
+                }
             }
             KeyCode::Home | KeyCode::Char('g') => {
                 self.selected_transaction = Some(0);
@@ -325,8 +559,12 @@ impl App {
                     self.selected_rule = Some(0);
                 }
             }
+            KeyCode::Char('a') => {
+                // Open add rule form
+                self.rule_form = Some(RuleForm::new());
+            }
             KeyCode::Char('t') => {
-                // 토글 활성화/비활성화
+                // Toggle enabled/disabled
                 if let Some(idx) = self.selected_rule {
                     if idx < self.rules.len() {
                         self.rules[idx].enabled = !self.rules[idx].enabled;
@@ -335,7 +573,7 @@ impl App {
                 }
             }
             KeyCode::Char('d') | KeyCode::Delete => {
-                // 규칙 삭제
+                // Delete rule
                 if let Some(idx) = self.selected_rule {
                     if idx < self.rules.len() {
                         self.rules.remove(idx);
@@ -349,12 +587,92 @@ impl App {
                 }
             }
             KeyCode::Char('C') => {
-                // 모든 규칙 삭제
+                // Clear all rules
                 self.rules.clear();
                 self.selected_rule = None;
                 self.send_rules_update().await;
             }
             _ => {}
+        }
+    }
+
+    async fn handle_rule_form_key(&mut self, key: KeyEvent) {
+        let form = self.rule_form.as_mut().unwrap();
+
+        match key.code {
+            KeyCode::Esc => {
+                self.rule_form = None;
+            }
+            KeyCode::Tab => {
+                form.field = form.field.next(form.action_type);
+            }
+            KeyCode::BackTab => {
+                form.field = form.field.prev(form.action_type);
+            }
+            KeyCode::Enter => {
+                // Submit form
+                if let Some(rule) = form.to_rule() {
+                    self.rules.push(rule);
+                    self.send_rules_update().await;
+                    self.set_status("Rule added");
+                    self.rule_form = None;
+                } else {
+                    self.set_status("Pattern is required");
+                }
+            }
+            _ => {
+                // Handle text input for current field
+                match form.field {
+                    RuleFormField::ActionType => match key.code {
+                        KeyCode::Left => form.action_type = form.action_type.prev(),
+                        KeyCode::Right => form.action_type = form.action_type.next(),
+                        _ => {}
+                    },
+                    RuleFormField::Method => match key.code {
+                        KeyCode::Left | KeyCode::Right => {
+                            let methods = [
+                                None,
+                                Some("GET"),
+                                Some("POST"),
+                                Some("PUT"),
+                                Some("DELETE"),
+                                Some("PATCH"),
+                            ];
+                            let cur = methods
+                                .iter()
+                                .position(|m| *m == form.method.as_deref())
+                                .unwrap_or(0);
+                            let next = if key.code == KeyCode::Right {
+                                (cur + 1) % methods.len()
+                            } else if cur == 0 {
+                                methods.len() - 1
+                            } else {
+                                cur - 1
+                            };
+                            form.method = methods[next].map(|s| s.to_string());
+                        }
+                        _ => {}
+                    },
+                    _ => {
+                        let field = match form.field {
+                            RuleFormField::Name => &mut form.name,
+                            RuleFormField::Pattern => &mut form.pattern,
+                            RuleFormField::StatusCode => &mut form.status_code,
+                            RuleFormField::Body => &mut form.body,
+                            RuleFormField::TargetUrl => &mut form.target_url,
+                            RuleFormField::FilePath => &mut form.file_path,
+                            _ => return,
+                        };
+                        match key.code {
+                            KeyCode::Char(c) => field.push(c),
+                            KeyCode::Backspace => {
+                                field.pop();
+                            }
+                            _ => {}
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -366,4 +684,62 @@ impl App {
             let _ = conn.send_command(&cmd).await;
         }
     }
+}
+
+fn copy_to_clipboard(text: &str) -> bool {
+    use std::process::{Command, Stdio};
+
+    // macOS
+    if let Ok(mut child) = Command::new("pbcopy").stdin(Stdio::piped()).spawn() {
+        if let Some(stdin) = child.stdin.as_mut() {
+            use std::io::Write;
+            let _ = stdin.write_all(text.as_bytes());
+        }
+        return child.wait().map(|s| s.success()).unwrap_or(false);
+    }
+
+    // Linux (xclip)
+    if let Ok(mut child) = Command::new("xclip")
+        .args(["-selection", "clipboard"])
+        .stdin(Stdio::piped())
+        .spawn()
+    {
+        if let Some(stdin) = child.stdin.as_mut() {
+            use std::io::Write;
+            let _ = stdin.write_all(text.as_bytes());
+        }
+        return child.wait().map(|s| s.success()).unwrap_or(false);
+    }
+
+    false
+}
+
+fn format_transaction_detail(info: &RequestInfo) -> String {
+    let mut out = String::new();
+
+    if let Some(req) = &info.0 {
+        out.push_str(&format!("{} {}\n", req.method(), req.uri()));
+        out.push_str(&format!("Version: {:?}\n", req.version()));
+        for (name, value) in req.headers().iter() {
+            out.push_str(&format!(
+                "{}: {}\n",
+                name,
+                value.to_str().unwrap_or("<binary>")
+            ));
+        }
+        out.push('\n');
+    }
+
+    if let Some(res) = &info.1 {
+        out.push_str(&format!("Status: {}\n", res.status()));
+        for (name, value) in res.headers().iter() {
+            out.push_str(&format!(
+                "{}: {}\n",
+                name,
+                value.to_str().unwrap_or("<binary>")
+            ));
+        }
+    }
+
+    out
 }
