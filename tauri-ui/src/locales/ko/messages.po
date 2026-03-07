@@ -13,16 +13,16 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
-#: src/pages/map-rules/ui/map-rules-page.tsx:149
+#: src/pages/map-rules/ui/map-rules-page.tsx:157
 msgid " (preserve path)"
 msgstr " (경로 유지)"
 
 #. placeholder {0}: transactions.length
-#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:126
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:128
 msgid "{0} requests will be sent sequentially."
 msgstr "{0}개의 요청을 순서대로 전송합니다."
 
-#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:170
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:177
 msgid "{failCount} failed"
 msgstr "{failCount}개 실패"
 
@@ -30,7 +30,7 @@ msgstr "{failCount}개 실패"
 msgid "{filteredCount} of {totalCount} transactions"
 msgstr "{totalCount}개 중 {filteredCount}개 트랜잭션"
 
-#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:165
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:170
 msgid "{successCount} succeeded"
 msgstr "{successCount}개 성공"
 
@@ -38,64 +38,64 @@ msgstr "{successCount}개 성공"
 msgid "{totalCount} transactions"
 msgstr "{totalCount}개 트랜잭션"
 
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:201
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:208
 msgid "* = any string, ? = single character"
 msgstr "* = 모든 문자열, ? = 단일 문자"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:283
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:297
 msgid "200 (optional)"
 msgstr "200 (선택사항)"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:247
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:256
 msgid "Action"
 msgstr "동작"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:298
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:327
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:272
-#: src/features/transaction-details/ui/replay-dialog.tsx:373
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:314
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:345
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:288
+#: src/features/transaction-details/ui/replay-dialog.tsx:381
 msgid "Add"
 msgstr "추가"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:295
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:310
 msgid "Add Headers"
 msgstr "헤더 추가"
 
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:174
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:175
 msgid "Add Map Rule"
 msgstr "맵 규칙 추가"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:198
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:366
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:329
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:90
-#: src/pages/map-rules/ui/map-rules-page.tsx:81
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:199
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:387
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:348
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:92
+#: src/pages/map-rules/ui/map-rules-page.tsx:85
 msgid "Add Rule"
 msgstr "규칙 추가"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:101
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:105
 msgid "Add rules to intercept, block, or modify HTTP requests and responses."
 msgstr "HTTP 요청과 응답을 가로채거나, 차단하거나, 수정하는 규칙을 추가하세요."
 
-#: src/pages/map-rules/ui/map-rules-page.tsx:92
+#: src/pages/map-rules/ui/map-rules-page.tsx:98
 msgid "Add rules to map URLs to local files or redirect to other servers."
 msgstr "URL을 로컬 파일에 매핑하거나 다른 서버로 리다이렉트하는 규칙을 추가하세요."
 
-#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:81
+#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:87
 msgid "Add this to your AI assistant's MCP configuration:"
 msgstr "AI 어시스턴트의 MCP 설정에 추가하세요:"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:105
-#: src/pages/map-rules/ui/map-rules-page.tsx:96
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:111
+#: src/pages/map-rules/ui/map-rules-page.tsx:104
 msgid "Add your first rule"
 msgstr "첫 번째 규칙 추가"
 
-#: src/widgets/websocket-messages/ui/ws-connection-list.tsx:43
+#: src/widgets/websocket-messages/ui/ws-connection-list.tsx:44
 msgid "All Connections"
 msgstr "전체 연결"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:236
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:213
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:244
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:223
 msgid "All Methods"
 msgstr "모든 메서드"
 
@@ -104,36 +104,36 @@ msgstr "모든 메서드"
 msgid "All rules cleared"
 msgstr "모든 규칙이 삭제되었습니다"
 
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:317
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:335
 msgid "Append the original request path to the target URL"
 msgstr "원본 요청 경로를 대상 URL에 추가"
 
-#: src/features/query-filter-editor/ui/filter-help-tooltip.tsx:73
+#: src/features/query-filter-editor/ui/filter-help-tooltip.tsx:83
 msgid "Apply:"
 msgstr "적용:"
 
-#: src/pages/settings/ui/settings-page.tsx:154
+#: src/pages/settings/ui/settings-page.tsx:177
 msgid "Authentication"
 msgstr "인증"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:256
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:266
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:40
 msgid "Block"
 msgstr "차단"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:349
-#: src/features/transaction-details/ui/replay-dialog.tsx:120
-#: src/features/transaction-details/ui/replay-dialog.tsx:189
-#: src/features/transaction-details/ui/replay-dialog.tsx:421
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:368
+#: src/features/transaction-details/ui/replay-dialog.tsx:121
+#: src/features/transaction-details/ui/replay-dialog.tsx:192
+#: src/features/transaction-details/ui/replay-dialog.tsx:430
 msgid "Body"
 msgstr "본문"
 
-#: src/pages/settings/ui/settings-page.tsx:179
+#: src/pages/settings/ui/settings-page.tsx:204
 msgid "Bypass List"
 msgstr "바이패스 목록"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:364
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:327
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:384
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:345
 msgid "Cancel"
 msgstr "취소"
 
@@ -141,12 +141,12 @@ msgstr "취소"
 msgid "Cheolsu Proxy Logo"
 msgstr "Cheolsu Proxy 로고"
 
-#: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:69
+#: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:72
 msgid "Clear all"
 msgstr "전체 삭제"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:85
-#: src/pages/map-rules/ui/map-rules-page.tsx:76
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:87
+#: src/pages/map-rules/ui/map-rules-page.tsx:80
 msgid "Clear All"
 msgstr "전체 삭제"
 
@@ -154,34 +154,34 @@ msgstr "전체 삭제"
 msgid "Clear all transactions"
 msgstr "모든 트랜잭션 삭제"
 
-#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:241
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:252
 msgid "Close"
 msgstr "닫기"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:123
-#: src/features/transaction-details/ui/replay-dialog.tsx:430
+#: src/features/transaction-details/ui/replay-dialog.tsx:125
+#: src/features/transaction-details/ui/replay-dialog.tsx:440
 msgid "Collapse"
 msgstr "접기"
 
-#: src/pages/settings/ui/settings-page.tsx:186
+#: src/pages/settings/ui/settings-page.tsx:212
 msgid "Comma-separated list of hosts to connect directly (supports *.domain.com wildcards)"
 msgstr "직접 연결할 호스트 목록 (쉼표로 구분, *.domain.com 와일드카드 지원)"
 
 #: src/shared/app-sidebar/ui/sidebar-status.tsx:27
-#: src/shared/app-sidebar/ui/sidebar-status.tsx:40
+#: src/shared/app-sidebar/ui/sidebar-status.tsx:42
 msgid "Connected"
 msgstr "연결됨"
 
-#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:105
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:108
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:62
 msgid "Connection"
 msgstr "연결"
 
-#: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:66
+#: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:68
 msgid "connections"
 msgstr "연결"
 
-#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:91
+#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:97
 msgid "Copy to clipboard"
 msgstr "클립보드에 복사"
 
@@ -189,7 +189,7 @@ msgstr "클립보드에 복사"
 msgid "Curl command copied to clipboard"
 msgstr "Curl 명령어가 클립보드에 복사되었습니다"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:166
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:174
 msgid "Custom body"
 msgstr "커스텀 본문"
 
@@ -197,8 +197,8 @@ msgstr "커스텀 본문"
 msgid "Data"
 msgstr "데이터"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:184
-#: src/pages/map-rules/ui/map-rules-page.tsx:168
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:193
+#: src/pages/map-rules/ui/map-rules-page.tsx:176
 msgid "Delete rule"
 msgstr "규칙 삭제"
 
@@ -206,35 +206,35 @@ msgstr "규칙 삭제"
 msgid "Dir"
 msgstr "방향"
 
-#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:116
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:121
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:53
 msgid "Direction"
 msgstr "방향"
 
 #: src/shared/app-sidebar/ui/sidebar-status.tsx:27
-#: src/shared/app-sidebar/ui/sidebar-status.tsx:40
+#: src/shared/app-sidebar/ui/sidebar-status.tsx:42
 msgid "Disconnected"
 msgstr "연결 끊김"
 
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:174
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:175
 msgid "Edit Map Rule"
 msgstr "맵 규칙 수정"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:176
-#: src/pages/map-rules/ui/map-rules-page.tsx:160
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:185
+#: src/pages/map-rules/ui/map-rules-page.tsx:168
 msgid "Edit rule"
 msgstr "규칙 수정"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:198
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:199
 msgid "Edit Rule"
 msgstr "규칙 수정"
 
-#: src/features/query-filter-editor/ui/filter-help-tooltip.tsx:56
+#: src/features/query-filter-editor/ui/filter-help-tooltip.tsx:65
 msgid "Exclude OPTIONS method"
 msgstr "OPTIONS 메서드 제외"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:192
-#: src/features/transaction-details/ui/replay-dialog.tsx:435
+#: src/features/transaction-details/ui/replay-dialog.tsx:196
+#: src/features/transaction-details/ui/replay-dialog.tsx:445
 msgid "Expand"
 msgstr "펼치기"
 
@@ -242,7 +242,7 @@ msgstr "펼치기"
 msgid "Expand sidebar"
 msgstr "사이드바 펼치기"
 
-#: src/pages/settings/ui/settings-page.tsx:204
+#: src/pages/settings/ui/settings-page.tsx:233
 msgid "Failed — is the proxy running?"
 msgstr "실패 — 프록시가 실행 중인가요?"
 
@@ -254,28 +254,28 @@ msgstr "전송 실패"
 msgid "File path is required"
 msgstr "파일 경로를 입력해주세요"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:304
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:278
-#: src/features/transaction-details/ui/replay-dialog.tsx:385
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:320
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:294
+#: src/features/transaction-details/ui/replay-dialog.tsx:393
 msgid "Header name"
 msgstr "헤더 이름"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:333
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:351
 msgid "Header name to remove"
 msgstr "삭제할 헤더 이름"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:160
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:167
 msgid "headers"
 msgstr "헤더"
 
 #. placeholder {0}: headerEntries.length
 #. placeholder {0}: headers.length
-#: src/features/transaction-details/ui/replay-dialog.tsx:166
-#: src/features/transaction-details/ui/replay-dialog.tsx:370
+#: src/features/transaction-details/ui/replay-dialog.tsx:168
+#: src/features/transaction-details/ui/replay-dialog.tsx:378
 msgid "Headers ({0})"
 msgstr "헤더 ({0})"
 
-#: src/pages/settings/ui/settings-page.tsx:132
+#: src/pages/settings/ui/settings-page.tsx:151
 msgid "Host"
 msgstr "호스트"
 
@@ -287,24 +287,24 @@ msgstr "호스트 트리"
 msgid "HTTP requests and responses"
 msgstr "HTTP 요청 및 응답"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:73
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:74
 #: src/shared/app-sidebar/model/consts.ts:23
 msgid "Intercept Rules"
 msgstr "인터셉트 규칙"
 
-#: src/pages/settings/ui/settings-page.tsx:99
+#: src/pages/settings/ui/settings-page.tsx:114
 msgid "Language"
 msgstr "언어"
 
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:242
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:254
 msgid "Local File Path"
 msgstr "로컬 파일 경로"
 
-#: src/pages/settings/ui/settings-page.tsx:181
+#: src/pages/settings/ui/settings-page.tsx:207
 msgid "localhost, 127.0.0.1, *.internal.com"
 msgstr "localhost, 127.0.0.1, *.internal.com"
 
-#: src/features/query-filter-editor/ui/filter-help-tooltip.tsx:67
+#: src/features/query-filter-editor/ui/filter-help-tooltip.tsx:77
 msgid "Logical OR:"
 msgstr "논리 OR:"
 
@@ -312,11 +312,11 @@ msgstr "논리 OR:"
 msgid "Manage request/response intercept rules"
 msgstr "요청/응답 인터셉트 규칙 관리"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:75
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:77
 msgid "Manage wildcard-based request/response intercept rules"
 msgstr "와일드카드 기반 요청/응답 인터셉트 규칙 관리"
 
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:230
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:242
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:43
 #: src/pages/map-rules/ui/map-rules-page.tsx:34
 msgid "Map Local"
@@ -326,30 +326,30 @@ msgstr "로컬 매핑"
 msgid "Map Local / Map Remote rules"
 msgstr "로컬 매핑 / 원격 매핑 규칙"
 
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:176
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:178
 msgid "Map Local: respond with a local file. Map Remote: redirect to another URL."
 msgstr "로컬 매핑: 로컬 파일로 응답. 원격 매핑: 다른 URL로 리다이렉트."
 
-#: src/pages/map-rules/ui/map-rules-page.tsx:66
+#: src/pages/map-rules/ui/map-rules-page.tsx:68
 msgid "Map Local: respond with local files. Map Remote: redirect requests to another URL."
 msgstr "로컬 매핑: 로컬 파일로 응답. 원격 매핑: 요청을 다른 URL로 리다이렉트."
 
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:231
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:243
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:44
 #: src/pages/map-rules/ui/map-rules-page.tsx:35
 msgid "Map Remote"
 msgstr "원격 매핑"
 
-#: src/pages/map-rules/ui/map-rules-page.tsx:64
+#: src/pages/map-rules/ui/map-rules-page.tsx:65
 #: src/shared/app-sidebar/model/consts.ts:29
 msgid "Map Rules"
 msgstr "맵 규칙"
 
-#: src/features/query-filter-editor/ui/filter-help-tooltip.tsx:42
+#: src/features/query-filter-editor/ui/filter-help-tooltip.tsx:47
 msgid "Match 2xx success or 404 error"
 msgstr "2xx 성공 또는 404 에러 매칭"
 
-#: src/features/query-filter-editor/ui/filter-help-tooltip.tsx:35
+#: src/features/query-filter-editor/ui/filter-help-tooltip.tsx:38
 msgid "Match GET or POST methods"
 msgstr "GET 또는 POST 메서드 매칭"
 
@@ -357,48 +357,48 @@ msgstr "GET 또는 POST 메서드 매칭"
 msgid "MCP configuration copied to clipboard"
 msgstr "MCP 설정이 클립보드에 복사되었습니다"
 
-#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:60
-#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:71
+#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:62
+#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:75
 msgid "MCP Server"
 msgstr "MCP 서버"
 
-#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:79
+#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:84
 msgid "MCP Server Configuration"
 msgstr "MCP 서버 설정"
 
-#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:160
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:168
 msgid "Message sent successfully"
 msgstr "메시지가 전송되었습니다"
 
-#: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:66
+#: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:69
 msgid "messages"
 msgstr "메시지"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:230
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:207
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:237
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:216
 msgid "Method"
 msgstr "메서드"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:257
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:267
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:41
 msgid "Modify Request"
 msgstr "요청 수정"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:258
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:268
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:42
 msgid "Modify Response"
 msgstr "응답 수정"
 
-#: src/widgets/websocket-messages/ui/ws-connection-list.tsx:79
+#: src/widgets/websocket-messages/ui/ws-connection-list.tsx:81
 msgid "msgs"
 msgstr "메시지"
 
-#: src/features/query-filter-editor/ui/filter-help-tooltip.tsx:61
+#: src/features/query-filter-editor/ui/filter-help-tooltip.tsx:71
 msgid "Multiple conditions:"
 msgstr "복합 조건:"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:207
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:183
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:212
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:188
 msgid "Name"
 msgstr "이름"
 
@@ -410,15 +410,15 @@ msgstr "네트워크"
 msgid "No active WebSocket connections"
 msgstr "활성 WebSocket 연결 없음"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:99
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:102
 msgid "No intercept rules"
 msgstr "인터셉트 규칙 없음"
 
-#: src/pages/map-rules/ui/map-rules-page.tsx:90
+#: src/pages/map-rules/ui/map-rules-page.tsx:95
 msgid "No map rules"
 msgstr "맵 규칙 없음"
 
-#: src/widgets/network-table/ui/table-body.tsx:77
+#: src/widgets/network-table/ui/table-body.tsx:78
 msgid "No transactions to display"
 msgstr "표시할 트랜잭션이 없습니다"
 
@@ -426,15 +426,15 @@ msgstr "표시할 트랜잭션이 없습니다"
 msgid "No valid requests to replay"
 msgstr "리플레이할 유효한 요청이 없습니다"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:316
+#: src/features/transaction-details/ui/replay-dialog.tsx:324
 msgid "Original"
 msgstr "원본"
 
-#: src/pages/settings/ui/settings-page.tsx:168
+#: src/pages/settings/ui/settings-page.tsx:192
 msgid "Password"
 msgstr "비밀번호"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:218
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:224
 msgid "Pattern"
 msgstr "패턴"
 
@@ -447,19 +447,19 @@ msgstr "패턴을 입력해주세요"
 msgid "Pause recording"
 msgstr "기록 일시정지"
 
-#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:133
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:140
 msgid "Payload"
 msgstr "페이로드"
 
-#: src/pages/settings/ui/settings-page.tsx:140
+#: src/pages/settings/ui/settings-page.tsx:161
 msgid "Port"
 msgstr "포트"
 
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:315
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:332
 msgid "Preserve Path"
 msgstr "경로 유지"
 
-#: src/pages/settings/ui/settings-page.tsx:93
+#: src/pages/settings/ui/settings-page.tsx:106
 msgid "Proxy configuration and preferences"
 msgstr "프록시 설정 및 환경설정"
 
@@ -467,11 +467,11 @@ msgstr "프록시 설정 및 환경설정"
 msgid "Proxy settings and configuration"
 msgstr "프록시 설정 및 구성"
 
-#: src/pages/settings/ui/settings-page.tsx:134
+#: src/pages/settings/ui/settings-page.tsx:154
 msgid "proxy.company.com"
 msgstr "proxy.company.com"
 
-#: src/features/query-filter-editor/ui/filter-help-tooltip.tsx:27
+#: src/features/query-filter-editor/ui/filter-help-tooltip.tsx:28
 msgid "Query Syntax Guide"
 msgstr "쿼리 문법 가이드"
 
@@ -487,11 +487,11 @@ msgstr "수신"
 msgid "Received (Server → Client)"
 msgstr "수신 (서버 → 클라이언트)"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:324
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:341
 msgid "Remove Headers"
 msgstr "헤더 삭제"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:326
+#: src/features/transaction-details/ui/replay-dialog.tsx:334
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:120
 msgid "Replay"
 msgstr "리플레이"
@@ -500,31 +500,31 @@ msgstr "리플레이"
 msgid "Replay message"
 msgstr "메시지 리플레이"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:295
+#: src/features/transaction-details/ui/replay-dialog.tsx:299
 msgid "Replay request"
 msgstr "요청 리플레이"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:313
+#: src/features/transaction-details/ui/replay-dialog.tsx:320
 msgid "Request"
 msgstr "요청"
 
-#: src/features/transaction-details/ui/transaction-header.tsx:37
+#: src/features/transaction-details/ui/transaction-header.tsx:38
 msgid "Request Details"
 msgstr "요청 상세"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:272
+#: src/features/transaction-details/ui/replay-dialog.tsx:276
 msgid "Request failed"
 msgstr "요청 실패"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:352
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:372
 msgid "Response body (optional)"
 msgstr "응답 본문 (선택사항)"
 
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:269
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:284
 msgid "Response Headers"
 msgstr "응답 헤더"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:280
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:293
 msgid "Response Status Code"
 msgstr "응답 상태 코드"
 
@@ -532,7 +532,7 @@ msgstr "응답 상태 코드"
 msgid "Resume recording"
 msgstr "기록 재개"
 
-#: src/pages/settings/ui/settings-page.tsx:121
+#: src/pages/settings/ui/settings-page.tsx:139
 msgid "Route traffic through an external proxy server"
 msgstr "외부 프록시 서버를 통해 트래픽 라우팅"
 
@@ -546,8 +546,8 @@ msgstr "규칙이 추가되었습니다"
 msgid "Rule deleted"
 msgstr "규칙이 삭제되었습니다"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:209
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:185
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:215
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:191
 msgid "Rule name (optional)"
 msgstr "규칙 이름 (선택사항)"
 
@@ -556,20 +556,20 @@ msgstr "규칙 이름 (선택사항)"
 msgid "Rule updated"
 msgstr "규칙이 수정되었습니다"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:80
-#: src/pages/map-rules/ui/map-rules-page.tsx:71
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:82
+#: src/pages/map-rules/ui/map-rules-page.tsx:75
 msgid "rules"
 msgstr "규칙"
 
-#: src/pages/settings/ui/settings-page.tsx:195
+#: src/pages/settings/ui/settings-page.tsx:224
 msgid "Save"
 msgstr "저장"
 
-#: src/pages/settings/ui/settings-page.tsx:199
+#: src/pages/settings/ui/settings-page.tsx:228
 msgid "Saved"
 msgstr "저장됨"
 
-#: src/pages/settings/ui/settings-page.tsx:195
+#: src/pages/settings/ui/settings-page.tsx:224
 msgid "Saving..."
 msgstr "저장 중..."
 
@@ -577,25 +577,25 @@ msgstr "저장 중..."
 msgid "Select local file"
 msgstr "로컬 파일 선택"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:509
+#: src/features/transaction-details/ui/replay-dialog.tsx:519
 msgid "Send a request to see the replay response"
 msgstr "리플레이 응답을 보려면 요청을 전송하세요"
 
-#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:178
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:186
 msgid "Send Message"
 msgstr "메시지 전송"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:480
+#: src/features/transaction-details/ui/replay-dialog.tsx:490
 msgid "Send Request"
 msgstr "요청 전송"
 
-#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:156
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:159
 msgid "Sending requests sequentially..."
 msgstr "요청을 순서대로 전송 중..."
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:475
-#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:231
-#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:173
+#: src/features/transaction-details/ui/replay-dialog.tsx:485
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:241
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:181
 msgid "Sending..."
 msgstr "전송 중..."
 
@@ -612,7 +612,7 @@ msgid "Sequence"
 msgstr "시퀀스"
 
 #. placeholder {0}: transactions.length
-#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:120
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:121
 msgid "Sequence Replay ({0} requests)"
 msgstr "시퀀스 리플레이 ({0}개 요청)"
 
@@ -620,11 +620,11 @@ msgstr "시퀀스 리플레이 ({0}개 요청)"
 msgid "Sequence replay failed"
 msgstr "시퀀스 리플레이 실패"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:352
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:372
 msgid "Set body (optional)"
 msgstr "본문 설정 (선택사항)"
 
-#: src/pages/settings/ui/settings-page.tsx:92
+#: src/pages/settings/ui/settings-page.tsx:103
 #: src/shared/app-sidebar/model/consts.ts:35
 msgid "Settings"
 msgstr "설정"
@@ -634,22 +634,22 @@ msgstr "설정"
 msgid "Size"
 msgstr "크기"
 
-#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:236
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:246
 msgid "Start Replay"
 msgstr "리플레이 시작"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:148
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:153
-#: src/shared/app-sidebar/ui/sidebar-status.tsx:38
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:154
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:159
+#: src/shared/app-sidebar/ui/sidebar-status.tsx:39
 msgid "Status"
 msgstr "상태"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:267
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:258
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:278
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:271
 msgid "Status Code"
 msgstr "상태 코드"
 
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:303
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:319
 msgid "Target URL"
 msgstr "대상 URL"
 
@@ -662,65 +662,65 @@ msgstr "대상 URL을 입력해주세요"
 msgid "Time"
 msgstr "시간"
 
-#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:126
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:132
 msgid "To Client (Server → Client)"
 msgstr "클라이언트로 (서버 → 클라이언트)"
 
-#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:125
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:131
 msgid "To Server (Client → Server)"
 msgstr "서버로 (클라이언트 → 서버)"
 
 #. placeholder {0}: results.reduce((sum, r) => sum + (r.response?.elapsed_ms ?? 0), 0)
-#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:175
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:183
 msgid "Total {0}ms"
 msgstr "총 {0}ms"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:302
+#: src/features/transaction-details/ui/replay-dialog.tsx:307
 msgid "Traffic Replay"
 msgstr "트래픽 리플레이"
 
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:224
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:235
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:57
 #: src/widgets/websocket-messages/ui/ws-message-table.tsx:164
 msgid "Type"
 msgstr "타입"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:366
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:329
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:387
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:348
 msgid "Update"
 msgstr "수정"
 
-#: src/pages/settings/ui/settings-page.tsx:119
+#: src/pages/settings/ui/settings-page.tsx:136
 msgid "Upstream Proxy"
 msgstr "업스트림 프록시"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:363
+#: src/features/transaction-details/ui/replay-dialog.tsx:371
 msgid "URL"
 msgstr "URL"
 
-#: src/features/query-filter-editor/ui/filter-help-tooltip.tsx:49
+#: src/features/query-filter-editor/ui/filter-help-tooltip.tsx:56
 msgid "URL contains \"api\""
 msgstr "URL에 \"api\" 포함"
 
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:194
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:200
 msgid "URL Pattern"
 msgstr "URL 패턴"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:200
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:202
 msgid "Use wildcard patterns: * matches any string, ? matches a single character."
 msgstr "와일드카드 패턴 사용: *는 모든 문자열, ?는 단일 문자를 매칭합니다."
 
-#: src/pages/settings/ui/settings-page.tsx:160
+#: src/pages/settings/ui/settings-page.tsx:184
 msgid "Username"
 msgstr "사용자 이름"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:310
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:284
-#: src/features/transaction-details/ui/replay-dialog.tsx:393
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:326
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:300
+#: src/features/transaction-details/ui/replay-dialog.tsx:401
 msgid "Value"
 msgstr "값"
 
-#: src/shared/app-sidebar/ui/sidebar-status.tsx:45
+#: src/shared/app-sidebar/ui/sidebar-status.tsx:48
 msgid "Version"
 msgstr "버전"
 
@@ -728,7 +728,7 @@ msgstr "버전"
 msgid "Waiting for WebSocket messages..."
 msgstr "WebSocket 메시지 대기 중..."
 
-#: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:64
+#: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:65
 #: src/shared/app-sidebar/model/consts.ts:17
 msgid "WebSocket"
 msgstr "WebSocket"
@@ -737,10 +737,10 @@ msgstr "WebSocket"
 msgid "WebSocket connections and messages"
 msgstr "WebSocket 연결 및 메시지"
 
-#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:99
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:100
 msgid "WebSocket Replay"
 msgstr "WebSocket 리플레이"
 
-#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:101
+#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:107
 msgid "Works with Claude Code, Cursor, Claude Desktop, and other MCP-compatible clients."
 msgstr "Claude Code, Cursor, Claude Desktop 및 기타 MCP 호환 클라이언트에서 사용 가능합니다."

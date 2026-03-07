@@ -33,3 +33,6 @@ jobs:
 
       - name: Run oxlint
         run: bun run lint
+
+      - name: Check i18n catalogs
+        run: cd tauri-ui && bun run extract && git diff --exit-code src/locales/
