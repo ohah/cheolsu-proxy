@@ -6,13 +6,8 @@ use crate::app::App;
 
 pub fn draw(f: &mut Frame, app: &mut App, area: Rect) {
     if app.show_detail && app.selected_transaction.is_some() {
-        // Split view: list + detail
-        let chunks = Layout::default()
-            .direction(Direction::Horizontal)
-            .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
-            .split(area);
-        draw_transaction_list(f, app, chunks[0]);
-        draw_transaction_detail(f, app, chunks[1]);
+        // Full-screen detail view
+        draw_transaction_detail(f, app, area);
     } else {
         draw_transaction_list(f, app, area);
     }
@@ -158,7 +153,10 @@ fn draw_transaction_detail(f: &mut Frame, app: &App, area: Rect) {
             Block::default()
                 .borders(Borders::ALL)
                 .border_style(Style::default().fg(Color::Gray))
-                .title(" Detail "),
+                .title(" Detail ")
+                .title_bottom(
+                    Line::from(" Esc/Enter: back ").style(Style::default().fg(Color::DarkGray)),
+                ),
         )
         .wrap(Wrap { trim: false })
         .scroll((0, 0));

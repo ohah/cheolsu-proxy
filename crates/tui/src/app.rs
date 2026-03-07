@@ -456,6 +456,17 @@ impl App {
     }
 
     async fn handle_network_key(&mut self, key: KeyEvent) {
+        // Detail view: Esc or Enter to go back
+        if self.show_detail {
+            match key.code {
+                KeyCode::Esc | KeyCode::Enter => {
+                    self.show_detail = false;
+                }
+                _ => {}
+            }
+            return;
+        }
+
         let len = self.transactions.len();
         if len == 0 {
             return;
