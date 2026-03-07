@@ -322,11 +322,25 @@ pub async fn replay_sequence(
 #[tauri::command]
 pub fn get_mcp_server_path(app: AppHandle<impl Runtime>) -> Result<String, String> {
     use tauri::Manager;
+
+    // 개발 모드: target/debug 또는 target/release에서 직접 찾기
+    if cfg!(dev) {
+        let current_exe = std::env::current_exe()
+            .map_err(|e| format!("Failed to get current exe: {}", e))?;
+        // current_exe: target/debug/cheolsu-proxy → 같은 디렉토리에 cheolsu-proxy-mcp
+        if let Some(dir) = current_exe.parent() {
+            let mcp_path = dir.join("cheolsu-proxy-mcp");
+            if mcp_path.exists() {
+                return Ok(mcp_path.display().to_string());
+            }
+        }
+    }
+
+    // 프로덕션 모드: Tauri 리소스 경로에서 sidecar 찾기
+    let target_triple = env!("TAURI_ENV_TARGET_TRIPLE");
+    let sidecar_name = format!("binaries/cheolsu-proxy-mcp-{target_triple}");
     app.path()
-        .resolve(
-            "binaries/cheolsu-proxy-mcp",
-            tauri::path::BaseDirectory::Resource,
-        )
+        .resolve(&sidecar_name, tauri::path::BaseDirectory::Resource)
         .map(|p| p.display().to_string())
         .map_err(|e| format!("Failed to resolve MCP server path: {}", e))
 }
