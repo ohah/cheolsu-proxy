@@ -27,6 +27,16 @@ pub enum DaemonMessage {
         success: bool,
         error: Option<String>,
     },
+    /// 스크립트 console.log 등의 로그
+    #[serde(rename = "script_log")]
+    ScriptLog { level: String, message: String },
+    /// 스크립트 상태 변경 (로드/언로드/리로드)
+    #[serde(rename = "script_status")]
+    ScriptStatus {
+        active: bool,
+        path: Option<String>,
+        message: String,
+    },
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
