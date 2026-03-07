@@ -2,11 +2,12 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
 import { useTheme } from "next-themes";
-import Editor, { type Monaco } from "@monaco-editor/react";
+import MonacoEditor, { type Monaco } from "@monaco-editor/react";
 import type { editor } from "monaco-editor";
 import { loadScript, unloadScript } from "@/shared/api/proxy";
 import { useScriptStore } from "@/shared/stores/script-store";
 import { Button, Input, Badge, Tabs, TabsList, TabsTrigger, TabsContent } from "@/shared/ui";
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/shared/ui/resizable";
 import { open } from "@tauri-apps/plugin-dialog";
 import { readTextFile } from "@tauri-apps/plugin-fs";
 import { toast } from "sonner";
@@ -40,23 +41,23 @@ export function ScriptPage() {
     logEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [logs.length]);
 
-  const handleEditorMount = useCallback((editor: editor.IStandaloneCodeEditor, monaco: Monaco) => {
-    editorRef.current = editor;
+  const handleEditorMount = useCallback(
+    (editorInstance: editor.IStandaloneCodeEditor, monaco: Monaco) => {
+      editorRef.current = editorInstance;
 
-    // cheolsu API 타입 정의 등록 (자동완성용)
-    monaco.languages.typescript.typescriptDefaults.addExtraLib(CHEOLSU_TYPE_DEFS, "cheolsu.d.ts");
-    monaco.languages.typescript.javascriptDefaults.addExtraLib(CHEOLSU_TYPE_DEFS, "cheolsu.d.ts");
+      monaco.languages.typescript.typescriptDefaults.addExtraLib(CHEOLSU_TYPE_DEFS, "cheolsu.d.ts");
+      monaco.languages.typescript.javascriptDefaults.addExtraLib(CHEOLSU_TYPE_DEFS, "cheolsu.d.ts");
 
-    // Cmd+Enter로 실행
-    editor.addAction({
-      id: "run-script",
-      label: "Run Script",
-      keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter],
-      run: () => handleRunCode(),
-    });
-  }, []);
+      editorInstance.addAction({
+        id: "run-script",
+        label: "Run Script",
+        keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter],
+        run: () => handleRunCode(),
+      });
+    },
+    [],
+  );
 
-  // 인라인 코드 실행
   const handleRunCode = useCallback(async () => {
     const currentCode = editorRef.current?.getValue() || code;
     if (!currentCode.trim()) return;
@@ -71,7 +72,6 @@ export function ScriptPage() {
     }
   }, [code, t]);
 
-  // 파일에서 로드
   const handleLoadFile = useCallback(async () => {
     if (!pathInput.trim()) return;
     setLoading(true);
@@ -85,7 +85,6 @@ export function ScriptPage() {
     }
   }, [pathInput, t]);
 
-  // 파일 브라우저
   const handleBrowse = useCallback(async () => {
     const selected = await open({
       multiple: false,
@@ -94,14 +93,12 @@ export function ScriptPage() {
     if (selected) {
       const filePath = selected as string;
       setPathInput(filePath);
-
-      // 파일 내용을 에디터에도 로드
       try {
         const content = await readTextFile(filePath);
         setCode(content);
         setTab("editor");
       } catch {
-        // 파일 읽기 실패 시 무시 (경로만 설정)
+        // 파일 읽기 실패 시 경로만 설정
       }
     }
   }, []);
@@ -157,6 +154,7 @@ export function ScriptPage() {
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden">
+      {/* Header */}
       <div className="p-6 pb-2 flex-shrink-0">
         <div className="flex items-center justify-between">
           <div>
@@ -188,117 +186,129 @@ export function ScriptPage() {
         )}
       </div>
 
-      {/* Editor / File Load */}
-      <div className="flex-1 flex flex-col min-h-0 px-6">
-        <Tabs value={tab} onValueChange={setTab} className="flex-1 flex flex-col min-h-0">
-          <div className="flex items-center justify-between mb-2">
-            <TabsList>
-              <TabsTrigger value="editor">
-                <Trans>Editor</Trans>
-              </TabsTrigger>
-              <TabsTrigger value="file">
-                <Trans>File</Trans>
-              </TabsTrigger>
-            </TabsList>
+      {/* Resizable Editor + Console */}
+      <div className="flex-1 min-h-0 px-6 pb-6">
+        <ResizablePanelGroup direction="vertical">
+          {/* Editor Panel */}
+          <ResizablePanel defaultSize={70} minSize={30}>
+            <Tabs value={tab} onValueChange={setTab} className="h-full flex flex-col">
+              <div className="flex items-center justify-between mb-2 flex-shrink-0">
+                <TabsList>
+                  <TabsTrigger value="editor">
+                    <Trans>Editor</Trans>
+                  </TabsTrigger>
+                  <TabsTrigger value="file">
+                    <Trans>File</Trans>
+                  </TabsTrigger>
+                </TabsList>
 
-            {tab === "editor" && (
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={handleBrowse}>
-                  {t`Open File`}
-                </Button>
-                <Button size="sm" onClick={handleRunCode} disabled={loading}>
-                  {loading ? t`Loading...` : t`Run`}
-                  <span className="ml-1 text-xs text-muted-foreground">⌘↵</span>
+                {tab === "editor" && (
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={handleBrowse}>
+                      {t`Open File`}
+                    </Button>
+                    <Button size="sm" onClick={handleRunCode} disabled={loading}>
+                      {loading ? t`Loading...` : t`Run`}
+                      <span className="ml-1 text-xs text-muted-foreground">⌘↵</span>
+                    </Button>
+                  </div>
+                )}
+              </div>
+
+              <TabsContent value="editor" className="flex-1 min-h-0 mt-0">
+                <div className="border rounded-lg overflow-hidden h-full">
+                  <MonacoEditor
+                    height="100%"
+                    defaultLanguage="typescript"
+                    value={code}
+                    onChange={(v) => setCode(v || "")}
+                    onMount={handleEditorMount}
+                    theme={resolvedTheme === "dark" ? "vs-dark" : "vs"}
+                    options={{
+                      minimap: { enabled: false },
+                      fontSize: 13,
+                      lineNumbers: "on",
+                      scrollBeyondLastLine: false,
+                      automaticLayout: true,
+                      tabSize: 2,
+                      wordWrap: "on",
+                      padding: { top: 8 },
+                    }}
+                  />
+                </div>
+              </TabsContent>
+
+              <TabsContent value="file" className="mt-0">
+                <div className="border rounded-lg p-5 space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    <Trans>
+                      Load a script file from disk. The file will be watched for changes and
+                      auto-reloaded.
+                    </Trans>
+                  </p>
+                  <div className="flex gap-2">
+                    <Input
+                      className="flex-1 font-mono text-sm"
+                      placeholder={t`Script file path (.js, .ts)`}
+                      value={pathInput}
+                      onChange={(e) => setPathInput(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleLoadFile()}
+                    />
+                    <Button variant="outline" onClick={handleBrowse}>
+                      {t`Browse`}
+                    </Button>
+                    <Button onClick={handleLoadFile} disabled={loading || !pathInput.trim()}>
+                      {loading ? t`Loading...` : t`Load`}
+                    </Button>
+                  </div>
+                </div>
+              </TabsContent>
+            </Tabs>
+          </ResizablePanel>
+
+          {/* Drag Handle */}
+          <ResizableHandle className="my-1 h-px data-[resize-handle-state=hover]:bg-primary data-[resize-handle-state=drag]:bg-primary" />
+
+          {/* Console Panel */}
+          <ResizablePanel defaultSize={30} minSize={10}>
+            <div className="border rounded-lg flex flex-col h-full">
+              <div className="flex items-center justify-between px-4 py-2 border-b bg-muted/30 flex-shrink-0">
+                <h2 className="text-xs font-semibold">
+                  <Trans>Console</Trans>
+                  {logs.length > 0 && (
+                    <span className="text-muted-foreground ml-1">({logs.length})</span>
+                  )}
+                </h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 text-xs"
+                  onClick={clearLogs}
+                  disabled={logs.length === 0}
+                >
+                  {t`Clear`}
                 </Button>
               </div>
-            )}
-          </div>
-
-          <TabsContent value="editor" className="flex-1 min-h-0 mt-0">
-            <div className="border rounded-lg overflow-hidden h-full">
-              <Editor
-                height="100%"
-                defaultLanguage="typescript"
-                value={code}
-                onChange={(v) => setCode(v || "")}
-                onMount={handleEditorMount}
-                theme={resolvedTheme === "dark" ? "vs-dark" : "vs"}
-                options={{
-                  minimap: { enabled: false },
-                  fontSize: 13,
-                  lineNumbers: "on",
-                  scrollBeyondLastLine: false,
-                  automaticLayout: true,
-                  tabSize: 2,
-                  wordWrap: "on",
-                  padding: { top: 8 },
-                }}
-              />
+              <div className="flex-1 overflow-auto px-4 py-2 font-mono text-xs space-y-0.5">
+                {logs.length === 0 ? (
+                  <p className="text-muted-foreground text-center py-4">
+                    <Trans>No console output yet</Trans>
+                  </p>
+                ) : (
+                  logs.map((entry, i) => (
+                    <div key={i} className="flex gap-2">
+                      <span className={`${levelColor(entry.level)} whitespace-nowrap`}>
+                        {levelTag(entry.level)}
+                      </span>
+                      <span className="text-foreground break-all">{entry.message}</span>
+                    </div>
+                  ))
+                )}
+                <div ref={logEndRef} />
+              </div>
             </div>
-          </TabsContent>
-
-          <TabsContent value="file" className="mt-0">
-            <div className="border rounded-lg p-5 space-y-4">
-              <p className="text-sm text-muted-foreground">
-                <Trans>
-                  Load a script file from disk. The file will be watched for changes and
-                  auto-reloaded.
-                </Trans>
-              </p>
-              <div className="flex gap-2">
-                <Input
-                  className="flex-1 font-mono text-sm"
-                  placeholder={t`Script file path (.js, .ts)`}
-                  value={pathInput}
-                  onChange={(e) => setPathInput(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleLoadFile()}
-                />
-                <Button variant="outline" onClick={handleBrowse}>
-                  {t`Browse`}
-                </Button>
-                <Button onClick={handleLoadFile} disabled={loading || !pathInput.trim()}>
-                  {loading ? t`Loading...` : t`Load`}
-                </Button>
-              </div>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </div>
-
-      {/* Console Logs */}
-      <div className="border-t flex flex-col h-48 flex-shrink-0">
-        <div className="flex items-center justify-between px-4 py-2 border-b bg-muted/30">
-          <h2 className="text-xs font-semibold">
-            <Trans>Console</Trans>
-            {logs.length > 0 && <span className="text-muted-foreground ml-1">({logs.length})</span>}
-          </h2>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-6 text-xs"
-            onClick={clearLogs}
-            disabled={logs.length === 0}
-          >
-            {t`Clear`}
-          </Button>
-        </div>
-        <div className="flex-1 overflow-auto px-4 py-2 font-mono text-xs space-y-0.5">
-          {logs.length === 0 ? (
-            <p className="text-muted-foreground text-center py-4">
-              <Trans>No console output yet</Trans>
-            </p>
-          ) : (
-            logs.map((entry, i) => (
-              <div key={i} className="flex gap-2">
-                <span className={`${levelColor(entry.level)} whitespace-nowrap`}>
-                  {levelTag(entry.level)}
-                </span>
-                <span className="text-foreground break-all">{entry.message}</span>
-              </div>
-            ))
-          )}
-          <div ref={logEndRef} />
-        </div>
+          </ResizablePanel>
+        </ResizablePanelGroup>
       </div>
     </div>
   );
