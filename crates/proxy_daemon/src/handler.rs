@@ -108,6 +108,7 @@ pub fn create_hybrid_client(
         .with_tls_config(rustls_config)
         .https_or_http()
         .enable_http1()
+        .enable_http2()
         .wrap_connector(proxy_connector);
 
     Ok(Client::builder(TokioExecutor::new())
