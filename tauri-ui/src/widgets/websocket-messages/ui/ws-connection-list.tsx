@@ -20,7 +20,7 @@ export const WsConnectionList = memo(
     if (connections.length === 0) {
       return (
         <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm p-4">
-          활성 WebSocket 연결 없음
+          No active WebSocket connections
         </div>
       );
     }
