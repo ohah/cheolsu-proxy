@@ -25,6 +25,7 @@ async-compression = { version = "0.4.0", features = [
   "zlib",
   "zstd",
 ], optional = true }
+base64 = "0.22"
 bstr = "1.0.0"
 futures = "0.3.11"
 http = "1.1.0"

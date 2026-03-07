@@ -29,6 +29,7 @@ pub mod hybrid_tls_handler;
 pub mod tls_passthrough;
 pub mod tls_version_detector;
 pub mod tunnel_event;
+pub mod upstream_proxy;
 pub mod websocket_registry;
 
 use futures::{Sink, SinkExt, Stream, StreamExt};

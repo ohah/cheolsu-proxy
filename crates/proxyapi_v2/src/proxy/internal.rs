@@ -4,7 +4,7 @@ use super::middleware::optimize_streaming_response;
 use crate::{
     HttpContext, HttpHandler, RequestOrResponse, WebSocketHandler, body::Body,
     certificate_authority::CertificateAuthority, hybrid_tls_handler::HybridTlsHandler,
-    rewind::Rewind, tls_version_detector::TlsVersionDetector,
+    rewind::Rewind, tls_version_detector::TlsVersionDetector, upstream_proxy::connect_to_target,
 };
 use http::uri::{Authority, Scheme};
 use hyper::{
@@ -19,7 +19,7 @@ use hyper_util::{
     server,
 };
 use std::{convert::Infallible, net::SocketAddr, pin::Pin, sync::Arc};
-use tokio::{io::AsyncReadExt, net::TcpStream};
+use tokio::io::AsyncReadExt;
 use tokio_rustls::TlsAcceptor;
 use tracing::{Instrument, debug, error, info, info_span, instrument, warn};
 
@@ -196,7 +196,12 @@ where
                                         .map(|p| p.to_string())
                                         .unwrap_or_else(|| "443".to_string())
                                 );
-                                match TcpStream::connect(&target_addr).await {
+                                match connect_to_target(
+                                    &target_addr,
+                                    self.ctx.upstream_proxy.as_ref(),
+                                )
+                                .await
+                                {
                                     Ok(mut server_stream) => {
                                         let _ = tokio::io::copy_bidirectional(
                                             &mut client_stream,
@@ -499,7 +504,12 @@ where
                                 }
                             }
 
-                            let mut server = match TcpStream::connect(authority.as_ref()).await {
+                            let mut server = match connect_to_target(
+                                authority.as_ref(),
+                                self.ctx.upstream_proxy.as_ref(),
+                            )
+                            .await
+                            {
                                 Ok(server) => server,
                                 Err(e) => {
                                     error!(
