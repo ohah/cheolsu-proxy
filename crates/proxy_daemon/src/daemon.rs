@@ -141,6 +141,9 @@ async fn daemon_main(port: u16, host: String) -> i32 {
 
     let (upstream_tx, upstream_rx) = watch::channel::<Option<UpstreamProxyConfig>>(None);
 
+    let (server_replay_tx, server_replay_rx) =
+        watch::channel::<Vec<crate::protocol::ServerReplayEntry>>(Vec::new());
+
     let ws_registry = WebSocketRegistry::new();
 
     let addr: std::net::SocketAddr = format!("{}:{}", host, port)
@@ -159,6 +162,7 @@ async fn daemon_main(port: u16, host: String) -> i32 {
             event_tx_proxy,
             intercept_rx,
             upstream_rx,
+            server_replay_rx,
             registry_for_proxy,
         )
         .await
@@ -219,10 +223,11 @@ async fn daemon_main(port: u16, host: String) -> i32 {
                         let shutdown_tx_clone = shutdown_tx.clone();
                         let intercept_tx_clone = intercept_tx.clone();
                         let upstream_tx_clone = upstream_tx.clone();
+                        let server_replay_tx_clone = server_replay_tx.clone();
                         let registry_clone = ws_registry.clone();
 
                         tokio::spawn(async move {
-                            handle_client(stream, event_rx, intercept_tx_clone, upstream_tx_clone, event_tx_clone, port, registry_clone)
+                            handle_client(stream, event_rx, intercept_tx_clone, upstream_tx_clone, server_replay_tx_clone, event_tx_clone, port, registry_clone)
                                 .await;
 
                             let remaining = client_count_clone.fetch_sub(1, Ordering::SeqCst) - 1;
@@ -267,6 +272,7 @@ async fn run_proxy(
     event_tx: broadcast::Sender<String>,
     mut intercept_rx: watch::Receiver<Vec<crate::protocol::InterceptRule>>,
     upstream_rx: watch::Receiver<Option<UpstreamProxyConfig>>,
+    mut server_replay_rx: watch::Receiver<Vec<crate::protocol::ServerReplayEntry>>,
     ws_registry: WebSocketRegistry,
 ) -> Result<(), String> {
     use proxyapi_v2::builder::ProxyBuilder;
@@ -301,6 +307,22 @@ async fn run_proxy(
             let rules = intercept_rx.borrow().clone();
             handler_for_intercept_updates
                 .update_intercept_rules(rules)
+                .await;
+        }
+    });
+
+    // 서버 리플레이 엔트리 초기값 로드
+    {
+        let entries = server_replay_rx.borrow().clone();
+        handler.update_server_replay_entries(entries).await;
+    }
+
+    let handler_for_replay_updates = handler.clone();
+    tokio::spawn(async move {
+        while server_replay_rx.changed().await.is_ok() {
+            let entries = server_replay_rx.borrow().clone();
+            handler_for_replay_updates
+                .update_server_replay_entries(entries)
                 .await;
         }
     });
@@ -390,6 +412,7 @@ pub async fn handle_client(
     mut event_rx: broadcast::Receiver<String>,
     intercept_tx: watch::Sender<Vec<crate::protocol::InterceptRule>>,
     upstream_tx: watch::Sender<Option<UpstreamProxyConfig>>,
+    server_replay_tx: watch::Sender<Vec<crate::protocol::ServerReplayEntry>>,
     event_tx: broadcast::Sender<String>,
     port: u16,
     ws_registry: WebSocketRegistry,
@@ -522,6 +545,10 @@ pub async fn handle_client(
                             config.as_ref().map(|c| c.address())
                         );
                         let _ = upstream_tx.send(config);
+                    }
+                    Ok(ClientCommand::UpdateServerReplay { entries }) => {
+                        info!("Server replay entries updated: {} entries", entries.len());
+                        let _ = server_replay_tx.send(entries);
                     }
                     Ok(ClientCommand::Stop) => {
                         break;
