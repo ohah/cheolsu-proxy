@@ -7,5 +7,5 @@ members = [
   "crates/proxy_daemon",
   "crates/mcp_server",
   "crates/tui",
-  "desktop/src-tauri",
+  "desktop/src-tauri", "crates/scripting",
 ]

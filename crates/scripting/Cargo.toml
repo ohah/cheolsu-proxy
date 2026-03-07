@@ -1,0 +1,21 @@
+[package]
+name = "scripting"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+deno_core = "0.390"
+v8 = { version = "146.1", default-features = false }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1", features = ["full"] }
+tracing = "0.1"
+oxc_allocator = "0.116"
+oxc_parser = "0.116"
+oxc_span = "0.116"
+oxc_transformer = "0.116"
+oxc_codegen = "0.116"
+oxc_semantic = "0.116"
+
+[dev-dependencies]
+tokio = { version = "1", features = ["full", "test-util"] }
