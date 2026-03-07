@@ -165,7 +165,7 @@ cargo build --workspace
 
 ```bash
 # Tauri UI 디렉토리로 이동
-cd tauri-ui
+cd desktop
 
 # 의존성 설치 (루트에서 워크스페이스 전체)
 bun install
@@ -175,7 +175,7 @@ bun install
 
 ```bash
 # Tauri 개발 서버 실행
-cd tauri-ui
+cd desktop
 bun run tauri dev
 
 # bun 사용
@@ -307,7 +307,7 @@ bun run tauri build
 
 ```bash
 # 디버그 모드로 실행
-cd tauri-ui
+cd desktop
 RUST_LOG=debug bun run tauri dev
 ```
 

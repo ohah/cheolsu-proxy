@@ -4,16 +4,16 @@ on:
   push:
     branches: [main]
     paths:
-      - "tauri-ui/src/**"
-      - "tauri-ui/test/**"
-      - "tauri-ui/package.json"
+      - "desktop/src/**"
+      - "desktop/test/**"
+      - "desktop/package.json"
       - ".github/workflows/frontend-test.yml"
   pull_request:
     branches: [main]
     paths:
-      - "tauri-ui/src/**"
-      - "tauri-ui/test/**"
-      - "tauri-ui/package.json"
+      - "desktop/src/**"
+      - "desktop/test/**"
+      - "desktop/package.json"
 
 jobs:
   unit-test:
@@ -33,5 +33,5 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Run unit tests
-        working-directory: tauri-ui
+        working-directory: desktop
         run: bun test --preload ./test/setup.ts test/stores test/entities

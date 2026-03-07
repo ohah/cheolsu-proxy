@@ -20,7 +20,7 @@
 ```
 
 - **type**: `feat` | `fix` | `refactor` | `test` | `docs` | `chore` | `style`
-- **scope** (선택): `proxyapi` | `proxyapi_v2` | `proxy_v2_models` | `proxyapi_models` | `tauri-ui` | `document` | `config`
+- **scope** (선택): `proxyapi` | `proxyapi_v2` | `proxy_v2_models` | `proxyapi_models` | `desktop` | `document` | `config`
 - **설명**: 한국어로 작성, 무엇을 왜 변경했는지 명확히
 
 ### 커밋 순서
@@ -47,7 +47,7 @@ cargo test                 # 테스트 (기존 실패만 있으면 통과로 간
 ```bash
 bun run format             # oxfmt 포맷 자동 수정
 bun run lint:fix           # oxlint 린트 자동 수정
-npx tsc --noEmit           # 타입 체크 (tauri-ui 디렉토리에서 실행)
+npx tsc --noEmit           # 타입 체크 (desktop 디렉토리에서 실행)
 ```
 
 ### 자동 수정으로 변경된 파일이 있으면

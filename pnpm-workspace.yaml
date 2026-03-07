@@ -1,5 +1,5 @@
 packages:
-  - tauri-ui
+  - desktop
   - document
 
 onlyBuiltDependencies:

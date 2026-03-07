@@ -131,7 +131,7 @@ sudo update-ca-certificates
 ### 3. 개발 서버 실행
 
 ```bash
-cd tauri-ui
+cd desktop
 bun install
 bun tauri dev
 ```

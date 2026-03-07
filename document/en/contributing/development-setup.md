@@ -165,7 +165,7 @@ cargo build --workspace
 
 ```bash
 # Navigate to Tauri UI directory
-cd tauri-ui
+cd desktop
 
 # Install dependencies
 bun install
@@ -176,7 +176,7 @@ bun install
 
 ```bash
 # Run Tauri development server
-cd tauri-ui
+cd desktop
 bun run tauri dev
 ```
 
@@ -285,7 +285,7 @@ cargo outdated
 
 ```bash
 # Tauri UI development server
-cd tauri-ui
+cd desktop
 bun run dev
 
 # Run with Tauri app
@@ -312,7 +312,7 @@ To be added.
 
 ```bash
 # Run in debug mode
-cd tauri-ui
+cd desktop
 RUST_LOG=debug bun run tauri dev
 ```
 
