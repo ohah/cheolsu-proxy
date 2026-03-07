@@ -66,7 +66,7 @@ export function ScriptPage() {
       await loadScript(undefined, currentCode);
       toast.success(t`Script loaded from editor`);
     } catch (e) {
-      toast.error(String(e));
+      toast.error(e instanceof Error ? e.message : String(e));
     } finally {
       setLoading(false);
     }
@@ -79,7 +79,7 @@ export function ScriptPage() {
       await loadScript(pathInput.trim());
       toast.success(t`Script loaded`);
     } catch (e) {
-      toast.error(String(e));
+      toast.error(e instanceof Error ? e.message : String(e));
     } finally {
       setLoading(false);
     }
@@ -97,8 +97,8 @@ export function ScriptPage() {
         const content = await readTextFile(filePath);
         setCode(content);
         setTab("editor");
-      } catch {
-        // 파일 읽기 실패 시 경로만 설정
+      } catch (e) {
+        toast.error(t`Failed to read file: ${e instanceof Error ? e.message : String(e)}`);
       }
     }
   }, []);
@@ -109,7 +109,7 @@ export function ScriptPage() {
       setPathInput("");
       toast.success(t`Script unloaded`);
     } catch (e) {
-      toast.error(String(e));
+      toast.error(e instanceof Error ? e.message : String(e));
     }
   }, [t]);
 
@@ -120,7 +120,7 @@ export function ScriptPage() {
       await loadScript(scriptPath);
       toast.success(t`Script reloaded`);
     } catch (e) {
-      toast.error(String(e));
+      toast.error(e instanceof Error ? e.message : String(e));
     } finally {
       setLoading(false);
     }

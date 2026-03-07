@@ -7,9 +7,9 @@ pub fn draw(f: &mut Frame, app: &App, area: Rect) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
-            Constraint::Length(7), // Script status
-            Constraint::Min(0),    // Console logs
-            Constraint::Length(5), // Keybindings
+            Constraint::Max(7), // Script status (최대 7줄, 작은 화면에서 축소)
+            Constraint::Min(3), // Console logs (최소 3줄 보장)
+            Constraint::Max(5), // Keybindings (최대 5줄, 작은 화면에서 축소)
         ])
         .split(area);
 

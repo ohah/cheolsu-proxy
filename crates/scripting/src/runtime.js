@@ -1,111 +1,129 @@
-// 사용자 스크립트에서 등록하는 훅 함수를 저장
-const _hooks = {
-  onRequest: null,
-  onResponse: null,
-  onWebSocketMessage: null,
-};
+// IIFE로 내부 상태를 클로저에 감싸서 사용자 스크립트에서 접근 불가하게 보호
+((globalThis) => {
+  // 사용자 스크립트에서 등록하는 훅 함수를 저장
+  const _hooks = {
+    onRequest: null,
+    onResponse: null,
+    onWebSocketMessage: null,
+  };
 
-// 로그 버퍼
-const _logBuffer = [];
+  // 로그 버퍼
+  const _logBuffer = [];
 
-// 사용자 스크립트에서 호출하는 글로벌 API
-globalThis.cheolsu = {
-  onRequest(handler) {
-    _hooks.onRequest = handler;
-  },
-  onResponse(handler) {
-    _hooks.onResponse = handler;
-  },
-  onWebSocketMessage(handler) {
-    _hooks.onWebSocketMessage = handler;
-  },
-};
+  // 최대 로그 버퍼 크기
+  const MAX_LOG_BUFFER = 5000;
 
-// console.log를 로그 버퍼에 저장 + Rust 쪽으로 전달
-globalThis.console = {
-  log(...args) {
-    const msg = args.map((a) => (typeof a === "string" ? a : JSON.stringify(a))).join(" ");
-    _logBuffer.push({ level: "info", message: msg });
-    Deno.core.print(msg + "\n", false);
-  },
-  error(...args) {
-    const msg = args.map((a) => (typeof a === "string" ? a : JSON.stringify(a))).join(" ");
-    _logBuffer.push({ level: "error", message: msg });
-    Deno.core.print(msg + "\n", true);
-  },
-  warn(...args) {
-    const msg = args.map((a) => (typeof a === "string" ? a : JSON.stringify(a))).join(" ");
-    _logBuffer.push({ level: "warn", message: msg });
-    Deno.core.print("[WARN] " + msg + "\n", true);
-  },
-  info(...args) {
-    const msg = args.map((a) => (typeof a === "string" ? a : JSON.stringify(a))).join(" ");
-    _logBuffer.push({ level: "info", message: msg });
-    Deno.core.print(msg + "\n", false);
-  },
-  debug(...args) {
-    const msg = args.map((a) => (typeof a === "string" ? a : JSON.stringify(a))).join(" ");
-    _logBuffer.push({ level: "debug", message: msg });
-    Deno.core.print("[DEBUG] " + msg + "\n", false);
-  },
-};
-
-// Rust에서 호출하는 내부 함수들 (동기)
-globalThis.__cheolsu_internal = {
-  invokeOnRequest(requestJson) {
-    if (!_hooks.onRequest) return JSON.stringify({ action: "forward" });
-    try {
-      const request = JSON.parse(requestJson);
-      const result = _hooks.onRequest(request);
-      if (!result) return JSON.stringify({ action: "forward" });
-      return JSON.stringify(result);
-    } catch (e) {
-      console.error("onRequest hook error:", e.message || e);
-      return JSON.stringify({ action: "forward" });
+  function pushLog(level, message) {
+    if (_logBuffer.length >= MAX_LOG_BUFFER) {
+      _logBuffer.shift();
     }
-  },
+    _logBuffer.push({ level, message });
+  }
 
-  invokeOnResponse(requestJson, responseJson) {
-    if (!_hooks.onResponse) return JSON.stringify({ action: "forward" });
-    try {
-      const request = JSON.parse(requestJson);
-      const response = JSON.parse(responseJson);
-      const result = _hooks.onResponse(request, response);
-      if (!result) return JSON.stringify({ action: "forward" });
-      return JSON.stringify(result);
-    } catch (e) {
-      console.error("onResponse hook error:", e.message || e);
-      return JSON.stringify({ action: "forward" });
-    }
-  },
+  function formatArgs(args) {
+    return args.map((a) => (typeof a === "string" ? a : JSON.stringify(a))).join(" ");
+  }
 
-  invokeOnWebSocketMessage(messageJson) {
-    if (!_hooks.onWebSocketMessage) return JSON.stringify({ action: "forward" });
-    try {
-      const message = JSON.parse(messageJson);
-      const result = _hooks.onWebSocketMessage(message);
-      if (!result) return JSON.stringify({ action: "forward" });
-      return JSON.stringify(result);
-    } catch (e) {
-      console.error("onWebSocketMessage hook error:", e.message || e);
-      return JSON.stringify({ action: "forward" });
-    }
-  },
+  // 사용자 스크립트에서 호출하는 글로벌 API
+  globalThis.cheolsu = Object.freeze({
+    onRequest(handler) {
+      _hooks.onRequest = handler;
+    },
+    onResponse(handler) {
+      _hooks.onResponse = handler;
+    },
+    onWebSocketMessage(handler) {
+      _hooks.onWebSocketMessage = handler;
+    },
+  });
 
-  hasOnRequest() {
-    return _hooks.onRequest !== null;
-  },
-  hasOnResponse() {
-    return _hooks.onResponse !== null;
-  },
-  hasOnWebSocketMessage() {
-    return _hooks.onWebSocketMessage !== null;
-  },
+  // console.log를 로그 버퍼에 저장 + Rust 쪽으로 전달
+  globalThis.console = Object.freeze({
+    log(...args) {
+      const msg = formatArgs(args);
+      pushLog("info", msg);
+      Deno.core.print(msg + "\n", false);
+    },
+    error(...args) {
+      const msg = formatArgs(args);
+      pushLog("error", msg);
+      Deno.core.print(msg + "\n", true);
+    },
+    warn(...args) {
+      const msg = formatArgs(args);
+      pushLog("warn", msg);
+      Deno.core.print("[WARN] " + msg + "\n", true);
+    },
+    info(...args) {
+      const msg = formatArgs(args);
+      pushLog("info", msg);
+      Deno.core.print(msg + "\n", false);
+    },
+    debug(...args) {
+      const msg = formatArgs(args);
+      pushLog("debug", msg);
+      Deno.core.print("[DEBUG] " + msg + "\n", false);
+    },
+  });
 
-  // 로그 버퍼를 JSON 배열로 반환하고 비움
-  drainLogs() {
-    const logs = JSON.stringify(_logBuffer);
-    _logBuffer.length = 0;
-    return logs;
-  },
-};
+  // Rust에서 호출하는 내부 함수들 (동기)
+  // Object.freeze로 사용자 스크립트에서 덮어쓰기 방지
+  globalThis.__cheolsu_internal = Object.freeze({
+    invokeOnRequest(requestJson) {
+      if (!_hooks.onRequest) return JSON.stringify({ action: "forward" });
+      try {
+        const request = JSON.parse(requestJson);
+        const result = _hooks.onRequest(request);
+        if (!result) return JSON.stringify({ action: "forward" });
+        return JSON.stringify(result);
+      } catch (e) {
+        console.error("onRequest hook error:", e.message || e);
+        return JSON.stringify({ action: "forward" });
+      }
+    },
+
+    invokeOnResponse(requestJson, responseJson) {
+      if (!_hooks.onResponse) return JSON.stringify({ action: "forward" });
+      try {
+        const request = JSON.parse(requestJson);
+        const response = JSON.parse(responseJson);
+        const result = _hooks.onResponse(request, response);
+        if (!result) return JSON.stringify({ action: "forward" });
+        return JSON.stringify(result);
+      } catch (e) {
+        console.error("onResponse hook error:", e.message || e);
+        return JSON.stringify({ action: "forward" });
+      }
+    },
+
+    invokeOnWebSocketMessage(messageJson) {
+      if (!_hooks.onWebSocketMessage) return JSON.stringify({ action: "forward" });
+      try {
+        const message = JSON.parse(messageJson);
+        const result = _hooks.onWebSocketMessage(message);
+        if (!result) return JSON.stringify({ action: "forward" });
+        return JSON.stringify(result);
+      } catch (e) {
+        console.error("onWebSocketMessage hook error:", e.message || e);
+        return JSON.stringify({ action: "forward" });
+      }
+    },
+
+    hasOnRequest() {
+      return _hooks.onRequest !== null;
+    },
+    hasOnResponse() {
+      return _hooks.onResponse !== null;
+    },
+    hasOnWebSocketMessage() {
+      return _hooks.onWebSocketMessage !== null;
+    },
+
+    // 로그 버퍼를 JSON 배열로 반환하고 비움
+    drainLogs() {
+      const logs = JSON.stringify(_logBuffer);
+      _logBuffer.length = 0;
+      return logs;
+    },
+  });
+})(globalThis);
