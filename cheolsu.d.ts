@@ -35,9 +35,7 @@ declare namespace cheolsu {
     | { action: "modify"; request: Request }
     | { action: "respond"; response: Response };
 
-  type ResponseResult =
-    | { action: "forward" }
-    | { action: "modify"; response: Response };
+  type ResponseResult = { action: "forward" } | { action: "modify"; response: Response };
 
   type WsResult =
     | { action: "forward" }
@@ -56,9 +54,7 @@ declare namespace cheolsu {
    *   return { action: "forward" };
    * });
    */
-  function onRequest(
-    handler: (request: Request) => RequestResult
-  ): void;
+  function onRequest(handler: (request: Request) => RequestResult): void;
 
   /**
    * HTTP 응답이 프록시를 통과할 때 호출되는 훅을 등록합니다.
@@ -69,9 +65,7 @@ declare namespace cheolsu {
    *   return { action: "modify", response: res };
    * });
    */
-  function onResponse(
-    handler: (request: Request, response: Response) => ResponseResult
-  ): void;
+  function onResponse(handler: (request: Request, response: Response) => ResponseResult): void;
 
   /**
    * WebSocket 메시지가 프록시를 통과할 때 호출되는 훅을 등록합니다.
@@ -82,7 +76,5 @@ declare namespace cheolsu {
    *   return { action: "forward" };
    * });
    */
-  function onWebSocketMessage(
-    handler: (message: WsMessage) => WsResult
-  ): void;
+  function onWebSocketMessage(handler: (message: WsMessage) => WsResult): void;
 }
