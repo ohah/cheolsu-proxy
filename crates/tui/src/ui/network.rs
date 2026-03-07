@@ -162,7 +162,7 @@ fn draw_transaction_detail(f: &mut Frame, app: &mut App, area: Rect) {
                 .title(" Detail ")
                 .title_bottom(
                     Line::from(" j/k: scroll | g: top | Esc/Enter: back ")
-                        .style(Style::default().fg(Color::DarkGray)),
+                        .style(Style::default().fg(Color::Gray)),
                 ),
         )
         .wrap(Wrap { trim: false })
