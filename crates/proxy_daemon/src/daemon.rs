@@ -155,6 +155,7 @@ async fn daemon_main(port: u16, host: String) -> i32 {
         watch::channel::<Vec<crate::protocol::ServerReplayEntry>>(Vec::new());
 
     let ws_registry = WebSocketRegistry::new();
+    let script_handle = scripting::ScriptHandle::new();
 
     let addr: std::net::SocketAddr = format!("{}:{}", host, port)
         .parse()
@@ -166,6 +167,7 @@ async fn daemon_main(port: u16, host: String) -> i32 {
 
     let event_tx_proxy = event_tx.clone();
     let registry_for_proxy = ws_registry.clone();
+    let script_handle_for_proxy = script_handle.clone();
     let proxy_handle = tokio::spawn(async move {
         if let Err(code) = run_proxy(
             addr,
@@ -174,6 +176,7 @@ async fn daemon_main(port: u16, host: String) -> i32 {
             upstream_rx,
             server_replay_rx,
             registry_for_proxy,
+            script_handle_for_proxy,
         )
         .await
         {
@@ -235,9 +238,10 @@ async fn daemon_main(port: u16, host: String) -> i32 {
                         let upstream_tx_clone = upstream_tx.clone();
                         let server_replay_tx_clone = server_replay_tx.clone();
                         let registry_clone = ws_registry.clone();
+                        let script_handle_clone = script_handle.clone();
 
                         tokio::spawn(async move {
-                            handle_client(stream, event_rx, intercept_tx_clone, upstream_tx_clone, server_replay_tx_clone, event_tx_clone, port, registry_clone)
+                            handle_client(stream, event_rx, intercept_tx_clone, upstream_tx_clone, server_replay_tx_clone, event_tx_clone, port, registry_clone, script_handle_clone)
                                 .await;
 
                             let remaining = client_count_clone.fetch_sub(1, Ordering::SeqCst) - 1;
@@ -284,6 +288,7 @@ async fn run_proxy(
     upstream_rx: watch::Receiver<Option<UpstreamProxyConfig>>,
     mut server_replay_rx: watch::Receiver<Vec<crate::protocol::ServerReplayEntry>>,
     ws_registry: WebSocketRegistry,
+    script_handle: scripting::ScriptHandle,
 ) -> Result<(), String> {
     use proxyapi_v2::builder::ProxyBuilder;
     use proxyapi_v2::certificate_authority::{
@@ -303,7 +308,9 @@ async fn run_proxy(
 
     let (ws_tx, mut ws_rx) = tokio::sync::mpsc::channel::<crate::handler::WsEvent>(256);
 
-    let handler = LoggingHandler::new(tx.clone(), cache_dir).with_ws_sender(ws_tx);
+    let handler = LoggingHandler::new(tx.clone(), cache_dir)
+        .with_ws_sender(ws_tx)
+        .with_script_handle(script_handle);
 
     // 인터셉트 규칙 초기값 로드
     {
@@ -426,6 +433,7 @@ pub async fn handle_client(
     event_tx: broadcast::Sender<String>,
     port: u16,
     ws_registry: WebSocketRegistry,
+    script_handle: scripting::ScriptHandle,
 ) {
     let (reader, writer) = stream.into_split();
     let mut reader = BufReader::new(reader);
@@ -559,6 +567,54 @@ pub async fn handle_client(
                     Ok(ClientCommand::UpdateServerReplay { entries }) => {
                         info!("Server replay entries updated: {} entries", entries.len());
                         let _ = server_replay_tx.send(entries);
+                    }
+                    Ok(ClientCommand::LoadScript { path, code }) => {
+                        let result = if let Some(file_path) = &path {
+                            script_handle.load_file(file_path).await
+                        } else if let Some(script_code) = &code {
+                            // JS로 먼저 시도, 실패 시 TS로 트랜스파일
+                            match script_handle.load_code(script_code).await {
+                                Ok(()) => Ok(()),
+                                Err(_) => script_handle.load_ts_code(script_code).await,
+                            }
+                        } else {
+                            Err("path 또는 code 중 하나가 필요합니다".to_string())
+                        };
+
+                        let response = match result {
+                            Ok(()) => {
+                                info!("Script loaded successfully");
+                                DaemonMessage::ScriptResult {
+                                    success: true,
+                                    error: None,
+                                }
+                            }
+                            Err(e) => {
+                                error!("Script load failed: {}", e);
+                                DaemonMessage::ScriptResult {
+                                    success: false,
+                                    error: Some(e),
+                                }
+                            }
+                        };
+                        let mut line = serde_json::to_string(&response).unwrap_or_default();
+                        line.push('\n');
+                        let mut w = writer.lock().await;
+                        let _ = w.write_all(line.as_bytes()).await;
+                        let _ = w.flush().await;
+                    }
+                    Ok(ClientCommand::UnloadScript) => {
+                        script_handle.unload().await;
+                        info!("Script unloaded");
+                        let response = DaemonMessage::ScriptResult {
+                            success: true,
+                            error: None,
+                        };
+                        let mut line = serde_json::to_string(&response).unwrap_or_default();
+                        line.push('\n');
+                        let mut w = writer.lock().await;
+                        let _ = w.write_all(line.as_bytes()).await;
+                        let _ = w.flush().await;
                     }
                     Ok(ClientCommand::Stop) => {
                         break;

@@ -135,6 +135,7 @@ pub struct LoggingHandler {
     intercept_rules: Arc<Mutex<Vec<InterceptRule>>>,
     server_replay_entries: Arc<Mutex<Vec<ServerReplayEntry>>>,
     cache_dir: Option<std::path::PathBuf>,
+    script_handle: scripting::ScriptHandle,
 }
 
 impl LoggingHandler {
@@ -152,11 +153,17 @@ impl LoggingHandler {
             intercept_rules: Arc::new(Mutex::new(Vec::new())),
             server_replay_entries: Arc::new(Mutex::new(Vec::new())),
             cache_dir: Some(cache_dir),
+            script_handle: scripting::ScriptHandle::new(),
         }
     }
 
     pub fn with_ws_sender(mut self, ws_sender: tokio::sync::mpsc::Sender<WsEvent>) -> Self {
         self.ws_sender = Some(ws_sender);
+        self
+    }
+
+    pub fn with_script_handle(mut self, handle: scripting::ScriptHandle) -> Self {
+        self.script_handle = handle;
         self
     }
 
@@ -172,6 +179,116 @@ impl LoggingHandler {
         let mut entries_guard = self.server_replay_entries.lock().await;
         info!("[ServerReplay] 엔트리 업데이트: {} 개", entries.len());
         *entries_guard = entries;
+    }
+
+    /// 스크립트 핸들 반환
+    pub fn script_handle(&self) -> &scripting::ScriptHandle {
+        &self.script_handle
+    }
+
+    /// ProxiedRequest → ScriptRequest 변환
+    fn to_script_request(req: &ProxiedRequest) -> scripting::ScriptRequest {
+        let mut headers = std::collections::HashMap::new();
+        for (name, value) in req.headers() {
+            if let Ok(v) = value.to_str() {
+                headers.insert(name.to_string(), v.to_string());
+            }
+        }
+        scripting::ScriptRequest {
+            method: req.method().to_string(),
+            url: req.uri().to_string(),
+            headers,
+            body: std::str::from_utf8(req.body()).ok().map(|s| s.to_string()),
+        }
+    }
+
+    /// hyper Response → ScriptResponse 변환
+    fn to_script_response_from_hyper(res: &Response<Body>) -> scripting::ScriptResponse {
+        let mut headers = std::collections::HashMap::new();
+        for (name, value) in res.headers() {
+            if let Ok(v) = value.to_str() {
+                headers.insert(name.to_string(), v.to_string());
+            }
+        }
+        scripting::ScriptResponse {
+            status: res.status().as_u16(),
+            headers,
+            body: None, // 응답 body는 스트리밍이라 읽을 수 없음
+        }
+    }
+
+    /// ScriptRequest의 수정사항을 hyper Request에 적용
+    fn apply_script_request_modify(
+        mut req: Request<Body>,
+        modified: &scripting::ScriptRequest,
+    ) -> Request<Body> {
+        // 헤더 수정
+        req.headers_mut().clear();
+        for (name, value) in &modified.headers {
+            if let (Ok(hn), Ok(hv)) = (
+                HeaderName::from_bytes(name.as_bytes()),
+                HeaderValue::from_str(value),
+            ) {
+                req.headers_mut().insert(hn, hv);
+            }
+        }
+        // URL 수정
+        if let Ok(uri) = modified.url.parse() {
+            *req.uri_mut() = uri;
+        }
+        // Body 수정
+        if let Some(body) = &modified.body {
+            req = req.map(|_| Body::from(body.clone()));
+        }
+        req
+    }
+
+    /// ScriptResponse에서 hyper Response 생성
+    fn build_script_response(script_res: &scripting::ScriptResponse) -> Response<Body> {
+        let mut builder = Response::builder()
+            .status(StatusCode::from_u16(script_res.status).unwrap_or(StatusCode::OK))
+            .header("x-cheolsu-scripted", "true");
+
+        for (name, value) in &script_res.headers {
+            builder = builder.header(name.as_str(), value.as_str());
+        }
+
+        let body = script_res.body.clone().unwrap_or_default();
+        builder.body(Body::from(body)).unwrap_or_else(|_| {
+            Response::builder()
+                .status(StatusCode::INTERNAL_SERVER_ERROR)
+                .body(Body::from("Script response error"))
+                .unwrap()
+        })
+    }
+
+    /// ScriptResponse의 수정사항을 hyper Response에 적용
+    fn apply_script_response_modify(
+        res: Response<Body>,
+        modified: &scripting::ScriptResponse,
+    ) -> Response<Body> {
+        let (mut parts, body) = res.into_parts();
+
+        // 상태 코드 수정
+        if let Ok(status) = StatusCode::from_u16(modified.status) {
+            parts.status = status;
+        }
+
+        // 헤더 수정
+        for (name, value) in &modified.headers {
+            if let (Ok(hn), Ok(hv)) = (
+                HeaderName::from_bytes(name.as_bytes()),
+                HeaderValue::from_str(value),
+            ) {
+                parts.headers.insert(hn, hv);
+            }
+        }
+
+        if let Some(new_body) = &modified.body {
+            Response::from_parts(parts, Body::from(new_body.clone()))
+        } else {
+            Response::from_parts(parts, body)
+        }
     }
 
     /// 서버 리플레이 매칭: method + URL이 일치하는 엔트리 검색
@@ -796,6 +913,33 @@ impl HttpHandler for LoggingHandler {
             return res.into();
         }
 
+        // 스크립트 훅 적용 (인터셉트 규칙보다 먼저)
+        let restored_req = if self.script_handle.is_active() {
+            let script_req = Self::to_script_request(&proxied_request);
+            match self.script_handle.invoke_on_request(&script_req).await {
+                Ok(scripting::RequestAction::Forward) => restored_req,
+                Ok(scripting::RequestAction::ModifyRequest { request: modified }) => {
+                    info!("[Script] 요청 수정: {} {}", method, url);
+                    Self::apply_script_request_modify(restored_req, &modified)
+                }
+                Ok(scripting::RequestAction::Respond { response }) => {
+                    info!(
+                        "[Script] 요청 차단: {} {} -> {}",
+                        method, url, response.status
+                    );
+                    let res = Self::build_script_response(&response);
+                    self.send_output().await;
+                    return res.into();
+                }
+                Err(e) => {
+                    error!("[Script] onRequest 오류: {}", e);
+                    restored_req
+                }
+            }
+        } else {
+            restored_req
+        };
+
         // 인터셉트 규칙 적용 (차단, 요청 수정)
         let result = self
             .apply_request_intercept(restored_req, &url, &method)
@@ -819,6 +963,33 @@ impl HttpHandler for LoggingHandler {
             let url = req.uri().to_string();
             let method = req.method().to_string();
             self.apply_response_intercept(res, &url, &method).await
+        } else {
+            res
+        };
+
+        // 스크립트 훅으로 응답 수정
+        let res = if self.script_handle.is_active() {
+            if let Some(req) = &self.req {
+                let script_req = Self::to_script_request(req);
+                let script_res = Self::to_script_response_from_hyper(&res);
+                match self
+                    .script_handle
+                    .invoke_on_response(&script_req, &script_res)
+                    .await
+                {
+                    Ok(scripting::ResponseAction::Forward) => res,
+                    Ok(scripting::ResponseAction::ModifyResponse { response: modified }) => {
+                        info!("[Script] 응답 수정: {}", req.uri());
+                        Self::apply_script_response_modify(res, &modified)
+                    }
+                    Err(e) => {
+                        error!("[Script] onResponse 오류: {}", e);
+                        res
+                    }
+                }
+            } else {
+                res
+            }
         } else {
             res
         };
