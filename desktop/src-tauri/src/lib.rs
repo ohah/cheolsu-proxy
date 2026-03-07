@@ -25,7 +25,14 @@ pub fn run() {
             .plugin(tauri_plugin_dialog::init())
             .plugin(tauri_plugin_clipboard_manager::init())
             .plugin(tauri_plugin_store::Builder::default().build())
-            .plugin(tauri_plugin_updater::Builder::new().build());
+            .plugin(tauri_plugin_updater::Builder::new().build())
+            .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+                // 이미 실행 중인 인스턴스의 메인 윈도우를 포커스
+                if let Some(window) = app.get_webview_window("main") {
+                    let _ = window.unminimize();
+                    let _ = window.set_focus();
+                }
+            }));
 
         #[cfg(debug_assertions)]
         {
