@@ -9,7 +9,7 @@ use ratatui::widgets::*;
 use crate::app::App;
 use crate::tabs::Tab;
 
-pub fn draw(f: &mut Frame, app: &App) {
+pub fn draw(f: &mut Frame, app: &mut App) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
@@ -63,7 +63,7 @@ fn draw_tabs(f: &mut Frame, app: &App, area: Rect) {
     f.render_widget(tabs, area);
 }
 
-fn draw_content(f: &mut Frame, app: &App, area: Rect) {
+fn draw_content(f: &mut Frame, app: &mut App, area: Rect) {
     match app.tab {
         Tab::Network => network::draw(f, app, area),
         Tab::WebSocket => websocket::draw(f, app, area),
