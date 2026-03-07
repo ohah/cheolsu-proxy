@@ -387,6 +387,89 @@ pub async fn update_server_replay(
     Ok(())
 }
 
+/// TUI CLI 바이너리의 절대 경로 반환
+fn resolve_tui_path(app: &AppHandle<impl Runtime>) -> Result<String, String> {
+    use tauri::Manager;
+
+    // 개발 모드
+    if cfg!(dev) {
+        let current_exe =
+            std::env::current_exe().map_err(|e| format!("Failed to get current exe: {}", e))?;
+        if let Some(dir) = current_exe.parent() {
+            let tui_path = dir.join("cheolsu");
+            if tui_path.exists() {
+                return Ok(tui_path.display().to_string());
+            }
+        }
+    }
+
+    // 프로덕션 모드
+    let target_triple = env!("TAURI_ENV_TARGET_TRIPLE");
+    let sidecar_name = format!("binaries/cheolsu-{target_triple}");
+    app.path()
+        .resolve(&sidecar_name, tauri::path::BaseDirectory::Resource)
+        .map(|p| p.display().to_string())
+        .map_err(|e| format!("Failed to resolve TUI path: {}", e))
+}
+
+/// 터미널 명령어(cheolsu) 설치: /usr/local/bin/cheolsu에 심볼릭 링크 생성
+#[tauri::command]
+pub fn install_cli(app: AppHandle<impl Runtime>) -> Result<String, String> {
+    let tui_path = resolve_tui_path(&app)?;
+    let link_path = std::path::Path::new("/usr/local/bin/cheolsu");
+
+    // 기존 링크 제거
+    if link_path.exists() || link_path.is_symlink() {
+        std::fs::remove_file(link_path)
+            .map_err(|e| format!("기존 링크 제거 실패: {}. sudo 권한이 필요할 수 있습니다.", e))?;
+    }
+
+    // 심볼릭 링크 생성
+    #[cfg(unix)]
+    {
+        std::os::unix::fs::symlink(&tui_path, link_path).map_err(|e| {
+            format!(
+                "심볼릭 링크 생성 실패: {}. sudo 권한이 필요할 수 있습니다.",
+                e
+            )
+        })?;
+    }
+
+    #[cfg(windows)]
+    {
+        std::os::windows::fs::symlink_file(&tui_path, link_path)
+            .map_err(|e| format!("심볼릭 링크 생성 실패: {}", e))?;
+    }
+
+    Ok(format!(
+        "터미널 명령어가 설치되었습니다: {} -> {}",
+        link_path.display(),
+        tui_path
+    ))
+}
+
+/// 터미널 명령어(cheolsu) 제거: /usr/local/bin/cheolsu 심볼릭 링크 삭제
+#[tauri::command]
+pub fn uninstall_cli() -> Result<String, String> {
+    let link_path = std::path::Path::new("/usr/local/bin/cheolsu");
+
+    if !link_path.exists() && !link_path.is_symlink() {
+        return Err("터미널 명령어가 설치되어 있지 않습니다".to_string());
+    }
+
+    std::fs::remove_file(link_path)
+        .map_err(|e| format!("제거 실패: {}. sudo 권한이 필요할 수 있습니다.", e))?;
+
+    Ok("터미널 명령어가 제거되었습니다".to_string())
+}
+
+/// 터미널 명령어 설치 상태 확인
+#[tauri::command]
+pub fn check_cli_installed() -> bool {
+    let link_path = std::path::Path::new("/usr/local/bin/cheolsu");
+    link_path.exists()
+}
+
 fn base64_engine() -> base64::engine::GeneralPurpose {
     use base64::engine::general_purpose::STANDARD;
     STANDARD
