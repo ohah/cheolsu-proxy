@@ -536,6 +536,51 @@ impl App {
                     }
                 }
             }
+            KeyCode::Char('C') => {
+                // Copy as cURL
+                if let Some(idx) = self.selected_transaction {
+                    if let Some(info) = self.transactions.get(idx) {
+                        let curl = format_curl_command(info);
+                        if copy_to_clipboard(&curl) {
+                            self.set_status("cURL command copied to clipboard");
+                        }
+                    }
+                }
+            }
+            KeyCode::Char('r') => {
+                // Replay request
+                if let Some(idx) = self.selected_transaction {
+                    if let Some(info) = self.transactions.get(idx) {
+                        if let Some(req) = &info.0 {
+                            let method = req.method().to_string();
+                            let uri = req.uri().to_string();
+                            let headers = req.headers().clone();
+                            let body = req.body().cloned();
+                            self.set_status(&format!("Replaying {} {}...", method, uri));
+                            tokio::spawn(async move {
+                                let client = reqwest::Client::builder()
+                                    .danger_accept_invalid_certs(true)
+                                    .build()
+                                    .unwrap();
+                                let method: reqwest::Method =
+                                    method.parse().unwrap_or(reqwest::Method::GET);
+                                let mut builder = client.request(method, &uri);
+                                for (name, value) in headers.iter() {
+                                    if let Ok(v) = value.to_str() {
+                                        builder = builder.header(name.as_str(), v);
+                                    }
+                                }
+                                if let Some(body) = body {
+                                    if !body.is_empty() {
+                                        builder = builder.body(body);
+                                    }
+                                }
+                                let _ = builder.send().await;
+                            });
+                        }
+                    }
+                }
+            }
             KeyCode::Home | KeyCode::Char('g') => {
                 self.selected_transaction = Some(0);
             }
@@ -796,6 +841,37 @@ fn format_ws_messages(conn_id: &str, uri: &str, messages: &[WsMessageInfo]) -> S
         ));
     }
     out
+}
+
+fn format_curl_command(info: &RequestInfo) -> String {
+    let Some(req) = &info.0 else {
+        return String::new();
+    };
+
+    let mut parts = vec![format!("curl -X {} '{}'", req.method(), req.uri())];
+
+    for (name, value) in req.headers().iter() {
+        let name_str = name.as_str();
+        // host, content-length 등은 curl이 자동으로 설정
+        if name_str == "host" || name_str == "content-length" {
+            continue;
+        }
+        if let Ok(v) = value.to_str() {
+            parts.push(format!("  -H '{}: {}'", name_str, v.replace('\'', "'\\''")));
+        }
+    }
+
+    if let Some(body) = req.body() {
+        if !body.is_empty() {
+            if let Ok(body_str) = std::str::from_utf8(body) {
+                parts.push(format!("  -d '{}'", body_str.replace('\'', "'\\''")));
+            } else {
+                parts.push("  --data-binary @-".to_string());
+            }
+        }
+    }
+
+    parts.join(" \\\n")
 }
 
 fn format_transaction_detail(info: &RequestInfo) -> String {

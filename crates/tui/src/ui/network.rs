@@ -68,7 +68,7 @@ fn draw_transaction_list(f: &mut Frame, app: &mut App, area: Rect) {
             .border_style(Style::default().fg(Color::Gray))
             .title(title)
             .title_bottom(Line::from(
-                " j/k: navigate | Enter: detail | y: copy URL | Y: copy all | Space: pause | c: clear "
+                " j/k: navigate | Enter: detail | y: URL | C: cURL | r: replay | Space: pause | c: clear "
             ).style(Style::default().fg(Color::DarkGray))),
     )
     .row_highlight_style(Style::default().bg(Color::Rgb(50, 60, 140)).fg(Color::White));
@@ -94,26 +94,33 @@ fn draw_transaction_detail(f: &mut Frame, app: &mut App, area: Rect) {
                 .fg(Color::Cyan)
                 .add_modifier(Modifier::BOLD),
         )));
-        lines.push(Line::from(format!("{} {}", req.method(), req.uri())));
-        lines.push(Line::from(format!("Version: {:?}", req.version())));
-        lines.push(Line::from(format!("Type: {:?}", req.data_type())));
-        lines.push(Line::from(format!(
-            "Size: {}",
-            format_size(req.body_size())
-        )));
+        lines.push(Line::from(vec![
+            Span::styled(
+                req.method().to_string(),
+                Style::default()
+                    .fg(Color::Magenta)
+                    .add_modifier(Modifier::BOLD),
+            ),
+            Span::raw(" "),
+            Span::styled(req.uri().to_string(), Style::default().fg(Color::White)),
+        ]));
+        lines.push(key_value_line("Version", &format!("{:?}", req.version())));
+        lines.push(key_value_line("Type", &format!("{:?}", req.data_type())));
+        lines.push(key_value_line("Size", &format_size(req.body_size())));
         lines.push(Line::from(""));
 
         // Headers
         lines.push(Line::from(Span::styled(
             "Headers:",
-            Style::default().fg(Color::Yellow),
+            Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD),
         )));
         for (name, value) in req.headers().iter() {
-            lines.push(Line::from(format!(
-                "  {}: {}",
-                name,
-                value.to_str().unwrap_or("<binary>")
-            )));
+            lines.push(header_line(
+                name.as_str(),
+                value.to_str().unwrap_or("<binary>"),
+            ));
         }
         lines.push(Line::from(""));
     }
@@ -126,25 +133,39 @@ fn draw_transaction_detail(f: &mut Frame, app: &mut App, area: Rect) {
                 .fg(Color::Green)
                 .add_modifier(Modifier::BOLD),
         )));
-        lines.push(Line::from(format!("Status: {}", res.status())));
-        lines.push(Line::from(format!("Type: {:?}", res.data_type())));
-        lines.push(Line::from(format!(
-            "Size: {}",
-            format_size(res.body_size())
-        )));
+        let status = res.status().as_u16();
+        let status_color = match status {
+            200..=299 => Color::Green,
+            300..=399 => Color::Yellow,
+            400..=499 => Color::Red,
+            500..=599 => Color::Magenta,
+            _ => Color::Gray,
+        };
+        lines.push(Line::from(vec![
+            Span::styled("Status: ", Style::default().fg(Color::Cyan)),
+            Span::styled(
+                status.to_string(),
+                Style::default()
+                    .fg(status_color)
+                    .add_modifier(Modifier::BOLD),
+            ),
+        ]));
+        lines.push(key_value_line("Type", &format!("{:?}", res.data_type())));
+        lines.push(key_value_line("Size", &format_size(res.body_size())));
         lines.push(Line::from(""));
 
         // Headers
         lines.push(Line::from(Span::styled(
             "Headers:",
-            Style::default().fg(Color::Yellow),
+            Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD),
         )));
         for (name, value) in res.headers().iter() {
-            lines.push(Line::from(format!(
-                "  {}: {}",
-                name,
-                value.to_str().unwrap_or("<binary>")
-            )));
+            lines.push(header_line(
+                name.as_str(),
+                value.to_str().unwrap_or("<binary>"),
+            ));
         }
     }
 
@@ -200,4 +221,19 @@ fn status_color(status: u16) -> Style {
         500..=599 => Style::default().fg(Color::Magenta),
         _ => Style::default(),
     }
+}
+
+fn key_value_line(key: &str, value: &str) -> Line<'static> {
+    Line::from(vec![
+        Span::styled(format!("{}: ", key), Style::default().fg(Color::Cyan)),
+        Span::styled(value.to_string(), Style::default().fg(Color::White)),
+    ])
+}
+
+fn header_line(name: &str, value: &str) -> Line<'static> {
+    Line::from(vec![
+        Span::raw("  "),
+        Span::styled(format!("{}: ", name), Style::default().fg(Color::Blue)),
+        Span::styled(value.to_string(), Style::default().fg(Color::White)),
+    ])
 }
