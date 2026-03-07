@@ -26,6 +26,8 @@ export const SidebarNavigation = memo(({ collapsed }: SidebarNavigationProps) =>
         return "map-rules";
       case "/websocket":
         return "websocket";
+      case "/server-replay":
+        return "server-replay";
       case "/settings":
         return "settings";
       default:
@@ -48,6 +50,9 @@ export const SidebarNavigation = memo(({ collapsed }: SidebarNavigationProps) =>
         break;
       case "websocket":
         navigate("/websocket");
+        break;
+      case "server-replay":
+        navigate("/server-replay");
         break;
       case "settings":
         navigate("/settings");

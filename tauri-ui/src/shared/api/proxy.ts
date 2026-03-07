@@ -71,6 +71,19 @@ export async function replaySequence(
   return invoke("replay_sequence", { requests });
 }
 
+export interface ServerReplayEntry {
+  id: string;
+  method: string;
+  url: string;
+  status: number;
+  headers: Record<string, string>;
+  body?: string;
+}
+
+export async function updateServerReplay(entries: ServerReplayEntry[]): Promise<void> {
+  return invoke("update_server_replay", { entries });
+}
+
 export async function getMcpServerPath(): Promise<string> {
   return invoke("get_mcp_server_path");
 }
