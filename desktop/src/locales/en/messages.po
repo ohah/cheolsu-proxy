@@ -50,6 +50,10 @@ msgstr "200 (optional)"
 msgid "Action"
 msgstr "Action"
 
+#: src/pages/script/ui/script-page.tsx:170
+msgid "Active"
+msgstr "Active"
+
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:314
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:345
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:288
@@ -154,6 +158,10 @@ msgstr "Block"
 msgid "Body"
 msgstr "Body"
 
+#: src/pages/script/ui/script-page.tsx:258
+msgid "Browse"
+msgstr "Browse"
+
 #: src/pages/settings/ui/settings-page.tsx:272
 msgid "Bypass List"
 msgstr "Bypass List"
@@ -174,6 +182,10 @@ msgstr "Cannot add: no response data"
 #: src/shared/app-sidebar/ui/sidebar-header.tsx:38
 msgid "Cheolsu Proxy Logo"
 msgstr "Cheolsu Proxy Logo"
+
+#: src/pages/script/ui/script-page.tsx:289
+msgid "Clear"
+msgstr "Clear"
 
 #: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:72
 msgid "Clear all"
@@ -215,6 +227,10 @@ msgstr "Connection"
 #: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:68
 msgid "connections"
 msgstr "connections"
+
+#: src/pages/script/ui/script-page.tsx:277
+msgid "Console"
+msgstr "Console"
 
 #: src/shared/app-sidebar/ui/sidebar-mcp.tsx:97
 msgid "Copy to clipboard"
@@ -268,6 +284,10 @@ msgstr "Edit rule"
 msgid "Edit Rule"
 msgstr "Edit Rule"
 
+#: src/pages/script/ui/script-page.tsx:198
+msgid "Editor"
+msgstr "Editor"
+
 #: src/pages/server-replay/ui/server-replay-page.tsx:96
 msgid "Enabled"
 msgstr "Enabled"
@@ -296,6 +316,10 @@ msgstr "Failed — is the proxy running?"
 #: src/features/websocket-replay/ui/ws-replay-dialog.tsx:86
 msgid "Failed to send"
 msgstr "Failed to send"
+
+#: src/pages/script/ui/script-page.tsx:201
+msgid "File"
+msgstr "File"
 
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:117
 msgid "File path is required"
@@ -335,6 +359,10 @@ msgstr "Host Tree"
 msgid "HTTP requests and responses"
 msgstr "HTTP requests and responses"
 
+#: src/pages/script/ui/script-page.tsx:170
+msgid "Inactive"
+msgstr "Inactive"
+
 #: src/pages/settings/ui/settings-page.tsx:183
 msgid "Install"
 msgstr "Install"
@@ -359,6 +387,23 @@ msgstr "Intercept Rules"
 #: src/pages/settings/ui/settings-page.tsx:151
 msgid "Language"
 msgstr "Language"
+
+#: src/pages/script/ui/script-page.tsx:261
+msgid "Load"
+msgstr "Load"
+
+#: src/pages/script/ui/script-page.tsx:244
+msgid "Load a script file from disk. The file will be watched for changes and auto-reloaded."
+msgstr "Load a script file from disk. The file will be watched for changes and auto-reloaded."
+
+#: src/shared/app-sidebar/model/consts.ts:43
+msgid "Load and manage proxy scripts"
+msgstr "Load and manage proxy scripts"
+
+#: src/pages/script/ui/script-page.tsx:211
+#: src/pages/script/ui/script-page.tsx:261
+msgid "Loading..."
+msgstr "Loading..."
 
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:254
 msgid "Local File Path"
@@ -478,6 +523,10 @@ msgstr "No active WebSocket connections"
 msgid "No captured traffic with responses available. Capture some traffic first."
 msgstr "No captured traffic with responses available. Capture some traffic first."
 
+#: src/pages/script/ui/script-page.tsx:295
+msgid "No console output yet"
+msgstr "No console output yet"
+
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:102
 msgid "No intercept rules"
 msgstr "No intercept rules"
@@ -497,6 +546,10 @@ msgstr "No transactions to display"
 #: src/features/transaction-details/ui/sequence-replay-dialog.tsx:91
 msgid "No valid requests to replay"
 msgstr "No valid requests to replay"
+
+#: src/pages/script/ui/script-page.tsx:208
+msgid "Open File"
+msgstr "Open File"
 
 #: src/features/transaction-details/ui/replay-dialog.tsx:324
 msgid "Original"
@@ -535,7 +588,7 @@ msgstr "Preserve Path"
 msgid "Proxy configuration and preferences"
 msgstr "Proxy configuration and preferences"
 
-#: src/shared/app-sidebar/model/consts.ts:43
+#: src/shared/app-sidebar/model/consts.ts:49
 msgid "Proxy settings and configuration"
 msgstr "Proxy settings and configuration"
 
@@ -562,6 +615,10 @@ msgstr "Received (Server → Client)"
 #: src/pages/settings/ui/settings-page.tsx:183
 msgid "Reinstall"
 msgstr "Reinstall"
+
+#: src/pages/script/ui/script-page.tsx:175
+msgid "Reload"
+msgstr "Reload"
 
 #: src/pages/server-replay/ui/server-replay-page.tsx:238
 msgid "Remove entry"
@@ -649,6 +706,10 @@ msgstr "Rule updated"
 msgid "rules"
 msgstr "rules"
 
+#: src/pages/script/ui/script-page.tsx:211
+msgid "Run"
+msgstr "Run"
+
 #: src/pages/settings/ui/settings-page.tsx:292
 msgid "Save"
 msgstr "Save"
@@ -660,6 +721,31 @@ msgstr "Saved"
 #: src/pages/settings/ui/settings-page.tsx:292
 msgid "Saving..."
 msgstr "Saving..."
+
+#: src/pages/script/ui/script-page.tsx:162
+#: src/shared/app-sidebar/model/consts.ts:41
+msgid "Script"
+msgstr "Script"
+
+#: src/pages/script/ui/script-page.tsx:252
+msgid "Script file path (.js, .ts)"
+msgstr "Script file path (.js, .ts)"
+
+#: src/pages/script/ui/script-page.tsx:80
+msgid "Script loaded"
+msgstr "Script loaded"
+
+#: src/pages/script/ui/script-page.tsx:67
+msgid "Script loaded from editor"
+msgstr "Script loaded from editor"
+
+#: src/pages/script/ui/script-page.tsx:121
+msgid "Script reloaded"
+msgstr "Script reloaded"
+
+#: src/pages/script/ui/script-page.tsx:110
+msgid "Script unloaded"
+msgstr "Script unloaded"
 
 #: src/pages/server-replay/ui/server-replay-page.tsx:121
 msgid "Select from captured traffic"
@@ -722,7 +808,7 @@ msgid "Set body (optional)"
 msgstr "Set body (optional)"
 
 #: src/pages/settings/ui/settings-page.tsx:140
-#: src/shared/app-sidebar/model/consts.ts:41
+#: src/shared/app-sidebar/model/consts.ts:47
 msgid "Settings"
 msgstr "Settings"
 
@@ -790,6 +876,10 @@ msgstr "Type"
 msgid "Uninstall"
 msgstr "Uninstall"
 
+#: src/pages/script/ui/script-page.tsx:178
+msgid "Unload"
+msgstr "Unload"
+
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:387
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:348
 msgid "Update"
@@ -849,3 +939,7 @@ msgstr "WebSocket Replay"
 #: src/shared/app-sidebar/ui/sidebar-mcp.tsx:107
 msgid "Works with Claude Code, Cursor, Claude Desktop, and other MCP-compatible clients."
 msgstr "Works with Claude Code, Cursor, Claude Desktop, and other MCP-compatible clients."
+
+#: src/pages/script/ui/script-page.tsx:165
+msgid "Write or load JavaScript/TypeScript proxy scripts"
+msgstr "Write or load JavaScript/TypeScript proxy scripts"
