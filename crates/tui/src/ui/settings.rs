@@ -45,7 +45,7 @@ pub fn draw(f: &mut Frame, app: &App, area: Rect) {
     let info = Paragraph::new(info_lines).block(
         Block::default()
             .borders(Borders::ALL)
-            .border_style(Style::default().fg(Color::DarkGray))
+            .border_style(Style::default().fg(Color::Gray))
             .title(" Proxy Info "),
     );
 
@@ -77,7 +77,7 @@ pub fn draw(f: &mut Frame, app: &App, area: Rect) {
     let help = Paragraph::new(help_lines).block(
         Block::default()
             .borders(Borders::ALL)
-            .border_style(Style::default().fg(Color::DarkGray))
+            .border_style(Style::default().fg(Color::Gray))
             .title(" Keybindings "),
     );
 

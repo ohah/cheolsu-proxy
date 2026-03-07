@@ -79,7 +79,7 @@ fn draw_transaction_list(f: &mut Frame, app: &App, area: Rect) {
     .block(
         Block::default()
             .borders(Borders::ALL)
-            .border_style(Style::default().fg(Color::DarkGray))
+            .border_style(Style::default().fg(Color::Gray))
             .title(title),
     )
     .row_highlight_style(Style::default().bg(Color::Rgb(40, 40, 60)));
@@ -164,7 +164,7 @@ fn draw_transaction_detail(f: &mut Frame, app: &App, area: Rect) {
         .block(
             Block::default()
                 .borders(Borders::ALL)
-                .border_style(Style::default().fg(Color::DarkGray))
+                .border_style(Style::default().fg(Color::Gray))
                 .title(" Detail "),
         )
         .wrap(Wrap { trim: false })
@@ -195,7 +195,7 @@ fn extract_transaction_info(
 
 fn status_color(status: u16) -> Style {
     match status {
-        0 => Style::default().fg(Color::DarkGray),
+        0 => Style::default().fg(Color::Gray),
         200..=299 => Style::default().fg(Color::Green),
         300..=399 => Style::default().fg(Color::Yellow),
         400..=499 => Style::default().fg(Color::Red),
