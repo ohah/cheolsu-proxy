@@ -112,9 +112,7 @@ where
                 .preserve_header_case(true)
                 .max_headers(512);
             #[cfg(feature = "http2")]
-            builder
-                .http2()
-                .max_header_list_size(1024 * 256);
+            builder.http2().max_header_list_size(1024 * 256);
             builder
         });
 
