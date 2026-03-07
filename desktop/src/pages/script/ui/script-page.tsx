@@ -188,7 +188,7 @@ export function ScriptPage() {
 
       {/* Resizable Editor + Console */}
       <div className="flex-1 min-h-0 px-6 pb-6">
-        <ResizablePanelGroup direction="vertical">
+        <ResizablePanelGroup orientation="vertical">
           {/* Editor Panel */}
           <ResizablePanel defaultSize={70} minSize={30}>
             <Tabs value={tab} onValueChange={setTab} className="h-full flex flex-col">
@@ -274,7 +274,7 @@ export function ScriptPage() {
           </ResizablePanel>
 
           {/* Drag Handle */}
-          <ResizableHandle className="!w-full !h-1.5 my-0.5 rounded bg-transparent hover:bg-primary/20 data-[resize-handle-state=drag]:bg-primary/30 cursor-row-resize after:!hidden" />
+          <ResizableHandle className="h-1.5 w-full rounded bg-transparent hover:bg-primary/20 data-[resize-handle-state=drag]:bg-primary/30" />
 
           {/* Console Panel */}
           <ResizablePanel defaultSize={30} minSize={10}>
