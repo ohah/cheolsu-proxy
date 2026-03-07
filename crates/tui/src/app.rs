@@ -1069,3 +1069,177 @@ fn format_curl_command(info: &RequestInfo) -> String {
 
     parts.join(" \\\n")
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // -- UpstreamProxyField --
+
+    #[test]
+    fn field_next_wraps_around() {
+        assert_eq!(UpstreamProxyField::Enabled.next(), UpstreamProxyField::Host);
+        assert_eq!(
+            UpstreamProxyField::Bypass.next(),
+            UpstreamProxyField::Enabled
+        );
+    }
+
+    #[test]
+    fn field_prev_wraps_around() {
+        assert_eq!(
+            UpstreamProxyField::Enabled.prev(),
+            UpstreamProxyField::Bypass
+        );
+        assert_eq!(UpstreamProxyField::Host.prev(), UpstreamProxyField::Enabled);
+    }
+
+    #[test]
+    fn field_next_prev_full_cycle() {
+        let mut field = UpstreamProxyField::Enabled;
+        for _ in 0..UpstreamProxyField::ALL.len() {
+            field = field.next();
+        }
+        assert_eq!(field, UpstreamProxyField::Enabled);
+
+        for _ in 0..UpstreamProxyField::ALL.len() {
+            field = field.prev();
+        }
+        assert_eq!(field, UpstreamProxyField::Enabled);
+    }
+
+    #[test]
+    fn field_labels_not_empty() {
+        for field in UpstreamProxyField::ALL {
+            assert!(!field.label().is_empty());
+        }
+    }
+
+    // -- UpstreamProxyForm defaults --
+
+    #[test]
+    fn form_new_defaults() {
+        let form = UpstreamProxyForm::new();
+        assert!(!form.enabled);
+        assert_eq!(form.field, UpstreamProxyField::Enabled);
+        assert!(!form.editing);
+        assert!(form.host.is_empty());
+        assert_eq!(form.port, "8080");
+        assert!(form.username.is_empty());
+        assert!(form.password.is_empty());
+        assert_eq!(form.bypass, "localhost");
+    }
+
+    // -- to_config --
+
+    #[test]
+    fn to_config_returns_none_when_disabled() {
+        let mut form = UpstreamProxyForm::new();
+        form.host = "proxy.example.com".to_string();
+        assert!(form.to_config().is_none());
+    }
+
+    #[test]
+    fn to_config_returns_none_when_host_empty() {
+        let mut form = UpstreamProxyForm::new();
+        form.enabled = true;
+        assert!(form.to_config().is_none());
+    }
+
+    #[test]
+    fn to_config_basic() {
+        let mut form = UpstreamProxyForm::new();
+        form.enabled = true;
+        form.host = "proxy.example.com".to_string();
+        form.port = "3128".to_string();
+
+        let config = form.to_config().unwrap();
+        assert_eq!(config.host, "proxy.example.com");
+        assert_eq!(config.port, 3128);
+        assert!(config.auth.is_none());
+        assert_eq!(config.bypass, vec!["localhost"]);
+    }
+
+    #[test]
+    fn to_config_with_auth() {
+        let mut form = UpstreamProxyForm::new();
+        form.enabled = true;
+        form.host = "proxy.example.com".to_string();
+        form.username = "user".to_string();
+        form.password = "pass".to_string();
+
+        let config = form.to_config().unwrap();
+        let auth = config.auth.unwrap();
+        assert_eq!(auth.username, "user");
+        assert_eq!(auth.password, "pass");
+    }
+
+    #[test]
+    fn to_config_no_auth_when_username_empty() {
+        let mut form = UpstreamProxyForm::new();
+        form.enabled = true;
+        form.host = "proxy.example.com".to_string();
+        form.password = "pass".to_string();
+
+        let config = form.to_config().unwrap();
+        assert!(config.auth.is_none());
+    }
+
+    #[test]
+    fn to_config_bypass_parsing() {
+        let mut form = UpstreamProxyForm::new();
+        form.enabled = true;
+        form.host = "proxy.example.com".to_string();
+        form.bypass = "localhost, *.internal.com, 10.0.0.1".to_string();
+
+        let config = form.to_config().unwrap();
+        assert_eq!(
+            config.bypass,
+            vec!["localhost", "*.internal.com", "10.0.0.1"]
+        );
+    }
+
+    #[test]
+    fn to_config_bypass_empty_string() {
+        let mut form = UpstreamProxyForm::new();
+        form.enabled = true;
+        form.host = "proxy.example.com".to_string();
+        form.bypass = "".to_string();
+
+        let config = form.to_config().unwrap();
+        assert!(config.bypass.is_empty());
+    }
+
+    #[test]
+    fn to_config_bypass_trims_whitespace() {
+        let mut form = UpstreamProxyForm::new();
+        form.enabled = true;
+        form.host = "proxy.example.com".to_string();
+        form.bypass = "  localhost ,  *.test.com  ".to_string();
+
+        let config = form.to_config().unwrap();
+        assert_eq!(config.bypass, vec!["localhost", "*.test.com"]);
+    }
+
+    #[test]
+    fn to_config_invalid_port_defaults_to_8080() {
+        let mut form = UpstreamProxyForm::new();
+        form.enabled = true;
+        form.host = "proxy.example.com".to_string();
+        form.port = "not_a_number".to_string();
+
+        let config = form.to_config().unwrap();
+        assert_eq!(config.port, 8080);
+    }
+
+    #[test]
+    fn to_config_bypass_filters_empty_entries() {
+        let mut form = UpstreamProxyForm::new();
+        form.enabled = true;
+        form.host = "proxy.example.com".to_string();
+        form.bypass = "localhost,,, *.test.com, ,".to_string();
+
+        let config = form.to_config().unwrap();
+        assert_eq!(config.bypass, vec!["localhost", "*.test.com"]);
+    }
+}
