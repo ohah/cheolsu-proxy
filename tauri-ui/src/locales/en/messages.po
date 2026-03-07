@@ -134,7 +134,7 @@ msgstr "Append the original request path to the target URL"
 msgid "Apply:"
 msgstr "Apply:"
 
-#: src/pages/settings/ui/settings-page.tsx:177
+#: src/pages/settings/ui/settings-page.tsx:245
 msgid "Authentication"
 msgstr "Authentication"
 
@@ -154,7 +154,7 @@ msgstr "Block"
 msgid "Body"
 msgstr "Body"
 
-#: src/pages/settings/ui/settings-page.tsx:204
+#: src/pages/settings/ui/settings-page.tsx:272
 msgid "Bypass List"
 msgstr "Bypass List"
 
@@ -198,7 +198,7 @@ msgstr "Close"
 msgid "Collapse"
 msgstr "Collapse"
 
-#: src/pages/settings/ui/settings-page.tsx:212
+#: src/pages/settings/ui/settings-page.tsx:280
 msgid "Comma-separated list of hosts to connect directly (supports *.domain.com wildcards)"
 msgstr "Comma-separated list of hosts to connect directly (supports *.domain.com wildcards)"
 
@@ -289,7 +289,7 @@ msgstr "Expand"
 msgid "Expand sidebar"
 msgstr "Expand sidebar"
 
-#: src/pages/settings/ui/settings-page.tsx:233
+#: src/pages/settings/ui/settings-page.tsx:301
 msgid "Failed — is the proxy running?"
 msgstr "Failed — is the proxy running?"
 
@@ -323,7 +323,7 @@ msgstr "headers"
 msgid "Headers ({0})"
 msgstr "Headers ({0})"
 
-#: src/pages/settings/ui/settings-page.tsx:151
+#: src/pages/settings/ui/settings-page.tsx:219
 msgid "Host"
 msgstr "Host"
 
@@ -335,12 +335,28 @@ msgstr "Host Tree"
 msgid "HTTP requests and responses"
 msgstr "HTTP requests and responses"
 
+#: src/pages/settings/ui/settings-page.tsx:183
+msgid "Install"
+msgstr "Install"
+
+#: src/pages/settings/ui/settings-page.tsx:175
+msgid "Install the <0>cheolsu</0> command to use the TUI from your terminal"
+msgstr "Install the <0>cheolsu</0> command to use the TUI from your terminal"
+
+#: src/pages/settings/ui/settings-page.tsx:192
+msgid "Installed"
+msgstr "Installed"
+
+#: src/pages/settings/ui/settings-page.tsx:183
+msgid "Installing..."
+msgstr "Installing..."
+
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:74
 #: src/shared/app-sidebar/model/consts.ts:23
 msgid "Intercept Rules"
 msgstr "Intercept Rules"
 
-#: src/pages/settings/ui/settings-page.tsx:114
+#: src/pages/settings/ui/settings-page.tsx:151
 msgid "Language"
 msgstr "Language"
 
@@ -348,7 +364,7 @@ msgstr "Language"
 msgid "Local File Path"
 msgstr "Local File Path"
 
-#: src/pages/settings/ui/settings-page.tsx:207
+#: src/pages/settings/ui/settings-page.tsx:275
 msgid "localhost, 127.0.0.1, *.internal.com"
 msgstr "localhost, 127.0.0.1, *.internal.com"
 
@@ -486,7 +502,7 @@ msgstr "No valid requests to replay"
 msgid "Original"
 msgstr "Original"
 
-#: src/pages/settings/ui/settings-page.tsx:192
+#: src/pages/settings/ui/settings-page.tsx:260
 msgid "Password"
 msgstr "Password"
 
@@ -507,7 +523,7 @@ msgstr "Pause recording"
 msgid "Payload"
 msgstr "Payload"
 
-#: src/pages/settings/ui/settings-page.tsx:161
+#: src/pages/settings/ui/settings-page.tsx:229
 msgid "Port"
 msgstr "Port"
 
@@ -515,7 +531,7 @@ msgstr "Port"
 msgid "Preserve Path"
 msgstr "Preserve Path"
 
-#: src/pages/settings/ui/settings-page.tsx:106
+#: src/pages/settings/ui/settings-page.tsx:143
 msgid "Proxy configuration and preferences"
 msgstr "Proxy configuration and preferences"
 
@@ -523,7 +539,7 @@ msgstr "Proxy configuration and preferences"
 msgid "Proxy settings and configuration"
 msgstr "Proxy settings and configuration"
 
-#: src/pages/settings/ui/settings-page.tsx:154
+#: src/pages/settings/ui/settings-page.tsx:222
 msgid "proxy.company.com"
 msgstr "proxy.company.com"
 
@@ -542,6 +558,10 @@ msgstr "Received"
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:54
 msgid "Received (Server → Client)"
 msgstr "Received (Server → Client)"
+
+#: src/pages/settings/ui/settings-page.tsx:183
+msgid "Reinstall"
+msgstr "Reinstall"
 
 #: src/pages/server-replay/ui/server-replay-page.tsx:238
 msgid "Remove entry"
@@ -600,7 +620,7 @@ msgstr "Return cached responses for matching requests"
 msgid "Return cached responses for matching requests instead of forwarding to the server"
 msgstr "Return cached responses for matching requests instead of forwarding to the server"
 
-#: src/pages/settings/ui/settings-page.tsx:139
+#: src/pages/settings/ui/settings-page.tsx:207
 msgid "Route traffic through an external proxy server"
 msgstr "Route traffic through an external proxy server"
 
@@ -629,15 +649,15 @@ msgstr "Rule updated"
 msgid "rules"
 msgstr "rules"
 
-#: src/pages/settings/ui/settings-page.tsx:224
+#: src/pages/settings/ui/settings-page.tsx:292
 msgid "Save"
 msgstr "Save"
 
-#: src/pages/settings/ui/settings-page.tsx:228
+#: src/pages/settings/ui/settings-page.tsx:296
 msgid "Saved"
 msgstr "Saved"
 
-#: src/pages/settings/ui/settings-page.tsx:224
+#: src/pages/settings/ui/settings-page.tsx:292
 msgid "Saving..."
 msgstr "Saving..."
 
@@ -701,7 +721,7 @@ msgstr "Server Replay"
 msgid "Set body (optional)"
 msgstr "Set body (optional)"
 
-#: src/pages/settings/ui/settings-page.tsx:103
+#: src/pages/settings/ui/settings-page.tsx:140
 #: src/shared/app-sidebar/model/consts.ts:41
 msgid "Settings"
 msgstr "Settings"
@@ -734,6 +754,10 @@ msgstr "Target URL"
 msgid "Target URL is required"
 msgstr "Target URL is required"
 
+#: src/pages/settings/ui/settings-page.tsx:172
+msgid "Terminal Command"
+msgstr "Terminal Command"
+
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:61
 #: src/widgets/websocket-messages/ui/ws-message-table.tsx:167
 msgid "Time"
@@ -762,12 +786,16 @@ msgstr "Traffic Replay"
 msgid "Type"
 msgstr "Type"
 
+#: src/pages/settings/ui/settings-page.tsx:187
+msgid "Uninstall"
+msgstr "Uninstall"
+
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:387
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:348
 msgid "Update"
 msgstr "Update"
 
-#: src/pages/settings/ui/settings-page.tsx:136
+#: src/pages/settings/ui/settings-page.tsx:204
 msgid "Upstream Proxy"
 msgstr "Upstream Proxy"
 
@@ -787,7 +815,7 @@ msgstr "URL Pattern"
 msgid "Use wildcard patterns: * matches any string, ? matches a single character."
 msgstr "Use wildcard patterns: * matches any string, ? matches a single character."
 
-#: src/pages/settings/ui/settings-page.tsx:184
+#: src/pages/settings/ui/settings-page.tsx:252
 msgid "Username"
 msgstr "Username"
 
