@@ -10,6 +10,7 @@ export interface MapRuleStoreState {
   removeRule: (id: string) => void;
   toggleRule: (id: string) => void;
   clearRules: () => void;
+  setRules: (rules: InterceptRule[]) => void;
   syncToProxy: () => Promise<void>;
 }
 
@@ -47,6 +48,10 @@ export const useMapRuleStore = create<MapRuleStoreState>()(
       clearRules: () => {
         set({ rules: [] });
         get().syncToProxy();
+      },
+
+      setRules: (rules: InterceptRule[]) => {
+        set({ rules });
       },
 
       syncToProxy: async () => {

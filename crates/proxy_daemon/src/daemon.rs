@@ -203,13 +203,14 @@ async fn daemon_main(port: u16, host: String) -> i32 {
                         info!("Client connected (total: {})", count);
 
                         let event_rx = event_tx.subscribe();
+                        let event_tx_clone = event_tx.clone();
                         let client_count_clone = client_count.clone();
                         let shutdown_tx_clone = shutdown_tx.clone();
                         let intercept_tx_clone = intercept_tx.clone();
                         let registry_clone = ws_registry.clone();
 
                         tokio::spawn(async move {
-                            handle_client(stream, event_rx, intercept_tx_clone, port, registry_clone)
+                            handle_client(stream, event_rx, intercept_tx_clone, event_tx_clone, port, registry_clone)
                                 .await;
 
                             let remaining = client_count_clone.fetch_sub(1, Ordering::SeqCst) - 1;
@@ -372,6 +373,7 @@ pub async fn handle_client(
     stream: UnixStream,
     mut event_rx: broadcast::Receiver<String>,
     intercept_tx: watch::Sender<Vec<crate::protocol::InterceptRule>>,
+    event_tx: broadcast::Sender<String>,
     port: u16,
     ws_registry: WebSocketRegistry,
 ) {
@@ -436,6 +438,11 @@ pub async fn handle_client(
                     }
                     Ok(ClientCommand::UpdateInterceptRules { rules }) => {
                         info!("Intercept rules updated from client: {} rules", rules.len());
+                        // 다른 클라이언트에게 규칙 변경 broadcast
+                        let broadcast_msg = DaemonMessage::InterceptRulesUpdated { rules: rules.clone() };
+                        if let Ok(json) = serde_json::to_string(&broadcast_msg) {
+                            let _ = event_tx.send(json);
+                        }
                         let _ = intercept_tx.send(rules);
                     }
                     Ok(ClientCommand::WsInject {

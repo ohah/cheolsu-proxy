@@ -6,10 +6,12 @@ import {
   useInterceptRuleStore,
   useTransactionStore,
   useWebSocketStore,
+  useMapRuleStore,
 } from "@/shared/stores";
 import { listen } from "@tauri-apps/api/event";
 import type { ProxyEventTuple } from "@/entities/proxy";
 import type { WsMessageInfo, WsConnectionEvent } from "@/entities/websocket";
+import type { InterceptRule } from "@/entities/intercept-rule";
 
 const App: React.FC = () => {
   useThemeProvider();
@@ -19,6 +21,8 @@ const App: React.FC = () => {
   const paused = useTransactionStore((s) => s.paused);
   const addWsMessage = useWebSocketStore((s) => s.addMessage);
   const updateWsConnection = useWebSocketStore((s) => s.updateConnection);
+  const setInterceptRules = useInterceptRuleStore((s) => s.setRules);
+  const setMapRules = useMapRuleStore((s) => s.setRules);
 
   // 앱 시작 시 프록시 초기화 후 저장된 인터셉트 규칙 동기화
   useEffect(() => {
@@ -56,6 +60,25 @@ const App: React.FC = () => {
       unlistenConn.then((f) => f());
     };
   }, [addWsMessage, updateWsConnection, paused]);
+
+  // 데몬에서 인터셉트 규칙 변경 수신 (MCP 등 외부 클라이언트에서 변경 시 동기화)
+  useEffect(() => {
+    const unlisten = listen<InterceptRule[]>("intercept_rules_updated", (event) => {
+      const rules = event.payload;
+      const interceptRules = rules.filter(
+        (r) => r.action.type === "block" || r.action.type === "modify_request" || r.action.type === "modify_response",
+      );
+      const mapRules = rules.filter(
+        (r) => r.action.type === "map_local" || r.action.type === "map_remote",
+      );
+      setInterceptRules(interceptRules);
+      setMapRules(mapRules);
+    });
+
+    return () => {
+      unlisten.then((f) => f());
+    };
+  }, [setInterceptRules, setMapRules]);
 
   return (
     <div className="App">

@@ -62,5 +62,6 @@ export interface InterceptRuleStoreState {
   removeRule: (id: string) => void;
   toggleRule: (id: string) => void;
   clearRules: () => void;
+  setRules: (rules: InterceptRule[]) => void;
   syncToProxy: () => Promise<void>;
 }
