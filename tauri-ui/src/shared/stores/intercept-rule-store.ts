@@ -39,6 +39,10 @@ export const useInterceptRuleStore = create<InterceptRuleStoreState>()(
         get().syncToProxy();
       },
 
+      setRules: (rules: InterceptRule[]) => {
+        set({ rules });
+      },
+
       syncToProxy: async () => {
         try {
           await syncAllRulesToProxy();

@@ -52,6 +52,9 @@ pub async fn start_proxy_v2<R: Runtime>(
         DaemonMessage::WsConnection { data } => {
             let _ = app_clone.emit("ws_connection", data);
         }
+        DaemonMessage::InterceptRulesUpdated { rules } => {
+            let _ = app_clone.emit("intercept_rules_updated", rules);
+        }
         _ => {}
     })
     .await
