@@ -83,36 +83,31 @@ fn spawn_daemon(port: u16, host: &str) -> Result<(), String> {
 
     let log_file = daemon_log_file();
 
-    // stdout → 터미널 + 로그 파일
+    // stdout → 로그 파일만 (터미널 출력 시 TUI 화면 깨짐)
     if let Some(stdout) = child.stdout.take() {
         let log_file_clone = log_file.as_ref().and_then(|f| f.try_clone().ok());
         std::thread::spawn(move || {
-            tee_stream(stdout, std::io::stdout(), log_file_clone);
+            log_stream(stdout, log_file_clone);
         });
     }
 
-    // stderr → 터미널 + 로그 파일
+    // stderr → 로그 파일만
     if let Some(stderr) = child.stderr.take() {
         let log_file_clone = log_file.as_ref().and_then(|f| f.try_clone().ok());
         std::thread::spawn(move || {
-            tee_stream(stderr, std::io::stderr(), log_file_clone);
+            log_stream(stderr, log_file_clone);
         });
     }
 
     Ok(())
 }
 
-/// 스트림을 터미널과 로그 파일 양쪽에 출력합니다.
-fn tee_stream(
-    source: impl std::io::Read,
-    mut terminal: impl std::io::Write + Send + 'static,
-    mut log_file: Option<std::fs::File>,
-) {
+/// 스트림을 로그 파일에만 출력합니다. (터미널 출력 시 TUI 화면 깨짐 방지)
+fn log_stream(source: impl std::io::Read, mut log_file: Option<std::fs::File>) {
     use std::io::BufRead;
     let reader = std::io::BufReader::new(source);
     for line in reader.lines() {
         let Ok(line) = line else { break };
-        let _ = writeln!(terminal, "[daemon] {}", line);
         if let Some(ref mut f) = log_file {
             let _ = writeln!(f, "{}", line);
         }
