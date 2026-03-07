@@ -535,6 +535,29 @@ impl App {
                 self.ws_messages.clear();
                 self.selected_ws_conn = None;
             }
+            KeyCode::Char('y') => {
+                // Copy selected connection URI to clipboard
+                if let Some(idx) = self.selected_ws_conn {
+                    if let Some(conn) = self.ws_connections.get(idx) {
+                        let uri = conn.uri.clone();
+                        if copy_to_clipboard(&uri) {
+                            self.set_status("WebSocket URI copied to clipboard");
+                        }
+                    }
+                }
+            }
+            KeyCode::Char('Y') => {
+                // Copy all messages for selected connection
+                if let Some(idx) = self.selected_ws_conn {
+                    if let Some(conn) = self.ws_connections.get(idx) {
+                        let conn_id = &conn.connection_id;
+                        let detail = format_ws_messages(conn_id, &conn.uri, &self.ws_messages);
+                        if copy_to_clipboard(&detail) {
+                            self.set_status("WebSocket messages copied to clipboard");
+                        }
+                    }
+                }
+            }
             _ => {}
         }
     }
@@ -712,6 +735,28 @@ fn copy_to_clipboard(text: &str) -> bool {
     }
 
     false
+}
+
+fn format_ws_messages(conn_id: &str, uri: &str, messages: &[WsMessageInfo]) -> String {
+    let mut out = format!("WebSocket: {}\n\n", uri);
+    for msg in messages.iter().filter(|m| m.connection_id == conn_id) {
+        let dir = match msg.direction {
+            proxy_v2_models::WsDirection::ClientToServer => "->",
+            proxy_v2_models::WsDirection::ServerToClient => "<-",
+        };
+        let msg_type = match msg.message_type {
+            proxy_v2_models::WsMessageType::Text => "TXT",
+            proxy_v2_models::WsMessageType::Binary => "BIN",
+            proxy_v2_models::WsMessageType::Ping => "PING",
+            proxy_v2_models::WsMessageType::Pong => "PONG",
+            proxy_v2_models::WsMessageType::Close => "CLOSE",
+        };
+        out.push_str(&format!(
+            "[{}] {} {} {}B\n{}\n\n",
+            dir, msg_type, msg.size, msg.size, msg.payload
+        ));
+    }
+    out
 }
 
 fn format_transaction_detail(info: &RequestInfo) -> String {
