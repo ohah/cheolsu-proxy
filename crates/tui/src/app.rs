@@ -50,6 +50,14 @@ pub struct App {
     pub ws_conn_table_state: TableState,
     pub rules_table_state: TableState,
 
+    // Script
+    pub script_active: bool,
+    pub script_path: Option<String>,
+    pub script_path_input: String,
+    pub script_editing: bool,
+    pub script_logs: Vec<ScriptLogEntry>,
+    pub script_log_scroll: usize,
+
     // Upstream Proxy
     pub upstream_form: UpstreamProxyForm,
 
@@ -59,6 +67,14 @@ pub struct App {
     // Connection
     conn: Option<DaemonConnection>,
     event_tx: Option<mpsc::UnboundedSender<Event>>,
+}
+
+/// 스크립트 로그 엔트리 (TUI 표시용)
+#[derive(Debug, Clone)]
+pub struct ScriptLogEntry {
+    pub level: String,
+    pub message: String,
+    pub time: std::time::Instant,
 }
 
 /// Upstream proxy settings form
@@ -374,6 +390,12 @@ impl App {
             network_table_state: TableState::default(),
             ws_conn_table_state: TableState::default(),
             rules_table_state: TableState::default(),
+            script_active: false,
+            script_path: None,
+            script_path_input: String::new(),
+            script_editing: false,
+            script_logs: Vec::new(),
+            script_log_scroll: 0,
             upstream_form: UpstreamProxyForm::new(),
             status_message: None,
             conn: None,
@@ -501,6 +523,33 @@ impl App {
             DaemonMessage::InterceptRulesUpdated { rules } => {
                 self.rules = rules;
             }
+            DaemonMessage::ScriptLog { level, message } => {
+                self.script_logs.push(ScriptLogEntry {
+                    level,
+                    message,
+                    time: std::time::Instant::now(),
+                });
+                // 최대 1000개 유지
+                if self.script_logs.len() > 1000 {
+                    self.script_logs.drain(0..500);
+                }
+            }
+            DaemonMessage::ScriptStatus {
+                active,
+                path,
+                message,
+            } => {
+                self.script_active = active;
+                self.script_path = path;
+                self.set_status(&message);
+            }
+            DaemonMessage::ScriptResult { success, error } => {
+                if success {
+                    self.set_status("Script loaded");
+                } else if let Some(e) = error {
+                    self.set_status(&format!("Script error: {}", e));
+                }
+            }
             _ => {}
         }
     }
@@ -513,6 +562,12 @@ impl App {
         // If rule form is open, handle form input
         if self.rule_form.is_some() {
             self.handle_rule_form_key(key).await;
+            return;
+        }
+
+        // If script path is in editing mode, handle it
+        if self.tab == Tab::Script && self.script_editing {
+            self.handle_script_key(key).await;
             return;
         }
 
@@ -553,6 +608,10 @@ impl App {
                 return;
             }
             KeyCode::Char('4') if key.modifiers.contains(KeyModifiers::ALT) => {
+                self.tab = Tab::Script;
+                return;
+            }
+            KeyCode::Char('5') if key.modifiers.contains(KeyModifiers::ALT) => {
                 self.tab = Tab::Settings;
                 return;
             }
@@ -564,6 +623,7 @@ impl App {
             Tab::Network => self.handle_network_key(key).await,
             Tab::WebSocket => self.handle_ws_key(key),
             Tab::InterceptRules => self.handle_rules_key(key).await,
+            Tab::Script => self.handle_script_key(key).await,
             Tab::Settings => self.handle_settings_key(key).await,
         }
     }
@@ -968,6 +1028,99 @@ impl App {
                 }
             }
             _ => {}
+        }
+    }
+
+    async fn handle_script_key(&mut self, key: KeyEvent) {
+        if self.script_editing {
+            // 파일 경로 입력 모드
+            match key.code {
+                KeyCode::Esc => {
+                    self.script_editing = false;
+                }
+                KeyCode::Enter => {
+                    self.script_editing = false;
+                    let path = self.script_path_input.clone();
+                    if !path.is_empty() {
+                        self.send_script_load(&path).await;
+                    }
+                }
+                KeyCode::Char(c) => {
+                    self.script_path_input.push(c);
+                }
+                KeyCode::Backspace => {
+                    self.script_path_input.pop();
+                }
+                _ => {}
+            }
+            return;
+        }
+
+        // 일반 모드
+        match key.code {
+            KeyCode::Char('l') => {
+                // 스크립트 파일 로드 (경로 입력 모드 진입)
+                self.script_editing = true;
+            }
+            KeyCode::Char('u') => {
+                // 스크립트 언로드
+                if self.script_active {
+                    self.send_script_unload().await;
+                }
+            }
+            KeyCode::Char('r') => {
+                // 스크립트 리로드
+                if let Some(path) = self.script_path.clone() {
+                    self.send_script_load(&path).await;
+                }
+            }
+            KeyCode::Char('c') => {
+                // 로그 초기화
+                self.script_logs.clear();
+                self.script_log_scroll = 0;
+                self.set_status("Script logs cleared");
+            }
+            KeyCode::Up | KeyCode::Char('k') => {
+                self.script_log_scroll = self.script_log_scroll.saturating_sub(1);
+            }
+            KeyCode::Down | KeyCode::Char('j') => {
+                if self.script_log_scroll + 1 < self.script_logs.len() {
+                    self.script_log_scroll += 1;
+                }
+            }
+            KeyCode::Home | KeyCode::Char('g') => {
+                self.script_log_scroll = 0;
+            }
+            KeyCode::End | KeyCode::Char('G') => {
+                self.script_log_scroll = self.script_logs.len().saturating_sub(1);
+            }
+            _ => {}
+        }
+    }
+
+    async fn send_script_load(&mut self, path: &str) {
+        if let Some(conn) = &self.conn {
+            let cmd = ClientCommand::LoadScript {
+                path: Some(path.to_string()),
+                code: None,
+            };
+            match conn.send_command(&cmd).await {
+                Ok(()) => {
+                    self.script_path_input = path.to_string();
+                    self.set_status(&format!("Loading script: {}", path));
+                }
+                Err(e) => self.set_status(&format!("Failed to send: {}", e)),
+            }
+        }
+    }
+
+    async fn send_script_unload(&mut self) {
+        if let Some(conn) = &self.conn {
+            let cmd = ClientCommand::UnloadScript;
+            let _ = conn.send_command(&cmd).await;
+            self.script_active = false;
+            self.script_path = None;
+            self.set_status("Script unloaded");
         }
     }
 
