@@ -3,9 +3,7 @@ use crossterm::{
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
-use proxy_daemon::{
-    ClientCommand, DaemonConnection, DaemonMessage, InterceptRule,
-};
+use proxy_daemon::{ClientCommand, DaemonConnection, DaemonMessage, InterceptRule};
 use proxy_v2_models::{RequestInfo, WsConnectionEvent, WsMessageInfo};
 use ratatui::prelude::*;
 use std::io;
@@ -187,7 +185,9 @@ impl App {
 
     async fn handle_key(&mut self, key: KeyEvent) {
         // 글로벌 키: q/Ctrl+c로 종료
-        if key.code == KeyCode::Char('q') || (key.code == KeyCode::Char('c') && key.modifiers.contains(KeyModifiers::CONTROL)) {
+        if key.code == KeyCode::Char('q')
+            || (key.code == KeyCode::Char('c') && key.modifiers.contains(KeyModifiers::CONTROL))
+        {
             self.running = false;
             return;
         }
