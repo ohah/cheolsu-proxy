@@ -134,7 +134,7 @@ msgstr "원본 요청 경로를 대상 URL에 추가"
 msgid "Apply:"
 msgstr "적용:"
 
-#: src/pages/settings/ui/settings-page.tsx:177
+#: src/pages/settings/ui/settings-page.tsx:245
 msgid "Authentication"
 msgstr "인증"
 
@@ -154,7 +154,7 @@ msgstr "차단"
 msgid "Body"
 msgstr "본문"
 
-#: src/pages/settings/ui/settings-page.tsx:204
+#: src/pages/settings/ui/settings-page.tsx:272
 msgid "Bypass List"
 msgstr "바이패스 목록"
 
@@ -198,7 +198,7 @@ msgstr "닫기"
 msgid "Collapse"
 msgstr "접기"
 
-#: src/pages/settings/ui/settings-page.tsx:212
+#: src/pages/settings/ui/settings-page.tsx:280
 msgid "Comma-separated list of hosts to connect directly (supports *.domain.com wildcards)"
 msgstr "직접 연결할 호스트 목록 (쉼표로 구분, *.domain.com 와일드카드 지원)"
 
@@ -289,7 +289,7 @@ msgstr "펼치기"
 msgid "Expand sidebar"
 msgstr "사이드바 펼치기"
 
-#: src/pages/settings/ui/settings-page.tsx:233
+#: src/pages/settings/ui/settings-page.tsx:301
 msgid "Failed — is the proxy running?"
 msgstr "실패 — 프록시가 실행 중인가요?"
 
@@ -323,7 +323,7 @@ msgstr "헤더"
 msgid "Headers ({0})"
 msgstr "헤더 ({0})"
 
-#: src/pages/settings/ui/settings-page.tsx:151
+#: src/pages/settings/ui/settings-page.tsx:219
 msgid "Host"
 msgstr "호스트"
 
@@ -335,12 +335,28 @@ msgstr "호스트 트리"
 msgid "HTTP requests and responses"
 msgstr "HTTP 요청 및 응답"
 
+#: src/pages/settings/ui/settings-page.tsx:183
+msgid "Install"
+msgstr "설치"
+
+#: src/pages/settings/ui/settings-page.tsx:175
+msgid "Install the <0>cheolsu</0> command to use the TUI from your terminal"
+msgstr "터미널에서 TUI를 사용하려면 <0>cheolsu</0> 명령어를 설치하세요"
+
+#: src/pages/settings/ui/settings-page.tsx:192
+msgid "Installed"
+msgstr "설치됨"
+
+#: src/pages/settings/ui/settings-page.tsx:183
+msgid "Installing..."
+msgstr "설치 중..."
+
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:74
 #: src/shared/app-sidebar/model/consts.ts:23
 msgid "Intercept Rules"
 msgstr "인터셉트 규칙"
 
-#: src/pages/settings/ui/settings-page.tsx:114
+#: src/pages/settings/ui/settings-page.tsx:151
 msgid "Language"
 msgstr "언어"
 
@@ -348,7 +364,7 @@ msgstr "언어"
 msgid "Local File Path"
 msgstr "로컬 파일 경로"
 
-#: src/pages/settings/ui/settings-page.tsx:207
+#: src/pages/settings/ui/settings-page.tsx:275
 msgid "localhost, 127.0.0.1, *.internal.com"
 msgstr "localhost, 127.0.0.1, *.internal.com"
 
@@ -486,7 +502,7 @@ msgstr "리플레이할 유효한 요청이 없습니다"
 msgid "Original"
 msgstr "원본"
 
-#: src/pages/settings/ui/settings-page.tsx:192
+#: src/pages/settings/ui/settings-page.tsx:260
 msgid "Password"
 msgstr "비밀번호"
 
@@ -507,7 +523,7 @@ msgstr "기록 일시정지"
 msgid "Payload"
 msgstr "페이로드"
 
-#: src/pages/settings/ui/settings-page.tsx:161
+#: src/pages/settings/ui/settings-page.tsx:229
 msgid "Port"
 msgstr "포트"
 
@@ -515,7 +531,7 @@ msgstr "포트"
 msgid "Preserve Path"
 msgstr "경로 유지"
 
-#: src/pages/settings/ui/settings-page.tsx:106
+#: src/pages/settings/ui/settings-page.tsx:143
 msgid "Proxy configuration and preferences"
 msgstr "프록시 설정 및 환경설정"
 
@@ -523,7 +539,7 @@ msgstr "프록시 설정 및 환경설정"
 msgid "Proxy settings and configuration"
 msgstr "프록시 설정 및 구성"
 
-#: src/pages/settings/ui/settings-page.tsx:154
+#: src/pages/settings/ui/settings-page.tsx:222
 msgid "proxy.company.com"
 msgstr "proxy.company.com"
 
@@ -542,6 +558,10 @@ msgstr "수신"
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:54
 msgid "Received (Server → Client)"
 msgstr "수신 (서버 → 클라이언트)"
+
+#: src/pages/settings/ui/settings-page.tsx:183
+msgid "Reinstall"
+msgstr "재설치"
 
 #: src/pages/server-replay/ui/server-replay-page.tsx:238
 msgid "Remove entry"
@@ -600,7 +620,7 @@ msgstr "매칭되는 요청에 캐시된 응답 반환"
 msgid "Return cached responses for matching requests instead of forwarding to the server"
 msgstr "서버로 전달하지 않고 매칭되는 요청에 캐시된 응답을 반환합니다"
 
-#: src/pages/settings/ui/settings-page.tsx:139
+#: src/pages/settings/ui/settings-page.tsx:207
 msgid "Route traffic through an external proxy server"
 msgstr "외부 프록시 서버를 통해 트래픽 라우팅"
 
@@ -629,15 +649,15 @@ msgstr "규칙이 수정되었습니다"
 msgid "rules"
 msgstr "규칙"
 
-#: src/pages/settings/ui/settings-page.tsx:224
+#: src/pages/settings/ui/settings-page.tsx:292
 msgid "Save"
 msgstr "저장"
 
-#: src/pages/settings/ui/settings-page.tsx:228
+#: src/pages/settings/ui/settings-page.tsx:296
 msgid "Saved"
 msgstr "저장됨"
 
-#: src/pages/settings/ui/settings-page.tsx:224
+#: src/pages/settings/ui/settings-page.tsx:292
 msgid "Saving..."
 msgstr "저장 중..."
 
@@ -701,7 +721,7 @@ msgstr "서버 리플레이"
 msgid "Set body (optional)"
 msgstr "본문 설정 (선택사항)"
 
-#: src/pages/settings/ui/settings-page.tsx:103
+#: src/pages/settings/ui/settings-page.tsx:140
 #: src/shared/app-sidebar/model/consts.ts:41
 msgid "Settings"
 msgstr "설정"
@@ -734,6 +754,10 @@ msgstr "대상 URL"
 msgid "Target URL is required"
 msgstr "대상 URL을 입력해주세요"
 
+#: src/pages/settings/ui/settings-page.tsx:172
+msgid "Terminal Command"
+msgstr "터미널 명령어"
+
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:61
 #: src/widgets/websocket-messages/ui/ws-message-table.tsx:167
 msgid "Time"
@@ -762,12 +786,16 @@ msgstr "트래픽 리플레이"
 msgid "Type"
 msgstr "타입"
 
+#: src/pages/settings/ui/settings-page.tsx:187
+msgid "Uninstall"
+msgstr "제거"
+
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:387
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:348
 msgid "Update"
 msgstr "수정"
 
-#: src/pages/settings/ui/settings-page.tsx:136
+#: src/pages/settings/ui/settings-page.tsx:204
 msgid "Upstream Proxy"
 msgstr "업스트림 프록시"
 
@@ -787,7 +815,7 @@ msgstr "URL 패턴"
 msgid "Use wildcard patterns: * matches any string, ? matches a single character."
 msgstr "와일드카드 패턴 사용: *는 모든 문자열, ?는 단일 문자를 매칭합니다."
 
-#: src/pages/settings/ui/settings-page.tsx:184
+#: src/pages/settings/ui/settings-page.tsx:252
 msgid "Username"
 msgstr "사용자 이름"
 
