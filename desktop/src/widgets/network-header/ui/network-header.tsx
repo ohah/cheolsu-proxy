@@ -1,3 +1,5 @@
+import type { HttpTransaction } from "@/entities/proxy";
+
 import { NetworkControls } from "./network-controls";
 import { NetworkFilters } from "./network-filters";
 
@@ -7,6 +9,7 @@ interface NetworkHeaderProps {
   filteredCount: number;
   totalCount: number;
   paused: boolean;
+  transactions: HttpTransaction[];
   togglePause: () => void;
   onFilterQueryChange: (query: string) => void;
   onApplyFilter: (query: string) => void;
@@ -19,6 +22,7 @@ export function NetworkHeader({
   filteredCount,
   totalCount,
   paused,
+  transactions,
   togglePause,
   onFilterQueryChange,
   onApplyFilter,
@@ -30,6 +34,7 @@ export function NetworkHeader({
         <div className="flex items-center gap-4 flex-1 w-full">
           <NetworkControls
             paused={paused}
+            transactions={transactions}
             onTogglePause={togglePause}
             onClearTransactions={clearTransactions}
           />
