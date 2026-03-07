@@ -87,8 +87,10 @@ impl tokio_rustls::rustls::client::danger::ServerCertVerifier for DangerousCerti
 }
 
 /// 하이브리드 클라이언트 생성 (모든 인증서 허용, upstream proxy 지원)
+///
+/// `upstream_rx`를 통해 런타임에 upstream proxy 설정 변경이 즉시 반영됩니다.
 pub fn create_hybrid_client(
-    upstream: Option<UpstreamProxyConfig>,
+    upstream_rx: tokio::sync::watch::Receiver<Option<UpstreamProxyConfig>>,
 ) -> Result<
     Client<hyper_rustls::HttpsConnector<ProxyHttpConnector>, Body>,
     Box<dyn std::error::Error>,
@@ -100,7 +102,7 @@ pub fn create_hybrid_client(
             .with_custom_certificate_verifier(std::sync::Arc::new(DangerousCertificateVerifier))
             .with_no_client_auth();
 
-    let proxy_connector = ProxyHttpConnector::new(upstream);
+    let proxy_connector = ProxyHttpConnector::new(upstream_rx);
 
     let https = HttpsConnectorBuilder::new()
         .with_tls_config(rustls_config)

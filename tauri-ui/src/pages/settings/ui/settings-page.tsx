@@ -59,19 +59,7 @@ export function SettingsPage() {
       await invoke("update_upstream_proxy", { config });
 
       // 로컬 스토리지에 저장
-      localStorage.setItem(
-        "upstream_proxy_config",
-        JSON.stringify({
-          enabled,
-          host,
-          port: Number.parseInt(port, 10) || 8080,
-          auth: useAuth ? { username, password } : null,
-          bypass: bypass
-            .split(",")
-            .map((s) => s.trim())
-            .filter(Boolean),
-        }),
-      );
+      localStorage.setItem("upstream_proxy_config", JSON.stringify({ enabled, ...config }));
 
       setStatus("saved");
       setTimeout(() => setStatus("idle"), 2000);

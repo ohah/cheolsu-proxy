@@ -3,12 +3,15 @@ use hyper::rt::{Read, ReadBufCursor, Write};
 use hyper_util::client::legacy::connect::{Connected, Connection};
 use hyper_util::rt::TokioIo;
 use serde::{Deserialize, Serialize};
+use std::fmt;
 use std::future::Future;
 use std::io;
 use std::pin::Pin;
+use std::sync::Arc;
 use std::task::{Context, Poll};
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::net::TcpStream;
+use tokio::sync::watch;
 use tower::Service;
 use tracing::{debug, error};
 
@@ -24,10 +27,19 @@ pub struct UpstreamProxyConfig {
 }
 
 /// Upstream proxy 인증 정보
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct UpstreamProxyAuth {
     pub username: String,
     pub password: String,
+}
+
+impl fmt::Debug for UpstreamProxyAuth {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("UpstreamProxyAuth")
+            .field("username", &self.username)
+            .field("password", &"********")
+            .finish()
+    }
 }
 
 impl UpstreamProxyConfig {
@@ -79,7 +91,7 @@ async fn connect_via_upstream(
     config: &UpstreamProxyConfig,
     target: &str,
 ) -> Result<TcpStream, Box<dyn std::error::Error + Send + Sync>> {
-    let mut stream = TcpStream::connect(config.address()).await.map_err(|e| {
+    let stream = TcpStream::connect(config.address()).await.map_err(|e| {
         error!(
             upstream = %config.address(),
             error = %e,
@@ -98,28 +110,32 @@ async fn connect_via_upstream(
     }
 
     connect_req.push_str("\r\n");
-    stream.write_all(connect_req.as_bytes()).await?;
 
-    // 응답 헤더를 \r\n\r\n 까지 읽기
-    let mut response = Vec::with_capacity(256);
-    let mut buf = [0u8; 1];
+    let (reader, mut writer) = stream.into_split();
+    writer.write_all(connect_req.as_bytes()).await?;
+
+    // BufReader로 응답 헤더를 줄 단위로 읽기
+    let mut buf_reader = BufReader::new(reader);
+    let mut status_line = String::new();
+    buf_reader.read_line(&mut status_line).await?;
+
+    // 나머지 헤더 소비 (\r\n\r\n 까지)
+    let mut header_line = String::new();
     loop {
-        stream.read_exact(&mut buf).await?;
-        response.push(buf[0]);
-        if response.len() >= 4 && response[response.len() - 4..] == *b"\r\n\r\n" {
+        header_line.clear();
+        let n = buf_reader.read_line(&mut header_line).await?;
+        if n == 0 || header_line == "\r\n" {
             break;
         }
-        if response.len() > 4096 {
-            return Err("Upstream proxy 응답이 너무 큼".into());
-        }
     }
 
-    let response_str = String::from_utf8_lossy(&response);
-    let status_line = response_str.lines().next().unwrap_or("");
-
-    if !status_line.contains("200") {
-        return Err(format!("Upstream proxy CONNECT 실패: {}", status_line).into());
+    if !status_line.contains(" 200 ") {
+        return Err(format!("Upstream proxy CONNECT 실패: {}", status_line.trim()).into());
     }
+
+    // BufReader의 내부 버퍼에 남은 데이터가 없으므로 stream을 재조립
+    let reader = buf_reader.into_inner();
+    let stream = reader.reunite(writer)?;
 
     debug!(target, "Upstream proxy CONNECT 터널 수립 완료");
     Ok(stream)
@@ -169,14 +185,18 @@ impl Write for UpstreamStream {
 impl Unpin for UpstreamStream {}
 
 /// Upstream proxy를 경유하는 HTTP 커넥터
+///
+/// `watch::Receiver`를 통해 런타임에 upstream 설정이 변경되면 즉시 반영됩니다.
 #[derive(Clone)]
 pub struct ProxyHttpConnector {
-    upstream: Option<UpstreamProxyConfig>,
+    upstream: Arc<watch::Receiver<Option<UpstreamProxyConfig>>>,
 }
 
 impl ProxyHttpConnector {
-    pub fn new(upstream: Option<UpstreamProxyConfig>) -> Self {
-        Self { upstream }
+    pub fn new(upstream_rx: watch::Receiver<Option<UpstreamProxyConfig>>) -> Self {
+        Self {
+            upstream: Arc::new(upstream_rx),
+        }
     }
 }
 
@@ -190,7 +210,7 @@ impl Service<Uri> for ProxyHttpConnector {
     }
 
     fn call(&mut self, uri: Uri) -> Self::Future {
-        let upstream = self.upstream.clone();
+        let upstream = self.upstream.borrow().clone();
 
         Box::pin(async move {
             let host = uri.host().unwrap_or("");

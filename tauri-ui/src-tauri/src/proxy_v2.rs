@@ -360,7 +360,7 @@ pub async fn update_upstream_proxy(
     if let Some(conn) = proxy_guard.as_ref() {
         let cmd = ClientCommand::UpdateUpstreamProxy { config };
         conn.send_command(&cmd).await?;
-        println!("Daemon에 upstream proxy 설정 업데이트 완료");
+        tracing::info!("Daemon에 upstream proxy 설정 업데이트 완료");
     } else {
         return Err("프록시가 실행 중이 아닙니다".to_string());
     }

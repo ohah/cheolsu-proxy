@@ -309,7 +309,8 @@ async fn proxy_connector_direct() {
         let (_stream, _) = listener.accept().await.unwrap();
     });
 
-    let mut connector = ProxyHttpConnector::new(None);
+    let (_tx, rx) = tokio::sync::watch::channel(None);
+    let mut connector = ProxyHttpConnector::new(rx);
     let uri: Uri = format!("http://127.0.0.1:{}", port).parse().unwrap();
 
     let result = connector.call(uri).await;
@@ -345,7 +346,8 @@ async fn proxy_connector_via_upstream_http() {
         bypass: vec![],
     };
 
-    let mut connector = ProxyHttpConnector::new(Some(config));
+    let (_tx, rx) = tokio::sync::watch::channel(Some(config));
+    let mut connector = ProxyHttpConnector::new(rx);
     let uri: Uri = "http://example.com".parse().unwrap();
 
     let result = connector.call(uri).await;
