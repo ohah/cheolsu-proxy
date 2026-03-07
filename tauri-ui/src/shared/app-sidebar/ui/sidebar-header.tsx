@@ -1,5 +1,5 @@
 import { logo } from "@/shared/assets";
-import { Button } from "@/shared/ui";
+import { Button, Tooltip, TooltipTrigger, TooltipContent } from "@/shared/ui";
 import { Menu } from "lucide-react";
 
 interface SidebarHeaderProps {
@@ -12,9 +12,16 @@ export const SidebarHeader = ({ collapsed, toggleCollapse }: SidebarHeaderProps)
     return (
       <div className="p-3.5 border-b border-sidebar-border flex items-center justify-between">
         <div className="h-10 flex items-center">
-          <Button variant="ghost" className="w-full" onClick={toggleCollapse}>
-            <Menu className="w-4 h-4" />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger render={<div />}>
+              <Button variant="ghost" className="w-full" onClick={toggleCollapse}>
+                <Menu className="w-4 h-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right" sideOffset={4}>
+              Expand sidebar
+            </TooltipContent>
+          </Tooltip>
         </div>
       </div>
     );

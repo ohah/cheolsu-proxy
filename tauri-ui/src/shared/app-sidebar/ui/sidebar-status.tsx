@@ -1,5 +1,6 @@
 import { Circle } from "lucide-react";
 import { cn } from "@/shared/lib";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/shared/ui";
 
 interface SidebarStatusProps {
   collapsed: boolean;
@@ -11,14 +12,19 @@ export const SidebarStatus = ({ collapsed, isConnected, version }: SidebarStatus
   if (collapsed) {
     return (
       <div className="p-4 border-t border-sidebar-border flex justify-center">
-        <div title={isConnected ? "Connected" : "Disconnected"}>
-          <Circle
-            className={cn(
-              "w-3 h-3",
-              isConnected ? "text-green-500 fill-green-500" : "text-red-500 fill-red-500",
-            )}
-          />
-        </div>
+        <Tooltip>
+          <TooltipTrigger render={<div />}>
+            <Circle
+              className={cn(
+                "w-3 h-3",
+                isConnected ? "text-green-500 fill-green-500" : "text-red-500 fill-red-500",
+              )}
+            />
+          </TooltipTrigger>
+          <TooltipContent side="right" sideOffset={4}>
+            {isConnected ? "Connected" : "Disconnected"}
+          </TooltipContent>
+        </Tooltip>
       </div>
     );
   }
