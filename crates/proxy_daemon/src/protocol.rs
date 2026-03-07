@@ -21,6 +21,12 @@ pub enum DaemonMessage {
         success: bool,
         error: Option<String>,
     },
+    /// 스크립트 로드/언로드 결과
+    #[serde(rename = "script_result")]
+    ScriptResult {
+        success: bool,
+        error: Option<String>,
+    },
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -43,6 +49,19 @@ pub enum ClientCommand {
     UpdateUpstreamProxy { config: Option<UpstreamProxyConfig> },
     #[serde(rename = "update_server_replay")]
     UpdateServerReplay { entries: Vec<ServerReplayEntry> },
+    /// 스크립트 로드 (파일 경로 또는 인라인 코드)
+    #[serde(rename = "load_script")]
+    LoadScript {
+        /// 스크립트 파일 경로 (path와 code 중 하나 필수)
+        #[serde(default)]
+        path: Option<String>,
+        /// 인라인 스크립트 코드
+        #[serde(default)]
+        code: Option<String>,
+    },
+    /// 스크립트 언로드
+    #[serde(rename = "unload_script")]
+    UnloadScript,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
