@@ -201,7 +201,7 @@ msgstr "전체 삭제"
 msgid "Clear All"
 msgstr "전체 삭제"
 
-#: src/widgets/network-header/ui/network-controls.tsx:34
+#: src/widgets/network-header/ui/network-controls.tsx:64
 msgid "Clear all transactions"
 msgstr "모든 트랜잭션 삭제"
 
@@ -312,6 +312,10 @@ msgstr "펼치기"
 #: src/shared/app-sidebar/ui/sidebar-header.tsx:24
 msgid "Expand sidebar"
 msgstr "사이드바 펼치기"
+
+#: src/widgets/network-header/ui/network-controls.tsx:74
+msgid "Export HAR"
+msgstr "HAR 내보내기"
 
 #: src/pages/settings/ui/settings-page.tsx:301
 msgid "Failed — is the proxy running?"
@@ -577,7 +581,7 @@ msgstr "패턴"
 msgid "Pattern is required"
 msgstr "패턴을 입력해주세요"
 
-#: src/widgets/network-header/ui/network-controls.tsx:25
+#: src/widgets/network-header/ui/network-controls.tsx:55
 msgid "Pause recording"
 msgstr "기록 일시정지"
 
@@ -674,7 +678,7 @@ msgstr "응답 헤더"
 msgid "Response Status Code"
 msgstr "응답 상태 코드"
 
-#: src/widgets/network-header/ui/network-controls.tsx:25
+#: src/widgets/network-header/ui/network-controls.tsx:55
 msgid "Resume recording"
 msgstr "기록 재개"
 

@@ -201,7 +201,7 @@ msgstr "Clear all"
 msgid "Clear All"
 msgstr "Clear All"
 
-#: src/widgets/network-header/ui/network-controls.tsx:34
+#: src/widgets/network-header/ui/network-controls.tsx:64
 msgid "Clear all transactions"
 msgstr "Clear all transactions"
 
@@ -312,6 +312,10 @@ msgstr "Expand"
 #: src/shared/app-sidebar/ui/sidebar-header.tsx:24
 msgid "Expand sidebar"
 msgstr "Expand sidebar"
+
+#: src/widgets/network-header/ui/network-controls.tsx:74
+msgid "Export HAR"
+msgstr "Export HAR"
 
 #: src/pages/settings/ui/settings-page.tsx:301
 msgid "Failed — is the proxy running?"
@@ -577,7 +581,7 @@ msgstr "Pattern"
 msgid "Pattern is required"
 msgstr "Pattern is required"
 
-#: src/widgets/network-header/ui/network-controls.tsx:25
+#: src/widgets/network-header/ui/network-controls.tsx:55
 msgid "Pause recording"
 msgstr "Pause recording"
 
@@ -674,7 +678,7 @@ msgstr "Response Headers"
 msgid "Response Status Code"
 msgstr "Response Status Code"
 
-#: src/widgets/network-header/ui/network-controls.tsx:25
+#: src/widgets/network-header/ui/network-controls.tsx:55
 msgid "Resume recording"
 msgstr "Resume recording"
 
