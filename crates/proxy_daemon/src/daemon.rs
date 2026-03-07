@@ -95,6 +95,15 @@ pub fn check_and_cleanup_stale_lock() -> bool {
 
 /// Runs the daemon process. This function never returns (calls std::process::exit).
 pub fn run_daemon(port: u16, host: String) -> ! {
+    // Initialize tracing so error!/info!/warn! output to stderr
+    tracing_subscriber::fmt()
+        .with_writer(std::io::stderr)
+        .with_env_filter(
+            tracing_subscriber::EnvFilter::try_from_default_env()
+                .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("info")),
+        )
+        .init();
+
     let rt = tokio::runtime::Builder::new_multi_thread()
         .enable_all()
         .build()
