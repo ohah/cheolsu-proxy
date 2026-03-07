@@ -38,7 +38,7 @@ fn draw_transaction_list(f: &mut Frame, app: &mut App, area: Rect) {
             Row::new(vec![
                 Cell::from(format_time(time)),
                 Cell::from(method).style(Style::default().fg(Color::Cyan)),
-                Cell::from(truncate_str(&uri, 60)),
+                Cell::from(uri),
                 Cell::from(status.to_string()).style(status_style),
                 Cell::from(format_size(size)),
             ])
@@ -199,13 +199,5 @@ fn status_color(status: u16) -> Style {
         400..=499 => Style::default().fg(Color::Red),
         500..=599 => Style::default().fg(Color::Magenta),
         _ => Style::default(),
-    }
-}
-
-fn truncate_str(s: &str, max: usize) -> String {
-    if s.len() <= max {
-        s.to_string()
-    } else {
-        format!("{}…", &s[..max - 1])
     }
 }
