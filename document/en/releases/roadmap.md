@@ -4,6 +4,11 @@ Check the upcoming features planned for Cheolsu Proxy.
 
 ## Development Roadmap
 
+### Completed Features
+
+- **Export/Import**:
+  - HAR export (Desktop and TUI support)
+
 ### Planned Features
 
 - **Platform Support**:
@@ -15,7 +20,6 @@ Check the upcoming features planned for Cheolsu Proxy.
   - SOCKS5 Proxy
 
 - **Export/Import**:
-  - HAR export
   - Session save/load
 
 - **Advanced Features**:

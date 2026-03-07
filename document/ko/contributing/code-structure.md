@@ -47,6 +47,12 @@ members = [
 
 `proxy_v2_models`는 워크스페이스 멤버는 아니지만, 다른 워크스페이스 멤버들이 의존성으로 참조하는 별도의 크레이트입니다.
 
+#### 주요 모듈
+- **har.rs**: HAR 1.2 형식 변환 모듈 (`build_har()`, `build_har_json()`)
+- **request.rs / response.rs**: HTTP 요청/응답 모델
+- **data_type.rs**: 데이터 타입 분류
+- **file_storage.rs**: Body 파일 저장 관리
+
 ## 백엔드 구조
 
 ### 1. proxyapi_v2/ (메인 프록시 엔진)
@@ -364,6 +370,7 @@ desktop/src/
 
 - **network-table/**: 테이블 관련 기능 (필터링, 정렬 등)
 - **transaction-details/**: 트랜잭션 상세 보기
+- **har-export/**: HAR 1.2 형식으로 트랜잭션 내보내기
 - **websocket-test/**: WebSocket 테스트 기능
 
 #### 5. entities/ (엔티티 레이어)
