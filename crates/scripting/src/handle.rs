@@ -40,6 +40,8 @@ enum ScriptCommand {
         message: ScriptWsMessage,
         reply: oneshot::Sender<Result<WsAction, String>>,
     },
+    /// 엔진 스레드 종료
+    Shutdown,
 }
 
 /// 스크립트 엔진에 대한 Send + Sync 핸들 (채널 기반)
@@ -53,7 +55,7 @@ pub struct ScriptHandle {
 impl ScriptHandle {
     /// 새 스크립트 핸들 생성 (전용 스레드에서 엔진 실행)
     pub fn new() -> Self {
-        let (tx, rx) = mpsc::channel(32);
+        let (tx, rx) = mpsc::channel(128);
         let active = Arc::new(std::sync::atomic::AtomicBool::new(false));
         let (log_tx, _) = broadcast::channel(256);
 
@@ -70,9 +72,14 @@ impl ScriptHandle {
         Self { tx, active, log_tx }
     }
 
+    /// 엔진 스레드를 종료
+    pub async fn shutdown(&self) {
+        let _ = self.tx.send(ScriptCommand::Shutdown).await;
+    }
+
     /// 스크립트가 활성화되어 있는지 확인
     pub fn is_active(&self) -> bool {
-        self.active.load(std::sync::atomic::Ordering::Relaxed)
+        self.active.load(std::sync::atomic::Ordering::Acquire)
     }
 
     /// 로그 수신 구독
@@ -232,7 +239,7 @@ async fn script_engine_loop(
                 });
                 match result {
                     Ok(new_engine) => {
-                        active.store(true, std::sync::atomic::Ordering::Relaxed);
+                        active.store(true, std::sync::atomic::Ordering::Release);
                         engine = Some(new_engine);
                         let _ = reply.send(Ok(()));
                     }
@@ -249,7 +256,7 @@ async fn script_engine_loop(
                 });
                 match result {
                     Ok(new_engine) => {
-                        active.store(true, std::sync::atomic::Ordering::Relaxed);
+                        active.store(true, std::sync::atomic::Ordering::Release);
                         engine = Some(new_engine);
                         let _ = reply.send(Ok(()));
                     }
@@ -266,7 +273,7 @@ async fn script_engine_loop(
                 });
                 match result {
                     Ok(new_engine) => {
-                        active.store(true, std::sync::atomic::Ordering::Relaxed);
+                        active.store(true, std::sync::atomic::Ordering::Release);
                         engine = Some(new_engine);
                         let _ = reply.send(Ok(()));
                     }
@@ -277,8 +284,13 @@ async fn script_engine_loop(
             }
             ScriptCommand::Unload { reply } => {
                 engine = None;
-                active.store(false, std::sync::atomic::Ordering::Relaxed);
+                active.store(false, std::sync::atomic::Ordering::Release);
                 let _ = reply.send(());
+            }
+            ScriptCommand::Shutdown => {
+                engine = None;
+                active.store(false, std::sync::atomic::Ordering::Release);
+                break;
             }
             ScriptCommand::InvokeOnRequest { request, reply } => {
                 let result = if let Some(e) = engine.as_mut() {

@@ -915,30 +915,26 @@ impl HttpHandler for LoggingHandler {
         }
 
         // 스크립트 훅 적용 (인터셉트 규칙보다 먼저)
-        let restored_req = if self.script_handle.is_active() {
-            let script_req = Self::to_script_request(&proxied_request);
-            match self.script_handle.invoke_on_request(&script_req).await {
-                Ok(scripting::RequestAction::Forward) => restored_req,
-                Ok(scripting::RequestAction::ModifyRequest { request: modified }) => {
-                    info!("[Script] 요청 수정: {} {}", method, url);
-                    Self::apply_script_request_modify(restored_req, &modified)
-                }
-                Ok(scripting::RequestAction::Respond { response }) => {
-                    info!(
-                        "[Script] 요청 차단: {} {} -> {}",
-                        method, url, response.status
-                    );
-                    let res = Self::build_script_response(&response);
-                    self.send_output().await;
-                    return res.into();
-                }
-                Err(e) => {
-                    error!("[Script] onRequest 오류: {}", e);
-                    restored_req
-                }
+        let script_req = Self::to_script_request(&proxied_request);
+        let restored_req = match self.script_handle.invoke_on_request(&script_req).await {
+            Ok(scripting::RequestAction::Forward) => restored_req,
+            Ok(scripting::RequestAction::ModifyRequest { request: modified }) => {
+                info!("[Script] 요청 수정: {} {}", method, url);
+                Self::apply_script_request_modify(restored_req, &modified)
             }
-        } else {
-            restored_req
+            Ok(scripting::RequestAction::Respond { response }) => {
+                info!(
+                    "[Script] 요청 차단: {} {} -> {}",
+                    method, url, response.status
+                );
+                let res = Self::build_script_response(&response);
+                self.send_output().await;
+                return res.into();
+            }
+            Err(e) => {
+                error!("[Script] onRequest 오류: {}", e);
+                restored_req
+            }
         };
 
         // 인터셉트 규칙 적용 (차단, 요청 수정)
@@ -969,27 +965,23 @@ impl HttpHandler for LoggingHandler {
         };
 
         // 스크립트 훅으로 응답 수정
-        let res = if self.script_handle.is_active() {
-            if let Some(req) = &self.req {
-                let script_req = Self::to_script_request(req);
-                let script_res = Self::to_script_response_from_hyper(&res);
-                match self
-                    .script_handle
-                    .invoke_on_response(&script_req, &script_res)
-                    .await
-                {
-                    Ok(scripting::ResponseAction::Forward) => res,
-                    Ok(scripting::ResponseAction::ModifyResponse { response: modified }) => {
-                        info!("[Script] 응답 수정: {}", req.uri());
-                        Self::apply_script_response_modify(res, &modified)
-                    }
-                    Err(e) => {
-                        error!("[Script] onResponse 오류: {}", e);
-                        res
-                    }
+        let res = if let Some(req) = &self.req {
+            let script_req = Self::to_script_request(req);
+            let script_res = Self::to_script_response_from_hyper(&res);
+            match self
+                .script_handle
+                .invoke_on_response(&script_req, &script_res)
+                .await
+            {
+                Ok(scripting::ResponseAction::Forward) => res,
+                Ok(scripting::ResponseAction::ModifyResponse { response: modified }) => {
+                    info!("[Script] 응답 수정: {}", req.uri());
+                    Self::apply_script_response_modify(res, &modified)
                 }
-            } else {
-                res
+                Err(e) => {
+                    error!("[Script] onResponse 오류: {}", e);
+                    res
+                }
             }
         } else {
             res
@@ -1313,9 +1305,7 @@ impl WebSocketHandler for LoggingHandler {
 
         // 스크립트 onWebSocketMessage 훅 적용 (Text/Binary 메시지만)
         let (msg, payload, is_binary) =
-            if matches!(message_type, WsMessageType::Text | WsMessageType::Binary)
-                && self.script_handle.is_active()
-            {
+            if matches!(message_type, WsMessageType::Text | WsMessageType::Binary) {
                 let script_direction = match ctx {
                     WebSocketContext::ClientToServer { .. } => scripting::WsDirection::ToServer,
                     WebSocketContext::ServerToClient { .. } => scripting::WsDirection::ToClient,
