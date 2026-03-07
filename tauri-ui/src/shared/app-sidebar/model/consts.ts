@@ -12,6 +12,12 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
     description: "HTTP requests and responses",
   },
   {
+    id: "websocket",
+    label: "WebSocket",
+    icon: Plug,
+    description: "WebSocket connections and messages",
+  },
+  {
     id: "intercept-rules",
     label: "Intercept Rules",
     icon: Shield,
@@ -22,12 +28,6 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
     label: "Map Rules",
     icon: Route,
     description: "Map Local / Map Remote rules",
-  },
-  {
-    id: "websocket",
-    label: "WebSocket",
-    icon: Plug,
-    description: "WebSocket connections and messages",
   },
   {
     id: "settings",
