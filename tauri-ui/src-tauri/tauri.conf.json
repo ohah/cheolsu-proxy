@@ -4,9 +4,9 @@
   "version": "0.1.0",
   "identifier": "com.cheolsu-proxy",
   "build": {
-    "beforeDevCommand": "bun run dev",
+    "beforeDevCommand": "bash build-mcp.sh && bun run dev",
     "devUrl": "http://localhost:1420",
-    "beforeBuildCommand": "bun run build",
+    "beforeBuildCommand": "bash build-mcp.sh release && bun run build",
     "frontendDist": "../dist"
   },
   "app": {
