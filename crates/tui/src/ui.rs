@@ -1,5 +1,6 @@
 mod network;
 mod rules;
+mod script;
 mod settings;
 mod websocket;
 
@@ -68,6 +69,7 @@ fn draw_content(f: &mut Frame, app: &mut App, area: Rect) {
         Tab::Network => network::draw(f, app, area),
         Tab::WebSocket => websocket::draw(f, app, area),
         Tab::InterceptRules => rules::draw(f, app, area),
+        Tab::Script => script::draw(f, app, area),
         Tab::Settings => settings::draw(f, app, area),
     }
 }
@@ -88,6 +90,7 @@ fn draw_status_bar(f: &mut Frame, app: &App, area: Rect) {
         Tab::Network => "  j/k: nav | Enter: detail | y/Y: copy | Space: pause | c: clear",
         Tab::WebSocket => "  j/k: nav | y: copy URI | Y: copy msgs | c: clear",
         Tab::InterceptRules => "  j/k: nav | a: add | t: toggle | d: delete | C: clear all",
+        Tab::Script => "  l: load | u: unload | r: reload | c: clear | j/k: scroll",
         Tab::Settings => "  j/k: nav | Enter/Space: toggle/edit | Esc: cancel",
     };
     let help = Span::styled(

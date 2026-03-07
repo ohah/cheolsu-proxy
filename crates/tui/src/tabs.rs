@@ -4,14 +4,16 @@ pub enum Tab {
     Network,
     WebSocket,
     InterceptRules,
+    Script,
     Settings,
 }
 
 impl Tab {
-    pub const ALL: [Tab; 4] = [
+    pub const ALL: [Tab; 5] = [
         Tab::Network,
         Tab::WebSocket,
         Tab::InterceptRules,
+        Tab::Script,
         Tab::Settings,
     ];
 
@@ -20,6 +22,7 @@ impl Tab {
             Tab::Network => "Network",
             Tab::WebSocket => "WebSocket",
             Tab::InterceptRules => "Rules",
+            Tab::Script => "Script",
             Tab::Settings => "Settings",
         }
     }
