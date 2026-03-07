@@ -1,4 +1,6 @@
 import { X, Code } from "lucide-react";
+import { Trans } from "@lingui/react/macro";
+import { useLingui } from "@lingui/react/macro";
 
 import type { HttpTransaction } from "@/entities/proxy";
 
@@ -18,6 +20,7 @@ export const TransactionHeader = ({
   transaction,
   clearSelectedTransaction,
 }: TransactionHeaderProps) => {
+  const { t } = useLingui();
   const { response } = transaction;
 
   if (!response) return null;
@@ -25,13 +28,15 @@ export const TransactionHeader = ({
   const handleCopyCurl = () => {
     const curlCommand = generateCurlCommand(transaction);
     navigator.clipboard.writeText(curlCommand);
-    toast.success("Curl command copied to clipboard");
+    toast.success(t`Curl command copied to clipboard`);
   };
 
   return (
     <div className="flex items-center justify-between p-4 border-b border-border">
       <div className="flex items-center gap-2">
-        <h2 className="font-semibold text-card-foreground">Request Details</h2>
+        <h2 className="font-semibold text-card-foreground">
+          <Trans>Request Details</Trans>
+        </h2>
         <Badge variant="outline" className={`text-xs ${getStatusColor(response.status)}`}>
           {response.status}
         </Badge>

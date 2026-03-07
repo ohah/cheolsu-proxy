@@ -1,0 +1,746 @@
+msgid ""
+msgstr ""
+"POT-Creation-Date: 2026-03-07 15:45+0900\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: @lingui/cli\n"
+"Language: en\n"
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Plural-Forms: \n"
+
+#: src/pages/map-rules/ui/map-rules-page.tsx:149
+msgid " (preserve path)"
+msgstr " (preserve path)"
+
+#. placeholder {0}: transactions.length
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:126
+msgid "{0} requests will be sent sequentially."
+msgstr "{0} requests will be sent sequentially."
+
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:170
+msgid "{failCount} failed"
+msgstr "{failCount} failed"
+
+#: src/widgets/network-header/ui/network-stats.tsx:16
+msgid "{filteredCount} of {totalCount} transactions"
+msgstr "{filteredCount} of {totalCount} transactions"
+
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:165
+msgid "{successCount} succeeded"
+msgstr "{successCount} succeeded"
+
+#: src/widgets/network-header/ui/network-stats.tsx:18
+msgid "{totalCount} transactions"
+msgstr "{totalCount} transactions"
+
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:201
+msgid "* = any string, ? = single character"
+msgstr "* = any string, ? = single character"
+
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:283
+msgid "200 (optional)"
+msgstr "200 (optional)"
+
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:247
+msgid "Action"
+msgstr "Action"
+
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:298
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:327
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:272
+#: src/features/transaction-details/ui/replay-dialog.tsx:373
+msgid "Add"
+msgstr "Add"
+
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:295
+msgid "Add Headers"
+msgstr "Add Headers"
+
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:174
+msgid "Add Map Rule"
+msgstr "Add Map Rule"
+
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:198
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:366
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:329
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:90
+#: src/pages/map-rules/ui/map-rules-page.tsx:81
+msgid "Add Rule"
+msgstr "Add Rule"
+
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:101
+msgid "Add rules to intercept, block, or modify HTTP requests and responses."
+msgstr "Add rules to intercept, block, or modify HTTP requests and responses."
+
+#: src/pages/map-rules/ui/map-rules-page.tsx:92
+msgid "Add rules to map URLs to local files or redirect to other servers."
+msgstr "Add rules to map URLs to local files or redirect to other servers."
+
+#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:81
+msgid "Add this to your AI assistant's MCP configuration:"
+msgstr "Add this to your AI assistant's MCP configuration:"
+
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:105
+#: src/pages/map-rules/ui/map-rules-page.tsx:96
+msgid "Add your first rule"
+msgstr "Add your first rule"
+
+#: src/widgets/websocket-messages/ui/ws-connection-list.tsx:43
+msgid "All Connections"
+msgstr "All Connections"
+
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:236
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:213
+msgid "All Methods"
+msgstr "All Methods"
+
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:64
+#: src/pages/map-rules/ui/map-rules-page.tsx:55
+msgid "All rules cleared"
+msgstr "All rules cleared"
+
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:317
+msgid "Append the original request path to the target URL"
+msgstr "Append the original request path to the target URL"
+
+#: src/features/query-filter-editor/ui/filter-help-tooltip.tsx:73
+msgid "Apply:"
+msgstr "Apply:"
+
+#: src/pages/settings/ui/settings-page.tsx:154
+msgid "Authentication"
+msgstr "Authentication"
+
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:256
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:40
+msgid "Block"
+msgstr "Block"
+
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:349
+#: src/features/transaction-details/ui/replay-dialog.tsx:120
+#: src/features/transaction-details/ui/replay-dialog.tsx:189
+#: src/features/transaction-details/ui/replay-dialog.tsx:421
+msgid "Body"
+msgstr "Body"
+
+#: src/pages/settings/ui/settings-page.tsx:179
+msgid "Bypass List"
+msgstr "Bypass List"
+
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:364
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:327
+msgid "Cancel"
+msgstr "Cancel"
+
+#: src/shared/app-sidebar/ui/sidebar-header.tsx:38
+msgid "Cheolsu Proxy Logo"
+msgstr "Cheolsu Proxy Logo"
+
+#: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:69
+msgid "Clear all"
+msgstr "Clear all"
+
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:85
+#: src/pages/map-rules/ui/map-rules-page.tsx:76
+msgid "Clear All"
+msgstr "Clear All"
+
+#: src/widgets/network-header/ui/network-controls.tsx:34
+msgid "Clear all transactions"
+msgstr "Clear all transactions"
+
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:241
+msgid "Close"
+msgstr "Close"
+
+#: src/features/transaction-details/ui/replay-dialog.tsx:123
+#: src/features/transaction-details/ui/replay-dialog.tsx:430
+msgid "Collapse"
+msgstr "Collapse"
+
+#: src/pages/settings/ui/settings-page.tsx:186
+msgid "Comma-separated list of hosts to connect directly (supports *.domain.com wildcards)"
+msgstr "Comma-separated list of hosts to connect directly (supports *.domain.com wildcards)"
+
+#: src/shared/app-sidebar/ui/sidebar-status.tsx:27
+#: src/shared/app-sidebar/ui/sidebar-status.tsx:40
+msgid "Connected"
+msgstr "Connected"
+
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:105
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:62
+msgid "Connection"
+msgstr "Connection"
+
+#: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:66
+msgid "connections"
+msgstr "connections"
+
+#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:91
+msgid "Copy to clipboard"
+msgstr "Copy to clipboard"
+
+#: src/features/transaction-details/ui/transaction-header.tsx:31
+msgid "Curl command copied to clipboard"
+msgstr "Curl command copied to clipboard"
+
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:166
+msgid "Custom body"
+msgstr "Custom body"
+
+#: src/widgets/websocket-messages/ui/ws-message-table.tsx:166
+msgid "Data"
+msgstr "Data"
+
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:184
+#: src/pages/map-rules/ui/map-rules-page.tsx:168
+msgid "Delete rule"
+msgstr "Delete rule"
+
+#: src/widgets/websocket-messages/ui/ws-message-table.tsx:163
+msgid "Dir"
+msgstr "Dir"
+
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:116
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:53
+msgid "Direction"
+msgstr "Direction"
+
+#: src/shared/app-sidebar/ui/sidebar-status.tsx:27
+#: src/shared/app-sidebar/ui/sidebar-status.tsx:40
+msgid "Disconnected"
+msgstr "Disconnected"
+
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:174
+msgid "Edit Map Rule"
+msgstr "Edit Map Rule"
+
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:176
+#: src/pages/map-rules/ui/map-rules-page.tsx:160
+msgid "Edit rule"
+msgstr "Edit rule"
+
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:198
+msgid "Edit Rule"
+msgstr "Edit Rule"
+
+#: src/features/query-filter-editor/ui/filter-help-tooltip.tsx:56
+msgid "Exclude OPTIONS method"
+msgstr "Exclude OPTIONS method"
+
+#: src/features/transaction-details/ui/replay-dialog.tsx:192
+#: src/features/transaction-details/ui/replay-dialog.tsx:435
+msgid "Expand"
+msgstr "Expand"
+
+#: src/shared/app-sidebar/ui/sidebar-header.tsx:24
+msgid "Expand sidebar"
+msgstr "Expand sidebar"
+
+#: src/pages/settings/ui/settings-page.tsx:204
+msgid "Failed — is the proxy running?"
+msgstr "Failed — is the proxy running?"
+
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:86
+msgid "Failed to send"
+msgstr "Failed to send"
+
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:117
+msgid "File path is required"
+msgstr "File path is required"
+
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:304
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:278
+#: src/features/transaction-details/ui/replay-dialog.tsx:385
+msgid "Header name"
+msgstr "Header name"
+
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:333
+msgid "Header name to remove"
+msgstr "Header name to remove"
+
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:160
+msgid "headers"
+msgstr "headers"
+
+#. placeholder {0}: headerEntries.length
+#. placeholder {0}: headers.length
+#: src/features/transaction-details/ui/replay-dialog.tsx:166
+#: src/features/transaction-details/ui/replay-dialog.tsx:370
+msgid "Headers ({0})"
+msgstr "Headers ({0})"
+
+#: src/pages/settings/ui/settings-page.tsx:132
+msgid "Host"
+msgstr "Host"
+
+#: src/widgets/host-path-tree/ui/host-path-tree.tsx:37
+msgid "Host Tree"
+msgstr "Host Tree"
+
+#: src/shared/app-sidebar/model/consts.ts:13
+msgid "HTTP requests and responses"
+msgstr "HTTP requests and responses"
+
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:73
+#: src/shared/app-sidebar/model/consts.ts:23
+msgid "Intercept Rules"
+msgstr "Intercept Rules"
+
+#: src/pages/settings/ui/settings-page.tsx:99
+msgid "Language"
+msgstr "Language"
+
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:242
+msgid "Local File Path"
+msgstr "Local File Path"
+
+#: src/pages/settings/ui/settings-page.tsx:181
+msgid "localhost, 127.0.0.1, *.internal.com"
+msgstr "localhost, 127.0.0.1, *.internal.com"
+
+#: src/features/query-filter-editor/ui/filter-help-tooltip.tsx:67
+msgid "Logical OR:"
+msgstr "Logical OR:"
+
+#: src/shared/app-sidebar/model/consts.ts:25
+msgid "Manage request/response intercept rules"
+msgstr "Manage request/response intercept rules"
+
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:75
+msgid "Manage wildcard-based request/response intercept rules"
+msgstr "Manage wildcard-based request/response intercept rules"
+
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:230
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:43
+#: src/pages/map-rules/ui/map-rules-page.tsx:34
+msgid "Map Local"
+msgstr "Map Local"
+
+#: src/shared/app-sidebar/model/consts.ts:31
+msgid "Map Local / Map Remote rules"
+msgstr "Map Local / Map Remote rules"
+
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:176
+msgid "Map Local: respond with a local file. Map Remote: redirect to another URL."
+msgstr "Map Local: respond with a local file. Map Remote: redirect to another URL."
+
+#: src/pages/map-rules/ui/map-rules-page.tsx:66
+msgid "Map Local: respond with local files. Map Remote: redirect requests to another URL."
+msgstr "Map Local: respond with local files. Map Remote: redirect requests to another URL."
+
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:231
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:44
+#: src/pages/map-rules/ui/map-rules-page.tsx:35
+msgid "Map Remote"
+msgstr "Map Remote"
+
+#: src/pages/map-rules/ui/map-rules-page.tsx:64
+#: src/shared/app-sidebar/model/consts.ts:29
+msgid "Map Rules"
+msgstr "Map Rules"
+
+#: src/features/query-filter-editor/ui/filter-help-tooltip.tsx:42
+msgid "Match 2xx success or 404 error"
+msgstr "Match 2xx success or 404 error"
+
+#: src/features/query-filter-editor/ui/filter-help-tooltip.tsx:35
+msgid "Match GET or POST methods"
+msgstr "Match GET or POST methods"
+
+#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:48
+msgid "MCP configuration copied to clipboard"
+msgstr "MCP configuration copied to clipboard"
+
+#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:60
+#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:71
+msgid "MCP Server"
+msgstr "MCP Server"
+
+#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:79
+msgid "MCP Server Configuration"
+msgstr "MCP Server Configuration"
+
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:160
+msgid "Message sent successfully"
+msgstr "Message sent successfully"
+
+#: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:66
+msgid "messages"
+msgstr "messages"
+
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:230
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:207
+msgid "Method"
+msgstr "Method"
+
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:257
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:41
+msgid "Modify Request"
+msgstr "Modify Request"
+
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:258
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:42
+msgid "Modify Response"
+msgstr "Modify Response"
+
+#: src/widgets/websocket-messages/ui/ws-connection-list.tsx:79
+msgid "msgs"
+msgstr "msgs"
+
+#: src/features/query-filter-editor/ui/filter-help-tooltip.tsx:61
+msgid "Multiple conditions:"
+msgstr "Multiple conditions:"
+
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:207
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:183
+msgid "Name"
+msgstr "Name"
+
+#: src/shared/app-sidebar/model/consts.ts:11
+msgid "Network"
+msgstr "Network"
+
+#: src/widgets/websocket-messages/ui/ws-connection-list.tsx:27
+msgid "No active WebSocket connections"
+msgstr "No active WebSocket connections"
+
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:99
+msgid "No intercept rules"
+msgstr "No intercept rules"
+
+#: src/pages/map-rules/ui/map-rules-page.tsx:90
+msgid "No map rules"
+msgstr "No map rules"
+
+#: src/widgets/network-table/ui/table-body.tsx:77
+msgid "No transactions to display"
+msgstr "No transactions to display"
+
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:91
+msgid "No valid requests to replay"
+msgstr "No valid requests to replay"
+
+#: src/features/transaction-details/ui/replay-dialog.tsx:316
+msgid "Original"
+msgstr "Original"
+
+#: src/pages/settings/ui/settings-page.tsx:168
+msgid "Password"
+msgstr "Password"
+
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:218
+msgid "Pattern"
+msgstr "Pattern"
+
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:153
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:112
+msgid "Pattern is required"
+msgstr "Pattern is required"
+
+#: src/widgets/network-header/ui/network-controls.tsx:25
+msgid "Pause recording"
+msgstr "Pause recording"
+
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:133
+msgid "Payload"
+msgstr "Payload"
+
+#: src/pages/settings/ui/settings-page.tsx:140
+msgid "Port"
+msgstr "Port"
+
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:315
+msgid "Preserve Path"
+msgstr "Preserve Path"
+
+#: src/pages/settings/ui/settings-page.tsx:93
+msgid "Proxy configuration and preferences"
+msgstr "Proxy configuration and preferences"
+
+#: src/shared/app-sidebar/model/consts.ts:37
+msgid "Proxy settings and configuration"
+msgstr "Proxy settings and configuration"
+
+#: src/pages/settings/ui/settings-page.tsx:134
+msgid "proxy.company.com"
+msgstr "proxy.company.com"
+
+#: src/features/query-filter-editor/ui/filter-help-tooltip.tsx:27
+msgid "Query Syntax Guide"
+msgstr "Query Syntax Guide"
+
+#: src/features/query-filter-editor/ui/filter-help-tooltip.tsx:15
+msgid "Query syntax help"
+msgstr "Query syntax help"
+
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:85
+msgid "Received"
+msgstr "Received"
+
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:54
+msgid "Received (Server → Client)"
+msgstr "Received (Server → Client)"
+
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:324
+msgid "Remove Headers"
+msgstr "Remove Headers"
+
+#: src/features/transaction-details/ui/replay-dialog.tsx:326
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:120
+msgid "Replay"
+msgstr "Replay"
+
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:116
+msgid "Replay message"
+msgstr "Replay message"
+
+#: src/features/transaction-details/ui/replay-dialog.tsx:295
+msgid "Replay request"
+msgstr "Replay request"
+
+#: src/features/transaction-details/ui/replay-dialog.tsx:313
+msgid "Request"
+msgstr "Request"
+
+#: src/features/transaction-details/ui/transaction-header.tsx:37
+msgid "Request Details"
+msgstr "Request Details"
+
+#: src/features/transaction-details/ui/replay-dialog.tsx:272
+msgid "Request failed"
+msgstr "Request failed"
+
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:352
+msgid "Response body (optional)"
+msgstr "Response body (optional)"
+
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:269
+msgid "Response Headers"
+msgstr "Response Headers"
+
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:280
+msgid "Response Status Code"
+msgstr "Response Status Code"
+
+#: src/widgets/network-header/ui/network-controls.tsx:25
+msgid "Resume recording"
+msgstr "Resume recording"
+
+#: src/pages/settings/ui/settings-page.tsx:121
+msgid "Route traffic through an external proxy server"
+msgstr "Route traffic through an external proxy server"
+
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:171
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:156
+msgid "Rule added"
+msgstr "Rule added"
+
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:59
+#: src/pages/map-rules/ui/map-rules-page.tsx:50
+msgid "Rule deleted"
+msgstr "Rule deleted"
+
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:209
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:185
+msgid "Rule name (optional)"
+msgstr "Rule name (optional)"
+
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:168
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:153
+msgid "Rule updated"
+msgstr "Rule updated"
+
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:80
+#: src/pages/map-rules/ui/map-rules-page.tsx:71
+msgid "rules"
+msgstr "rules"
+
+#: src/pages/settings/ui/settings-page.tsx:195
+msgid "Save"
+msgstr "Save"
+
+#: src/pages/settings/ui/settings-page.tsx:199
+msgid "Saved"
+msgstr "Saved"
+
+#: src/pages/settings/ui/settings-page.tsx:195
+msgid "Saving..."
+msgstr "Saving..."
+
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:100
+msgid "Select local file"
+msgstr "Select local file"
+
+#: src/features/transaction-details/ui/replay-dialog.tsx:509
+msgid "Send a request to see the replay response"
+msgstr "Send a request to see the replay response"
+
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:178
+msgid "Send Message"
+msgstr "Send Message"
+
+#: src/features/transaction-details/ui/replay-dialog.tsx:480
+msgid "Send Request"
+msgstr "Send Request"
+
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:156
+msgid "Sending requests sequentially..."
+msgstr "Sending requests sequentially..."
+
+#: src/features/transaction-details/ui/replay-dialog.tsx:475
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:231
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:173
+msgid "Sending..."
+msgstr "Sending..."
+
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:85
+msgid "Sent"
+msgstr "Sent"
+
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:54
+msgid "Sent (Client → Server)"
+msgstr "Sent (Client → Server)"
+
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:63
+msgid "Sequence"
+msgstr "Sequence"
+
+#. placeholder {0}: transactions.length
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:120
+msgid "Sequence Replay ({0} requests)"
+msgstr "Sequence Replay ({0} requests)"
+
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:100
+msgid "Sequence replay failed"
+msgstr "Sequence replay failed"
+
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:352
+msgid "Set body (optional)"
+msgstr "Set body (optional)"
+
+#: src/pages/settings/ui/settings-page.tsx:92
+#: src/shared/app-sidebar/model/consts.ts:35
+msgid "Settings"
+msgstr "Settings"
+
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:60
+#: src/widgets/websocket-messages/ui/ws-message-table.tsx:165
+msgid "Size"
+msgstr "Size"
+
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:236
+msgid "Start Replay"
+msgstr "Start Replay"
+
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:148
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:153
+#: src/shared/app-sidebar/ui/sidebar-status.tsx:38
+msgid "Status"
+msgstr "Status"
+
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:267
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:258
+msgid "Status Code"
+msgstr "Status Code"
+
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:303
+msgid "Target URL"
+msgstr "Target URL"
+
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:122
+msgid "Target URL is required"
+msgstr "Target URL is required"
+
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:61
+#: src/widgets/websocket-messages/ui/ws-message-table.tsx:167
+msgid "Time"
+msgstr "Time"
+
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:126
+msgid "To Client (Server → Client)"
+msgstr "To Client (Server → Client)"
+
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:125
+msgid "To Server (Client → Server)"
+msgstr "To Server (Client → Server)"
+
+#. placeholder {0}: results.reduce((sum, r) => sum + (r.response?.elapsed_ms ?? 0), 0)
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:175
+msgid "Total {0}ms"
+msgstr "Total {0}ms"
+
+#: src/features/transaction-details/ui/replay-dialog.tsx:302
+msgid "Traffic Replay"
+msgstr "Traffic Replay"
+
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:224
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:57
+#: src/widgets/websocket-messages/ui/ws-message-table.tsx:164
+msgid "Type"
+msgstr "Type"
+
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:366
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:329
+msgid "Update"
+msgstr "Update"
+
+#: src/pages/settings/ui/settings-page.tsx:119
+msgid "Upstream Proxy"
+msgstr "Upstream Proxy"
+
+#: src/features/transaction-details/ui/replay-dialog.tsx:363
+msgid "URL"
+msgstr "URL"
+
+#: src/features/query-filter-editor/ui/filter-help-tooltip.tsx:49
+msgid "URL contains \"api\""
+msgstr "URL contains \"api\""
+
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:194
+msgid "URL Pattern"
+msgstr "URL Pattern"
+
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:200
+msgid "Use wildcard patterns: * matches any string, ? matches a single character."
+msgstr "Use wildcard patterns: * matches any string, ? matches a single character."
+
+#: src/pages/settings/ui/settings-page.tsx:160
+msgid "Username"
+msgstr "Username"
+
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:310
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:284
+#: src/features/transaction-details/ui/replay-dialog.tsx:393
+msgid "Value"
+msgstr "Value"
+
+#: src/shared/app-sidebar/ui/sidebar-status.tsx:45
+msgid "Version"
+msgstr "Version"
+
+#: src/widgets/websocket-messages/ui/ws-message-table.tsx:152
+msgid "Waiting for WebSocket messages..."
+msgstr "Waiting for WebSocket messages..."
+
+#: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:64
+#: src/shared/app-sidebar/model/consts.ts:17
+msgid "WebSocket"
+msgstr "WebSocket"
+
+#: src/shared/app-sidebar/model/consts.ts:19
+msgid "WebSocket connections and messages"
+msgstr "WebSocket connections and messages"
+
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:99
+msgid "WebSocket Replay"
+msgstr "WebSocket Replay"
+
+#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:101
+msgid "Works with Claude Code, Cursor, Claude Desktop, and other MCP-compatible clients."
+msgstr "Works with Claude Code, Cursor, Claude Desktop, and other MCP-compatible clients."

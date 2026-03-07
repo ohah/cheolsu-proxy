@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useLingui } from "@lingui/react/macro";
 
 import { Badge } from "@/shared/ui";
 
@@ -8,12 +9,14 @@ interface NetworkStatsProps {
 }
 
 export const NetworkStats = ({ totalCount, filteredCount }: NetworkStatsProps) => {
+  const { t } = useLingui();
+
   const count = useMemo(() => {
     if (totalCount !== filteredCount) {
-      return `${filteredCount} of ${totalCount} transactions`;
+      return t`${filteredCount} of ${totalCount} transactions`;
     }
-    return `${totalCount} transactions`;
-  }, [totalCount, filteredCount]);
+    return t`${totalCount} transactions`;
+  }, [totalCount, filteredCount, t]);
 
   return (
     <div className="flex items-center gap-2">

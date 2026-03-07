@@ -1,5 +1,6 @@
 import { useCallback } from "react";
 import { Globe } from "lucide-react";
+import { Trans } from "@lingui/react/macro";
 
 import { ScrollArea } from "@/shared/ui/scroll-area";
 import { HttpTransaction } from "@/entities/proxy";
@@ -33,7 +34,7 @@ export function HostPathTree({
       <div className="p-3 border-b border-border">
         <h3 className="text-sm font-medium flex items-center gap-2">
           <Globe className="h-4 w-4" />
-          Host Tree
+          <Trans>Host Tree</Trans>
         </h3>
       </div>
       <ScrollArea className="flex-1 p-2 h-[calc(100%-45px)] overflow-y-hidden">

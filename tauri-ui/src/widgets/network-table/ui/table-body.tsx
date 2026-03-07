@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from "react";
+import { Trans } from "@lingui/react/macro";
 
 import type { HttpTransaction } from "@/entities/proxy";
 import { VirtualizedScrollArea } from "@/shared/ui";
@@ -73,7 +74,9 @@ export const TableBody = ({
   if (data.length === 0) {
     return (
       <div className="flex-1 flex items-center justify-center p-8">
-        <p className="text-muted-foreground">No transactions to display</p>
+        <p className="text-muted-foreground">
+          <Trans>No transactions to display</Trans>
+        </p>
       </div>
     );
   }

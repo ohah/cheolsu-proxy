@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { Trans } from "@lingui/react/macro";
+import { useLingui } from "@lingui/react/macro";
 import {
   Dialog,
   DialogContent,
@@ -40,6 +42,7 @@ export const RuleFormDialog = ({
   editingRule,
   initialValues,
 }: RuleFormDialogProps) => {
+  const { t } = useLingui();
   const { addRule, updateRule } = useInterceptRuleStore();
 
   const [name, setName] = useState("");
@@ -147,7 +150,7 @@ export const RuleFormDialog = ({
 
   const handleSubmit = () => {
     if (!pattern.trim()) {
-      toast.error("Pattern is required");
+      toast.error(t`Pattern is required`);
       return;
     }
 
@@ -162,10 +165,10 @@ export const RuleFormDialog = ({
 
     if (editingRule) {
       updateRule(rule);
-      toast.success("Rule updated");
+      toast.success(t`Rule updated`);
     } else {
       addRule(rule);
-      toast.success("Rule added");
+      toast.success(t`Rule added`);
     }
 
     onOpenChange(false);
@@ -192,18 +195,24 @@ export const RuleFormDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[560px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{editingRule ? "Edit Rule" : "Add Rule"}</DialogTitle>
+          <DialogTitle>
+            {editingRule ? <Trans>Edit Rule</Trans> : <Trans>Add Rule</Trans>}
+          </DialogTitle>
           <DialogDescription>
-            Use wildcard patterns: * matches any string, ? matches a single character.
+            <Trans>
+              Use wildcard patterns: * matches any string, ? matches a single character.
+            </Trans>
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           {/* Name */}
           <div className="space-y-1.5">
-            <label className="text-sm font-medium">Name</label>
+            <label className="text-sm font-medium">
+              <Trans>Name</Trans>
+            </label>
             <Input
-              placeholder="Rule name (optional)"
+              placeholder={t`Rule name (optional)`}
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
@@ -212,7 +221,7 @@ export const RuleFormDialog = ({
           {/* Pattern */}
           <div className="space-y-1.5">
             <label className="text-sm font-medium">
-              Pattern <span className="text-destructive">*</span>
+              <Trans>Pattern</Trans> <span className="text-destructive">*</span>
             </label>
             <Input
               placeholder="*.example.com/api/*"
@@ -224,13 +233,15 @@ export const RuleFormDialog = ({
           {/* Method & Action Type */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <label className="text-sm font-medium">Method</label>
+              <label className="text-sm font-medium">
+                <Trans>Method</Trans>
+              </label>
               <Select value={method} onValueChange={(v) => v && setMethod(v)}>
                 <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="*">All Methods</SelectItem>
+                  <SelectItem value="*">{t`All Methods`}</SelectItem>
                   {HTTP_METHODS.map((m) => (
                     <SelectItem key={m} value={m}>
                       {m}
@@ -241,7 +252,9 @@ export const RuleFormDialog = ({
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-sm font-medium">Action</label>
+              <label className="text-sm font-medium">
+                <Trans>Action</Trans>
+              </label>
               <Select
                 value={actionType}
                 onValueChange={(v) => v && setActionType(v as InterceptActionType)}
@@ -250,9 +263,9 @@ export const RuleFormDialog = ({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="block">Block</SelectItem>
-                  <SelectItem value="modify_request">Modify Request</SelectItem>
-                  <SelectItem value="modify_response">Modify Response</SelectItem>
+                  <SelectItem value="block">{t`Block`}</SelectItem>
+                  <SelectItem value="modify_request">{t`Modify Request`}</SelectItem>
+                  <SelectItem value="modify_response">{t`Modify Response`}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -261,7 +274,9 @@ export const RuleFormDialog = ({
           {/* Block-specific: status code */}
           {actionType === "block" && (
             <div className="space-y-1.5">
-              <label className="text-sm font-medium">Status Code</label>
+              <label className="text-sm font-medium">
+                <Trans>Status Code</Trans>
+              </label>
               <Input
                 type="number"
                 placeholder="403"
@@ -274,10 +289,12 @@ export const RuleFormDialog = ({
           {/* ModifyResponse: status code */}
           {actionType === "modify_response" && (
             <div className="space-y-1.5">
-              <label className="text-sm font-medium">Response Status Code</label>
+              <label className="text-sm font-medium">
+                <Trans>Response Status Code</Trans>
+              </label>
               <Input
                 type="number"
-                placeholder="200 (optional)"
+                placeholder={t`200 (optional)`}
                 value={responseStatus}
                 onChange={(e) => setResponseStatus(e.target.value)}
               />
@@ -289,22 +306,24 @@ export const RuleFormDialog = ({
             <>
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium">Add Headers</label>
+                  <label className="text-sm font-medium">
+                    <Trans>Add Headers</Trans>
+                  </label>
                   <Button variant="ghost" size="sm" onClick={addHeader}>
                     <Plus className="w-3.5 h-3.5 mr-1" />
-                    Add
+                    <Trans>Add</Trans>
                   </Button>
                 </div>
                 {headers.map((header, i) => (
                   <div key={i} className="flex items-center gap-2">
                     <Input
-                      placeholder="Header name"
+                      placeholder={t`Header name`}
                       value={header.key}
                       onChange={(e) => updateHeader(i, "key", e.target.value)}
                       className="flex-1"
                     />
                     <Input
-                      placeholder="Value"
+                      placeholder={t`Value`}
                       value={header.value}
                       onChange={(e) => updateHeader(i, "value", e.target.value)}
                       className="flex-1"
@@ -318,16 +337,18 @@ export const RuleFormDialog = ({
 
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium">Remove Headers</label>
+                  <label className="text-sm font-medium">
+                    <Trans>Remove Headers</Trans>
+                  </label>
                   <Button variant="ghost" size="sm" onClick={addRemoveHeader}>
                     <Plus className="w-3.5 h-3.5 mr-1" />
-                    Add
+                    <Trans>Add</Trans>
                   </Button>
                 </div>
                 {removeHeaders.map((header, i) => (
                   <div key={i} className="flex items-center gap-2">
                     <Input
-                      placeholder="Header name to remove"
+                      placeholder={t`Header name to remove`}
                       value={header}
                       onChange={(e) => updateRemoveHeader(i, e.target.value)}
                       className="flex-1"
@@ -343,10 +364,12 @@ export const RuleFormDialog = ({
 
           {/* Body */}
           <div className="space-y-1.5">
-            <label className="text-sm font-medium">Body</label>
+            <label className="text-sm font-medium">
+              <Trans>Body</Trans>
+            </label>
             <Textarea
               placeholder={
-                actionType === "block" ? "Response body (optional)" : "Set body (optional)"
+                actionType === "block" ? t`Response body (optional)` : t`Set body (optional)`
               }
               value={body}
               onChange={(e) => setBody(e.target.value)}
@@ -358,9 +381,11 @@ export const RuleFormDialog = ({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            <Trans>Cancel</Trans>
           </Button>
-          <Button onClick={handleSubmit}>{editingRule ? "Update" : "Add Rule"}</Button>
+          <Button onClick={handleSubmit}>
+            {editingRule ? <Trans>Update</Trans> : <Trans>Add Rule</Trans>}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

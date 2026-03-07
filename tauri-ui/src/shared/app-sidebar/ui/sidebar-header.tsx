@@ -1,4 +1,5 @@
 import { logo } from "@/shared/assets";
+import { Trans, useLingui } from "@lingui/react/macro";
 import { Button, Tooltip, TooltipTrigger, TooltipContent } from "@/shared/ui";
 import { Menu } from "lucide-react";
 
@@ -8,6 +9,7 @@ interface SidebarHeaderProps {
 }
 
 export const SidebarHeader = ({ collapsed, toggleCollapse }: SidebarHeaderProps) => {
+  const { t } = useLingui();
   if (collapsed) {
     return (
       <div className="p-3.5 border-b border-sidebar-border flex items-center justify-between">
@@ -19,7 +21,7 @@ export const SidebarHeader = ({ collapsed, toggleCollapse }: SidebarHeaderProps)
               </Button>
             </TooltipTrigger>
             <TooltipContent side="right" sideOffset={4}>
-              Expand sidebar
+              <Trans>Expand sidebar</Trans>
             </TooltipContent>
           </Tooltip>
         </div>
@@ -33,7 +35,7 @@ export const SidebarHeader = ({ collapsed, toggleCollapse }: SidebarHeaderProps)
         <div className="w-9 h-9 rounded-lg flex items-center justify-center">
           <img
             src={logo}
-            alt="Cheolsu Proxy Logo"
+            alt={t`Cheolsu Proxy Logo`}
             className="w-9 h-9 text-sidebar-primary-foreground"
           />
         </div>

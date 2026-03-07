@@ -1,5 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { Play, Loader2, Plus, Trash2, Maximize2, Minimize2 } from "lucide-react";
+import { Trans } from "@lingui/react/macro";
+import { useLingui } from "@lingui/react/macro";
 import { Editor } from "@monaco-editor/react";
 
 import type { HttpTransaction } from "@/entities/proxy";
@@ -107,6 +109,7 @@ function ResponseView({
   bodySize: number;
   elapsedMs?: number;
 }) {
+  const { t } = useLingui();
   const [expanded, setExpanded] = useState(false);
   const headerEntries = Object.entries(headers);
 
@@ -114,10 +117,12 @@ function ResponseView({
     return (
       <div className="h-full flex flex-col px-1">
         <div className="flex items-center justify-between mb-2">
-          <label className="text-sm font-medium">Body</label>
+          <label className="text-sm font-medium">
+            <Trans>Body</Trans>
+          </label>
           <Button variant="ghost" size="sm" onClick={() => setExpanded(false)}>
             <Minimize2 className="w-3.5 h-3.5 mr-1" />
-            Collapse
+            <Trans>Collapse</Trans>
           </Button>
         </div>
         <div className="flex-1 rounded-md border overflow-hidden">
@@ -160,7 +165,7 @@ function ResponseView({
       {headerEntries.length > 0 && (
         <>
           <div className="space-y-2">
-            <label className="text-sm font-medium">Headers ({headerEntries.length})</label>
+            <label className="text-sm font-medium">{t`Headers (${headerEntries.length})`}</label>
             <div className="rounded-md border">
               <table className="w-full text-xs font-mono">
                 <tbody>
@@ -183,10 +188,12 @@ function ResponseView({
 
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <label className="text-sm font-medium">Body</label>
+          <label className="text-sm font-medium">
+            <Trans>Body</Trans>
+          </label>
           <Button variant="ghost" size="sm" onClick={() => setExpanded(true)}>
             <Maximize2 className="w-3.5 h-3.5 mr-1" />
-            Expand
+            <Trans>Expand</Trans>
           </Button>
         </div>
         <div className="rounded-md border overflow-hidden">
@@ -214,6 +221,7 @@ function ResponseView({
 }
 
 export function ReplayDialog({ transaction }: ReplayDialogProps) {
+  const { t } = useLingui();
   const { request, response: originalResponse } = transaction;
   const [open, setOpen] = useState(false);
   const [method, setMethod] = useState(request?.method || "GET");
@@ -265,7 +273,7 @@ export function ReplayDialog({ transaction }: ReplayDialogProps) {
       setReplayResponse(res);
       setActiveTab("replay");
     } catch (e: any) {
-      setError(typeof e === "string" ? e : e.message || "요청 실패");
+      setError(typeof e === "string" ? e : e.message || t`Request failed`);
     } finally {
       setLoading(false);
     }
@@ -288,14 +296,16 @@ export function ReplayDialog({ transaction }: ReplayDialogProps) {
 
   return (
     <>
-      <Button variant="ghost" size="sm" title="Replay request" onClick={() => setOpen(true)}>
+      <Button variant="ghost" size="sm" title={t`Replay request`} onClick={() => setOpen(true)}>
         <Play className="w-4 h-4" />
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="!max-w-none !rounded-none w-screen h-screen flex flex-col">
           <DialogHeader className="flex-shrink-0">
-            <DialogTitle>Traffic Replay</DialogTitle>
+            <DialogTitle>
+              <Trans>Traffic Replay</Trans>
+            </DialogTitle>
           </DialogHeader>
 
           <Tabs
@@ -306,10 +316,12 @@ export function ReplayDialog({ transaction }: ReplayDialogProps) {
             <TabsList
               className={`grid w-full flex-shrink-0 ${tabCount === 3 ? "grid-cols-3" : "grid-cols-2"}`}
             >
-              <TabsTrigger value="request">Request</TabsTrigger>
+              <TabsTrigger value="request">
+                <Trans>Request</Trans>
+              </TabsTrigger>
               {hasOriginalResponse && (
                 <TabsTrigger value="response">
-                  Original
+                  <Trans>Original</Trans>
                   <Badge
                     variant="outline"
                     className={`ml-1 text-xs ${getStatusColor(originalResponse.status)}`}
@@ -319,7 +331,7 @@ export function ReplayDialog({ transaction }: ReplayDialogProps) {
                 </TabsTrigger>
               )}
               <TabsTrigger value="replay">
-                Replay
+                <Trans>Replay</Trans>
                 {hasReplayResponse && (
                   <Badge
                     variant="outline"
@@ -356,17 +368,17 @@ export function ReplayDialog({ transaction }: ReplayDialogProps) {
                       <Input
                         value={url}
                         onChange={(e) => setUrl(e.target.value)}
-                        placeholder="URL"
+                        placeholder={t`URL`}
                         className="flex-1 font-mono text-xs"
                       />
                     </div>
 
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <label className="text-sm font-medium">Headers ({headers.length})</label>
+                        <label className="text-sm font-medium">{t`Headers (${headers.length})`}</label>
                         <Button variant="ghost" size="sm" onClick={addHeader}>
                           <Plus className="w-3.5 h-3.5 mr-1" />
-                          Add
+                          <Trans>Add</Trans>
                         </Button>
                       </div>
                       <div className="rounded-md border">
@@ -378,7 +390,7 @@ export function ReplayDialog({ transaction }: ReplayDialogProps) {
                                   <Input
                                     value={header.key}
                                     onChange={(e) => updateHeader(i, "key", e.target.value)}
-                                    placeholder="Header name"
+                                    placeholder={t`Header name`}
                                     className="h-7 text-xs font-mono border-0 shadow-none focus-visible:ring-0 px-1"
                                   />
                                 </td>
@@ -386,7 +398,7 @@ export function ReplayDialog({ transaction }: ReplayDialogProps) {
                                   <Input
                                     value={header.value}
                                     onChange={(e) => updateHeader(i, "value", e.target.value)}
-                                    placeholder="Value"
+                                    placeholder={t`Value`}
                                     className="h-7 text-xs font-mono border-0 shadow-none focus-visible:ring-0 px-1"
                                   />
                                 </td>
@@ -414,7 +426,9 @@ export function ReplayDialog({ transaction }: ReplayDialogProps) {
                     className={`space-y-2 ${bodyExpanded ? "flex-1 flex flex-col min-h-0" : ""}`}
                   >
                     <div className="flex items-center justify-between">
-                      <label className="text-sm font-medium">Body</label>
+                      <label className="text-sm font-medium">
+                        <Trans>Body</Trans>
+                      </label>
                       <Button
                         variant="ghost"
                         size="sm"
@@ -423,12 +437,12 @@ export function ReplayDialog({ transaction }: ReplayDialogProps) {
                         {bodyExpanded ? (
                           <>
                             <Minimize2 className="w-3.5 h-3.5 mr-1" />
-                            Collapse
+                            <Trans>Collapse</Trans>
                           </>
                         ) : (
                           <>
                             <Maximize2 className="w-3.5 h-3.5 mr-1" />
-                            Expand
+                            <Trans>Expand</Trans>
                           </>
                         )}
                       </Button>
@@ -468,12 +482,12 @@ export function ReplayDialog({ transaction }: ReplayDialogProps) {
                   {loading ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Sending...
+                      <Trans>Sending...</Trans>
                     </>
                   ) : (
                     <>
                       <Play className="w-4 h-4 mr-2" />
-                      Send Request
+                      <Trans>Send Request</Trans>
                     </>
                   )}
                 </Button>
@@ -502,7 +516,7 @@ export function ReplayDialog({ transaction }: ReplayDialogProps) {
                 />
               ) : (
                 <div className="flex items-center justify-center h-40 text-muted-foreground text-sm">
-                  Send a request to see the replay response
+                  <Trans>Send a request to see the replay response</Trans>
                 </div>
               )}
             </TabsContent>

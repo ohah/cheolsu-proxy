@@ -1,4 +1,6 @@
 import { memo, useCallback, useRef, useEffect, useMemo } from "react";
+import { Trans } from "@lingui/react/macro";
+import { useLingui } from "@lingui/react/macro";
 import { ArrowUp, ArrowDown } from "lucide-react";
 import { cn } from "@/shared/lib";
 import { getMqttSummary } from "@/shared/lib/ws-content-view";
@@ -127,6 +129,7 @@ WsMessageRow.displayName = "WsMessageRow";
 
 export const WsMessageTable = memo(
   ({ messages, selectedMessage, onSelectMessage }: WsMessageTableProps) => {
+    const { t } = useLingui();
     const containerRef = useRef<HTMLDivElement>(null);
     const shouldAutoScroll = useRef(true);
 
@@ -146,7 +149,7 @@ export const WsMessageTable = memo(
     if (messages.length === 0) {
       return (
         <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">
-          Waiting for WebSocket messages...
+          <Trans>Waiting for WebSocket messages...</Trans>
         </div>
       );
     }
@@ -157,11 +160,11 @@ export const WsMessageTable = memo(
           <table className="w-full table-fixed">
             <thead>
               <tr className="h-7 text-xs text-muted-foreground font-medium bg-muted/30">
-                <th className="px-2 w-8 text-center">Dir</th>
-                <th className="px-2 w-16 text-left">Type</th>
-                <th className="px-2 w-20 text-right">Size</th>
-                <th className="px-2 text-left">Data</th>
-                <th className="px-2 pr-4 w-24 text-right">Time</th>
+                <th className="px-2 w-8 text-center">{t`Dir`}</th>
+                <th className="px-2 w-16 text-left">{t`Type`}</th>
+                <th className="px-2 w-20 text-right">{t`Size`}</th>
+                <th className="px-2 text-left">{t`Data`}</th>
+                <th className="px-2 pr-4 w-24 text-right">{t`Time`}</th>
               </tr>
             </thead>
           </table>

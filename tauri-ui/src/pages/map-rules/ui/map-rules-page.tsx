@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { Trans } from "@lingui/react/macro";
+import { useLingui } from "@lingui/react/macro";
 import { useMapRuleStore } from "@/shared/stores";
 import { Card, CardContent, Badge, Button, Switch } from "@/shared/ui";
 import { Plus, Trash2, Pencil, FileDown, GitBranch, Eraser } from "lucide-react";
@@ -17,15 +19,21 @@ function getMapIcon(type: string) {
   }
 }
 
-const MAP_LABELS: Record<string, { label: string; variant: "default" | "secondary" }> = {
-  map_local: { label: "Map Local", variant: "default" },
-  map_remote: { label: "Map Remote", variant: "secondary" },
+const MAP_LABELS: Record<string, { labelKey: string; variant: "default" | "secondary" }> = {
+  map_local: { labelKey: "map_local", variant: "default" },
+  map_remote: { labelKey: "map_remote", variant: "secondary" },
 };
 
 export const MapRulesPage = () => {
+  const { t } = useLingui();
   const { rules, removeRule, toggleRule, clearRules } = useMapRuleStore();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingRule, setEditingRule] = useState<InterceptRule | null>(null);
+
+  const mapLabelMap: Record<string, string> = {
+    map_local: t`Map Local`,
+    map_remote: t`Map Remote`,
+  };
 
   const handleAdd = () => {
     setEditingRule(null);
@@ -39,12 +47,12 @@ export const MapRulesPage = () => {
 
   const handleDelete = (id: string) => {
     removeRule(id);
-    toast.success("Rule deleted");
+    toast.success(t`Rule deleted`);
   };
 
   const handleClearAll = () => {
     clearRules();
-    toast.success("All rules cleared");
+    toast.success(t`All rules cleared`);
   };
 
   return (
@@ -53,24 +61,28 @@ export const MapRulesPage = () => {
         <div className="p-6 space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Map Rules</h1>
+              <h1 className="text-2xl font-bold text-foreground">
+                <Trans>Map Rules</Trans>
+              </h1>
               <p className="text-muted-foreground">
-                Map Local: respond with local files. Map Remote: redirect requests to another URL.
+                <Trans>
+                  Map Local: respond with local files. Map Remote: redirect requests to another URL.
+                </Trans>
               </p>
             </div>
             <div className="flex items-center gap-2">
               <Badge variant="outline" className="text-sm">
-                {rules.length} rules
+                {rules.length} <Trans>rules</Trans>
               </Badge>
               {rules.length > 0 && (
                 <Button variant="outline" size="sm" onClick={handleClearAll}>
                   <Eraser className="w-4 h-4 mr-1" />
-                  Clear All
+                  <Trans>Clear All</Trans>
                 </Button>
               )}
               <Button size="sm" onClick={handleAdd}>
                 <Plus className="w-4 h-4 mr-1" />
-                Add Rule
+                <Trans>Add Rule</Trans>
               </Button>
             </div>
           </div>
@@ -79,13 +91,17 @@ export const MapRulesPage = () => {
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <div className="text-center space-y-2">
-                  <h3 className="text-lg font-semibold">No map rules</h3>
+                  <h3 className="text-lg font-semibold">
+                    <Trans>No map rules</Trans>
+                  </h3>
                   <p className="text-muted-foreground">
-                    Add rules to map URLs to local files or redirect to other servers.
+                    <Trans>
+                      Add rules to map URLs to local files or redirect to other servers.
+                    </Trans>
                   </p>
                   <Button className="mt-4" onClick={handleAdd}>
                     <Plus className="w-4 h-4 mr-1" />
-                    Add your first rule
+                    <Trans>Add your first rule</Trans>
                   </Button>
                 </div>
               </CardContent>
@@ -94,7 +110,7 @@ export const MapRulesPage = () => {
             <div className="space-y-3">
               {rules.map((rule) => {
                 const mapInfo = MAP_LABELS[rule.action.type] ?? {
-                  label: rule.action.type,
+                  labelKey: rule.action.type,
                   variant: "default" as const,
                 };
                 return (
@@ -122,7 +138,7 @@ export const MapRulesPage = () => {
                           <div className="flex items-center gap-2">
                             <Badge variant={mapInfo.variant} className="text-xs gap-1">
                               {getMapIcon(rule.action.type)}
-                              {mapInfo.label}
+                              {mapLabelMap[mapInfo.labelKey] ?? mapInfo.labelKey}
                             </Badge>
                             {rule.method && (
                               <Badge variant="outline" className="text-xs">
@@ -138,7 +154,7 @@ export const MapRulesPage = () => {
                               <span className="text-xs text-muted-foreground truncate max-w-[300px]">
                                 → {(rule.action as { target_url: string }).target_url}
                                 {(rule.action as { preserve_path: boolean }).preserve_path &&
-                                  " (preserve path)"}
+                                  t` (preserve path)`}
                               </span>
                             )}
                           </div>
@@ -149,7 +165,7 @@ export const MapRulesPage = () => {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleEdit(rule)}
-                            title="Edit rule"
+                            title={t`Edit rule`}
                           >
                             <Pencil className="w-4 h-4" />
                           </Button>
@@ -157,7 +173,7 @@ export const MapRulesPage = () => {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleDelete(rule.id)}
-                            title="Delete rule"
+                            title={t`Delete rule`}
                             className="text-destructive hover:text-destructive"
                           >
                             <Trash2 className="w-4 h-4" />

@@ -1,6 +1,7 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
+import { lingui } from "@lingui/vite-plugin";
 import path from "path";
 
 const host = process.env.TAURI_DEV_HOST;
@@ -23,7 +24,15 @@ const mockAliases = isMock
   : {};
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [
+    react({
+      babel: {
+        plugins: ["@lingui/babel-plugin-lingui-macro"],
+      },
+    }),
+    lingui(),
+    tailwindcss(),
+  ],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

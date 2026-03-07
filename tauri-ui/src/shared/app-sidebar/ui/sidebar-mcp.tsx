@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Trans, useLingui } from "@lingui/react/macro";
 import { Blocks, Copy, Check } from "lucide-react";
 import {
   Popover,
@@ -29,6 +30,7 @@ function buildMcpConfig(command: string) {
 }
 
 export const SidebarMcp = ({ collapsed }: SidebarMcpProps) => {
+  const { t } = useLingui();
   const [copied, setCopied] = useState(false);
   const [mcpPath, setMcpPath] = useState("cheolsu-proxy-mcp");
 
@@ -43,7 +45,7 @@ export const SidebarMcp = ({ collapsed }: SidebarMcpProps) => {
   const handleCopy = async () => {
     await navigator.clipboard.writeText(mcpConfig);
     setCopied(true);
-    toast.success("MCP configuration copied to clipboard");
+    toast.success(t`MCP configuration copied to clipboard`);
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -55,7 +57,11 @@ export const SidebarMcp = ({ collapsed }: SidebarMcpProps) => {
       )}
     >
       <Blocks className="w-4 h-4 shrink-0" />
-      {!collapsed && <span>MCP Server</span>}
+      {!collapsed && (
+        <span>
+          <Trans>MCP Server</Trans>
+        </span>
+      )}
     </PopoverTrigger>
   );
 
@@ -66,7 +72,7 @@ export const SidebarMcp = ({ collapsed }: SidebarMcpProps) => {
           <Tooltip>
             <TooltipTrigger render={<div />}>{trigger}</TooltipTrigger>
             <TooltipContent side="right" sideOffset={4}>
-              MCP Server
+              <Trans>MCP Server</Trans>
             </TooltipContent>
           </Tooltip>
         ) : (
@@ -74,9 +80,11 @@ export const SidebarMcp = ({ collapsed }: SidebarMcpProps) => {
         )}
         <PopoverContent side="right" align="end" className="w-96">
           <div className="space-y-3">
-            <div className="font-medium text-sm">MCP Server Configuration</div>
+            <div className="font-medium text-sm">
+              <Trans>MCP Server Configuration</Trans>
+            </div>
             <p className="text-xs text-muted-foreground">
-              Add this to your AI assistant&apos;s MCP configuration:
+              <Trans>Add this to your AI assistant&apos;s MCP configuration:</Trans>
             </p>
             <div className="relative">
               <pre className="bg-muted rounded-md p-3 text-xs overflow-x-auto whitespace-pre-wrap break-all">
@@ -86,7 +94,7 @@ export const SidebarMcp = ({ collapsed }: SidebarMcpProps) => {
                 type="button"
                 onClick={handleCopy}
                 className="absolute top-2 right-2 p-1 rounded hover:bg-background/80 transition-colors cursor-pointer"
-                title="Copy to clipboard"
+                title={t`Copy to clipboard`}
               >
                 {copied ? (
                   <Check className="w-3.5 h-3.5 text-green-500" />
@@ -96,7 +104,9 @@ export const SidebarMcp = ({ collapsed }: SidebarMcpProps) => {
               </button>
             </div>
             <p className="text-xs text-muted-foreground">
-              Works with Claude Code, Cursor, Claude Desktop, and other MCP-compatible clients.
+              <Trans>
+                Works with Claude Code, Cursor, Claude Desktop, and other MCP-compatible clients.
+              </Trans>
             </p>
           </div>
         </PopoverContent>
