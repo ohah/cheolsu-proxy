@@ -200,6 +200,9 @@ export function ScriptPage() {
                   <TabsTrigger value="file">
                     <Trans>File</Trans>
                   </TabsTrigger>
+                  <TabsTrigger value="reference">
+                    <Trans>API Reference</Trans>
+                  </TabsTrigger>
                 </TabsList>
 
                 {tab === "editor" && (
@@ -263,6 +266,10 @@ export function ScriptPage() {
                   </div>
                 </div>
               </TabsContent>
+
+              <TabsContent value="reference" className="flex-1 min-h-0 mt-0 overflow-auto">
+                <ApiReference />
+              </TabsContent>
             </Tabs>
           </ResizablePanel>
 
@@ -309,6 +316,135 @@ export function ScriptPage() {
             </div>
           </ResizablePanel>
         </ResizablePanelGroup>
+      </div>
+    </div>
+  );
+}
+
+function ApiReference() {
+  return (
+    <div className="border rounded-lg p-5 space-y-6 text-sm overflow-auto h-full">
+      <div>
+        <h3 className="font-semibold text-base mb-2">cheolsu.onRequest(handler)</h3>
+        <p className="text-muted-foreground mb-2">
+          HTTP 요청이 프록시를 통과할 때 호출됩니다. 요청을 검사, 수정, 차단할 수 있습니다.
+        </p>
+        <div className="space-y-1 text-xs">
+          <p>
+            <strong>handler</strong>:{" "}
+            <code className="bg-muted px-1 rounded">(request: Request) =&gt; RequestResult</code>
+          </p>
+          <p className="text-muted-foreground ml-4">
+            <strong>request.method</strong> — HTTP 메서드 (GET, POST, PUT 등)
+            <br />
+            <strong>request.url</strong> — 전체 요청 URL
+            <br />
+            <strong>request.headers</strong> — 요청 헤더 (key-value 객체)
+            <br />
+            <strong>request.body</strong> — 요청 본문 (선택)
+          </p>
+          <p className="text-muted-foreground ml-4 mt-2">
+            <strong>반환값:</strong>
+            <br />
+            <code className="bg-muted px-1 rounded">{'{ action: "forward" }'}</code> — 원본 요청
+            그대로 전달
+            <br />
+            <code className="bg-muted px-1 rounded">{'{ action: "modify", request }'}</code> —
+            수정된 요청 전달
+            <br />
+            <code className="bg-muted px-1 rounded">{'{ action: "respond", response }'}</code> —
+            서버 대신 직접 응답
+          </p>
+        </div>
+        <pre className="bg-muted rounded p-3 mt-2 text-xs overflow-x-auto">{`cheolsu.onRequest((req) => {
+  if (req.url.includes("blocked.com")) {
+    return { action: "respond", response: { status: 403, headers: {}, body: "Blocked" } };
+  }
+  return { action: "forward" };
+});`}</pre>
+      </div>
+
+      <div>
+        <h3 className="font-semibold text-base mb-2">cheolsu.onResponse(handler)</h3>
+        <p className="text-muted-foreground mb-2">
+          HTTP 응답이 프록시를 통과할 때 호출됩니다. 응답을 검사하거나 수정할 수 있습니다.
+        </p>
+        <div className="space-y-1 text-xs">
+          <p>
+            <strong>handler</strong>:{" "}
+            <code className="bg-muted px-1 rounded">
+              (request: Request, response: Response) =&gt; ResponseResult
+            </code>
+          </p>
+          <p className="text-muted-foreground ml-4">
+            <strong>response.status</strong> — HTTP 상태 코드
+            <br />
+            <strong>response.headers</strong> — 응답 헤더 (key-value 객체)
+            <br />
+            <strong>response.body</strong> — 응답 본문 (선택)
+          </p>
+          <p className="text-muted-foreground ml-4 mt-2">
+            <strong>반환값:</strong>
+            <br />
+            <code className="bg-muted px-1 rounded">{'{ action: "forward" }'}</code> — 원본 응답
+            그대로 전달
+            <br />
+            <code className="bg-muted px-1 rounded">{'{ action: "modify", response }'}</code> —
+            수정된 응답 전달
+          </p>
+        </div>
+        <pre className="bg-muted rounded p-3 mt-2 text-xs overflow-x-auto">{`cheolsu.onResponse((req, res) => {
+  res.headers["X-Proxy"] = "cheolsu";
+  return { action: "modify", response: res };
+});`}</pre>
+      </div>
+
+      <div>
+        <h3 className="font-semibold text-base mb-2">cheolsu.onWebSocketMessage(handler)</h3>
+        <p className="text-muted-foreground mb-2">
+          WebSocket 메시지가 프록시를 통과할 때 호출됩니다. 메시지를 검사, 수정, 차단할 수 있습니다.
+        </p>
+        <div className="space-y-1 text-xs">
+          <p>
+            <strong>handler</strong>:{" "}
+            <code className="bg-muted px-1 rounded">(message: WsMessage) =&gt; WsResult</code>
+          </p>
+          <p className="text-muted-foreground ml-4">
+            <strong>message.connection_id</strong> — WebSocket 연결 ID
+            <br />
+            <strong>message.url</strong> — WebSocket URL
+            <br />
+            <strong>message.direction</strong> — "to_server" | "to_client"
+            <br />
+            <strong>message.payload</strong> — 메시지 내용
+            <br />
+            <strong>message.is_binary</strong> — 바이너리 여부
+          </p>
+          <p className="text-muted-foreground ml-4 mt-2">
+            <strong>반환값:</strong>
+            <br />
+            <code className="bg-muted px-1 rounded">{'{ action: "forward" }'}</code> — 원본 메시지
+            전달
+            <br />
+            <code className="bg-muted px-1 rounded">
+              {'{ action: "modify", payload, is_binary }'}
+            </code>{" "}
+            — 수정된 메시지 전달
+            <br />
+            <code className="bg-muted px-1 rounded">{'{ action: "drop" }'}</code> — 메시지 차단
+          </p>
+        </div>
+        <pre className="bg-muted rounded p-3 mt-2 text-xs overflow-x-auto">{`cheolsu.onWebSocketMessage((msg) => {
+  console.log(\`[WS \${msg.direction}] \${msg.payload}\`);
+  return { action: "forward" };
+});`}</pre>
+      </div>
+
+      <div>
+        <h3 className="font-semibold text-base mb-2">console.log / warn / error / debug</h3>
+        <p className="text-muted-foreground">
+          표준 콘솔 메서드를 사용할 수 있습니다. 출력은 하단 콘솔 패널에 표시됩니다.
+        </p>
       </div>
     </div>
   );
