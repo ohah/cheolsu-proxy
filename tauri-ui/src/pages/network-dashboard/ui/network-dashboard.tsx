@@ -3,7 +3,6 @@ import { useCallback, useMemo, useState } from "react";
 import { TransactionDetails, SequenceReplayDialog } from "@/features/transaction-details";
 
 import { NetworkHeader } from "@/widgets/network-header";
-import { AppSidebar } from "@/shared/app-sidebar";
 import { NetworkTable } from "@/widgets/network-table";
 
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup, Button } from "@/shared/ui";
@@ -11,13 +10,11 @@ import { useDefaultLayout } from "react-resizable-panels";
 import { Play, X } from "lucide-react";
 
 import { useTransactionFilters, useResizablePanelController } from "../hooks";
-import { useProxyStore, useTransactionStore, useInterceptRuleDialogStore } from "@/shared/stores";
+import { useTransactionStore, useInterceptRuleDialogStore } from "@/shared/stores";
 import { HostPathTree } from "@/widgets/host-path-tree/ui/host-path-tree";
 import { RuleFormDialog } from "@/features/intercept-rule-form";
 
 export const NetworkDashboard = () => {
-  const { isConnected } = useProxyStore();
-
   const transactions = useTransactionStore((s) => s.transactions);
   const selectedTransaction = useTransactionStore((s) => s.selectedTransaction);
   const pinnedTransactionIds = useTransactionStore((s) => s.pinnedTransactionIds);
@@ -109,9 +106,7 @@ export const NetworkDashboard = () => {
   );
 
   return (
-    <div className="flex h-[100vh] w-full">
-      <AppSidebar isConnected={isConnected} />
-
+    <>
       <div className="flex-1 flex flex-col h-full overflow-x-hidden">
         <NetworkHeader
           filterQueryString={filterQueryString}
@@ -222,6 +217,6 @@ export const NetworkDashboard = () => {
         editingRule={null}
         initialValues={interceptRuleInitialValues}
       />
-    </div>
+    </>
   );
 };

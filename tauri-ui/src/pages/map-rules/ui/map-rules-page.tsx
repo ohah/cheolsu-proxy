@@ -1,9 +1,8 @@
 import { useState } from "react";
-import { useProxyStore, useMapRuleStore } from "@/shared/stores";
+import { useMapRuleStore } from "@/shared/stores";
 import { Card, CardContent, Badge, Button, Switch } from "@/shared/ui";
 import { Plus, Trash2, Pencil, FileDown, GitBranch, Eraser } from "lucide-react";
 import { toast } from "sonner";
-import { AppSidebar } from "@/shared/app-sidebar";
 import type { InterceptRule } from "@/entities/intercept-rule";
 import { MapRuleFormDialog } from "@/features/map-rule-form";
 
@@ -24,7 +23,6 @@ const MAP_LABELS: Record<string, { label: string; variant: "default" | "secondar
 };
 
 export const MapRulesPage = () => {
-  const { isConnected } = useProxyStore();
   const { rules, removeRule, toggleRule, clearRules } = useMapRuleStore();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingRule, setEditingRule] = useState<InterceptRule | null>(null);
@@ -50,9 +48,7 @@ export const MapRulesPage = () => {
   };
 
   return (
-    <div className="flex h-[100vh] w-full">
-      <AppSidebar isConnected={isConnected} />
-
+    <>
       <div className="flex-1 flex flex-col h-full overflow-auto">
         <div className="p-6 space-y-6">
           <div className="flex items-center justify-between">
@@ -178,6 +174,6 @@ export const MapRulesPage = () => {
       </div>
 
       <MapRuleFormDialog open={dialogOpen} onOpenChange={setDialogOpen} editingRule={editingRule} />
-    </div>
+    </>
   );
 };

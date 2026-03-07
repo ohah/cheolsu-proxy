@@ -1,9 +1,8 @@
 import { useState } from "react";
-import { useProxyStore, useInterceptRuleStore } from "@/shared/stores";
+import { useInterceptRuleStore } from "@/shared/stores";
 import { Card, CardContent, Badge, Button, Switch } from "@/shared/ui";
 import { Plus, Trash2, Pencil, Ban, ArrowUpDown, ArrowDownUp, Eraser } from "lucide-react";
 import { toast } from "sonner";
-import { AppSidebar } from "@/shared/app-sidebar";
 import type { InterceptRule } from "@/entities/intercept-rule";
 import { RuleFormDialog } from "@/features/intercept-rule-form";
 
@@ -30,7 +29,6 @@ function getActionIcon(type: string) {
 }
 
 export const InterceptRulesPage = () => {
-  const { isConnected } = useProxyStore();
   const { rules, removeRule, toggleRule, clearRules } = useInterceptRuleStore();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingRule, setEditingRule] = useState<InterceptRule | null>(null);
@@ -56,9 +54,7 @@ export const InterceptRulesPage = () => {
   };
 
   return (
-    <div className="flex h-[100vh] w-full">
-      <AppSidebar isConnected={isConnected} />
-
+    <>
       <div className="flex-1 flex flex-col h-full overflow-auto">
         <div className="p-6 space-y-6">
           <div className="flex items-center justify-between">
@@ -191,6 +187,6 @@ export const InterceptRulesPage = () => {
       </div>
 
       <RuleFormDialog open={dialogOpen} onOpenChange={setDialogOpen} editingRule={editingRule} />
-    </div>
+    </>
   );
 };
