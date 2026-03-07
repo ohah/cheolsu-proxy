@@ -84,7 +84,16 @@ fn draw_status_bar(f: &mut Frame, app: &App, area: Rect) {
         Style::default().fg(Color::Gray),
     );
 
-    let help = Span::styled("  Tab: switch | q: quit", Style::default().fg(Color::Gray));
+    let tab_help = match app.tab {
+        Tab::Network => "  j/k: nav | Enter: detail | y/Y: copy | Space: pause | c: clear",
+        Tab::WebSocket => "  j/k: nav | y: copy URI | Y: copy msgs | c: clear",
+        Tab::InterceptRules => "  j/k: nav | a: add | t: toggle | d: delete | C: clear all",
+        Tab::Settings => "",
+    };
+    let help = Span::styled(
+        format!("  Tab: switch | q: quit{}", tab_help),
+        Style::default().fg(Color::Gray),
+    );
 
     let paused = if app.paused {
         Span::styled("  ⏸ Paused", Style::default().fg(Color::Yellow))

@@ -5,13 +5,7 @@ use ratatui::widgets::*;
 use crate::app::{App, RuleFormField};
 
 pub fn draw(f: &mut Frame, app: &App, area: Rect) {
-    let chunks = Layout::default()
-        .direction(Direction::Vertical)
-        .constraints([Constraint::Min(0), Constraint::Length(3)])
-        .split(area);
-
-    draw_rules_list(f, app, chunks[0]);
-    draw_rules_help(f, chunks[1]);
+    draw_rules_list(f, app, area);
 }
 
 fn draw_rules_list(f: &mut Frame, app: &App, area: Rect) {
@@ -76,7 +70,9 @@ fn draw_rules_list(f: &mut Frame, app: &App, area: Rect) {
 
             let selected = app.selected_rule == Some(i);
             let style = if selected {
-                Style::default().bg(Color::Rgb(40, 40, 60))
+                Style::default()
+                    .bg(Color::Rgb(50, 60, 140))
+                    .fg(Color::White)
             } else {
                 Style::default()
             };
@@ -107,32 +103,14 @@ fn draw_rules_list(f: &mut Frame, app: &App, area: Rect) {
         Block::default()
             .borders(Borders::ALL)
             .border_style(Style::default().fg(Color::Gray))
-            .title(format!(" Intercept Rules ({}) ", app.rules.len())),
+            .title(format!(" Intercept Rules ({}) ", app.rules.len()))
+            .title_bottom(
+                Line::from(" j/k: navigate | a: add | t: toggle | d: delete | C: clear all ")
+                    .style(Style::default().fg(Color::DarkGray)),
+            ),
     );
 
     f.render_widget(table, area);
-}
-
-fn draw_rules_help(f: &mut Frame, area: Rect) {
-    let help = Paragraph::new(Line::from(vec![
-        Span::styled("a", Style::default().fg(Color::Yellow)),
-        Span::raw(": add  "),
-        Span::styled("t", Style::default().fg(Color::Yellow)),
-        Span::raw(": toggle  "),
-        Span::styled("d", Style::default().fg(Color::Yellow)),
-        Span::raw(": delete  "),
-        Span::styled("C", Style::default().fg(Color::Yellow)),
-        Span::raw(": clear all  "),
-        Span::styled("j/k", Style::default().fg(Color::Yellow)),
-        Span::raw(": navigate"),
-    ]))
-    .block(
-        Block::default()
-            .borders(Borders::ALL)
-            .border_style(Style::default().fg(Color::Gray)),
-    );
-
-    f.render_widget(help, area);
 }
 
 pub fn draw_rule_form(f: &mut Frame, app: &App, area: Rect) {

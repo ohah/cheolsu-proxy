@@ -43,7 +43,9 @@ fn draw_transaction_list(f: &mut Frame, app: &App, area: Rect) {
 
             let selected = app.selected_transaction == Some(i);
             let style = if selected {
-                Style::default().bg(Color::Rgb(40, 40, 60))
+                Style::default()
+                    .bg(Color::Rgb(50, 60, 140))
+                    .fg(Color::White)
             } else {
                 Style::default()
             };
@@ -80,9 +82,12 @@ fn draw_transaction_list(f: &mut Frame, app: &App, area: Rect) {
         Block::default()
             .borders(Borders::ALL)
             .border_style(Style::default().fg(Color::Gray))
-            .title(title),
+            .title(title)
+            .title_bottom(Line::from(
+                " j/k: navigate | Enter: detail | y: copy URL | Y: copy all | Space: pause | c: clear "
+            ).style(Style::default().fg(Color::DarkGray))),
     )
-    .row_highlight_style(Style::default().bg(Color::Rgb(40, 40, 60)));
+    .row_highlight_style(Style::default().bg(Color::Rgb(50, 60, 140)).fg(Color::White));
 
     f.render_widget(table, area);
 }
