@@ -9,6 +9,7 @@ use tracing::{error, info, warn};
 use crate::handler::{create_hybrid_client, LoggingHandler};
 use crate::protocol::{ClientCommand, DaemonMessage, ProxyLockInfo};
 use crate::system_proxy::set_proxy;
+use proxyapi_v2::upstream_proxy::UpstreamProxyConfig;
 use proxyapi_v2::websocket_registry::WebSocketRegistry;
 
 pub fn app_support_dir() -> Result<PathBuf, String> {
@@ -138,6 +139,8 @@ async fn daemon_main(port: u16, host: String) -> i32 {
     let (intercept_tx, intercept_rx) =
         watch::channel::<Vec<crate::protocol::InterceptRule>>(Vec::new());
 
+    let (upstream_tx, upstream_rx) = watch::channel::<Option<UpstreamProxyConfig>>(None);
+
     let ws_registry = WebSocketRegistry::new();
 
     let addr: std::net::SocketAddr = format!("{}:{}", host, port)
@@ -151,7 +154,15 @@ async fn daemon_main(port: u16, host: String) -> i32 {
     let event_tx_proxy = event_tx.clone();
     let registry_for_proxy = ws_registry.clone();
     let proxy_handle = tokio::spawn(async move {
-        if let Err(code) = run_proxy(addr, event_tx_proxy, intercept_rx, registry_for_proxy).await {
+        if let Err(code) = run_proxy(
+            addr,
+            event_tx_proxy,
+            intercept_rx,
+            upstream_rx,
+            registry_for_proxy,
+        )
+        .await
+        {
             error!("Proxy error: {}", code);
         }
     });
@@ -207,10 +218,11 @@ async fn daemon_main(port: u16, host: String) -> i32 {
                         let client_count_clone = client_count.clone();
                         let shutdown_tx_clone = shutdown_tx.clone();
                         let intercept_tx_clone = intercept_tx.clone();
+                        let upstream_tx_clone = upstream_tx.clone();
                         let registry_clone = ws_registry.clone();
 
                         tokio::spawn(async move {
-                            handle_client(stream, event_rx, intercept_tx_clone, event_tx_clone, port, registry_clone)
+                            handle_client(stream, event_rx, intercept_tx_clone, upstream_tx_clone, event_tx_clone, port, registry_clone)
                                 .await;
 
                             let remaining = client_count_clone.fetch_sub(1, Ordering::SeqCst) - 1;
@@ -254,6 +266,7 @@ async fn run_proxy(
     addr: std::net::SocketAddr,
     event_tx: broadcast::Sender<String>,
     mut intercept_rx: watch::Receiver<Vec<crate::protocol::InterceptRule>>,
+    upstream_rx: watch::Receiver<Option<UpstreamProxyConfig>>,
     ws_registry: WebSocketRegistry,
 ) -> Result<(), String> {
     use proxyapi_v2::builder::ProxyBuilder;
@@ -292,8 +305,10 @@ async fn run_proxy(
         }
     });
 
-    let hybrid_client =
-        create_hybrid_client().map_err(|e| format!("Client creation failed: {}", e))?;
+    let initial_upstream = upstream_rx.borrow().clone();
+
+    let hybrid_client = create_hybrid_client(initial_upstream.clone())
+        .map_err(|e| format!("Client creation failed: {}", e))?;
 
     let listener = TcpListener::bind(addr)
         .await
@@ -309,6 +324,7 @@ async fn run_proxy(
         tunnel_event_sender: Some(tunnel_tx),
         tls_passthrough: Some(tls_passthrough),
         websocket_registry: Some(ws_registry),
+        upstream_proxy: initial_upstream,
         ..Default::default()
     };
 
@@ -373,6 +389,7 @@ pub async fn handle_client(
     stream: UnixStream,
     mut event_rx: broadcast::Receiver<String>,
     intercept_tx: watch::Sender<Vec<crate::protocol::InterceptRule>>,
+    upstream_tx: watch::Sender<Option<UpstreamProxyConfig>>,
     event_tx: broadcast::Sender<String>,
     port: u16,
     ws_registry: WebSocketRegistry,
@@ -498,6 +515,13 @@ pub async fn handle_client(
                         let mut w = writer.lock().await;
                         let _ = w.write_all(line.as_bytes()).await;
                         let _ = w.flush().await;
+                    }
+                    Ok(ClientCommand::UpdateUpstreamProxy { config }) => {
+                        info!(
+                            "Upstream proxy config updated: {:?}",
+                            config.as_ref().map(|c| c.address())
+                        );
+                        let _ = upstream_tx.send(config);
                     }
                     Ok(ClientCommand::Stop) => {
                         break;

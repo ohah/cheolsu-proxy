@@ -1,4 +1,5 @@
 use proxy_v2_models::{RequestInfo, WsConnectionEvent, WsMessageInfo};
+use proxyapi_v2::upstream_proxy::UpstreamProxyConfig;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -38,6 +39,8 @@ pub enum ClientCommand {
         payload: String,
         is_binary: bool,
     },
+    #[serde(rename = "update_upstream_proxy")]
+    UpdateUpstreamProxy { config: Option<UpstreamProxyConfig> },
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
