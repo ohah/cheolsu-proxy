@@ -29,7 +29,9 @@ fn draw_connections(f: &mut Frame, app: &App, area: Rect) {
 
             let selected = app.selected_ws_conn == Some(i);
             let style = if selected {
-                Style::default().bg(Color::Rgb(40, 40, 60))
+                Style::default()
+                    .bg(Color::Rgb(50, 60, 140))
+                    .fg(Color::White)
             } else {
                 Style::default()
             };
@@ -46,7 +48,11 @@ fn draw_connections(f: &mut Frame, app: &App, area: Rect) {
         Block::default()
             .borders(Borders::ALL)
             .border_style(Style::default().fg(Color::Gray))
-            .title(format!(" Connections ({}) ", app.ws_connections.len())),
+            .title(format!(" Connections ({}) ", app.ws_connections.len()))
+            .title_bottom(
+                Line::from(" j/k: navigate | y: copy URI | c: clear ")
+                    .style(Style::default().fg(Color::DarkGray)),
+            ),
     );
 
     f.render_widget(table, area);
@@ -130,7 +136,10 @@ fn draw_messages(f: &mut Frame, app: &App, area: Rect) {
         Block::default()
             .borders(Borders::ALL)
             .border_style(Style::default().fg(Color::Gray))
-            .title(title),
+            .title(title)
+            .title_bottom(
+                Line::from(" Y: copy messages ").style(Style::default().fg(Color::DarkGray)),
+            ),
     );
 
     f.render_widget(table, area);
