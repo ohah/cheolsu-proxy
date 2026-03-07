@@ -141,6 +141,17 @@ struct RemoveRuleParams {
     id: String,
 }
 
+#[derive(Debug, Deserialize, schemars::JsonSchema)]
+struct LoadScriptParams {
+    /// File path to a JavaScript/TypeScript script
+    path: Option<String>,
+    /// Inline JavaScript/TypeScript code
+    code: Option<String>,
+}
+
+#[derive(Debug, Deserialize, schemars::JsonSchema)]
+struct UnloadScriptParams {}
+
 // ─── Helpers ────────────────────────────────────────────────
 
 fn tool_error(msg: impl Into<String>) -> Result<CallToolResult, McpError> {
@@ -601,6 +612,52 @@ impl CheolsuMcpServer {
                 "Rule removed locally but failed to sync with daemon: {}",
                 e
             )),
+        }
+    }
+
+    #[tool(
+        description = "Load a JavaScript/TypeScript script to intercept and modify proxy traffic. Provide either a file path or inline code. The script can use cheolsu.onRequest(), cheolsu.onResponse(), cheolsu.onWebSocketMessage() hooks."
+    )]
+    async fn load_script(
+        &self,
+        Parameters(p): Parameters<LoadScriptParams>,
+    ) -> Result<CallToolResult, McpError> {
+        if p.path.is_none() && p.code.is_none() {
+            return tool_error("Either 'path' or 'code' must be provided.");
+        }
+        let conn_guard = self.daemon_conn.lock().await;
+        let Some(conn) = conn_guard.as_ref() else {
+            return tool_error("Not connected to proxy daemon.");
+        };
+        let cmd = ClientCommand::LoadScript {
+            path: p.path.clone(),
+            code: p.code.clone(),
+        };
+        match conn.send_command(&cmd).await {
+            Ok(()) => {
+                let source = if let Some(ref path) = p.path {
+                    format!("file '{}'", path)
+                } else {
+                    "inline code".to_string()
+                };
+                tool_ok(format!("Script loaded from {}.", source))
+            }
+            Err(e) => tool_error(format!("Failed to load script: {}", e)),
+        }
+    }
+
+    #[tool(description = "Unload the currently loaded proxy script.")]
+    async fn unload_script(
+        &self,
+        #[allow(unused_variables)] Parameters(_p): Parameters<UnloadScriptParams>,
+    ) -> Result<CallToolResult, McpError> {
+        let conn_guard = self.daemon_conn.lock().await;
+        let Some(conn) = conn_guard.as_ref() else {
+            return tool_error("Not connected to proxy daemon.");
+        };
+        match conn.send_command(&ClientCommand::UnloadScript).await {
+            Ok(()) => tool_ok("Script unloaded."),
+            Err(e) => tool_error(format!("Failed to unload script: {}", e)),
         }
     }
 
