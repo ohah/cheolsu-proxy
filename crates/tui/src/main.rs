@@ -9,11 +9,11 @@ use clap::Parser;
 #[derive(Parser, Debug)]
 #[command(name = "cheolsu", about = "Cheolsu Proxy TUI")]
 struct Cli {
-    /// 프록시 포트
+    /// Proxy port
     #[arg(short, long, default_value_t = 8100)]
     port: u16,
 
-    /// 프록시 호스트
+    /// Proxy host
     #[arg(short = 'b', long, default_value = "127.0.0.1")]
     host: String,
 }
@@ -26,7 +26,7 @@ async fn main() -> color_eyre_stub::Result<()> {
     app.run().await
 }
 
-/// color_eyre 없이 간단한 에러 처리
+/// Simple error handling without color_eyre
 mod color_eyre_stub {
     pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 }

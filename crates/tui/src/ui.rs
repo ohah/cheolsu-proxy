@@ -13,15 +13,20 @@ pub fn draw(f: &mut Frame, app: &App) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
-            Constraint::Length(3), // 탭 바
-            Constraint::Min(0),    // 콘텐츠
-            Constraint::Length(1), // 상태 바
+            Constraint::Length(3), // Tab bar
+            Constraint::Min(0),    // Content
+            Constraint::Length(1), // Status bar
         ])
         .split(f.area());
 
     draw_tabs(f, app, chunks[0]);
     draw_content(f, app, chunks[1]);
     draw_status_bar(f, app, chunks[2]);
+
+    // Draw rule form overlay if open
+    if app.rule_form.is_some() {
+        rules::draw_rule_form(f, app, f.area());
+    }
 }
 
 fn draw_tabs(f: &mut Frame, app: &App, area: Rect) {
@@ -79,21 +84,27 @@ fn draw_status_bar(f: &mut Frame, app: &App, area: Rect) {
         Style::default().fg(Color::Gray),
     );
 
-    let help = Span::styled("  Tab: 탭전환 | q: 종료", Style::default().fg(Color::Gray));
+    let help = Span::styled("  Tab: switch | q: quit", Style::default().fg(Color::Gray));
 
     let paused = if app.paused {
-        Span::styled("  ⏸ 일시정지", Style::default().fg(Color::Yellow))
+        Span::styled("  ⏸ Paused", Style::default().fg(Color::Yellow))
     } else {
         Span::raw("")
     };
 
-    let bar = Line::from(vec![status_indicator, port_info, paused, help]);
+    let status_msg = if let Some((msg, _)) = &app.status_message {
+        Span::styled(format!("  {}", msg), Style::default().fg(Color::Green))
+    } else {
+        Span::raw("")
+    };
+
+    let bar = Line::from(vec![status_indicator, port_info, paused, help, status_msg]);
     let paragraph = Paragraph::new(bar).style(Style::default().bg(Color::Rgb(30, 30, 30)));
 
     f.render_widget(paragraph, area);
 }
 
-/// 바이트 크기를 읽기 좋은 형식으로 변환
+/// Format byte size to human-readable form
 pub fn format_size(bytes: usize) -> String {
     if bytes < 1024 {
         format!("{}B", bytes)
@@ -104,7 +115,7 @@ pub fn format_size(bytes: usize) -> String {
     }
 }
 
-/// 나노초 타임스탬프를 시:분:초로 변환
+/// Convert nanosecond timestamp to HH:MM:SS
 pub fn format_time(nanos: i64) -> String {
     let secs = nanos / 1_000_000_000;
     let h = (secs / 3600) % 24;

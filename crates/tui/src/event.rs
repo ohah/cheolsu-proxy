@@ -4,15 +4,15 @@ use proxy_daemon::DaemonMessage;
 use std::time::Duration;
 use tokio::sync::mpsc;
 
-/// TUI에서 처리하는 이벤트
+/// Events handled by the TUI
 pub enum Event {
-    /// 키보드 입력
+    /// Keyboard input
     Key(KeyEvent),
-    /// 터미널 리사이즈
+    /// Terminal resize
     Resize,
-    /// 데몬에서 온 메시지
+    /// Message from the daemon
     Daemon(DaemonMessage),
-    /// 주기적 틱 (UI 갱신용)
+    /// Periodic tick (for UI refresh)
     Tick,
 }
 
