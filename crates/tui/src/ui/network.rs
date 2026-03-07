@@ -76,7 +76,7 @@ fn draw_transaction_list(f: &mut Frame, app: &mut App, area: Rect) {
     f.render_stateful_widget(table, area, &mut app.network_table_state);
 }
 
-fn draw_transaction_detail(f: &mut Frame, app: &App, area: Rect) {
+fn draw_transaction_detail(f: &mut Frame, app: &mut App, area: Rect) {
     let Some(idx) = app.selected_transaction else {
         return;
     };
@@ -147,6 +147,12 @@ fn draw_transaction_detail(f: &mut Frame, app: &App, area: Rect) {
             )));
         }
     }
+
+    // 표시 영역 높이 (border 2줄 제외)
+    let visible_height = area.height.saturating_sub(2) as u16;
+    let total_lines = lines.len() as u16;
+    let max_scroll = total_lines.saturating_sub(visible_height);
+    app.detail_scroll = app.detail_scroll.min(max_scroll);
 
     let paragraph = Paragraph::new(lines)
         .block(
