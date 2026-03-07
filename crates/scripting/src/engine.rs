@@ -1,6 +1,7 @@
 use crate::transpiler::transpile_ts;
 use crate::types::{
-    RequestAction, ResponseAction, ScriptRequest, ScriptResponse, ScriptWsMessage, WsAction,
+    RequestAction, ResponseAction, ScriptLogEntry, ScriptRequest, ScriptResponse, ScriptWsMessage,
+    WsAction,
 };
 use deno_core::JsRuntime;
 use tracing::info;
@@ -203,6 +204,14 @@ impl ScriptEngine {
             .ok_or_else(|| "JS 결과를 문자열로 변환 실패".to_string())?;
 
         Ok(result.to_rust_string_lossy(scope))
+    }
+
+    /// 로그 버퍼를 드레인하여 반환
+    pub fn drain_logs(&mut self) -> Vec<ScriptLogEntry> {
+        match self.eval_string("globalThis.__cheolsu_internal.drainLogs()") {
+            Ok(json) => serde_json::from_str(&json).unwrap_or_default(),
+            Err(_) => Vec::new(),
+        }
     }
 
     pub fn has_on_request(&self) -> bool {

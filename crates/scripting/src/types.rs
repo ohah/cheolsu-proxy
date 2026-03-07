@@ -80,6 +80,13 @@ pub enum WsAction {
     Drop,
 }
 
+/// 스크립트 로그 엔트리
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ScriptLogEntry {
+    pub level: String,
+    pub message: String,
+}
+
 /// 스크립트 로드 설정
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ScriptConfig {

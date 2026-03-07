@@ -1,9 +1,10 @@
 use crate::engine::ScriptEngine;
 use crate::types::{
-    RequestAction, ResponseAction, ScriptRequest, ScriptResponse, ScriptWsMessage, WsAction,
+    RequestAction, ResponseAction, ScriptLogEntry, ScriptRequest, ScriptResponse, ScriptWsMessage,
+    WsAction,
 };
 use std::sync::Arc;
-use tokio::sync::{mpsc, oneshot};
+use tokio::sync::{broadcast, mpsc, oneshot};
 
 /// 스크립트 엔진으로 보내는 명령
 enum ScriptCommand {
@@ -42,6 +43,7 @@ enum ScriptCommand {
 pub struct ScriptHandle {
     tx: mpsc::Sender<ScriptCommand>,
     active: Arc<std::sync::atomic::AtomicBool>,
+    log_tx: broadcast::Sender<ScriptLogEntry>,
 }
 
 impl ScriptHandle {
@@ -49,22 +51,29 @@ impl ScriptHandle {
     pub fn new() -> Self {
         let (tx, rx) = mpsc::channel(32);
         let active = Arc::new(std::sync::atomic::AtomicBool::new(false));
+        let (log_tx, _) = broadcast::channel(256);
 
         let active_clone = active.clone();
+        let log_tx_clone = log_tx.clone();
         std::thread::spawn(move || {
             let rt = tokio::runtime::Builder::new_current_thread()
                 .enable_all()
                 .build()
                 .expect("Failed to create scripting runtime");
-            rt.block_on(script_engine_loop(rx, active_clone));
+            rt.block_on(script_engine_loop(rx, active_clone, log_tx_clone));
         });
 
-        Self { tx, active }
+        Self { tx, active, log_tx }
     }
 
     /// 스크립트가 활성화되어 있는지 확인
     pub fn is_active(&self) -> bool {
         self.active.load(std::sync::atomic::Ordering::Relaxed)
+    }
+
+    /// 로그 수신 구독
+    pub fn subscribe_logs(&self) -> broadcast::Receiver<ScriptLogEntry> {
+        self.log_tx.subscribe()
     }
 
     /// 스크립트 파일 로드
@@ -188,10 +197,18 @@ impl ScriptHandle {
     }
 }
 
+/// 엔진에서 로그를 드레인하여 broadcast 채널로 전송
+fn flush_logs(engine: &mut ScriptEngine, log_tx: &broadcast::Sender<ScriptLogEntry>) {
+    for entry in engine.drain_logs() {
+        let _ = log_tx.send(entry);
+    }
+}
+
 /// 전용 스레드에서 실행되는 스크립트 엔진 이벤트 루프
 async fn script_engine_loop(
     mut rx: mpsc::Receiver<ScriptCommand>,
     active: Arc<std::sync::atomic::AtomicBool>,
+    log_tx: broadcast::Sender<ScriptLogEntry>,
 ) {
     let mut engine: Option<ScriptEngine> = None;
 
@@ -200,6 +217,7 @@ async fn script_engine_loop(
             ScriptCommand::LoadFile { path, reply } => {
                 let result = ScriptEngine::new().and_then(|mut e| {
                     e.load_script(&path)?;
+                    flush_logs(&mut e, &log_tx);
                     Ok(e)
                 });
                 match result {
@@ -216,6 +234,7 @@ async fn script_engine_loop(
             ScriptCommand::LoadCode { code, reply } => {
                 let result = ScriptEngine::new().and_then(|mut e| {
                     e.load_code(&code)?;
+                    flush_logs(&mut e, &log_tx);
                     Ok(e)
                 });
                 match result {
@@ -232,6 +251,7 @@ async fn script_engine_loop(
             ScriptCommand::LoadTsCode { code, reply } => {
                 let result = ScriptEngine::new().and_then(|mut e| {
                     e.load_ts_code(&code)?;
+                    flush_logs(&mut e, &log_tx);
                     Ok(e)
                 });
                 match result {
@@ -252,7 +272,9 @@ async fn script_engine_loop(
             }
             ScriptCommand::InvokeOnRequest { request, reply } => {
                 let result = if let Some(e) = engine.as_mut() {
-                    e.invoke_on_request(&request)
+                    let r = e.invoke_on_request(&request);
+                    flush_logs(e, &log_tx);
+                    r
                 } else {
                     Ok(RequestAction::Forward)
                 };
@@ -264,7 +286,9 @@ async fn script_engine_loop(
                 reply,
             } => {
                 let result = if let Some(e) = engine.as_mut() {
-                    e.invoke_on_response(&request, &response)
+                    let r = e.invoke_on_response(&request, &response);
+                    flush_logs(e, &log_tx);
+                    r
                 } else {
                     Ok(ResponseAction::Forward)
                 };
@@ -272,7 +296,9 @@ async fn script_engine_loop(
             }
             ScriptCommand::InvokeOnWsMessage { message, reply } => {
                 let result = if let Some(e) = engine.as_mut() {
-                    e.invoke_on_ws_message(&message)
+                    let r = e.invoke_on_ws_message(&message);
+                    flush_logs(e, &log_tx);
+                    r
                 } else {
                     Ok(WsAction::Forward)
                 };
