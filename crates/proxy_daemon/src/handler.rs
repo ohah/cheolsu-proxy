@@ -3,10 +3,7 @@ use bytes::Bytes;
 use futures_util::stream::StreamExt;
 use http_body_util::{BodyExt, StreamBody};
 use hyper_rustls::HttpsConnectorBuilder;
-use hyper_util::{
-    client::legacy::{connect::HttpConnector, Client},
-    rt::TokioExecutor,
-};
+use hyper_util::{client::legacy::Client, rt::TokioExecutor};
 use proxy_v2_models::{
     ProxiedRequest, ProxiedResponse, RequestInfo, WsConnectionEvent, WsDirection, WsMessageInfo,
     WsMessageType,
@@ -15,6 +12,7 @@ use proxyapi_v2::{
     hyper::http::{HeaderMap, HeaderName, HeaderValue, Method, StatusCode},
     hyper::{Request, Response},
     tokio_tungstenite::tungstenite::Message,
+    upstream_proxy::{ProxyHttpConnector, UpstreamProxyConfig},
     Body, HttpContext, HttpHandler, RequestOrResponse, WebSocketContext, WebSocketHandler,
 };
 use regex::Regex;
@@ -88,9 +86,13 @@ impl tokio_rustls::rustls::client::danger::ServerCertVerifier for DangerousCerti
     }
 }
 
-/// 하이브리드 클라이언트 생성 (모든 인증서 허용)
+/// 하이브리드 클라이언트 생성 (모든 인증서 허용, upstream proxy 지원)
 pub fn create_hybrid_client(
-) -> Result<Client<hyper_rustls::HttpsConnector<HttpConnector>, Body>, Box<dyn std::error::Error>> {
+    upstream: Option<UpstreamProxyConfig>,
+) -> Result<
+    Client<hyper_rustls::HttpsConnector<ProxyHttpConnector>, Body>,
+    Box<dyn std::error::Error>,
+> {
     let rustls_config =
         ClientConfig::builder_with_provider(std::sync::Arc::new(aws_lc_rs::default_provider()))
             .with_safe_default_protocol_versions()?
@@ -98,11 +100,13 @@ pub fn create_hybrid_client(
             .with_custom_certificate_verifier(std::sync::Arc::new(DangerousCertificateVerifier))
             .with_no_client_auth();
 
+    let proxy_connector = ProxyHttpConnector::new(upstream);
+
     let https = HttpsConnectorBuilder::new()
         .with_tls_config(rustls_config)
         .https_or_http()
         .enable_http1()
-        .build();
+        .wrap_connector(proxy_connector);
 
     Ok(Client::builder(TokioExecutor::new())
         .http1_title_case_headers(true)
