@@ -22,16 +22,22 @@ struct Cli {
     daemon: bool,
 }
 
-#[tokio::main]
-async fn main() -> color_eyre_stub::Result<()> {
+fn main() -> color_eyre_stub::Result<()> {
     let cli = Cli::parse();
 
+    // Daemon mode: run_daemon creates its own tokio runtime and never returns.
+    // Must be called before #[tokio::main] to avoid nested runtime panic.
     if cli.daemon {
         proxy_daemon::run_daemon(cli.port, cli.host);
     }
 
-    let mut app = App::new(cli.port, cli.host);
-    app.run().await
+    tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .build()?
+        .block_on(async {
+            let mut app = App::new(cli.port, cli.host);
+            app.run().await
+        })
 }
 
 /// Simple error handling without color_eyre
