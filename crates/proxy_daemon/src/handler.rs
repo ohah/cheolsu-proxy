@@ -1,4 +1,4 @@
-use crate::protocol::{InterceptAction, InterceptRule};
+use crate::protocol::{InterceptAction, InterceptRule, ServerReplayEntry};
 use bytes::Bytes;
 use futures_util::stream::StreamExt;
 use http_body_util::{BodyExt, StreamBody};
@@ -133,6 +133,7 @@ pub struct LoggingHandler {
     req: Option<ProxiedRequest>,
     res: Option<ProxiedResponse>,
     intercept_rules: Arc<Mutex<Vec<InterceptRule>>>,
+    server_replay_entries: Arc<Mutex<Vec<ServerReplayEntry>>>,
     cache_dir: Option<std::path::PathBuf>,
 }
 
@@ -149,6 +150,7 @@ impl LoggingHandler {
             req: None,
             res: None,
             intercept_rules: Arc::new(Mutex::new(Vec::new())),
+            server_replay_entries: Arc::new(Mutex::new(Vec::new())),
             cache_dir: Some(cache_dir),
         }
     }
@@ -163,6 +165,22 @@ impl LoggingHandler {
         let mut rules_guard = self.intercept_rules.lock().await;
         info!("[Intercept] 규칙 업데이트: {} 개", rules.len());
         *rules_guard = rules;
+    }
+
+    /// 서버 리플레이 엔트리 업데이트
+    pub async fn update_server_replay_entries(&self, entries: Vec<ServerReplayEntry>) {
+        let mut entries_guard = self.server_replay_entries.lock().await;
+        info!("[ServerReplay] 엔트리 업데이트: {} 개", entries.len());
+        *entries_guard = entries;
+    }
+
+    /// 서버 리플레이 매칭: method + URL이 일치하는 엔트리 검색
+    async fn find_server_replay_match(&self, url: &str, method: &str) -> Option<ServerReplayEntry> {
+        let entries = self.server_replay_entries.lock().await;
+        entries
+            .iter()
+            .find(|entry| entry.method.eq_ignore_ascii_case(method) && entry.url == url)
+            .cloned()
     }
 
     /// 와일드카드 패턴 매칭 (* = 임의 문자열, ? = 단일 문자)
@@ -749,9 +767,36 @@ impl HttpHandler for LoggingHandler {
 
         self.req = Some(proxied_request.clone());
 
-        // 인터셉트 규칙 적용 (차단, 요청 수정)
         let url = proxied_request.uri().to_string();
         let method = proxied_request.method().to_string();
+
+        // 서버 리플레이 매칭 확인 (인터셉트보다 우선)
+        if let Some(entry) = self.find_server_replay_match(&url, &method).await {
+            info!(
+                "[ServerReplay] 매칭: {} {} -> status {} (id: {})",
+                method, url, entry.status, entry.id
+            );
+            let mut response = Response::builder()
+                .status(StatusCode::from_u16(entry.status).unwrap_or(StatusCode::OK))
+                .header("x-cheolsu-server-replay", "true")
+                .header("x-cheolsu-server-replay-id", &entry.id);
+
+            for (name, value) in &entry.headers {
+                response = response.header(name.as_str(), value.as_str());
+            }
+
+            let body_bytes = entry.body.unwrap_or_default();
+            let res = response.body(Body::from(body_bytes)).unwrap_or_else(|_| {
+                Response::builder()
+                    .status(StatusCode::INTERNAL_SERVER_ERROR)
+                    .body(Body::from("Server replay error"))
+                    .unwrap()
+            });
+            self.send_output().await;
+            return res.into();
+        }
+
+        // 인터셉트 규칙 적용 (차단, 요청 수정)
         let result = self
             .apply_request_intercept(restored_req, &url, &method)
             .await;

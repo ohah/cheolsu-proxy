@@ -41,6 +41,8 @@ pub enum ClientCommand {
     },
     #[serde(rename = "update_upstream_proxy")]
     UpdateUpstreamProxy { config: Option<UpstreamProxyConfig> },
+    #[serde(rename = "update_server_replay")]
+    UpdateServerReplay { entries: Vec<ServerReplayEntry> },
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -118,6 +120,17 @@ pub enum InterceptAction {
         #[serde(default = "default_true")]
         preserve_path: bool,
     },
+}
+
+/// 서버 리플레이 엔트리: 캡처된 응답을 저장하여 동일 요청 시 재사용
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct ServerReplayEntry {
+    pub id: String,
+    pub method: String,
+    pub url: String,
+    pub status: u16,
+    pub headers: HashMap<String, String>,
+    pub body: Option<String>,
 }
 
 fn default_block_status() -> u16 {
