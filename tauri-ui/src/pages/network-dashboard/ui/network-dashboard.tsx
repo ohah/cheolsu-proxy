@@ -184,7 +184,7 @@ export const NetworkDashboard = () => {
 
           {checkedTransactionIds.size > 0 && (
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-3 bg-primary text-primary-foreground px-4 py-2.5 rounded-lg shadow-lg z-10">
-              <span className="text-sm font-medium">{checkedTransactionIds.size}개 선택됨</span>
+              <span className="text-sm font-medium">{checkedTransactionIds.size} selected</span>
               <Button size="sm" variant="secondary" onClick={() => setSequenceReplayOpen(true)}>
                 <Play className="w-4 h-4 mr-1" />
                 Replay

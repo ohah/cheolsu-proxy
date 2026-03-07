@@ -146,7 +146,7 @@ export const WsMessageTable = memo(
     if (messages.length === 0) {
       return (
         <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">
-          WebSocket 메시지를 기다리는 중...
+          Waiting for WebSocket messages...
         </div>
       );
     }

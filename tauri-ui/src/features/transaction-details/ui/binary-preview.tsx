@@ -182,10 +182,10 @@ export const BinaryPreview = ({
                 variant="outline"
                 size="sm"
                 onClick={() => setShowPdf(!showPdf)}
-                title="PDF 미리보기"
+                title="PDF Preview"
               >
                 {showPdf ? <EyeOff className="w-4 h-4 mr-1" /> : <Eye className="w-4 h-4 mr-1" />}
-                {showPdf ? "닫기" : "미리보기"}
+                {showPdf ? "Close" : "Preview"}
               </Button>
             )}
             <Button
@@ -193,19 +193,19 @@ export const BinaryPreview = ({
               size="sm"
               onClick={handleToggleHex}
               disabled={loading}
-              title="Hex Dump 보기"
+              title="View Hex Dump"
             >
-              {showHex ? "Hex 닫기" : "Hex 보기"}
+              {showHex ? "Close Hex" : "View Hex"}
             </Button>
             <Button
               variant="outline"
               size="sm"
               onClick={handleDownload}
               disabled={loading}
-              title="파일 다운로드"
+              title="Download File"
             >
               <Download className="w-4 h-4 mr-1" />
-              다운로드
+              Download
             </Button>
           </div>
         </div>
@@ -217,7 +217,7 @@ export const BinaryPreview = ({
               <embed src={pdfUrl} type="application/pdf" className="w-full h-full" />
             ) : (
               <div className="flex items-center justify-center h-full text-muted-foreground">
-                PDF 로딩 중...
+                Loading PDF...
               </div>
             )}
           </div>
@@ -228,7 +228,7 @@ export const BinaryPreview = ({
           <div className="flex-1 min-h-0 overflow-auto">
             {loading ? (
               <div className="flex items-center justify-center h-full text-muted-foreground">
-                데이터 로딩 중...
+                Loading data...
               </div>
             ) : actualData ? (
               <div className="p-4">
@@ -243,13 +243,13 @@ export const BinaryPreview = ({
                       className="mt-2"
                       onClick={() => setHexMaxRows(Math.min(hexMaxRows * 2, HEX_MAX_ROWS))}
                     >
-                      더 보기
+                      Show more
                     </Button>
                   )}
               </div>
             ) : (
               <div className="flex items-center justify-center h-full text-muted-foreground">
-                데이터를 불러올 수 없습니다
+                Failed to load data
               </div>
             )}
           </div>
@@ -260,8 +260,8 @@ export const BinaryPreview = ({
           <div className="flex-1 flex items-center justify-center text-muted-foreground">
             <div className="text-center">
               <span className="text-4xl">{dataTypeToIcon(dataType)}</span>
-              <p className="mt-2 text-sm">이 파일은 바이너리 형식입니다</p>
-              <p className="text-xs mt-1">Hex 보기 또는 다운로드를 사용하세요</p>
+              <p className="mt-2 text-sm">This file is in binary format</p>
+              <p className="text-xs mt-1">Use Hex view or download to inspect</p>
             </div>
           </div>
         )}
