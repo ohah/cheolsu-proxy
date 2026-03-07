@@ -3,6 +3,7 @@ import { NetworkDashboard } from "@/pages/network-dashboard";
 import { InterceptRulesPage } from "@/pages/intercept-rules";
 import { MapRulesPage } from "@/pages/map-rules";
 import { WebSocketDashboard } from "@/pages/websocket-dashboard";
+import { SettingsPage } from "@/pages/settings";
 
 // React Router v7의 기본 라우터 설정
 export const router = createBrowserRouter([
@@ -46,23 +47,14 @@ export const router = createBrowserRouter([
       description: "WebSocket connections and messages",
     },
   },
-  // 향후 추가될 페이지들을 위한 라우트들
-  // {
-  //   path: '/settings',
-  //   element: <SettingsPage />,
-  //   handle: {
-  //     title: 'Settings - Cheolsu Proxy',
-  //     description: 'Application settings and configuration',
-  //   },
-  // },
-  // {
-  //   path: '/about',
-  //   element: <AboutPage />,
-  //   handle: {
-  //     title: 'About - Cheolsu Proxy',
-  //     description: 'About Cheolsu Proxy application',
-  //   },
-  // },
+  {
+    path: "/settings",
+    element: <SettingsPage />,
+    handle: {
+      title: "Settings - Cheolsu Proxy",
+      description: "Application settings and configuration",
+    },
+  },
 ]);
 
 export const RouterProvider = () => {
