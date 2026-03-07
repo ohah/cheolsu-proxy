@@ -66,7 +66,10 @@ const App: React.FC = () => {
     const unlisten = listen<InterceptRule[]>("intercept_rules_updated", (event) => {
       const rules = event.payload;
       const interceptRules = rules.filter(
-        (r) => r.action.type === "block" || r.action.type === "modify_request" || r.action.type === "modify_response",
+        (r) =>
+          r.action.type === "block" ||
+          r.action.type === "modify_request" ||
+          r.action.type === "modify_response",
       );
       const mapRules = rules.filter(
         (r) => r.action.type === "map_local" || r.action.type === "map_remote",

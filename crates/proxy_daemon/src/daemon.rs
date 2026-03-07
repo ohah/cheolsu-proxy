@@ -439,7 +439,9 @@ pub async fn handle_client(
                     Ok(ClientCommand::UpdateInterceptRules { rules }) => {
                         info!("Intercept rules updated from client: {} rules", rules.len());
                         // 다른 클라이언트에게 규칙 변경 broadcast
-                        let broadcast_msg = DaemonMessage::InterceptRulesUpdated { rules: rules.clone() };
+                        let broadcast_msg = DaemonMessage::InterceptRulesUpdated {
+                            rules: rules.clone(),
+                        };
                         if let Ok(json) = serde_json::to_string(&broadcast_msg) {
                             let _ = event_tx.send(json);
                         }
