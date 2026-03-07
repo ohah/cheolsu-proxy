@@ -22,14 +22,17 @@
 
 ---
 
-## 3. 스크립팅/플러그인 (TypeScript)
+## ~~3. 스크립팅/플러그인 (TypeScript)~~ ✅ 완료
 
 사용자가 TypeScript로 프록시 동작을 커스터마이징하는 기능. 요청/응답을 가로채서 동적으로 수정하거나 로깅하는 스크립트를 작성할 수 있음. Python 대신 TypeScript를 채택하여 프론트엔드(Tauri UI)와 언어 통일.
 
-- TypeScript 런타임 내장 (deno_core 또는 boa_engine)
+- TypeScript 런타임 내장 (deno_core)
 - 요청/응답 훅 (onRequest, onResponse, onWebSocketMessage)
 - 스크립트 핫 리로드
 - 빌트인 API (헤더 수정, 바디 변환, 로깅 등)
+- TUI: Settings 탭에서 스크립트 로드/언로드
+- Desktop: Monaco 에디터 내장 (인라인 편집, 파일 불러오기, API Reference, 콘솔 로그, 드래그 리사이즈)
+- MCP 서버: load_script / unload_script 도구
 
 ---
 
@@ -84,14 +87,15 @@ SOCKS4/SOCKS5 프로토콜 지원. HTTP 프록시는 HTTP/HTTPS만 처리하지�
 
 ---
 
-## 9. Upstream Proxy 체이닝
+## ~~9. Upstream Proxy 체이닝~~ ✅ 완료
 
 프록시가 직접 대상 서버에 연결하지 않고, 또 다른 프록시를 경유하는 기능. 회사 네트워크에서 이미 프록시가 있는 환경이나, Tor/VPN 프록시를 거쳐야 할 때 필요. 우리 프록시 → 회사 프록시 → 인터넷 순서로 체이닝.
 
 - HTTP/HTTPS upstream 프록시 설정
 - SOCKS upstream 프록시 설정
-- 도메인별 다른 upstream 프록시 지정
-- 프록시 인증 (Basic/NTLM)
+- 프록시 인증 (Basic)
+- TUI: Settings 탭에서 Upstream Proxy 설정 UI
+- Desktop: Settings에서 Upstream Proxy 설정
 
 ---
 
@@ -131,8 +135,8 @@ SOCKS4/SOCKS5 프로토콜 지원. HTTP 프록시는 HTTP/HTTPS만 처리하지�
 | ------ | -------------------------- | --------------------------------------------- |
 | ~~P1~~ | ~~트래픽 리플레이~~        | ✅ 완료                                       |
 | ~~P1~~ | ~~Map Local / Map Remote~~ | ✅ 완료                                       |
-| P2     | 스크립팅 (TypeScript)      | 확장성 대폭 증가, 구현 복잡                   |
-| P2     | Upstream Proxy 체이닝      | 기업 환경 필수                                |
+| ~~P2~~ | ~~스크립팅 (TypeScript)~~  | ✅ 완료                                       |
+| ~~P2~~ | ~~Upstream Proxy 체이닝~~  | ✅ 완료                                       |
 | P3     | gRPC 프로토콜 분석         | 마이크로서비스 디버깅                         |
 | P3     | WireGuard VPN 모드         | 모든 케이스 대응, 다른 기기 캡처              |
 | P3     | 투명 프록시 모드           | 프록시 미지원 앱 대응 (WireGuard로 대체 가능) |
