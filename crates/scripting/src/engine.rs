@@ -36,11 +36,24 @@ impl ScriptEngine {
     /// 사용자 스크립트 파일 로드 (JS/TS 모두 지원)
     pub fn load_script(&mut self, path: &str) -> Result<(), String> {
         let script_path = std::path::Path::new(path);
-        if !script_path.exists() {
-            return Err(format!("스크립트 파일을 찾을 수 없습니다: {}", path));
+
+        // 경로 정규화로 path traversal 공격 방지
+        let canonical = script_path
+            .canonicalize()
+            .map_err(|e| format!("스크립트 경로를 확인할 수 없습니다: {} ({})", path, e))?;
+
+        // 스크립트 파일 확장자 검증
+        match canonical.extension().and_then(|e| e.to_str()) {
+            Some("js" | "ts" | "tsx" | "mjs") => {}
+            _ => {
+                return Err(format!(
+                    "허용되지 않는 파일 확장자입니다: {}. js, ts, tsx, mjs만 허용됩니다.",
+                    path
+                ));
+            }
         }
 
-        let source = std::fs::read_to_string(script_path)
+        let source = std::fs::read_to_string(&canonical)
             .map_err(|e| format!("스크립트 파일 읽기 실패: {}", e))?;
 
         let code = if path.ends_with(".ts") || path.ends_with(".tsx") {
@@ -119,10 +132,12 @@ impl ScriptEngine {
         let request_json =
             serde_json::to_string(request).map_err(|e| format!("직렬화 실패: {}", e))?;
 
-        let escaped = escape_template_literal(&request_json);
+        // JSON을 이중 직렬화하여 안전한 JS 문자열 리터럴로 전달 (template literal injection 방지)
+        let safe_js_str =
+            serde_json::to_string(&request_json).map_err(|e| format!("직렬화 실패: {}", e))?;
         let code = format!(
-            "globalThis.__cheolsu_internal.invokeOnRequest(`{}`)",
-            escaped
+            "globalThis.__cheolsu_internal.invokeOnRequest({})",
+            safe_js_str
         );
 
         let result = self.eval_string(&code)?;
@@ -146,11 +161,14 @@ impl ScriptEngine {
         let response_json =
             serde_json::to_string(response).map_err(|e| format!("직렬화 실패: {}", e))?;
 
-        let req_escaped = escape_template_literal(&request_json);
-        let res_escaped = escape_template_literal(&response_json);
+        // JSON을 이중 직렬화하여 안전한 JS 문자열 리터럴로 전달
+        let safe_req =
+            serde_json::to_string(&request_json).map_err(|e| format!("직렬화 실패: {}", e))?;
+        let safe_res =
+            serde_json::to_string(&response_json).map_err(|e| format!("직렬화 실패: {}", e))?;
         let code = format!(
-            "globalThis.__cheolsu_internal.invokeOnResponse(`{}`, `{}`)",
-            req_escaped, res_escaped
+            "globalThis.__cheolsu_internal.invokeOnResponse({}, {})",
+            safe_req, safe_res
         );
 
         let result = self.eval_string(&code)?;
@@ -168,10 +186,12 @@ impl ScriptEngine {
         let message_json =
             serde_json::to_string(message).map_err(|e| format!("직렬화 실패: {}", e))?;
 
-        let escaped = escape_template_literal(&message_json);
+        // JSON을 이중 직렬화하여 안전한 JS 문자열 리터럴로 전달
+        let safe_js_str =
+            serde_json::to_string(&message_json).map_err(|e| format!("직렬화 실패: {}", e))?;
         let code = format!(
-            "globalThis.__cheolsu_internal.invokeOnWebSocketMessage(`{}`)",
-            escaped
+            "globalThis.__cheolsu_internal.invokeOnWebSocketMessage({})",
+            safe_js_str
         );
 
         let result = self.eval_string(&code)?;
@@ -225,13 +245,6 @@ impl ScriptEngine {
     pub fn has_on_ws_message(&self) -> bool {
         self.has_on_ws_message
     }
-}
-
-/// JS 템플릿 리터럴에서 안전하게 사용할 수 있도록 이스케이프
-fn escape_template_literal(s: &str) -> String {
-    s.replace('\\', "\\\\")
-        .replace('`', "\\`")
-        .replace("${", "\\${")
 }
 
 #[cfg(test)]
@@ -414,11 +427,24 @@ mod tests {
     }
 
     #[test]
-    fn test_escape_template_literal() {
-        let escaped = escape_template_literal("hello `world` ${var}");
-        assert_eq!(escaped, "hello \\`world\\` \\${var}");
+    fn test_special_chars_in_json() {
+        let mut engine = ScriptEngine::new().unwrap();
+        engine
+            .load_code(r#"cheolsu.onRequest((req) => ({ action: "forward" }))"#)
+            .unwrap();
 
-        let escaped = escape_template_literal(r#"back\slash"#);
-        assert_eq!(escaped, r#"back\\slash"#);
+        let mut headers = HashMap::new();
+        headers.insert(
+            "X-Test".to_string(),
+            "value with `backticks` and ${template}".to_string(),
+        );
+        let req = ScriptRequest {
+            method: "GET".to_string(),
+            url: r#"https://example.com/path?q=back\slash"#.to_string(),
+            headers,
+            body: None,
+        };
+        let result = engine.invoke_on_request(&req).unwrap();
+        assert!(matches!(result, RequestAction::Forward));
     }
 }

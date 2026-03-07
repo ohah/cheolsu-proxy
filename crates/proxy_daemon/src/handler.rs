@@ -1272,46 +1272,95 @@ impl WebSocketHandler for LoggingHandler {
     }
 
     async fn handle_message(&mut self, ctx: &WebSocketContext, msg: Message) -> Option<Message> {
+        let (direction, connection_id) = match ctx {
+            WebSocketContext::ClientToServer { dst, .. } => {
+                (WsDirection::ClientToServer, dst.to_string())
+            }
+            WebSocketContext::ServerToClient { src, .. } => {
+                (WsDirection::ServerToClient, src.to_string())
+            }
+        };
+
+        let (message_type, payload, size, is_binary) = match &msg {
+            Message::Text(text) => (WsMessageType::Text, text.to_string(), text.len(), false),
+            Message::Binary(data) => {
+                use base64::Engine;
+                let encoded = base64::engine::general_purpose::STANDARD.encode(data);
+                (WsMessageType::Binary, encoded, data.len(), true)
+            }
+            Message::Ping(data) => (
+                WsMessageType::Ping,
+                format!("{} bytes", data.len()),
+                data.len(),
+                true,
+            ),
+            Message::Pong(data) => (
+                WsMessageType::Pong,
+                format!("{} bytes", data.len()),
+                data.len(),
+                true,
+            ),
+            Message::Close(frame) => {
+                let payload = frame
+                    .as_ref()
+                    .map(|f| format!("{}: {}", f.code, f.reason))
+                    .unwrap_or_default();
+                let size = payload.len();
+                (WsMessageType::Close, payload, size, false)
+            }
+            Message::Frame(_) => return Some(msg),
+        };
+
+        // 스크립트 onWebSocketMessage 훅 적용 (Text/Binary 메시지만)
+        let (msg, payload, is_binary) =
+            if matches!(message_type, WsMessageType::Text | WsMessageType::Binary)
+                && self.script_handle.is_active()
+            {
+                let script_direction = match ctx {
+                    WebSocketContext::ClientToServer { .. } => scripting::WsDirection::ToServer,
+                    WebSocketContext::ServerToClient { .. } => scripting::WsDirection::ToClient,
+                };
+                let url = match ctx {
+                    WebSocketContext::ClientToServer { dst, .. } => dst.to_string(),
+                    WebSocketContext::ServerToClient { src, .. } => src.to_string(),
+                };
+                let script_msg = scripting::ScriptWsMessage {
+                    connection_id: connection_id.clone(),
+                    url,
+                    direction: script_direction,
+                    payload: payload.clone(),
+                    is_binary,
+                };
+                match self.script_handle.invoke_on_ws_message(&script_msg).await {
+                    Ok(scripting::WsAction::Forward) => (msg, payload, is_binary),
+                    Ok(scripting::WsAction::Modify {
+                        payload: new_payload,
+                        is_binary: new_is_binary,
+                    }) => {
+                        let new_msg = if new_is_binary {
+                            use base64::Engine;
+                            match base64::engine::general_purpose::STANDARD.decode(&new_payload) {
+                                Ok(data) => Message::Binary(data.into()),
+                                Err(_) => Message::Text(new_payload.clone().into()),
+                            }
+                        } else {
+                            Message::Text(new_payload.clone().into())
+                        };
+                        (new_msg, new_payload, new_is_binary)
+                    }
+                    Ok(scripting::WsAction::Drop) => {
+                        return None;
+                    }
+                    Err(e) => {
+                        error!("[Script] onWebSocketMessage 오류: {}", e);
+                        (msg, payload, is_binary)
+                    }
+                }
+            } else {
+                (msg, payload, is_binary)
+            };
+
         if let Some(ws_sender) = &self.ws_sender {
-            let (direction, connection_id) = match ctx {
-                WebSocketContext::ClientToServer { dst, .. } => {
-                    (WsDirection::ClientToServer, dst.to_string())
-                }
-                WebSocketContext::ServerToClient { src, .. } => {
-                    (WsDirection::ServerToClient, src.to_string())
-                }
-            };
-
-            let (message_type, payload, size, is_binary) = match &msg {
-                Message::Text(text) => (WsMessageType::Text, text.to_string(), text.len(), false),
-                Message::Binary(data) => {
-                    use base64::Engine;
-                    let encoded = base64::engine::general_purpose::STANDARD.encode(data);
-                    (WsMessageType::Binary, encoded, data.len(), true)
-                }
-                Message::Ping(data) => (
-                    WsMessageType::Ping,
-                    format!("{} bytes", data.len()),
-                    data.len(),
-                    true,
-                ),
-                Message::Pong(data) => (
-                    WsMessageType::Pong,
-                    format!("{} bytes", data.len()),
-                    data.len(),
-                    true,
-                ),
-                Message::Close(frame) => {
-                    let payload = frame
-                        .as_ref()
-                        .map(|f| format!("{}: {}", f.code, f.reason))
-                        .unwrap_or_default();
-                    let size = payload.len();
-                    (WsMessageType::Close, payload, size, false)
-                }
-                Message::Frame(_) => return Some(msg),
-            };
-
             let sequence = self
                 .ws_sequence
                 .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
