@@ -72,11 +72,11 @@ export function SettingsPage() {
   }, [enabled, host, port, useAuth, username, password, bypass]);
 
   return (
-    <div className="flex-1 overflow-auto p-6">
-      <div className="max-w-2xl mx-auto space-y-8">
+    <div className="flex-1 flex flex-col h-full overflow-auto">
+      <div className="p-6 space-y-6">
         <div>
-          <h1 className="text-2xl font-bold">Settings</h1>
-          <p className="text-sm text-muted-foreground mt-1">Proxy configuration and preferences</p>
+          <h1 className="text-2xl font-bold text-foreground">Settings</h1>
+          <p className="text-muted-foreground">Proxy configuration and preferences</p>
         </div>
 
         {/* Upstream Proxy Section */}
