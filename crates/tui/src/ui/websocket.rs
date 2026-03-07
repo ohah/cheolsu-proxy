@@ -132,9 +132,7 @@ fn draw_messages(f: &mut Frame, app: &App, area: Rect) {
             .borders(Borders::ALL)
             .border_style(Style::default().fg(Color::Gray))
             .title(title)
-            .title_bottom(
-                Line::from(" Y: copy messages ").style(Style::default().fg(Color::Cyan)),
-            ),
+            .title_bottom(Line::from(" Y: copy messages ").style(Style::default().fg(Color::Cyan))),
     );
 
     f.render_widget(table, area);
