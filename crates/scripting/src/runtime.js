@@ -24,29 +24,29 @@ globalThis.cheolsu = {
 // console.log를 로그 버퍼에 저장 + Rust 쪽으로 전달
 globalThis.console = {
   log(...args) {
-    const msg = args.map(a => typeof a === 'string' ? a : JSON.stringify(a)).join(' ');
+    const msg = args.map((a) => (typeof a === "string" ? a : JSON.stringify(a))).join(" ");
     _logBuffer.push({ level: "info", message: msg });
-    Deno.core.print(msg + '\n', false);
+    Deno.core.print(msg + "\n", false);
   },
   error(...args) {
-    const msg = args.map(a => typeof a === 'string' ? a : JSON.stringify(a)).join(' ');
+    const msg = args.map((a) => (typeof a === "string" ? a : JSON.stringify(a))).join(" ");
     _logBuffer.push({ level: "error", message: msg });
-    Deno.core.print(msg + '\n', true);
+    Deno.core.print(msg + "\n", true);
   },
   warn(...args) {
-    const msg = args.map(a => typeof a === 'string' ? a : JSON.stringify(a)).join(' ');
+    const msg = args.map((a) => (typeof a === "string" ? a : JSON.stringify(a))).join(" ");
     _logBuffer.push({ level: "warn", message: msg });
-    Deno.core.print('[WARN] ' + msg + '\n', true);
+    Deno.core.print("[WARN] " + msg + "\n", true);
   },
   info(...args) {
-    const msg = args.map(a => typeof a === 'string' ? a : JSON.stringify(a)).join(' ');
+    const msg = args.map((a) => (typeof a === "string" ? a : JSON.stringify(a))).join(" ");
     _logBuffer.push({ level: "info", message: msg });
-    Deno.core.print(msg + '\n', false);
+    Deno.core.print(msg + "\n", false);
   },
   debug(...args) {
-    const msg = args.map(a => typeof a === 'string' ? a : JSON.stringify(a)).join(' ');
+    const msg = args.map((a) => (typeof a === "string" ? a : JSON.stringify(a))).join(" ");
     _logBuffer.push({ level: "debug", message: msg });
-    Deno.core.print('[DEBUG] ' + msg + '\n', false);
+    Deno.core.print("[DEBUG] " + msg + "\n", false);
   },
 };
 
@@ -92,9 +92,15 @@ globalThis.__cheolsu_internal = {
     }
   },
 
-  hasOnRequest() { return _hooks.onRequest !== null; },
-  hasOnResponse() { return _hooks.onResponse !== null; },
-  hasOnWebSocketMessage() { return _hooks.onWebSocketMessage !== null; },
+  hasOnRequest() {
+    return _hooks.onRequest !== null;
+  },
+  hasOnResponse() {
+    return _hooks.onResponse !== null;
+  },
+  hasOnWebSocketMessage() {
+    return _hooks.onWebSocketMessage !== null;
+  },
 
   // 로그 버퍼를 JSON 배열로 반환하고 비움
   drainLogs() {
