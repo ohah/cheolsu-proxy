@@ -79,10 +79,7 @@ fn draw_status_bar(f: &mut Frame, app: &App, area: Rect) {
         Style::default().fg(Color::Gray),
     );
 
-    let help = Span::styled(
-        "  Tab: 탭전환 | q: 종료",
-        Style::default().fg(Color::Gray),
-    );
+    let help = Span::styled("  Tab: 탭전환 | q: 종료", Style::default().fg(Color::Gray));
 
     let paused = if app.paused {
         Span::styled("  ⏸ 일시정지", Style::default().fg(Color::Yellow))

@@ -1,4 +1,4 @@
-use crossterm::event::{Event as CrosstermEvent, KeyEvent};
+use crossterm::event::{Event as CrosstermEvent, KeyEvent, KeyEventKind};
 use futures_util::StreamExt;
 use proxy_daemon::DaemonMessage;
 use std::time::Duration;
@@ -36,7 +36,7 @@ impl EventHandler {
                     }
                     Some(Ok(evt)) = reader.next() => {
                         match evt {
-                            CrosstermEvent::Key(key) => {
+                            CrosstermEvent::Key(key) if key.kind == KeyEventKind::Press => {
                                 let _ = event_tx.send(Event::Key(key));
                             }
                             CrosstermEvent::Resize(_, _) => {
