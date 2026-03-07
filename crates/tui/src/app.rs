@@ -737,6 +737,9 @@ impl App {
             KeyCode::Char('r') => {
                 self.replay_selected_request();
             }
+            KeyCode::Char('e') => {
+                self.export_har();
+            }
             KeyCode::Home | KeyCode::Char('g') => {
                 self.selected_transaction = Some(0);
             }
@@ -969,6 +972,33 @@ impl App {
                         let _ = builder.send().await;
                     });
                 }
+            }
+        }
+    }
+
+    fn export_har(&mut self) {
+        if self.transactions.is_empty() {
+            self.set_status("No transactions to export");
+            return;
+        }
+
+        match proxy_v2_models::har::build_har_json(&self.transactions) {
+            Ok(json) => {
+                let path = format!(
+                    "cheolsu-proxy-{}.har",
+                    chrono::Local::now().format("%Y%m%d-%H%M%S")
+                );
+                match std::fs::write(&path, json) {
+                    Ok(_) => {
+                        self.set_status(&format!("HAR exported: {}", path));
+                    }
+                    Err(e) => {
+                        self.set_status(&format!("HAR export failed: {}", e));
+                    }
+                }
+            }
+            Err(e) => {
+                self.set_status(&format!("HAR serialization failed: {}", e));
             }
         }
     }

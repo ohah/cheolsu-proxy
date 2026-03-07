@@ -68,7 +68,7 @@ fn draw_transaction_list(f: &mut Frame, app: &mut App, area: Rect) {
             .border_style(Style::default().fg(Color::Gray))
             .title(title)
             .title_bottom(Line::from(
-                " j/k: navigate | Enter: detail | y: URL | c: cURL | r: replay | Space: pause | x: clear "
+                " j/k: navigate | Enter: detail | y: URL | c: cURL | r: replay | e: export | Space: pause | x: clear "
             ).style(Style::default().fg(Color::Cyan))),
     )
     .row_highlight_style(Style::default().bg(Color::Rgb(50, 60, 140)).fg(Color::White));
