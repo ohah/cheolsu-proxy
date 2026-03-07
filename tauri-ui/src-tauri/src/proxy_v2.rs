@@ -412,53 +412,103 @@ fn resolve_tui_path(app: &AppHandle<impl Runtime>) -> Result<String, String> {
         .map_err(|e| format!("Failed to resolve TUI path: {}", e))
 }
 
+/// macOS에서 osascript를 사용하여 관리자 권한으로 셸 명령 실행
+/// 네이티브 비밀번호 입력 팝업이 표시됨 (VS Code 방식)
+#[cfg(target_os = "macos")]
+fn run_with_admin_privileges(shell_cmd: &str) -> Result<(), String> {
+    let script = format!(
+        r#"do shell script "{}" with administrator privileges"#,
+        shell_cmd.replace('\\', "\\\\").replace('"', "\\\"")
+    );
+    let output = std::process::Command::new("osascript")
+        .arg("-e")
+        .arg(&script)
+        .output()
+        .map_err(|e| format!("osascript 실행 실패: {}", e))?;
+
+    if output.status.success() {
+        Ok(())
+    } else {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        if stderr.contains("User canceled") || stderr.contains("-128") {
+            Err("사용자가 취소했습니다".to_string())
+        } else {
+            Err(format!("관리자 권한 명령 실패: {}", stderr.trim()))
+        }
+    }
+}
+
 /// 터미널 명령어(cheolsu) 설치: /usr/local/bin/cheolsu에 심볼릭 링크 생성
 #[tauri::command]
 pub fn install_cli(app: AppHandle<impl Runtime>) -> Result<String, String> {
     let tui_path = resolve_tui_path(&app)?;
-    let link_path = std::path::Path::new("/usr/local/bin/cheolsu");
+    let link_path = "/usr/local/bin/cheolsu";
 
-    // 기존 링크 제거
-    if link_path.exists() || link_path.is_symlink() {
-        std::fs::remove_file(link_path)
-            .map_err(|e| format!("기존 링크 제거 실패: {}. sudo 권한이 필요할 수 있습니다.", e))?;
-    }
+    // 먼저 직접 시도, 실패하면 관리자 권한으로 재시도
+    let link = std::path::Path::new(link_path);
 
-    // 심볼릭 링크 생성
+    // 기존 링크 제거 + 새 링크 생성을 하나의 셸 명령으로
+    let needs_admin = if link.exists() || link.is_symlink() {
+        std::fs::remove_file(link).is_err()
+    } else {
+        false
+    };
+
     #[cfg(unix)]
     {
-        std::os::unix::fs::symlink(&tui_path, link_path).map_err(|e| {
-            format!(
-                "심볼릭 링크 생성 실패: {}. sudo 권한이 필요할 수 있습니다.",
-                e
-            )
-        })?;
+        if needs_admin || std::os::unix::fs::symlink(&tui_path, link).is_err() {
+            // 직접 생성 실패 → 관리자 권한으로 재시도
+            #[cfg(target_os = "macos")]
+            {
+                let cmd = format!(
+                    "rm -f {} && ln -sf {} {}",
+                    link_path, tui_path, link_path
+                );
+                run_with_admin_privileges(&cmd)?;
+            }
+
+            #[cfg(not(target_os = "macos"))]
+            {
+                return Err("심볼릭 링크 생성 실패: sudo 권한이 필요합니다".to_string());
+            }
+        }
     }
 
     #[cfg(windows)]
     {
-        std::os::windows::fs::symlink_file(&tui_path, link_path)
+        std::os::windows::fs::symlink_file(&tui_path, link)
             .map_err(|e| format!("심볼릭 링크 생성 실패: {}", e))?;
     }
 
     Ok(format!(
         "터미널 명령어가 설치되었습니다: {} -> {}",
-        link_path.display(),
-        tui_path
+        link_path, tui_path
     ))
 }
 
 /// 터미널 명령어(cheolsu) 제거: /usr/local/bin/cheolsu 심볼릭 링크 삭제
 #[tauri::command]
 pub fn uninstall_cli() -> Result<String, String> {
-    let link_path = std::path::Path::new("/usr/local/bin/cheolsu");
+    let link_path = "/usr/local/bin/cheolsu";
+    let link = std::path::Path::new(link_path);
 
-    if !link_path.exists() && !link_path.is_symlink() {
+    if !link.exists() && !link.is_symlink() {
         return Err("터미널 명령어가 설치되어 있지 않습니다".to_string());
     }
 
-    std::fs::remove_file(link_path)
-        .map_err(|e| format!("제거 실패: {}. sudo 권한이 필요할 수 있습니다.", e))?;
+    // 먼저 직접 시도, 실패하면 관리자 권한으로 재시도
+    if std::fs::remove_file(link).is_err() {
+        #[cfg(target_os = "macos")]
+        {
+            let cmd = format!("rm -f {}", link_path);
+            run_with_admin_privileges(&cmd)?;
+        }
+
+        #[cfg(not(target_os = "macos"))]
+        {
+            return Err("제거 실패: sudo 권한이 필요합니다".to_string());
+        }
+    }
 
     Ok("터미널 명령어가 제거되었습니다".to_string())
 }
