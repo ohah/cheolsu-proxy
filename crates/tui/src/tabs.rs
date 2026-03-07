@@ -1,4 +1,4 @@
-/// TUI 탭 (페이지) 목록
+/// TUI tab (page) list
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Tab {
     Network,

@@ -9,7 +9,7 @@ pub fn draw(f: &mut Frame, app: &App, area: Rect) {
         .constraints([Constraint::Length(10), Constraint::Min(0)])
         .split(area);
 
-    // 프록시 정보
+    // Proxy info
     let info_lines = vec![
         Line::from(vec![
             Span::styled("Host: ", Style::default().fg(Color::Yellow)),
@@ -51,27 +51,30 @@ pub fn draw(f: &mut Frame, app: &App, area: Rect) {
 
     f.render_widget(info, chunks[0]);
 
-    // 키 바인딩 도움말
+    // Keybindings help
     let help_lines = vec![
         Line::from(Span::styled(
-            "키 바인딩",
+            "Keybindings",
             Style::default()
                 .fg(Color::Yellow)
                 .add_modifier(Modifier::BOLD),
         )),
         Line::from(""),
-        Line::from("  Tab / Shift+Tab    탭 전환"),
-        Line::from("  Alt+1~4            탭 직접 이동"),
-        Line::from("  j / k / ↑ / ↓      목록 이동"),
-        Line::from("  Enter              상세보기 토글 (Network)"),
-        Line::from("  Space              일시정지/재개 (Network)"),
-        Line::from("  c                  목록 초기화"),
-        Line::from("  t                  규칙 토글 (Rules)"),
-        Line::from("  d / Delete         규칙 삭제 (Rules)"),
-        Line::from("  C                  전체 규칙 삭제 (Rules)"),
-        Line::from("  g / Home           맨 위로"),
-        Line::from("  G / End            맨 아래로"),
-        Line::from("  q / Ctrl+C         종료"),
+        Line::from("  Tab / Shift+Tab    Switch tabs"),
+        Line::from("  Alt+1~4            Jump to tab"),
+        Line::from("  j / k / ↑ / ↓      Navigate list"),
+        Line::from("  Enter              Toggle detail (Network)"),
+        Line::from("  Space              Pause/Resume (Network)"),
+        Line::from("  y                  Copy URL (Network)"),
+        Line::from("  Y                  Copy full detail (Network)"),
+        Line::from("  c                  Clear list"),
+        Line::from("  a                  Add rule (Rules)"),
+        Line::from("  t                  Toggle rule (Rules)"),
+        Line::from("  d / Delete         Delete rule (Rules)"),
+        Line::from("  C                  Clear all rules (Rules)"),
+        Line::from("  g / Home           Jump to top"),
+        Line::from("  G / End            Jump to bottom"),
+        Line::from("  q / Ctrl+C         Quit"),
     ];
 
     let help = Paragraph::new(help_lines).block(

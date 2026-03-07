@@ -6,7 +6,7 @@ use crate::app::App;
 
 pub fn draw(f: &mut Frame, app: &App, area: Rect) {
     if app.show_detail && app.selected_transaction.is_some() {
-        // 분할 뷰: 목록 + 상세
+        // Split view: list + detail
         let chunks = Layout::default()
             .direction(Direction::Horizontal)
             .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
@@ -84,7 +84,6 @@ fn draw_transaction_list(f: &mut Frame, app: &App, area: Rect) {
     )
     .row_highlight_style(Style::default().bg(Color::Rgb(40, 40, 60)));
 
-    // StatefulWidget 대신 직접 렌더링 (스크롤은 selected_transaction으로 처리)
     f.render_widget(table, area);
 }
 
@@ -98,7 +97,7 @@ fn draw_transaction_detail(f: &mut Frame, app: &App, area: Rect) {
 
     let mut lines = Vec::new();
 
-    // 요청 정보
+    // Request info
     if let Some(req) = &info.0 {
         lines.push(Line::from(Span::styled(
             "── Request ──",
@@ -115,7 +114,7 @@ fn draw_transaction_detail(f: &mut Frame, app: &App, area: Rect) {
         )));
         lines.push(Line::from(""));
 
-        // 헤더
+        // Headers
         lines.push(Line::from(Span::styled(
             "Headers:",
             Style::default().fg(Color::Yellow),
@@ -130,7 +129,7 @@ fn draw_transaction_detail(f: &mut Frame, app: &App, area: Rect) {
         lines.push(Line::from(""));
     }
 
-    // 응답 정보
+    // Response info
     if let Some(res) = &info.1 {
         lines.push(Line::from(Span::styled(
             "── Response ──",
@@ -146,7 +145,7 @@ fn draw_transaction_detail(f: &mut Frame, app: &App, area: Rect) {
         )));
         lines.push(Line::from(""));
 
-        // 헤더
+        // Headers
         lines.push(Line::from(Span::styled(
             "Headers:",
             Style::default().fg(Color::Yellow),
