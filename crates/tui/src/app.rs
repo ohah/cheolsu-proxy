@@ -29,6 +29,7 @@ pub struct App {
     pub transactions: Vec<RequestInfo>,
     pub selected_transaction: Option<usize>,
     pub show_detail: bool,
+    pub detail_scroll: u16,
     pub paused: bool,
 
     // WebSocket
@@ -258,6 +259,7 @@ impl App {
             transactions: Vec::new(),
             selected_transaction: None,
             show_detail: false,
+            detail_scroll: 0,
             paused: false,
             ws_connections: Vec::new(),
             ws_messages: Vec::new(),
@@ -456,11 +458,21 @@ impl App {
     }
 
     async fn handle_network_key(&mut self, key: KeyEvent) {
-        // Detail view: Esc or Enter to go back
+        // Detail view: Esc or Enter to go back, j/k to scroll
         if self.show_detail {
             match key.code {
                 KeyCode::Esc | KeyCode::Enter => {
                     self.show_detail = false;
+                    self.detail_scroll = 0;
+                }
+                KeyCode::Down | KeyCode::Char('j') => {
+                    self.detail_scroll = self.detail_scroll.saturating_add(1);
+                }
+                KeyCode::Up | KeyCode::Char('k') => {
+                    self.detail_scroll = self.detail_scroll.saturating_sub(1);
+                }
+                KeyCode::Home | KeyCode::Char('g') => {
+                    self.detail_scroll = 0;
                 }
                 _ => {}
             }
@@ -491,6 +503,7 @@ impl App {
             }
             KeyCode::Enter => {
                 self.show_detail = !self.show_detail;
+                self.detail_scroll = 0;
             }
             KeyCode::Char(' ') => {
                 self.paused = !self.paused;

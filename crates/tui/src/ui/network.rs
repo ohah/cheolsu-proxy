@@ -155,11 +155,12 @@ fn draw_transaction_detail(f: &mut Frame, app: &App, area: Rect) {
                 .border_style(Style::default().fg(Color::Gray))
                 .title(" Detail ")
                 .title_bottom(
-                    Line::from(" Esc/Enter: back ").style(Style::default().fg(Color::DarkGray)),
+                    Line::from(" j/k: scroll | g: top | Esc/Enter: back ")
+                        .style(Style::default().fg(Color::DarkGray)),
                 ),
         )
         .wrap(Wrap { trim: false })
-        .scroll((0, 0));
+        .scroll((app.detail_scroll, 0));
 
     f.render_widget(paragraph, area);
 }
