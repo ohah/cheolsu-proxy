@@ -328,8 +328,8 @@ pub fn get_mcp_server_path(app: AppHandle<impl Runtime>) -> Result<String, Strin
 
     // 개발 모드: target/debug 또는 target/release에서 직접 찾기
     if cfg!(dev) {
-        let current_exe = std::env::current_exe()
-            .map_err(|e| format!("Failed to get current exe: {}", e))?;
+        let current_exe =
+            std::env::current_exe().map_err(|e| format!("Failed to get current exe: {}", e))?;
         // current_exe: target/debug/cheolsu-proxy → 같은 디렉토리에 cheolsu-proxy-mcp
         if let Some(dir) = current_exe.parent() {
             let mcp_path = dir.join("cheolsu-proxy-mcp");
