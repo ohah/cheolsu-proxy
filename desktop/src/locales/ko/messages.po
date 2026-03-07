@@ -317,6 +317,11 @@ msgstr "사이드바 펼치기"
 msgid "Failed — is the proxy running?"
 msgstr "실패 — 프록시가 실행 중인가요?"
 
+#. placeholder {0}: e instanceof Error ? e.message : String(e)
+#: src/pages/script/ui/script-page.tsx:101
+msgid "Failed to read file: {0}"
+msgstr "파일 읽기 실패: {0}"
+
 #: src/features/websocket-replay/ui/ws-replay-dialog.tsx:86
 msgid "Failed to send"
 msgstr "전송 실패"

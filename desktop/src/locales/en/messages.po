@@ -317,6 +317,11 @@ msgstr "Expand sidebar"
 msgid "Failed — is the proxy running?"
 msgstr "Failed — is the proxy running?"
 
+#. placeholder {0}: e instanceof Error ? e.message : String(e)
+#: src/pages/script/ui/script-page.tsx:101
+msgid "Failed to read file: {0}"
+msgstr "Failed to read file: {0}"
+
 #: src/features/websocket-replay/ui/ws-replay-dialog.tsx:86
 msgid "Failed to send"
 msgstr "Failed to send"
