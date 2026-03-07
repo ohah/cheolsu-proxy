@@ -1,6 +1,13 @@
 import { useEffect, useState } from "react";
 import { Blocks, Copy, Check } from "lucide-react";
-import { Popover, PopoverTrigger, PopoverContent } from "@/shared/ui";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/shared/ui";
 import { cn } from "@/shared/lib";
 import { getMcpServerPath } from "@/shared/api/proxy";
 import { toast } from "sonner";
@@ -40,19 +47,31 @@ export const SidebarMcp = ({ collapsed }: SidebarMcpProps) => {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const trigger = (
+    <PopoverTrigger
+      className={cn(
+        "flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer",
+        collapsed && "justify-center",
+      )}
+    >
+      <Blocks className="w-4 h-4 shrink-0" />
+      {!collapsed && <span>MCP Server</span>}
+    </PopoverTrigger>
+  );
+
   return (
     <div className={cn("px-4 pb-2", collapsed && "flex justify-center px-0")}>
       <Popover>
-        <PopoverTrigger
-          className={cn(
-            "flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer",
-            collapsed && "justify-center",
-          )}
-          title="MCP Server"
-        >
-          <Blocks className="w-4 h-4 shrink-0" />
-          {!collapsed && <span>MCP Server</span>}
-        </PopoverTrigger>
+        {collapsed ? (
+          <Tooltip>
+            <TooltipTrigger render={<div />}>{trigger}</TooltipTrigger>
+            <TooltipContent side="right" sideOffset={4}>
+              MCP Server
+            </TooltipContent>
+          </Tooltip>
+        ) : (
+          trigger
+        )}
         <PopoverContent side="right" align="end" className="w-96">
           <div className="space-y-3">
             <div className="font-medium text-sm">MCP Server Configuration</div>
