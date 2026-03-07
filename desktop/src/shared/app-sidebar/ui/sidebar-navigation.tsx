@@ -28,6 +28,8 @@ export const SidebarNavigation = memo(({ collapsed }: SidebarNavigationProps) =>
         return "websocket";
       case "/server-replay":
         return "server-replay";
+      case "/script":
+        return "script";
       case "/settings":
         return "settings";
       default:
@@ -53,6 +55,9 @@ export const SidebarNavigation = memo(({ collapsed }: SidebarNavigationProps) =>
         break;
       case "server-replay":
         navigate("/server-replay");
+        break;
+      case "script":
+        navigate("/script");
         break;
       case "settings":
         navigate("/settings");

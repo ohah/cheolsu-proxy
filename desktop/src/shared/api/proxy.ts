@@ -99,3 +99,11 @@ export async function uninstallCli(): Promise<string> {
 export async function checkCliInstalled(): Promise<boolean> {
   return invoke("check_cli_installed");
 }
+
+export async function loadScript(path?: string, code?: string): Promise<void> {
+  return invoke("load_script", { path, code });
+}
+
+export async function unloadScript(): Promise<void> {
+  return invoke("unload_script");
+}

@@ -56,6 +56,28 @@ pub async fn start_proxy_v2<R: Runtime>(
         DaemonMessage::InterceptRulesUpdated { rules } => {
             let _ = app_clone.emit("intercept_rules_updated", rules);
         }
+        DaemonMessage::ScriptLog { level, message } => {
+            let _ = app_clone.emit(
+                "script_log",
+                serde_json::json!({ "level": level, "message": message }),
+            );
+        }
+        DaemonMessage::ScriptStatus {
+            active,
+            path,
+            message,
+        } => {
+            let _ = app_clone.emit(
+                "script_status",
+                serde_json::json!({ "active": active, "path": path, "message": message }),
+            );
+        }
+        DaemonMessage::ScriptResult { success, error } => {
+            let _ = app_clone.emit(
+                "script_result",
+                serde_json::json!({ "success": success, "error": error }),
+            );
+        }
         _ => {}
     })
     .await
@@ -380,6 +402,42 @@ pub async fn update_server_replay(
         let cmd = ClientCommand::UpdateServerReplay { entries };
         conn.send_command(&cmd).await?;
         tracing::info!("Daemon에 서버 리플레이 엔트리 업데이트 완료");
+    } else {
+        return Err("프록시가 실행 중이 아닙니다".to_string());
+    }
+
+    Ok(())
+}
+
+/// 스크립트 로드
+#[tauri::command]
+pub async fn load_script(
+    proxy: State<'_, ProxyV2State>,
+    path: Option<String>,
+    code: Option<String>,
+) -> Result<(), String> {
+    let proxy_guard = proxy.lock().await;
+
+    if let Some(conn) = proxy_guard.as_ref() {
+        let cmd = ClientCommand::LoadScript { path, code };
+        conn.send_command(&cmd).await?;
+        tracing::info!("Daemon에 스크립트 로드 요청 완료");
+    } else {
+        return Err("프록시가 실행 중이 아닙니다".to_string());
+    }
+
+    Ok(())
+}
+
+/// 스크립트 언로드
+#[tauri::command]
+pub async fn unload_script(proxy: State<'_, ProxyV2State>) -> Result<(), String> {
+    let proxy_guard = proxy.lock().await;
+
+    if let Some(conn) = proxy_guard.as_ref() {
+        let cmd = ClientCommand::UnloadScript;
+        conn.send_command(&cmd).await?;
+        tracing::info!("Daemon에 스크립트 언로드 요청 완료");
     } else {
         return Err("프록시가 실행 중이 아닙니다".to_string());
     }

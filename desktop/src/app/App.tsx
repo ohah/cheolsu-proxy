@@ -7,6 +7,7 @@ import {
   useTransactionStore,
   useWebSocketStore,
   useMapRuleStore,
+  useScriptStore,
 } from "@/shared/stores";
 import { listen } from "@tauri-apps/api/event";
 import type { ProxyEventTuple } from "@/entities/proxy";
@@ -23,6 +24,8 @@ const App: React.FC = () => {
   const updateWsConnection = useWebSocketStore((s) => s.updateConnection);
   const setInterceptRules = useInterceptRuleStore((s) => s.setRules);
   const setMapRules = useMapRuleStore((s) => s.setRules);
+  const setScriptStatus = useScriptStore((s) => s.setStatus);
+  const addScriptLog = useScriptStore((s) => s.addLog);
 
   // 앱 시작 시 프록시 초기화 후 저장된 인터셉트 규칙 동기화
   useEffect(() => {
@@ -82,6 +85,24 @@ const App: React.FC = () => {
       unlisten.then((f) => f());
     };
   }, [setInterceptRules, setMapRules]);
+
+  // 스크립트 이벤트 수신
+  useEffect(() => {
+    const unlistenLog = listen<{ level: string; message: string }>("script_log", (event) => {
+      addScriptLog(event.payload.level, event.payload.message);
+    });
+    const unlistenStatus = listen<{ active: boolean; path: string | null }>(
+      "script_status",
+      (event) => {
+        setScriptStatus(event.payload.active, event.payload.path);
+      },
+    );
+
+    return () => {
+      unlistenLog.then((f) => f());
+      unlistenStatus.then((f) => f());
+    };
+  }, [addScriptLog, setScriptStatus]);
 
   return (
     <div className="App">

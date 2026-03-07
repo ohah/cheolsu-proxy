@@ -6,3 +6,4 @@ export * from "./transaction-store";
 export * from "./map-rule-store";
 export * from "./websocket-store";
 export * from "./server-replay-store";
+export * from "./script-store";
