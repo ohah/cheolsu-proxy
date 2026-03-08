@@ -665,20 +665,46 @@ pub fn install_ca_cert() -> Result<String, String> {
         );
     }
 
-    let cer_path_str = cer_path.to_string_lossy().to_string();
-
     #[cfg(target_os = "macos")]
     {
-        let cmd = format!(
-            "security add-trusted-cert -r trustRoot -k ~/Library/Keychains/login.keychain-db \"{}\"",
-            cer_path_str
-        );
-        run_with_admin_privileges(&cmd)?;
-        Ok("CA 인증서가 키체인에 신뢰 인증서로 설치되었습니다.".to_string())
+        let keychain_path = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default())
+            .join("Library/Keychains/login.keychain-db");
+
+        // 1단계: login 키체인에 인증서 추가 (관리자 권한 불필요)
+        let add_output = std::process::Command::new("security")
+            .args(["add-certificates", "-k"])
+            .arg(&keychain_path)
+            .arg(&cer_path)
+            .output()
+            .map_err(|e| format!("security 명령 실행 실패: {}", e))?;
+
+        // 이미 존재하는 경우(-25299)는 무시
+        if !add_output.status.success() {
+            let stderr = String::from_utf8_lossy(&add_output.stderr);
+            if !stderr.contains("-25299") {
+                return Err(format!("키체인에 인증서 추가 실패: {}", stderr.trim()));
+            }
+        }
+
+        // 2단계: 인증서 신뢰 설정 (사용자 도메인, 관리자 권한 불필요)
+        let trust_output = std::process::Command::new("security")
+            .args(["add-trusted-cert", "-p", "ssl", "-k"])
+            .arg(&keychain_path)
+            .arg(&cer_path)
+            .output()
+            .map_err(|e| format!("security 명령 실행 실패: {}", e))?;
+
+        if trust_output.status.success() {
+            Ok("CA 인증서가 키체인에 신뢰 인증서로 설치되었습니다.".to_string())
+        } else {
+            let stderr = String::from_utf8_lossy(&trust_output.stderr);
+            Err(format!("인증서 신뢰 설정 실패: {}", stderr.trim()))
+        }
     }
 
     #[cfg(target_os = "windows")]
     {
+        let cer_path_str = cer_path.to_string_lossy().to_string();
         let output = std::process::Command::new("certutil")
             .args(["-addstore", "-user", "Root", &cer_path_str])
             .output()
@@ -705,9 +731,32 @@ pub fn install_ca_cert() -> Result<String, String> {
 pub fn uninstall_ca_cert() -> Result<String, String> {
     #[cfg(target_os = "macos")]
     {
-        let cmd = "security delete-certificate -c \"Cheolsu Proxy Root CA\" ~/Library/Keychains/login.keychain-db 2>/dev/null; security delete-certificate -c \"Cheolsu Proxy Root CA\" 2>/dev/null; true";
-        run_with_admin_privileges(cmd)?;
-        Ok("CA 인증서가 키체인에서 제거되었습니다.".to_string())
+        let keychain_path = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default())
+            .join("Library/Keychains/login.keychain-db");
+
+        // login 키체인에서 인증서 삭제
+        let output = std::process::Command::new("security")
+            .args(["delete-certificate", "-c", "Cheolsu Proxy Root CA", "-t"])
+            .arg(&keychain_path)
+            .output()
+            .map_err(|e| format!("security 명령 실행 실패: {}", e))?;
+
+        if output.status.success() {
+            Ok("CA 인증서가 키체인에서 제거되었습니다.".to_string())
+        } else {
+            // CN이 다를 수 있으므로 "Cheolsu Proxy"로도 시도
+            let output2 = std::process::Command::new("security")
+                .args(["delete-certificate", "-c", "Cheolsu Proxy", "-t"])
+                .arg(&keychain_path)
+                .output()
+                .map_err(|e| format!("security 명령 실행 실패: {}", e))?;
+
+            if output2.status.success() {
+                Ok("CA 인증서가 키체인에서 제거되었습니다.".to_string())
+            } else {
+                Err("키체인에서 인증서를 찾을 수 없습니다.".to_string())
+            }
+        }
     }
 
     #[cfg(target_os = "windows")]
