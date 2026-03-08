@@ -52,19 +52,19 @@ export const DARK_THEME: editor.IStandaloneThemeData = {
   ],
   colors: {
     "editor.background": "#0a0a0a",
-    "editor.foreground": "#e4e4e7",
+    "editor.foreground": "#b4b4b9",
 
     // 자동완성 위젯 색상
     "editorWidget.background": "#141414",
     "editorWidget.border": "#262626",
-    "editorWidget.foreground": "#e4e4e7",
+    "editorWidget.foreground": "#b4b4b9",
 
     // 자동완성 제안 색상 - 더 강조
     "editorSuggestWidget.background": "#141414",
     "editorSuggestWidget.border": "#262626",
-    "editorSuggestWidget.foreground": "#e4e4e7", // 기본 텍스트 (밝게)
+    "editorSuggestWidget.foreground": "#b4b4b9", // 기본 텍스트 (밝게)
     "editorSuggestWidget.selectedBackground": "#0e7490", // 선택된 항목 배경 (청록색)
-    "editorSuggestWidget.selectedForeground": "#e4e4e7", // 선택된 항목 텍스트
+    "editorSuggestWidget.selectedForeground": "#b4b4b9", // 선택된 항목 텍스트
     "editorSuggestWidget.highlightForeground": "#22d3ee", // 매칭된 텍스트 강조
     "editorSuggestWidget.focusHighlightForeground": "#06b6d4", // 포커스된 매칭 텍스트
 
@@ -75,16 +75,16 @@ export const DARK_THEME: editor.IStandaloneThemeData = {
     "editor.findMatchHighlightBorder": "#45cbda50",
     "editorFindWidget.background": "#141414",
     "editorFindWidget.border": "#262626",
-    "editorFindWidget.foreground": "#e4e4e7",
+    "editorFindWidget.foreground": "#b4b4b9",
 
     // 리스트 색상
     "list.hoverBackground": "#1c1c1c",
-    "list.hoverForeground": "#e4e4e7",
+    "list.hoverForeground": "#b4b4b9",
     "list.activeSelectionBackground": "#0e7490",
-    "list.activeSelectionForeground": "#e4e4e7",
+    "list.activeSelectionForeground": "#b4b4b9",
     "list.inactiveSelectionBackground": "#1c1c1c",
     "list.inactiveSelectionForeground": "#d4d4d8",
     "list.focusBackground": "#0e7490",
-    "list.focusForeground": "#e4e4e7",
+    "list.focusForeground": "#b4b4b9",
   },
 };
