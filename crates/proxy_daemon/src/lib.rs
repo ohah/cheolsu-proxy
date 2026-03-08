@@ -1,8 +1,12 @@
 pub mod client;
+pub mod curl_fallback;
 pub mod daemon;
 pub mod handler;
+pub mod intercept;
 pub mod protocol;
+pub mod script_bridge;
 pub mod system_proxy;
+pub mod tls_client;
 
 // Re-exports for convenience
 pub use client::{connect_to_daemon, ensure_daemon, is_daemon_running, DaemonConnection};
