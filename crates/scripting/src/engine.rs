@@ -92,6 +92,14 @@ impl ScriptEngine {
 
     /// 스크립트 코드 직접 로드 (JS)
     pub fn load_code(&mut self, code: &str) -> Result<(), ScriptError> {
+        // 기존 타이머 정리 (리로드 시 이전 스크립트의 타이머가 남지 않도록)
+        self.runtime
+            .execute_script(
+                "<clear_timers>".to_string(),
+                "globalThis.__cheolsu_internal.clearAllTimers()".to_string(),
+            )
+            .map_err(|e| ScriptError::Execution(e.to_string()))?;
+
         self.runtime
             .execute_script("<script>".to_string(), code.to_string())
             .map_err(|e| ScriptError::Execution(e.to_string()))?;
@@ -293,6 +301,14 @@ mod tests {
     use super::*;
     use std::collections::HashMap;
 
+    fn block_on<F: std::future::Future>(f: F) -> F::Output {
+        tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .unwrap()
+            .block_on(f)
+    }
+
     #[test]
     fn test_no_hooks_returns_forward() {
         let mut engine = ScriptEngine::new().unwrap();
@@ -302,11 +318,7 @@ mod tests {
             headers: HashMap::new(),
             body: None,
         };
-        let rt = tokio::runtime::Builder::new_current_thread()
-            .enable_all()
-            .build()
-            .unwrap();
-        let result = rt.block_on(engine.invoke_on_request(&req)).unwrap();
+        let result = block_on(engine.invoke_on_request(&req)).unwrap();
         assert!(matches!(result, RequestAction::Forward));
     }
 
@@ -324,11 +336,7 @@ mod tests {
             headers: HashMap::new(),
             body: None,
         };
-        let rt = tokio::runtime::Builder::new_current_thread()
-            .enable_all()
-            .build()
-            .unwrap();
-        let result = rt.block_on(engine.invoke_on_request(&req)).unwrap();
+        let result = block_on(engine.invoke_on_request(&req)).unwrap();
         assert!(matches!(result, RequestAction::Forward));
     }
 
@@ -357,11 +365,7 @@ mod tests {
             headers: HashMap::new(),
             body: None,
         };
-        let rt = tokio::runtime::Builder::new_current_thread()
-            .enable_all()
-            .build()
-            .unwrap();
-        let result = rt.block_on(engine.invoke_on_request(&req)).unwrap();
+        let result = block_on(engine.invoke_on_request(&req)).unwrap();
         match result {
             RequestAction::Respond { response } => {
                 assert_eq!(response.status, 403);
@@ -391,11 +395,7 @@ mod tests {
             headers: HashMap::new(),
             body: None,
         };
-        let rt = tokio::runtime::Builder::new_current_thread()
-            .enable_all()
-            .build()
-            .unwrap();
-        let result = rt.block_on(engine.invoke_on_request(&req)).unwrap();
+        let result = block_on(engine.invoke_on_request(&req)).unwrap();
         match result {
             RequestAction::ModifyRequest { request } => {
                 assert_eq!(request.headers.get("X-Custom").unwrap(), "injected");
@@ -430,11 +430,7 @@ mod tests {
             headers: HashMap::new(),
             body: Some("OK".to_string()),
         };
-        let rt = tokio::runtime::Builder::new_current_thread()
-            .enable_all()
-            .build()
-            .unwrap();
-        let result = rt.block_on(engine.invoke_on_response(&req, &res)).unwrap();
+        let result = block_on(engine.invoke_on_response(&req, &res)).unwrap();
         match result {
             ResponseAction::ModifyResponse { response } => {
                 assert_eq!(response.headers.get("X-Proxy").unwrap(), "cheolsu");
@@ -483,11 +479,7 @@ mod tests {
             headers: HashMap::new(),
             body: None,
         };
-        let rt = tokio::runtime::Builder::new_current_thread()
-            .enable_all()
-            .build()
-            .unwrap();
-        let result = rt.block_on(engine.invoke_on_request(&req)).unwrap();
+        let result = block_on(engine.invoke_on_request(&req)).unwrap();
         assert!(matches!(result, RequestAction::Forward));
     }
 
@@ -509,11 +501,7 @@ mod tests {
             headers,
             body: None,
         };
-        let rt = tokio::runtime::Builder::new_current_thread()
-            .enable_all()
-            .build()
-            .unwrap();
-        let result = rt.block_on(engine.invoke_on_request(&req)).unwrap();
+        let result = block_on(engine.invoke_on_request(&req)).unwrap();
         assert!(matches!(result, RequestAction::Forward));
     }
 
@@ -539,11 +527,7 @@ mod tests {
             headers: HashMap::new(),
             body: None,
         };
-        let rt = tokio::runtime::Builder::new_current_thread()
-            .enable_all()
-            .build()
-            .unwrap();
-        let result = rt.block_on(engine.invoke_on_request(&req)).unwrap();
+        let result = block_on(engine.invoke_on_request(&req)).unwrap();
         match result {
             RequestAction::ModifyRequest { request } => {
                 assert_eq!(request.headers.get("X-Async").unwrap(), "true");
@@ -578,11 +562,7 @@ mod tests {
             headers: HashMap::new(),
             body: None,
         };
-        let rt = tokio::runtime::Builder::new_current_thread()
-            .enable_all()
-            .build()
-            .unwrap();
-        let result = rt.block_on(engine.invoke_on_response(&req, &res)).unwrap();
+        let result = block_on(engine.invoke_on_response(&req, &res)).unwrap();
         match result {
             ResponseAction::ModifyResponse { response } => {
                 assert_eq!(response.headers.get("X-Async").unwrap(), "response");
@@ -610,11 +590,7 @@ mod tests {
             headers: HashMap::new(),
             body: None,
         };
-        let rt = tokio::runtime::Builder::new_current_thread()
-            .enable_all()
-            .build()
-            .unwrap();
-        let result = rt.block_on(engine.invoke_on_request(&req)).unwrap();
+        let result = block_on(engine.invoke_on_request(&req)).unwrap();
         assert!(matches!(result, RequestAction::Forward));
     }
 
@@ -645,11 +621,7 @@ mod tests {
             headers: HashMap::new(),
             body: None,
         };
-        let rt = tokio::runtime::Builder::new_current_thread()
-            .enable_all()
-            .build()
-            .unwrap();
-        let result = rt.block_on(engine.invoke_on_request(&req)).unwrap();
+        let result = block_on(engine.invoke_on_request(&req)).unwrap();
         match result {
             RequestAction::Respond { response } => {
                 assert_eq!(response.body.unwrap(), "timer works");

@@ -30,7 +30,7 @@ function buildMcpConfig(command: string) {
 }
 
 function buildClaudeCommand(command: string) {
-  return `claude mcp add cheolsu-proxy -- ${command}`;
+  return `claude mcp add cheolsu-proxy -- "${command}"`;
 }
 
 export const SidebarMcp = ({ collapsed }: SidebarMcpProps) => {
