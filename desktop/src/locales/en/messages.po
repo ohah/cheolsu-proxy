@@ -227,8 +227,8 @@ msgstr "Comma-separated list of hosts to connect directly (supports *.domain.com
 msgid "Connected"
 msgstr "Connected"
 
-#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:108
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:62
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:110
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:64
 msgid "Connection"
 msgstr "Connection"
 
@@ -269,8 +269,8 @@ msgstr "Delete rule"
 msgid "Dir"
 msgstr "Dir"
 
-#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:121
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:53
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:123
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:55
 msgid "Direction"
 msgstr "Direction"
 
@@ -334,7 +334,7 @@ msgstr "Failed — is the proxy running?"
 msgid "Failed to read file: {0}"
 msgstr "Failed to read file: {0}"
 
-#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:86
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:88
 msgid "Failed to send"
 msgstr "Failed to send"
 
@@ -506,7 +506,7 @@ msgstr "MCP Server"
 msgid "MCP Server Configuration"
 msgstr "MCP Server Configuration"
 
-#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:168
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:171
 msgid "Message sent successfully"
 msgstr "Message sent successfully"
 
@@ -607,7 +607,7 @@ msgstr "Pattern is required"
 msgid "Pause recording"
 msgstr "Pause recording"
 
-#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:140
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:142
 msgid "Payload"
 msgstr "Payload"
 
@@ -639,11 +639,11 @@ msgstr "Query Syntax Guide"
 msgid "Query syntax help"
 msgstr "Query syntax help"
 
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:85
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:87
 msgid "Received"
 msgstr "Received"
 
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:54
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:56
 msgid "Received (Server → Client)"
 msgstr "Received (Server → Client)"
 
@@ -665,11 +665,11 @@ msgid "Remove Headers"
 msgstr "Remove Headers"
 
 #: src/features/transaction-details/ui/replay-dialog.tsx:337
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:120
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:122
 msgid "Replay"
 msgstr "Replay"
 
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:116
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:118
 msgid "Replay message"
 msgstr "Replay message"
 
@@ -795,7 +795,7 @@ msgstr "Select local file"
 msgid "Send a request to see the replay response"
 msgstr "Send a request to see the replay response"
 
-#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:186
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:189
 msgid "Send Message"
 msgstr "Send Message"
 
@@ -809,19 +809,19 @@ msgstr "Sending requests sequentially..."
 
 #: src/features/transaction-details/ui/replay-dialog.tsx:488
 #: src/features/transaction-details/ui/sequence-replay-dialog.tsx:241
-#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:181
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:184
 msgid "Sending..."
 msgstr "Sending..."
 
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:85
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:87
 msgid "Sent"
 msgstr "Sent"
 
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:54
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:56
 msgid "Sent (Client → Server)"
 msgstr "Sent (Client → Server)"
 
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:63
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:65
 msgid "Sequence"
 msgstr "Sequence"
 
@@ -848,7 +848,7 @@ msgstr "Set body (optional)"
 msgid "Settings"
 msgstr "Settings"
 
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:60
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:62
 #: src/widgets/websocket-messages/ui/ws-message-table.tsx:165
 msgid "Size"
 msgstr "Size"
@@ -892,16 +892,16 @@ msgstr "Terminal Command"
 msgid "Theme"
 msgstr "Theme"
 
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:61
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:63
 #: src/widgets/websocket-messages/ui/ws-message-table.tsx:167
 msgid "Time"
 msgstr "Time"
 
-#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:132
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:134
 msgid "To Client (Server → Client)"
 msgstr "To Client (Server → Client)"
 
-#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:131
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:133
 msgid "To Server (Client → Server)"
 msgstr "To Server (Client → Server)"
 
@@ -919,7 +919,7 @@ msgid "Trusted"
 msgstr "Trusted"
 
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:235
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:57
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:59
 #: src/widgets/websocket-messages/ui/ws-message-table.tsx:164
 msgid "Type"
 msgstr "Type"
@@ -985,7 +985,7 @@ msgstr "WebSocket"
 msgid "WebSocket connections and messages"
 msgstr "WebSocket connections and messages"
 
-#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:100
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:102
 msgid "WebSocket Replay"
 msgstr "WebSocket Replay"
 
