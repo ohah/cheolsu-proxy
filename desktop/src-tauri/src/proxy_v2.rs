@@ -344,31 +344,90 @@ pub async fn replay_sequence(
     Ok(results)
 }
 
-/// MCP 서버 바이너리의 절대 경로 반환
-#[tauri::command]
-pub fn get_mcp_server_path(app: AppHandle<impl Runtime>) -> Result<String, String> {
+/// 앱 번들 내부의 sidecar 바이너리를 ~/.cheolsu/bin/에 복사하고 격리 속성 제거
+/// macOS에서 Gatekeeper가 앱 번들 내부 바이너리의 외부 실행을 차단하는 문제 해결
+fn install_sidecar_binary(
+    app: &AppHandle<impl Runtime>,
+    sidecar_base: &str,
+    dest_name: &str,
+) -> Result<String, String> {
     use tauri::Manager;
 
-    // 개발 모드: target/debug 또는 target/release에서 직접 찾기
+    // 개발 모드: target 디렉토리에서 직접 사용
     if cfg!(dev) {
         let current_exe =
             std::env::current_exe().map_err(|e| format!("Failed to get current exe: {}", e))?;
-        // current_exe: target/debug/cheolsu-proxy → 같은 디렉토리에 cheolsu-proxy-mcp
         if let Some(dir) = current_exe.parent() {
-            let mcp_path = dir.join("cheolsu-proxy-mcp");
-            if mcp_path.exists() {
-                return Ok(mcp_path.display().to_string());
+            let bin_path = dir.join(dest_name);
+            if bin_path.exists() {
+                return Ok(bin_path.display().to_string());
             }
         }
     }
 
-    // 프로덕션 모드: Tauri 리소스 경로에서 sidecar 찾기
+    // 프로덕션 모드: 앱 번들에서 ~/.cheolsu/bin/으로 복사
     let target_triple = env!("TAURI_ENV_TARGET_TRIPLE");
-    let sidecar_name = format!("binaries/cheolsu-proxy-mcp-{target_triple}");
-    app.path()
+    let sidecar_name = format!("binaries/{sidecar_base}-{target_triple}");
+    let source = app
+        .path()
         .resolve(&sidecar_name, tauri::path::BaseDirectory::Resource)
-        .map(|p| p.display().to_string())
-        .map_err(|e| format!("Failed to resolve MCP server path: {}", e))
+        .map_err(|e| format!("Sidecar 경로를 찾을 수 없습니다: {}", e))?;
+
+    if !source.exists() {
+        return Err(format!(
+            "Sidecar 바이너리가 존재하지 않습니다: {}",
+            source.display()
+        ));
+    }
+
+    // ~/.cheolsu/bin/ 디렉토리 생성
+    let home = app
+        .path()
+        .home_dir()
+        .map_err(|e| format!("홈 디렉토리를 찾을 수 없습니다: {}", e))?;
+    let bin_dir = home.join(".cheolsu").join("bin");
+    std::fs::create_dir_all(&bin_dir).map_err(|e| format!("디렉토리 생성 실패: {}", e))?;
+
+    let dest = bin_dir.join(dest_name);
+
+    // 소스와 대상이 같은지 확인 (이미 설치됨 + 동일 버전)
+    let needs_copy = if dest.exists() {
+        let src_meta = std::fs::metadata(&source).ok();
+        let dst_meta = std::fs::metadata(&dest).ok();
+        match (src_meta, dst_meta) {
+            (Some(s), Some(d)) => s.len() != d.len() || s.modified().ok() != d.modified().ok(),
+            _ => true,
+        }
+    } else {
+        true
+    };
+
+    if needs_copy {
+        std::fs::copy(&source, &dest).map_err(|e| format!("바이너리 복사 실패: {}", e))?;
+    }
+
+    // macOS: 격리 속성 제거 + 실행 권한 설정
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::set_permissions(&dest, std::fs::Permissions::from_mode(0o755))
+            .map_err(|e| format!("실행 권한 설정 실패: {}", e))?;
+    }
+    #[cfg(target_os = "macos")]
+    {
+        // Gatekeeper 격리 속성 제거 (다운로드된 앱 번들에서 복사된 경우 필요)
+        let _ = std::process::Command::new("xattr")
+            .args(["-cr", &dest.display().to_string()])
+            .output();
+    }
+
+    Ok(dest.display().to_string())
+}
+
+/// MCP 서버 바이너리의 절대 경로 반환 (앱 번들에서 ~/.cheolsu/bin/으로 자동 설치)
+#[tauri::command]
+pub fn get_mcp_server_path(app: AppHandle<impl Runtime>) -> Result<String, String> {
+    install_sidecar_binary(&app, "cheolsu-proxy-mcp", "cheolsu-proxy-mcp")
 }
 
 /// Upstream proxy 설정 업데이트
@@ -445,31 +504,6 @@ pub async fn unload_script(proxy: State<'_, ProxyV2State>) -> Result<(), String>
     Ok(())
 }
 
-/// TUI CLI 바이너리의 절대 경로 반환
-fn resolve_tui_path(app: &AppHandle<impl Runtime>) -> Result<String, String> {
-    use tauri::Manager;
-
-    // 개발 모드
-    if cfg!(dev) {
-        let current_exe =
-            std::env::current_exe().map_err(|e| format!("Failed to get current exe: {}", e))?;
-        if let Some(dir) = current_exe.parent() {
-            let tui_path = dir.join("cheolsu");
-            if tui_path.exists() {
-                return Ok(tui_path.display().to_string());
-            }
-        }
-    }
-
-    // 프로덕션 모드
-    let target_triple = env!("TAURI_ENV_TARGET_TRIPLE");
-    let sidecar_name = format!("binaries/cheolsu-{target_triple}");
-    app.path()
-        .resolve(&sidecar_name, tauri::path::BaseDirectory::Resource)
-        .map(|p| p.display().to_string())
-        .map_err(|e| format!("Failed to resolve TUI path: {}", e))
-}
-
 /// macOS에서 osascript를 사용하여 관리자 권한으로 셸 명령 실행
 /// 네이티브 비밀번호 입력 팝업이 표시됨 (VS Code 방식)
 #[cfg(target_os = "macos")]
@@ -496,16 +530,15 @@ fn run_with_admin_privileges(shell_cmd: &str) -> Result<(), String> {
     }
 }
 
-/// 터미널 명령어(cheolsu) 설치: /usr/local/bin/cheolsu에 심볼릭 링크 생성
+/// 터미널 명령어(cheolsu) 설치: ~/.cheolsu/bin/에 복사 후 /usr/local/bin/cheolsu에 심볼릭 링크 생성
 #[tauri::command]
 pub fn install_cli(app: AppHandle<impl Runtime>) -> Result<String, String> {
-    let tui_path = resolve_tui_path(&app)?;
+    // 앱 번들에서 ~/.cheolsu/bin/cheolsu로 복사 (격리 속성 제거 포함)
+    let tui_path = install_sidecar_binary(&app, "cheolsu", "cheolsu")?;
     let link_path = "/usr/local/bin/cheolsu";
-
-    // 먼저 직접 시도, 실패하면 관리자 권한으로 재시도
     let link = std::path::Path::new(link_path);
 
-    // 기존 링크 제거 + 새 링크 생성을 하나의 셸 명령으로
+    // 기존 링크/파일 제거
     let needs_admin = if link.exists() || link.is_symlink() {
         std::fs::remove_file(link).is_err()
     } else {
@@ -515,7 +548,6 @@ pub fn install_cli(app: AppHandle<impl Runtime>) -> Result<String, String> {
     #[cfg(unix)]
     {
         if needs_admin || std::os::unix::fs::symlink(&tui_path, link).is_err() {
-            // 직접 생성 실패 → 관리자 권한으로 재시도
             #[cfg(target_os = "macos")]
             {
                 let cmd = format!("rm -f {} && ln -sf {} {}", link_path, tui_path, link_path);
@@ -551,7 +583,6 @@ pub fn uninstall_cli() -> Result<String, String> {
         return Err("터미널 명령어가 설치되어 있지 않습니다".to_string());
     }
 
-    // 먼저 직접 시도, 실패하면 관리자 권한으로 재시도
     if std::fs::remove_file(link).is_err() {
         #[cfg(target_os = "macos")]
         {
