@@ -74,12 +74,6 @@ pub fn run() {
                     .build()?;
 
                 let view_menu = SubmenuBuilder::new(app_handle, "View")
-                    .item(
-                        &tauri::menu::MenuItemBuilder::with_id("refresh", "Reload")
-                            .accelerator("CmdOrCtrl+R")
-                            .build(app_handle)?,
-                    )
-                    .separator()
                     .fullscreen()
                     .build()?;
 
@@ -104,13 +98,6 @@ pub fn run() {
                 });
 
                 Ok(())
-            })
-            .on_menu_event(|app_handle, event| {
-                if event.id().as_ref() == "refresh" {
-                    if let Some(window) = app_handle.get_webview_window("main") {
-                        let _ = window.eval("location.reload()");
-                    }
-                }
             })
             .on_window_event(|_window, event| {
                 // GUI 종료 시 daemon과의 연결만 해제 (프록시 설정 해제는 daemon이 담당)
