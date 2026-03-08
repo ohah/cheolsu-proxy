@@ -27,7 +27,7 @@ export const QueryFilterEditor = ({
   filteredCount,
 }: QueryFilterEditorProps) => {
   const isDirty = value !== appliedValue;
-  const { theme } = useTheme();
+  const { resolvedTheme } = useTheme();
 
   const { handleEditorDidMount } = useMonacoEditor({
     onApply,
@@ -63,7 +63,7 @@ export const QueryFilterEditor = ({
               value={value}
               onChange={(value) => onChange(value || "")}
               onMount={handleEditorDidMount}
-              theme={theme === "dark" ? "cheolsu-dark" : "cheolsu-light"}
+              theme={resolvedTheme === "dark" ? "cheolsu-dark" : "cheolsu-light"}
               options={{
                 minimap: { enabled: false },
                 lineNumbers: "off",

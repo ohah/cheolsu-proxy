@@ -301,7 +301,7 @@ export const MediaPreview = ({
     return (
       <div className={className}>
         <div className="flex items-center justify-center h-full">
-          <div className="text-gray-500">로딩 중...</div>
+          <div className="text-muted-foreground">로딩 중...</div>
         </div>
       </div>
     );
@@ -321,7 +321,7 @@ export const MediaPreview = ({
     return (
       <div className={className}>
         <div className="flex items-center justify-center h-full">
-          <div className="text-gray-500">미디어를 로드할 수 없습니다</div>
+          <div className="text-muted-foreground">미디어를 로드할 수 없습니다</div>
         </div>
       </div>
     );

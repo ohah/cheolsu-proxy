@@ -58,11 +58,11 @@ export const ImagePreview = ({ data, dataType, className = "" }: ImagePreviewPro
 
   if (isLoading) {
     return (
-      <div className={`flex items-center justify-center p-8 bg-gray-50 rounded-md ${className}`}>
+      <div className={`flex items-center justify-center p-8 bg-muted rounded-md ${className}`}>
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-2"></div>
-          <p className="text-gray-500">이미지 로딩 중...</p>
-          <p className="text-xs text-gray-400 mt-1">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground mx-auto mb-2"></div>
+          <p className="text-muted-foreground">이미지 로딩 중...</p>
+          <p className="text-xs text-muted-foreground/70 mt-1">
             {data.length > 1024 * 1024
               ? `${Math.round(data.length / 1024 / 1024)}MB`
               : `${Math.round(data.length / 1024)}KB`}
@@ -74,10 +74,10 @@ export const ImagePreview = ({ data, dataType, className = "" }: ImagePreviewPro
 
   if (!dataUrl || imageError) {
     return (
-      <div className={`flex items-center justify-center p-8 bg-gray-50 rounded-md ${className}`}>
+      <div className={`flex items-center justify-center p-8 bg-muted rounded-md ${className}`}>
         <div className="text-center">
-          <p className="text-gray-500 mb-2">이미지를 표시할 수 없습니다</p>
-          <p className="text-sm text-gray-400">
+          <p className="text-muted-foreground mb-2">이미지를 표시할 수 없습니다</p>
+          <p className="text-sm text-muted-foreground/70">
             {dataType} 파일 ({data.length} bytes)
           </p>
         </div>
@@ -171,7 +171,7 @@ export const ImagePreview = ({ data, dataType, className = "" }: ImagePreviewPro
   return (
     <div className={`flex flex-col items-center gap-4 ${className}`}>
       {imageElement}
-      <div className="text-sm text-gray-500">
+      <div className="text-sm text-muted-foreground">
         {dataType} 파일 ({data.length} bytes)
       </div>
     </div>
