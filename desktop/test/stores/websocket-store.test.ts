@@ -4,9 +4,7 @@ import "../../test/mocks/tauri";
 import type { WsMessageInfo } from "../../src/entities/websocket";
 
 async function getStore() {
-  const { useWebSocketStore } = await import(
-    "../../src/shared/stores/websocket-store"
-  );
+  const { useWebSocketStore } = await import("../../src/shared/stores/websocket-store");
   return useWebSocketStore;
 }
 

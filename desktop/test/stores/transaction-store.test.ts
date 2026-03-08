@@ -4,9 +4,7 @@ import "../../test/mocks/tauri";
 import type { HttpTransaction } from "../../src/entities/proxy";
 
 async function getStore() {
-  const { useTransactionStore } = await import(
-    "../../src/shared/stores/transaction-store"
-  );
+  const { useTransactionStore } = await import("../../src/shared/stores/transaction-store");
   return useTransactionStore;
 }
 
