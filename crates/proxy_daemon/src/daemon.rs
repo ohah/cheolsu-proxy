@@ -6,7 +6,8 @@ use tokio::net::{UnixListener, UnixStream};
 use tokio::sync::{broadcast, watch, Mutex};
 use tracing::{error, info, warn};
 
-use crate::handler::{create_hybrid_client, LoggingHandler};
+use crate::handler::LoggingHandler;
+use crate::tls_client::create_hybrid_client;
 use crate::protocol::{ClientCommand, DaemonMessage, ProxyLockInfo};
 use crate::system_proxy::set_proxy;
 use proxyapi_v2::upstream_proxy::UpstreamProxyConfig;
