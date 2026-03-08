@@ -10,7 +10,6 @@ import { Button, Input, Badge, Tabs, TabsList, TabsTrigger, TabsContent } from "
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/shared/ui/resizable";
 import { open } from "@tauri-apps/plugin-dialog";
 import { readTextFile } from "@tauri-apps/plugin-fs";
-import { listen } from "@tauri-apps/api/event";
 import { toast } from "sonner";
 import { CHEOLSU_TYPE_DEFS } from "../lib/cheolsu-types";
 
@@ -126,20 +125,6 @@ export function ScriptPage() {
       setLoading(false);
     }
   }, [scriptPath, t]);
-
-  // 메뉴 Cmd+R 새로고침 핸들러
-  useEffect(() => {
-    const unlisten = listen("menu_refresh", () => {
-      if (active && scriptPath) {
-        handleReload();
-      } else if (active) {
-        handleRunCode();
-      }
-    });
-    return () => {
-      unlisten.then((f) => f());
-    };
-  }, [active, scriptPath, handleReload, handleRunCode]);
 
   const levelColor = (level: string) => {
     switch (level) {
