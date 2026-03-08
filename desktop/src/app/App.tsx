@@ -9,6 +9,7 @@ import {
   useMapRuleStore,
   useScriptStore,
 } from "@/shared/stores";
+import { trayStore } from "@/shared/stores/tray-sync-store";
 import { listen } from "@tauri-apps/api/event";
 import type { ProxyEventTuple } from "@/entities/proxy";
 import type { WsMessageInfo, WsConnectionEvent } from "@/entities/websocket";
@@ -106,6 +107,7 @@ const App: React.FC = () => {
   // 트레이 패널에서 보내는 이벤트 수신
   const clearTransactions = useTransactionStore((s) => s.clearTransactions);
   const togglePause = useTransactionStore((s) => s.togglePause);
+  const transactions = useTransactionStore((s) => s.transactions);
 
   useEffect(() => {
     const unlistenPause = listen("tray_toggle_pause", () => {
@@ -120,6 +122,13 @@ const App: React.FC = () => {
       unlistenClear.then((f) => f());
     };
   }, [clearTransactions, togglePause]);
+
+  // 메인 윈도우 상태를 Tauri Store에 동기화 (트레이 패널이 읽음)
+  useEffect(() => {
+    trayStore.set("paused", paused);
+    trayStore.set("transactionCount", transactions.length);
+    trayStore.save();
+  }, [paused, transactions.length]);
 
   return (
     <ThemeProvider attribute={["class", "data-theme"]} defaultTheme="system" enableSystem>
