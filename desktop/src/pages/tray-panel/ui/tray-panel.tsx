@@ -4,9 +4,6 @@ import { LazyStore } from "@tauri-apps/plugin-store";
 import {
   Circle,
   Power,
-  Globe,
-  Pause,
-  Play,
   ShieldCheck,
   ShieldX,
   Trash2,
@@ -26,7 +23,6 @@ const trayStore = new LazyStore("tray-sync.json");
 export function TrayPanel() {
   const [info, setInfo] = useState<TrayInfo | null>(null);
   const [proxyOn, setProxyOn] = useState(false);
-  const [recording, setRecording] = useState(true);
   const [transactionCount, setTransactionCount] = useState(0);
 
   // Rust 백엔드에서 프록시 상태 조회
@@ -43,9 +39,7 @@ export function TrayPanel() {
   // Tauri Store에서 메인 윈도우 상태 읽기
   const syncFromStore = useCallback(async () => {
     try {
-      const paused = await trayStore.get<boolean>("paused");
       const count = await trayStore.get<number>("transactionCount");
-      if (paused !== null && paused !== undefined) setRecording(!paused);
       if (count !== null && count !== undefined) setTransactionCount(count);
     } catch {
       // 스토어가 아직 초기화 안 된 경우 무시
@@ -63,7 +57,6 @@ export function TrayPanel() {
 
     // Store 변경 감지 (메인 윈도우에서 값 변경 시 즉시 반영)
     const unlistenPromise = trayStore.onChange<boolean | number>((key, value) => {
-      if (key === "paused" && typeof value === "boolean") setRecording(!value);
       if (key === "transactionCount" && typeof value === "number") setTransactionCount(value);
     });
 
@@ -90,13 +83,6 @@ export function TrayPanel() {
     } catch (e) {
       console.error("Proxy toggle failed:", e);
     }
-  };
-
-  const handleToggleRecording = async () => {
-    const newRecording = !recording;
-    setRecording(newRecording);
-    await trayStore.set("paused", !newRecording);
-    await trayStore.save();
   };
 
   const handleClearSession = async () => {
@@ -151,21 +137,6 @@ export function TrayPanel() {
             checked={proxyOn}
             onChange={handleToggleProxy}
             activeColor="#34c759"
-          />
-          <TrayToggleRow
-            icon={<Globe size={14} />}
-            label="시스템 프록시"
-            checked={false}
-            onChange={() => {}}
-            activeColor="#007aff"
-            disabled
-          />
-          <TrayToggleRow
-            icon={recording ? <Pause size={14} /> : <Play size={14} />}
-            label="트래픽 기록"
-            checked={recording}
-            onChange={handleToggleRecording}
-            activeColor="#ff9f0a"
           />
         </div>
 

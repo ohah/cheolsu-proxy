@@ -7,7 +7,7 @@ use tauri::{
 };
 
 const PANEL_WIDTH: f64 = 300.0;
-const PANEL_HEIGHT: f64 = 326.0;
+const PANEL_HEIGHT: f64 = 266.0;
 
 /// 트레이 Rect에서 패널 위치를 계산하고 적절한 Position 타입으로 반환
 fn calc_panel_position(tray_rect: &Rect) -> Position {

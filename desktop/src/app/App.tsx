@@ -106,7 +106,6 @@ const App: React.FC = () => {
 
   // 트레이 ↔ 메인 윈도우 양방향 동기화 (Tauri Store)
   const clearTransactions = useTransactionStore((s) => s.clearTransactions);
-  const setPaused = useTransactionStore((s) => s.setPaused);
   const setConnected = useProxyStore((s) => s.setConnected);
   const transactionCount = useTransactionStore((s) => s.transactions.length);
 
@@ -114,7 +113,6 @@ const App: React.FC = () => {
   useEffect(() => {
     const timer = setTimeout(async () => {
       try {
-        await trayStore.set("paused", paused);
         await trayStore.set("transactionCount", transactionCount);
         await trayStore.save();
       } catch {
@@ -122,16 +120,13 @@ const App: React.FC = () => {
       }
     }, 2000);
     return () => clearTimeout(timer);
-  }, [paused, transactionCount]);
+  }, [transactionCount]);
 
   // 트레이 → 메인: Store 변경 감지로 상태 반영
   useEffect(() => {
     const unlistenPromise = trayStore.onChange((key, value) => {
       if (key === "proxyConnected" && typeof value === "boolean") {
         setConnected(value);
-      }
-      if (key === "paused" && typeof value === "boolean") {
-        setPaused(value);
       }
       if (key === "clearSession" && typeof value === "number") {
         clearTransactions();
@@ -141,7 +136,7 @@ const App: React.FC = () => {
     return () => {
       unlistenPromise.then((f) => f());
     };
-  }, [setConnected, setPaused, clearTransactions]);
+  }, [setConnected, clearTransactions]);
 
   return (
     <ThemeProvider attribute={["class", "data-theme"]} defaultTheme="system" enableSystem>
