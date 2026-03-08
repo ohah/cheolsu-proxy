@@ -1,3 +1,4 @@
+use crate::error::ScriptError;
 use crate::transpiler::transpile_ts;
 use crate::types::{
     RequestAction, ResponseAction, ScriptLogEntry, ScriptRequest, ScriptResponse, ScriptWsMessage,
@@ -18,12 +19,12 @@ pub struct ScriptEngine {
 
 impl ScriptEngine {
     /// 새 스크립트 엔진 생성 (runtime.js 로드)
-    pub fn new() -> Result<Self, String> {
+    pub fn new() -> Result<Self, ScriptError> {
         let mut runtime = JsRuntime::new(Default::default());
 
         runtime
             .execute_script("<runtime>".to_string(), RUNTIME_JS.to_string())
-            .map_err(|e| format!("런타임 초기화 실패: {}", e))?;
+            .map_err(|e| ScriptError::RuntimeInit(e.to_string()))?;
 
         Ok(Self {
             runtime,
@@ -34,27 +35,28 @@ impl ScriptEngine {
     }
 
     /// 사용자 스크립트 파일 로드 (JS/TS 모두 지원)
-    pub fn load_script(&mut self, path: &str) -> Result<(), String> {
+    pub fn load_script(&mut self, path: &str) -> Result<(), ScriptError> {
         let script_path = std::path::Path::new(path);
 
         // 경로 정규화로 path traversal 공격 방지
         let canonical = script_path
             .canonicalize()
-            .map_err(|e| format!("스크립트 경로를 확인할 수 없습니다: {} ({})", path, e))?;
+            .map_err(|e| ScriptError::PathResolution {
+                path: path.to_string(),
+                reason: e.to_string(),
+            })?;
 
         // 스크립트 파일 확장자 검증
         match canonical.extension().and_then(|e| e.to_str()) {
             Some("js" | "ts" | "tsx" | "mjs") => {}
             _ => {
-                return Err(format!(
-                    "허용되지 않는 파일 확장자입니다: {}. js, ts, tsx, mjs만 허용됩니다.",
-                    path
-                ));
+                return Err(ScriptError::InvalidExtension {
+                    path: path.to_string(),
+                });
             }
         }
 
-        let source = std::fs::read_to_string(&canonical)
-            .map_err(|e| format!("스크립트 파일 읽기 실패: {}", e))?;
+        let source = std::fs::read_to_string(&canonical)?;
 
         let code = if path.ends_with(".ts") || path.ends_with(".tsx") {
             transpile_ts(&source, path)?
@@ -64,7 +66,7 @@ impl ScriptEngine {
 
         self.runtime
             .execute_script(path.to_string(), code)
-            .map_err(|e| format!("스크립트 실행 실패: {}", e))?;
+            .map_err(|e| ScriptError::Execution(e.to_string()))?;
 
         self.check_hooks()?;
 
@@ -77,10 +79,10 @@ impl ScriptEngine {
     }
 
     /// 스크립트 코드 직접 로드 (JS)
-    pub fn load_code(&mut self, code: &str) -> Result<(), String> {
+    pub fn load_code(&mut self, code: &str) -> Result<(), ScriptError> {
         self.runtime
             .execute_script("<script>".to_string(), code.to_string())
-            .map_err(|e| format!("스크립트 실행 실패: {}", e))?;
+            .map_err(|e| ScriptError::Execution(e.to_string()))?;
 
         self.check_hooks()?;
 
@@ -93,12 +95,12 @@ impl ScriptEngine {
     }
 
     /// TypeScript 코드 직접 로드 (트랜스파일 후 실행)
-    pub fn load_ts_code(&mut self, ts_code: &str) -> Result<(), String> {
+    pub fn load_ts_code(&mut self, ts_code: &str) -> Result<(), ScriptError> {
         let js_code = transpile_ts(ts_code, "script.ts")?;
         self.load_code(&js_code)
     }
 
-    fn check_hooks(&mut self) -> Result<(), String> {
+    fn check_hooks(&mut self) -> Result<(), ScriptError> {
         self.has_on_request = self.eval_bool("globalThis.__cheolsu_internal.hasOnRequest()")?;
         self.has_on_response = self.eval_bool("globalThis.__cheolsu_internal.hasOnResponse()")?;
         self.has_on_ws_message =
@@ -106,11 +108,11 @@ impl ScriptEngine {
         Ok(())
     }
 
-    fn eval_bool(&mut self, code: &str) -> Result<bool, String> {
+    fn eval_bool(&mut self, code: &str) -> Result<bool, ScriptError> {
         let global = self
             .runtime
             .execute_script("<eval>".to_string(), code.to_string())
-            .map_err(|e| format!("eval 실패: {}", e))?;
+            .map_err(|e| ScriptError::Execution(e.to_string()))?;
 
         let context = self.runtime.main_context();
         let isolate = self.runtime.v8_isolate();
@@ -124,17 +126,18 @@ impl ScriptEngine {
     }
 
     /// onRequest 훅 호출
-    pub fn invoke_on_request(&mut self, request: &ScriptRequest) -> Result<RequestAction, String> {
+    pub fn invoke_on_request(
+        &mut self,
+        request: &ScriptRequest,
+    ) -> Result<RequestAction, ScriptError> {
         if !self.has_on_request {
             return Ok(RequestAction::Forward);
         }
 
-        let request_json =
-            serde_json::to_string(request).map_err(|e| format!("직렬화 실패: {}", e))?;
+        let request_json = serde_json::to_string(request)?;
 
         // JSON을 이중 직렬화하여 안전한 JS 문자열 리터럴로 전달 (template literal injection 방지)
-        let safe_js_str =
-            serde_json::to_string(&request_json).map_err(|e| format!("직렬화 실패: {}", e))?;
+        let safe_js_str = serde_json::to_string(&request_json)?;
         let code = format!(
             "globalThis.__cheolsu_internal.invokeOnRequest({})",
             safe_js_str
@@ -142,8 +145,10 @@ impl ScriptEngine {
 
         let result = self.eval_string(&code)?;
 
-        serde_json::from_str(&result)
-            .map_err(|e| format!("onRequest 반환값 파싱 실패: {} (raw: {})", e, result))
+        serde_json::from_str(&result).map_err(|e| ScriptError::HookParse {
+            message: e.to_string(),
+            raw: result,
+        })
     }
 
     /// onResponse 훅 호출
@@ -151,21 +156,17 @@ impl ScriptEngine {
         &mut self,
         request: &ScriptRequest,
         response: &ScriptResponse,
-    ) -> Result<ResponseAction, String> {
+    ) -> Result<ResponseAction, ScriptError> {
         if !self.has_on_response {
             return Ok(ResponseAction::Forward);
         }
 
-        let request_json =
-            serde_json::to_string(request).map_err(|e| format!("직렬화 실패: {}", e))?;
-        let response_json =
-            serde_json::to_string(response).map_err(|e| format!("직렬화 실패: {}", e))?;
+        let request_json = serde_json::to_string(request)?;
+        let response_json = serde_json::to_string(response)?;
 
         // JSON을 이중 직렬화하여 안전한 JS 문자열 리터럴로 전달
-        let safe_req =
-            serde_json::to_string(&request_json).map_err(|e| format!("직렬화 실패: {}", e))?;
-        let safe_res =
-            serde_json::to_string(&response_json).map_err(|e| format!("직렬화 실패: {}", e))?;
+        let safe_req = serde_json::to_string(&request_json)?;
+        let safe_res = serde_json::to_string(&response_json)?;
         let code = format!(
             "globalThis.__cheolsu_internal.invokeOnResponse({}, {})",
             safe_req, safe_res
@@ -173,22 +174,25 @@ impl ScriptEngine {
 
         let result = self.eval_string(&code)?;
 
-        serde_json::from_str(&result)
-            .map_err(|e| format!("onResponse 반환값 파싱 실패: {} (raw: {})", e, result))
+        serde_json::from_str(&result).map_err(|e| ScriptError::HookParse {
+            message: e.to_string(),
+            raw: result,
+        })
     }
 
     /// onWebSocketMessage 훅 호출
-    pub fn invoke_on_ws_message(&mut self, message: &ScriptWsMessage) -> Result<WsAction, String> {
+    pub fn invoke_on_ws_message(
+        &mut self,
+        message: &ScriptWsMessage,
+    ) -> Result<WsAction, ScriptError> {
         if !self.has_on_ws_message {
             return Ok(WsAction::Forward);
         }
 
-        let message_json =
-            serde_json::to_string(message).map_err(|e| format!("직렬화 실패: {}", e))?;
+        let message_json = serde_json::to_string(message)?;
 
         // JSON을 이중 직렬화하여 안전한 JS 문자열 리터럴로 전달
-        let safe_js_str =
-            serde_json::to_string(&message_json).map_err(|e| format!("직렬화 실패: {}", e))?;
+        let safe_js_str = serde_json::to_string(&message_json)?;
         let code = format!(
             "globalThis.__cheolsu_internal.invokeOnWebSocketMessage({})",
             safe_js_str
@@ -196,20 +200,18 @@ impl ScriptEngine {
 
         let result = self.eval_string(&code)?;
 
-        serde_json::from_str(&result).map_err(|e| {
-            format!(
-                "onWebSocketMessage 반환값 파싱 실패: {} (raw: {})",
-                e, result
-            )
+        serde_json::from_str(&result).map_err(|e| ScriptError::HookParse {
+            message: e.to_string(),
+            raw: result,
         })
     }
 
     /// JS 코드를 실행하고 문자열 결과 반환 (동기)
-    fn eval_string(&mut self, code: &str) -> Result<String, String> {
+    fn eval_string(&mut self, code: &str) -> Result<String, ScriptError> {
         let global = self
             .runtime
             .execute_script("<invoke>".to_string(), code.to_string())
-            .map_err(|e| format!("JS 실행 실패: {}", e))?;
+            .map_err(|e| ScriptError::Execution(e.to_string()))?;
 
         let context = self.runtime.main_context();
         let isolate = self.runtime.v8_isolate();
@@ -219,9 +221,7 @@ impl ScriptEngine {
         let scope = &mut v8::ContextScope::new(&mut scope, context_local);
 
         let local = v8::Local::new(scope, global);
-        let result = local
-            .to_string(scope)
-            .ok_or_else(|| "JS 결과를 문자열로 변환 실패".to_string())?;
+        let result = local.to_string(scope).ok_or(ScriptError::ValueConversion)?;
 
         Ok(result.to_rust_string_lossy(scope))
     }

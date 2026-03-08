@@ -1,3 +1,4 @@
+use crate::error::ScriptError;
 use oxc_allocator::Allocator;
 use oxc_codegen::Codegen;
 use oxc_parser::Parser;
@@ -7,19 +8,24 @@ use oxc_transformer::{TransformOptions, Transformer};
 use std::path::Path;
 
 /// TypeScript 코드를 JavaScript로 트랜스파일 (oxc 사용)
-pub fn transpile_ts(source: &str, filename: &str) -> Result<String, String> {
+pub fn transpile_ts(source: &str, filename: &str) -> Result<String, ScriptError> {
     let allocator = Allocator::default();
     let source_type = SourceType::from_path(filename).unwrap_or_default();
 
     let parsed = Parser::new(&allocator, source, source_type).parse();
 
     if parsed.panicked {
-        return Err("TypeScript 파싱 중 패닉 발생".to_string());
+        return Err(ScriptError::Transpile(
+            "TypeScript 파싱 중 패닉 발생".to_string(),
+        ));
     }
 
     if !parsed.errors.is_empty() {
         let errors: Vec<String> = parsed.errors.iter().map(|e| e.to_string()).collect();
-        return Err(format!("TypeScript 파싱 오류: {}", errors.join(", ")));
+        return Err(ScriptError::Transpile(format!(
+            "TypeScript 파싱 오류: {}",
+            errors.join(", ")
+        )));
     }
 
     let mut program = parsed.program;
@@ -30,7 +36,10 @@ pub fn transpile_ts(source: &str, filename: &str) -> Result<String, String> {
 
     if !semantic_ret.errors.is_empty() {
         let errors: Vec<String> = semantic_ret.errors.iter().map(|e| e.to_string()).collect();
-        return Err(format!("시맨틱 분석 오류: {}", errors.join(", ")));
+        return Err(ScriptError::Transpile(format!(
+            "시맨틱 분석 오류: {}",
+            errors.join(", ")
+        )));
     }
 
     let scoping = semantic_ret.semantic.into_scoping();
@@ -41,7 +50,10 @@ pub fn transpile_ts(source: &str, filename: &str) -> Result<String, String> {
 
     if !ret.errors.is_empty() {
         let errors: Vec<String> = ret.errors.iter().map(|e| e.to_string()).collect();
-        return Err(format!("트랜스파일 오류: {}", errors.join(", ")));
+        return Err(ScriptError::Transpile(format!(
+            "트랜스파일 오류: {}",
+            errors.join(", ")
+        )));
     }
 
     let js_code = Codegen::new().build(&program).code;
