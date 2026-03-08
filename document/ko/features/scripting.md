@@ -7,7 +7,7 @@ Deno Core (V8) 기반의 JavaScript/TypeScript 스크립팅 엔진으로 HTTP �
 ## 지원 파일 형식
 
 - `.js`, `.ts`, `.mjs`, `.mts`
-- TypeScript는 swc 기반으로 자동 트랜스파일됩니다.
+- TypeScript는 oxc 기반으로 자동 트랜스파일됩니다.
 
 ---
 

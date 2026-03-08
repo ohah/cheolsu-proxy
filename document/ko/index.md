@@ -36,7 +36,6 @@ Cheolsu Proxy 사용을 위한 가이드입니다.
 - [WebSocket](/features/websocket) - WebSocket 트래픽 모니터링 및 주입
 - [Server Replay](/features/server-replay) - 캡처된 응답 캐싱 및 재사용
 - [TLS 1.0/1.1 지원](/features/tls-support) - 레거시 TLS 클라이언트 지원
-- [mitmproxy 비교](/features/mitmproxy-comparison) - mitmproxy 기능 비교
 
 ## 릴리즈 노트
 
