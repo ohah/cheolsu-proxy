@@ -46,6 +46,14 @@ impl ScriptEngine {
         })
     }
 
+    /// 기존 타이머 및 비동기 작업 정리
+    pub fn clear_timers(&mut self) {
+        let _ = self.runtime.execute_script(
+            "<clear_timers>".to_string(),
+            "globalThis.__cheolsu_internal.clearAllTimers()".to_string(),
+        );
+    }
+
     /// 사용자 스크립트 파일 로드 (JS/TS 모두 지원)
     pub fn load_script(&mut self, path: &str) -> Result<(), ScriptError> {
         let script_path = std::path::Path::new(path);

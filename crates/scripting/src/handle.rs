@@ -233,6 +233,12 @@ async fn script_engine_loop(
     while let Some(cmd) = rx.recv().await {
         match cmd {
             ScriptCommand::LoadFile { path, reply } => {
+                // 이전 엔진의 타이머/비동기 작업 정리 후 drop (V8 crash 방지)
+                if let Some(old) = engine.as_mut() {
+                    old.clear_timers();
+                }
+                engine = None;
+
                 let result = ScriptEngine::new().and_then(|mut e| {
                     e.load_script(&path)?;
                     flush_logs(&mut e, &log_tx);
@@ -245,11 +251,17 @@ async fn script_engine_loop(
                         let _ = reply.send(Ok(()));
                     }
                     Err(e) => {
+                        active.store(false, std::sync::atomic::Ordering::Release);
                         let _ = reply.send(Err(e));
                     }
                 }
             }
             ScriptCommand::LoadCode { code, reply } => {
+                if let Some(old) = engine.as_mut() {
+                    old.clear_timers();
+                }
+                engine = None;
+
                 let result = ScriptEngine::new().and_then(|mut e| {
                     e.load_code(&code)?;
                     flush_logs(&mut e, &log_tx);
@@ -262,11 +274,17 @@ async fn script_engine_loop(
                         let _ = reply.send(Ok(()));
                     }
                     Err(e) => {
+                        active.store(false, std::sync::atomic::Ordering::Release);
                         let _ = reply.send(Err(e));
                     }
                 }
             }
             ScriptCommand::LoadTsCode { code, reply } => {
+                if let Some(old) = engine.as_mut() {
+                    old.clear_timers();
+                }
+                engine = None;
+
                 let result = ScriptEngine::new().and_then(|mut e| {
                     e.load_ts_code(&code)?;
                     flush_logs(&mut e, &log_tx);
@@ -279,16 +297,23 @@ async fn script_engine_loop(
                         let _ = reply.send(Ok(()));
                     }
                     Err(e) => {
+                        active.store(false, std::sync::atomic::Ordering::Release);
                         let _ = reply.send(Err(e));
                     }
                 }
             }
             ScriptCommand::Unload { reply } => {
+                if let Some(old) = engine.as_mut() {
+                    old.clear_timers();
+                }
                 engine = None;
                 active.store(false, std::sync::atomic::Ordering::Release);
                 let _ = reply.send(());
             }
             ScriptCommand::Shutdown => {
+                if let Some(old) = engine.as_mut() {
+                    old.clear_timers();
+                }
                 engine = None;
                 active.store(false, std::sync::atomic::Ordering::Release);
                 break;
