@@ -104,33 +104,13 @@ const App: React.FC = () => {
     };
   }, [addScriptLog, setScriptStatus]);
 
-  // 트레이 패널에서 보내는 이벤트 수신
+  // 트레이 ↔ 메인 윈도우 양방향 동기화 (Tauri Store)
   const clearTransactions = useTransactionStore((s) => s.clearTransactions);
   const togglePause = useTransactionStore((s) => s.togglePause);
   const setConnected = useProxyStore((s) => s.setConnected);
-
-  useEffect(() => {
-    const unlistenPause = listen("tray_toggle_pause", () => {
-      togglePause();
-    });
-    const unlistenClear = listen("tray_clear_session", () => {
-      clearTransactions();
-    });
-    const unlistenProxy = listen<{ connected: boolean }>("tray_proxy_changed", (event) => {
-      setConnected(event.payload.connected);
-    });
-
-    return () => {
-      unlistenPause.then((f) => f());
-      unlistenClear.then((f) => f());
-      unlistenProxy.then((f) => f());
-    };
-  }, [clearTransactions, togglePause, setConnected]);
-
-  // 메인 윈도우 상태를 Tauri Store에 동기화 (트레이 패널이 읽음)
-  // 디스크 쓰기를 줄이기 위해 2초 간격으로 디바운스
   const transactionCount = useTransactionStore((s) => s.transactions.length);
 
+  // 메인 → 트레이: 상태를 Store에 쓰기 (2초 디바운스)
   useEffect(() => {
     const timer = setTimeout(async () => {
       try {
@@ -143,6 +123,27 @@ const App: React.FC = () => {
     }, 2000);
     return () => clearTimeout(timer);
   }, [paused, transactionCount]);
+
+  // 트레이 → 메인: Store 변경 감지로 상태 반영
+  useEffect(() => {
+    const unlistenPromise = trayStore.onChange((key, value) => {
+      if (key === "proxyConnected" && typeof value === "boolean") {
+        setConnected(value);
+      }
+      if (key === "requestTogglePause" && value === true) {
+        togglePause();
+        trayStore.set("requestTogglePause", false);
+      }
+      if (key === "requestClearSession" && value === true) {
+        clearTransactions();
+        trayStore.set("requestClearSession", false);
+      }
+    });
+
+    return () => {
+      unlistenPromise.then((f) => f());
+    };
+  }, [setConnected, togglePause, clearTransactions]);
 
   return (
     <ThemeProvider attribute={["class", "data-theme"]} defaultTheme="system" enableSystem>
