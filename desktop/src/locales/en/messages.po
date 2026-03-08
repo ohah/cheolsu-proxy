@@ -162,7 +162,7 @@ msgstr "Block"
 msgid "Body"
 msgstr "Body"
 
-#: src/pages/script/ui/script-page.tsx:261
+#: src/pages/script/ui/script-page.tsx:263
 msgid "Browse"
 msgstr "Browse"
 
@@ -191,7 +191,7 @@ msgstr "Cannot add: no response data"
 msgid "Cheolsu Proxy Logo"
 msgstr "Cheolsu Proxy Logo"
 
-#: src/pages/script/ui/script-page.tsx:296
+#: src/pages/script/ui/script-page.tsx:298
 msgid "Clear"
 msgstr "Clear"
 
@@ -236,7 +236,7 @@ msgstr "Connection"
 msgid "connections"
 msgstr "connections"
 
-#: src/pages/script/ui/script-page.tsx:284
+#: src/pages/script/ui/script-page.tsx:286
 msgid "Console"
 msgstr "Console"
 
@@ -419,11 +419,11 @@ msgstr "Language"
 msgid "Light"
 msgstr "Light"
 
-#: src/pages/script/ui/script-page.tsx:264
+#: src/pages/script/ui/script-page.tsx:266
 msgid "Load"
 msgstr "Load"
 
-#: src/pages/script/ui/script-page.tsx:247
+#: src/pages/script/ui/script-page.tsx:249
 msgid "Load a script file from disk. The file will be watched for changes and auto-reloaded."
 msgstr "Load a script file from disk. The file will be watched for changes and auto-reloaded."
 
@@ -432,7 +432,7 @@ msgid "Load and manage proxy scripts"
 msgstr "Load and manage proxy scripts"
 
 #: src/pages/script/ui/script-page.tsx:214
-#: src/pages/script/ui/script-page.tsx:264
+#: src/pages/script/ui/script-page.tsx:266
 msgid "Loading..."
 msgstr "Loading..."
 
@@ -554,7 +554,7 @@ msgstr "No active WebSocket connections"
 msgid "No captured traffic with responses available. Capture some traffic first."
 msgstr "No captured traffic with responses available. Capture some traffic first."
 
-#: src/pages/script/ui/script-page.tsx:302
+#: src/pages/script/ui/script-page.tsx:304
 msgid "No console output yet"
 msgstr "No console output yet"
 
@@ -763,7 +763,7 @@ msgstr "Saving..."
 msgid "Script"
 msgstr "Script"
 
-#: src/pages/script/ui/script-page.tsx:255
+#: src/pages/script/ui/script-page.tsx:257
 msgid "Script file path (.js, .ts)"
 msgstr "Script file path (.js, .ts)"
 
