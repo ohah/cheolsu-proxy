@@ -118,10 +118,6 @@ export default defineConfig({
               text: "TLS 지원",
               link: "/features/tls-support",
             },
-            {
-              text: "mitmproxy 비교",
-              link: "/features/mitmproxy-comparison",
-            },
           ],
         },
       ],

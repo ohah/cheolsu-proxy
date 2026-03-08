@@ -7,7 +7,7 @@ Programmatically manipulate HTTP requests/responses and WebSocket messages using
 ## Supported File Types
 
 - `.js`, `.ts`, `.mjs`, `.mts`
-- TypeScript is automatically transpiled using swc.
+- TypeScript is automatically transpiled using oxc.
 
 ---
 
