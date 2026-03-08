@@ -126,7 +126,7 @@ msgstr "All Methods"
 msgid "All rules cleared"
 msgstr "All rules cleared"
 
-#: src/pages/script/ui/script-page.tsx:207
+#: src/pages/script/ui/script-page.tsx:204
 msgid "API Reference"
 msgstr "API Reference"
 
@@ -158,7 +158,7 @@ msgstr "Block"
 msgid "Body"
 msgstr "Body"
 
-#: src/pages/script/ui/script-page.tsx:266
+#: src/pages/script/ui/script-page.tsx:263
 msgid "Browse"
 msgstr "Browse"
 
@@ -191,7 +191,7 @@ msgstr "Cheolsu Proxy Logo"
 msgid "Claude Code (CLI)"
 msgstr "Claude Code (CLI)"
 
-#: src/pages/script/ui/script-page.tsx:301
+#: src/pages/script/ui/script-page.tsx:298
 msgid "Clear"
 msgstr "Clear"
 
@@ -240,7 +240,7 @@ msgstr "Connection"
 msgid "connections"
 msgstr "connections"
 
-#: src/pages/script/ui/script-page.tsx:289
+#: src/pages/script/ui/script-page.tsx:286
 msgid "Console"
 msgstr "Console"
 
@@ -301,7 +301,7 @@ msgstr "Edit rule"
 msgid "Edit Rule"
 msgstr "Edit Rule"
 
-#: src/pages/script/ui/script-page.tsx:201
+#: src/pages/script/ui/script-page.tsx:198
 msgid "Editor"
 msgstr "Editor"
 
@@ -343,7 +343,7 @@ msgstr "Failed to read file: {0}"
 msgid "Failed to send"
 msgstr "Failed to send"
 
-#: src/pages/script/ui/script-page.tsx:204
+#: src/pages/script/ui/script-page.tsx:201
 msgid "File"
 msgstr "File"
 
@@ -432,11 +432,11 @@ msgstr "Language"
 msgid "Light"
 msgstr "Light"
 
-#: src/pages/script/ui/script-page.tsx:269
+#: src/pages/script/ui/script-page.tsx:266
 msgid "Load"
 msgstr "Load"
 
-#: src/pages/script/ui/script-page.tsx:252
+#: src/pages/script/ui/script-page.tsx:249
 msgid "Load a script file from disk. The file will be watched for changes and auto-reloaded."
 msgstr "Load a script file from disk. The file will be watched for changes and auto-reloaded."
 
@@ -444,8 +444,8 @@ msgstr "Load a script file from disk. The file will be watched for changes and a
 msgid "Load and manage proxy scripts"
 msgstr "Load and manage proxy scripts"
 
-#: src/pages/script/ui/script-page.tsx:217
-#: src/pages/script/ui/script-page.tsx:269
+#: src/pages/script/ui/script-page.tsx:214
+#: src/pages/script/ui/script-page.tsx:266
 msgid "Loading..."
 msgstr "Loading..."
 
@@ -567,7 +567,7 @@ msgstr "No active WebSocket connections"
 msgid "No captured traffic with responses available. Capture some traffic first."
 msgstr "No captured traffic with responses available. Capture some traffic first."
 
-#: src/pages/script/ui/script-page.tsx:307
+#: src/pages/script/ui/script-page.tsx:304
 msgid "No console output yet"
 msgstr "No console output yet"
 
@@ -595,7 +595,7 @@ msgstr "No valid requests to replay"
 msgid "Not Trusted"
 msgstr "Not Trusted"
 
-#: src/pages/script/ui/script-page.tsx:214
+#: src/pages/script/ui/script-page.tsx:211
 msgid "Open File"
 msgstr "Open File"
 
@@ -755,7 +755,7 @@ msgstr "Rule updated"
 msgid "rules"
 msgstr "rules"
 
-#: src/pages/script/ui/script-page.tsx:217
+#: src/pages/script/ui/script-page.tsx:214
 msgid "Run"
 msgstr "Run"
 
@@ -776,7 +776,7 @@ msgstr "Saving..."
 msgid "Script"
 msgstr "Script"
 
-#: src/pages/script/ui/script-page.tsx:260
+#: src/pages/script/ui/script-page.tsx:257
 msgid "Script file path (.js, .ts)"
 msgstr "Script file path (.js, .ts)"
 
@@ -942,7 +942,7 @@ msgstr "Type"
 msgid "Uninstall"
 msgstr "Uninstall"
 
-#: src/pages/script/ui/script-page.tsx:181
+#: src/pages/script/ui/script-page.tsx:178
 msgid "Unload"
 msgstr "Unload"
 
