@@ -2,9 +2,7 @@ import { describe, test, expect, beforeEach } from "bun:test";
 import "../../test/mocks/tauri";
 
 async function getStore() {
-  const { useScriptStore } = await import(
-    "../../src/shared/stores/script-store"
-  );
+  const { useScriptStore } = await import("../../src/shared/stores/script-store");
   return useScriptStore;
 }
 
