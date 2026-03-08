@@ -1,9 +1,11 @@
 pub mod client;
+pub mod client_handler;
 pub mod curl_fallback;
 pub mod daemon;
 pub mod handler;
 pub mod intercept;
 pub mod protocol;
+pub mod proxy_runner;
 pub mod script_bridge;
 pub mod system_proxy;
 pub mod tls_client;
