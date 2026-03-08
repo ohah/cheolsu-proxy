@@ -1,6 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { emitTo } from "@tauri-apps/api/event";
 import { LazyStore } from "@tauri-apps/plugin-store";
 import {
   Circle,
@@ -79,11 +78,13 @@ export function TrayPanel() {
       if (proxyOn) {
         await invoke("stop_proxy_v2");
         setProxyOn(false);
-        await emitTo("main", "tray_proxy_changed", { connected: false });
+        await trayStore.set("proxyConnected", false);
+        await trayStore.save();
       } else {
         await invoke("start_proxy_v2", { addr: `127.0.0.1:${info?.port ?? 8100}` });
         setProxyOn(true);
-        await emitTo("main", "tray_proxy_changed", { connected: true });
+        await trayStore.set("proxyConnected", true);
+        await trayStore.save();
       }
       fetchInfo();
     } catch (e) {
@@ -93,12 +94,14 @@ export function TrayPanel() {
 
   const handleToggleRecording = async () => {
     setRecording((prev) => !prev);
-    await emitTo("main", "tray_toggle_pause", {});
+    await trayStore.set("requestTogglePause", true);
+    await trayStore.save();
   };
 
   const handleClearSession = async () => {
-    await emitTo("main", "tray_clear_session", {});
     setTransactionCount(0);
+    await trayStore.set("requestClearSession", true);
+    await trayStore.save();
   };
 
   const handleCleanCache = async () => {
