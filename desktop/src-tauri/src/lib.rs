@@ -16,7 +16,7 @@ use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    #[cfg(debug_assertions)]
+    // #[cfg(debug_assertions)]
     // let devtools = tauri_plugin_devtools::init();
     {
         let mut builder = tauri::Builder::default()
