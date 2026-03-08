@@ -3,6 +3,7 @@ import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
 import { Play, Loader2 } from "lucide-react";
 import { Editor } from "@monaco-editor/react";
+import { useTheme } from "next-themes";
 
 import type { WsMessageInfo } from "@/entities/websocket";
 import { wsInjectMessage, type WsInjectParams } from "@/shared/api/proxy";
@@ -49,6 +50,7 @@ function formatPayload(payload: string, isBinary: boolean): string {
 
 export function WsReplayDialog({ message, open, onOpenChange }: WsReplayDialogProps) {
   const { t } = useLingui();
+  const { resolvedTheme } = useTheme();
   const [direction, setDirection] = useState<"to_client" | "to_server">(
     message.direction === "client_to_server" ? "to_server" : "to_client",
   );
@@ -145,6 +147,7 @@ export function WsReplayDialog({ message, open, onOpenChange }: WsReplayDialogPr
                 language={language}
                 value={payload}
                 onChange={(v) => setPayload(v ?? "")}
+                theme={resolvedTheme === "dark" ? "vs-dark" : "vs"}
                 options={{
                   minimap: { enabled: false },
                   fontSize: 12,
