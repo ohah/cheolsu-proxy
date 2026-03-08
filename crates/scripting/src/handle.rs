@@ -295,7 +295,7 @@ async fn script_engine_loop(
             }
             ScriptCommand::InvokeOnRequest { request, reply } => {
                 let result = if let Some(e) = engine.as_mut() {
-                    let r = e.invoke_on_request(&request);
+                    let r = e.invoke_on_request(&request).await;
                     flush_logs(e, &log_tx);
                     r
                 } else {
@@ -309,7 +309,7 @@ async fn script_engine_loop(
                 reply,
             } => {
                 let result = if let Some(e) = engine.as_mut() {
-                    let r = e.invoke_on_response(&request, &response);
+                    let r = e.invoke_on_response(&request, &response).await;
                     flush_logs(e, &log_tx);
                     r
                 } else {
@@ -319,7 +319,7 @@ async fn script_engine_loop(
             }
             ScriptCommand::InvokeOnWsMessage { message, reply } => {
                 let result = if let Some(e) = engine.as_mut() {
-                    let r = e.invoke_on_ws_message(&message);
+                    let r = e.invoke_on_ws_message(&message).await;
                     flush_logs(e, &log_tx);
                     r
                 } else {
