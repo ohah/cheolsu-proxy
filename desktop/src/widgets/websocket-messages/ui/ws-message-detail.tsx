@@ -3,6 +3,7 @@ import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
 import { ArrowUp, ArrowDown, X, Play } from "lucide-react";
 import { Editor } from "@monaco-editor/react";
+import { useTheme } from "next-themes";
 import { Button } from "@/shared/ui";
 import { cn } from "@/shared/lib";
 import { getWsContentView, parseMqtt } from "@/shared/lib/ws-content-view";
@@ -27,6 +28,7 @@ function formatSize(bytes: number): string {
 
 export const WsMessageDetail = memo(({ message, onClose }: WsMessageDetailProps) => {
   const { t } = useLingui();
+  const { resolvedTheme } = useTheme();
   const [replayOpen, setReplayOpen] = useState(false);
   const isSent = message.direction === "client_to_server";
 
@@ -147,6 +149,7 @@ export const WsMessageDetail = memo(({ message, onClose }: WsMessageDetailProps)
           height="100%"
           language={language}
           value={formatted}
+          theme={resolvedTheme === "dark" ? "vs-dark" : "vs"}
           options={{
             readOnly: true,
             minimap: { enabled: false },

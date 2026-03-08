@@ -1,5 +1,6 @@
 import { Copy, FileText, Loader2 } from "lucide-react";
 import { writeImage, writeText } from "@tauri-apps/plugin-clipboard-manager";
+import { useTheme } from "next-themes";
 
 import type { HttpTransaction } from "@/entities/proxy";
 
@@ -23,6 +24,7 @@ interface TransactionResponseProps {
 }
 
 export const TransactionResponse = ({ transaction }: TransactionResponseProps) => {
+  const { resolvedTheme } = useTheme();
   const { response } = transaction;
 
   if (!response) return null;
@@ -168,6 +170,7 @@ export const TransactionResponse = ({ transaction }: TransactionResponseProps) =
               height="calc(100vh - 300px)"
               language={dataTypeToMonacoLanguage(response.data_type)}
               value={responseText}
+              theme={resolvedTheme === "dark" ? "vs-dark" : "vs"}
               options={{
                 readOnly: true,
                 minimap: { enabled: false },
