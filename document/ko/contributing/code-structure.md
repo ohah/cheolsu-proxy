@@ -48,6 +48,7 @@ members = [
 `proxy_v2_models`는 워크스페이스 멤버는 아니지만, 다른 워크스페이스 멤버들이 의존성으로 참조하는 별도의 크레이트입니다.
 
 #### 주요 모듈
+
 - **har.rs**: HAR 1.2 형식 변환 모듈 (`build_har()`, `build_har_json()`)
 - **request.rs / response.rs**: HTTP 요청/응답 모델
 - **data_type.rs**: 데이터 타입 분류
