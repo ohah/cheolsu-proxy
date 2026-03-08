@@ -10,6 +10,7 @@ import { Button, Input, Badge, Tabs, TabsList, TabsTrigger, TabsContent } from "
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/shared/ui/resizable";
 import { open } from "@tauri-apps/plugin-dialog";
 import { readTextFile } from "@tauri-apps/plugin-fs";
+import { listen } from "@tauri-apps/api/event";
 import { toast } from "sonner";
 import { CHEOLSU_TYPE_DEFS } from "../lib/cheolsu-types";
 
@@ -126,6 +127,20 @@ export function ScriptPage() {
     }
   }, [scriptPath, t]);
 
+  // 메뉴 Cmd+R 새로고침 핸들러
+  useEffect(() => {
+    const unlisten = listen("menu_refresh", () => {
+      if (active && scriptPath) {
+        handleReload();
+      } else if (active) {
+        handleRunCode();
+      }
+    });
+    return () => {
+      unlisten.then((f) => f());
+    };
+  }, [active, scriptPath, handleReload, handleRunCode]);
+
   const levelColor = (level: string) => {
     switch (level) {
       case "error":
@@ -173,6 +188,9 @@ export function ScriptPage() {
               <>
                 <Button variant="outline" size="sm" onClick={handleReload} disabled={loading}>
                   {t`Reload`}
+                  <kbd className="ml-1 text-xs font-mono px-1.5 py-0.5 bg-muted rounded border border-border text-foreground">
+                    ⌘R
+                  </kbd>
                 </Button>
                 <Button variant="destructive" size="sm" onClick={handleUnload}>
                   {t`Unload`}
