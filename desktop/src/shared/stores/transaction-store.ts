@@ -19,6 +19,7 @@ interface TransactionStoreState {
   checkAllTransactions: (ids: string[]) => void;
   clearCheckedTransactions: () => void;
   togglePause: () => void;
+  setPaused: (paused: boolean) => void;
 }
 
 export const useTransactionStore = create<TransactionStoreState>()((set) => ({
@@ -98,4 +99,5 @@ export const useTransactionStore = create<TransactionStoreState>()((set) => ({
   clearCheckedTransactions: () => set({ checkedTransactionIds: new Set() }),
 
   togglePause: () => set((state) => ({ paused: !state.paused })),
+  setPaused: (paused: boolean) => set({ paused }),
 }));
