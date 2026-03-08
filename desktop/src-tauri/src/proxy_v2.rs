@@ -353,25 +353,24 @@ fn install_sidecar_binary(
 ) -> Result<String, String> {
     use tauri::Manager;
 
+    let current_exe =
+        std::env::current_exe().map_err(|e| format!("Failed to get current exe: {}", e))?;
+    let exe_dir = current_exe
+        .parent()
+        .ok_or_else(|| "실행 파일의 부모 디렉토리를 찾을 수 없습니다".to_string())?;
+
     // 개발 모드: target 디렉토리에서 직접 사용
     if cfg!(dev) {
-        let current_exe =
-            std::env::current_exe().map_err(|e| format!("Failed to get current exe: {}", e))?;
-        if let Some(dir) = current_exe.parent() {
-            let bin_path = dir.join(dest_name);
-            if bin_path.exists() {
-                return Ok(bin_path.display().to_string());
-            }
+        let bin_path = exe_dir.join(dest_name);
+        if bin_path.exists() {
+            return Ok(bin_path.display().to_string());
         }
     }
 
-    // 프로덕션 모드: 앱 번들에서 ~/.cheolsu/bin/으로 복사
+    // 프로덕션 모드: 앱 번들(Contents/MacOS/)에서 ~/.cheolsu/bin/으로 복사
     let target_triple = env!("TAURI_ENV_TARGET_TRIPLE");
-    let sidecar_name = format!("binaries/{sidecar_base}-{target_triple}");
-    let source = app
-        .path()
-        .resolve(&sidecar_name, tauri::path::BaseDirectory::Resource)
-        .map_err(|e| format!("Sidecar 경로를 찾을 수 없습니다: {}", e))?;
+    let sidecar_filename = format!("{sidecar_base}-{target_triple}");
+    let source = exe_dir.join(&sidecar_filename);
 
     if !source.exists() {
         return Err(format!(
