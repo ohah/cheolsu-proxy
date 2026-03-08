@@ -22,8 +22,8 @@ fn size_to_f64(size: &Size) -> (f64, f64) {
     }
 }
 
-const PANEL_WIDTH: f64 = 320.0;
-const PANEL_HEIGHT: f64 = 460.0;
+const PANEL_WIDTH: f64 = 300.0;
+const PANEL_HEIGHT: f64 = 380.0;
 
 /// 트레이 패널 윈도우 토글 (좌클릭)
 fn toggle_tray_panel<R: Runtime>(app: &AppHandle<R>, tray_rect: Rect) {
@@ -98,8 +98,8 @@ pub fn setup_tray(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
         })
         .build(app)?;
 
-    // 트레이 패널 윈도우를 미리 생성 (숨김 상태)
-    let panel = WebviewWindowBuilder::new(app, "tray-panel", WebviewUrl::App("/tray".into()))
+    // 트레이 패널 윈도우를 미리 생성 (숨김 상태, 투명 배경)
+    let panel = WebviewWindowBuilder::new(app, "tray-panel", WebviewUrl::App("/tray.html".into()))
         .title("Cheolsu Proxy")
         .inner_size(PANEL_WIDTH, PANEL_HEIGHT)
         .resizable(false)

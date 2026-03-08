@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { emitTo } from "@tauri-apps/api/event";
+import { LazyStore } from "@tauri-apps/plugin-store";
 import {
   Circle,
   Power,
@@ -21,13 +22,15 @@ interface TrayInfo {
   port: number;
 }
 
+const trayStore = new LazyStore("tray-sync.json");
+
 export function TrayPanel() {
   const [info, setInfo] = useState<TrayInfo | null>(null);
   const [proxyOn, setProxyOn] = useState(false);
-  const [systemProxyOn, setSystemProxyOn] = useState(false);
   const [recording, setRecording] = useState(true);
   const [transactionCount, setTransactionCount] = useState(0);
 
+  // Rust 백엔드에서 프록시 상태 조회
   const fetchInfo = useCallback(async () => {
     try {
       const result = await invoke<TrayInfo>("tray_get_info");
@@ -38,11 +41,38 @@ export function TrayPanel() {
     }
   }, []);
 
+  // Tauri Store에서 메인 윈도우 상태 읽기
+  const syncFromStore = useCallback(async () => {
+    try {
+      const paused = await trayStore.get<boolean>("paused");
+      const count = await trayStore.get<number>("transactionCount");
+      if (paused !== null && paused !== undefined) setRecording(!paused);
+      if (count !== null && count !== undefined) setTransactionCount(count);
+    } catch {
+      // 스토어가 아직 초기화 안 된 경우 무시
+    }
+  }, []);
+
   useEffect(() => {
     fetchInfo();
-    const interval = setInterval(fetchInfo, 2000);
-    return () => clearInterval(interval);
-  }, [fetchInfo]);
+    syncFromStore();
+
+    const interval = setInterval(() => {
+      fetchInfo();
+      syncFromStore();
+    }, 1500);
+
+    // Store 변경 감지 (메인 윈도우에서 값 변경 시 즉시 반영)
+    const unlistenPromise = trayStore.onChange<boolean | number>((key, value) => {
+      if (key === "paused" && typeof value === "boolean") setRecording(!value);
+      if (key === "transactionCount" && typeof value === "number") setTransactionCount(value);
+    });
+
+    return () => {
+      clearInterval(interval);
+      unlistenPromise.then((f) => f());
+    };
+  }, [fetchInfo, syncFromStore]);
 
   const handleToggleProxy = async () => {
     try {
@@ -78,19 +108,11 @@ export function TrayPanel() {
   };
 
   const handleShowMainWindow = async () => {
-    try {
-      await invoke("tray_show_main_window");
-    } catch (e) {
-      console.error("Show main window failed:", e);
-    }
+    await invoke("tray_show_main_window").catch(() => {});
   };
 
   const handleQuit = async () => {
-    try {
-      await invoke("tray_quit_app");
-    } catch (e) {
-      console.error("Quit failed:", e);
-    }
+    await invoke("tray_quit_app").catch(() => {});
   };
 
   const isConnected = info?.is_connected ?? false;
@@ -98,103 +120,98 @@ export function TrayPanel() {
   const port = info?.port ?? 8100;
 
   return (
-    <div className="h-full w-full bg-background text-foreground select-none overflow-hidden rounded-lg border border-border shadow-xl">
-      {/* 헤더 */}
-      <div
-        className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/30"
-        data-tauri-drag-region
-      >
-        <div className="flex items-center gap-2">
-          <span className="font-semibold text-sm">Cheolsu Proxy</span>
-          <span className="text-xs text-muted-foreground">v0.1.0</span>
+    <div className="tray-root">
+      <div className="tray-panel">
+        {/* 헤더 */}
+        <div className="tray-header" data-tauri-drag-region>
+          <div className="tray-header-left">
+            <span className="tray-title">Cheolsu Proxy</span>
+            <span className="tray-version">v0.1.0</span>
+          </div>
+          <div className="tray-header-right">
+            <Circle
+              size={8}
+              className={isConnected ? "tray-dot-connected" : "tray-dot-disconnected"}
+            />
+            <span className="tray-port">:{port}</span>
+          </div>
         </div>
-        <div className="flex items-center gap-1.5">
-          <Circle
-            className={`w-2.5 h-2.5 ${
-              isConnected ? "text-green-500 fill-green-500" : "text-red-500 fill-red-500"
-            }`}
+
+        {/* 토글 */}
+        <div className="tray-section">
+          <TrayToggleRow
+            icon={<Power size={14} />}
+            label="프록시"
+            checked={proxyOn}
+            onChange={handleToggleProxy}
+            activeColor="#34c759"
           />
-          <span className="text-xs text-muted-foreground">:{port}</span>
+          <TrayToggleRow
+            icon={<Globe size={14} />}
+            label="시스템 프록시"
+            checked={false}
+            onChange={() => {}}
+            activeColor="#007aff"
+            disabled
+          />
+          <TrayToggleRow
+            icon={recording ? <Pause size={14} /> : <Play size={14} />}
+            label="트래픽 기록"
+            checked={recording}
+            onChange={handleToggleRecording}
+            activeColor="#ff9f0a"
+          />
         </div>
-      </div>
 
-      {/* 토글 섹션 */}
-      <div className="px-4 py-2 space-y-1">
-        <TrayToggleRow
-          icon={<Power className="w-4 h-4" />}
-          label="프록시"
-          checked={proxyOn}
-          onChange={handleToggleProxy}
-          activeColor="green"
-        />
-        <TrayToggleRow
-          icon={<Globe className="w-4 h-4" />}
-          label="시스템 프록시"
-          checked={systemProxyOn}
-          onChange={() => setSystemProxyOn(!systemProxyOn)}
-          activeColor="blue"
-          disabled
-          disabledTooltip="준비 중"
-        />
-        <TrayToggleRow
-          icon={recording ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-          label="트래픽 기록"
-          checked={recording}
-          onChange={handleToggleRecording}
-          activeColor="amber"
-        />
-      </div>
-
-      {/* 상태 정보 */}
-      <div className="px-4 py-2 border-t border-border">
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-xs">
-            <div className="flex items-center gap-2 text-muted-foreground">
+        {/* 상태 */}
+        <div className="tray-section tray-status-section">
+          <div className="tray-status-row">
+            <div className="tray-status-label">
               {caInstalled ? (
-                <ShieldCheck className="w-3.5 h-3.5 text-green-500" />
+                <ShieldCheck size={13} className="tray-dot-connected" />
               ) : (
-                <ShieldX className="w-3.5 h-3.5 text-yellow-500" />
+                <ShieldX size={13} style={{ color: "#ff9f0a" }} />
               )}
               <span>CA 인증서</span>
             </div>
-            <span className={caInstalled ? "text-green-600" : "text-yellow-600"}>
+            <span className={caInstalled ? "tray-status-ok" : "tray-status-warn"}>
               {caInstalled ? "설치됨" : "미설치"}
             </span>
           </div>
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-muted-foreground">요청 수</span>
-            <span className="font-mono">{transactionCount}</span>
+          <div className="tray-status-row">
+            <span className="tray-status-label">요청 수</span>
+            <span className="tray-status-count">{transactionCount}</span>
           </div>
         </div>
-      </div>
 
-      {/* 액션 버튼 */}
-      <div className="px-4 py-2 border-t border-border space-y-1">
-        <TrayActionButton
-          icon={<ExternalLink className="w-3.5 h-3.5" />}
-          label="메인 창 열기"
-          onClick={handleShowMainWindow}
-        />
-        <TrayActionButton
-          icon={<Trash2 className="w-3.5 h-3.5" />}
-          label="세션 초기화"
-          onClick={handleClearSession}
-        />
-        <TrayActionButton
-          icon={<FolderOpen className="w-3.5 h-3.5" />}
-          label="캐시 정리"
-          onClick={handleCleanCache}
-        />
-      </div>
+        {/* 액션 */}
+        <div className="tray-section">
+          <TrayActionButton
+            icon={<ExternalLink size={13} />}
+            label="메인 창 열기"
+            onClick={handleShowMainWindow}
+          />
+          <TrayActionButton
+            icon={<Trash2 size={13} />}
+            label="세션 초기화"
+            onClick={handleClearSession}
+          />
+          <TrayActionButton
+            icon={<FolderOpen size={13} />}
+            label="캐시 정리"
+            onClick={handleCleanCache}
+          />
+        </div>
 
-      {/* 종료 */}
-      <div className="px-4 py-2 border-t border-border">
-        <TrayActionButton
-          icon={<X className="w-3.5 h-3.5" />}
-          label="종료"
-          onClick={handleQuit}
-          variant="destructive"
-        />
+        {/* 종료 */}
+        <div className="tray-section tray-section-last">
+          <TrayActionButton
+            icon={<X size={13} />}
+            label="종료"
+            onClick={handleQuit}
+            variant="destructive"
+          />
+        </div>
       </div>
     </div>
   );
@@ -207,7 +224,6 @@ function TrayToggleRow({
   onChange,
   activeColor,
   disabled,
-  disabledTooltip,
 }: {
   icon: React.ReactNode;
   label: string;
@@ -215,37 +231,24 @@ function TrayToggleRow({
   onChange: () => void;
   activeColor: string;
   disabled?: boolean;
-  disabledTooltip?: string;
 }) {
-  const colorMap: Record<string, string> = {
-    green: "bg-green-500",
-    blue: "bg-blue-500",
-    amber: "bg-amber-500",
-  };
-
   return (
     <button
-      className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-sm transition-colors ${
-        disabled ? "opacity-50 cursor-not-allowed" : "hover:bg-muted cursor-pointer"
-      }`}
+      className={`tray-toggle-row ${disabled ? "tray-disabled" : ""}`}
       onClick={disabled ? undefined : onChange}
       disabled={disabled}
-      title={disabled ? disabledTooltip : undefined}
     >
-      <div className="flex items-center gap-2.5">
+      <div className="tray-toggle-label">
         {icon}
         <span>{label}</span>
+        {disabled && <span className="tray-badge-soon">준비 중</span>}
       </div>
       <div
-        className={`w-8 h-[18px] rounded-full transition-colors relative ${
-          checked ? colorMap[activeColor] || "bg-primary" : "bg-zinc-300 dark:bg-zinc-600"
-        }`}
+        className="tray-switch"
+        style={{ backgroundColor: checked ? activeColor : undefined }}
+        data-checked={checked || undefined}
       >
-        <div
-          className={`absolute top-[2px] w-[14px] h-[14px] rounded-full bg-white shadow transition-transform ${
-            checked ? "translate-x-[16px]" : "translate-x-[2px]"
-          }`}
-        />
+        <div className="tray-switch-thumb" data-checked={checked || undefined} />
       </div>
     </button>
   );
@@ -264,9 +267,7 @@ function TrayActionButton({
 }) {
   return (
     <button
-      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-colors cursor-pointer ${
-        variant === "destructive" ? "hover:bg-red-500/10 text-red-500" : "hover:bg-muted"
-      }`}
+      className={`tray-action-btn ${variant === "destructive" ? "tray-action-destructive" : ""}`}
       onClick={onClick}
     >
       {icon}
