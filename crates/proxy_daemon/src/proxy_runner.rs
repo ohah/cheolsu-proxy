@@ -29,8 +29,8 @@ pub async fn run_proxy(
     let ca = build_ca().map_err(|e| DaemonError::Proxy(format!("CA build failed: {}", e)))?;
 
     let session_hash = generate_session_hash();
-    let cache_dir =
-        get_cache_storage_dir(&session_hash).map_err(|e| DaemonError::Proxy(format!("Cache dir failed: {}", e)))?;
+    let cache_dir = get_cache_storage_dir(&session_hash)
+        .map_err(|e| DaemonError::Proxy(format!("Cache dir failed: {}", e)))?;
 
     let (tx, mut rx) = tokio::sync::mpsc::channel::<proxy_v2_models::RequestInfo>(256);
     let (tunnel_tx, mut tunnel_rx) =
@@ -76,8 +76,8 @@ pub async fn run_proxy(
 
     let initial_upstream = upstream_rx.borrow().clone();
 
-    let hybrid_client =
-        create_hybrid_client(upstream_rx).map_err(|e| DaemonError::Proxy(format!("Client creation failed: {}", e)))?;
+    let hybrid_client = create_hybrid_client(upstream_rx)
+        .map_err(|e| DaemonError::Proxy(format!("Client creation failed: {}", e)))?;
 
     let listener = TcpListener::bind(addr)
         .await

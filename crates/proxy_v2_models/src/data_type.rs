@@ -325,7 +325,9 @@ pub fn detect_data_type(headers: &HeaderMap, body: &Bytes) -> DataType {
         // 비디오 파일 감지 (ftyp 이외)
         if body.len() >= 8 {
             // MOV 파일 시그니처 (QuickTime)
-            if &body[4..8] == b"moov" || &body[4..8] == b"mdat" || &body[4..8] == b"free"
+            if &body[4..8] == b"moov"
+                || &body[4..8] == b"mdat"
+                || &body[4..8] == b"free"
                 || &body[4..8] == b"wide"
             {
                 return DataType::Video;
@@ -648,9 +650,7 @@ mod tests {
         assert_eq!(detect_data_type(&headers, &webm_data), DataType::Video);
 
         // MOV 시그니처 테스트 (moov)
-        let mov_data = Bytes::from(vec![
-            0x00, 0x00, 0x00, 0x08, b'm', b'o', b'o', b'v',
-        ]);
+        let mov_data = Bytes::from(vec![0x00, 0x00, 0x00, 0x08, b'm', b'o', b'o', b'v']);
         assert_eq!(detect_data_type(&headers, &mov_data), DataType::Video);
 
         // AVI 시그니처 테스트

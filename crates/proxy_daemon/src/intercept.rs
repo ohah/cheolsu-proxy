@@ -1,11 +1,11 @@
 use crate::protocol::{InterceptAction, InterceptRule, ServerReplayEntry};
 use bytes::Bytes;
+use proxyapi_v2::hyper::Request;
 use proxyapi_v2::{
     hyper::http::{HeaderName, HeaderValue, StatusCode},
     hyper::Response,
     Body, RequestOrResponse,
 };
-use proxyapi_v2::hyper::Request;
 use regex::Regex;
 use tracing::{error, info};
 

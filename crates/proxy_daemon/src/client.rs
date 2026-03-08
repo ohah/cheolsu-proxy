@@ -153,7 +153,9 @@ where
             }
         }
         if !ready {
-            return Err(DaemonError::Daemon("Daemon did not start within 5 seconds".to_string()));
+            return Err(DaemonError::Daemon(
+                "Daemon did not start within 5 seconds".to_string(),
+            ));
         }
     }
 
@@ -168,7 +170,9 @@ where
         tokio::time::sleep(std::time::Duration::from_millis(100)).await;
     }
     if !socket_ready {
-        return Err(DaemonError::Daemon("UDS socket was not created within 5 seconds".to_string()));
+        return Err(DaemonError::Daemon(
+            "UDS socket was not created within 5 seconds".to_string(),
+        ));
     }
 
     connect_to_daemon(on_message).await
