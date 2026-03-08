@@ -106,7 +106,7 @@ const App: React.FC = () => {
 
   // 트레이 ↔ 메인 윈도우 양방향 동기화 (Tauri Store)
   const clearTransactions = useTransactionStore((s) => s.clearTransactions);
-  const togglePause = useTransactionStore((s) => s.togglePause);
+  const setPaused = useTransactionStore((s) => s.setPaused);
   const setConnected = useProxyStore((s) => s.setConnected);
   const transactionCount = useTransactionStore((s) => s.transactions.length);
 
@@ -130,20 +130,18 @@ const App: React.FC = () => {
       if (key === "proxyConnected" && typeof value === "boolean") {
         setConnected(value);
       }
-      if (key === "requestTogglePause" && value === true) {
-        togglePause();
-        trayStore.set("requestTogglePause", false);
+      if (key === "paused" && typeof value === "boolean") {
+        setPaused(value);
       }
-      if (key === "requestClearSession" && value === true) {
+      if (key === "clearSession" && typeof value === "number") {
         clearTransactions();
-        trayStore.set("requestClearSession", false);
       }
     });
 
     return () => {
       unlistenPromise.then((f) => f());
     };
-  }, [setConnected, togglePause, clearTransactions]);
+  }, [setConnected, setPaused, clearTransactions]);
 
   return (
     <ThemeProvider attribute={["class", "data-theme"]} defaultTheme="system" enableSystem>

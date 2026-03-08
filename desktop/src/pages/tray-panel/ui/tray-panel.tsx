@@ -93,14 +93,15 @@ export function TrayPanel() {
   };
 
   const handleToggleRecording = async () => {
-    setRecording((prev) => !prev);
-    await trayStore.set("requestTogglePause", true);
+    const newRecording = !recording;
+    setRecording(newRecording);
+    await trayStore.set("paused", !newRecording);
     await trayStore.save();
   };
 
   const handleClearSession = async () => {
     setTransactionCount(0);
-    await trayStore.set("requestClearSession", true);
+    await trayStore.set("clearSession", Date.now());
     await trayStore.save();
   };
 
