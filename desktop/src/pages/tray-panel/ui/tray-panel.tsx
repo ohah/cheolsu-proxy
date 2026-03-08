@@ -79,9 +79,11 @@ export function TrayPanel() {
       if (proxyOn) {
         await invoke("stop_proxy_v2");
         setProxyOn(false);
+        await emitTo("main", "tray_proxy_changed", { connected: false });
       } else {
         await invoke("start_proxy_v2", { addr: `127.0.0.1:${info?.port ?? 8100}` });
         setProxyOn(true);
+        await emitTo("main", "tray_proxy_changed", { connected: true });
       }
       fetchInfo();
     } catch (e) {
