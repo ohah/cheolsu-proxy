@@ -575,6 +575,164 @@ pub fn check_cli_installed() -> bool {
     link_path.exists()
 }
 
+/// CA 인증서 저장 디렉토리를 반환합니다.
+fn get_ca_storage_dir() -> Result<std::path::PathBuf, String> {
+    #[cfg(target_os = "macos")]
+    {
+        let home =
+            std::env::var("HOME").map_err(|_| "HOME 환경 변수를 찾을 수 없습니다".to_string())?;
+        let dir = std::path::PathBuf::from(home)
+            .join("Library")
+            .join("Application Support")
+            .join("com.cheolsu-proxy");
+        std::fs::create_dir_all(&dir).map_err(|e| format!("디렉토리 생성 실패: {}", e))?;
+        Ok(dir)
+    }
+
+    #[cfg(target_os = "windows")]
+    {
+        let local_app_data = std::env::var("LOCALAPPDATA")
+            .map_err(|_| "LOCALAPPDATA 환경 변수를 찾을 수 없습니다".to_string())?;
+        let dir = std::path::PathBuf::from(local_app_data).join("com.cheolsu-proxy");
+        std::fs::create_dir_all(&dir).map_err(|e| format!("디렉토리 생성 실패: {}", e))?;
+        Ok(dir)
+    }
+
+    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+    {
+        Err("현재 macOS와 Windows만 지원합니다".to_string())
+    }
+}
+
+/// CA 인증서 경로를 반환합니다.
+#[tauri::command]
+pub fn get_ca_cert_path() -> Result<String, String> {
+    let storage_dir = get_ca_storage_dir()?;
+    let cer_path = storage_dir.join("cheolsu-proxy.cer");
+    if cer_path.exists() {
+        Ok(cer_path.to_string_lossy().to_string())
+    } else {
+        Err("CA 인증서가 아직 생성되지 않았습니다. 프록시를 먼저 실행해주세요.".to_string())
+    }
+}
+
+/// CA 인증서가 시스템에 신뢰 설치되어 있는지 확인합니다.
+#[tauri::command]
+pub fn check_ca_installed() -> Result<bool, String> {
+    let storage_dir = get_ca_storage_dir()?;
+    let cer_path = storage_dir.join("cheolsu-proxy.cer");
+
+    if !cer_path.exists() {
+        return Ok(false);
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        let output = std::process::Command::new("security")
+            .args(["find-certificate", "-c", "Cheolsu Proxy", "-Z"])
+            .output()
+            .map_err(|e| format!("security 명령 실행 실패: {}", e))?;
+
+        Ok(output.status.success()
+            && String::from_utf8_lossy(&output.stdout).contains("Cheolsu Proxy"))
+    }
+
+    #[cfg(target_os = "windows")]
+    {
+        let output = std::process::Command::new("certutil")
+            .args(["-verifystore", "Root", "Cheolsu Proxy Root CA"])
+            .output()
+            .map_err(|e| format!("certutil 명령 실행 실패: {}", e))?;
+
+        Ok(output.status.success())
+    }
+
+    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+    {
+        Ok(false)
+    }
+}
+
+/// CA 인증서를 시스템에 신뢰 인증서로 설치합니다.
+#[tauri::command]
+pub fn install_ca_cert() -> Result<String, String> {
+    let storage_dir = get_ca_storage_dir()?;
+    let cer_path = storage_dir.join("cheolsu-proxy.cer");
+
+    if !cer_path.exists() {
+        return Err(
+            "CA 인증서가 아직 생성되지 않았습니다. 프록시를 먼저 실행해주세요.".to_string(),
+        );
+    }
+
+    let cer_path_str = cer_path.to_string_lossy().to_string();
+
+    #[cfg(target_os = "macos")]
+    {
+        let cmd = format!(
+            "security add-trusted-cert -r trustRoot -k ~/Library/Keychains/login.keychain-db \"{}\"",
+            cer_path_str
+        );
+        run_with_admin_privileges(&cmd)?;
+        Ok("CA 인증서가 키체인에 신뢰 인증서로 설치되었습니다.".to_string())
+    }
+
+    #[cfg(target_os = "windows")]
+    {
+        let output = std::process::Command::new("certutil")
+            .args(["-addstore", "-user", "Root", &cer_path_str])
+            .output()
+            .map_err(|e| format!("certutil 실행 실패: {}", e))?;
+
+        if output.status.success() {
+            Ok("CA 인증서가 신뢰할 수 있는 루트 인증 기관에 설치되었습니다.".to_string())
+        } else {
+            Err(format!(
+                "인증서 설치 실패: {}",
+                String::from_utf8_lossy(&output.stderr)
+            ))
+        }
+    }
+
+    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+    {
+        Err("현재 이 OS에서는 자동 설치를 지원하지 않습니다.".to_string())
+    }
+}
+
+/// 시스템에서 CA 인증서를 제거합니다.
+#[tauri::command]
+pub fn uninstall_ca_cert() -> Result<String, String> {
+    #[cfg(target_os = "macos")]
+    {
+        let cmd = "security delete-certificate -c \"Cheolsu Proxy Root CA\" ~/Library/Keychains/login.keychain-db 2>/dev/null; security delete-certificate -c \"Cheolsu Proxy Root CA\" 2>/dev/null; true";
+        run_with_admin_privileges(cmd)?;
+        Ok("CA 인증서가 키체인에서 제거되었습니다.".to_string())
+    }
+
+    #[cfg(target_os = "windows")]
+    {
+        let output = std::process::Command::new("certutil")
+            .args(["-delstore", "-user", "Root", "Cheolsu Proxy Root CA"])
+            .output()
+            .map_err(|e| format!("certutil 실행 실패: {}", e))?;
+
+        if output.status.success() {
+            Ok("CA 인증서가 제거되었습니다.".to_string())
+        } else {
+            Err(format!(
+                "인증서 제거 실패: {}",
+                String::from_utf8_lossy(&output.stderr)
+            ))
+        }
+    }
+
+    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+    {
+        Err("현재 이 OS에서는 자동 제거를 지원하지 않습니다.".to_string())
+    }
+}
+
 /// HAR 파일 내보내기 (지정된 경로에 JSON 문자열 저장)
 #[tauri::command]
 pub async fn export_har_file(path: String, content: String) -> Result<(), String> {

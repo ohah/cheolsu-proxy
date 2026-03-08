@@ -100,6 +100,22 @@ export async function checkCliInstalled(): Promise<boolean> {
   return invoke("check_cli_installed");
 }
 
+export async function getCaCertPath(): Promise<string> {
+  return invoke("get_ca_cert_path");
+}
+
+export async function checkCaInstalled(): Promise<boolean> {
+  return invoke("check_ca_installed");
+}
+
+export async function installCaCert(): Promise<string> {
+  return invoke("install_ca_cert");
+}
+
+export async function uninstallCaCert(): Promise<string> {
+  return invoke("uninstall_ca_cert");
+}
+
 export async function loadScript(path?: string, code?: string): Promise<void> {
   return invoke("load_script", { path, code });
 }
