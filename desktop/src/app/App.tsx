@@ -28,7 +28,13 @@ const App: React.FC = () => {
 
   // 앱 시작 시 프록시 초기화 후 저장된 인터셉트 규칙 동기화
   useEffect(() => {
-    initializeProxy().then(() => syncToProxy());
+    const isConnected = useProxyStore.getState().isConnected;
+    // 페이지 리로드 시 이미 연결된 상태면 syncToProxy만 실행
+    if (isConnected) {
+      syncToProxy();
+    } else {
+      initializeProxy().then(() => syncToProxy());
+    }
   }, [initializeProxy, syncToProxy]);
 
   // 프록시 이벤트를 전역적으로 수신하여 트랜잭션 store에 저장

@@ -21,12 +21,15 @@ export const useProxyStore = create<ProxyState>()(
       port: 8100,
 
       initializeProxy: async (port: number = 8100) => {
-        const { isInitialized } = get();
+        const { isInitialized, isConnected } = get();
 
         // 이미 초기화되었으면 중복 실행 방지
         if (isInitialized) return;
 
         set({ isInitialized: true, port });
+
+        // 이미 연결된 상태(페이지 리로드 등)이면 startProxyV2 스킵
+        if (isConnected) return;
 
         try {
           // 앱 시작 시 오래된 캐시 정리 (1일 이상)
