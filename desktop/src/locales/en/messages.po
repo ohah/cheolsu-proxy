@@ -95,10 +95,6 @@ msgstr "Add rules to intercept, block, or modify HTTP requests and responses."
 msgid "Add rules to map URLs to local files or redirect to other servers."
 msgstr "Add rules to map URLs to local files or redirect to other servers."
 
-#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:87
-msgid "Add this to your AI assistant's MCP configuration:"
-msgstr "Add this to your AI assistant's MCP configuration:"
-
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:111
 #: src/pages/map-rules/ui/map-rules-page.tsx:104
 msgid "Add your first rule"
@@ -191,6 +187,10 @@ msgstr "Cannot add: no response data"
 msgid "Cheolsu Proxy Logo"
 msgstr "Cheolsu Proxy Logo"
 
+#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:102
+msgid "Claude Code (CLI)"
+msgstr "Claude Code (CLI)"
+
 #: src/pages/script/ui/script-page.tsx:298
 msgid "Clear"
 msgstr "Clear"
@@ -222,6 +222,10 @@ msgstr "Collapse"
 msgid "Comma-separated list of hosts to connect directly (supports *.domain.com wildcards)"
 msgstr "Comma-separated list of hosts to connect directly (supports *.domain.com wildcards)"
 
+#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:61
+msgid "Command copied to clipboard"
+msgstr "Command copied to clipboard"
+
 #: src/shared/app-sidebar/ui/sidebar-status.tsx:27
 #: src/shared/app-sidebar/ui/sidebar-status.tsx:42
 msgid "Connected"
@@ -240,7 +244,8 @@ msgstr "connections"
 msgid "Console"
 msgstr "Console"
 
-#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:97
+#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:112
+#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:138
 msgid "Copy to clipboard"
 msgstr "Copy to clipboard"
 
@@ -346,6 +351,10 @@ msgstr "File"
 msgid "File path is required"
 msgstr "File path is required"
 
+#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:128
+msgid "For Cursor, Claude Desktop, and other MCP-compatible clients:"
+msgstr "For Cursor, Claude Desktop, and other MCP-compatible clients:"
+
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:320
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:294
 #: src/features/transaction-details/ui/replay-dialog.tsx:396
@@ -410,6 +419,10 @@ msgstr "Installing..."
 #: src/shared/app-sidebar/model/consts.ts:23
 msgid "Intercept Rules"
 msgstr "Intercept Rules"
+
+#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:125
+msgid "JSON Configuration"
+msgstr "JSON Configuration"
 
 #: src/pages/settings/ui/settings-page.tsx:209
 msgid "Language"
@@ -493,16 +506,16 @@ msgstr "Match 2xx success or 404 error"
 msgid "Match GET or POST methods"
 msgstr "Match GET or POST methods"
 
-#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:48
+#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:54
 msgid "MCP configuration copied to clipboard"
 msgstr "MCP configuration copied to clipboard"
 
-#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:62
 #: src/shared/app-sidebar/ui/sidebar-mcp.tsx:75
+#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:88
 msgid "MCP Server"
 msgstr "MCP Server"
 
-#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:84
+#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:97
 msgid "MCP Server Configuration"
 msgstr "MCP Server Configuration"
 
@@ -988,10 +1001,6 @@ msgstr "WebSocket connections and messages"
 #: src/features/websocket-replay/ui/ws-replay-dialog.tsx:102
 msgid "WebSocket Replay"
 msgstr "WebSocket Replay"
-
-#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:107
-msgid "Works with Claude Code, Cursor, Claude Desktop, and other MCP-compatible clients."
-msgstr "Works with Claude Code, Cursor, Claude Desktop, and other MCP-compatible clients."
 
 #: src/pages/script/ui/script-page.tsx:165
 msgid "Write or load JavaScript/TypeScript proxy scripts"

@@ -95,10 +95,6 @@ msgstr "HTTP 요청과 응답을 가로채거나, 차단하거나, 수정하는 
 msgid "Add rules to map URLs to local files or redirect to other servers."
 msgstr "URL을 로컬 파일에 매핑하거나 다른 서버로 리다이렉트하는 규칙을 추가하세요."
 
-#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:87
-msgid "Add this to your AI assistant's MCP configuration:"
-msgstr "AI 어시스턴트의 MCP 설정에 추가하세요:"
-
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:111
 #: src/pages/map-rules/ui/map-rules-page.tsx:104
 msgid "Add your first rule"
@@ -191,6 +187,10 @@ msgstr "추가할 수 없습니다: 응답 데이터 없음"
 msgid "Cheolsu Proxy Logo"
 msgstr "Cheolsu Proxy 로고"
 
+#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:102
+msgid "Claude Code (CLI)"
+msgstr "Claude Code (CLI)"
+
 #: src/pages/script/ui/script-page.tsx:298
 msgid "Clear"
 msgstr "지우기"
@@ -222,6 +222,10 @@ msgstr "접기"
 msgid "Comma-separated list of hosts to connect directly (supports *.domain.com wildcards)"
 msgstr "직접 연결할 호스트 목록 (쉼표로 구분, *.domain.com 와일드카드 지원)"
 
+#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:61
+msgid "Command copied to clipboard"
+msgstr "명령어가 클립보드에 복사되었습니다"
+
 #: src/shared/app-sidebar/ui/sidebar-status.tsx:27
 #: src/shared/app-sidebar/ui/sidebar-status.tsx:42
 msgid "Connected"
@@ -240,7 +244,8 @@ msgstr "연결"
 msgid "Console"
 msgstr "콘솔"
 
-#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:97
+#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:112
+#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:138
 msgid "Copy to clipboard"
 msgstr "클립보드에 복사"
 
@@ -346,6 +351,10 @@ msgstr "파일"
 msgid "File path is required"
 msgstr "파일 경로를 입력해주세요"
 
+#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:128
+msgid "For Cursor, Claude Desktop, and other MCP-compatible clients:"
+msgstr "Cursor, Claude Desktop 및 기타 MCP 호환 클라이언트용:"
+
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:320
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:294
 #: src/features/transaction-details/ui/replay-dialog.tsx:396
@@ -410,6 +419,10 @@ msgstr "설치 중..."
 #: src/shared/app-sidebar/model/consts.ts:23
 msgid "Intercept Rules"
 msgstr "인터셉트 규칙"
+
+#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:125
+msgid "JSON Configuration"
+msgstr "JSON 설정"
 
 #: src/pages/settings/ui/settings-page.tsx:209
 msgid "Language"
@@ -493,16 +506,16 @@ msgstr "2xx 성공 또는 404 에러 매칭"
 msgid "Match GET or POST methods"
 msgstr "GET 또는 POST 메서드 매칭"
 
-#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:48
+#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:54
 msgid "MCP configuration copied to clipboard"
 msgstr "MCP 설정이 클립보드에 복사되었습니다"
 
-#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:62
 #: src/shared/app-sidebar/ui/sidebar-mcp.tsx:75
+#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:88
 msgid "MCP Server"
 msgstr "MCP 서버"
 
-#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:84
+#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:97
 msgid "MCP Server Configuration"
 msgstr "MCP 서버 설정"
 
@@ -988,10 +1001,6 @@ msgstr "WebSocket 연결 및 메시지"
 #: src/features/websocket-replay/ui/ws-replay-dialog.tsx:102
 msgid "WebSocket Replay"
 msgstr "WebSocket 리플레이"
-
-#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:107
-msgid "Works with Claude Code, Cursor, Claude Desktop, and other MCP-compatible clients."
-msgstr "Claude Code, Cursor, Claude Desktop 및 기타 MCP 호환 클라이언트에서 사용 가능합니다."
 
 #: src/pages/script/ui/script-page.tsx:165
 msgid "Write or load JavaScript/TypeScript proxy scripts"
