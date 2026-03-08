@@ -8,14 +8,16 @@ pub fn draw(f: &mut Frame, app: &App, area: Rect) {
         .direction(Direction::Vertical)
         .constraints([
             Constraint::Length(10), // Proxy info
+            Constraint::Length(5),  // CA certificate
             Constraint::Length(12), // Upstream proxy
             Constraint::Min(0),     // Keybindings
         ])
         .split(area);
 
     draw_proxy_info(f, app, chunks[0]);
-    draw_upstream_proxy(f, app, chunks[1]);
-    draw_keybindings(f, app, chunks[2]);
+    draw_ca_cert(f, app, chunks[1]);
+    draw_upstream_proxy(f, app, chunks[2]);
+    draw_keybindings(f, app, chunks[3]);
 }
 
 fn draw_proxy_info(f: &mut Frame, app: &App, area: Rect) {
@@ -59,6 +61,56 @@ fn draw_proxy_info(f: &mut Frame, app: &App, area: Rect) {
     );
 
     f.render_widget(info, area);
+}
+
+fn draw_ca_cert(f: &mut Frame, app: &App, area: Rect) {
+    let status = if app.ca_cert_path.is_some() {
+        if app.ca_cert_installed {
+            Span::styled(
+                " Trusted ",
+                Style::default()
+                    .fg(Color::Green)
+                    .add_modifier(Modifier::BOLD),
+            )
+        } else {
+            Span::styled(
+                " Not Trusted ",
+                Style::default()
+                    .fg(Color::Yellow)
+                    .add_modifier(Modifier::BOLD),
+            )
+        }
+    } else {
+        Span::styled(" Not Generated ", Style::default().fg(Color::DarkGray))
+    };
+
+    let path_text = app
+        .ca_cert_path
+        .as_deref()
+        .unwrap_or("Start proxy to generate");
+
+    let lines = vec![
+        Line::from(vec![
+            Span::styled("Status: ", Style::default().fg(Color::Yellow)),
+            status,
+        ]),
+        Line::from(vec![
+            Span::styled("Path:   ", Style::default().fg(Color::Yellow)),
+            Span::styled(path_text, Style::default().fg(Color::DarkGray)),
+        ]),
+        Line::from(Span::styled(
+            "  i: Install   U: Uninstall",
+            Style::default().fg(Color::DarkGray),
+        )),
+    ];
+
+    let block = Block::default()
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(Color::Gray))
+        .title(" CA Certificate ");
+
+    let paragraph = Paragraph::new(lines).block(block);
+    f.render_widget(paragraph, area);
 }
 
 fn draw_upstream_proxy(f: &mut Frame, app: &App, area: Rect) {
@@ -182,6 +234,8 @@ fn draw_keybindings(f: &mut Frame, app: &App, area: Rect) {
             Line::from(""),
             Line::from("  j / k / ↑ / ↓      Navigate fields"),
             Line::from("  Enter / Space      Toggle (Enabled) / Edit (text fields)"),
+            Line::from("  i                  Install CA certificate"),
+            Line::from("  U                  Uninstall CA certificate"),
             Line::from("  Tab / Shift+Tab    Switch tabs"),
             Line::from("  q / Ctrl+C         Quit"),
         ]
