@@ -595,6 +595,130 @@ mod tests {
     }
 
     #[test]
+    fn test_clear_timers_prevents_pending_callbacks() {
+        block_on(async {
+            let mut engine = ScriptEngine::new().unwrap();
+            engine
+                .load_code(
+                    r#"
+                    let counter = 0;
+                    setInterval(() => { counter++; }, 50);
+                    setTimeout(() => { counter += 100; }, 50);
+                    cheolsu.onRequest((req) => {
+                        return { action: "respond", response: { status: 200, headers: {}, body: String(counter) } };
+                    });
+                "#,
+                )
+                .unwrap();
+
+            // 타이머 정리
+            engine.clear_timers();
+
+            // 타이머 정리 후에도 엔진이 정상 동작해야 함
+            let req = ScriptRequest {
+                method: "GET".to_string(),
+                url: "https://example.com".to_string(),
+                headers: HashMap::new(),
+                body: None,
+            };
+            let result = engine.invoke_on_request(&req).await.unwrap();
+            match result {
+                RequestAction::Respond { response } => {
+                    // counter가 0이어야 함 (타이머가 정리되어 콜백이 실행되지 않음)
+                    assert_eq!(response.body.unwrap(), "0");
+                }
+                _ => panic!("Expected Respond"),
+            }
+        });
+    }
+
+    #[test]
+    fn test_reload_script_after_clear_timers() {
+        block_on(async {
+            let mut engine = ScriptEngine::new().unwrap();
+
+            // 첫 번째 스크립트 로드: 타이머 사용
+            engine
+                .load_code(
+                    r#"
+                    setInterval(() => { console.log("tick"); }, 100);
+                    cheolsu.onRequest((req) => {
+                        return { action: "respond", response: { status: 200, headers: {}, body: "v1" } };
+                    });
+                "#,
+                )
+                .unwrap();
+            assert!(engine.has_on_request());
+
+            // 타이머 정리 후 안전하게 drop (실제 리로드 시나리오)
+            engine.clear_timers();
+            drop(engine);
+
+            // 새 엔진 생성 후 다른 스크립트 로드
+            let mut engine2 = ScriptEngine::new().unwrap();
+            engine2
+                .load_code(
+                    r#"
+                    cheolsu.onRequest((req) => {
+                        return { action: "respond", response: { status: 200, headers: {}, body: "v2" } };
+                    });
+                "#,
+                )
+                .unwrap();
+
+            let req = ScriptRequest {
+                method: "GET".to_string(),
+                url: "https://example.com".to_string(),
+                headers: HashMap::new(),
+                body: None,
+            };
+            let result = engine2.invoke_on_request(&req).await.unwrap();
+            match result {
+                RequestAction::Respond { response } => {
+                    assert_eq!(response.body.unwrap(), "v2");
+                }
+                _ => panic!("Expected Respond with v2"),
+            }
+        });
+    }
+
+    #[test]
+    fn test_drain_logs() {
+        let mut engine = ScriptEngine::new().unwrap();
+        engine
+            .load_code(
+                r#"
+                console.log("hello");
+                console.error("oops");
+                console.warn("careful");
+            "#,
+            )
+            .unwrap();
+
+        let logs = engine.drain_logs();
+        assert_eq!(logs.len(), 3);
+        assert_eq!(logs[0].level, "info");
+        assert_eq!(logs[0].message, "hello");
+        assert_eq!(logs[1].level, "error");
+        assert_eq!(logs[1].message, "oops");
+        assert_eq!(logs[2].level, "warn");
+        assert_eq!(logs[2].message, "careful");
+
+        // drain 후 비어있어야 함
+        let logs2 = engine.drain_logs();
+        assert!(logs2.is_empty());
+    }
+
+    #[test]
+    fn test_on_ws_message_forward() {
+        let mut engine = ScriptEngine::new().unwrap();
+        engine
+            .load_code(r#"cheolsu.onWebSocketMessage((msg) => ({ action: "forward" }))"#)
+            .unwrap();
+        assert!(engine.has_on_ws_message());
+    }
+
+    #[test]
     fn test_set_timeout_basic() {
         let mut engine = ScriptEngine::new().unwrap();
         engine
