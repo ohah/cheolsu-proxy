@@ -168,12 +168,21 @@ fn rustls_client_config() -> rustls::ClientConfig {
         .next()
         .unwrap()
         .expect("Failed to parse CA certificate");
-
     roots.add(ca_cert).unwrap();
 
-    rustls::ClientConfig::builder()
-        .with_root_certificates(roots)
-        .with_no_client_auth()
+    // openssl_ca 테스트용 hudsucker CA 인증서도 신뢰 목록에 추가
+    let mut hudsucker_bytes: &[u8] = include_bytes!("../../examples/ca/hudsucker.cer");
+    if let Some(Ok(hudsucker_cert)) = pemfile::certs(&mut hudsucker_bytes).next() {
+        roots.add(hudsucker_cert).unwrap();
+    }
+
+    rustls::ClientConfig::builder_with_provider(Arc::new(
+        rustls::crypto::aws_lc_rs::default_provider(),
+    ))
+    .with_safe_default_protocol_versions()
+    .unwrap()
+    .with_root_certificates(roots)
+    .with_no_client_auth()
 }
 
 pub fn rustls_websocket_connector() -> tokio_tungstenite::Connector {
@@ -199,8 +208,13 @@ fn native_tls_connector() -> native_tls::TlsConnector {
     ))
     .unwrap();
 
+    let hudsucker_cert =
+        native_tls::Certificate::from_pem(include_bytes!("../../examples/ca/hudsucker.cer"))
+            .unwrap();
+
     native_tls::TlsConnector::builder()
         .add_root_certificate(ca_cert)
+        .add_root_certificate(hudsucker_cert)
         .build()
         .unwrap()
 }
@@ -336,10 +350,13 @@ pub fn build_client(proxy: &str) -> reqwest::Client {
         "../../src/certificate_authority/cheolsu-proxy.cer"
     ))
     .unwrap();
+    let hudsucker_cert =
+        Certificate::from_pem(include_bytes!("../../examples/ca/hudsucker.cer")).unwrap();
 
     reqwest::Client::builder()
         .proxy(proxy)
         .add_root_certificate(ca_cert)
+        .add_root_certificate(hudsucker_cert)
         .no_brotli()
         .no_deflate()
         .no_gzip()

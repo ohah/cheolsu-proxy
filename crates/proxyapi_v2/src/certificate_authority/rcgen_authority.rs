@@ -23,7 +23,7 @@ use tracing::{debug, error, info, warn};
 /// # Examples
 ///
 /// ```rust
-/// use hudsucker::{certificate_authority::RcgenAuthority, rustls::crypto::aws_lc_rs};
+/// use proxyapi_v2::{certificate_authority::RcgenAuthority, rustls::crypto::aws_lc_rs};
 /// use rcgen::{CertificateParams, KeyPair};
 ///
 /// let key_pair = include_str!("../../examples/ca/hudsucker.key");

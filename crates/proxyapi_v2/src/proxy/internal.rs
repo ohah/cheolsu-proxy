@@ -670,9 +670,12 @@ mod tests {
             None
         }
 
-        #[cfg(feature = "native-tls-client")]
-        async fn gen_pkcs12_identity(&self, _authority: &Authority) -> Option<Vec<u8>> {
-            None
+        #[cfg(feature = "openssl-ca")]
+        async fn gen_openssl_context(
+            &self,
+            _authority: &Authority,
+        ) -> Result<openssl::ssl::SslContext, Box<dyn std::error::Error + Send + Sync>> {
+            unimplemented!();
         }
     }
 

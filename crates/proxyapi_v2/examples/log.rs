@@ -1,12 +1,11 @@
 use proxyapi_v2::{
-    certificate_authority::RcgenAuthority,
+    certificate_authority::build_ca,
     hyper::{Request, Response},
-    rcgen::{CertificateParams, KeyPair},
-    rustls::crypto::aws_lc_rs,
     tokio_tungstenite::tungstenite::Message,
     *,
 };
 use std::net::SocketAddr;
+use tokio_rustls::rustls::crypto::aws_lc_rs;
 use tracing::*;
 
 async fn shutdown_signal() {
@@ -45,15 +44,7 @@ impl WebSocketHandler for LogHandler {
 async fn main() {
     tracing_subscriber::fmt::init();
 
-    let key_pair = include_str!("ca/hudsucker.key");
-    let ca_cert = include_str!("ca/hudsucker.cer");
-    let key_pair = KeyPair::from_pem(key_pair).expect("Failed to parse private key");
-    let ca_cert = CertificateParams::from_ca_cert_pem(ca_cert)
-        .expect("Failed to parse CA certificate")
-        .self_signed(&key_pair)
-        .expect("Failed to sign CA certificate");
-
-    let ca = RcgenAuthority::new(key_pair, ca_cert, 1_000, aws_lc_rs::default_provider());
+    let ca = build_ca().expect("Failed to build CA");
 
     let proxy = Proxy::builder()
         .with_addr(SocketAddr::from(([127, 0, 0, 1], 3000)))

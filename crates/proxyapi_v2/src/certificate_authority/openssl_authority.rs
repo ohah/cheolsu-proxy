@@ -30,7 +30,7 @@ use tracing::{debug, info};
 /// # Examples
 ///
 /// ```rust
-/// use hudsucker::{
+/// use proxyapi_v2::{
 ///     certificate_authority::OpensslAuthority,
 ///     openssl::{hash::MessageDigest, pkey::PKey, x509::X509},
 ///     rustls::crypto::aws_lc_rs,

@@ -34,11 +34,11 @@ pub enum Error {
 ///
 /// # Examples
 ///
-/// ```rust
+/// ```rust,no_run
 /// # #[cfg(all(feature = "rcgen-ca", feature = "rustls-client"))]
 /// # {
-/// use hudsucker::Proxy;
-/// # use hudsucker::{
+/// use proxyapi_v2::Proxy;
+/// # use proxyapi_v2::{
 /// #     certificate_authority::RcgenAuthority,
 /// #     rcgen::{CertificateParams, KeyPair},
 /// #     rustls::crypto::aws_lc_rs,

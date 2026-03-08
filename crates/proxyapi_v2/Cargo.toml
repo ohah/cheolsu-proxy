@@ -68,7 +68,7 @@ uuid = { version = "1.0", features = ["v4"] }
 [dev-dependencies]
 async-http-proxy = { version = "1.2.5", features = ["runtime-tokio"] }
 criterion = { version = "0.7.0", features = ["async_tokio"] }
-reqwest = "0.12.0"
+reqwest = { version = "0.12.0", default-features = false, features = ["rustls-tls"] }
 rustls-native-certs = "0.8.0"
 rustls-pemfile = "2.0.0"
 tokio = { version = "1.24.2", features = ["full"] }
@@ -94,10 +94,6 @@ required-features = ["rcgen-ca", "rustls-client"]
 [[example]]
 name = "noop"
 required-features = ["rcgen-ca", "rustls-client"]
-
-[[example]]
-name = "openssl"
-required-features = ["openssl-ca", "rustls-client"]
 
 [[test]]
 name = "openssl_ca"
