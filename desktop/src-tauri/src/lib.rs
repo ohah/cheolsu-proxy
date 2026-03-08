@@ -15,6 +15,9 @@ use system_proxy::get_proxy_status_command;
 use tauri::menu::SubmenuBuilder;
 use tauri::Manager;
 
+use std::sync::atomic::{AtomicU64, Ordering};
+use std::time::{SystemTime, UNIX_EPOCH};
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     // #[cfg(debug_assertions)]
@@ -106,7 +109,20 @@ pub fn run() {
                 Ok(())
             })
             .on_menu_event(|app_handle, event| {
+                static LAST_RELOAD: AtomicU64 = AtomicU64::new(0);
+                const DEBOUNCE_MS: u64 = 500;
+
                 if event.id().as_ref() == "refresh" {
+                    let now = SystemTime::now()
+                        .duration_since(UNIX_EPOCH)
+                        .unwrap_or_default()
+                        .as_millis() as u64;
+                    let last = LAST_RELOAD.load(Ordering::Relaxed);
+                    if now.saturating_sub(last) < DEBOUNCE_MS {
+                        return;
+                    }
+                    LAST_RELOAD.store(now, Ordering::Relaxed);
+
                     if let Some(window) = app_handle.get_webview_window("main") {
                         let _ = window.eval("location.reload()");
                     }
