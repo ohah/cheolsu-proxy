@@ -173,9 +173,6 @@ export function ScriptPage() {
               <>
                 <Button variant="outline" size="sm" onClick={handleReload} disabled={loading}>
                   {t`Reload`}
-                  <kbd className="ml-1 text-xs font-mono px-1.5 py-0.5 bg-muted rounded border border-border text-foreground">
-                    ⌘R
-                  </kbd>
                 </Button>
                 <Button variant="destructive" size="sm" onClick={handleUnload}>
                   {t`Unload`}
