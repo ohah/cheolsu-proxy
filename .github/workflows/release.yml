@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 jobs:
   release:
@@ -71,8 +71,8 @@ jobs:
           projectPath: desktop
           tauriScript: bunx tauri
           tagName: ${{ github.ref_name }}
-          releaseName: 'Cheolsu Proxy ${{ github.ref_name }}'
-          releaseBody: 'Release ${{ github.ref_name }}'
+          releaseName: "Cheolsu Proxy ${{ github.ref_name }}"
+          releaseBody: "Release ${{ github.ref_name }}"
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}

@@ -8,11 +8,11 @@ Monitor WebSocket connections in real-time and inject messages.
 
 Automatically detects the content type of WebSocket messages.
 
-| Type | Description |
-| --- | --- |
-| **Plain Text** | Plain text or JSON messages |
-| **Socket.IO** | Engine.IO + Socket.IO protocol auto-detection |
-| **MQTT** | MQTT packet detection (v3.1.1, v5.0 support) |
+| Type           | Description                                   |
+| -------------- | --------------------------------------------- |
+| **Plain Text** | Plain text or JSON messages                   |
+| **Socket.IO**  | Engine.IO + Socket.IO protocol auto-detection |
+| **MQTT**       | MQTT packet detection (v3.1.1, v5.0 support)  |
 
 ---
 
