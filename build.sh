@@ -27,20 +27,17 @@ if ! command -v rustc &>/dev/null; then
     exit 1
 fi
 
-# 3. Node 패키지 매니저 확인 및 의존성 설치
+# 3. bun 확인 및 의존성 설치
 cd "$SCRIPT_DIR/desktop"
-if command -v bun &>/dev/null; then
-    PKG_MGR="bun"
-elif command -v npm &>/dev/null; then
-    PKG_MGR="npm"
-else
-    echo "❌ bun 또는 npm이 설치되어 있지 않습니다."
+if ! command -v bun &>/dev/null; then
+    echo "❌ bun이 설치되어 있지 않습니다."
+    echo "   실행: curl -fsSL https://bun.sh/install | bash"
     exit 1
 fi
 
 if [ ! -d "node_modules" ]; then
     echo "📦 의존성 설치 중..."
-    $PKG_MGR install
+    bun install
 fi
 
 # 4. TAURI_SIGNING_PRIVATE_KEY 확인
@@ -54,7 +51,7 @@ fi
 
 # 5. 타우리 빌드 (beforeBuildCommand에서 build-mcp.sh release 자동 실행)
 echo "🔨 타우리 앱 빌드 중... (bundles: $BUNDLES)"
-$PKG_MGR run tauri build -- --bundles "$BUNDLES"
+bun run tauri build -- --bundles "$BUNDLES"
 
 # 6. 빌드 결과 안내
 APP_PATH="$SCRIPT_DIR/desktop/src-tauri/target/release/bundle/macos"
