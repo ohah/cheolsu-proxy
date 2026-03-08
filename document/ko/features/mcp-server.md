@@ -68,6 +68,13 @@ Cheolsu Proxy 앱을 실행한 상태에서 AI 어시스턴트에게 트래픽 �
 | `add_rule`    | 새 인터셉트 규칙 추가 (block, modify_request, modify_response, map_local, map_remote) |
 | `remove_rule` | ID로 인터셉트 규칙 삭제                                                               |
 
+### 스크립팅
+
+| Tool            | 설명                                                 |
+| --------------- | ---------------------------------------------------- |
+| `load_script`   | JavaScript/TypeScript 스크립트 로드 (파일 경로 또는 코드) |
+| `unload_script` | 현재 로드된 스크립트 언로드                            |
+
 ### 상태 관리
 
 | Tool            | 설명                                 |

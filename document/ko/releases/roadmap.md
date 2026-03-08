@@ -6,8 +6,19 @@ Cheolsu Proxy의 향후 지원 예정 기능들을 확인할 수 있습니다.
 
 ### 구현 완료된 기능
 
-- **내보내기/가져오기**:
-  - HAR 내보내기 (Desktop, TUI 모두 지원)
+- **트래픽 캡처**: HTTP/HTTPS 실시간 모니터링
+- **WebSocket**: Plain Text, Socket.IO, MQTT 프로토콜 감지 및 메시지 주입
+- **인터셉트 규칙**: Block, Modify Request/Response, Map Local, Map Remote
+- **스크립팅**: JavaScript/TypeScript 기반 요청/응답/WebSocket 훅
+- **Server Replay**: 캡처된 응답 캐싱 및 자동 반환
+- **MCP Server**: AI 어시스턴트 연동 (Claude Code, Cursor 등)
+- **HAR 내보내기**: Desktop, TUI 모두 지원
+- **Upstream Proxy**: 프록시 체인 및 인증 지원
+- **시스템 프록시 자동 설정**: macOS networksetup 연동
+- **CLI 설치**: `cheolsu` 터미널 명령어 설치/제거
+- **자동 업데이트**: Tauri Updater 기반 GitHub Releases 배포
+- **TLS 하이브리드 엔진**: rustls + native-tls 자동 전환
+- **TLS Passthrough**: 자동 학습 기반 바이패스
 
 ### 추후 지원 예정 기능
 
@@ -21,11 +32,6 @@ Cheolsu Proxy의 향후 지원 예정 기능들을 확인할 수 있습니다.
 
 - **내보내기/가져오기**:
   - 세션 저장/불러오기
-
-- **고급 기능**:
-  - Server-side Replay (응답 모킹)
-  - 로그 분석 기능
-  - 성능 최적화
 
 - **확장 기능**:
   - 플러그인 시스템

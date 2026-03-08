@@ -99,6 +99,22 @@ export default defineConfig({
               link: "/features/cheolsu-query",
             },
             {
+              text: "인터셉트 규칙",
+              link: "/features/intercept-rules",
+            },
+            {
+              text: "스크립팅",
+              link: "/features/scripting",
+            },
+            {
+              text: "WebSocket",
+              link: "/features/websocket",
+            },
+            {
+              text: "Server Replay",
+              link: "/features/server-replay",
+            },
+            {
               text: "TLS 지원",
               link: "/features/tls-support",
             },
@@ -120,6 +136,22 @@ export default defineConfig({
             {
               text: "Cheolsu Query",
               link: "/en/features/cheolsu-query",
+            },
+            {
+              text: "Intercept Rules",
+              link: "/en/features/intercept-rules",
+            },
+            {
+              text: "Scripting",
+              link: "/en/features/scripting",
+            },
+            {
+              text: "WebSocket",
+              link: "/en/features/websocket",
+            },
+            {
+              text: "Server Replay",
+              link: "/en/features/server-replay",
             },
             {
               text: "TLS Support",
