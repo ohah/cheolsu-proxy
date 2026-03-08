@@ -227,8 +227,8 @@ msgstr "직접 연결할 호스트 목록 (쉼표로 구분, *.domain.com 와일
 msgid "Connected"
 msgstr "연결됨"
 
-#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:108
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:62
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:110
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:64
 msgid "Connection"
 msgstr "연결"
 
@@ -269,8 +269,8 @@ msgstr "규칙 삭제"
 msgid "Dir"
 msgstr "방향"
 
-#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:121
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:53
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:123
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:55
 msgid "Direction"
 msgstr "방향"
 
@@ -334,7 +334,7 @@ msgstr "실패 — 프록시가 실행 중인가요?"
 msgid "Failed to read file: {0}"
 msgstr "파일 읽기 실패: {0}"
 
-#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:86
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:88
 msgid "Failed to send"
 msgstr "전송 실패"
 
@@ -506,7 +506,7 @@ msgstr "MCP 서버"
 msgid "MCP Server Configuration"
 msgstr "MCP 서버 설정"
 
-#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:168
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:171
 msgid "Message sent successfully"
 msgstr "메시지가 전송되었습니다"
 
@@ -607,7 +607,7 @@ msgstr "패턴을 입력해주세요"
 msgid "Pause recording"
 msgstr "기록 일시정지"
 
-#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:140
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:142
 msgid "Payload"
 msgstr "페이로드"
 
@@ -639,11 +639,11 @@ msgstr "쿼리 문법 가이드"
 msgid "Query syntax help"
 msgstr "쿼리 문법 도움말"
 
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:85
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:87
 msgid "Received"
 msgstr "수신"
 
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:54
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:56
 msgid "Received (Server → Client)"
 msgstr "수신 (서버 → 클라이언트)"
 
@@ -665,11 +665,11 @@ msgid "Remove Headers"
 msgstr "헤더 삭제"
 
 #: src/features/transaction-details/ui/replay-dialog.tsx:337
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:120
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:122
 msgid "Replay"
 msgstr "리플레이"
 
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:116
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:118
 msgid "Replay message"
 msgstr "메시지 리플레이"
 
@@ -795,7 +795,7 @@ msgstr "로컬 파일 선택"
 msgid "Send a request to see the replay response"
 msgstr "리플레이 응답을 보려면 요청을 전송하세요"
 
-#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:186
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:189
 msgid "Send Message"
 msgstr "메시지 전송"
 
@@ -809,19 +809,19 @@ msgstr "요청을 순서대로 전송 중..."
 
 #: src/features/transaction-details/ui/replay-dialog.tsx:488
 #: src/features/transaction-details/ui/sequence-replay-dialog.tsx:241
-#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:181
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:184
 msgid "Sending..."
 msgstr "전송 중..."
 
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:85
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:87
 msgid "Sent"
 msgstr "송신"
 
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:54
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:56
 msgid "Sent (Client → Server)"
 msgstr "송신 (클라이언트 → 서버)"
 
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:63
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:65
 msgid "Sequence"
 msgstr "시퀀스"
 
@@ -848,7 +848,7 @@ msgstr "본문 설정 (선택사항)"
 msgid "Settings"
 msgstr "설정"
 
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:60
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:62
 #: src/widgets/websocket-messages/ui/ws-message-table.tsx:165
 msgid "Size"
 msgstr "크기"
@@ -892,16 +892,16 @@ msgstr "터미널 명령어"
 msgid "Theme"
 msgstr "테마"
 
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:61
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:63
 #: src/widgets/websocket-messages/ui/ws-message-table.tsx:167
 msgid "Time"
 msgstr "시간"
 
-#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:132
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:134
 msgid "To Client (Server → Client)"
 msgstr "클라이언트로 (서버 → 클라이언트)"
 
-#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:131
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:133
 msgid "To Server (Client → Server)"
 msgstr "서버로 (클라이언트 → 서버)"
 
@@ -919,7 +919,7 @@ msgid "Trusted"
 msgstr "신뢰됨"
 
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:235
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:57
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:59
 #: src/widgets/websocket-messages/ui/ws-message-table.tsx:164
 msgid "Type"
 msgstr "타입"
@@ -985,7 +985,7 @@ msgstr "WebSocket"
 msgid "WebSocket connections and messages"
 msgstr "WebSocket 연결 및 메시지"
 
-#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:100
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:102
 msgid "WebSocket Replay"
 msgstr "WebSocket 리플레이"
 
