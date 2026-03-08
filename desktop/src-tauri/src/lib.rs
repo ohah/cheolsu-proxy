@@ -87,7 +87,6 @@ pub fn run() {
                     .minimize()
                     .maximize()
                     .close_window()
-                    .separator()
                     .build()?;
 
                 let menu = tauri::menu::MenuBuilder::new(app_handle)

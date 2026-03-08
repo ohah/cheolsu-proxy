@@ -85,6 +85,17 @@ const App: React.FC = () => {
     };
   }, [setInterceptRules, setMapRules]);
 
+  // Cmd+R webview 기본 리로드 방지 (네이티브 메뉴 accelerator가 처리)
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "r") {
+        e.preventDefault();
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
+
   // 스크립트 이벤트 수신
   useEffect(() => {
     const unlistenLog = listen<{ level: string; message: string }>("script_log", (event) => {

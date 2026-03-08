@@ -393,7 +393,7 @@ fn install_sidecar_binary(
         let src_meta = std::fs::metadata(&source).ok();
         let dst_meta = std::fs::metadata(&dest).ok();
         match (src_meta, dst_meta) {
-            (Some(s), Some(d)) => s.len() != d.len() || s.modified().ok() != d.modified().ok(),
+            (Some(s), Some(d)) => s.len() != d.len(),
             _ => true,
         }
     } else {
