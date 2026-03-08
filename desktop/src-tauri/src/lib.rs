@@ -12,7 +12,8 @@ use proxy_v2::{
     update_server_replay, update_upstream_proxy, ws_inject_message, ProxyV2State,
 };
 use system_proxy::get_proxy_status_command;
-use tauri::Manager;
+use tauri::menu::SubmenuBuilder;
+use tauri::{Emitter, Manager};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -51,6 +52,50 @@ pub fn run() {
                 // proxyapi_v2 프록시 상태
                 app_handle.manage(ProxyV2State::default());
 
+                // 네이티브 메뉴 설정
+                let app_menu = SubmenuBuilder::new(app_handle, "Cheolsu Proxy")
+                    .about(None)
+                    .separator()
+                    .hide()
+                    .hide_others()
+                    .show_all()
+                    .separator()
+                    .quit()
+                    .build()?;
+
+                let edit_menu = SubmenuBuilder::new(app_handle, "Edit")
+                    .undo()
+                    .redo()
+                    .separator()
+                    .cut()
+                    .copy()
+                    .paste()
+                    .select_all()
+                    .build()?;
+
+                let view_menu = SubmenuBuilder::new(app_handle, "View")
+                    .item(
+                        &tauri::menu::MenuItemBuilder::with_id("refresh", "Reload")
+                            .accelerator("CmdOrCtrl+R")
+                            .build(app_handle)?,
+                    )
+                    .separator()
+                    .fullscreen()
+                    .build()?;
+
+                let window_menu = SubmenuBuilder::new(app_handle, "Window")
+                    .minimize()
+                    .maximize()
+                    .close_window()
+                    .separator()
+                    .build()?;
+
+                let menu = tauri::menu::MenuBuilder::new(app_handle)
+                    .items(&[&app_menu, &edit_menu, &view_menu, &window_menu])
+                    .build()?;
+
+                app_handle.set_menu(menu)?;
+
                 // 앱 시작 시 자동 캐시 정리 (1일 이상 된 캐시)
                 tauri::async_runtime::spawn(async {
                     match clean_old_proxy_cache(1).await {
@@ -59,9 +104,12 @@ pub fn run() {
                     }
                 });
 
-                // GUI 모드에서는 시스템 프록시 설정을 daemon이 담당하므로 여기서는 하지 않음
-
                 Ok(())
+            })
+            .on_menu_event(|app_handle, event| {
+                if event.id().as_ref() == "refresh" {
+                    let _ = app_handle.emit("menu_refresh", ());
+                }
             })
             .on_window_event(|_window, event| {
                 // GUI 종료 시 daemon과의 연결만 해제 (프록시 설정 해제는 daemon이 담당)
