@@ -1,4 +1,5 @@
 use crate::proxy_v2::ProxyV2State;
+use tauri::image::Image;
 use tauri::menu::{MenuBuilder, MenuItemBuilder};
 use tauri::tray::TrayIconBuilder;
 use tauri::{
@@ -21,56 +22,39 @@ fn size_to_f64(size: &Size) -> (f64, f64) {
     }
 }
 
+const PANEL_WIDTH: f64 = 320.0;
+const PANEL_HEIGHT: f64 = 460.0;
+
 /// 트레이 패널 윈도우 토글 (좌클릭)
 fn toggle_tray_panel<R: Runtime>(app: &AppHandle<R>, tray_rect: Rect) {
-    if let Some(panel) = app.get_webview_window("tray-panel") {
-        let _ = panel.close();
+    let (rect_x, rect_y) = position_to_f64(&tray_rect.position);
+    let (rect_w, rect_h) = size_to_f64(&tray_rect.size);
+
+    // 트레이 아이콘 중앙 기준으로 패널 위치 계산
+    let x = rect_x + (rect_w / 2.0) - (PANEL_WIDTH / 2.0);
+    let y = if cfg!(target_os = "macos") {
+        rect_y + rect_h
     } else {
-        let panel_width = 320.0_f64;
-        let panel_height = 460.0_f64;
+        rect_y - PANEL_HEIGHT
+    };
 
-        let (rect_x, rect_y) = position_to_f64(&tray_rect.position);
-        let (rect_w, rect_h) = size_to_f64(&tray_rect.size);
-
-        // 트레이 아이콘 중앙 기준으로 패널 위치 계산
-        let x = rect_x + (rect_w / 2.0) - (panel_width / 2.0);
-
-        // macOS: 트레이가 상단 → 아래로 / Windows: 트레이가 하단 → 위로
-        let y = if cfg!(target_os = "macos") {
-            rect_y + rect_h
+    if let Some(panel) = app.get_webview_window("tray-panel") {
+        if panel.is_visible().unwrap_or(false) {
+            let _ = panel.hide();
         } else {
-            rect_y - panel_height
-        };
-
-        if let Ok(panel) =
-            WebviewWindowBuilder::new(app, "tray-panel", WebviewUrl::App("/tray".into()))
-                .title("Cheolsu Proxy")
-                .inner_size(panel_width, panel_height)
-                .position(x, y)
-                .resizable(false)
-                .maximizable(false)
-                .minimizable(false)
-                .closable(true)
-                .decorations(false)
-                .always_on_top(true)
-                .skip_taskbar(true)
-                .focused(true)
-                .visible(true)
-                .build()
-        {
-            // 패널이 포커스를 잃으면 자동으로 닫기
-            let panel_clone = panel.clone();
-            panel.on_window_event(move |event| {
-                if let tauri::WindowEvent::Focused(false) = event {
-                    let _ = panel_clone.close();
-                }
-            });
+            // 위치 업데이트 후 표시
+            let _ = panel.set_position(tauri::LogicalPosition::new(x, y));
+            let _ = panel.show();
+            let _ = panel.set_focus();
         }
     }
 }
 
 /// 시스템 트레이 설정
 pub fn setup_tray(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
+    // 트레이 전용 아이콘 로드
+    let tray_icon = Image::from_bytes(include_bytes!("../icons/tray-icon.png"))?;
+
     // 우클릭 컨텍스트 메뉴
     let show_item = MenuItemBuilder::with_id("show", "메인 창 열기").build(app)?;
     let quit_item = MenuItemBuilder::with_id("quit", "종료").build(app)?;
@@ -80,7 +64,7 @@ pub fn setup_tray(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
         .build()?;
 
     let _tray = TrayIconBuilder::new()
-        .icon(app.default_window_icon().unwrap().clone())
+        .icon(tray_icon)
         .icon_as_template(true)
         .tooltip("Cheolsu Proxy")
         .menu(&menu)
@@ -113,6 +97,29 @@ pub fn setup_tray(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
             }
         })
         .build(app)?;
+
+    // 트레이 패널 윈도우를 미리 생성 (숨김 상태)
+    let panel = WebviewWindowBuilder::new(app, "tray-panel", WebviewUrl::App("/tray".into()))
+        .title("Cheolsu Proxy")
+        .inner_size(PANEL_WIDTH, PANEL_HEIGHT)
+        .resizable(false)
+        .maximizable(false)
+        .minimizable(false)
+        .closable(false)
+        .decorations(false)
+        .always_on_top(true)
+        .skip_taskbar(true)
+        .focused(false)
+        .visible(false)
+        .build()?;
+
+    // 패널이 포커스를 잃으면 숨기기 (닫지 않고 재사용)
+    let panel_clone = panel.clone();
+    panel.on_window_event(move |event| {
+        if let tauri::WindowEvent::Focused(false) = event {
+            let _ = panel_clone.hide();
+        }
+    });
 
     Ok(())
 }
@@ -155,7 +162,6 @@ pub fn tray_show_main_window<R: Runtime>(app: AppHandle<R>) -> Result<(), String
 /// 앱 완전 종료 커맨드
 #[tauri::command]
 pub fn tray_quit_app<R: Runtime>(app: AppHandle<R>) -> Result<(), String> {
-    // 트레이 패널 닫기
     if let Some(panel) = app.get_webview_window("tray-panel") {
         let _ = panel.close();
     }
