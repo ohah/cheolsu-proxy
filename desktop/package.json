@@ -16,7 +16,7 @@
     "log:clean": "cd src-tauri/logs && TODAY=$(date +%Y-%m-%d) && rm -f proxy.log.$TODAY.old*",
     "extract": "lingui extract --clean",
     "compile": "lingui compile",
-    "test": "bun test --preload ./test/setup.ts test/stores test/entities",
+    "test": "bun test --preload ./test/setup.ts test/stores test/entities test/lib",
     "test:e2e": "bun test --timeout 60000 test/e2e",
     "test:all": "bun run test && bun run test:e2e"
   },

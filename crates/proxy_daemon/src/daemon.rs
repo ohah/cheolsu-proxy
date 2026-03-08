@@ -6,36 +6,38 @@ use tokio::sync::{broadcast, watch};
 use tracing::{error, info, warn};
 
 use crate::client_handler::handle_client;
+use crate::error::DaemonError;
 use crate::protocol::ProxyLockInfo;
 use crate::proxy_runner::run_proxy;
 use crate::system_proxy::set_proxy;
 use proxyapi_v2::upstream_proxy::UpstreamProxyConfig;
 use proxyapi_v2::websocket_registry::WebSocketRegistry;
 
-pub fn app_support_dir() -> Result<PathBuf, String> {
+pub fn app_support_dir() -> Result<PathBuf, DaemonError> {
     dirs::data_dir()
-        .ok_or_else(|| "Cannot find data directory".to_string())
+        .ok_or(DaemonError::DataDirNotFound)
         .map(|dir| dir.join("com.cheolsu-proxy"))
 }
 
-pub fn lock_file_path() -> Result<PathBuf, String> {
+pub fn lock_file_path() -> Result<PathBuf, DaemonError> {
     Ok(app_support_dir()?.join("proxy.lock"))
 }
 
-pub fn uds_socket_path() -> Result<PathBuf, String> {
+pub fn uds_socket_path() -> Result<PathBuf, DaemonError> {
     Ok(app_support_dir()?.join("proxy.sock"))
 }
 
-fn write_lock_file(port: u16, uds_path: &str) -> Result<(), String> {
+fn write_lock_file(port: u16, uds_path: &str) -> Result<(), DaemonError> {
     let dir = app_support_dir()?;
-    std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+    std::fs::create_dir_all(&dir)?;
     let info = ProxyLockInfo {
         pid: std::process::id(),
         port,
         uds_path: uds_path.to_string(),
     };
-    let json = serde_json::to_string_pretty(&info).map_err(|e| e.to_string())?;
-    std::fs::write(lock_file_path()?, json).map_err(|e| e.to_string())
+    let json = serde_json::to_string_pretty(&info)?;
+    std::fs::write(lock_file_path()?, json)?;
+    Ok(())
 }
 
 fn remove_lock_file() {

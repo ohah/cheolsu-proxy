@@ -1,3 +1,26 @@
+/// 순환 next()/prev() 메서드를 자동 생성하는 매크로
+/// 사용법: cycle_enum!(EnumType);
+/// 전제: 대상 enum에 `const ALL: [Self; N]` 배열이 정의되어 있어야 함
+macro_rules! cycle_enum {
+    ($t:ty) => {
+        impl $t {
+            pub fn next(&self) -> Self {
+                let idx = Self::ALL.iter().position(|v| v == self).unwrap_or(0);
+                Self::ALL[(idx + 1) % Self::ALL.len()]
+            }
+
+            pub fn prev(&self) -> Self {
+                let idx = Self::ALL.iter().position(|v| v == self).unwrap_or(0);
+                if idx == 0 {
+                    Self::ALL[Self::ALL.len() - 1]
+                } else {
+                    Self::ALL[idx - 1]
+                }
+            }
+        }
+    };
+}
+
 mod app;
 mod event;
 mod tabs;

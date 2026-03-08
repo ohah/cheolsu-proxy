@@ -41,20 +41,6 @@ impl UpstreamProxyField {
         Self::Bypass,
     ];
 
-    pub fn next(&self) -> Self {
-        let idx = Self::ALL.iter().position(|f| f == self).unwrap_or(0);
-        Self::ALL[(idx + 1) % Self::ALL.len()]
-    }
-
-    pub fn prev(&self) -> Self {
-        let idx = Self::ALL.iter().position(|f| f == self).unwrap_or(0);
-        if idx == 0 {
-            Self::ALL[Self::ALL.len() - 1]
-        } else {
-            Self::ALL[idx - 1]
-        }
-    }
-
     pub fn label(&self) -> &'static str {
         match self {
             Self::Enabled => "Enabled",
@@ -66,6 +52,8 @@ impl UpstreamProxyField {
         }
     }
 }
+
+cycle_enum!(UpstreamProxyField);
 
 impl UpstreamProxyForm {
     pub fn new() -> Self {
@@ -169,21 +157,9 @@ impl ActionType {
             ActionType::MapRemote => "Map Remote",
         }
     }
-
-    pub fn next(&self) -> ActionType {
-        let idx = Self::ALL.iter().position(|a| a == self).unwrap_or(0);
-        Self::ALL[(idx + 1) % Self::ALL.len()]
-    }
-
-    pub fn prev(&self) -> ActionType {
-        let idx = Self::ALL.iter().position(|a| a == self).unwrap_or(0);
-        if idx == 0 {
-            Self::ALL[Self::ALL.len() - 1]
-        } else {
-            Self::ALL[idx - 1]
-        }
-    }
 }
+
+cycle_enum!(ActionType);
 
 impl RuleFormField {
     pub(crate) fn next(&self, action_type: ActionType) -> RuleFormField {

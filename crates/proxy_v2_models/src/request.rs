@@ -243,3 +243,115 @@ impl ClientRequest {
         self.body_size
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use bytes::Bytes;
+    use http::{HeaderMap, HeaderValue, Method, Uri, Version};
+
+    fn make_request(method: Method, uri: &str, body: &[u8]) -> ProxiedRequest {
+        ProxiedRequest::new(
+            method,
+            uri.parse::<Uri>().unwrap(),
+            Version::HTTP_11,
+            HeaderMap::new(),
+            Bytes::from(body.to_vec()),
+            1000,
+        )
+    }
+
+    #[test]
+    fn test_new_generates_unique_id() {
+        let r1 = make_request(Method::GET, "http://example.com", b"");
+        let r2 = make_request(Method::GET, "http://example.com", b"");
+        assert_ne!(r1.id(), r2.id());
+        assert!(r1.id().starts_with("1000-"));
+    }
+
+    #[test]
+    fn test_accessor_methods() {
+        let req = make_request(Method::POST, "http://example.com/api", b"hello");
+        assert_eq!(req.method(), Method::POST);
+        assert_eq!(req.uri().to_string(), "http://example.com/api");
+        assert_eq!(req.version(), &Version::HTTP_11);
+        assert_eq!(req.body().as_ref(), b"hello");
+        assert_eq!(req.time(), 1000);
+    }
+
+    #[test]
+    fn test_json_body_parsing() {
+        let json_body = br#"{"key":"value"}"#;
+        let mut headers = HeaderMap::new();
+        headers.insert("content-type", HeaderValue::from_static("application/json"));
+        let req = ProxiedRequest::new(
+            Method::POST,
+            "http://example.com".parse().unwrap(),
+            Version::HTTP_11,
+            headers,
+            Bytes::from(json_body.to_vec()),
+            1000,
+        );
+        assert!(req.body_json().is_some());
+        let json = req.body_json().as_ref().unwrap();
+        assert_eq!(json["key"], "value");
+    }
+
+    #[test]
+    fn test_non_json_body_has_no_json() {
+        let req = make_request(Method::GET, "http://example.com", b"plain text");
+        assert!(req.body_json().is_none());
+    }
+
+    #[test]
+    fn test_data_type_detection() {
+        let mut headers = HeaderMap::new();
+        headers.insert("content-type", HeaderValue::from_static("application/json"));
+        let req = ProxiedRequest::new(
+            Method::POST,
+            "http://example.com".parse().unwrap(),
+            Version::HTTP_11,
+            headers,
+            Bytes::from(br#"{"a":1}"#.to_vec()),
+            1000,
+        );
+        assert_eq!(*req.data_type(), DataType::Json);
+        assert_eq!(req.mime_type(), "application/json");
+        assert_eq!(req.monaco_language(), "json");
+    }
+
+    #[test]
+    fn test_for_client_preserves_fields() {
+        let req = make_request(Method::GET, "http://example.com", b"body");
+        let id = req.id().clone();
+        let client = req.for_client(None);
+        assert_eq!(client.method(), Method::GET);
+        assert_eq!(client.uri().host(), Some("example.com"));
+        assert_eq!(client.id(), id);
+        assert_eq!(client.body_size(), 4);
+        assert_eq!(client.body().unwrap().as_ref(), b"body");
+        assert!(client.file_path().is_none());
+    }
+
+    #[test]
+    fn test_for_client_with_cache_dir() {
+        let tmp = tempfile::TempDir::new().unwrap();
+        let req = make_request(Method::GET, "http://example.com", b"data");
+        let client = req.for_client(Some(tmp.path()));
+        // BODY_FILE_THRESHOLD=0 이므로 항상 파일로 저장
+        assert!(client.file_path().is_some());
+        assert!(client.body().is_none());
+        assert_eq!(client.body_size(), 4);
+    }
+
+    #[test]
+    fn test_serialization_roundtrip() {
+        let req = make_request(Method::GET, "http://example.com/test", b"hello");
+        let json = serde_json::to_string(&req).unwrap();
+        let deserialized: ProxiedRequest = serde_json::from_str(&json).unwrap();
+        assert_eq!(deserialized.method(), req.method());
+        assert_eq!(deserialized.uri().to_string(), req.uri().to_string());
+        assert_eq!(deserialized.body(), req.body());
+        // data_type과 body_json은 serde(skip)이므로 기본값
+    }
+}
