@@ -14,7 +14,15 @@ cheolsu-proxy는 [Model Context Protocol (MCP)](https://modelcontextprotocol.io/
 
 복사한 설정을 AI 클라이언트의 MCP 설정 파일에 붙여넣습니다.
 
-**Claude Code** (`.claude/settings.json`)
+**Claude Code**
+
+CLI 명령어로 간편하게 등록할 수 있습니다:
+
+```bash
+claude mcp add cheolsu-proxy -- /path/to/cheolsu-proxy-mcp
+```
+
+또는 `.claude/settings.json`에 직접 추가:
 
 ```json
 {

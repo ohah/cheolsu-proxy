@@ -14,7 +14,15 @@ Click the **MCP Server** button at the bottom of the left sidebar in the app. A 
 
 Paste the configuration into your AI client's MCP settings file.
 
-**Claude Code** (`.claude/settings.json`)
+**Claude Code**
+
+Register easily with the CLI command:
+
+```bash
+claude mcp add cheolsu-proxy -- /path/to/cheolsu-proxy-mcp
+```
+
+Or add directly to `.claude/settings.json`:
 
 ```json
 {

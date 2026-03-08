@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Trans, useLingui } from "@lingui/react/macro";
-import { Blocks, Copy, Check } from "lucide-react";
+import { Blocks, Copy, Check, Terminal } from "lucide-react";
 import {
   Popover,
   PopoverTrigger,
@@ -29,9 +29,14 @@ function buildMcpConfig(command: string) {
   );
 }
 
+function buildClaudeCommand(command: string) {
+  return `claude mcp add cheolsu-proxy -- ${command}`;
+}
+
 export const SidebarMcp = ({ collapsed }: SidebarMcpProps) => {
   const { t } = useLingui();
-  const [copied, setCopied] = useState(false);
+  const [copiedJson, setCopiedJson] = useState(false);
+  const [copiedCmd, setCopiedCmd] = useState(false);
   const [mcpPath, setMcpPath] = useState("cheolsu-proxy-mcp");
 
   useEffect(() => {
@@ -41,12 +46,20 @@ export const SidebarMcp = ({ collapsed }: SidebarMcpProps) => {
   }, []);
 
   const mcpConfig = buildMcpConfig(mcpPath);
+  const claudeCmd = buildClaudeCommand(mcpPath);
 
-  const handleCopy = async () => {
+  const handleCopyJson = async () => {
     await navigator.clipboard.writeText(mcpConfig);
-    setCopied(true);
+    setCopiedJson(true);
     toast.success(t`MCP configuration copied to clipboard`);
-    setTimeout(() => setCopied(false), 2000);
+    setTimeout(() => setCopiedJson(false), 2000);
+  };
+
+  const handleCopyCmd = async () => {
+    await navigator.clipboard.writeText(claudeCmd);
+    setCopiedCmd(true);
+    toast.success(t`Command copied to clipboard`);
+    setTimeout(() => setCopiedCmd(false), 2000);
   };
 
   const trigger = (
@@ -83,31 +96,55 @@ export const SidebarMcp = ({ collapsed }: SidebarMcpProps) => {
             <div className="font-medium text-sm">
               <Trans>MCP Server Configuration</Trans>
             </div>
-            <p className="text-xs text-muted-foreground">
-              <Trans>Add this to your AI assistant&apos;s MCP configuration:</Trans>
-            </p>
-            <div className="relative">
-              <pre className="bg-muted rounded-md p-3 text-xs overflow-x-auto whitespace-pre-wrap break-all">
-                <code>{mcpConfig}</code>
-              </pre>
-              <button
-                type="button"
-                onClick={handleCopy}
-                className="absolute top-2 right-2 p-1 rounded hover:bg-background/80 transition-colors cursor-pointer"
-                title={t`Copy to clipboard`}
-              >
-                {copied ? (
-                  <Check className="w-3.5 h-3.5 text-green-500" />
-                ) : (
-                  <Copy className="w-3.5 h-3.5 text-muted-foreground" />
-                )}
-              </button>
+
+            <div className="space-y-1.5">
+              <p className="text-xs font-medium text-foreground">
+                <Trans>Claude Code (CLI)</Trans>
+              </p>
+              <div className="relative">
+                <pre className="bg-muted rounded-md p-3 pr-8 text-xs overflow-x-auto whitespace-pre-wrap break-all">
+                  <code>{claudeCmd}</code>
+                </pre>
+                <button
+                  type="button"
+                  onClick={handleCopyCmd}
+                  className="absolute top-2 right-2 p-1 rounded hover:bg-background/80 transition-colors cursor-pointer"
+                  title={t`Copy to clipboard`}
+                >
+                  {copiedCmd ? (
+                    <Check className="w-3.5 h-3.5 text-green-500" />
+                  ) : (
+                    <Terminal className="w-3.5 h-3.5 text-muted-foreground" />
+                  )}
+                </button>
+              </div>
             </div>
-            <p className="text-xs text-muted-foreground">
-              <Trans>
-                Works with Claude Code, Cursor, Claude Desktop, and other MCP-compatible clients.
-              </Trans>
-            </p>
+
+            <div className="space-y-1.5">
+              <p className="text-xs font-medium text-foreground">
+                <Trans>JSON Configuration</Trans>
+              </p>
+              <p className="text-xs text-muted-foreground">
+                <Trans>For Cursor, Claude Desktop, and other MCP-compatible clients:</Trans>
+              </p>
+              <div className="relative">
+                <pre className="bg-muted rounded-md p-3 pr-8 text-xs overflow-x-auto whitespace-pre-wrap break-all">
+                  <code>{mcpConfig}</code>
+                </pre>
+                <button
+                  type="button"
+                  onClick={handleCopyJson}
+                  className="absolute top-2 right-2 p-1 rounded hover:bg-background/80 transition-colors cursor-pointer"
+                  title={t`Copy to clipboard`}
+                >
+                  {copiedJson ? (
+                    <Check className="w-3.5 h-3.5 text-green-500" />
+                  ) : (
+                    <Copy className="w-3.5 h-3.5 text-muted-foreground" />
+                  )}
+                </button>
+              </div>
+            </div>
           </div>
         </PopoverContent>
       </Popover>
