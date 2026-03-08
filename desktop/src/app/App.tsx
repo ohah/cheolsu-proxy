@@ -125,9 +125,16 @@ const App: React.FC = () => {
 
   // 메인 윈도우 상태를 Tauri Store에 동기화 (트레이 패널이 읽음)
   useEffect(() => {
-    trayStore.set("paused", paused);
-    trayStore.set("transactionCount", transactions.length);
-    trayStore.save();
+    const syncToTrayStore = async () => {
+      try {
+        await trayStore.set("paused", paused);
+        await trayStore.set("transactionCount", transactions.length);
+        await trayStore.save();
+      } catch {
+        // 스토어 초기화 전이면 무시
+      }
+    };
+    syncToTrayStore();
   }, [paused, transactions.length]);
 
   return (
