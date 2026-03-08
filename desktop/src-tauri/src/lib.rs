@@ -110,7 +110,7 @@ pub fn run() {
             })
             .on_menu_event(|app_handle, event| {
                 static LAST_RELOAD: AtomicU64 = AtomicU64::new(0);
-                const DEBOUNCE_MS: u64 = 500;
+                const DEBOUNCE_MS: u64 = 2000;
 
                 if event.id().as_ref() == "refresh" {
                     let now = SystemTime::now()
