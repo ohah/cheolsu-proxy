@@ -10,7 +10,7 @@ export const PathCell = memo<TableCellProps>(({ data }) => {
       <div className="font-mono text-sm truncate" title={authority}>
         {authority}
       </div>
-      <div className="font-mono text-sm truncate text-gray-500" title={pathname}>
+      <div className="font-mono text-sm truncate text-muted-foreground" title={pathname}>
         {pathname}
       </div>
     </div>
