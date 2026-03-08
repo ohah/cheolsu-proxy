@@ -4,6 +4,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 mod proxy_v2;
 mod system_proxy;
+mod tray;
 use proxy_v2::{
     check_ca_installed, check_cli_installed, clean_old_proxy_cache, export_har_file,
     get_ca_cert_path, get_mcp_server_path, install_ca_cert, install_cli, load_script,
@@ -14,6 +15,7 @@ use proxy_v2::{
 use system_proxy::get_proxy_status_command;
 use tauri::menu::SubmenuBuilder;
 use tauri::Manager;
+use tray::setup_tray;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -51,6 +53,9 @@ pub fn run() {
             .setup(|app_handle| {
                 // proxyapi_v2 프록시 상태
                 app_handle.manage(ProxyV2State::default());
+
+                // 시스템 트레이 설정
+                setup_tray(app_handle)?;
 
                 // 네이티브 메뉴 설정
                 let app_menu = SubmenuBuilder::new(app_handle, "Cheolsu Proxy")
@@ -99,11 +104,14 @@ pub fn run() {
 
                 Ok(())
             })
-            .on_window_event(|_window, event| {
-                // GUI 종료 시 daemon과의 연결만 해제 (프록시 설정 해제는 daemon이 담당)
-                if let tauri::WindowEvent::CloseRequested { .. } = event {
-                    println!("CloseRequested");
-                    // daemon과의 연결은 ProxyV2State drop 시 자동 해제
+            .on_window_event(|window, event| {
+                // 메인 윈도우 닫기 시 트레이로 최소화 (완전 종료 대신)
+                if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                    if window.label() == "main" {
+                        // 닫기를 막고 윈도우를 숨김
+                        api.prevent_close();
+                        let _ = window.hide();
+                    }
                 }
             })
             .invoke_handler(tauri::generate_handler![
@@ -129,7 +137,10 @@ pub fn run() {
                 uninstall_ca_cert,
                 load_script,
                 unload_script,
-                export_har_file
+                export_har_file,
+                tray::tray_get_info,
+                tray::tray_show_main_window,
+                tray::tray_quit_app,
             ])
             .run(tauri::generate_context!())
             .expect("error while running tauri application");
