@@ -6,8 +6,19 @@ Check the upcoming features planned for Cheolsu Proxy.
 
 ### Completed Features
 
-- **Export/Import**:
-  - HAR export (Desktop and TUI support)
+- **Traffic Capture**: Real-time HTTP/HTTPS monitoring
+- **WebSocket**: Plain Text, Socket.IO, MQTT protocol detection and message injection
+- **Intercept Rules**: Block, Modify Request/Response, Map Local, Map Remote
+- **Scripting**: JavaScript/TypeScript based request/response/WebSocket hooks
+- **Server Replay**: Cached response auto-return for identical requests
+- **MCP Server**: AI assistant integration (Claude Code, Cursor, etc.)
+- **HAR Export**: Desktop and TUI support
+- **Upstream Proxy**: Proxy chaining with authentication
+- **System Proxy Auto-configuration**: macOS networksetup integration
+- **CLI Installation**: `cheolsu` terminal command install/uninstall
+- **Auto Update**: Tauri Updater based GitHub Releases deployment
+- **Hybrid TLS Engine**: rustls + native-tls auto-switching
+- **TLS Passthrough**: Auto-learning based bypass
 
 ### Planned Features
 
@@ -21,11 +32,6 @@ Check the upcoming features planned for Cheolsu Proxy.
 
 - **Export/Import**:
   - Session save/load
-
-- **Advanced Features**:
-  - Server-side Replay (response mocking)
-  - Log analysis features
-  - Performance optimization
 
 - **Extension Features**:
   - Plugin system

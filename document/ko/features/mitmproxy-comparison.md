@@ -40,7 +40,7 @@ mitmproxy를 레퍼런스로 한 cheolsu-proxy의 기능 구현 현황을 정리
 | --------------------------- | --------- | ------------- | ------ |
 | Client Replay (요청 재전송) | O         | O             | 구현됨 |
 | Sequence Replay (배치 실행) | X         | O             | 구현됨 |
-| Server Replay (응답 모킹)   | O         | X             | 미구현 |
+| Server Replay (응답 모킹)   | O         | O             | 구현됨 |
 
 ---
 
@@ -77,7 +77,7 @@ mitmproxy를 레퍼런스로 한 cheolsu-proxy의 기능 구현 현황을 정리
 | 기능                 | mitmproxy | cheolsu-proxy | 상태   |
 | -------------------- | --------- | ------------- | ------ |
 | cURL 복사            | O         | O             | 구현됨 |
-| HAR 내보내기         | O         | X             | 미구현 |
+| HAR 내보내기         | O         | O             | 구현됨 |
 | httpie 복사          | O         | X             | 미구현 |
 | Python requests 복사 | O         | X             | 미구현 |
 | Flow 파일 저장/로드  | O         | X             | 미구현 |
@@ -118,8 +118,8 @@ mitmproxy를 레퍼런스로 한 cheolsu-proxy의 기능 구현 현황을 정리
 | 기능                 | mitmproxy           | cheolsu-proxy | 상태   |
 | -------------------- | ------------------- | ------------- | ------ |
 | Addon/Plugin 시스템  | O (43개 내장 addon) | X             | 미구현 |
-| 커스텀 스크립트 로딩 | O (Python)          | X             | 미구현 |
-| 이벤트 훅 시스템     | O                   | X             | 미구현 |
+| 커스텀 스크립트 로딩 | O (Python)          | O (JS/TS)     | 구현됨 |
+| 이벤트 훅 시스템     | O                   | O (onRequest/onResponse/onWebSocketMessage) | 구현됨 |
 | MCP Server (AI 통합) | X                   | O             | 구현됨 |
 
 ---
@@ -129,7 +129,7 @@ mitmproxy를 레퍼런스로 한 cheolsu-proxy의 기능 구현 현황을 정리
 | 기능                    | mitmproxy         | cheolsu-proxy | 상태   |
 | ----------------------- | ----------------- | ------------- | ------ |
 | GUI                     | O (mitmweb)       | O (Tauri)     | 구현됨 |
-| CLI 모드                | O (mitmproxy TUI) | O (headless)  | 구현됨 |
+| TUI 모드                | O (mitmproxy TUI) | O (ratatui)   | 구현됨 |
 | 다크/라이트 테마        | O                 | O             | 구현됨 |
 | 시스템 프록시 자동 설정 | X (수동)          | O (macOS)     | 구현됨 |
 | Flow 주석/코멘트        | O                 | X             | 미구현 |
@@ -145,9 +145,14 @@ mitmproxy에는 없지만 cheolsu-proxy에 구현된 기능:
 - **하이브리드 TLS 엔진**: rustls + OpenSSL 자동 전환 (ClientHello 분석 기반)
 - **데몬 아키텍처**: Unix Domain Socket 기반 다중 클라이언트 지원
 - **시스템 프록시 자동 설정**: macOS networksetup 연동
+- **JavaScript/TypeScript 스크립팅**: Deno Core 기반 3가지 훅 (onRequest, onResponse, onWebSocketMessage)
+- **Server Replay**: 캡처된 응답을 캐싱하여 동일 요청에 자동 반환
 - **스트리밍 응답 최적화**: SSE, Chunked, NDJSON 자동 감지 및 최적화
 - **세션별 캐시 격리**: 세션 해시 기반 독립 캐시 디렉토리
 - **시퀀스 리플레이**: 여러 요청을 순차 배치 실행
 - **호스트/경로 트리 뷰**: 트래픽을 호스트별 계층 구조로 그룹핑
 - **핀/체크박스 선택**: 트랜잭션 고정 및 다중 선택
 - **비디오/오디오 미리보기**: MP4, WebM, MP3, WAV 등 미디어 재생
+- **HAR 내보내기**: Desktop, TUI 모두 지원
+- **CLI 설치**: `cheolsu` 터미널 명령어 설치/제거
+- **자동 업데이트**: Tauri Updater 기반 GitHub Releases 배포
