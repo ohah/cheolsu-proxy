@@ -678,10 +678,10 @@ pub fn install_ca_cert() -> Result<String, String> {
             .output()
             .map_err(|e| format!("security 명령 실행 실패: {}", e))?;
 
-        // 이미 존재하는 경우(-25299)는 무시
+        // 이미 존재하는 경우는 무시 (-25299 에러코드 또는 "already in" 메시지)
         if !add_output.status.success() {
             let stderr = String::from_utf8_lossy(&add_output.stderr);
-            if !stderr.contains("-25299") {
+            if !stderr.contains("-25299") && !stderr.contains("already in") {
                 return Err(format!("키체인에 인증서 추가 실패: {}", stderr.trim()));
             }
         }
