@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useThemeProvider, RouterProvider } from "./providers";
+import { ThemeProvider, RouterProvider } from "./providers";
 import { Toaster } from "@/shared/ui";
 import {
   useProxyStore,
@@ -15,7 +15,6 @@ import type { WsMessageInfo, WsConnectionEvent } from "@/entities/websocket";
 import type { InterceptRule } from "@/entities/intercept-rule";
 
 const App: React.FC = () => {
-  useThemeProvider();
   const initializeProxy = useProxyStore((s) => s.initializeProxy);
   const syncToProxy = useInterceptRuleStore((s) => s.syncToProxy);
   const addTransaction = useTransactionStore((s) => s.addTransaction);
@@ -105,10 +104,12 @@ const App: React.FC = () => {
   }, [addScriptLog, setScriptStatus]);
 
   return (
-    <div className="App">
-      <RouterProvider />
-      <Toaster richColors />
-    </div>
+    <ThemeProvider attribute={["class", "data-theme"]} defaultTheme="system" enableSystem>
+      <div className="App">
+        <RouterProvider />
+        <Toaster richColors />
+      </div>
+    </ThemeProvider>
   );
 };
 

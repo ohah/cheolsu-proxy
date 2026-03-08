@@ -3,6 +3,7 @@ import { Play, Loader2, Plus, Trash2, Maximize2, Minimize2 } from "lucide-react"
 import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
 import { Editor } from "@monaco-editor/react";
+import { useTheme } from "next-themes";
 
 import type { HttpTransaction } from "@/entities/proxy";
 import { isTextBasedDataType } from "@/entities/proxy/model/data-type";
@@ -110,6 +111,7 @@ function ResponseView({
   elapsedMs?: number;
 }) {
   const { t } = useLingui();
+  const { resolvedTheme } = useTheme();
   const [expanded, setExpanded] = useState(false);
   const headerEntries = Object.entries(headers);
 
@@ -130,7 +132,7 @@ function ResponseView({
             height="100%"
             language={detectLanguage(body)}
             value={formatBody(body, bodySize)}
-            theme="vs-light"
+            theme={resolvedTheme === "dark" ? "vs-dark" : "vs-light"}
             options={{
               readOnly: true,
               minimap: { enabled: false },
@@ -201,7 +203,7 @@ function ResponseView({
             height="300px"
             language={detectLanguage(body)}
             value={formatBody(body, bodySize)}
-            theme="vs-light"
+            theme={resolvedTheme === "dark" ? "vs-dark" : "vs-light"}
             options={{
               readOnly: true,
               minimap: { enabled: false },
@@ -222,6 +224,7 @@ function ResponseView({
 
 export function ReplayDialog({ transaction }: ReplayDialogProps) {
   const { t } = useLingui();
+  const { resolvedTheme } = useTheme();
   const { request, response: originalResponse } = transaction;
   const [open, setOpen] = useState(false);
   const [method, setMethod] = useState(request?.method || "GET");
@@ -455,7 +458,7 @@ export function ReplayDialog({ transaction }: ReplayDialogProps) {
                         language={bodyLanguage}
                         value={body}
                         onChange={(v) => setBody(v ?? "")}
-                        theme="vs-light"
+                        theme={resolvedTheme === "dark" ? "vs-dark" : "vs-light"}
                         options={{
                           minimap: { enabled: false },
                           fontSize: 12,
