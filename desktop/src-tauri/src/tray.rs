@@ -23,7 +23,7 @@ fn size_to_f64(size: &Size) -> (f64, f64) {
 }
 
 const PANEL_WIDTH: f64 = 300.0;
-const PANEL_HEIGHT: f64 = 320.0;
+const PANEL_HEIGHT: f64 = 328.0;
 
 /// 트레이 패널 윈도우 토글 (좌클릭)
 /// 첫 클릭에서 생성, 이후에는 show/hide 토글
