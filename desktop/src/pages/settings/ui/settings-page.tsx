@@ -3,7 +3,15 @@ import { invoke } from "@tauri-apps/api/core";
 import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
 import { loadCatalog, locales, type Locale } from "@/shared/lib/i18n";
-import { installCli, uninstallCli, checkCliInstalled } from "@/shared/api/proxy";
+import {
+  installCli,
+  uninstallCli,
+  checkCliInstalled,
+  checkCaInstalled,
+  installCaCert,
+  uninstallCaCert,
+  getCaCertPath,
+} from "@/shared/api/proxy";
 import {
   Button,
   Input,
@@ -40,6 +48,10 @@ export function SettingsPage() {
   const [cliInstalled, setCliInstalled] = useState(false);
   const [cliInstalling, setCliInstalling] = useState(false);
   const [cliMessage, setCliMessage] = useState("");
+  const [caInstalled, setCaInstalled] = useState(false);
+  const [caInstalling, setCaInstalling] = useState(false);
+  const [caMessage, setCaMessage] = useState("");
+  const [caCertPath, setCaCertPath] = useState("");
 
   const handleLocaleChange = useCallback(async (newLocale: string) => {
     const loc = newLocale as Locale;
@@ -53,6 +65,16 @@ export function SettingsPage() {
     checkCliInstalled().then(setCliInstalled);
   }, []);
 
+  // CA 인증서 상태 확인
+  useEffect(() => {
+    checkCaInstalled()
+      .then(setCaInstalled)
+      .catch(() => setCaInstalled(false));
+    getCaCertPath()
+      .then(setCaCertPath)
+      .catch(() => setCaCertPath(""));
+  }, []);
+
   const handleInstallCli = useCallback(async () => {
     setCliInstalling(true);
     setCliMessage("");
@@ -64,6 +86,34 @@ export function SettingsPage() {
       setCliMessage(String(e));
     } finally {
       setCliInstalling(false);
+    }
+  }, []);
+
+  const handleInstallCa = useCallback(async () => {
+    setCaInstalling(true);
+    setCaMessage("");
+    try {
+      const msg = await installCaCert();
+      setCaMessage(msg);
+      setCaInstalled(true);
+    } catch (e) {
+      setCaMessage(String(e));
+    } finally {
+      setCaInstalling(false);
+    }
+  }, []);
+
+  const handleUninstallCa = useCallback(async () => {
+    setCaInstalling(true);
+    setCaMessage("");
+    try {
+      const msg = await uninstallCaCert();
+      setCaMessage(msg);
+      setCaInstalled(false);
+    } catch (e) {
+      setCaMessage(String(e));
+    } finally {
+      setCaInstalling(false);
     }
   }, []);
 
@@ -163,6 +213,49 @@ export function SettingsPage() {
               ))}
             </SelectContent>
           </Select>
+        </div>
+
+        {/* CA Certificate Section */}
+        <div className="border rounded-lg p-5 space-y-4">
+          <div>
+            <h2 className="text-lg font-semibold">
+              <Trans>CA Certificate</Trans>
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              <Trans>
+                Install the CA certificate to trust HTTPS traffic intercepted by the proxy
+              </Trans>
+            </p>
+          </div>
+          {caCertPath && (
+            <p className="text-xs text-muted-foreground font-mono break-all">{caCertPath}</p>
+          )}
+          <div className="flex items-center gap-3">
+            <Button onClick={handleInstallCa} disabled={caInstalling}>
+              {caInstalling ? t`Installing...` : caInstalled ? t`Reinstall` : t`Install`}
+            </Button>
+            {caInstalled && (
+              <Button variant="outline" onClick={handleUninstallCa} disabled={caInstalling}>
+                {t`Uninstall`}
+              </Button>
+            )}
+            {caInstalled && (
+              <Badge variant="outline" className="text-green-600 border-green-600">
+                <Trans>Trusted</Trans>
+              </Badge>
+            )}
+            {!caInstalled && caCertPath && (
+              <Badge variant="outline" className="text-yellow-600 border-yellow-600">
+                <Trans>Not Trusted</Trans>
+              </Badge>
+            )}
+            {!caCertPath && (
+              <Badge variant="outline" className="text-muted-foreground">
+                <Trans>Start proxy first</Trans>
+              </Badge>
+            )}
+          </div>
+          {caMessage && <p className="text-xs text-muted-foreground">{caMessage}</p>}
         </div>
 
         {/* CLI Install Section */}
