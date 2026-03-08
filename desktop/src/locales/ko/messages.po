@@ -162,7 +162,7 @@ msgstr "차단"
 msgid "Body"
 msgstr "본문"
 
-#: src/pages/script/ui/script-page.tsx:261
+#: src/pages/script/ui/script-page.tsx:263
 msgid "Browse"
 msgstr "찾아보기"
 
@@ -191,7 +191,7 @@ msgstr "추가할 수 없습니다: 응답 데이터 없음"
 msgid "Cheolsu Proxy Logo"
 msgstr "Cheolsu Proxy 로고"
 
-#: src/pages/script/ui/script-page.tsx:296
+#: src/pages/script/ui/script-page.tsx:298
 msgid "Clear"
 msgstr "지우기"
 
@@ -236,7 +236,7 @@ msgstr "연결"
 msgid "connections"
 msgstr "연결"
 
-#: src/pages/script/ui/script-page.tsx:284
+#: src/pages/script/ui/script-page.tsx:286
 msgid "Console"
 msgstr "콘솔"
 
@@ -419,11 +419,11 @@ msgstr "언어"
 msgid "Light"
 msgstr "라이트"
 
-#: src/pages/script/ui/script-page.tsx:264
+#: src/pages/script/ui/script-page.tsx:266
 msgid "Load"
 msgstr "로드"
 
-#: src/pages/script/ui/script-page.tsx:247
+#: src/pages/script/ui/script-page.tsx:249
 msgid "Load a script file from disk. The file will be watched for changes and auto-reloaded."
 msgstr "디스크에서 스크립트 파일을 로드합니다. 파일 변경 시 자동으로 리로드됩니다."
 
@@ -432,7 +432,7 @@ msgid "Load and manage proxy scripts"
 msgstr "프록시 스크립트 로드 및 관리"
 
 #: src/pages/script/ui/script-page.tsx:214
-#: src/pages/script/ui/script-page.tsx:264
+#: src/pages/script/ui/script-page.tsx:266
 msgid "Loading..."
 msgstr "로딩 중..."
 
@@ -554,7 +554,7 @@ msgstr "활성 WebSocket 연결 없음"
 msgid "No captured traffic with responses available. Capture some traffic first."
 msgstr "응답이 있는 캡처된 트래픽이 없습니다. 먼저 트래픽을 캡처하세요."
 
-#: src/pages/script/ui/script-page.tsx:302
+#: src/pages/script/ui/script-page.tsx:304
 msgid "No console output yet"
 msgstr "콘솔 출력이 아직 없습니다"
 
@@ -763,7 +763,7 @@ msgstr "저장 중..."
 msgid "Script"
 msgstr "스크립트"
 
-#: src/pages/script/ui/script-page.tsx:255
+#: src/pages/script/ui/script-page.tsx:257
 msgid "Script file path (.js, .ts)"
 msgstr "스크립트 파일 경로 (.js, .ts)"
 
