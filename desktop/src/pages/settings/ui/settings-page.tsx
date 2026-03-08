@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
+import { useTheme } from "next-themes";
 import { loadCatalog, locales, type Locale } from "@/shared/lib/i18n";
 import {
   installCli,
@@ -31,8 +32,15 @@ interface UpstreamProxyConfig {
   bypass: string[];
 }
 
+const THEME_OPTIONS = [
+  { value: "system", label: "System" },
+  { value: "light", label: "Light" },
+  { value: "dark", label: "Dark" },
+] as const;
+
 export function SettingsPage() {
   const { t } = useLingui();
+  const { theme, setTheme } = useTheme();
   const [enabled, setEnabled] = useState(false);
   const [host, setHost] = useState("");
   const [port, setPort] = useState("8080");
@@ -209,6 +217,31 @@ export function SettingsPage() {
               {Object.entries(locales).map(([code, name]) => (
                 <SelectItem key={code} value={code}>
                   {name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Theme Section */}
+        <div className="border rounded-lg p-5 space-y-5">
+          <div>
+            <h2 className="text-lg font-semibold">
+              <Trans>Theme</Trans>
+            </h2>
+          </div>
+          <Select value={theme} onValueChange={setTheme}>
+            <SelectTrigger className="w-48">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {THEME_OPTIONS.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.value === "system"
+                    ? t`System`
+                    : opt.value === "light"
+                      ? t`Light`
+                      : t`Dark`}
                 </SelectItem>
               ))}
             </SelectContent>

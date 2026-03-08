@@ -57,7 +57,7 @@ msgstr "활성"
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:314
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:345
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:288
-#: src/features/transaction-details/ui/replay-dialog.tsx:381
+#: src/features/transaction-details/ui/replay-dialog.tsx:384
 #: src/pages/server-replay/ui/server-replay-page.tsx:170
 msgid "Add"
 msgstr "추가"
@@ -142,7 +142,7 @@ msgstr "원본 요청 경로를 대상 URL에 추가"
 msgid "Apply:"
 msgstr "적용:"
 
-#: src/pages/settings/ui/settings-page.tsx:338
+#: src/pages/settings/ui/settings-page.tsx:371
 msgid "Authentication"
 msgstr "인증"
 
@@ -156,9 +156,9 @@ msgid "Block"
 msgstr "차단"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:368
-#: src/features/transaction-details/ui/replay-dialog.tsx:121
-#: src/features/transaction-details/ui/replay-dialog.tsx:192
-#: src/features/transaction-details/ui/replay-dialog.tsx:430
+#: src/features/transaction-details/ui/replay-dialog.tsx:123
+#: src/features/transaction-details/ui/replay-dialog.tsx:194
+#: src/features/transaction-details/ui/replay-dialog.tsx:433
 msgid "Body"
 msgstr "본문"
 
@@ -166,7 +166,7 @@ msgstr "본문"
 msgid "Browse"
 msgstr "찾아보기"
 
-#: src/pages/settings/ui/settings-page.tsx:365
+#: src/pages/settings/ui/settings-page.tsx:398
 msgid "Bypass List"
 msgstr "바이패스 목록"
 
@@ -174,7 +174,7 @@ msgstr "바이패스 목록"
 msgid "bytes body"
 msgstr "바이트 본문"
 
-#: src/pages/settings/ui/settings-page.tsx:222
+#: src/pages/settings/ui/settings-page.tsx:255
 msgid "CA Certificate"
 msgstr "CA 인증서"
 
@@ -213,12 +213,12 @@ msgstr "모든 트랜잭션 삭제"
 msgid "Close"
 msgstr "닫기"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:125
-#: src/features/transaction-details/ui/replay-dialog.tsx:440
+#: src/features/transaction-details/ui/replay-dialog.tsx:127
+#: src/features/transaction-details/ui/replay-dialog.tsx:443
 msgid "Collapse"
 msgstr "접기"
 
-#: src/pages/settings/ui/settings-page.tsx:373
+#: src/pages/settings/ui/settings-page.tsx:406
 msgid "Comma-separated list of hosts to connect directly (supports *.domain.com wildcards)"
 msgstr "직접 연결할 호스트 목록 (쉼표로 구분, *.domain.com 와일드카드 지원)"
 
@@ -251,6 +251,10 @@ msgstr "Curl 명령어가 클립보드에 복사되었습니다"
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:174
 msgid "Custom body"
 msgstr "커스텀 본문"
+
+#: src/pages/settings/ui/settings-page.tsx:244
+msgid "Dark"
+msgstr "다크"
 
 #: src/widgets/websocket-messages/ui/ws-message-table.tsx:166
 msgid "Data"
@@ -308,8 +312,8 @@ msgstr "개 엔트리"
 msgid "Exclude OPTIONS method"
 msgstr "OPTIONS 메서드 제외"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:196
-#: src/features/transaction-details/ui/replay-dialog.tsx:445
+#: src/features/transaction-details/ui/replay-dialog.tsx:198
+#: src/features/transaction-details/ui/replay-dialog.tsx:448
 msgid "Expand"
 msgstr "펼치기"
 
@@ -321,7 +325,7 @@ msgstr "사이드바 펼치기"
 msgid "Export HAR"
 msgstr "HAR 내보내기"
 
-#: src/pages/settings/ui/settings-page.tsx:394
+#: src/pages/settings/ui/settings-page.tsx:427
 msgid "Failed — is the proxy running?"
 msgstr "실패 — 프록시가 실행 중인가요?"
 
@@ -344,7 +348,7 @@ msgstr "파일 경로를 입력해주세요"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:320
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:294
-#: src/features/transaction-details/ui/replay-dialog.tsx:393
+#: src/features/transaction-details/ui/replay-dialog.tsx:396
 msgid "Header name"
 msgstr "헤더 이름"
 
@@ -359,12 +363,12 @@ msgstr "헤더"
 
 #. placeholder {0}: headerEntries.length
 #. placeholder {0}: headers.length
-#: src/features/transaction-details/ui/replay-dialog.tsx:168
-#: src/features/transaction-details/ui/replay-dialog.tsx:378
+#: src/features/transaction-details/ui/replay-dialog.tsx:170
+#: src/features/transaction-details/ui/replay-dialog.tsx:381
 msgid "Headers ({0})"
 msgstr "헤더 ({0})"
 
-#: src/pages/settings/ui/settings-page.tsx:312
+#: src/pages/settings/ui/settings-page.tsx:345
 msgid "Host"
 msgstr "호스트"
 
@@ -380,25 +384,25 @@ msgstr "HTTP 요청 및 응답"
 msgid "Inactive"
 msgstr "비활성"
 
-#: src/pages/settings/ui/settings-page.tsx:235
-#: src/pages/settings/ui/settings-page.tsx:276
+#: src/pages/settings/ui/settings-page.tsx:268
+#: src/pages/settings/ui/settings-page.tsx:309
 msgid "Install"
 msgstr "설치"
 
-#: src/pages/settings/ui/settings-page.tsx:268
+#: src/pages/settings/ui/settings-page.tsx:301
 msgid "Install the <0>cheolsu</0> command to use the TUI from your terminal"
 msgstr "터미널에서 TUI를 사용하려면 <0>cheolsu</0> 명령어를 설치하세요"
 
-#: src/pages/settings/ui/settings-page.tsx:225
+#: src/pages/settings/ui/settings-page.tsx:258
 msgid "Install the CA certificate to trust HTTPS traffic intercepted by the proxy"
 msgstr "프록시가 가로채는 HTTPS 트래픽을 신뢰하려면 CA 인증서를 설치하세요"
 
-#: src/pages/settings/ui/settings-page.tsx:285
+#: src/pages/settings/ui/settings-page.tsx:318
 msgid "Installed"
 msgstr "설치됨"
 
-#: src/pages/settings/ui/settings-page.tsx:235
-#: src/pages/settings/ui/settings-page.tsx:276
+#: src/pages/settings/ui/settings-page.tsx:268
+#: src/pages/settings/ui/settings-page.tsx:309
 msgid "Installing..."
 msgstr "설치 중..."
 
@@ -407,9 +411,13 @@ msgstr "설치 중..."
 msgid "Intercept Rules"
 msgstr "인터셉트 규칙"
 
-#: src/pages/settings/ui/settings-page.tsx:201
+#: src/pages/settings/ui/settings-page.tsx:209
 msgid "Language"
 msgstr "언어"
+
+#: src/pages/settings/ui/settings-page.tsx:243
+msgid "Light"
+msgstr "라이트"
 
 #: src/pages/script/ui/script-page.tsx:264
 msgid "Load"
@@ -432,7 +440,7 @@ msgstr "로딩 중..."
 msgid "Local File Path"
 msgstr "로컬 파일 경로"
 
-#: src/pages/settings/ui/settings-page.tsx:368
+#: src/pages/settings/ui/settings-page.tsx:401
 msgid "localhost, 127.0.0.1, *.internal.com"
 msgstr "localhost, 127.0.0.1, *.internal.com"
 
@@ -570,7 +578,7 @@ msgstr "표시할 트랜잭션이 없습니다"
 msgid "No valid requests to replay"
 msgstr "리플레이할 유효한 요청이 없습니다"
 
-#: src/pages/settings/ui/settings-page.tsx:249
+#: src/pages/settings/ui/settings-page.tsx:282
 msgid "Not Trusted"
 msgstr "신뢰되지 않음"
 
@@ -578,11 +586,11 @@ msgstr "신뢰되지 않음"
 msgid "Open File"
 msgstr "파일 열기"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:324
+#: src/features/transaction-details/ui/replay-dialog.tsx:327
 msgid "Original"
 msgstr "원본"
 
-#: src/pages/settings/ui/settings-page.tsx:353
+#: src/pages/settings/ui/settings-page.tsx:386
 msgid "Password"
 msgstr "비밀번호"
 
@@ -603,7 +611,7 @@ msgstr "기록 일시정지"
 msgid "Payload"
 msgstr "페이로드"
 
-#: src/pages/settings/ui/settings-page.tsx:322
+#: src/pages/settings/ui/settings-page.tsx:355
 msgid "Port"
 msgstr "포트"
 
@@ -611,7 +619,7 @@ msgstr "포트"
 msgid "Preserve Path"
 msgstr "경로 유지"
 
-#: src/pages/settings/ui/settings-page.tsx:193
+#: src/pages/settings/ui/settings-page.tsx:201
 msgid "Proxy configuration and preferences"
 msgstr "프록시 설정 및 환경설정"
 
@@ -619,7 +627,7 @@ msgstr "프록시 설정 및 환경설정"
 msgid "Proxy settings and configuration"
 msgstr "프록시 설정 및 구성"
 
-#: src/pages/settings/ui/settings-page.tsx:315
+#: src/pages/settings/ui/settings-page.tsx:348
 msgid "proxy.company.com"
 msgstr "proxy.company.com"
 
@@ -639,8 +647,8 @@ msgstr "수신"
 msgid "Received (Server → Client)"
 msgstr "수신 (서버 → 클라이언트)"
 
-#: src/pages/settings/ui/settings-page.tsx:235
-#: src/pages/settings/ui/settings-page.tsx:276
+#: src/pages/settings/ui/settings-page.tsx:268
+#: src/pages/settings/ui/settings-page.tsx:309
 msgid "Reinstall"
 msgstr "재설치"
 
@@ -656,7 +664,7 @@ msgstr "엔트리 삭제"
 msgid "Remove Headers"
 msgstr "헤더 삭제"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:334
+#: src/features/transaction-details/ui/replay-dialog.tsx:337
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:120
 msgid "Replay"
 msgstr "리플레이"
@@ -665,11 +673,11 @@ msgstr "리플레이"
 msgid "Replay message"
 msgstr "메시지 리플레이"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:299
+#: src/features/transaction-details/ui/replay-dialog.tsx:302
 msgid "Replay request"
 msgstr "요청 리플레이"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:320
+#: src/features/transaction-details/ui/replay-dialog.tsx:323
 msgid "Request"
 msgstr "요청"
 
@@ -677,7 +685,7 @@ msgstr "요청"
 msgid "Request Details"
 msgstr "요청 상세"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:276
+#: src/features/transaction-details/ui/replay-dialog.tsx:279
 msgid "Request failed"
 msgstr "요청 실패"
 
@@ -705,7 +713,7 @@ msgstr "매칭되는 요청에 캐시된 응답 반환"
 msgid "Return cached responses for matching requests instead of forwarding to the server"
 msgstr "서버로 전달하지 않고 매칭되는 요청에 캐시된 응답을 반환합니다"
 
-#: src/pages/settings/ui/settings-page.tsx:300
+#: src/pages/settings/ui/settings-page.tsx:333
 msgid "Route traffic through an external proxy server"
 msgstr "외부 프록시 서버를 통해 트래픽 라우팅"
 
@@ -738,15 +746,15 @@ msgstr "규칙"
 msgid "Run"
 msgstr "실행"
 
-#: src/pages/settings/ui/settings-page.tsx:385
+#: src/pages/settings/ui/settings-page.tsx:418
 msgid "Save"
 msgstr "저장"
 
-#: src/pages/settings/ui/settings-page.tsx:389
+#: src/pages/settings/ui/settings-page.tsx:422
 msgid "Saved"
 msgstr "저장됨"
 
-#: src/pages/settings/ui/settings-page.tsx:385
+#: src/pages/settings/ui/settings-page.tsx:418
 msgid "Saving..."
 msgstr "저장 중..."
 
@@ -783,7 +791,7 @@ msgstr "캡처된 트래픽에서 선택"
 msgid "Select local file"
 msgstr "로컬 파일 선택"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:519
+#: src/features/transaction-details/ui/replay-dialog.tsx:522
 msgid "Send a request to see the replay response"
 msgstr "리플레이 응답을 보려면 요청을 전송하세요"
 
@@ -791,7 +799,7 @@ msgstr "리플레이 응답을 보려면 요청을 전송하세요"
 msgid "Send Message"
 msgstr "메시지 전송"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:490
+#: src/features/transaction-details/ui/replay-dialog.tsx:493
 msgid "Send Request"
 msgstr "요청 전송"
 
@@ -799,7 +807,7 @@ msgstr "요청 전송"
 msgid "Sending requests sequentially..."
 msgstr "요청을 순서대로 전송 중..."
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:485
+#: src/features/transaction-details/ui/replay-dialog.tsx:488
 #: src/features/transaction-details/ui/sequence-replay-dialog.tsx:241
 #: src/features/websocket-replay/ui/ws-replay-dialog.tsx:181
 msgid "Sending..."
@@ -835,7 +843,7 @@ msgstr "서버 리플레이"
 msgid "Set body (optional)"
 msgstr "본문 설정 (선택사항)"
 
-#: src/pages/settings/ui/settings-page.tsx:190
+#: src/pages/settings/ui/settings-page.tsx:198
 #: src/shared/app-sidebar/model/consts.ts:47
 msgid "Settings"
 msgstr "설정"
@@ -845,7 +853,7 @@ msgstr "설정"
 msgid "Size"
 msgstr "크기"
 
-#: src/pages/settings/ui/settings-page.tsx:254
+#: src/pages/settings/ui/settings-page.tsx:287
 msgid "Start proxy first"
 msgstr "프록시를 먼저 실행하세요"
 
@@ -864,6 +872,10 @@ msgstr "상태"
 msgid "Status Code"
 msgstr "상태 코드"
 
+#: src/pages/settings/ui/settings-page.tsx:241
+msgid "System"
+msgstr "시스템"
+
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:319
 msgid "Target URL"
 msgstr "대상 URL"
@@ -872,9 +884,13 @@ msgstr "대상 URL"
 msgid "Target URL is required"
 msgstr "대상 URL을 입력해주세요"
 
-#: src/pages/settings/ui/settings-page.tsx:265
+#: src/pages/settings/ui/settings-page.tsx:298
 msgid "Terminal Command"
 msgstr "터미널 명령어"
+
+#: src/pages/settings/ui/settings-page.tsx:230
+msgid "Theme"
+msgstr "테마"
 
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:61
 #: src/widgets/websocket-messages/ui/ws-message-table.tsx:167
@@ -894,11 +910,11 @@ msgstr "서버로 (클라이언트 → 서버)"
 msgid "Total {0}ms"
 msgstr "총 {0}ms"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:307
+#: src/features/transaction-details/ui/replay-dialog.tsx:310
 msgid "Traffic Replay"
 msgstr "트래픽 리플레이"
 
-#: src/pages/settings/ui/settings-page.tsx:244
+#: src/pages/settings/ui/settings-page.tsx:277
 msgid "Trusted"
 msgstr "신뢰됨"
 
@@ -908,8 +924,8 @@ msgstr "신뢰됨"
 msgid "Type"
 msgstr "타입"
 
-#: src/pages/settings/ui/settings-page.tsx:239
-#: src/pages/settings/ui/settings-page.tsx:280
+#: src/pages/settings/ui/settings-page.tsx:272
+#: src/pages/settings/ui/settings-page.tsx:313
 msgid "Uninstall"
 msgstr "제거"
 
@@ -922,11 +938,11 @@ msgstr "언로드"
 msgid "Update"
 msgstr "수정"
 
-#: src/pages/settings/ui/settings-page.tsx:297
+#: src/pages/settings/ui/settings-page.tsx:330
 msgid "Upstream Proxy"
 msgstr "업스트림 프록시"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:371
+#: src/features/transaction-details/ui/replay-dialog.tsx:374
 msgid "URL"
 msgstr "URL"
 
@@ -942,13 +958,13 @@ msgstr "URL 패턴"
 msgid "Use wildcard patterns: * matches any string, ? matches a single character."
 msgstr "와일드카드 패턴 사용: *는 모든 문자열, ?는 단일 문자를 매칭합니다."
 
-#: src/pages/settings/ui/settings-page.tsx:345
+#: src/pages/settings/ui/settings-page.tsx:378
 msgid "Username"
 msgstr "사용자 이름"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:326
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:300
-#: src/features/transaction-details/ui/replay-dialog.tsx:401
+#: src/features/transaction-details/ui/replay-dialog.tsx:404
 msgid "Value"
 msgstr "값"
 

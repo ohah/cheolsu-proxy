@@ -57,7 +57,7 @@ msgstr "Active"
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:314
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:345
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:288
-#: src/features/transaction-details/ui/replay-dialog.tsx:381
+#: src/features/transaction-details/ui/replay-dialog.tsx:384
 #: src/pages/server-replay/ui/server-replay-page.tsx:170
 msgid "Add"
 msgstr "Add"
@@ -142,7 +142,7 @@ msgstr "Append the original request path to the target URL"
 msgid "Apply:"
 msgstr "Apply:"
 
-#: src/pages/settings/ui/settings-page.tsx:338
+#: src/pages/settings/ui/settings-page.tsx:371
 msgid "Authentication"
 msgstr "Authentication"
 
@@ -156,9 +156,9 @@ msgid "Block"
 msgstr "Block"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:368
-#: src/features/transaction-details/ui/replay-dialog.tsx:121
-#: src/features/transaction-details/ui/replay-dialog.tsx:192
-#: src/features/transaction-details/ui/replay-dialog.tsx:430
+#: src/features/transaction-details/ui/replay-dialog.tsx:123
+#: src/features/transaction-details/ui/replay-dialog.tsx:194
+#: src/features/transaction-details/ui/replay-dialog.tsx:433
 msgid "Body"
 msgstr "Body"
 
@@ -166,7 +166,7 @@ msgstr "Body"
 msgid "Browse"
 msgstr "Browse"
 
-#: src/pages/settings/ui/settings-page.tsx:365
+#: src/pages/settings/ui/settings-page.tsx:398
 msgid "Bypass List"
 msgstr "Bypass List"
 
@@ -174,7 +174,7 @@ msgstr "Bypass List"
 msgid "bytes body"
 msgstr "bytes body"
 
-#: src/pages/settings/ui/settings-page.tsx:222
+#: src/pages/settings/ui/settings-page.tsx:255
 msgid "CA Certificate"
 msgstr "CA Certificate"
 
@@ -213,12 +213,12 @@ msgstr "Clear all transactions"
 msgid "Close"
 msgstr "Close"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:125
-#: src/features/transaction-details/ui/replay-dialog.tsx:440
+#: src/features/transaction-details/ui/replay-dialog.tsx:127
+#: src/features/transaction-details/ui/replay-dialog.tsx:443
 msgid "Collapse"
 msgstr "Collapse"
 
-#: src/pages/settings/ui/settings-page.tsx:373
+#: src/pages/settings/ui/settings-page.tsx:406
 msgid "Comma-separated list of hosts to connect directly (supports *.domain.com wildcards)"
 msgstr "Comma-separated list of hosts to connect directly (supports *.domain.com wildcards)"
 
@@ -251,6 +251,10 @@ msgstr "Curl command copied to clipboard"
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:174
 msgid "Custom body"
 msgstr "Custom body"
+
+#: src/pages/settings/ui/settings-page.tsx:244
+msgid "Dark"
+msgstr "Dark"
 
 #: src/widgets/websocket-messages/ui/ws-message-table.tsx:166
 msgid "Data"
@@ -308,8 +312,8 @@ msgstr "entries"
 msgid "Exclude OPTIONS method"
 msgstr "Exclude OPTIONS method"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:196
-#: src/features/transaction-details/ui/replay-dialog.tsx:445
+#: src/features/transaction-details/ui/replay-dialog.tsx:198
+#: src/features/transaction-details/ui/replay-dialog.tsx:448
 msgid "Expand"
 msgstr "Expand"
 
@@ -321,7 +325,7 @@ msgstr "Expand sidebar"
 msgid "Export HAR"
 msgstr "Export HAR"
 
-#: src/pages/settings/ui/settings-page.tsx:394
+#: src/pages/settings/ui/settings-page.tsx:427
 msgid "Failed — is the proxy running?"
 msgstr "Failed — is the proxy running?"
 
@@ -344,7 +348,7 @@ msgstr "File path is required"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:320
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:294
-#: src/features/transaction-details/ui/replay-dialog.tsx:393
+#: src/features/transaction-details/ui/replay-dialog.tsx:396
 msgid "Header name"
 msgstr "Header name"
 
@@ -359,12 +363,12 @@ msgstr "headers"
 
 #. placeholder {0}: headerEntries.length
 #. placeholder {0}: headers.length
-#: src/features/transaction-details/ui/replay-dialog.tsx:168
-#: src/features/transaction-details/ui/replay-dialog.tsx:378
+#: src/features/transaction-details/ui/replay-dialog.tsx:170
+#: src/features/transaction-details/ui/replay-dialog.tsx:381
 msgid "Headers ({0})"
 msgstr "Headers ({0})"
 
-#: src/pages/settings/ui/settings-page.tsx:312
+#: src/pages/settings/ui/settings-page.tsx:345
 msgid "Host"
 msgstr "Host"
 
@@ -380,25 +384,25 @@ msgstr "HTTP requests and responses"
 msgid "Inactive"
 msgstr "Inactive"
 
-#: src/pages/settings/ui/settings-page.tsx:235
-#: src/pages/settings/ui/settings-page.tsx:276
+#: src/pages/settings/ui/settings-page.tsx:268
+#: src/pages/settings/ui/settings-page.tsx:309
 msgid "Install"
 msgstr "Install"
 
-#: src/pages/settings/ui/settings-page.tsx:268
+#: src/pages/settings/ui/settings-page.tsx:301
 msgid "Install the <0>cheolsu</0> command to use the TUI from your terminal"
 msgstr "Install the <0>cheolsu</0> command to use the TUI from your terminal"
 
-#: src/pages/settings/ui/settings-page.tsx:225
+#: src/pages/settings/ui/settings-page.tsx:258
 msgid "Install the CA certificate to trust HTTPS traffic intercepted by the proxy"
 msgstr "Install the CA certificate to trust HTTPS traffic intercepted by the proxy"
 
-#: src/pages/settings/ui/settings-page.tsx:285
+#: src/pages/settings/ui/settings-page.tsx:318
 msgid "Installed"
 msgstr "Installed"
 
-#: src/pages/settings/ui/settings-page.tsx:235
-#: src/pages/settings/ui/settings-page.tsx:276
+#: src/pages/settings/ui/settings-page.tsx:268
+#: src/pages/settings/ui/settings-page.tsx:309
 msgid "Installing..."
 msgstr "Installing..."
 
@@ -407,9 +411,13 @@ msgstr "Installing..."
 msgid "Intercept Rules"
 msgstr "Intercept Rules"
 
-#: src/pages/settings/ui/settings-page.tsx:201
+#: src/pages/settings/ui/settings-page.tsx:209
 msgid "Language"
 msgstr "Language"
+
+#: src/pages/settings/ui/settings-page.tsx:243
+msgid "Light"
+msgstr "Light"
 
 #: src/pages/script/ui/script-page.tsx:264
 msgid "Load"
@@ -432,7 +440,7 @@ msgstr "Loading..."
 msgid "Local File Path"
 msgstr "Local File Path"
 
-#: src/pages/settings/ui/settings-page.tsx:368
+#: src/pages/settings/ui/settings-page.tsx:401
 msgid "localhost, 127.0.0.1, *.internal.com"
 msgstr "localhost, 127.0.0.1, *.internal.com"
 
@@ -570,7 +578,7 @@ msgstr "No transactions to display"
 msgid "No valid requests to replay"
 msgstr "No valid requests to replay"
 
-#: src/pages/settings/ui/settings-page.tsx:249
+#: src/pages/settings/ui/settings-page.tsx:282
 msgid "Not Trusted"
 msgstr "Not Trusted"
 
@@ -578,11 +586,11 @@ msgstr "Not Trusted"
 msgid "Open File"
 msgstr "Open File"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:324
+#: src/features/transaction-details/ui/replay-dialog.tsx:327
 msgid "Original"
 msgstr "Original"
 
-#: src/pages/settings/ui/settings-page.tsx:353
+#: src/pages/settings/ui/settings-page.tsx:386
 msgid "Password"
 msgstr "Password"
 
@@ -603,7 +611,7 @@ msgstr "Pause recording"
 msgid "Payload"
 msgstr "Payload"
 
-#: src/pages/settings/ui/settings-page.tsx:322
+#: src/pages/settings/ui/settings-page.tsx:355
 msgid "Port"
 msgstr "Port"
 
@@ -611,7 +619,7 @@ msgstr "Port"
 msgid "Preserve Path"
 msgstr "Preserve Path"
 
-#: src/pages/settings/ui/settings-page.tsx:193
+#: src/pages/settings/ui/settings-page.tsx:201
 msgid "Proxy configuration and preferences"
 msgstr "Proxy configuration and preferences"
 
@@ -619,7 +627,7 @@ msgstr "Proxy configuration and preferences"
 msgid "Proxy settings and configuration"
 msgstr "Proxy settings and configuration"
 
-#: src/pages/settings/ui/settings-page.tsx:315
+#: src/pages/settings/ui/settings-page.tsx:348
 msgid "proxy.company.com"
 msgstr "proxy.company.com"
 
@@ -639,8 +647,8 @@ msgstr "Received"
 msgid "Received (Server → Client)"
 msgstr "Received (Server → Client)"
 
-#: src/pages/settings/ui/settings-page.tsx:235
-#: src/pages/settings/ui/settings-page.tsx:276
+#: src/pages/settings/ui/settings-page.tsx:268
+#: src/pages/settings/ui/settings-page.tsx:309
 msgid "Reinstall"
 msgstr "Reinstall"
 
@@ -656,7 +664,7 @@ msgstr "Remove entry"
 msgid "Remove Headers"
 msgstr "Remove Headers"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:334
+#: src/features/transaction-details/ui/replay-dialog.tsx:337
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:120
 msgid "Replay"
 msgstr "Replay"
@@ -665,11 +673,11 @@ msgstr "Replay"
 msgid "Replay message"
 msgstr "Replay message"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:299
+#: src/features/transaction-details/ui/replay-dialog.tsx:302
 msgid "Replay request"
 msgstr "Replay request"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:320
+#: src/features/transaction-details/ui/replay-dialog.tsx:323
 msgid "Request"
 msgstr "Request"
 
@@ -677,7 +685,7 @@ msgstr "Request"
 msgid "Request Details"
 msgstr "Request Details"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:276
+#: src/features/transaction-details/ui/replay-dialog.tsx:279
 msgid "Request failed"
 msgstr "Request failed"
 
@@ -705,7 +713,7 @@ msgstr "Return cached responses for matching requests"
 msgid "Return cached responses for matching requests instead of forwarding to the server"
 msgstr "Return cached responses for matching requests instead of forwarding to the server"
 
-#: src/pages/settings/ui/settings-page.tsx:300
+#: src/pages/settings/ui/settings-page.tsx:333
 msgid "Route traffic through an external proxy server"
 msgstr "Route traffic through an external proxy server"
 
@@ -738,15 +746,15 @@ msgstr "rules"
 msgid "Run"
 msgstr "Run"
 
-#: src/pages/settings/ui/settings-page.tsx:385
+#: src/pages/settings/ui/settings-page.tsx:418
 msgid "Save"
 msgstr "Save"
 
-#: src/pages/settings/ui/settings-page.tsx:389
+#: src/pages/settings/ui/settings-page.tsx:422
 msgid "Saved"
 msgstr "Saved"
 
-#: src/pages/settings/ui/settings-page.tsx:385
+#: src/pages/settings/ui/settings-page.tsx:418
 msgid "Saving..."
 msgstr "Saving..."
 
@@ -783,7 +791,7 @@ msgstr "Select from captured traffic"
 msgid "Select local file"
 msgstr "Select local file"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:519
+#: src/features/transaction-details/ui/replay-dialog.tsx:522
 msgid "Send a request to see the replay response"
 msgstr "Send a request to see the replay response"
 
@@ -791,7 +799,7 @@ msgstr "Send a request to see the replay response"
 msgid "Send Message"
 msgstr "Send Message"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:490
+#: src/features/transaction-details/ui/replay-dialog.tsx:493
 msgid "Send Request"
 msgstr "Send Request"
 
@@ -799,7 +807,7 @@ msgstr "Send Request"
 msgid "Sending requests sequentially..."
 msgstr "Sending requests sequentially..."
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:485
+#: src/features/transaction-details/ui/replay-dialog.tsx:488
 #: src/features/transaction-details/ui/sequence-replay-dialog.tsx:241
 #: src/features/websocket-replay/ui/ws-replay-dialog.tsx:181
 msgid "Sending..."
@@ -835,7 +843,7 @@ msgstr "Server Replay"
 msgid "Set body (optional)"
 msgstr "Set body (optional)"
 
-#: src/pages/settings/ui/settings-page.tsx:190
+#: src/pages/settings/ui/settings-page.tsx:198
 #: src/shared/app-sidebar/model/consts.ts:47
 msgid "Settings"
 msgstr "Settings"
@@ -845,7 +853,7 @@ msgstr "Settings"
 msgid "Size"
 msgstr "Size"
 
-#: src/pages/settings/ui/settings-page.tsx:254
+#: src/pages/settings/ui/settings-page.tsx:287
 msgid "Start proxy first"
 msgstr "Start proxy first"
 
@@ -864,6 +872,10 @@ msgstr "Status"
 msgid "Status Code"
 msgstr "Status Code"
 
+#: src/pages/settings/ui/settings-page.tsx:241
+msgid "System"
+msgstr "System"
+
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:319
 msgid "Target URL"
 msgstr "Target URL"
@@ -872,9 +884,13 @@ msgstr "Target URL"
 msgid "Target URL is required"
 msgstr "Target URL is required"
 
-#: src/pages/settings/ui/settings-page.tsx:265
+#: src/pages/settings/ui/settings-page.tsx:298
 msgid "Terminal Command"
 msgstr "Terminal Command"
+
+#: src/pages/settings/ui/settings-page.tsx:230
+msgid "Theme"
+msgstr "Theme"
 
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:61
 #: src/widgets/websocket-messages/ui/ws-message-table.tsx:167
@@ -894,11 +910,11 @@ msgstr "To Server (Client → Server)"
 msgid "Total {0}ms"
 msgstr "Total {0}ms"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:307
+#: src/features/transaction-details/ui/replay-dialog.tsx:310
 msgid "Traffic Replay"
 msgstr "Traffic Replay"
 
-#: src/pages/settings/ui/settings-page.tsx:244
+#: src/pages/settings/ui/settings-page.tsx:277
 msgid "Trusted"
 msgstr "Trusted"
 
@@ -908,8 +924,8 @@ msgstr "Trusted"
 msgid "Type"
 msgstr "Type"
 
-#: src/pages/settings/ui/settings-page.tsx:239
-#: src/pages/settings/ui/settings-page.tsx:280
+#: src/pages/settings/ui/settings-page.tsx:272
+#: src/pages/settings/ui/settings-page.tsx:313
 msgid "Uninstall"
 msgstr "Uninstall"
 
@@ -922,11 +938,11 @@ msgstr "Unload"
 msgid "Update"
 msgstr "Update"
 
-#: src/pages/settings/ui/settings-page.tsx:297
+#: src/pages/settings/ui/settings-page.tsx:330
 msgid "Upstream Proxy"
 msgstr "Upstream Proxy"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:371
+#: src/features/transaction-details/ui/replay-dialog.tsx:374
 msgid "URL"
 msgstr "URL"
 
@@ -942,13 +958,13 @@ msgstr "URL Pattern"
 msgid "Use wildcard patterns: * matches any string, ? matches a single character."
 msgstr "Use wildcard patterns: * matches any string, ? matches a single character."
 
-#: src/pages/settings/ui/settings-page.tsx:345
+#: src/pages/settings/ui/settings-page.tsx:378
 msgid "Username"
 msgstr "Username"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:326
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:300
-#: src/features/transaction-details/ui/replay-dialog.tsx:401
+#: src/features/transaction-details/ui/replay-dialog.tsx:404
 msgid "Value"
 msgstr "Value"
 
