@@ -107,7 +107,7 @@ fn decode_body<'a>(
 /// # Examples
 ///
 /// ```rust
-/// use hudsucker::{
+/// use proxyapi_v2::{
 ///     Body, HttpContext, HttpHandler, RequestOrResponse, decode_request, hyper::Request,
 /// };
 ///
@@ -162,7 +162,7 @@ pub fn decode_request(mut req: Request<Body>) -> Result<Request<Body>, Error> {
 /// # Examples
 ///
 /// ```rust
-/// use hudsucker::{Body, HttpContext, HttpHandler, decode_response, hyper::Response};
+/// use proxyapi_v2::{Body, HttpContext, HttpHandler, decode_response, hyper::Response};
 ///
 /// #[derive(Clone)]
 /// pub struct MyHandler;

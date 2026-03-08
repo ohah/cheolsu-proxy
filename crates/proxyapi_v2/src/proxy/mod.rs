@@ -27,9 +27,9 @@ use tracing::error;
 ///
 /// # Examples
 ///
-/// ```rust
-/// use hudsucker::Proxy;
-/// # use hudsucker::{
+/// ```rust,no_run
+/// use proxyapi_v2::Proxy;
+/// # use proxyapi_v2::{
 /// #     certificate_authority::RcgenAuthority,
 /// #     rcgen::{CertificateParams, KeyPair},
 /// #     rustls::crypto::aws_lc_rs,

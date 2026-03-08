@@ -1,6 +1,6 @@
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
 use http::uri::Authority;
-use hudsucker::{
+use proxyapi_v2::{
     certificate_authority::{CertificateAuthority, OpensslAuthority, RcgenAuthority},
     openssl::{hash::MessageDigest, pkey::PKey, x509::X509},
     rcgen::{CertificateParams, KeyPair},
