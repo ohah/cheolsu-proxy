@@ -66,9 +66,7 @@ impl LoggingHandler {
     }
 
     /// ScriptResponse에서 hyper Response 생성
-    pub(crate) fn build_script_response(
-        script_res: &scripting::ScriptResponse,
-    ) -> Response<Body> {
+    pub(crate) fn build_script_response(script_res: &scripting::ScriptResponse) -> Response<Body> {
         let mut builder = Response::builder()
             .status(StatusCode::from_u16(script_res.status).unwrap_or(StatusCode::OK))
             .header("x-cheolsu-scripted", "true");

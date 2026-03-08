@@ -9,9 +9,7 @@ use crossterm::{
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
-use proxy_daemon::{
-    ClientCommand, DaemonConnection, DaemonMessage, InterceptRule,
-};
+use proxy_daemon::{ClientCommand, DaemonConnection, DaemonMessage, InterceptRule};
 use proxy_v2_models::{RequestInfo, WsConnectionEvent, WsMessageInfo};
 use ratatui::prelude::*;
 use ratatui::widgets::TableState;

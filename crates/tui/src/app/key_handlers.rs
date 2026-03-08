@@ -1,9 +1,9 @@
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
+use super::forms::RuleForm;
+use super::utils::{copy_to_clipboard, format_curl_command, format_ws_messages};
 use super::App;
 use crate::tabs::Tab;
-use super::utils::{copy_to_clipboard, format_curl_command, format_ws_messages};
-use super::forms::RuleForm;
 
 impl App {
     pub(crate) async fn handle_key(&mut self, key: KeyEvent) {

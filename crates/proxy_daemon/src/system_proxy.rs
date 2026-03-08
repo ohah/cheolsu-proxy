@@ -115,7 +115,9 @@ pub fn get_proxy_status() -> Result<ProxyStatus, DaemonError> {
             websocket: socks_enabled,
         })
     } else {
-        Err(DaemonError::Daemon("활성 네트워크 서비스를 찾을 수 없습니다".to_string()))
+        Err(DaemonError::Daemon(
+            "활성 네트워크 서비스를 찾을 수 없습니다".to_string(),
+        ))
     }
 }
 
