@@ -15,7 +15,6 @@ use system_proxy::get_proxy_status_command;
 use tauri::menu::SubmenuBuilder;
 use tauri::Manager;
 
-
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     // #[cfg(debug_assertions)]
