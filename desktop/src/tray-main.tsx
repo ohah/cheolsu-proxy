@@ -3,6 +3,8 @@ import { createRoot } from "react-dom/client";
 import { TrayPanel } from "@/pages/tray-panel";
 import "@/pages/tray-panel/ui/tray-panel.css";
 
+document.addEventListener("contextmenu", (e) => e.preventDefault());
+
 const container = document.getElementById("root");
 
 if (container) {
