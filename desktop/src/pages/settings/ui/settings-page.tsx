@@ -237,11 +237,7 @@ export function SettingsPage() {
             <SelectContent>
               {THEME_OPTIONS.map((opt) => (
                 <SelectItem key={opt.value} value={opt.value}>
-                  {opt.value === "system"
-                    ? t`System`
-                    : opt.value === "light"
-                      ? t`Light`
-                      : t`Dark`}
+                  {opt.value === "system" ? t`System` : opt.value === "light" ? t`Light` : t`Dark`}
                 </SelectItem>
               ))}
             </SelectContent>
