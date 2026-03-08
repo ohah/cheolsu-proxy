@@ -51,7 +51,7 @@ fi
 
 # 5. 타우리 빌드 (beforeBuildCommand에서 build-mcp.sh release 자동 실행)
 echo "🔨 타우리 앱 빌드 중... (bundles: $BUNDLES)"
-bun run tauri build -- --bundles "$BUNDLES"
+bunx tauri build --bundles "$BUNDLES"
 
 # 6. 빌드 결과 안내
 APP_PATH="$SCRIPT_DIR/desktop/src-tauri/target/release/bundle/macos"
