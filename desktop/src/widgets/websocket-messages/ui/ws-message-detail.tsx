@@ -75,7 +75,7 @@ export const WsMessageDetail = memo(({ message, onClose }: WsMessageDetailProps)
   }, [message, isSent, mqttParsed]);
 
   return (
-    <div className="h-full flex flex-col bg-card">
+    <div className="h-full flex flex-col bg-card select-text">
       {/* Header bar */}
       <div className="flex items-center justify-between px-3 py-1.5 border-b border-border flex-shrink-0 bg-muted/30">
         <div className="flex items-center gap-2 text-xs font-medium">

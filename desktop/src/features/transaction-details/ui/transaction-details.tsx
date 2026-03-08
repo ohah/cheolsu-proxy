@@ -28,7 +28,7 @@ export function TransactionDetails({
   }
 
   return (
-    <div className="h-full bg-card flex flex-col">
+    <div className="h-full bg-card flex flex-col select-text">
       <TransactionHeader
         transaction={transaction}
         clearSelectedTransaction={clearSelectedTransaction}

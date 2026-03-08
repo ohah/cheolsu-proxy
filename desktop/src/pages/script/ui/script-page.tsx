@@ -212,7 +212,9 @@ export function ScriptPage() {
                     </Button>
                     <Button size="sm" onClick={handleRunCode} disabled={loading}>
                       {loading ? t`Loading...` : t`Run`}
-                      <span className="ml-1 text-xs text-muted-foreground">⌘↵</span>
+                      <kbd className="ml-1 text-xs font-mono px-1.5 py-0.5 bg-muted rounded border border-border text-foreground">
+                        ⌘↵
+                      </kbd>
                     </Button>
                   </div>
                 )}
@@ -296,7 +298,7 @@ export function ScriptPage() {
                   {t`Clear`}
                 </Button>
               </div>
-              <div className="flex-1 overflow-auto px-4 py-2 font-mono text-xs space-y-0.5">
+              <div className="flex-1 overflow-auto px-4 py-2 font-mono text-xs space-y-0.5 select-text">
                 {logs.length === 0 ? (
                   <p className="text-muted-foreground text-center py-4">
                     <Trans>No console output yet</Trans>
