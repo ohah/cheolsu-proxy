@@ -368,9 +368,8 @@ fn install_sidecar_binary(
     }
 
     // 프로덕션 모드: 앱 번들(Contents/MacOS/)에서 ~/.cheolsu/bin/으로 복사
-    let target_triple = env!("TAURI_ENV_TARGET_TRIPLE");
-    let sidecar_filename = format!("{sidecar_base}-{target_triple}");
-    let source = exe_dir.join(&sidecar_filename);
+    // Tauri는 번들링 시 target triple 접미사를 제거하므로 sidecar_base 그대로 사용
+    let source = exe_dir.join(sidecar_base);
 
     if !source.exists() {
         return Err(format!(
