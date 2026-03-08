@@ -13,7 +13,7 @@ use proxy_v2::{
 };
 use system_proxy::get_proxy_status_command;
 use tauri::menu::SubmenuBuilder;
-use tauri::{Emitter, Manager};
+use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -107,7 +107,9 @@ pub fn run() {
             })
             .on_menu_event(|app_handle, event| {
                 if event.id().as_ref() == "refresh" {
-                    let _ = app_handle.emit("menu_refresh", ());
+                    if let Some(window) = app_handle.get_webview_window("main") {
+                        let _ = window.eval("location.reload()");
+                    }
                 }
             })
             .on_window_event(|_window, event| {
