@@ -68,6 +68,15 @@ export const DARK_THEME: editor.IStandaloneThemeData = {
     "editorSuggestWidget.highlightForeground": "#22d3ee", // 매칭된 텍스트 강조
     "editorSuggestWidget.focusHighlightForeground": "#06b6d4", // 포커스된 매칭 텍스트
 
+    // 검색 색상
+    "editor.findMatchBackground": "#0e749080",
+    "editor.findMatchHighlightBackground": "#45cbda30",
+    "editor.findMatchBorder": "#0e7490",
+    "editor.findMatchHighlightBorder": "#45cbda50",
+    "editorFindWidget.background": "#141414",
+    "editorFindWidget.border": "#262626",
+    "editorFindWidget.foreground": "#e4e4e7",
+
     // 리스트 색상
     "list.hoverBackground": "#1c1c1c",
     "list.hoverForeground": "#e4e4e7",
