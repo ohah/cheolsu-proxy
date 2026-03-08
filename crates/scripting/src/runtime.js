@@ -32,7 +32,8 @@
 
   globalThis.setTimeout = function (callback, delay, ...args) {
     if (typeof callback !== "function") return 0;
-    const id = _timers.nextId++;
+    const id = _timers.nextId;
+    _timers.nextId += 1;
     _timers.active.set(id, true);
     const ms = Math.max(0, Math.trunc(Number(delay) || 0));
     Deno.core.ops.op_timer_sleep(ms).then(() => {
@@ -55,7 +56,8 @@
 
   globalThis.setInterval = function (callback, delay, ...args) {
     if (typeof callback !== "function") return 0;
-    const id = _timers.nextId++;
+    const id = _timers.nextId;
+    _timers.nextId += 1;
     const ms = Math.max(10, Math.trunc(Number(delay) || 10));
     _timers.active.set(id, true);
     function tick() {
