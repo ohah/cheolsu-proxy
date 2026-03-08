@@ -58,6 +58,7 @@
     if (typeof callback !== "function") return 0;
     const id = _timers.nextId;
     _timers.nextId += 1;
+    // 최소 10ms: CPU 과부하 방지 (브라우저 표준 4ms보다 보수적으로 설정)
     const ms = Math.max(10, Math.trunc(Number(delay) || 10));
     _timers.active.set(id, true);
     function tick() {

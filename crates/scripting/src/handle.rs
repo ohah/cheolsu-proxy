@@ -222,6 +222,39 @@ fn flush_logs(engine: &mut ScriptEngine, log_tx: &broadcast::Sender<ScriptLogEnt
     }
 }
 
+/// 이전 엔진의 타이머를 정리하고 안전하게 drop (V8 crash 방지)
+fn safely_drop_engine(engine: &mut Option<ScriptEngine>) {
+    if let Some(old) = engine.as_mut() {
+        old.clear_timers();
+    }
+    *engine = None;
+}
+
+/// 엔진을 교체하고 결과를 reply 채널로 전송
+fn replace_engine(
+    engine: &mut Option<ScriptEngine>,
+    active: &std::sync::atomic::AtomicBool,
+    log_tx: &broadcast::Sender<ScriptLogEntry>,
+    result: Result<ScriptEngine, ScriptError>,
+    reply: oneshot::Sender<Result<(), ScriptError>>,
+) {
+    match result {
+        Ok(new_engine) => {
+            active.store(true, std::sync::atomic::Ordering::Release);
+            *engine = Some(new_engine);
+            let _ = reply.send(Ok(()));
+        }
+        Err(e) => {
+            active.store(false, std::sync::atomic::Ordering::Release);
+            let _ = reply.send(Err(e));
+        }
+    }
+    // 새 엔진 로드 직후 잔여 로그 flush
+    if let Some(e) = engine.as_mut() {
+        flush_logs(e, log_tx);
+    }
+}
+
 /// 전용 스레드에서 실행되는 스크립트 엔진 이벤트 루프
 async fn script_engine_loop(
     mut rx: mpsc::Receiver<ScriptCommand>,
@@ -233,88 +266,39 @@ async fn script_engine_loop(
     while let Some(cmd) = rx.recv().await {
         match cmd {
             ScriptCommand::LoadFile { path, reply } => {
-                // 이전 엔진의 타이머/비동기 작업 정리 후 drop (V8 crash 방지)
-                if let Some(old) = engine.as_mut() {
-                    old.clear_timers();
-                }
-                engine = None;
-
+                safely_drop_engine(&mut engine);
                 let result = ScriptEngine::new().and_then(|mut e| {
                     e.load_script(&path)?;
                     flush_logs(&mut e, &log_tx);
                     Ok(e)
                 });
-                match result {
-                    Ok(new_engine) => {
-                        active.store(true, std::sync::atomic::Ordering::Release);
-                        engine = Some(new_engine);
-                        let _ = reply.send(Ok(()));
-                    }
-                    Err(e) => {
-                        active.store(false, std::sync::atomic::Ordering::Release);
-                        let _ = reply.send(Err(e));
-                    }
-                }
+                replace_engine(&mut engine, &active, &log_tx, result, reply);
             }
             ScriptCommand::LoadCode { code, reply } => {
-                if let Some(old) = engine.as_mut() {
-                    old.clear_timers();
-                }
-                engine = None;
-
+                safely_drop_engine(&mut engine);
                 let result = ScriptEngine::new().and_then(|mut e| {
                     e.load_code(&code)?;
                     flush_logs(&mut e, &log_tx);
                     Ok(e)
                 });
-                match result {
-                    Ok(new_engine) => {
-                        active.store(true, std::sync::atomic::Ordering::Release);
-                        engine = Some(new_engine);
-                        let _ = reply.send(Ok(()));
-                    }
-                    Err(e) => {
-                        active.store(false, std::sync::atomic::Ordering::Release);
-                        let _ = reply.send(Err(e));
-                    }
-                }
+                replace_engine(&mut engine, &active, &log_tx, result, reply);
             }
             ScriptCommand::LoadTsCode { code, reply } => {
-                if let Some(old) = engine.as_mut() {
-                    old.clear_timers();
-                }
-                engine = None;
-
+                safely_drop_engine(&mut engine);
                 let result = ScriptEngine::new().and_then(|mut e| {
                     e.load_ts_code(&code)?;
                     flush_logs(&mut e, &log_tx);
                     Ok(e)
                 });
-                match result {
-                    Ok(new_engine) => {
-                        active.store(true, std::sync::atomic::Ordering::Release);
-                        engine = Some(new_engine);
-                        let _ = reply.send(Ok(()));
-                    }
-                    Err(e) => {
-                        active.store(false, std::sync::atomic::Ordering::Release);
-                        let _ = reply.send(Err(e));
-                    }
-                }
+                replace_engine(&mut engine, &active, &log_tx, result, reply);
             }
             ScriptCommand::Unload { reply } => {
-                if let Some(old) = engine.as_mut() {
-                    old.clear_timers();
-                }
-                engine = None;
+                safely_drop_engine(&mut engine);
                 active.store(false, std::sync::atomic::Ordering::Release);
                 let _ = reply.send(());
             }
             ScriptCommand::Shutdown => {
-                if let Some(old) = engine.as_mut() {
-                    old.clear_timers();
-                }
-                engine = None;
+                safely_drop_engine(&mut engine);
                 active.store(false, std::sync::atomic::Ordering::Release);
                 break;
             }

@@ -100,14 +100,6 @@ impl ScriptEngine {
 
     /// 스크립트 코드 직접 로드 (JS)
     pub fn load_code(&mut self, code: &str) -> Result<(), ScriptError> {
-        // 기존 타이머 정리 (리로드 시 이전 스크립트의 타이머가 남지 않도록)
-        self.runtime
-            .execute_script(
-                "<clear_timers>".to_string(),
-                "globalThis.__cheolsu_internal.clearAllTimers()".to_string(),
-            )
-            .map_err(|e| ScriptError::Execution(e.to_string()))?;
-
         self.runtime
             .execute_script("<script>".to_string(), code.to_string())
             .map_err(|e| ScriptError::Execution(e.to_string()))?;
