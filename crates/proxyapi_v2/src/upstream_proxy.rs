@@ -15,6 +15,19 @@ use tokio::sync::watch;
 use tower::Service;
 use tracing::{debug, error};
 
+/// Upstream proxy 에러 타입
+#[derive(Debug, thiserror::Error)]
+pub enum UpstreamProxyError {
+    #[error("연결 실패: {0}")]
+    Connect(#[from] std::io::Error),
+
+    #[error("Upstream proxy CONNECT 실패: {0}")]
+    ConnectTunnel(String),
+
+    #[error("스트림 재조립 실패: {0}")]
+    Reunite(#[from] tokio::net::tcp::ReuniteError),
+}
+
 /// Upstream proxy 설정
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UpstreamProxyConfig {
@@ -70,7 +83,7 @@ impl UpstreamProxyConfig {
 pub async fn connect_to_target(
     target: &str,
     upstream: Option<&UpstreamProxyConfig>,
-) -> Result<TcpStream, Box<dyn std::error::Error + Send + Sync>> {
+) -> Result<TcpStream, UpstreamProxyError> {
     let host = target.split(':').next().unwrap_or(target);
 
     match upstream {
@@ -90,7 +103,7 @@ pub async fn connect_to_target(
 async fn connect_via_upstream(
     config: &UpstreamProxyConfig,
     target: &str,
-) -> Result<TcpStream, Box<dyn std::error::Error + Send + Sync>> {
+) -> Result<TcpStream, UpstreamProxyError> {
     let stream = TcpStream::connect(config.address()).await.map_err(|e| {
         error!(
             upstream = %config.address(),
@@ -130,7 +143,9 @@ async fn connect_via_upstream(
     }
 
     if !status_line.contains(" 200 ") {
-        return Err(format!("Upstream proxy CONNECT 실패: {}", status_line.trim()).into());
+        return Err(UpstreamProxyError::ConnectTunnel(
+            status_line.trim().to_string(),
+        ));
     }
 
     // BufReader의 내부 버퍼에 남은 데이터가 없으므로 stream을 재조립
