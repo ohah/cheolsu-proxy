@@ -103,6 +103,24 @@ const App: React.FC = () => {
     };
   }, [addScriptLog, setScriptStatus]);
 
+  // 트레이 패널에서 보내는 이벤트 수신
+  const clearTransactions = useTransactionStore((s) => s.clearTransactions);
+  const togglePause = useTransactionStore((s) => s.togglePause);
+
+  useEffect(() => {
+    const unlistenPause = listen("tray_toggle_pause", () => {
+      togglePause();
+    });
+    const unlistenClear = listen("tray_clear_session", () => {
+      clearTransactions();
+    });
+
+    return () => {
+      unlistenPause.then((f) => f());
+      unlistenClear.then((f) => f());
+    };
+  }, [clearTransactions, togglePause]);
+
   return (
     <ThemeProvider attribute={["class", "data-theme"]} defaultTheme="system" enableSystem>
       <div className="App">
