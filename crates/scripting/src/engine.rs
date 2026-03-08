@@ -4,10 +4,19 @@ use crate::types::{
     RequestAction, ResponseAction, ScriptLogEntry, ScriptRequest, ScriptResponse, ScriptWsMessage,
     WsAction,
 };
-use deno_core::JsRuntime;
+use deno_core::{JsRuntime, PollEventLoopOptions, RuntimeOptions};
+use std::time::Duration;
 use tracing::info;
 
 const RUNTIME_JS: &str = include_str!("runtime.js");
+
+/// 타이머 sleep op (setTimeout/setInterval 구현용)
+#[deno_core::op2]
+async fn op_timer_sleep(#[smi] delay_ms: u32) {
+    tokio::time::sleep(Duration::from_millis(delay_ms as u64)).await;
+}
+
+deno_core::extension!(cheolsu_timer_ext, ops = [op_timer_sleep],);
 
 /// deno_core 기반 TypeScript/JavaScript 스크립팅 엔진
 pub struct ScriptEngine {
@@ -20,7 +29,10 @@ pub struct ScriptEngine {
 impl ScriptEngine {
     /// 새 스크립트 엔진 생성 (runtime.js 로드)
     pub fn new() -> Result<Self, ScriptError> {
-        let mut runtime = JsRuntime::new(Default::default());
+        let mut runtime = JsRuntime::new(RuntimeOptions {
+            extensions: vec![cheolsu_timer_ext::init()],
+            ..Default::default()
+        });
 
         runtime
             .execute_script("<runtime>".to_string(), RUNTIME_JS.to_string())
@@ -125,8 +137,8 @@ impl ScriptEngine {
         Ok(local.boolean_value(scope))
     }
 
-    /// onRequest 훅 호출
-    pub fn invoke_on_request(
+    /// onRequest 훅 호출 (async 훅 지원)
+    pub async fn invoke_on_request(
         &mut self,
         request: &ScriptRequest,
     ) -> Result<RequestAction, ScriptError> {
@@ -143,7 +155,7 @@ impl ScriptEngine {
             safe_js_str
         );
 
-        let result = self.eval_string(&code)?;
+        let result = self.eval_string_resolving(&code).await?;
 
         serde_json::from_str(&result).map_err(|e| ScriptError::HookParse {
             message: e.to_string(),
@@ -151,8 +163,8 @@ impl ScriptEngine {
         })
     }
 
-    /// onResponse 훅 호출
-    pub fn invoke_on_response(
+    /// onResponse 훅 호출 (async 훅 지원)
+    pub async fn invoke_on_response(
         &mut self,
         request: &ScriptRequest,
         response: &ScriptResponse,
@@ -172,7 +184,7 @@ impl ScriptEngine {
             safe_req, safe_res
         );
 
-        let result = self.eval_string(&code)?;
+        let result = self.eval_string_resolving(&code).await?;
 
         serde_json::from_str(&result).map_err(|e| ScriptError::HookParse {
             message: e.to_string(),
@@ -180,8 +192,8 @@ impl ScriptEngine {
         })
     }
 
-    /// onWebSocketMessage 훅 호출
-    pub fn invoke_on_ws_message(
+    /// onWebSocketMessage 훅 호출 (async 훅 지원)
+    pub async fn invoke_on_ws_message(
         &mut self,
         message: &ScriptWsMessage,
     ) -> Result<WsAction, ScriptError> {
@@ -198,7 +210,7 @@ impl ScriptEngine {
             safe_js_str
         );
 
-        let result = self.eval_string(&code)?;
+        let result = self.eval_string_resolving(&code).await?;
 
         serde_json::from_str(&result).map_err(|e| ScriptError::HookParse {
             message: e.to_string(),
@@ -206,7 +218,36 @@ impl ScriptEngine {
         })
     }
 
-    /// JS 코드를 실행하고 문자열 결과 반환 (동기)
+    /// JS 코드를 실행하고 Promise면 resolve 후 문자열 결과 반환
+    async fn eval_string_resolving(&mut self, code: &str) -> Result<String, ScriptError> {
+        let global = self
+            .runtime
+            .execute_script("<invoke>".to_string(), code.to_string())
+            .map_err(|e| ScriptError::Execution(e.to_string()))?;
+
+        // Promise면 이벤트 루프를 돌려서 resolve
+        let resolve = self.runtime.resolve(global);
+        let resolved = self
+            .runtime
+            .with_event_loop_promise(resolve, PollEventLoopOptions::default())
+            .await
+            .map_err(|e| ScriptError::Execution(e.to_string()))?;
+
+        // v8 값을 문자열로 변환
+        let context = self.runtime.main_context();
+        let isolate = self.runtime.v8_isolate();
+        let mut scope_raw = v8::HandleScope::new(isolate);
+        let mut scope = unsafe { std::pin::Pin::new_unchecked(&mut scope_raw) }.init();
+        let context_local = v8::Local::new(&scope, context);
+        let scope = &mut v8::ContextScope::new(&mut scope, context_local);
+
+        let local = v8::Local::new(scope, resolved);
+        let result = local.to_string(scope).ok_or(ScriptError::ValueConversion)?;
+
+        Ok(result.to_rust_string_lossy(scope))
+    }
+
+    /// JS 코드를 실행하고 문자열 결과 반환 (동기 - 내부 유틸용)
     fn eval_string(&mut self, code: &str) -> Result<String, ScriptError> {
         let global = self
             .runtime
@@ -261,7 +302,11 @@ mod tests {
             headers: HashMap::new(),
             body: None,
         };
-        let result = engine.invoke_on_request(&req).unwrap();
+        let rt = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .unwrap();
+        let result = rt.block_on(engine.invoke_on_request(&req)).unwrap();
         assert!(matches!(result, RequestAction::Forward));
     }
 
@@ -279,7 +324,11 @@ mod tests {
             headers: HashMap::new(),
             body: None,
         };
-        let result = engine.invoke_on_request(&req).unwrap();
+        let rt = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .unwrap();
+        let result = rt.block_on(engine.invoke_on_request(&req)).unwrap();
         assert!(matches!(result, RequestAction::Forward));
     }
 
@@ -308,7 +357,11 @@ mod tests {
             headers: HashMap::new(),
             body: None,
         };
-        let result = engine.invoke_on_request(&req).unwrap();
+        let rt = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .unwrap();
+        let result = rt.block_on(engine.invoke_on_request(&req)).unwrap();
         match result {
             RequestAction::Respond { response } => {
                 assert_eq!(response.status, 403);
@@ -338,7 +391,11 @@ mod tests {
             headers: HashMap::new(),
             body: None,
         };
-        let result = engine.invoke_on_request(&req).unwrap();
+        let rt = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .unwrap();
+        let result = rt.block_on(engine.invoke_on_request(&req)).unwrap();
         match result {
             RequestAction::ModifyRequest { request } => {
                 assert_eq!(request.headers.get("X-Custom").unwrap(), "injected");
@@ -373,7 +430,11 @@ mod tests {
             headers: HashMap::new(),
             body: Some("OK".to_string()),
         };
-        let result = engine.invoke_on_response(&req, &res).unwrap();
+        let rt = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .unwrap();
+        let result = rt.block_on(engine.invoke_on_response(&req, &res)).unwrap();
         match result {
             ResponseAction::ModifyResponse { response } => {
                 assert_eq!(response.headers.get("X-Proxy").unwrap(), "cheolsu");
@@ -422,7 +483,11 @@ mod tests {
             headers: HashMap::new(),
             body: None,
         };
-        let result = engine.invoke_on_request(&req).unwrap();
+        let rt = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .unwrap();
+        let result = rt.block_on(engine.invoke_on_request(&req)).unwrap();
         assert!(matches!(result, RequestAction::Forward));
     }
 
@@ -444,7 +509,152 @@ mod tests {
             headers,
             body: None,
         };
-        let result = engine.invoke_on_request(&req).unwrap();
+        let rt = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .unwrap();
+        let result = rt.block_on(engine.invoke_on_request(&req)).unwrap();
         assert!(matches!(result, RequestAction::Forward));
+    }
+
+    #[test]
+    fn test_async_on_request() {
+        let mut engine = ScriptEngine::new().unwrap();
+        engine
+            .load_code(
+                r#"
+                cheolsu.onRequest(async (req) => {
+                    await new Promise(resolve => setTimeout(resolve, 10));
+                    req.headers["X-Async"] = "true";
+                    return { action: "modify", request: req };
+                });
+            "#,
+            )
+            .unwrap();
+        assert!(engine.has_on_request());
+
+        let req = ScriptRequest {
+            method: "GET".to_string(),
+            url: "https://example.com".to_string(),
+            headers: HashMap::new(),
+            body: None,
+        };
+        let rt = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .unwrap();
+        let result = rt.block_on(engine.invoke_on_request(&req)).unwrap();
+        match result {
+            RequestAction::ModifyRequest { request } => {
+                assert_eq!(request.headers.get("X-Async").unwrap(), "true");
+            }
+            _ => panic!("Expected ModifyRequest from async hook"),
+        }
+    }
+
+    #[test]
+    fn test_async_on_response() {
+        let mut engine = ScriptEngine::new().unwrap();
+        engine
+            .load_code(
+                r#"
+                cheolsu.onResponse(async (req, res) => {
+                    await new Promise(resolve => setTimeout(resolve, 5));
+                    res.headers["X-Async"] = "response";
+                    return { action: "modify", response: res };
+                });
+            "#,
+            )
+            .unwrap();
+
+        let req = ScriptRequest {
+            method: "GET".to_string(),
+            url: "https://example.com".to_string(),
+            headers: HashMap::new(),
+            body: None,
+        };
+        let res = ScriptResponse {
+            status: 200,
+            headers: HashMap::new(),
+            body: None,
+        };
+        let rt = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .unwrap();
+        let result = rt.block_on(engine.invoke_on_response(&req, &res)).unwrap();
+        match result {
+            ResponseAction::ModifyResponse { response } => {
+                assert_eq!(response.headers.get("X-Async").unwrap(), "response");
+            }
+            _ => panic!("Expected ModifyResponse from async hook"),
+        }
+    }
+
+    #[test]
+    fn test_async_error_returns_forward() {
+        let mut engine = ScriptEngine::new().unwrap();
+        engine
+            .load_code(
+                r#"
+                cheolsu.onRequest(async (req) => {
+                    throw new Error("async error");
+                });
+            "#,
+            )
+            .unwrap();
+
+        let req = ScriptRequest {
+            method: "GET".to_string(),
+            url: "https://example.com".to_string(),
+            headers: HashMap::new(),
+            body: None,
+        };
+        let rt = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .unwrap();
+        let result = rt.block_on(engine.invoke_on_request(&req)).unwrap();
+        assert!(matches!(result, RequestAction::Forward));
+    }
+
+    #[test]
+    fn test_set_timeout_basic() {
+        let mut engine = ScriptEngine::new().unwrap();
+        engine
+            .load_code(
+                r#"
+                let called = false;
+                cheolsu.onRequest(async (req) => {
+                    await new Promise(resolve => setTimeout(() => {
+                        called = true;
+                        resolve();
+                    }, 10));
+                    if (called) {
+                        return { action: "respond", response: { status: 200, headers: {}, body: "timer works" } };
+                    }
+                    return { action: "forward" };
+                });
+            "#,
+            )
+            .unwrap();
+
+        let req = ScriptRequest {
+            method: "GET".to_string(),
+            url: "https://example.com".to_string(),
+            headers: HashMap::new(),
+            body: None,
+        };
+        let rt = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .unwrap();
+        let result = rt.block_on(engine.invoke_on_request(&req)).unwrap();
+        match result {
+            RequestAction::Respond { response } => {
+                assert_eq!(response.body.unwrap(), "timer works");
+            }
+            _ => panic!("Expected Respond with timer result"),
+        }
     }
 }
