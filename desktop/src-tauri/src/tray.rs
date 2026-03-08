@@ -6,49 +6,61 @@ use tauri::{
     AppHandle, Manager, Position, Rect, Runtime, Size, State, WebviewUrl, WebviewWindowBuilder,
 };
 
-/// Position에서 (x, y) f64 추출
-fn position_to_f64(pos: &Position) -> (f64, f64) {
-    match pos {
-        Position::Physical(p) => (p.x as f64, p.y as f64),
-        Position::Logical(p) => (p.x, p.y),
-    }
-}
-
-/// Size에서 (w, h) f64 추출
-fn size_to_f64(size: &Size) -> (f64, f64) {
-    match size {
-        Size::Physical(s) => (s.width as f64, s.height as f64),
-        Size::Logical(s) => (s.width, s.height),
-    }
-}
-
 const PANEL_WIDTH: f64 = 300.0;
 const PANEL_HEIGHT: f64 = 326.0;
+
+/// 트레이 Rect에서 패널 위치를 계산하고 적절한 Position 타입으로 반환
+fn calc_panel_position(tray_rect: &Rect) -> Position {
+    match (&tray_rect.position, &tray_rect.size) {
+        (Position::Physical(pos), Size::Physical(size)) => {
+            let x = pos.x + (size.width as i32 / 2) - (PANEL_WIDTH as i32);
+            let y = if cfg!(target_os = "macos") {
+                pos.y + size.height as i32
+            } else {
+                pos.y - PANEL_HEIGHT as i32
+            };
+            Position::Physical(tauri::PhysicalPosition::new(x, y))
+        }
+        _ => {
+            let (rect_x, rect_y) = match &tray_rect.position {
+                Position::Physical(p) => (p.x as f64, p.y as f64),
+                Position::Logical(p) => (p.x, p.y),
+            };
+            let (rect_w, rect_h) = match &tray_rect.size {
+                Size::Physical(s) => (s.width as f64, s.height as f64),
+                Size::Logical(s) => (s.width, s.height),
+            };
+            let x = rect_x + (rect_w / 2.0) - (PANEL_WIDTH / 2.0);
+            let y = if cfg!(target_os = "macos") {
+                rect_y + rect_h
+            } else {
+                rect_y - PANEL_HEIGHT
+            };
+            Position::Logical(tauri::LogicalPosition::new(x, y))
+        }
+    }
+}
 
 /// 트레이 패널 윈도우 토글 (좌클릭)
 /// 첫 클릭에서 생성, 이후에는 show/hide 토글
 fn toggle_tray_panel<R: Runtime>(app: &AppHandle<R>, tray_rect: Rect) {
-    let (rect_x, rect_y) = position_to_f64(&tray_rect.position);
-    let (rect_w, rect_h) = size_to_f64(&tray_rect.size);
-
-    let x = rect_x + (rect_w / 2.0) - (PANEL_WIDTH / 2.0);
-    let y = if cfg!(target_os = "macos") {
-        rect_y + rect_h
-    } else {
-        rect_y - PANEL_HEIGHT
-    };
+    let panel_pos = calc_panel_position(&tray_rect);
 
     if let Some(panel) = app.get_webview_window("tray-panel") {
         // 이미 존재하면 show/hide 토글
         if panel.is_visible().unwrap_or(false) {
             let _ = panel.hide();
         } else {
-            let _ = panel.set_position(tauri::LogicalPosition::new(x, y));
+            let _ = panel.set_position(panel_pos);
             let _ = panel.show();
             let _ = panel.set_focus();
         }
     } else {
         // 첫 클릭: 패널 생성
+        let (x, y) = match &panel_pos {
+            Position::Physical(p) => (p.x as f64, p.y as f64),
+            Position::Logical(p) => (p.x, p.y),
+        };
         if let Ok(panel) =
             WebviewWindowBuilder::new(app, "tray-panel", WebviewUrl::App("/tray.html".into()))
                 .title("Cheolsu Proxy")
