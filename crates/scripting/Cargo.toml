@@ -8,6 +8,7 @@ deno_core = "0.390"
 v8 = { version = "146.1", default-features = false }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+thiserror = "2"
 tokio = { version = "1", features = ["full"] }
 tracing = "0.1"
 oxc_allocator = "0.116"

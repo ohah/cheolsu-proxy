@@ -177,13 +177,19 @@ pub async fn handle_client(
                         let _ = server_replay_tx.send(entries);
                     }
                     Ok(ClientCommand::LoadScript { path, code }) => {
-                        let result = if let Some(file_path) = &path {
-                            script_handle.load_file(file_path).await
+                        let result: Result<(), String> = if let Some(file_path) = &path {
+                            script_handle
+                                .load_file(file_path)
+                                .await
+                                .map_err(|e| e.to_string())
                         } else if let Some(script_code) = &code {
                             // JS로 먼저 시도, 실패 시 TS로 트랜스파일
                             match script_handle.load_code(script_code).await {
                                 Ok(()) => Ok(()),
-                                Err(_) => script_handle.load_ts_code(script_code).await,
+                                Err(_) => script_handle
+                                    .load_ts_code(script_code)
+                                    .await
+                                    .map_err(|e| e.to_string()),
                             }
                         } else {
                             Err("path 또는 code 중 하나가 필요합니다".to_string())

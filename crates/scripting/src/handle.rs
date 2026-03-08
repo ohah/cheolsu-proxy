@@ -1,4 +1,5 @@
 use crate::engine::ScriptEngine;
+use crate::error::ScriptError;
 use crate::types::{
     RequestAction, ResponseAction, ScriptLogEntry, ScriptRequest, ScriptResponse, ScriptWsMessage,
     WsAction,
@@ -14,31 +15,31 @@ const SCRIPT_TIMEOUT: Duration = Duration::from_secs(30);
 enum ScriptCommand {
     LoadFile {
         path: String,
-        reply: oneshot::Sender<Result<(), String>>,
+        reply: oneshot::Sender<Result<(), ScriptError>>,
     },
     LoadCode {
         code: String,
-        reply: oneshot::Sender<Result<(), String>>,
+        reply: oneshot::Sender<Result<(), ScriptError>>,
     },
     LoadTsCode {
         code: String,
-        reply: oneshot::Sender<Result<(), String>>,
+        reply: oneshot::Sender<Result<(), ScriptError>>,
     },
     Unload {
         reply: oneshot::Sender<()>,
     },
     InvokeOnRequest {
         request: ScriptRequest,
-        reply: oneshot::Sender<Result<RequestAction, String>>,
+        reply: oneshot::Sender<Result<RequestAction, ScriptError>>,
     },
     InvokeOnResponse {
         request: ScriptRequest,
         response: ScriptResponse,
-        reply: oneshot::Sender<Result<ResponseAction, String>>,
+        reply: oneshot::Sender<Result<ResponseAction, ScriptError>>,
     },
     InvokeOnWsMessage {
         message: ScriptWsMessage,
-        reply: oneshot::Sender<Result<WsAction, String>>,
+        reply: oneshot::Sender<Result<WsAction, ScriptError>>,
     },
     /// 엔진 스레드 종료
     Shutdown,
@@ -88,7 +89,7 @@ impl ScriptHandle {
     }
 
     /// 스크립트 파일 로드
-    pub async fn load_file(&self, path: &str) -> Result<(), String> {
+    pub async fn load_file(&self, path: &str) -> Result<(), ScriptError> {
         let (reply_tx, reply_rx) = oneshot::channel();
         self.tx
             .send(ScriptCommand::LoadFile {
@@ -96,15 +97,15 @@ impl ScriptHandle {
                 reply: reply_tx,
             })
             .await
-            .map_err(|_| "스크립트 엔진 스레드 종료됨".to_string())?;
+            .map_err(|_| ScriptError::EngineShutdown)?;
         tokio::time::timeout(SCRIPT_TIMEOUT, reply_rx)
             .await
-            .map_err(|_| "스크립트 로드 타임아웃".to_string())?
-            .map_err(|_| "스크립트 엔진 응답 없음".to_string())?
+            .map_err(|_| ScriptError::Timeout("스크립트 로드".to_string()))?
+            .map_err(|_| ScriptError::NoResponse)?
     }
 
     /// 스크립트 코드 로드 (JS)
-    pub async fn load_code(&self, code: &str) -> Result<(), String> {
+    pub async fn load_code(&self, code: &str) -> Result<(), ScriptError> {
         let (reply_tx, reply_rx) = oneshot::channel();
         self.tx
             .send(ScriptCommand::LoadCode {
@@ -112,15 +113,15 @@ impl ScriptHandle {
                 reply: reply_tx,
             })
             .await
-            .map_err(|_| "스크립트 엔진 스레드 종료됨".to_string())?;
+            .map_err(|_| ScriptError::EngineShutdown)?;
         tokio::time::timeout(SCRIPT_TIMEOUT, reply_rx)
             .await
-            .map_err(|_| "스크립트 로드 타임아웃".to_string())?
-            .map_err(|_| "스크립트 엔진 응답 없음".to_string())?
+            .map_err(|_| ScriptError::Timeout("스크립트 로드".to_string()))?
+            .map_err(|_| ScriptError::NoResponse)?
     }
 
     /// TypeScript 코드 로드
-    pub async fn load_ts_code(&self, code: &str) -> Result<(), String> {
+    pub async fn load_ts_code(&self, code: &str) -> Result<(), ScriptError> {
         let (reply_tx, reply_rx) = oneshot::channel();
         self.tx
             .send(ScriptCommand::LoadTsCode {
@@ -128,11 +129,11 @@ impl ScriptHandle {
                 reply: reply_tx,
             })
             .await
-            .map_err(|_| "스크립트 엔진 스레드 종료됨".to_string())?;
+            .map_err(|_| ScriptError::EngineShutdown)?;
         tokio::time::timeout(SCRIPT_TIMEOUT, reply_rx)
             .await
-            .map_err(|_| "스크립트 로드 타임아웃".to_string())?
-            .map_err(|_| "스크립트 엔진 응답 없음".to_string())?
+            .map_err(|_| ScriptError::Timeout("스크립트 로드".to_string()))?
+            .map_err(|_| ScriptError::NoResponse)?
     }
 
     /// 스크립트 언로드
@@ -149,7 +150,7 @@ impl ScriptHandle {
     pub async fn invoke_on_request(
         &self,
         request: &ScriptRequest,
-    ) -> Result<RequestAction, String> {
+    ) -> Result<RequestAction, ScriptError> {
         if !self.is_active() {
             return Ok(RequestAction::Forward);
         }
@@ -160,11 +161,11 @@ impl ScriptHandle {
                 reply: reply_tx,
             })
             .await
-            .map_err(|_| "스크립트 엔진 스레드 종료됨".to_string())?;
+            .map_err(|_| ScriptError::EngineShutdown)?;
         tokio::time::timeout(SCRIPT_TIMEOUT, reply_rx)
             .await
-            .map_err(|_| "스크립트 실행 타임아웃 (onRequest)".to_string())?
-            .map_err(|_| "스크립트 엔진 응답 없음".to_string())?
+            .map_err(|_| ScriptError::Timeout("onRequest".to_string()))?
+            .map_err(|_| ScriptError::NoResponse)?
     }
 
     /// onResponse 훅 호출
@@ -172,7 +173,7 @@ impl ScriptHandle {
         &self,
         request: &ScriptRequest,
         response: &ScriptResponse,
-    ) -> Result<ResponseAction, String> {
+    ) -> Result<ResponseAction, ScriptError> {
         if !self.is_active() {
             return Ok(ResponseAction::Forward);
         }
@@ -184,18 +185,18 @@ impl ScriptHandle {
                 reply: reply_tx,
             })
             .await
-            .map_err(|_| "스크립트 엔진 스레드 종료됨".to_string())?;
+            .map_err(|_| ScriptError::EngineShutdown)?;
         tokio::time::timeout(SCRIPT_TIMEOUT, reply_rx)
             .await
-            .map_err(|_| "스크립트 실행 타임아웃 (onResponse)".to_string())?
-            .map_err(|_| "스크립트 엔진 응답 없음".to_string())?
+            .map_err(|_| ScriptError::Timeout("onResponse".to_string()))?
+            .map_err(|_| ScriptError::NoResponse)?
     }
 
     /// onWebSocketMessage 훅 호출
     pub async fn invoke_on_ws_message(
         &self,
         message: &ScriptWsMessage,
-    ) -> Result<WsAction, String> {
+    ) -> Result<WsAction, ScriptError> {
         if !self.is_active() {
             return Ok(WsAction::Forward);
         }
@@ -206,11 +207,11 @@ impl ScriptHandle {
                 reply: reply_tx,
             })
             .await
-            .map_err(|_| "스크립트 엔진 스레드 종료됨".to_string())?;
+            .map_err(|_| ScriptError::EngineShutdown)?;
         tokio::time::timeout(SCRIPT_TIMEOUT, reply_rx)
             .await
-            .map_err(|_| "스크립트 실행 타임아웃 (onWebSocketMessage)".to_string())?
-            .map_err(|_| "스크립트 엔진 응답 없음".to_string())?
+            .map_err(|_| ScriptError::Timeout("onWebSocketMessage".to_string()))?
+            .map_err(|_| ScriptError::NoResponse)?
     }
 }
 
