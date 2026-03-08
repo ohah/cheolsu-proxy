@@ -107,7 +107,6 @@ const App: React.FC = () => {
   // 트레이 패널에서 보내는 이벤트 수신
   const clearTransactions = useTransactionStore((s) => s.clearTransactions);
   const togglePause = useTransactionStore((s) => s.togglePause);
-  const transactions = useTransactionStore((s) => s.transactions);
 
   useEffect(() => {
     const unlistenPause = listen("tray_toggle_pause", () => {
@@ -124,18 +123,21 @@ const App: React.FC = () => {
   }, [clearTransactions, togglePause]);
 
   // 메인 윈도우 상태를 Tauri Store에 동기화 (트레이 패널이 읽음)
+  // 디스크 쓰기를 줄이기 위해 2초 간격으로 디바운스
+  const transactionCount = useTransactionStore((s) => s.transactions.length);
+
   useEffect(() => {
-    const syncToTrayStore = async () => {
+    const timer = setTimeout(async () => {
       try {
         await trayStore.set("paused", paused);
-        await trayStore.set("transactionCount", transactions.length);
+        await trayStore.set("transactionCount", transactionCount);
         await trayStore.save();
       } catch {
         // 스토어 초기화 전이면 무시
       }
-    };
-    syncToTrayStore();
-  }, [paused, transactions.length]);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [paused, transactionCount]);
 
   return (
     <ThemeProvider attribute={["class", "data-theme"]} defaultTheme="system" enableSystem>
