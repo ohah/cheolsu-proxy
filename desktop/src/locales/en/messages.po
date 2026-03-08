@@ -142,7 +142,7 @@ msgstr "Append the original request path to the target URL"
 msgid "Apply:"
 msgstr "Apply:"
 
-#: src/pages/settings/ui/settings-page.tsx:371
+#: src/pages/settings/ui/settings-page.tsx:367
 msgid "Authentication"
 msgstr "Authentication"
 
@@ -166,7 +166,7 @@ msgstr "Body"
 msgid "Browse"
 msgstr "Browse"
 
-#: src/pages/settings/ui/settings-page.tsx:398
+#: src/pages/settings/ui/settings-page.tsx:394
 msgid "Bypass List"
 msgstr "Bypass List"
 
@@ -174,7 +174,7 @@ msgstr "Bypass List"
 msgid "bytes body"
 msgstr "bytes body"
 
-#: src/pages/settings/ui/settings-page.tsx:255
+#: src/pages/settings/ui/settings-page.tsx:251
 msgid "CA Certificate"
 msgstr "CA Certificate"
 
@@ -218,7 +218,7 @@ msgstr "Close"
 msgid "Collapse"
 msgstr "Collapse"
 
-#: src/pages/settings/ui/settings-page.tsx:406
+#: src/pages/settings/ui/settings-page.tsx:402
 msgid "Comma-separated list of hosts to connect directly (supports *.domain.com wildcards)"
 msgstr "Comma-separated list of hosts to connect directly (supports *.domain.com wildcards)"
 
@@ -252,7 +252,7 @@ msgstr "Curl command copied to clipboard"
 msgid "Custom body"
 msgstr "Custom body"
 
-#: src/pages/settings/ui/settings-page.tsx:244
+#: src/pages/settings/ui/settings-page.tsx:240
 msgid "Dark"
 msgstr "Dark"
 
@@ -325,7 +325,7 @@ msgstr "Expand sidebar"
 msgid "Export HAR"
 msgstr "Export HAR"
 
-#: src/pages/settings/ui/settings-page.tsx:427
+#: src/pages/settings/ui/settings-page.tsx:423
 msgid "Failed — is the proxy running?"
 msgstr "Failed — is the proxy running?"
 
@@ -368,7 +368,7 @@ msgstr "headers"
 msgid "Headers ({0})"
 msgstr "Headers ({0})"
 
-#: src/pages/settings/ui/settings-page.tsx:345
+#: src/pages/settings/ui/settings-page.tsx:341
 msgid "Host"
 msgstr "Host"
 
@@ -384,25 +384,25 @@ msgstr "HTTP requests and responses"
 msgid "Inactive"
 msgstr "Inactive"
 
-#: src/pages/settings/ui/settings-page.tsx:268
-#: src/pages/settings/ui/settings-page.tsx:309
+#: src/pages/settings/ui/settings-page.tsx:264
+#: src/pages/settings/ui/settings-page.tsx:305
 msgid "Install"
 msgstr "Install"
 
-#: src/pages/settings/ui/settings-page.tsx:301
+#: src/pages/settings/ui/settings-page.tsx:297
 msgid "Install the <0>cheolsu</0> command to use the TUI from your terminal"
 msgstr "Install the <0>cheolsu</0> command to use the TUI from your terminal"
 
-#: src/pages/settings/ui/settings-page.tsx:258
+#: src/pages/settings/ui/settings-page.tsx:254
 msgid "Install the CA certificate to trust HTTPS traffic intercepted by the proxy"
 msgstr "Install the CA certificate to trust HTTPS traffic intercepted by the proxy"
 
-#: src/pages/settings/ui/settings-page.tsx:318
+#: src/pages/settings/ui/settings-page.tsx:314
 msgid "Installed"
 msgstr "Installed"
 
-#: src/pages/settings/ui/settings-page.tsx:268
-#: src/pages/settings/ui/settings-page.tsx:309
+#: src/pages/settings/ui/settings-page.tsx:264
+#: src/pages/settings/ui/settings-page.tsx:305
 msgid "Installing..."
 msgstr "Installing..."
 
@@ -415,7 +415,7 @@ msgstr "Intercept Rules"
 msgid "Language"
 msgstr "Language"
 
-#: src/pages/settings/ui/settings-page.tsx:243
+#: src/pages/settings/ui/settings-page.tsx:240
 msgid "Light"
 msgstr "Light"
 
@@ -440,7 +440,7 @@ msgstr "Loading..."
 msgid "Local File Path"
 msgstr "Local File Path"
 
-#: src/pages/settings/ui/settings-page.tsx:401
+#: src/pages/settings/ui/settings-page.tsx:397
 msgid "localhost, 127.0.0.1, *.internal.com"
 msgstr "localhost, 127.0.0.1, *.internal.com"
 
@@ -578,7 +578,7 @@ msgstr "No transactions to display"
 msgid "No valid requests to replay"
 msgstr "No valid requests to replay"
 
-#: src/pages/settings/ui/settings-page.tsx:282
+#: src/pages/settings/ui/settings-page.tsx:278
 msgid "Not Trusted"
 msgstr "Not Trusted"
 
@@ -590,7 +590,7 @@ msgstr "Open File"
 msgid "Original"
 msgstr "Original"
 
-#: src/pages/settings/ui/settings-page.tsx:386
+#: src/pages/settings/ui/settings-page.tsx:382
 msgid "Password"
 msgstr "Password"
 
@@ -611,7 +611,7 @@ msgstr "Pause recording"
 msgid "Payload"
 msgstr "Payload"
 
-#: src/pages/settings/ui/settings-page.tsx:355
+#: src/pages/settings/ui/settings-page.tsx:351
 msgid "Port"
 msgstr "Port"
 
@@ -627,7 +627,7 @@ msgstr "Proxy configuration and preferences"
 msgid "Proxy settings and configuration"
 msgstr "Proxy settings and configuration"
 
-#: src/pages/settings/ui/settings-page.tsx:348
+#: src/pages/settings/ui/settings-page.tsx:344
 msgid "proxy.company.com"
 msgstr "proxy.company.com"
 
@@ -647,8 +647,8 @@ msgstr "Received"
 msgid "Received (Server → Client)"
 msgstr "Received (Server → Client)"
 
-#: src/pages/settings/ui/settings-page.tsx:268
-#: src/pages/settings/ui/settings-page.tsx:309
+#: src/pages/settings/ui/settings-page.tsx:264
+#: src/pages/settings/ui/settings-page.tsx:305
 msgid "Reinstall"
 msgstr "Reinstall"
 
@@ -713,7 +713,7 @@ msgstr "Return cached responses for matching requests"
 msgid "Return cached responses for matching requests instead of forwarding to the server"
 msgstr "Return cached responses for matching requests instead of forwarding to the server"
 
-#: src/pages/settings/ui/settings-page.tsx:333
+#: src/pages/settings/ui/settings-page.tsx:329
 msgid "Route traffic through an external proxy server"
 msgstr "Route traffic through an external proxy server"
 
@@ -746,15 +746,15 @@ msgstr "rules"
 msgid "Run"
 msgstr "Run"
 
-#: src/pages/settings/ui/settings-page.tsx:418
+#: src/pages/settings/ui/settings-page.tsx:414
 msgid "Save"
 msgstr "Save"
 
-#: src/pages/settings/ui/settings-page.tsx:422
+#: src/pages/settings/ui/settings-page.tsx:418
 msgid "Saved"
 msgstr "Saved"
 
-#: src/pages/settings/ui/settings-page.tsx:418
+#: src/pages/settings/ui/settings-page.tsx:414
 msgid "Saving..."
 msgstr "Saving..."
 
@@ -853,7 +853,7 @@ msgstr "Settings"
 msgid "Size"
 msgstr "Size"
 
-#: src/pages/settings/ui/settings-page.tsx:287
+#: src/pages/settings/ui/settings-page.tsx:283
 msgid "Start proxy first"
 msgstr "Start proxy first"
 
@@ -872,7 +872,7 @@ msgstr "Status"
 msgid "Status Code"
 msgstr "Status Code"
 
-#: src/pages/settings/ui/settings-page.tsx:241
+#: src/pages/settings/ui/settings-page.tsx:240
 msgid "System"
 msgstr "System"
 
@@ -884,7 +884,7 @@ msgstr "Target URL"
 msgid "Target URL is required"
 msgstr "Target URL is required"
 
-#: src/pages/settings/ui/settings-page.tsx:298
+#: src/pages/settings/ui/settings-page.tsx:294
 msgid "Terminal Command"
 msgstr "Terminal Command"
 
@@ -914,7 +914,7 @@ msgstr "Total {0}ms"
 msgid "Traffic Replay"
 msgstr "Traffic Replay"
 
-#: src/pages/settings/ui/settings-page.tsx:277
+#: src/pages/settings/ui/settings-page.tsx:273
 msgid "Trusted"
 msgstr "Trusted"
 
@@ -924,8 +924,8 @@ msgstr "Trusted"
 msgid "Type"
 msgstr "Type"
 
-#: src/pages/settings/ui/settings-page.tsx:272
-#: src/pages/settings/ui/settings-page.tsx:313
+#: src/pages/settings/ui/settings-page.tsx:268
+#: src/pages/settings/ui/settings-page.tsx:309
 msgid "Uninstall"
 msgstr "Uninstall"
 
@@ -938,7 +938,7 @@ msgstr "Unload"
 msgid "Update"
 msgstr "Update"
 
-#: src/pages/settings/ui/settings-page.tsx:330
+#: src/pages/settings/ui/settings-page.tsx:326
 msgid "Upstream Proxy"
 msgstr "Upstream Proxy"
 
@@ -958,7 +958,7 @@ msgstr "URL Pattern"
 msgid "Use wildcard patterns: * matches any string, ? matches a single character."
 msgstr "Use wildcard patterns: * matches any string, ? matches a single character."
 
-#: src/pages/settings/ui/settings-page.tsx:378
+#: src/pages/settings/ui/settings-page.tsx:374
 msgid "Username"
 msgstr "Username"
 
