@@ -4,6 +4,7 @@ use tokio::net::UnixStream;
 use tokio::sync::Mutex;
 
 use crate::daemon::{check_and_cleanup_stale_lock, lock_file_path, uds_socket_path};
+use crate::error::DaemonError;
 use crate::protocol::{ClientCommand, DaemonMessage, ProxyLockInfo};
 
 /// A connection to the daemon process.
@@ -31,16 +32,16 @@ impl DaemonConnection {
     }
 
     /// Send a command to the daemon.
-    pub async fn send_command(&self, cmd: &ClientCommand) -> Result<(), String> {
-        let mut line = serde_json::to_string(cmd).map_err(|e| e.to_string())?;
+    pub async fn send_command(&self, cmd: &ClientCommand) -> Result<(), DaemonError> {
+        let mut line = serde_json::to_string(cmd)?;
         line.push('\n');
         let mut w = self.writer.lock().await;
         w.write_all(line.as_bytes())
             .await
-            .map_err(|e| format!("UDS write error: {}", e))?;
+            .map_err(|e| DaemonError::Uds(format!("write: {}", e)))?;
         w.flush()
             .await
-            .map_err(|e| format!("UDS flush error: {}", e))?;
+            .map_err(|e| DaemonError::Uds(format!("flush: {}", e)))?;
         Ok(())
     }
 }
@@ -66,8 +67,8 @@ pub fn is_daemon_running() -> Option<ProxyLockInfo> {
 }
 
 /// Spawn a new daemon process using the current executable.
-fn spawn_daemon(port: u16, host: &str) -> Result<(), String> {
-    let exe = std::env::current_exe().map_err(|e| format!("Cannot find current exe: {}", e))?;
+fn spawn_daemon(port: u16, host: &str) -> Result<(), DaemonError> {
+    let exe = std::env::current_exe()?;
 
     let mut child = std::process::Command::new(exe)
         .arg("--daemon")
@@ -78,8 +79,7 @@ fn spawn_daemon(port: u16, host: &str) -> Result<(), String> {
         .stdin(std::process::Stdio::null())
         .stdout(std::process::Stdio::piped())
         .stderr(std::process::Stdio::piped())
-        .spawn()
-        .map_err(|e| format!("Failed to spawn daemon: {}", e))?;
+        .spawn()?;
 
     let log_file = daemon_log_file();
 
@@ -135,7 +135,7 @@ pub async fn ensure_daemon<F>(
     port: u16,
     host: &str,
     on_message: F,
-) -> Result<DaemonConnection, String>
+) -> Result<DaemonConnection, DaemonError>
 where
     F: Fn(DaemonMessage) + Send + 'static,
 {
@@ -153,13 +153,11 @@ where
             }
         }
         if !ready {
-            return Err("Daemon did not start within 5 seconds".to_string());
+            return Err(DaemonError::Daemon("Daemon did not start within 5 seconds".to_string()));
         }
     }
 
     // Wait for the UDS socket file to actually exist.
-    // The lock file is created before the socket is bound, so we need
-    // to wait for the socket to avoid a race condition.
     let uds_path = uds_socket_path()?;
     let mut socket_ready = false;
     for _ in 0..50 {
@@ -170,7 +168,7 @@ where
         tokio::time::sleep(std::time::Duration::from_millis(100)).await;
     }
     if !socket_ready {
-        return Err("Daemon started but UDS socket was not created within 5 seconds".to_string());
+        return Err(DaemonError::Daemon("UDS socket was not created within 5 seconds".to_string()));
     }
 
     connect_to_daemon(on_message).await
@@ -178,14 +176,14 @@ where
 
 /// Connect to an already-running daemon.
 /// `on_message` is called for each `DaemonMessage` received.
-pub async fn connect_to_daemon<F>(on_message: F) -> Result<DaemonConnection, String>
+pub async fn connect_to_daemon<F>(on_message: F) -> Result<DaemonConnection, DaemonError>
 where
     F: Fn(DaemonMessage) + Send + 'static,
 {
     let uds_path = uds_socket_path()?;
     let stream = UnixStream::connect(&uds_path)
         .await
-        .map_err(|e| format!("Failed to connect to daemon UDS: {}", e))?;
+        .map_err(|e| DaemonError::Uds(format!("connect: {}", e)))?;
 
     let (reader, writer) = tokio::io::split(stream);
     let mut reader = BufReader::new(reader);
@@ -194,7 +192,7 @@ where
     reader
         .read_line(&mut first_line)
         .await
-        .map_err(|e| format!("Failed to read daemon status: {}", e))?;
+        .map_err(|e| DaemonError::Uds(format!("read status: {}", e)))?;
 
     let port = match serde_json::from_str::<DaemonMessage>(first_line.trim()) {
         Ok(DaemonMessage::Status { port, .. }) => port,
@@ -209,10 +207,10 @@ where
         let mut w = writer.lock().await;
         w.write_all(sub_line.as_bytes())
             .await
-            .map_err(|e| format!("Failed to send subscribe: {}", e))?;
+            .map_err(|e| DaemonError::Uds(format!("send subscribe: {}", e)))?;
         w.flush()
             .await
-            .map_err(|e| format!("Failed to flush subscribe: {}", e))?;
+            .map_err(|e| DaemonError::Uds(format!("flush subscribe: {}", e)))?;
     }
 
     let event_task = tokio::spawn(async move {

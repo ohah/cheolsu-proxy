@@ -2,6 +2,7 @@ pub mod client;
 pub mod client_handler;
 pub mod curl_fallback;
 pub mod daemon;
+pub mod error;
 pub mod handler;
 pub mod intercept;
 pub mod protocol;
@@ -12,6 +13,7 @@ pub mod tls_client;
 
 // Re-exports for convenience
 pub use client::{connect_to_daemon, ensure_daemon, is_daemon_running, DaemonConnection};
+pub use error::DaemonError;
 pub use daemon::{check_and_cleanup_stale_lock, lock_file_path, run_daemon, uds_socket_path};
 pub use handler::{create_hybrid_client, LoggingHandler, WsEvent};
 pub use protocol::{

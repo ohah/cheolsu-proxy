@@ -2,6 +2,7 @@ use std::net::SocketAddr;
 use tokio::sync::{broadcast, watch};
 use tracing::info;
 
+use crate::error::DaemonError;
 use crate::handler::{LoggingHandler, WsEvent};
 use crate::protocol::{DaemonMessage, InterceptRule, ServerReplayEntry};
 use crate::tls_client::create_hybrid_client;
@@ -18,18 +19,18 @@ pub async fn run_proxy(
     mut server_replay_rx: watch::Receiver<Vec<ServerReplayEntry>>,
     ws_registry: WebSocketRegistry,
     script_handle: scripting::ScriptHandle,
-) -> Result<(), String> {
+) -> Result<(), DaemonError> {
     use proxyapi_v2::builder::ProxyBuilder;
     use proxyapi_v2::certificate_authority::{
         build_ca, generate_session_hash, get_cache_storage_dir,
     };
     use tokio::net::TcpListener;
 
-    let ca = build_ca().map_err(|e| format!("CA build failed: {}", e))?;
+    let ca = build_ca().map_err(|e| DaemonError::Proxy(format!("CA build failed: {}", e)))?;
 
     let session_hash = generate_session_hash();
     let cache_dir =
-        get_cache_storage_dir(&session_hash).map_err(|e| format!("Cache dir failed: {}", e))?;
+        get_cache_storage_dir(&session_hash).map_err(|e| DaemonError::Proxy(format!("Cache dir failed: {}", e)))?;
 
     let (tx, mut rx) = tokio::sync::mpsc::channel::<proxy_v2_models::RequestInfo>(256);
     let (tunnel_tx, mut tunnel_rx) =
@@ -76,11 +77,11 @@ pub async fn run_proxy(
     let initial_upstream = upstream_rx.borrow().clone();
 
     let hybrid_client =
-        create_hybrid_client(upstream_rx).map_err(|e| format!("Client creation failed: {}", e))?;
+        create_hybrid_client(upstream_rx).map_err(|e| DaemonError::Proxy(format!("Client creation failed: {}", e)))?;
 
     let listener = TcpListener::bind(addr)
         .await
-        .map_err(|e| format!("Port {} bind failed: {}", addr.port(), e))?;
+        .map_err(|e| DaemonError::Proxy(format!("Port {} bind failed: {}", addr.port(), e)))?;
 
     // TLS 자동 학습 바이패스 초기화
     let passthrough_path = app_support_dir()
@@ -104,7 +105,7 @@ pub async fn run_proxy(
         .with_websocket_handler(handler.clone())
         .with_proxy_context(proxy_ctx)
         .build()
-        .map_err(|e| format!("Proxy build failed: {}", e))?;
+        .map_err(|e| DaemonError::Proxy(format!("Proxy build failed: {}", e)))?;
 
     info!("Proxy listening on {}", addr);
 
@@ -146,7 +147,7 @@ pub async fn run_proxy(
     proxy_builder
         .start()
         .await
-        .map_err(|e| format!("Proxy start failed: {}", e))?;
+        .map_err(|e| DaemonError::Proxy(format!("Proxy start failed: {}", e)))?;
 
     Ok(())
 }

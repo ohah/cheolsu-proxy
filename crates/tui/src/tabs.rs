@@ -26,18 +26,6 @@ impl Tab {
             Tab::Settings => "Settings",
         }
     }
-
-    pub fn next(&self) -> Tab {
-        let idx = Tab::ALL.iter().position(|t| t == self).unwrap_or(0);
-        Tab::ALL[(idx + 1) % Tab::ALL.len()]
-    }
-
-    pub fn prev(&self) -> Tab {
-        let idx = Tab::ALL.iter().position(|t| t == self).unwrap_or(0);
-        if idx == 0 {
-            Tab::ALL[Tab::ALL.len() - 1]
-        } else {
-            Tab::ALL[idx - 1]
-        }
-    }
 }
+
+cycle_enum!(Tab);

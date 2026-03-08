@@ -230,6 +230,7 @@ impl CheolsuMcpServer {
         let rules = self.store.rules.lock().unwrap().clone();
         conn.send_command(&ClientCommand::UpdateInterceptRules { rules })
             .await
+            .map_err(|e| e.to_string())
     }
 
     #[tool(

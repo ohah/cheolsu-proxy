@@ -251,3 +251,144 @@ impl ClientResponse {
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct RequestInfo(pub Option<ClientRequest>, pub Option<ClientResponse>);
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use bytes::Bytes;
+    use http::{HeaderMap, HeaderValue, StatusCode, Version};
+
+    fn make_response(status: u16, body: &[u8]) -> ProxiedResponse {
+        ProxiedResponse::new(
+            StatusCode::from_u16(status).unwrap(),
+            Version::HTTP_11,
+            HeaderMap::new(),
+            Bytes::from(body.to_vec()),
+            2000,
+        )
+    }
+
+    #[test]
+    fn test_accessor_methods() {
+        let res = make_response(200, b"OK");
+        assert_eq!(res.status(), &StatusCode::OK);
+        assert_eq!(res.version(), &Version::HTTP_11);
+        assert_eq!(res.body().as_ref(), b"OK");
+        assert_eq!(res.time(), 2000);
+    }
+
+    #[test]
+    fn test_json_body_parsing() {
+        let json_body = br#"{"result":"ok"}"#;
+        let mut headers = HeaderMap::new();
+        headers.insert("content-type", HeaderValue::from_static("application/json"));
+        let res = ProxiedResponse::new(
+            StatusCode::OK,
+            Version::HTTP_11,
+            headers,
+            Bytes::from(json_body.to_vec()),
+            2000,
+        );
+        assert!(res.body_json().is_some());
+        assert_eq!(res.body_json().as_ref().unwrap()["result"], "ok");
+    }
+
+    #[test]
+    fn test_non_json_body_has_no_json() {
+        let res = make_response(200, b"plain text");
+        assert!(res.body_json().is_none());
+    }
+
+    #[test]
+    fn test_no_decompression_for_plain_body() {
+        let res = make_response(200, b"plain");
+        assert!(res.decompressed_body().is_none());
+    }
+
+    #[test]
+    fn test_gzip_decompression() {
+        use flate2::write::GzEncoder;
+        use flate2::Compression;
+        use std::io::Write;
+
+        let original = br#"{"compressed":true}"#;
+        let mut encoder = GzEncoder::new(Vec::new(), Compression::default());
+        encoder.write_all(original).unwrap();
+        let compressed = encoder.finish().unwrap();
+
+        let mut headers = HeaderMap::new();
+        headers.insert("content-type", HeaderValue::from_static("application/json"));
+        headers.insert("content-encoding", HeaderValue::from_static("gzip"));
+
+        let res = ProxiedResponse::new(
+            StatusCode::OK,
+            Version::HTTP_11,
+            headers,
+            Bytes::from(compressed),
+            2000,
+        );
+        assert!(res.decompressed_body().is_some());
+        let decompressed = res.decompressed_body().as_ref().unwrap();
+        assert_eq!(decompressed.as_ref(), original);
+        assert!(res.body_json().is_some());
+        assert_eq!(res.body_json().as_ref().unwrap()["compressed"], true);
+    }
+
+    #[test]
+    fn test_data_type_detection() {
+        let mut headers = HeaderMap::new();
+        headers.insert("content-type", HeaderValue::from_static("text/html"));
+        let res = ProxiedResponse::new(
+            StatusCode::OK,
+            Version::HTTP_11,
+            headers,
+            Bytes::from("<html></html>"),
+            2000,
+        );
+        assert_eq!(*res.data_type(), DataType::Html);
+        assert_eq!(res.mime_type(), "text/html");
+        assert_eq!(res.monaco_language(), "html");
+    }
+
+    #[test]
+    fn test_for_client_preserves_fields() {
+        let res = make_response(404, b"Not Found");
+        let client = res.for_client("req-123", None);
+        assert_eq!(client.status(), &StatusCode::NOT_FOUND);
+        assert_eq!(client.id(), "req-123");
+        assert_eq!(client.body_size(), 9);
+        assert_eq!(client.body().unwrap().as_ref(), b"Not Found");
+        assert!(client.file_path().is_none());
+    }
+
+    #[test]
+    fn test_for_client_with_cache_dir() {
+        let tmp = tempfile::TempDir::new().unwrap();
+        let res = make_response(200, b"response body");
+        let client = res.for_client("req-456", Some(tmp.path()));
+        // BODY_FILE_THRESHOLD=0 이므로 파일로 저장
+        assert!(client.file_path().is_some());
+        assert!(client.body().is_none());
+        assert_eq!(client.body_size(), 13);
+    }
+
+    #[test]
+    fn test_serialization_roundtrip() {
+        let res = make_response(200, b"body");
+        let json = serde_json::to_string(&res).unwrap();
+        let deserialized: ProxiedResponse = serde_json::from_str(&json).unwrap();
+        assert_eq!(deserialized.status(), res.status());
+        assert_eq!(deserialized.body(), res.body());
+    }
+
+    #[test]
+    fn test_request_info_structure() {
+        let info = RequestInfo(None, None);
+        assert!(info.0.is_none());
+        assert!(info.1.is_none());
+
+        let json = serde_json::to_string(&info).unwrap();
+        let parsed: RequestInfo = serde_json::from_str(&json).unwrap();
+        assert_eq!(parsed, info);
+    }
+}
