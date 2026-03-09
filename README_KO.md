@@ -13,21 +13,41 @@
 
 ## 소개
 
-Rust 기반 **Man in the Middle 프록시**로, 네트워크 트래픽을 가시화하는 것을 목표로 하는 초기 단계 프로젝트입니다. 현재 HTTP/HTTPS 요청과 응답을 캡처하여 표시하며, 향후 트래픽 조작 기능을 지원할 예정입니다.
+Rust 기반 **Man in the Middle 프록시**로, HTTP/HTTPS/WebSocket 트래픽을 검사하고 조작할 수 있습니다. 데스크톱 GUI (Tauri + React), 터미널 UI (Ratatui), headless CLI 모드를 제공하며, 스크립트 기반 트래픽 조작과 인터셉트 규칙을 지원합니다. MCP를 통해 AI 어시스턴트와도 연동됩니다.
 
 ![Cast](assets/screenshots/0.gif)
 
 ## 기능
 
+### 핵심
 - HTTP / HTTPS 트래픽 가로채기
+- WebSocket 캡처 및 메시지 인젝션
 - TLS 1.0/1.1 레거시 클라이언트 지원 (하이브리드 TLS 핸들러)
-- GUI (Tauri + React) 및 CLI (headless) 모드
-- 커스텀 리슨 주소 및 포트 설정
-- 요청/응답 상세 조회
-- HTTP 메서드별 요청 필터링
-- 개별 요청 삭제 및 전체 초기화
+- 요청/응답 상세 조회 (헤더, 바디, 미디어 프리뷰)
+- 업스트림 프록시 지원 (HTTP/HTTPS/SOCKS, 인증 포함)
+- 네트워크 대역폭 제어 (Throttling)
+
+### 트래픽 조작
+- **인터셉트 규칙** — 요청 차단, 요청/응답 수정, 로컬 파일 매핑, 원격 URL 리다이렉트
+- **서버 리플레이** — 캡처된 응답을 저장하고 동일 요청 시 자동 반환
+- **요청 리플레이** — 개별 또는 순차적 요청 재전송
+- **스크립팅** — TypeScript 기반 요청/응답/WebSocket 조작 (Deno Core / V8)
+
+### 필터링 및 내보내기
+- **Cheolsu-Query** — 트래픽 필터링 전용 쿼리 언어 (method, status, URL + 논리 연산자)
+- **HAR 내보내기** — HTTP Archive 형식으로 트래픽 내보내기
+
+### 인터페이스
+- GUI 데스크톱 앱 (Tauri + React)
+- TUI 터미널 인터페이스 (Ratatui)
+- CLI headless 모드
+- MCP 서버 (AI 어시스턴트 연동)
 - 다크 / 라이트 테마
-- **보안**: 사용자별 고유 CA 인증서 자동 생성 (개인키는 바이너리에 포함되지 않음)
+- 다국어 지원 (영어, 한국어)
+- 글로벌 단축키
+
+### 보안
+- 사용자별 고유 CA 인증서 자동 생성 (개인키는 바이너리에 포함되지 않음)
 
 ## 시작하기
 
@@ -75,6 +95,12 @@ Cheolsu Proxy는 첫 실행 시 자동으로 고유한 CA 인증서를 생성합
 마크다운 문서는 [document/](document/) 디렉토리를 참조하세요.
 
 - [TLS 1.0/1.1 지원](document/features/TLS_1_0_1_1_SUPPORT.md) — 레거시 TLS 클라이언트 지원
+- [인터셉트 규칙](document/ko/features/intercept-rules.md) — 트래픽 차단, 수정, 리다이렉트
+- [서버 리플레이](document/ko/features/server-replay.md) — 캡처된 응답 자동 반환
+- [스크립팅](document/ko/features/scripting.md) — TypeScript 기반 트래픽 조작
+- [WebSocket](document/ko/features/websocket.md) — WebSocket 캡처 및 인젝션
+- [MCP 서버](document/ko/features/mcp-server.md) — AI 어시스턴트 연동
+- [Cheolsu-Query](document/ko/features/cheolsu-query.md) — 트래픽 필터링 쿼리 언어
 
 ## 개발
 

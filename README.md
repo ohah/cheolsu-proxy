@@ -13,21 +13,41 @@
 
 ## Description
 
-Rust-based **Man in the Middle proxy**, an early-stage project aimed at providing visibility into network traffic. It captures and displays both HTTP and HTTPS requests and responses, with a future goal of allowing traffic manipulation for more advanced use cases.
+Rust-based **Man in the Middle proxy** for inspecting and manipulating HTTP/HTTPS/WebSocket traffic. Provides a desktop GUI (Tauri + React), a terminal UI (Ratatui), and a headless CLI mode. Supports scriptable traffic manipulation, intercept rules, and integrates with AI assistants via MCP.
 
 ![Cast](assets/screenshots/0.gif)
 
 ## Features
 
+### Core
 - HTTP / HTTPS traffic interception
+- WebSocket capture and message injection
 - TLS 1.0/1.1 legacy client support (hybrid TLS handler)
-- GUI (Tauri + React) and CLI (headless) mode
-- Custom listen address and port
-- Request/response detail inspection
-- Request filtering by method
-- Delete individual requests or clear all
+- Request/response detail inspection (headers, body, media preview)
+- Upstream proxy support (HTTP/HTTPS/SOCKS with authentication)
+- Network throttling (bandwidth limiting)
+
+### Traffic Manipulation
+- **Intercept Rules** — Block, modify request/response, map to local file, or redirect to remote URL
+- **Server Replay** — Save captured responses and auto-replay on matching requests
+- **Request Replay** — Re-send individual or sequential requests
+- **Scripting** — TypeScript-based request/response/WebSocket manipulation (Deno Core / V8)
+
+### Filtering & Export
+- **Cheolsu-Query** — Dedicated query language for traffic filtering (method, status, URL with logical operators)
+- **HAR Export** — Export traffic in HTTP Archive format
+
+### Interface
+- GUI desktop app (Tauri + React)
+- TUI terminal interface (Ratatui)
+- CLI headless mode
+- MCP Server for AI assistant integration
 - Dark / light theme
-- **Security**: Auto-generated unique CA certificate per user (private key is never bundled in the binary)
+- i18n support (English, Korean)
+- Global keyboard shortcuts
+
+### Security
+- Auto-generated unique CA certificate per user (private key is never bundled in the binary)
 
 ## Getting Started
 
@@ -75,6 +95,12 @@ For detailed documentation, visit the [official docs site](https://ohah.github.i
 Markdown documentation is available in the [document/](document/) directory.
 
 - [TLS 1.0/1.1 Support](document/features/TLS_1_0_1_1_SUPPORT.md) — Legacy TLS client support
+- [Intercept Rules](document/en/features/intercept-rules.md) — Block, modify, and redirect traffic
+- [Server Replay](document/en/features/server-replay.md) — Auto-replay captured responses
+- [Scripting](document/en/features/scripting.md) — TypeScript-based traffic manipulation
+- [WebSocket](document/en/features/websocket.md) — WebSocket capture and injection
+- [MCP Server](document/en/features/mcp-server.md) — AI assistant integration
+- [Cheolsu-Query](document/en/features/cheolsu-query.md) — Query language for traffic filtering
 
 ## Development
 
