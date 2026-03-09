@@ -13,6 +13,7 @@ import {
   uninstallCaCert,
   getCaCertPath,
   updateThrottle,
+  updateQuickSettings,
   getCertDownloadInfo,
   type ThrottleConfig,
   type CertDownloadInfo,
@@ -209,6 +210,22 @@ export function SettingsPage() {
   const [throttleSaving, setThrottleSaving] = useState(false);
   const [throttleStatus, setThrottleStatus] = useState<"idle" | "saved" | "error">("idle");
 
+  // Quick Settings state
+  const [noCaching, setNoCaching] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("quick_settings_no_caching") ?? "false");
+    } catch {
+      return false;
+    }
+  });
+  const [blockCookies, setBlockCookies] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("quick_settings_block_cookies") ?? "false");
+    } catch {
+      return false;
+    }
+  });
+
   const handleLocaleChange = useCallback(async (newLocale: string | null) => {
     if (!newLocale) return;
     const loc = newLocale as Locale;
@@ -374,6 +391,40 @@ export function SettingsPage() {
       setThrottleSaving(false);
     }
   }, [throttleEnabled, throttlePreset, throttleDownload, throttleUpload, throttleLatency]);
+
+  // Quick Settings 변경 시 즉시 적용
+  const handleNoCachingChange = useCallback(
+    async (checked: boolean) => {
+      setNoCaching(checked);
+      localStorage.setItem("quick_settings_no_caching", JSON.stringify(checked));
+      try {
+        await updateQuickSettings(checked, blockCookies);
+      } catch (e) {
+        console.error("No Caching 설정 실패:", e);
+      }
+    },
+    [blockCookies],
+  );
+
+  const handleBlockCookiesChange = useCallback(
+    async (checked: boolean) => {
+      setBlockCookies(checked);
+      localStorage.setItem("quick_settings_block_cookies", JSON.stringify(checked));
+      try {
+        await updateQuickSettings(noCaching, checked);
+      } catch (e) {
+        console.error("Block Cookies 설정 실패:", e);
+      }
+    },
+    [noCaching],
+  );
+
+  // 프록시 연결 시 Quick Settings 동기화
+  useEffect(() => {
+    if (isProxyConnected) {
+      updateQuickSettings(noCaching, blockCookies).catch(() => {});
+    }
+  }, [isProxyConnected]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 로컬 스토리지에서 설정 불러오기
   useEffect(() => {
@@ -982,6 +1033,48 @@ export function SettingsPage() {
                 <Trans>Failed — is the proxy running?</Trans>
               </Badge>
             )}
+          </div>
+        </div>
+
+        {/* Quick Settings Section */}
+        <div className="border rounded-lg p-5 space-y-5">
+          <div>
+            <h2 className="text-lg font-semibold">
+              <Trans>Quick Settings</Trans>
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              <Trans>Quick toggles for common proxy behaviors</Trans>
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <label className="text-sm font-medium">
+                  <Trans>No Caching</Trans>
+                </label>
+                <p className="text-xs text-muted-foreground">
+                  <Trans>
+                    Prevent caching by removing conditional headers and adding no-cache directives
+                  </Trans>
+                </p>
+              </div>
+              <Switch checked={noCaching} onCheckedChange={handleNoCachingChange} />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <label className="text-sm font-medium">
+                  <Trans>Block Cookies</Trans>
+                </label>
+                <p className="text-xs text-muted-foreground">
+                  <Trans>
+                    Remove Cookie headers from requests and Set-Cookie headers from responses
+                  </Trans>
+                </p>
+              </div>
+              <Switch checked={blockCookies} onCheckedChange={handleBlockCookiesChange} />
+            </div>
           </div>
         </div>
 
