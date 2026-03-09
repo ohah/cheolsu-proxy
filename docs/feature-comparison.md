@@ -1,6 +1,6 @@
 # mitmproxy vs cheolsu-proxy 기능 비교
 
-> 최종 업데이트: 2026-03-07
+> 최종 업데이트: 2026-03-10
 >
 > mitmproxy를 레퍼런스로 cheolsu-proxy의 현재 지원 기능과 차이점을 정리한 문서입니다.
 
@@ -33,23 +33,14 @@
 
 ## mitmproxy에만 있는 기능
 
-| 기능                   | 설명                        |
-| ---------------------- | --------------------------- |
-| HTTP/3 (QUIC)          | 다중 프로토콜 지원          |
-| Transparent Proxy      | OS 레벨 투명 프록시 모드    |
-| Reverse Proxy          | 특정 서버로 트래픽 전달     |
-| SOCKS Proxy            | SOCKS5 프록시 모드          |
-| Sticky Auth/Cookie     | 인증/쿠키 자동 재전송       |
-| Server-side Replay     | 저장된 응답으로 서버 모킹   |
-| Save/Load (Flow 파일)  | 세션 저장 및 불러오기       |
-| HAR Export             | HAR 형식 내보내기           |
-| Python 스크립트 애드온 | 사용자 스크립트로 기능 확장 |
-| 콘솔 UI (TUI)          | 터미널 인터랙티브 UI        |
-| mitmdump (CLI)         | tcpdump 스타일 CLI 도구     |
-| DNS 인터셉트           | DNS 쿼리/응답 조작          |
-| Proxy Authentication   | 프록시 접속 인증            |
-| Raw TCP / UDP          | 비 HTTP 프로토콜 지원       |
-| Content View 확장      | Protobuf 등                 |
+| 기능                 | 설명                     |
+| -------------------- | ------------------------ |
+| HTTP/3 (QUIC)        | 다중 프로토콜 지원       |
+| Transparent Proxy    | OS 레벨 투명 프록시 모드 |
+| Sticky Auth/Cookie   | 인증/쿠키 자동 재전송    |
+| DNS 인터셉트         | DNS 쿼리/응답 조작       |
+| Proxy Authentication | 프록시 접속 인증         |
+| Raw TCP / UDP        | 비 HTTP 프로토콜 지원    |
 
 ## cheolsu-proxy에만 있는 기능
 
@@ -62,6 +53,15 @@
 | 호스트/경로 트리 뷰     | 트래픽을 호스트별 트리 구조로 그룹핑                   |
 | 핀/체크박스 선택        | 트랜잭션 고정 및 다중 선택                             |
 | 일시정지/재개           | 트래픽 캡처 일시 중지                                  |
+| SOCKS5 Proxy            | RFC 1929 인증 포함 완전 구현                           |
+| Server Replay           | 캡처된 응답 캐싱 및 자동 반환                          |
+| 세션 저장/불러오기      | .cheolsu 파일 (트래픽+규칙+설정 포함), HAR 가져오기    |
+| Breakpoints             | 요청/응답 일시 정지, Forward/Drop/Abort/Modify 지원    |
+| Host Mapping (DNS)      | 도메인→IP 매핑, 와일드카드 패턴, 포트 지정             |
+| 트래픽 비교 (Diff)      | 헤더/바디/JSON 구조적 diff                             |
+| Protobuf 디코딩         | Wire type 기반 자동 디코딩 뷰어                        |
+| TUI (터미널 UI)         | ratatui 기반 풀 인터랙티브 UI                          |
+| Headless CLI            | tcpdump 스타일 CLI + 인터셉트 셸                       |
 | 시스템 프록시 자동 관리 | 앱 시작/종료 시 자동 설정/해제                         |
 | 백그라운드 데몬         | UDS 기반 독립 데몬 프로세스                            |
 | CLI 인터셉트 셸         | headless 모드에서 규칙 관리 (block, modify-request 등) |

@@ -19,6 +19,13 @@ Check the upcoming features planned for Cheolsu Proxy.
 - **Auto Update**: Tauri Updater based GitHub Releases deployment
 - **Hybrid TLS Engine**: rustls + native-tls auto-switching
 - **TLS Passthrough**: Auto-learning based bypass
+- **Breakpoints**: Request/response pause, Forward/Drop/Abort/ModifyAndForward
+- **Session Save/Load**: .cheolsu session files (traffic+rules+settings), HAR import
+- **Host Mapping**: Domain→IP mapping, wildcard patterns, port specification (DNS Spoofing alternative)
+- **SOCKS5 Proxy**: RFC 1929 authentication, upstream SOCKS5 support
+- **Protobuf Decoding**: Wire type based auto-decoding, gRPC Content-Type detection
+- **Traffic Diff**: Header/body/JSON structural diff
+- **Mobile CA Certificate Distribution**: Web-based certificate download page, iOS/Android installation guide
 
 ### Planned Features
 
@@ -28,10 +35,6 @@ Check the upcoming features planned for Cheolsu Proxy.
 - **Proxy Modes**:
   - Reverse Proxy
   - Transparent Proxy
-  - SOCKS5 Proxy
-
-- **Export/Import**:
-  - Session save/load
 
 - **Extension Features**:
   - Plugin system

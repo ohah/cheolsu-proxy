@@ -19,6 +19,13 @@ Cheolsu Proxy의 향후 지원 예정 기능들을 확인할 수 있습니다.
 - **자동 업데이트**: Tauri Updater 기반 GitHub Releases 배포
 - **TLS 하이브리드 엔진**: rustls + native-tls 자동 전환
 - **TLS Passthrough**: 자동 학습 기반 바이패스
+- **Breakpoints**: 요청/응답 일시 정지, Forward/Drop/Abort/ModifyAndForward
+- **세션 저장/불러오기**: .cheolsu 세션 파일 (트래픽+규칙+설정), HAR 가져오기
+- **Host Mapping**: 도메인→IP 매핑, 와일드카드 패턴, 포트 지정 (DNS Spoofing 대체)
+- **SOCKS5 Proxy**: RFC 1929 인증 지원, Upstream SOCKS5 지원
+- **Protobuf 디코딩**: Wire type 기반 자동 디코딩, gRPC Content-Type 감지
+- **트래픽 비교 (Diff)**: 헤더/바디/JSON 구조적 diff
+- **모바일 CA 인증서 배포**: 웹 기반 인증서 다운로드 페이지, iOS/Android 설치 가이드
 
 ### 추후 지원 예정 기능
 
@@ -28,10 +35,6 @@ Cheolsu Proxy의 향후 지원 예정 기능들을 확인할 수 있습니다.
 - **프록시 모드**:
   - Reverse Proxy
   - Transparent Proxy
-  - SOCKS5 Proxy
-
-- **내보내기/가져오기**:
-  - 세션 저장/불러오기
 
 - **확장 기능**:
   - 플러그인 시스템

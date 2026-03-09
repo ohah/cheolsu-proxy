@@ -36,34 +36,33 @@
 
 ---
 
-## 4. HTTP/3 (QUIC)
+## ~~4. Protobuf / gRPC 디코딩~~ ✅ 완료
+
+Protobuf 바이너리 데이터를 디코딩하여 필드별로 표시하는 기능. gRPC Content-Type 자동 감지.
+
+- Desktop: Protobuf Preview 뷰어 (`protobuf-preview.tsx`, `protobuf-decoder.ts`)
+- Wire type 정보 표시 및 필드별 검사
+
+---
+
+## ~~5. SOCKS 프록시~~ ✅ 완료
+
+SOCKS5 프로토콜 완전 구현. RFC 1929 인증 지원.
+
+- SOCKS5 핸드셰이크 (인증 포함)
+- TCP CONNECT 지원
+- Upstream proxy SOCKS5 지원
+- 테스트 커버리지 포함 (`crates/proxyapi_v2/tests/socks5_tests.rs`)
+
+---
+
+## 6. HTTP/3 (QUIC)
 
 HTTP/3은 TCP 대신 UDP 기반의 QUIC 프로토콜을 사용하는 차세대 HTTP. 연결 설정이 빠르고(0-RTT), 패킷 손실 시 다른 스트림에 영향을 주지 않는 멀티플렉싱이 장점. 현재 Chrome, Safari 등 주요 브라우저와 Cloudflare, Google 등이 지원 중.
 
 - QUIC 프로토콜 파싱
 - HTTP/3 요청/응답 가로채기
 - QUIC 인증서 처리
-
----
-
-## 5. gRPC 프로토콜 분석
-
-gRPC는 HTTP/2 위에서 동작하는 RPC 프레임워크로, Protocol Buffers(Protobuf)로 직렬화된 바이너리 데이터를 주고받음. 현재 HTTP/2 레벨에서는 통과하지만, 바이너리 페이로드를 사람이 읽을 수 있는 형태로 디코딩하는 기능이 없음.
-
-- Protobuf 바이너리 디코딩 (proto 정의 없이도 필드 추출)
-- gRPC 메타데이터 표시
-- gRPC-Web 지원
-- 스트리밍 RPC 표시 (서버/클라이언트/양방향)
-
----
-
-## 6. SOCKS 프록시
-
-SOCKS4/SOCKS5 프로토콜 지원. HTTP 프록시는 HTTP/HTTPS만 처리하지만, SOCKS는 모든 TCP(그리고 SOCKS5는 UDP도) 트래픽을 프록시할 수 있음. SSH 터널링, 게임 클라이언트, 비HTTP 프로토콜 등에서 필요.
-
-- SOCKS5 핸드셰이크 (인증 포함)
-- TCP CONNECT 지원
-- UDP ASSOCIATE 지원 (SOCKS5)
 
 ---
 
@@ -137,10 +136,10 @@ SOCKS4/SOCKS5 프로토콜 지원. HTTP 프록시는 HTTP/HTTPS만 처리하지�
 | ~~P1~~ | ~~Map Local / Map Remote~~ | ✅ 완료                                       |
 | ~~P2~~ | ~~스크립팅 (TypeScript)~~  | ✅ 완료                                       |
 | ~~P2~~ | ~~Upstream Proxy 체이닝~~  | ✅ 완료                                       |
-| P3     | gRPC 프로토콜 분석         | 마이크로서비스 디버깅                         |
+| ~~P3~~ | ~~Protobuf / gRPC 디코딩~~ | ✅ 완료                                       |
+| ~~P3~~ | ~~SOCKS 프록시~~           | ✅ 완료                                       |
 | P3     | WireGuard VPN 모드         | 모든 케이스 대응, 다른 기기 캡처              |
 | P3     | 투명 프록시 모드           | 프록시 미지원 앱 대응 (WireGuard로 대체 가능) |
-| P3     | SOCKS 프록시               | 범용성 확대                                   |
 | P4     | 클라이언트 인증서 (mTLS)   | 특수 환경                                     |
 | P4     | 리버스 프록시 모드         | 서버 디버깅용                                 |
 | P5     | HTTP/3 (QUIC)              | 생태계 아직 미성숙, 구현 복잡도 높음          |
