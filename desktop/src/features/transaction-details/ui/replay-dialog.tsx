@@ -1,9 +1,10 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { Play, Loader2, Plus, Trash2, Maximize2, Minimize2 } from "lucide-react";
 import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
 import { Editor } from "@monaco-editor/react";
 import { useTheme } from "next-themes";
+import { toast } from "sonner";
 
 import type { HttpTransaction } from "@/entities/proxy";
 import { isTextBasedDataType } from "@/entities/proxy/model/data-type";
@@ -57,6 +58,16 @@ function entriesToHeaders(entries: HeaderEntry[]): Record<string, string> {
     if (k) headers[k] = value;
   }
   return headers;
+}
+
+function isAllowedUrl(url: string): boolean {
+  const trimmed = url.trim();
+  if (!trimmed) return false;
+  // Only allow http:// and https:// protocols
+  if (/^https?:\/\//i.test(trimmed)) return true;
+  // Allow URLs without protocol (will be treated as http by backend)
+  if (!/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(trimmed)) return true;
+  return false;
 }
 
 function detectLanguage(body: string | undefined | null): string {
@@ -238,12 +249,18 @@ export function ReplayDialog({
   const request = transaction?.request;
   const originalResponse = transaction?.response;
   const isComposeMode = !transaction;
+  const isControlled = controlledOpen !== undefined;
   const [internalOpen, setInternalOpen] = useState(false);
-  const open = controlledOpen ?? internalOpen;
-  const setOpen = (v: boolean) => {
-    setInternalOpen(v);
-    onOpenChange?.(v);
-  };
+  const open = isControlled ? controlledOpen : internalOpen;
+  const setOpen = useCallback(
+    (v: boolean) => {
+      if (!isControlled) {
+        setInternalOpen(v);
+      }
+      onOpenChange?.(v);
+    },
+    [isControlled, onOpenChange],
+  );
   const [method, setMethod] = useState(request?.method || "GET");
   const [url, setUrl] = useState(request?.uri || "");
   const [headers, setHeaders] = useState<HeaderEntry[]>([]);
@@ -254,19 +271,24 @@ export function ReplayDialog({
   const [activeTab, setActiveTab] = useState("request");
   const [bodyExpanded, setBodyExpanded] = useState(false);
 
+  // Use a ref to track the request identity for useEffect stability
+  const requestRef = useRef(request);
+  requestRef.current = request;
+
   useEffect(() => {
     if (open) {
-      if (request) {
-        setMethod(request.method);
-        setUrl(request.uri);
-        setHeaders(headersToEntries(request.headers || {}));
-        if (request.body && request.data_type && isTextBasedDataType(request.data_type)) {
-          setBody(uint8ArrayToString(request.body, request.data_type));
-        } else if (request.body_json) {
+      const req = requestRef.current;
+      if (req) {
+        setMethod(req.method);
+        setUrl(req.uri);
+        setHeaders(headersToEntries(req.headers || {}));
+        if (req.body && req.data_type && isTextBasedDataType(req.data_type)) {
+          setBody(uint8ArrayToString(req.body, req.data_type));
+        } else if (req.body_json) {
           setBody(
-            typeof request.body_json === "string"
-              ? request.body_json
-              : JSON.stringify(request.body_json, null, 2),
+            typeof req.body_json === "string"
+              ? req.body_json
+              : JSON.stringify(req.body_json, null, 2),
           );
         } else {
           setBody("");
@@ -281,9 +303,15 @@ export function ReplayDialog({
       setError(null);
       setActiveTab("request");
     }
-  }, [open, request]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   const handleReplay = useCallback(async () => {
+    if (!isAllowedUrl(url)) {
+      toast.error(t`Only http:// and https:// URLs are allowed`);
+      return;
+    }
+
     setLoading(true);
     setError(null);
     setReplayResponse(null);
