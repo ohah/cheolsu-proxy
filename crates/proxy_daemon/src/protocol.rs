@@ -201,6 +201,16 @@ pub enum InterceptAction {
         #[serde(default = "default_true")]
         preserve_path: bool,
     },
+    /// 정규식을 사용하여 요청/응답의 헤더 또는 바디를 치환 (Rewrite)
+    #[serde(rename = "rewrite")]
+    Rewrite {
+        /// 적용 대상: "request_header", "response_header", "request_body", "response_body"
+        target: String,
+        /// 매칭할 정규식 패턴
+        match_pattern: String,
+        /// 치환 문자열 ($1, $2 등 캡처 그룹 지원)
+        replace_with: String,
+    },
 }
 
 /// Host mapping entry for DNS spoofing / remote host mapping.
@@ -568,6 +578,13 @@ impl std::fmt::Display for InterceptRule {
                 preserve_path,
             } => {
                 format!("MapRemote({}, preserve_path={})", target_url, preserve_path)
+            }
+            InterceptAction::Rewrite {
+                target,
+                match_pattern,
+                ..
+            } => {
+                format!("Rewrite({}, pattern={})", target, match_pattern)
             }
         };
         let method_str = self.method.as_deref().unwrap_or("*");
