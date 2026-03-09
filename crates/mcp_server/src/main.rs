@@ -655,17 +655,6 @@ impl CheolsuMcpServer {
             .map_err(|e| e.to_string())
     }
 
-    async fn send_host_mappings(&self) -> Result<(), String> {
-        let conn_guard = self.daemon_conn.lock().await;
-        let Some(conn) = conn_guard.as_ref() else {
-            return Err("Not connected to proxy daemon".to_string());
-        };
-        let mappings = self.store.host_mappings.lock().clone();
-        conn.send_command(&ClientCommand::UpdateHostMappings { mappings })
-            .await
-            .map_err(|e| e.to_string())
-    }
-
     #[tool(
         description = "List all current breakpoint rules. Breakpoints pause matching requests/responses for manual inspection and editing."
     )]

@@ -30,7 +30,7 @@ impl LoggingHandler {
     /// Supports glob-style patterns: `*` matches any substring, `?` matches a single character.
     /// DNS 호스트명은 대소문자를 구분하지 않으므로 (RFC 4343), 비교 전 소문자로 정규화합니다.
     fn host_pattern_matches(pattern: &str, host: &str) -> bool {
-        Self::wildcard_matches(&pattern.to_lowercase(), &host.to_lowercase())
+        crate::pattern_utils::wildcard_matches(&pattern.to_lowercase(), &host.to_lowercase())
     }
 
     /// Apply host mapping to a request URI.

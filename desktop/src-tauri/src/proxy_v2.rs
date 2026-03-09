@@ -1137,8 +1137,8 @@ pub async fn export_har_file(path: String, content: String) -> Result<(), String
 /// 세션 저장: 프론트엔드에서 전달받은 트랜잭션 데이터를 .cheolsu 파일로 직접 저장
 #[tauri::command]
 pub async fn save_session(path: String, transactions_json: String) -> Result<(), String> {
+    use proxy_daemon::RequestInfo;
     use proxy_daemon::SessionFile;
-    use proxy_v2_models::RequestInfo;
 
     let file_path = proxy_daemon::ensure_extension(&path);
 
