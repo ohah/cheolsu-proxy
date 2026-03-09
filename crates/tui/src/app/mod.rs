@@ -141,6 +141,12 @@ pub struct App {
     // Remote device cert info
     pub local_ips: Vec<String>,
 
+    // Session save/load
+    pub session_save_editing: bool,
+    pub session_save_path_input: String,
+    pub session_load_editing: bool,
+    pub session_load_path_input: String,
+
     // Status message
     pub status_message: Option<(String, std::time::Instant)>,
 
@@ -195,6 +201,10 @@ impl App {
             ca_cert_installed: false,
             ca_cert_path: None,
             local_ips: proxy_daemon::get_local_ips(),
+            session_save_editing: false,
+            session_save_path_input: String::new(),
+            session_load_editing: false,
+            session_load_path_input: String::new(),
             status_message: None,
             conn: None,
             event_tx: None,
@@ -700,6 +710,79 @@ impl App {
                     BreakpointAction::Abort => "aborted",
                 };
                 self.set_status(&format!("Breakpoint {}", action_name));
+            }
+        }
+    }
+
+    pub(crate) fn save_session(&mut self) {
+        if self.transactions.is_empty() {
+            self.set_status("No transactions to save");
+            return;
+        }
+
+        let path = if self.session_save_path_input.is_empty() {
+            format!(
+                "cheolsu-session-{}.cheolsu",
+                chrono::Local::now().format("%Y%m%d-%H%M%S")
+            )
+        } else {
+            proxy_daemon::ensure_extension(&self.session_save_path_input)
+        };
+
+        let session = proxy_daemon::SessionFile::from_traffic(
+            self.port,
+            &self.transactions,
+            &self.ws_messages,
+            &self.rules,
+            &[],
+            None,
+        );
+
+        match session.save(std::path::Path::new(&path)) {
+            Ok(_) => {
+                self.set_status(&format!(
+                    "Session saved: {} ({} transactions)",
+                    path,
+                    self.transactions.len()
+                ));
+            }
+            Err(e) => {
+                self.set_status(&format!("Session save failed: {}", e));
+            }
+        }
+    }
+
+    pub(crate) fn load_session(&mut self) {
+        let path = &self.session_load_path_input;
+        if path.is_empty() {
+            self.set_status("No path specified");
+            return;
+        }
+
+        match proxy_daemon::SessionFile::load(std::path::Path::new(path)) {
+            Ok(session) => {
+                let tx_count = session.transactions.len();
+                let loaded_transactions = session.extract_transactions();
+                self.transactions = loaded_transactions;
+                self.selected_transaction = None;
+
+                // intercept rules도 복원
+                if !session.intercept_rules.is_empty() {
+                    self.rules = session.intercept_rules;
+                }
+
+                // WebSocket 메시지 복원
+                if !session.websocket_messages.is_empty() {
+                    self.ws_messages = session.websocket_messages;
+                }
+
+                self.set_status(&format!(
+                    "Session loaded: {} ({} transactions)",
+                    path, tx_count
+                ));
+            }
+            Err(e) => {
+                self.set_status(&format!("Session load failed: {}", e));
             }
         }
     }

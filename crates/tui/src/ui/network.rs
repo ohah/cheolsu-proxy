@@ -5,6 +5,16 @@ use super::{format_size, format_time};
 use crate::app::App;
 
 pub fn draw(f: &mut Frame, app: &mut App, area: Rect) {
+    if app.session_save_editing {
+        draw_session_input(f, app, area, true);
+        return;
+    }
+
+    if app.session_load_editing {
+        draw_session_input(f, app, area, false);
+        return;
+    }
+
     if app.show_diff && app.diff_result.is_some() {
         draw_diff_view(f, app, area);
     } else if app.show_detail && app.selected_transaction.is_some() {
@@ -90,7 +100,7 @@ fn draw_transaction_list(f: &mut Frame, app: &mut App, area: Rect) {
             .border_style(Style::default().fg(Color::Gray))
             .title(title)
             .title_bottom(Line::from(
-                " j/k: nav | Enter: detail | D: diff | y: URL | c: cURL | r: replay | e: export | Space: pause | x: clear "
+                " j/k: nav | Enter: detail | D: diff | y: URL | c: cURL | r: replay | e: export | S: save | L: load | Space: pause | x: clear "
             ).style(Style::default().fg(Color::Cyan))),
     )
     .row_highlight_style(Style::default().bg(Color::Rgb(50, 60, 140)).fg(Color::White));
@@ -309,4 +319,60 @@ fn header_line(name: &str, value: &str) -> Line<'static> {
         Span::styled(format!("{}: ", name), Style::default().fg(Color::Blue)),
         Span::styled(value.to_string(), Style::default().fg(Color::White)),
     ])
+}
+
+fn draw_session_input(f: &mut Frame, app: &App, area: Rect, is_save: bool) {
+    let (title, path) = if is_save {
+        (" Save Session ", &app.session_save_path_input)
+    } else {
+        (" Load Session ", &app.session_load_path_input)
+    };
+
+    let hint = if is_save {
+        "Enter file path (.cheolsu / .cheolsu.gz)"
+    } else {
+        "Enter file path to load"
+    };
+
+    let lines = vec![
+        Line::from(""),
+        Line::from(Span::styled(
+            hint,
+            Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD),
+        )),
+        Line::from(""),
+        Line::from(vec![
+            Span::styled("Path: ", Style::default().fg(Color::Cyan)),
+            Span::styled(
+                format!("{}_", path),
+                Style::default()
+                    .fg(Color::White)
+                    .add_modifier(Modifier::BOLD),
+            ),
+        ]),
+        Line::from(""),
+        Line::from(Span::styled(
+            if is_save {
+                format!("({} transactions will be saved)", app.transactions.len())
+            } else {
+                "Transactions will replace current data".to_string()
+            },
+            Style::default().fg(Color::Gray),
+        )),
+    ];
+
+    let paragraph = Paragraph::new(lines).block(
+        Block::default()
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(Color::Yellow))
+            .title(title)
+            .title_bottom(
+                Line::from(" Enter: confirm | Esc: cancel ")
+                    .style(Style::default().fg(Color::Cyan)),
+            ),
+    );
+
+    f.render_widget(paragraph, area);
 }

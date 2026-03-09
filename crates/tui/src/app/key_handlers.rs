@@ -15,6 +15,18 @@ impl App {
             return;
         }
 
+        // If session save path is in editing mode, handle it
+        if self.tab == Tab::Network && self.session_save_editing {
+            self.handle_session_save_key(key);
+            return;
+        }
+
+        // If session load path is in editing mode, handle it
+        if self.tab == Tab::Network && self.session_load_editing {
+            self.handle_session_load_key(key);
+            return;
+        }
+
         // If rule form is open, handle form input
         if self.rule_form.is_some() {
             self.handle_rule_form_key(key).await;
@@ -244,6 +256,19 @@ impl App {
                         self.set_status(&format!("Diff marked: #{} {}", idx, uri));
                     }
                 }
+            }
+            KeyCode::Char('S') => {
+                // Session save: Shift+S로 경로 입력 모드 진입
+                self.session_save_path_input = format!(
+                    "cheolsu-session-{}.cheolsu",
+                    chrono::Local::now().format("%Y%m%d-%H%M%S")
+                );
+                self.session_save_editing = true;
+            }
+            KeyCode::Char('L') => {
+                // Session load: Shift+L로 경로 입력 모드 진입
+                self.session_load_path_input.clear();
+                self.session_load_editing = true;
             }
             KeyCode::Home | KeyCode::Char('g') => {
                 self.selected_transaction = Some(0);
@@ -760,6 +785,44 @@ impl App {
             }
             KeyCode::Char('U') => {
                 self.uninstall_ca_cert();
+            }
+            _ => {}
+        }
+    }
+
+    fn handle_session_save_key(&mut self, key: KeyEvent) {
+        match key.code {
+            KeyCode::Esc => {
+                self.session_save_editing = false;
+            }
+            KeyCode::Enter => {
+                self.session_save_editing = false;
+                self.save_session();
+            }
+            KeyCode::Char(c) => {
+                self.session_save_path_input.push(c);
+            }
+            KeyCode::Backspace => {
+                self.session_save_path_input.pop();
+            }
+            _ => {}
+        }
+    }
+
+    fn handle_session_load_key(&mut self, key: KeyEvent) {
+        match key.code {
+            KeyCode::Esc => {
+                self.session_load_editing = false;
+            }
+            KeyCode::Enter => {
+                self.session_load_editing = false;
+                self.load_session();
+            }
+            KeyCode::Char(c) => {
+                self.session_load_path_input.push(c);
+            }
+            KeyCode::Backspace => {
+                self.session_load_path_input.pop();
             }
             _ => {}
         }
