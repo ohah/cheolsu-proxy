@@ -1,4 +1,8 @@
-import type { AdvancedRepeatResult, ReplayResponse, SequenceReplayResult } from "@/shared/api/proxy";
+import type {
+  AdvancedRepeatResult,
+  ReplayResponse,
+  SequenceReplayResult,
+} from "@/shared/api/proxy";
 
 const handlers: Record<string, (...args: any[]) => any> = {
   start_proxy_v2: async () => ({ status: true, message: "Mock proxy started" }),
@@ -55,7 +59,10 @@ const handlers: Record<string, (...args: any[]) => any> = {
       avg_time_ms: Math.round(avgTime * 100) / 100,
       total_time_ms: Math.round(iterations * avgTime * 0.3),
       requests_per_second: Math.round((1000 / avgTime) * iterations * 0.3 * 100) / 100,
-      status_codes: { 200: iterations - Math.floor(Math.random() * 2), 500: Math.floor(Math.random() * 2) },
+      status_codes: {
+        200: iterations - Math.floor(Math.random() * 2),
+        500: Math.floor(Math.random() * 2),
+      },
     };
   },
 };
