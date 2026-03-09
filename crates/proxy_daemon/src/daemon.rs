@@ -8,6 +8,7 @@ use tracing::{error, info, warn};
 use crate::breakpoint::BreakpointManager;
 use crate::client_handler::handle_client;
 use crate::error::DaemonError;
+use crate::handler::QuickSettings;
 use crate::protocol::ProxyLockInfo;
 use crate::proxy_runner::run_proxy;
 use crate::system_proxy::set_proxy;
@@ -168,6 +169,7 @@ struct DaemonContext {
     host_mapping_tx: watch::Sender<Vec<crate::protocol::HostMapping>>,
     ws_registry: WebSocketRegistry,
     script_handle: scripting::ScriptHandle,
+    quick_settings: Arc<parking_lot::RwLock<QuickSettings>>,
 }
 
 /// 프록시 태스크를 스폰합니다.
@@ -183,6 +185,7 @@ fn spawn_proxy_task(
     host_mapping_rx: watch::Receiver<Vec<crate::protocol::HostMapping>>,
     ws_registry: WebSocketRegistry,
     script_handle: scripting::ScriptHandle,
+    quick_settings: Arc<parking_lot::RwLock<QuickSettings>>,
 ) -> tokio::task::JoinHandle<()> {
     tokio::spawn(async move {
         if let Err(code) = run_proxy(
@@ -197,6 +200,7 @@ fn spawn_proxy_task(
             host_mapping_rx,
             ws_registry,
             script_handle,
+            quick_settings,
         )
         .await
         {
@@ -257,9 +261,10 @@ async fn run_accept_loop(
                         let host_mapping_tx_clone = ctx.host_mapping_tx.clone();
                         let registry_clone = ctx.ws_registry.clone();
                         let script_handle_clone = ctx.script_handle.clone();
+                        let quick_settings_clone = ctx.quick_settings.clone();
 
                         tokio::spawn(async move {
-                            handle_client(stream, event_rx, intercept_tx_clone, upstream_tx_clone, server_replay_tx_clone, throttle_tx_clone, breakpoint_tx_clone, breakpoint_mgr_clone, host_mapping_tx_clone, event_tx_clone, port, registry_clone, script_handle_clone)
+                            handle_client(stream, event_rx, intercept_tx_clone, upstream_tx_clone, server_replay_tx_clone, throttle_tx_clone, breakpoint_tx_clone, breakpoint_mgr_clone, host_mapping_tx_clone, event_tx_clone, port, registry_clone, script_handle_clone, quick_settings_clone)
                                 .await;
 
                             let remaining = client_count_clone.fetch_sub(1, Ordering::SeqCst) - 1;
@@ -319,6 +324,7 @@ async fn daemon_main(port: u16, host: String) -> i32 {
 
     let ws_registry = WebSocketRegistry::new();
     let script_handle = scripting::ScriptHandle::new();
+    let quick_settings = Arc::new(parking_lot::RwLock::new(QuickSettings::default()));
 
     let proxy_handle = spawn_proxy_task(
         addr,
@@ -332,6 +338,7 @@ async fn daemon_main(port: u16, host: String) -> i32 {
         host_mapping_rx,
         ws_registry.clone(),
         script_handle.clone(),
+        quick_settings.clone(),
     );
 
     let uds_listener = match UnixListener::bind(&uds_path) {
@@ -370,6 +377,7 @@ async fn daemon_main(port: u16, host: String) -> i32 {
         host_mapping_tx,
         ws_registry,
         script_handle,
+        quick_settings,
     };
 
     run_accept_loop(uds_listener, &mut shutdown_rx, &ctx, port).await;

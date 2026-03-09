@@ -118,6 +118,12 @@ pub enum ClientCommand {
     LoadSession { path: String },
     #[serde(rename = "update_host_mappings")]
     UpdateHostMappings { mappings: Vec<HostMapping> },
+    /// 빠른 설정 업데이트 (No Caching, Block Cookies)
+    #[serde(rename = "update_quick_settings")]
+    UpdateQuickSettings {
+        no_caching: bool,
+        block_cookies: bool,
+    },
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
