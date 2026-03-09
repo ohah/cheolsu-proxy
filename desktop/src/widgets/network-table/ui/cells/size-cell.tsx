@@ -1,6 +1,6 @@
 import { memo } from "react";
 
-import { formatBytes } from "../../lib";
+import { formatBytes } from "@/shared/lib";
 import type { TableCellProps } from "../../model";
 
 export const SizeCell = memo<TableCellProps>(({ data }) => {

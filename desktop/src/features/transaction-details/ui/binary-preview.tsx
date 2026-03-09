@@ -5,7 +5,7 @@ import { readFile, BaseDirectory } from "@tauri-apps/plugin-fs";
 import type { DataType } from "@/entities/proxy/model/data-type";
 import { dataTypeToDisplayName, dataTypeToIcon } from "@/entities/proxy/model/data-type";
 import { Button } from "@/shared/ui";
-import { formatBytes } from "@/widgets/network-table/lib/utils";
+import { formatBytes } from "@/shared/lib";
 
 interface BinaryPreviewProps {
   data?: Uint8Array | null;
