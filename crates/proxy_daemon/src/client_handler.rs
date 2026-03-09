@@ -207,7 +207,10 @@ pub async fn handle_client(
                         let _ = throttle_tx.send(config);
                     }
                     Ok(ClientCommand::UpdateHostMappings { mappings }) => {
-                        info!("Host mappings updated from client: {} mappings", mappings.len());
+                        info!(
+                            "Host mappings updated from client: {} mappings",
+                            mappings.len()
+                        );
                         let broadcast_msg = DaemonMessage::HostMappingsUpdated {
                             mappings: mappings.clone(),
                         };

@@ -554,18 +554,21 @@ impl LoggingHandler {
             return req;
         };
 
-        if let Some((target_host, target_port)) =
-            self.resolve_host_mapping(&host, port).await
-        {
+        if let Some((target_host, target_port)) = self.resolve_host_mapping(&host, port).await {
             info!(
                 "[HostMapping] {}:{} -> {}:{}",
                 host,
-                port.map(|p| p.to_string()).unwrap_or_else(|| "default".to_string()),
+                port.map(|p| p.to_string())
+                    .unwrap_or_else(|| "default".to_string()),
                 target_host,
-                target_port.map(|p| p.to_string()).unwrap_or_else(|| "default".to_string()),
+                target_port
+                    .map(|p| p.to_string())
+                    .unwrap_or_else(|| "default".to_string()),
             );
 
-            if let Some(new_uri) = Self::apply_host_mapping_to_uri(req.uri(), &target_host, target_port) {
+            if let Some(new_uri) =
+                Self::apply_host_mapping_to_uri(req.uri(), &target_host, target_port)
+            {
                 *req.uri_mut() = new_uri;
                 // Keep the original Host header intact so the server
                 // can route to the correct virtual host.

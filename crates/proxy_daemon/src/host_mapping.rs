@@ -41,10 +41,7 @@ impl LoggingHandler {
         target_port: Option<u16>,
     ) -> Option<Uri> {
         let scheme = uri.scheme_str().unwrap_or("https");
-        let path_and_query = uri
-            .path_and_query()
-            .map(|pq| pq.as_str())
-            .unwrap_or("/");
+        let path_and_query = uri.path_and_query().map(|pq| pq.as_str()).unwrap_or("/");
 
         let authority = if let Some(port) = target_port {
             format!("{}:{}", target_host, port)
