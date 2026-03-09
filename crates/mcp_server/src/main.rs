@@ -7,8 +7,9 @@ use std::sync::Arc;
 
 use anyhow::Result;
 use proxy_daemon::{
-    diff_headers, diff_json, diff_text, format_diff_text, is_daemon_running, BodyDiff, ClientCommand,
-    DaemonConnection, InterceptAction, InterceptRule, TrafficDiff, TransactionPartDiff,
+    diff_headers, diff_json, diff_text, format_diff_text, is_daemon_running, BodyDiff,
+    ClientCommand, DaemonConnection, InterceptAction, InterceptRule, TrafficDiff,
+    TransactionPartDiff,
 };
 use proxy_v2_models::WsDirection;
 use rmcp::{
@@ -494,12 +495,18 @@ impl CheolsuMcpServer {
     ) -> Result<CallToolResult, McpError> {
         let txns = self.store.transactions.lock();
 
-        let txn_a = txns
-            .iter()
-            .find(|info| info.0.as_ref().map(|r| r.id() == p.transaction_id_a).unwrap_or(false));
-        let txn_b = txns
-            .iter()
-            .find(|info| info.0.as_ref().map(|r| r.id() == p.transaction_id_b).unwrap_or(false));
+        let txn_a = txns.iter().find(|info| {
+            info.0
+                .as_ref()
+                .map(|r| r.id() == p.transaction_id_a)
+                .unwrap_or(false)
+        });
+        let txn_b = txns.iter().find(|info| {
+            info.0
+                .as_ref()
+                .map(|r| r.id() == p.transaction_id_b)
+                .unwrap_or(false)
+        });
 
         let Some(txn_a) = txn_a else {
             return tool_error(format!("Transaction '{}' not found.", p.transaction_id_a));
@@ -685,10 +692,9 @@ fn compute_body_diff(
     );
 
     if is_json {
-        if let (Ok(text_a), Ok(text_b)) = (
-            std::str::from_utf8(&bytes_a),
-            std::str::from_utf8(&bytes_b),
-        ) {
+        if let (Ok(text_a), Ok(text_b)) =
+            (std::str::from_utf8(&bytes_a), std::str::from_utf8(&bytes_b))
+        {
             if let (Ok(json_a), Ok(json_b)) = (
                 serde_json::from_str::<serde_json::Value>(text_a),
                 serde_json::from_str::<serde_json::Value>(text_b),
@@ -700,10 +706,9 @@ fn compute_body_diff(
 
     let is_text = data_type_a.is_text_based() && data_type_b.is_text_based();
     if is_text {
-        if let (Ok(text_a), Ok(text_b)) = (
-            std::str::from_utf8(&bytes_a),
-            std::str::from_utf8(&bytes_b),
-        ) {
+        if let (Ok(text_a), Ok(text_b)) =
+            (std::str::from_utf8(&bytes_a), std::str::from_utf8(&bytes_b))
+        {
             return Some(diff_text(text_a, text_b));
         }
     }
