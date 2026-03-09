@@ -1,4 +1,4 @@
-import { memo, useCallback, useMemo } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
 
 import { PathCell, MethodCell, StatusCell, SizeCell, TimeCell } from "./cells";
 
@@ -19,7 +19,9 @@ import {
 import { generateCurlCommand } from "@/shared/lib";
 import { useInterceptRuleDialogStore } from "@/shared/stores";
 import { toast } from "sonner";
-import { Code, Pin, PinOff, Shield, Trash2 } from "lucide-react";
+import { Code, Pin, PinOff, Repeat, Shield, Trash2 } from "lucide-react";
+import { Trans } from "@lingui/react/macro";
+import { AdvancedRepeatDialog } from "@/features/transaction-details";
 
 interface TableRowProps {
   data: TableRowData;
@@ -41,6 +43,7 @@ export const TableRow = memo(function TableRow({
   onCheck,
 }: TableRowProps) {
   const { isSelected } = data;
+  const [advancedRepeatOpen, setAdvancedRepeatOpen] = useState(false);
 
   const rowClasses = useMemo(() => {
     let classes = `${ROW_BASE_CLASSES} ${GRID_COLS_CLASS}`;
@@ -90,44 +93,56 @@ export const TableRow = memo(function TableRow({
   );
 
   return (
-    <ContextMenu>
-      <ContextMenuTrigger>
-        <div className={rowClasses} onClick={onSelect}>
-          <div className="flex items-center justify-center w-5" onClick={handleCheckboxClick}>
-            <input
-              type="checkbox"
-              checked={isChecked}
-              onChange={() => {}}
-              className="cursor-pointer accent-primary"
-            />
+    <>
+      <ContextMenu>
+        <ContextMenuTrigger>
+          <div className={rowClasses} onClick={onSelect}>
+            <div className="flex items-center justify-center w-5" onClick={handleCheckboxClick}>
+              <input
+                type="checkbox"
+                checked={isChecked}
+                onChange={() => {}}
+                className="cursor-pointer accent-primary"
+              />
+            </div>
+            <PathCell data={data} />
+            <MethodCell data={data} />
+            <StatusCell data={data} />
+            <SizeCell data={data} />
+            <TimeCell data={data} />
           </div>
-          <PathCell data={data} />
-          <MethodCell data={data} />
-          <StatusCell data={data} />
-          <SizeCell data={data} />
-          <TimeCell data={data} />
-        </div>
-      </ContextMenuTrigger>
-      <ContextMenuContent className="w-3xs">
-        <ContextMenuItem onClick={handleClickPinTransaction}>
-          {isPinned ? <PinOff /> : <Pin />}
-          {isPinned ? "Unpin from Top" : "Pin to Top"}
-        </ContextMenuItem>
-        <ContextMenuItem onClick={handleClickCopyCurlCommand}>
-          <Code />
-          Copy Curl Command
-        </ContextMenuItem>
-        <ContextMenuItem onClick={handleClickDeleteTransaction}>
-          <Trash2 />
-          Delete Transaction
-        </ContextMenuItem>
-        <ContextMenuSeparator />
-        <ContextMenuItem onClick={handleClickAddInterceptRule}>
-          <Shield />
-          Add Intercept Rule
-        </ContextMenuItem>
-      </ContextMenuContent>
-    </ContextMenu>
+        </ContextMenuTrigger>
+        <ContextMenuContent className="w-3xs">
+          <ContextMenuItem onClick={handleClickPinTransaction}>
+            {isPinned ? <PinOff /> : <Pin />}
+            {isPinned ? "Unpin from Top" : "Pin to Top"}
+          </ContextMenuItem>
+          <ContextMenuItem onClick={handleClickCopyCurlCommand}>
+            <Code />
+            Copy Curl Command
+          </ContextMenuItem>
+          <ContextMenuItem onClick={() => setAdvancedRepeatOpen(true)}>
+            <Repeat />
+            <Trans>Advanced Repeat</Trans>
+          </ContextMenuItem>
+          <ContextMenuItem onClick={handleClickDeleteTransaction}>
+            <Trash2 />
+            Delete Transaction
+          </ContextMenuItem>
+          <ContextMenuSeparator />
+          <ContextMenuItem onClick={handleClickAddInterceptRule}>
+            <Shield />
+            Add Intercept Rule
+          </ContextMenuItem>
+        </ContextMenuContent>
+      </ContextMenu>
+
+      <AdvancedRepeatDialog
+        open={advancedRepeatOpen}
+        onOpenChange={setAdvancedRepeatOpen}
+        transaction={data.transaction}
+      />
+    </>
   );
 });
 

@@ -6,10 +6,10 @@ mod proxy_v2;
 mod system_proxy;
 mod tray;
 use proxy_v2::{
-    check_ca_installed, check_cli_installed, clean_old_proxy_cache, diff_transaction_pairs,
-    diff_transactions, export_har_file, get_ca_cert_path, get_cert_download_info,
-    get_mcp_server_path, import_har_file_cmd, install_ca_cert, install_cli, load_script,
-    load_session, proxy_v2_status, read_body_file, replay_request, replay_sequence,
+    advanced_repeat, check_ca_installed, check_cli_installed, clean_old_proxy_cache,
+    diff_transaction_pairs, diff_transactions, export_har_file, get_ca_cert_path,
+    get_cert_download_info, get_mcp_server_path, import_har_file_cmd, install_ca_cert, install_cli,
+    load_script, load_session, proxy_v2_status, read_body_file, replay_request, replay_sequence,
     resolve_breakpoint, save_session, start_proxy_v2, stop_proxy_v2, uninstall_ca_cert,
     uninstall_cli, unload_script, update_breakpoint_rules, update_host_mappings,
     update_intercept_rules_v2, update_quick_settings, update_server_replay, update_throttle,
@@ -129,6 +129,7 @@ pub fn run() {
                 clean_old_proxy_cache,
                 replay_request,
                 replay_sequence,
+                advanced_repeat,
                 ws_inject_message,
                 update_upstream_proxy,
                 update_throttle,
