@@ -1,9 +1,15 @@
 import { useCallback, useMemo, useState } from "react";
+import { save } from "@tauri-apps/plugin-dialog";
+import { invoke } from "@tauri-apps/api/core";
 
 import { TransactionDetails, SequenceReplayDialog } from "@/features/transaction-details";
+import { buildHarLog } from "@/features/har-export";
+import { QueryFilterEditor } from "@/features/query-filter-editor";
+import { RuleFormDialog } from "@/features/intercept-rule-form";
 
 import { NetworkHeader } from "@/widgets/network-header";
 import { NetworkTable } from "@/widgets/network-table";
+import { HostPathTree } from "@/widgets/host-path-tree";
 
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup, Button } from "@/shared/ui";
 import { useDefaultLayout } from "react-resizable-panels";
@@ -11,8 +17,6 @@ import { Play, X } from "lucide-react";
 
 import { useTransactionFilters, useResizablePanelController } from "../hooks";
 import { useTransactionStore, useInterceptRuleDialogStore } from "@/shared/stores";
-import { HostPathTree } from "@/widgets/host-path-tree/ui/host-path-tree";
-import { RuleFormDialog } from "@/features/intercept-rule-form";
 
 export const NetworkDashboard = () => {
   const transactions = useTransactionStore((s) => s.transactions);
@@ -49,6 +53,29 @@ export const NetworkDashboard = () => {
   });
 
   const [sequenceReplayOpen, setSequenceReplayOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
+
+  const handleExportHar = useCallback(async () => {
+    if (filteredTransactions.length === 0 || exporting) return;
+
+    try {
+      setExporting(true);
+
+      const filePath = await save({
+        defaultPath: "traffic.har",
+        filters: [{ name: "HAR", extensions: ["har"] }],
+      });
+      if (!filePath) return;
+
+      const har = await buildHarLog(filteredTransactions);
+      const content = JSON.stringify(har, null, 2);
+      await invoke("export_har_file", { path: filePath, content });
+    } catch (err) {
+      console.error("HAR export failed:", err);
+    } finally {
+      setExporting(false);
+    }
+  }, [filteredTransactions, exporting]);
 
   const interceptRuleDialogOpen = useInterceptRuleDialogStore((s) => s.open);
   const interceptRuleInitialValues = useInterceptRuleDialogStore((s) => s.initialValues);
@@ -109,16 +136,22 @@ export const NetworkDashboard = () => {
     <>
       <div className="flex-1 flex flex-col h-full overflow-x-hidden">
         <NetworkHeader
-          filterQueryString={filterQueryString}
-          appliedQueryString={appliedQueryString}
-          filteredCount={filteredCount}
-          totalCount={totalCount}
           paused={paused}
-          transactions={filteredTransactions}
+          hasTransactions={filteredTransactions.length > 0}
+          exporting={exporting}
           togglePause={togglePause}
-          onFilterQueryChange={onFilterQueryChange}
-          onApplyFilter={onApplyFilter}
           clearTransactions={clearTransactions}
+          onExportHar={handleExportHar}
+          filterSlot={
+            <QueryFilterEditor
+              totalCount={totalCount}
+              filteredCount={filteredCount}
+              value={filterQueryString}
+              appliedValue={appliedQueryString}
+              onChange={onFilterQueryChange}
+              onApply={onApplyFilter}
+            />
+          }
         />
 
         <div className="flex-1 flex flex-col overflow-hidden relative">
