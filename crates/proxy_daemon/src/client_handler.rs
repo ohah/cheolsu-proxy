@@ -5,6 +5,7 @@ use tokio::sync::{broadcast, watch, Mutex};
 use tracing::{error, info, warn};
 
 use crate::protocol::{ClientCommand, DaemonMessage, InterceptRule, ServerReplayEntry};
+use proxyapi_v2::throttle::ThrottleConfig;
 use proxyapi_v2::upstream_proxy::UpstreamProxyConfig;
 use proxyapi_v2::websocket_registry::WebSocketRegistry;
 
@@ -14,6 +15,7 @@ pub async fn handle_client(
     intercept_tx: watch::Sender<Vec<InterceptRule>>,
     upstream_tx: watch::Sender<Option<UpstreamProxyConfig>>,
     server_replay_tx: watch::Sender<Vec<ServerReplayEntry>>,
+    throttle_tx: watch::Sender<Option<ThrottleConfig>>,
     event_tx: broadcast::Sender<String>,
     port: u16,
     ws_registry: WebSocketRegistry,
@@ -171,6 +173,13 @@ pub async fn handle_client(
                             config.as_ref().map(|c| c.address())
                         );
                         let _ = upstream_tx.send(config);
+                    }
+                    Ok(ClientCommand::UpdateThrottle { config }) => {
+                        info!(
+                            "Throttle config updated: enabled={:?}",
+                            config.as_ref().map(|c| c.enabled)
+                        );
+                        let _ = throttle_tx.send(config);
                     }
                     Ok(ClientCommand::UpdateServerReplay { entries }) => {
                         info!("Server replay entries updated: {} entries", entries.len());

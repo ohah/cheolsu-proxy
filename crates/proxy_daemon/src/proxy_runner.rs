@@ -6,6 +6,7 @@ use crate::error::DaemonError;
 use crate::handler::{LoggingHandler, WsEvent};
 use crate::protocol::{DaemonMessage, InterceptRule, ServerReplayEntry};
 use crate::tls_client::create_hybrid_client;
+use proxyapi_v2::throttle::ThrottleConfig;
 use proxyapi_v2::upstream_proxy::UpstreamProxyConfig;
 use proxyapi_v2::websocket_registry::WebSocketRegistry;
 
@@ -17,6 +18,7 @@ pub async fn run_proxy(
     mut intercept_rx: watch::Receiver<Vec<InterceptRule>>,
     upstream_rx: watch::Receiver<Option<UpstreamProxyConfig>>,
     mut server_replay_rx: watch::Receiver<Vec<ServerReplayEntry>>,
+    throttle_rx: watch::Receiver<Option<ThrottleConfig>>,
     ws_registry: WebSocketRegistry,
     script_handle: scripting::ScriptHandle,
 ) -> Result<(), DaemonError> {
@@ -89,11 +91,14 @@ pub async fn run_proxy(
         .map(|dir| dir.join("tls_passthrough.json"));
     let tls_passthrough = proxyapi_v2::tls_passthrough::TlsPassthrough::new(passthrough_path);
 
+    let throttle_rx_arc = std::sync::Arc::new(throttle_rx);
+
     let proxy_ctx = proxyapi_v2::ProxyContext {
         tunnel_event_sender: Some(tunnel_tx),
         tls_passthrough: Some(tls_passthrough),
         websocket_registry: Some(ws_registry),
         upstream_proxy: initial_upstream,
+        throttle_rx: Some(throttle_rx_arc),
         ..Default::default()
     };
 
