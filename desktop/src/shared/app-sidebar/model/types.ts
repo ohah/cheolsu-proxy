@@ -3,6 +3,7 @@ import type { MessageDescriptor } from "@lingui/core";
 
 export interface SidebarSection {
   id: string;
+  path: string;
   label: MessageDescriptor;
   icon: LucideIcon;
   description?: MessageDescriptor;

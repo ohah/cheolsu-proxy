@@ -2,7 +2,7 @@ import { memo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useLingui } from "@lingui/react";
 import { Button, Tooltip, TooltipTrigger, TooltipContent } from "@/shared/ui";
-import { SIDEBAR_SECTIONS } from "../model";
+import { SIDEBAR_SECTIONS, DEFAULT_ACTIVE_SECTION } from "../model";
 import type { SidebarSection } from "../model";
 
 interface SidebarNavigationProps {
@@ -16,65 +16,15 @@ export const SidebarNavigation = memo(({ collapsed }: SidebarNavigationProps) =>
 
   // 현재 경로를 기반으로 활성 섹션 결정
   const getActiveSection = () => {
-    switch (location.pathname) {
-      case "/":
-      case "/dashboard":
-        return "network";
-      case "/intercept-rules":
-        return "intercept-rules";
-      case "/map-rules":
-        return "map-rules";
-      case "/websocket":
-        return "websocket";
-      case "/server-replay":
-        return "server-replay";
-      case "/breakpoint":
-        return "breakpoint";
-      case "/host-mapping":
-        return "host-mapping";
-      case "/script":
-        return "script";
-      case "/settings":
-        return "settings";
-      default:
-        return "network";
-    }
+    const pathname = location.pathname === "/" ? "/dashboard" : location.pathname;
+    const matched = SIDEBAR_SECTIONS.find((s) => s.path === pathname);
+    return matched?.id ?? DEFAULT_ACTIVE_SECTION;
   };
 
   const activeSection = getActiveSection();
 
   const handleSectionClick = (section: SidebarSection) => {
-    switch (section.id) {
-      case "network":
-        navigate("/dashboard");
-        break;
-      case "intercept-rules":
-        navigate("/intercept-rules");
-        break;
-      case "map-rules":
-        navigate("/map-rules");
-        break;
-      case "websocket":
-        navigate("/websocket");
-        break;
-      case "server-replay":
-        navigate("/server-replay");
-        break;
-      case "breakpoint":
-        navigate("/breakpoint");
-        break;
-      case "host-mapping":
-        navigate("/host-mapping");
-        break;
-      case "script":
-        navigate("/script");
-        break;
-      case "settings":
-        navigate("/settings");
-        break;
-      default:
-        navigate("/dashboard");
-    }
+    navigate(section.path);
   };
 
   return (
