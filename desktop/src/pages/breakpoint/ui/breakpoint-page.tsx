@@ -3,7 +3,7 @@ import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
 import { useBreakpointStore } from "@/shared/stores";
 import { Card, CardContent, Badge, Button, Switch } from "@/shared/ui";
-import { Plus, Trash2, Eraser, Play, XCircle, Pencil, StopCircle } from "lucide-react";
+import { Plus, Trash2, Eraser, Play, XCircle, StopCircle } from "lucide-react";
 import { toast } from "sonner";
 import type { BreakpointRule, PendingBreakpoint } from "@/entities/breakpoint";
 
@@ -54,19 +54,31 @@ export const BreakpointPage = () => {
     toast.success(t`All rules cleared`);
   };
 
-  const handleForward = (bp: PendingBreakpoint) => {
-    resolveBreakpoint(bp.id, { type: "forward" });
-    toast.success(t`Breakpoint forwarded`);
+  const handleForward = async (bp: PendingBreakpoint) => {
+    try {
+      await resolveBreakpoint(bp.id, { type: "forward" });
+      toast.success(t`Breakpoint forwarded`);
+    } catch {
+      toast.error(t`Failed to forward breakpoint`);
+    }
   };
 
-  const handleDrop = (bp: PendingBreakpoint) => {
-    resolveBreakpoint(bp.id, { type: "drop" });
-    toast.success(t`Request dropped`);
+  const handleDrop = async (bp: PendingBreakpoint) => {
+    try {
+      await resolveBreakpoint(bp.id, { type: "drop" });
+      toast.success(t`Request dropped`);
+    } catch {
+      toast.error(t`Failed to drop request`);
+    }
   };
 
-  const handleAbort = (bp: PendingBreakpoint) => {
-    resolveBreakpoint(bp.id, { type: "abort" });
-    toast.success(t`Request aborted`);
+  const handleAbort = async (bp: PendingBreakpoint) => {
+    try {
+      await resolveBreakpoint(bp.id, { type: "abort" });
+      toast.success(t`Request aborted`);
+    } catch {
+      toast.error(t`Failed to abort request`);
+    }
   };
 
   return (
@@ -168,6 +180,7 @@ export const BreakpointPage = () => {
                         </span>
                       )}
                     </div>
+                    {/* TODO: modify_and_forward 액션 UI 구현 - 요청/응답 본문 편집 후 전달 기능 */}
                     <div className="flex items-center gap-1">
                       <Button
                         variant="outline"
