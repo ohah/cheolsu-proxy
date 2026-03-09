@@ -15,7 +15,7 @@ import type { ProxyEventTuple } from "@/entities/proxy";
 import type { WsMessageInfo, WsConnectionEvent } from "@/entities/websocket";
 import type { InterceptRule } from "@/entities/intercept-rule";
 import { useGlobalShortcut } from "@/features/proxy-toggle";
-import { updateDaemonRules } from "@/shared/stores/sync-rules";
+import { updateDaemonRules, waitForDaemonRules } from "@/shared/stores/sync-rules";
 
 const App: React.FC = () => {
   useGlobalShortcut();
@@ -30,9 +30,9 @@ const App: React.FC = () => {
   const setScriptStatus = useScriptStore((s) => s.setStatus);
   const addScriptLog = useScriptStore((s) => s.addLog);
 
-  // 앱 시작 시 프록시 초기화 후 저장된 인터셉트 규칙 동기화
+  // 앱 시작 시 프록시 초기화 → 데몬 규칙 수신 대기 → 저장된 규칙 동기화
   useEffect(() => {
-    initializeProxy().then(() => syncToProxy());
+    initializeProxy().then(() => waitForDaemonRules().then(() => syncToProxy()));
   }, [initializeProxy, syncToProxy]);
 
   // 프록시 이벤트를 전역적으로 수신하여 트랜잭션 store에 저장
