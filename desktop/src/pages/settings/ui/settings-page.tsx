@@ -122,7 +122,8 @@ export function SettingsPage() {
   const [throttleSaving, setThrottleSaving] = useState(false);
   const [throttleStatus, setThrottleStatus] = useState<"idle" | "saved" | "error">("idle");
 
-  const handleLocaleChange = useCallback(async (newLocale: string) => {
+  const handleLocaleChange = useCallback(async (newLocale: string | null) => {
+    if (!newLocale) return;
     const loc = newLocale as Locale;
     setLocale(loc);
     localStorage.setItem("locale", loc);
@@ -356,7 +357,12 @@ export function SettingsPage() {
               <Trans>Theme</Trans>
             </h2>
           </div>
-          <Select value={theme} onValueChange={setTheme}>
+          <Select
+            value={theme}
+            onValueChange={(v) => {
+              if (v) setTheme(v);
+            }}
+          >
             <SelectTrigger className="w-48">
               <SelectValue />
             </SelectTrigger>
@@ -464,7 +470,12 @@ export function SettingsPage() {
                 <label className="text-sm font-medium mb-1.5 block">
                   <Trans>Profile</Trans>
                 </label>
-                <Select value={throttlePreset} onValueChange={setThrottlePreset}>
+                <Select
+                  value={throttlePreset}
+                  onValueChange={(v) => {
+                    if (v) setThrottlePreset(v);
+                  }}
+                >
                   <SelectTrigger className="w-64">
                     <SelectValue />
                   </SelectTrigger>

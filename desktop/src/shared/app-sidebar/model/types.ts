@@ -1,10 +1,11 @@
 import type { LucideIcon } from "lucide-react";
+import type { MessageDescriptor } from "@lingui/core";
 
 export interface SidebarSection {
   id: string;
-  label: string;
+  label: MessageDescriptor;
   icon: LucideIcon;
-  description?: string;
+  description?: MessageDescriptor;
 }
 
 export interface SidebarCounts {
