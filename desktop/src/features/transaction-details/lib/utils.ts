@@ -1,4 +1,4 @@
-import { DataType, HttpTransaction } from "@/entities/proxy/model/types";
+import { DataType } from "@/entities/proxy/model/types";
 import { isTextBasedDataType, isBinaryDataType } from "@/entities/proxy/model/data-type";
 
 /**
@@ -197,38 +197,8 @@ export const getBodyForDisplay = (body: Uint8Array, dataType: DataType, bodyJson
   return formatBodyContent(body, dataType, bodyJson);
 };
 
-/**
- * HTTP 요청을 cURL 명령어로 변환
- */
-export const generateCurlCommand = (transaction: HttpTransaction): string => {
-  const { request } = transaction;
-
-  if (!request) {
-    return 'curl -X GET "http://localhost"';
-  }
-
-  const { method, uri, headers = {}, body, data_type } = request;
-
-  let curlCommand = `curl -X ${method.toUpperCase()}`;
-
-  // 헤더 추가
-  Object.entries(headers).forEach(([key, value]) => {
-    curlCommand += ` \\\n  -H "${key}: ${value}"`;
-  });
-
-  // 바디 추가 (텍스트 기반 데이터인 경우)
-  if (body && body.length > 0 && data_type && isTextBasedDataType(data_type)) {
-    const bodyText = uint8ArrayToString(body, data_type);
-    if (bodyText.trim()) {
-      curlCommand += ` \\\n  -d '${bodyText.replace(/'/g, "\\'")}'`;
-    }
-  }
-
-  // URL 추가
-  curlCommand += ` \\\n  "${uri}"`;
-
-  return curlCommand;
-};
+// generateCurlCommand는 shared/lib/curl.ts로 이동됨
+export { generateCurlCommand } from "@/shared/lib/curl";
 
 /**
  * URL 경로에서 파일 이름을 추출
