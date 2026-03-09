@@ -146,6 +146,19 @@ pub struct InterceptRule {
     pub action: InterceptAction,
 }
 
+/// Rewrite 대상 열거형
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+pub enum RewriteTarget {
+    #[serde(rename = "request_header")]
+    RequestHeader,
+    #[serde(rename = "response_header")]
+    ResponseHeader,
+    #[serde(rename = "request_body")]
+    RequestBody,
+    #[serde(rename = "response_body")]
+    ResponseBody,
+}
+
 /// 인터셉트 동작
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(tag = "type")]
@@ -204,8 +217,8 @@ pub enum InterceptAction {
     /// 정규식을 사용하여 요청/응답의 헤더 또는 바디를 치환 (Rewrite)
     #[serde(rename = "rewrite")]
     Rewrite {
-        /// 적용 대상: "request_header", "response_header", "request_body", "response_body"
-        target: String,
+        /// 적용 대상
+        target: RewriteTarget,
         /// 매칭할 정규식 패턴
         match_pattern: String,
         /// 치환 문자열 ($1, $2 등 캡처 그룹 지원)
@@ -584,7 +597,7 @@ impl std::fmt::Display for InterceptRule {
                 match_pattern,
                 ..
             } => {
-                format!("Rewrite({}, pattern={})", target, match_pattern)
+                format!("Rewrite({:?}, pattern={})", target, match_pattern)
             }
         };
         let method_str = self.method.as_deref().unwrap_or("*");
