@@ -889,6 +889,10 @@ impl App {
             }
             KeyCode::Backspace => {
                 self.session_load_path_input.pop();
+            }
+            _ => {}
+        }
+    }
 
     async fn handle_host_mapping_form_key(&mut self, key: KeyEvent) {
         use super::forms::HostMappingField;
