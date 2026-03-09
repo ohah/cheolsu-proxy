@@ -12,7 +12,7 @@ use crossterm::{
 use proxy_daemon::{
     diff_headers, diff_json, diff_text, format_diff_text, BodyDiff, BreakpointAction,
     BreakpointData, BreakpointPhase, BreakpointRule, ClientCommand, DaemonConnection,
-    DaemonMessage, InterceptRule, TrafficDiff, TransactionPartDiff,
+    DaemonMessage, HostMapping, InterceptRule, TrafficDiff, TransactionPartDiff,
 };
 use proxy_v2_models::{RequestInfo, WsConnectionEvent, WsMessageInfo};
 use ratatui::prelude::*;
@@ -134,6 +134,12 @@ pub struct App {
     // Throttle
     pub throttle_form: ThrottleForm,
 
+    // Host Mapping
+    pub host_mappings: Vec<HostMapping>,
+    pub selected_host_mapping: Option<usize>,
+    pub host_mapping_form: Option<HostMappingForm>,
+    pub host_mapping_table_state: TableState,
+
     // CA Certificate
     pub ca_cert_installed: bool,
     pub ca_cert_path: Option<String>,
@@ -198,6 +204,10 @@ impl App {
             settings_section: SettingsSection::UpstreamProxy,
             upstream_form: UpstreamProxyForm::new(),
             throttle_form: ThrottleForm::new(),
+            host_mappings: Vec::new(),
+            selected_host_mapping: None,
+            host_mapping_form: None,
+            host_mapping_table_state: TableState::default(),
             ca_cert_installed: false,
             ca_cert_path: None,
             local_ips: proxy_daemon::get_local_ips(),
@@ -237,6 +247,8 @@ impl App {
             self.rules_table_state.select(self.selected_rule);
             self.bp_rules_table_state.select(self.selected_bp_rule);
             self.bp_pending_table_state.select(self.selected_pending_bp);
+            self.host_mapping_table_state
+                .select(self.selected_host_mapping);
 
             terminal.draw(|f| ui::draw(f, self))?;
 
@@ -335,6 +347,9 @@ impl App {
             },
             DaemonMessage::InterceptRulesUpdated { rules } => {
                 self.rules = rules;
+            }
+            DaemonMessage::HostMappingsUpdated { mappings } => {
+                self.host_mappings = mappings;
             }
             DaemonMessage::ScriptLog { level, message } => {
                 self.script_logs.push(ScriptLogEntry {
@@ -784,6 +799,17 @@ impl App {
             Err(e) => {
                 self.set_status(&format!("Session load failed: {}", e));
             }
+        }
+    }
+
+    async fn send_host_mappings_update(&mut self) {
+        if let Some(conn) = &self.conn {
+            let cmd = ClientCommand::UpdateHostMappings {
+                mappings: self.host_mappings.clone(),
+            };
+            let _ = conn.send_command(&cmd).await;
+            let count = self.host_mappings.len();
+            self.set_status(&format!("Host mappings: {} entries", count));
         }
     }
 }

@@ -9,6 +9,7 @@ import {
   useMapRuleStore,
   useScriptStore,
   useBreakpointStore,
+  useHostMappingStore,
 } from "@/shared/stores";
 import { trayStore } from "@/shared/stores/tray-sync-store";
 import { listen } from "@tauri-apps/api/event";
@@ -16,6 +17,7 @@ import type { ProxyEventTuple } from "@/entities/proxy";
 import type { WsMessageInfo, WsConnectionEvent } from "@/entities/websocket";
 import type { InterceptRule } from "@/entities/intercept-rule";
 import type { BreakpointRule, PendingBreakpoint } from "@/entities/breakpoint";
+import type { HostMapping } from "@/shared/api/proxy";
 import { useGlobalShortcut } from "@/features/proxy-toggle";
 import { updateDaemonRules, waitForDaemonRules } from "@/shared/stores/sync-rules";
 
@@ -33,6 +35,7 @@ const App: React.FC = () => {
   const addScriptLog = useScriptStore((s) => s.addLog);
   const setBreakpointRules = useBreakpointStore((s) => s.setRules);
   const addPendingBreakpoint = useBreakpointStore((s) => s.addPendingBreakpoint);
+  const setHostMappings = useHostMappingStore((s) => s.setMappings);
 
   // 앱 시작 시 프록시 초기화 → 데몬 규칙 수신 대기 → 저장된 규칙 동기화
   useEffect(() => {
@@ -126,6 +129,17 @@ const App: React.FC = () => {
       unlistenHit.then((f) => f());
     };
   }, [setBreakpointRules, addPendingBreakpoint]);
+
+  // 데몬에서 호스트 매핑 변경 수신
+  useEffect(() => {
+    const unlisten = listen<HostMapping[]>("host_mappings_updated", (event) => {
+      setHostMappings(event.payload);
+    });
+
+    return () => {
+      unlisten.then((f) => f());
+    };
+  }, [setHostMappings]);
 
   // 트레이 ↔ 메인 윈도우 양방향 동기화 (Tauri Store)
   const clearTransactions = useTransactionStore((s) => s.clearTransactions);

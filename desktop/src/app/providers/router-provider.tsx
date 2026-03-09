@@ -11,6 +11,7 @@ import { SettingsPage } from "@/pages/settings";
 import { ServerReplayPage } from "@/pages/server-replay";
 import { ScriptPage } from "@/pages/script";
 import { BreakpointPage } from "@/pages/breakpoint";
+import { HostMappingPage } from "@/pages/host-mapping";
 import { AppSidebar } from "@/shared/app-sidebar";
 
 function RootLayout() {
@@ -57,6 +58,10 @@ export const router = createBrowserRouter([
       {
         path: "/breakpoint",
         element: <BreakpointPage />,
+      },
+      {
+        path: "/host-mapping",
+        element: <HostMappingPage />,
       },
       {
         path: "/settings",
