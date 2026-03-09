@@ -250,7 +250,7 @@ msgstr "Clear all"
 msgid "Clear All"
 msgstr "Clear All"
 
-#: src/widgets/network-header/ui/network-controls.tsx:40
+#: src/widgets/network-header/ui/network-controls.tsx:46
 msgid "Clear all transactions"
 msgstr "Clear all transactions"
 
@@ -393,7 +393,7 @@ msgstr "Expand"
 msgid "Expand sidebar"
 msgstr "Expand sidebar"
 
-#: src/widgets/network-header/ui/network-controls.tsx:50
+#: src/widgets/network-header/ui/network-controls.tsx:74
 msgid "Export HAR"
 msgstr "Export HAR"
 
@@ -499,6 +499,10 @@ msgstr "Host Tree"
 msgid "HTTP requests and responses"
 msgstr "HTTP requests and responses"
 
+#: src/widgets/network-header/ui/network-controls.tsx:79
+msgid "Import HAR"
+msgstr "Import HAR"
+
 #: src/pages/script/ui/script-page.tsx:170
 msgid "Inactive"
 msgstr "Inactive"
@@ -570,6 +574,10 @@ msgstr "Load a script file from disk. The file will be watched for changes and a
 #: src/shared/app-sidebar/model/consts.ts:58
 msgid "Load and manage proxy scripts"
 msgstr "Load and manage proxy scripts"
+
+#: src/widgets/network-header/ui/network-controls.tsx:63
+msgid "Load Session"
+msgstr "Load Session"
 
 #: src/pages/script/ui/script-page.tsx:214
 #: src/pages/script/ui/script-page.tsx:266
@@ -785,7 +793,7 @@ msgstr "Pause and inspect HTTP requests/responses in real-time"
 msgid "Pause and inspect requests/responses"
 msgstr "Pause and inspect requests/responses"
 
-#: src/widgets/network-header/ui/network-controls.tsx:31
+#: src/widgets/network-header/ui/network-controls.tsx:37
 msgid "Pause recording"
 msgstr "Pause recording"
 
@@ -924,7 +932,7 @@ msgstr "Response Headers"
 msgid "Response Status Code"
 msgstr "Response Status Code"
 
-#: src/widgets/network-header/ui/network-controls.tsx:31
+#: src/widgets/network-header/ui/network-controls.tsx:37
 msgid "Resume recording"
 msgstr "Resume recording"
 
@@ -976,6 +984,10 @@ msgstr "Run"
 #: src/pages/settings/ui/settings-page.tsx:1081
 msgid "Save"
 msgstr "Save"
+
+#: src/widgets/network-header/ui/network-controls.tsx:58
+msgid "Save Session"
+msgstr "Save Session"
 
 #: src/pages/settings/ui/settings-page.tsx:879
 #: src/pages/settings/ui/settings-page.tsx:977
