@@ -1,7 +1,9 @@
-import { Download, FolderOpen, Pause, Play, Save, Trash2, Upload } from "lucide-react";
+import { useState } from "react";
+import { Download, FolderOpen, Pause, PenLine, Play, Save, Trash2, Upload } from "lucide-react";
 import { useLingui } from "@lingui/react/macro";
 
 import { Button } from "@/shared/ui";
+import { ReplayDialog } from "@/features/transaction-details/ui/replay-dialog";
 
 interface NetworkControlsProps {
   paused: boolean;
@@ -27,6 +29,7 @@ export const NetworkControls = ({
   onImportHar,
 }: NetworkControlsProps) => {
   const { t } = useLingui();
+  const [composeOpen, setComposeOpen] = useState(false);
 
   return (
     <div className="flex items-center gap-2">
@@ -47,6 +50,18 @@ export const NetworkControls = ({
       >
         <Trash2 className="w-4 h-4" />
       </Button>
+
+      <div className="w-px h-5 bg-border" />
+
+      <Button
+        size="sm"
+        variant="outline"
+        onClick={() => setComposeOpen(true)}
+        title={t`Compose request`}
+      >
+        <PenLine className="w-4 h-4" />
+      </Button>
+      <ReplayDialog open={composeOpen} onOpenChange={setComposeOpen} hideTrigger />
 
       <div className="w-px h-5 bg-border" />
 
