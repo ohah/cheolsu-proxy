@@ -20,6 +20,7 @@ Rust-based **Man in the Middle proxy** for inspecting and manipulating HTTP/HTTP
 ## Features
 
 ### Core
+
 - HTTP / HTTPS traffic interception
 - WebSocket capture and message injection
 - TLS 1.0/1.1 legacy client support (hybrid TLS handler)
@@ -28,16 +29,19 @@ Rust-based **Man in the Middle proxy** for inspecting and manipulating HTTP/HTTP
 - Network throttling (bandwidth limiting)
 
 ### Traffic Manipulation
+
 - **Intercept Rules** — Block, modify request/response, map to local file, or redirect to remote URL
 - **Server Replay** — Save captured responses and auto-replay on matching requests
 - **Request Replay** — Re-send individual or sequential requests
 - **Scripting** — TypeScript-based request/response/WebSocket manipulation (Deno Core / V8)
 
 ### Filtering & Export
+
 - **Cheolsu-Query** — Dedicated query language for traffic filtering (method, status, URL with logical operators)
 - **HAR Export** — Export traffic in HTTP Archive format
 
 ### Interface
+
 - GUI desktop app (Tauri + React)
 - TUI terminal interface (Ratatui)
 - CLI headless mode
@@ -47,6 +51,7 @@ Rust-based **Man in the Middle proxy** for inspecting and manipulating HTTP/HTTP
 - Global keyboard shortcuts
 
 ### Security
+
 - Auto-generated unique CA certificate per user (private key is never bundled in the binary)
 
 ## Getting Started
@@ -174,12 +179,12 @@ Run the proxy without the GUI:
 bun tauri dev -- -- --headless --port 8100
 ```
 
-| Option          | Short | Description                              |
-| --------------- | ----- | ---------------------------------------- |
-| `--headless`    | `-H`  | Run proxy without GUI                    |
-| `--port <PORT>` | `-p`  | Proxy listen port (default: 8100)        |
-| `--host <HOST>` | `-b`  | Proxy listen host (default: 127.0.0.1)   |
-| `--verbose`     | `-v`  | Enable verbose logging                   |
+| Option          | Short | Description                            |
+| --------------- | ----- | -------------------------------------- |
+| `--headless`    | `-H`  | Run proxy without GUI                  |
+| `--port <PORT>` | `-p`  | Proxy listen port (default: 8100)      |
+| `--host <HOST>` | `-b`  | Proxy listen host (default: 127.0.0.1) |
+| `--verbose`     | `-v`  | Enable verbose logging                 |
 
 ### 5. Testing
 
