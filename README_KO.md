@@ -20,6 +20,7 @@ Rust 기반 **Man in the Middle 프록시**로, HTTP/HTTPS/WebSocket 트래픽�
 ## 기능
 
 ### 핵심
+
 - HTTP / HTTPS 트래픽 가로채기
 - WebSocket 캡처 및 메시지 인젝션
 - TLS 1.0/1.1 레거시 클라이언트 지원 (하이브리드 TLS 핸들러)
@@ -28,16 +29,19 @@ Rust 기반 **Man in the Middle 프록시**로, HTTP/HTTPS/WebSocket 트래픽�
 - 네트워크 대역폭 제어 (Throttling)
 
 ### 트래픽 조작
+
 - **인터셉트 규칙** — 요청 차단, 요청/응답 수정, 로컬 파일 매핑, 원격 URL 리다이렉트
 - **서버 리플레이** — 캡처된 응답을 저장하고 동일 요청 시 자동 반환
 - **요청 리플레이** — 개별 또는 순차적 요청 재전송
 - **스크립팅** — TypeScript 기반 요청/응답/WebSocket 조작 (Deno Core / V8)
 
 ### 필터링 및 내보내기
+
 - **Cheolsu-Query** — 트래픽 필터링 전용 쿼리 언어 (method, status, URL + 논리 연산자)
 - **HAR 내보내기** — HTTP Archive 형식으로 트래픽 내보내기
 
 ### 인터페이스
+
 - GUI 데스크톱 앱 (Tauri + React)
 - TUI 터미널 인터페이스 (Ratatui)
 - CLI headless 모드
@@ -47,6 +51,7 @@ Rust 기반 **Man in the Middle 프록시**로, HTTP/HTTPS/WebSocket 트래픽�
 - 글로벌 단축키
 
 ### 보안
+
 - 사용자별 고유 CA 인증서 자동 생성 (개인키는 바이너리에 포함되지 않음)
 
 ## 시작하기
