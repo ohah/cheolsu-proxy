@@ -830,6 +830,108 @@ pub fn uninstall_ca_cert() -> Result<String, String> {
     }
 }
 
+/// 인증서 다운로드 정보 (URL + QR 코드)
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct CertDownloadInfo {
+    /// 프록시 포트
+    pub port: u16,
+    /// 로컬 네트워크 IP 주소 목록
+    pub local_ips: Vec<String>,
+    /// 인증서 다운로드 URL (http://cheolsu.proxy/ssl)
+    pub download_url: String,
+    /// 직접 접속 가능한 URL (http://{ip}:{port} 경유 필요)
+    pub direct_url: String,
+    /// QR 코드 PNG 이미지 (base64 인코딩)
+    pub qr_code_base64: String,
+}
+
+/// 로컬 네트워크 IP 주소 목록을 반환합니다.
+fn get_local_ips() -> Vec<String> {
+    let mut ips = Vec::new();
+
+    // 소켓을 통해 기본 네트워크 인터페이스의 IP를 알아냄
+    if let Ok(socket) = std::net::UdpSocket::bind("0.0.0.0:0") {
+        // 실제로 연결하지는 않고, 라우팅 테이블을 참조해 로컬 IP를 얻음
+        if socket.connect("8.8.8.8:80").is_ok() {
+            if let Ok(local_addr) = socket.local_addr() {
+                let ip = local_addr.ip().to_string();
+                if ip != "0.0.0.0" && !ips.contains(&ip) {
+                    ips.push(ip);
+                }
+            }
+        }
+    }
+
+    // ifconfig 명령어로 추가 IP 수집 (macOS/Linux)
+    #[cfg(unix)]
+    {
+        if let Ok(output) = std::process::Command::new("ifconfig").output() {
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            for line in stdout.lines() {
+                let line = line.trim();
+                if line.starts_with("inet ") && !line.contains("127.0.0.1") {
+                    if let Some(ip) = line.split_whitespace().nth(1) {
+                        let ip = ip.to_string();
+                        if !ips.contains(&ip) {
+                            ips.push(ip);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    ips
+}
+
+/// QR 코드를 PNG base64 문자열로 생성합니다.
+fn generate_qr_code_base64(data: &str) -> Result<String, String> {
+    use image::Luma;
+    use qrcode::QrCode;
+
+    let code = QrCode::new(data.as_bytes()).map_err(|e| format!("QR 코드 생성 실패: {}", e))?;
+
+    let image = code.render::<Luma<u8>>().quiet_zone(true).build();
+
+    let mut png_bytes = Vec::new();
+    let mut cursor = std::io::Cursor::new(&mut png_bytes);
+    image
+        .write_to(&mut cursor, image::ImageFormat::Png)
+        .map_err(|e| format!("PNG 인코딩 실패: {}", e))?;
+
+    use base64::Engine;
+    Ok(base64::engine::general_purpose::STANDARD.encode(&png_bytes))
+}
+
+/// 외부 기기용 인증서 다운로드 정보를 반환합니다.
+/// QR 코드에는 프록시 경유 인증서 다운로드 URL이 포함됩니다.
+#[tauri::command]
+pub fn get_cert_download_info(port: u16) -> Result<CertDownloadInfo, String> {
+    let local_ips = get_local_ips();
+    let download_url = "http://cheolsu.proxy/ssl".to_string();
+
+    let primary_ip = local_ips
+        .first()
+        .cloned()
+        .unwrap_or("127.0.0.1".to_string());
+    let direct_url = format!("http://cheolsu.proxy/ssl (proxy: {}:{})", primary_ip, port);
+
+    // QR 코드에는 안내 텍스트를 포함
+    let qr_content = format!(
+        "PROXY:{}:{}\nURL:http://cheolsu.proxy/ssl",
+        primary_ip, port
+    );
+    let qr_code_base64 = generate_qr_code_base64(&qr_content)?;
+
+    Ok(CertDownloadInfo {
+        port,
+        local_ips,
+        download_url,
+        direct_url,
+        qr_code_base64,
+    })
+}
+
 /// HAR 파일 내보내기 (지정된 경로에 JSON 문자열 저장)
 #[tauri::command]
 pub async fn export_har_file(path: String, content: String) -> Result<(), String> {
