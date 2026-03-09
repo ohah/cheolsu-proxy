@@ -13,7 +13,7 @@ pub(crate) mod pattern_utils;
 pub mod protocol;
 pub mod proxy_runner;
 pub mod script_bridge;
-pub mod session;
+pub(crate) mod session;
 pub mod system_proxy;
 pub mod tls_client;
 
@@ -35,5 +35,7 @@ pub use protocol::{
 pub use proxyapi_v2::certificate_authority::{clean_all_cache, clean_old_cache};
 pub use proxyapi_v2::throttle::{ThrottleConfig, ThrottlePreset};
 pub use proxyapi_v2::upstream_proxy::{UpstreamProxyAuth, UpstreamProxyConfig};
-pub use session::{import_har, import_har_file, SessionFile, SessionMetadata, SessionTransaction};
+pub use session::{
+    ensure_extension, import_har, import_har_file, SessionFile, SessionMetadata, SessionTransaction,
+};
 pub use system_proxy::{get_proxy_status, set_proxy, ProxyStatus};

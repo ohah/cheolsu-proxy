@@ -67,6 +67,8 @@ impl CheolsuMcpServer {
         let txns = self.store.transactions.lock();
         let limit = p.limit.unwrap_or(50);
 
+        // RequestInfo is a tuple struct: RequestInfo(Option<ClientRequest>, Option<ClientResponse>)
+        // Access via .0 (request) and .1 (response) as no named accessor methods are defined.
         let results: Vec<String> = txns
             .iter()
             .rev()
@@ -765,7 +767,7 @@ impl CheolsuMcpServer {
         &self,
         Parameters(p): Parameters<SaveSessionParams>,
     ) -> Result<CallToolResult, McpError> {
-        let path = proxy_daemon::session::ensure_extension(&p.path);
+        let path = proxy_daemon::ensure_extension(&p.path);
 
         let transactions: Vec<proxy_v2_models::RequestInfo> = {
             let txns = self.store.transactions.lock();

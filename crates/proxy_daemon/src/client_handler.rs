@@ -312,8 +312,8 @@ pub async fn handle_client(
                             "SaveSession command received: path={}, filter={:?}",
                             path, filter
                         );
-                        // SaveSession is handled by MCP server / TUI client directly.
-                        // Broadcast the command so connected clients can handle it.
+                        // NOTE: SaveSession/LoadSession are primarily handled by MCP server directly.
+                        // This handler sends an acknowledgment message but does not perform the actual save/load.
                         let msg = DaemonMessage::SessionSaved {
                             path: path.clone(),
                             transaction_count: 0,
@@ -326,6 +326,8 @@ pub async fn handle_client(
                     }
                     Ok(ClientCommand::LoadSession { path }) => {
                         info!("LoadSession command received: path={}", path);
+                        // NOTE: SaveSession/LoadSession are primarily handled by MCP server directly.
+                        // This handler sends an acknowledgment message but does not perform the actual save/load.
                         let msg = DaemonMessage::SessionLoaded {
                             path: path.clone(),
                             transaction_count: 0,
