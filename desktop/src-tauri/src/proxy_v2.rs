@@ -1,8 +1,8 @@
 use proxy_daemon::{
     clean_old_cache, diff_headers, diff_json, diff_text, get_local_ips, is_text_data_type,
     BodyDiff, BreakpointAction, BreakpointRule, ClientCommand, DaemonConnection, DaemonMessage,
-    InterceptRule, ServerReplayEntry, ThrottleConfig, TrafficDiff, TransactionPartDiff,
-    UpstreamProxyConfig,
+    HostMapping, InterceptRule, ServerReplayEntry, ThrottleConfig, TrafficDiff,
+    TransactionPartDiff, UpstreamProxyConfig,
 };
 use std::collections::HashMap;
 use std::net::SocketAddr;
@@ -93,6 +93,9 @@ pub async fn start_proxy_v2<R: Runtime>(
                 "breakpoint_hit",
                 serde_json::json!({ "id": id, "transaction_id": transaction_id, "phase": phase, "data": data }),
             );
+        }
+        DaemonMessage::HostMappingsUpdated { mappings } => {
+            let _ = app_clone.emit("host_mappings_updated", mappings);
         }
         _ => {}
     })
@@ -533,6 +536,25 @@ pub async fn update_server_replay(
         let cmd = ClientCommand::UpdateServerReplay { entries };
         conn.send_command(&cmd).await?;
         tracing::info!("Daemon에 서버 리플레이 엔트리 업데이트 완료");
+    } else {
+        return Err("프록시가 실행 중이 아닙니다".to_string());
+    }
+
+    Ok(())
+}
+
+/// 호스트 매핑 업데이트
+#[tauri::command]
+pub async fn update_host_mappings(
+    proxy: State<'_, ProxyV2State>,
+    mappings: Vec<HostMapping>,
+) -> Result<(), String> {
+    let proxy_guard = proxy.lock().await;
+
+    if let Some(conn) = proxy_guard.as_ref() {
+        let cmd = ClientCommand::UpdateHostMappings { mappings };
+        conn.send_command(&cmd).await?;
+        tracing::info!("Daemon에 호스트 매핑 업데이트 완료");
     } else {
         return Err("프록시가 실행 중이 아닙니다".to_string());
     }
