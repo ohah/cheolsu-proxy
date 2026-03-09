@@ -475,11 +475,11 @@ Phase 3: 거대 함수 분해 (Phase 2 완료 후)
   └── 3-3. handle_message/request/response 분해
   │
   ▼
-Phase 4: 구조체 분리 (Phase 3 완료 후)
+Phase 4: 구조체 분리 (Phase 3 완료 후) ✅ 완료
   │
-  ├── 4-1. LoggingHandler 책임 분리
-  ├── 4-2. mcp_server 모듈 분리
-  └── 4-3. data_type.rs 모듈 분리
+  ├── 4-1. LoggingHandler 책임 분리 ✅ (HttpState, InterceptEngine, WebSocketState)
+  ├── 4-2. mcp_server 모듈 분리 ✅ (store.rs, params.rs, helpers.rs, connection.rs)
+  └── 4-3. data_type.rs 모듈 분리 ✅ (data_type/mod.rs, detection.rs, decompression.rs)
   │
   ▼
 Phase 5: 동시성 개선 (Phase 4와 병행 가능)
