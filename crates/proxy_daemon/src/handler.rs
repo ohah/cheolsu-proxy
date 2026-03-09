@@ -378,166 +378,269 @@ a:hover{background:#1d4ed8}</style></head>
 
         None
     }
-}
 
-impl HttpHandler for LoggingHandler {
-    async fn handle_request(
-        &mut self,
-        _ctx: &HttpContext,
-        mut req: Request<Body>,
-    ) -> RequestOrResponse {
-        // cheolsu.proxy 호스트 요청 인터셉트: CA 인증서 다운로드 제공
+    /// WebSocketContext에서 방향과 connection_id를 추출합니다.
+    fn extract_ws_direction(ctx: &WebSocketContext) -> (WsDirection, String) {
+        match ctx {
+            WebSocketContext::ClientToServer { dst, .. } => {
+                (WsDirection::ClientToServer, dst.to_string())
+            }
+            WebSocketContext::ServerToClient { src, .. } => {
+                (WsDirection::ServerToClient, src.to_string())
+            }
+        }
+    }
+
+    /// WebSocket 메시지를 (message_type, payload, size, is_binary) 튜플로 변환합니다.
+    /// Message::Frame은 None을 반환합니다.
+    fn convert_ws_message_payload(msg: &Message) -> Option<(WsMessageType, String, usize, bool)> {
+        match msg {
+            Message::Text(text) => Some((WsMessageType::Text, text.to_string(), text.len(), false)),
+            Message::Binary(data) => {
+                use base64::Engine;
+                let encoded = base64::engine::general_purpose::STANDARD.encode(data);
+                Some((WsMessageType::Binary, encoded, data.len(), true))
+            }
+            Message::Ping(data) => Some((
+                WsMessageType::Ping,
+                format!("{} bytes", data.len()),
+                data.len(),
+                true,
+            )),
+            Message::Pong(data) => Some((
+                WsMessageType::Pong,
+                format!("{} bytes", data.len()),
+                data.len(),
+                true,
+            )),
+            Message::Close(frame) => {
+                let payload = frame
+                    .as_ref()
+                    .map(|f| format!("{}: {}", f.code, f.reason))
+                    .unwrap_or_default();
+                let size = payload.len();
+                Some((WsMessageType::Close, payload, size, false))
+            }
+            Message::Frame(_) => None,
+        }
+    }
+
+    /// Text/Binary 메시지에 대해 스크립트 onWebSocketMessage 훅을 적용합니다.
+    /// Drop이면 None 반환, Forward/Modify면 (변경된 msg, payload, is_binary) 반환.
+    async fn apply_ws_script_hook(
+        &self,
+        ctx: &WebSocketContext,
+        msg: Message,
+        connection_id: &str,
+        message_type: WsMessageType,
+        payload: String,
+        is_binary: bool,
+    ) -> Option<(Message, String, bool)> {
+        if !matches!(message_type, WsMessageType::Text | WsMessageType::Binary) {
+            return Some((msg, payload, is_binary));
+        }
+
+        let script_direction = match ctx {
+            WebSocketContext::ClientToServer { .. } => scripting::WsDirection::ToServer,
+            WebSocketContext::ServerToClient { .. } => scripting::WsDirection::ToClient,
+        };
+        let url = match ctx {
+            WebSocketContext::ClientToServer { dst, .. } => dst.to_string(),
+            WebSocketContext::ServerToClient { src, .. } => src.to_string(),
+        };
+        let script_msg = scripting::ScriptWsMessage {
+            connection_id: connection_id.to_string(),
+            url,
+            direction: script_direction,
+            payload: payload.clone(),
+            is_binary,
+        };
+        match self.script_handle.invoke_on_ws_message(&script_msg).await {
+            Ok(scripting::WsAction::Forward) => Some((msg, payload, is_binary)),
+            Ok(scripting::WsAction::Modify {
+                payload: new_payload,
+                is_binary: new_is_binary,
+            }) => {
+                let new_msg = if new_is_binary {
+                    use base64::Engine;
+                    match base64::engine::general_purpose::STANDARD.decode(&new_payload) {
+                        Ok(data) => Message::Binary(data.into()),
+                        Err(_) => Message::Text(new_payload.clone().into()),
+                    }
+                } else {
+                    Message::Text(new_payload.clone().into())
+                };
+                Some((new_msg, new_payload, new_is_binary))
+            }
+            Ok(scripting::WsAction::Drop) => None,
+            Err(e) => {
+                error!("[Script] onWebSocketMessage 오류: {}", e);
+                Some((msg, payload, is_binary))
+            }
+        }
+    }
+
+    /// WebSocket 이벤트를 생성하여 ws_sender로 전송합니다.
+    fn emit_ws_event(
+        &self,
+        connection_id: String,
+        direction: WsDirection,
+        message_type: WsMessageType,
+        payload: String,
+        size: usize,
+        is_binary: bool,
+    ) {
+        let Some(ws_sender) = &self.ws_sender else {
+            return;
+        };
+
+        let sequence = self
+            .ws_sequence
+            .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+
+        let content_type = proxy_v2_models::detect_ws_content_type(&payload, is_binary);
+
+        let mqtt_version = if content_type == proxy_v2_models::WsContentType::Mqtt {
+            if let Some(ver) = proxy_v2_models::extract_mqtt_version_from_connect(&payload) {
+                self.mqtt_versions.lock().insert(connection_id.clone(), ver);
+                Some(ver)
+            } else {
+                self.mqtt_versions.lock().get(&connection_id).copied()
+            }
+        } else {
+            None
+        };
+
+        let info = WsMessageInfo {
+            connection_id,
+            sequence,
+            direction,
+            message_type,
+            payload,
+            size,
+            time: chrono::Local::now()
+                .timestamp_nanos_opt()
+                .unwrap_or_default(),
+            is_binary,
+            content_type,
+            mqtt_version,
+        };
+
+        let _ = ws_sender.try_send(WsEvent::Message(info));
+    }
+
+    /// 요청이 cheolsu.proxy 호스트를 향하는지 확인하고, 맞으면 인증서 다운로드 응답을 반환합니다.
+    fn check_cert_download_intercept(&self, req: &Request<Body>) -> Option<Response<Body>> {
         if let Some(host) = req.headers().get("host").and_then(|v| v.to_str().ok()) {
             if host == CERT_DOWNLOAD_HOST || host.starts_with(CERT_DOWNLOAD_HOST_COLON) {
-                return self.serve_ca_cert_download(&req).into();
+                return Some(self.serve_ca_cert_download(req));
             }
         }
-        // URI에서도 호스트 확인 (절대 URI 형식)
         if let Some(host) = req.uri().host() {
             if host == CERT_DOWNLOAD_HOST {
-                return self.serve_ca_cert_download(&req).into();
+                return Some(self.serve_ca_cert_download(req));
             }
         }
-        // 직접 IP 접속: URI가 상대 경로이고 /ssl 또는 /cert 경로인 경우 인증서 제공
         if req.uri().host().is_none() {
             let path = req.uri().path();
             if path == "/ssl" || path == "/cert" {
-                return self.serve_ca_cert_download(&req).into();
+                return Some(self.serve_ca_cert_download(req));
             }
         }
+        None
+    }
 
-        if req
-            .headers()
-            .get(proxyapi_v2::hyper::header::UPGRADE)
-            .and_then(|v| v.to_str().ok())
-            .map_or(false, |s| s.to_lowercase() == "websocket")
-        {
-            req.headers_mut()
-                .remove(proxyapi_v2::hyper::header::SEC_WEBSOCKET_EXTENSIONS);
+    /// 서버 리플레이 매칭을 확인하고, 매칭되면 응답을 생성합니다.
+    async fn check_server_replay(&self, url: &str, method: &str) -> Option<Response<Body>> {
+        let entry = self.find_server_replay_match(url, method).await?;
+        info!(
+            "[ServerReplay] 매칭: {} {} -> status {} (id: {})",
+            method, url, entry.status, entry.id
+        );
+        let mut response = Response::builder()
+            .status(StatusCode::from_u16(entry.status).unwrap_or(StatusCode::OK))
+            .header("x-cheolsu-server-replay", "true")
+            .header("x-cheolsu-server-replay-id", &entry.id);
+
+        for (name, value) in &entry.headers {
+            response = response.header(name.as_str(), value.as_str());
         }
 
-        let (proxied_request, restored_req) = self.request_to_proxied_request(req).await;
-
-        if restored_req.method() == Method::CONNECT || proxied_request.method() == "CONNECT" {
-            return restored_req.into();
-        }
-
-        self.req = Some(proxied_request.clone());
-
-        let url = proxied_request.uri().to_string();
-        let method = proxied_request.method().to_string();
-
-        // 서버 리플레이 매칭 확인 (인터셉트보다 우선)
-        if let Some(entry) = self.find_server_replay_match(&url, &method).await {
-            info!(
-                "[ServerReplay] 매칭: {} {} -> status {} (id: {})",
-                method, url, entry.status, entry.id
-            );
-            let mut response = Response::builder()
-                .status(StatusCode::from_u16(entry.status).unwrap_or(StatusCode::OK))
-                .header("x-cheolsu-server-replay", "true")
-                .header("x-cheolsu-server-replay-id", &entry.id);
-
-            for (name, value) in &entry.headers {
-                response = response.header(name.as_str(), value.as_str());
-            }
-
-            let body_bytes = entry.body.unwrap_or_default();
-            let res = response
+        let body_bytes = entry.body.unwrap_or_default();
+        Some(
+            response
                 .body(Body::from(body_bytes))
-                .unwrap_or_else(|_| Response::new(Body::empty()));
-            self.send_output().await;
-            return res.into();
-        }
+                .unwrap_or_else(|_| Response::new(Body::empty())),
+        )
+    }
 
-        // 스크립트 훅 적용 (인터셉트 규칙보다 먼저)
-        let script_req = Self::to_script_request(&proxied_request);
-        let restored_req = match self.script_handle.invoke_on_request(&script_req).await {
-            Ok(scripting::RequestAction::Forward) => restored_req,
+    /// 스크립트 on_request 훅을 적용합니다.
+    /// Respond이면 Err(Response) 반환, Forward/Modify이면 Ok(Request) 반환.
+    async fn apply_script_on_request(
+        &self,
+        req: Request<Body>,
+        proxied_request: &ProxiedRequest,
+        method: &str,
+        url: &str,
+    ) -> Result<Request<Body>, Response<Body>> {
+        let script_req = Self::to_script_request(proxied_request);
+        match self.script_handle.invoke_on_request(&script_req).await {
+            Ok(scripting::RequestAction::Forward) => Ok(req),
             Ok(scripting::RequestAction::ModifyRequest { request: modified }) => {
                 info!("[Script] 요청 수정: {} {}", method, url);
-                Self::apply_script_request_modify(restored_req, &modified)
+                Ok(Self::apply_script_request_modify(req, &modified))
             }
             Ok(scripting::RequestAction::Respond { response }) => {
                 info!(
                     "[Script] 요청 차단: {} {} -> {}",
                     method, url, response.status
                 );
-                let res = Self::build_script_response(&response);
-                self.send_output().await;
-                return res.into();
+                Err(Self::build_script_response(&response))
             }
             Err(e) => {
                 error!("[Script] onRequest 오류: {}", e);
-                restored_req
+                Ok(req)
             }
-        };
-
-        // 인터셉트 규칙 적용 (차단, 요청 수정)
-        let result = self
-            .apply_request_intercept(restored_req, &url, &method)
-            .await;
-
-        // 차단된 경우 로깅 출력
-        if let RequestOrResponse::Response(_) = &result {
-            self.send_output().await;
         }
-
-        result
     }
 
-    async fn handle_response(&mut self, _ctx: &HttpContext, res: Response<Body>) -> Response<Body> {
-        if res.status() == StatusCode::SWITCHING_PROTOCOLS {
-            return res;
-        }
-
-        // 인터셉트 규칙으로 응답 수정
-        let res = if let Some(req) = &self.req {
+    /// 인터셉트 규칙으로 응답을 수정합니다.
+    async fn apply_response_intercept_if_needed(&self, res: Response<Body>) -> Response<Body> {
+        if let Some(req) = &self.req {
             let url = req.uri().to_string();
             let method = req.method().to_string();
             self.apply_response_intercept(res, &url, &method).await
         } else {
             res
-        };
-
-        // 스크립트 훅으로 응답 수정
-        let res = if let Some(req) = &self.req {
-            let script_req = Self::to_script_request(req);
-            let script_res = Self::to_script_response_from_hyper(&res);
-            match self
-                .script_handle
-                .invoke_on_response(&script_req, &script_res)
-                .await
-            {
-                Ok(scripting::ResponseAction::Forward) => res,
-                Ok(scripting::ResponseAction::ModifyResponse { response: modified }) => {
-                    info!("[Script] 응답 수정: {}", req.uri());
-                    Self::apply_script_response_modify(res, &modified)
-                }
-                Err(e) => {
-                    error!("[Script] onResponse 오류: {}", e);
-                    res
-                }
-            }
-        } else {
-            res
-        };
-
-        let is_sse = res
-            .headers()
-            .get(proxyapi_v2::hyper::header::CONTENT_TYPE)
-            .map_or(false, |v| {
-                v.to_str().unwrap_or("").contains("text/event-stream")
-            });
-
-        if !is_sse {
-            let (proxied_response, restored_res) = self.response_to_proxied_response(res).await;
-            self.res = Some(proxied_response);
-            self.send_output().await;
-            return restored_res;
         }
+    }
 
-        // --- SSE 스트리밍 처리 로직 ---
+    /// 스크립트 on_response 훅을 적용합니다.
+    async fn apply_script_on_response(&self, res: Response<Body>) -> Response<Body> {
+        let Some(req) = &self.req else {
+            return res;
+        };
+        let script_req = Self::to_script_request(req);
+        let script_res = Self::to_script_response_from_hyper(&res);
+        match self
+            .script_handle
+            .invoke_on_response(&script_req, &script_res)
+            .await
+        {
+            Ok(scripting::ResponseAction::Forward) => res,
+            Ok(scripting::ResponseAction::ModifyResponse { response: modified }) => {
+                info!("[Script] 응답 수정: {}", req.uri());
+                Self::apply_script_response_modify(res, &modified)
+            }
+            Err(e) => {
+                error!("[Script] onResponse 오류: {}", e);
+                res
+            }
+        }
+    }
+
+    /// SSE(Server-Sent Events) 응답을 스트리밍 처리합니다.
+    fn handle_sse_streaming(&mut self, res: Response<Body>) -> Response<Body> {
         let (parts, body) = res.into_parts();
 
         let (tx, rx) = tokio::sync::mpsc::channel(4);
@@ -586,6 +689,90 @@ impl HttpHandler for LoggingHandler {
         });
 
         response_for_client
+    }
+}
+
+impl HttpHandler for LoggingHandler {
+    async fn handle_request(
+        &mut self,
+        _ctx: &HttpContext,
+        mut req: Request<Body>,
+    ) -> RequestOrResponse {
+        if let Some(cert_response) = self.check_cert_download_intercept(&req) {
+            return cert_response.into();
+        }
+
+        if req
+            .headers()
+            .get(proxyapi_v2::hyper::header::UPGRADE)
+            .and_then(|v| v.to_str().ok())
+            .map_or(false, |s| s.to_lowercase() == "websocket")
+        {
+            req.headers_mut()
+                .remove(proxyapi_v2::hyper::header::SEC_WEBSOCKET_EXTENSIONS);
+        }
+
+        let (proxied_request, restored_req) = self.request_to_proxied_request(req).await;
+
+        if restored_req.method() == Method::CONNECT || proxied_request.method() == "CONNECT" {
+            return restored_req.into();
+        }
+
+        self.req = Some(proxied_request.clone());
+
+        let url = proxied_request.uri().to_string();
+        let method = proxied_request.method().to_string();
+
+        if let Some(replay_response) = self.check_server_replay(&url, &method).await {
+            self.send_output().await;
+            return replay_response.into();
+        }
+
+        let restored_req = match self
+            .apply_script_on_request(restored_req, &proxied_request, &method, &url)
+            .await
+        {
+            Ok(req) => req,
+            Err(response) => {
+                self.send_output().await;
+                return response.into();
+            }
+        };
+
+        let result = self
+            .apply_request_intercept(restored_req, &url, &method)
+            .await;
+
+        if let RequestOrResponse::Response(_) = &result {
+            self.send_output().await;
+        }
+
+        result
+    }
+
+    async fn handle_response(&mut self, _ctx: &HttpContext, res: Response<Body>) -> Response<Body> {
+        if res.status() == StatusCode::SWITCHING_PROTOCOLS {
+            return res;
+        }
+
+        let res = self.apply_response_intercept_if_needed(res).await;
+        let res = self.apply_script_on_response(res).await;
+
+        let is_sse = res
+            .headers()
+            .get(proxyapi_v2::hyper::header::CONTENT_TYPE)
+            .map_or(false, |v| {
+                v.to_str().unwrap_or("").contains("text/event-stream")
+            });
+
+        if is_sse {
+            return self.handle_sse_streaming(res);
+        }
+
+        let (proxied_response, restored_res) = self.response_to_proxied_response(res).await;
+        self.res = Some(proxied_response);
+        self.send_output().await;
+        restored_res
     }
 
     async fn handle_error(
@@ -686,131 +873,33 @@ impl WebSocketHandler for LoggingHandler {
     }
 
     async fn handle_message(&mut self, ctx: &WebSocketContext, msg: Message) -> Option<Message> {
-        let (direction, connection_id) = match ctx {
-            WebSocketContext::ClientToServer { dst, .. } => {
-                (WsDirection::ClientToServer, dst.to_string())
-            }
-            WebSocketContext::ServerToClient { src, .. } => {
-                (WsDirection::ServerToClient, src.to_string())
-            }
+        let (direction, connection_id) = Self::extract_ws_direction(ctx);
+
+        let (message_type, payload, size, is_binary) = match Self::convert_ws_message_payload(&msg)
+        {
+            Some(tuple) => tuple,
+            None => return Some(msg),
         };
 
-        let (message_type, payload, size, is_binary) = match &msg {
-            Message::Text(text) => (WsMessageType::Text, text.to_string(), text.len(), false),
-            Message::Binary(data) => {
-                use base64::Engine;
-                let encoded = base64::engine::general_purpose::STANDARD.encode(data);
-                (WsMessageType::Binary, encoded, data.len(), true)
-            }
-            Message::Ping(data) => (
-                WsMessageType::Ping,
-                format!("{} bytes", data.len()),
-                data.len(),
-                true,
-            ),
-            Message::Pong(data) => (
-                WsMessageType::Pong,
-                format!("{} bytes", data.len()),
-                data.len(),
-                true,
-            ),
-            Message::Close(frame) => {
-                let payload = frame
-                    .as_ref()
-                    .map(|f| format!("{}: {}", f.code, f.reason))
-                    .unwrap_or_default();
-                let size = payload.len();
-                (WsMessageType::Close, payload, size, false)
-            }
-            Message::Frame(_) => return Some(msg),
-        };
-
-        // 스크립트 onWebSocketMessage 훅 적용 (Text/Binary 메시지만)
-        let (msg, payload, is_binary) =
-            if matches!(message_type, WsMessageType::Text | WsMessageType::Binary) {
-                let script_direction = match ctx {
-                    WebSocketContext::ClientToServer { .. } => scripting::WsDirection::ToServer,
-                    WebSocketContext::ServerToClient { .. } => scripting::WsDirection::ToClient,
-                };
-                let url = match ctx {
-                    WebSocketContext::ClientToServer { dst, .. } => dst.to_string(),
-                    WebSocketContext::ServerToClient { src, .. } => src.to_string(),
-                };
-                let script_msg = scripting::ScriptWsMessage {
-                    connection_id: connection_id.clone(),
-                    url,
-                    direction: script_direction,
-                    payload: payload.clone(),
-                    is_binary,
-                };
-                match self.script_handle.invoke_on_ws_message(&script_msg).await {
-                    Ok(scripting::WsAction::Forward) => (msg, payload, is_binary),
-                    Ok(scripting::WsAction::Modify {
-                        payload: new_payload,
-                        is_binary: new_is_binary,
-                    }) => {
-                        let new_msg = if new_is_binary {
-                            use base64::Engine;
-                            match base64::engine::general_purpose::STANDARD.decode(&new_payload) {
-                                Ok(data) => Message::Binary(data.into()),
-                                Err(_) => Message::Text(new_payload.clone().into()),
-                            }
-                        } else {
-                            Message::Text(new_payload.clone().into())
-                        };
-                        (new_msg, new_payload, new_is_binary)
-                    }
-                    Ok(scripting::WsAction::Drop) => {
-                        return None;
-                    }
-                    Err(e) => {
-                        error!("[Script] onWebSocketMessage 오류: {}", e);
-                        (msg, payload, is_binary)
-                    }
-                }
-            } else {
-                (msg, payload, is_binary)
-            };
-
-        if let Some(ws_sender) = &self.ws_sender {
-            let sequence = self
-                .ws_sequence
-                .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-
-            let content_type = proxy_v2_models::detect_ws_content_type(&payload, is_binary);
-
-            // MQTT 메시지인 경우 버전 추적
-            let mqtt_version = if content_type == proxy_v2_models::WsContentType::Mqtt {
-                // CONNECT 패킷이면 버전을 추출하여 저장
-                if let Some(ver) = proxy_v2_models::extract_mqtt_version_from_connect(&payload) {
-                    self.mqtt_versions.lock().insert(connection_id.clone(), ver);
-                    Some(ver)
-                } else {
-                    // 다른 MQTT 패킷이면 저장된 버전 참조
-                    self.mqtt_versions.lock().get(&connection_id).copied()
-                }
-            } else {
-                None
-            };
-
-            let info = WsMessageInfo {
-                connection_id,
-                sequence,
-                direction,
-                message_type,
+        let (msg, payload, is_binary) = self
+            .apply_ws_script_hook(
+                ctx,
+                msg,
+                &connection_id,
+                message_type.clone(),
                 payload,
-                size,
-                time: chrono::Local::now()
-                    .timestamp_nanos_opt()
-                    .unwrap_or_default(),
                 is_binary,
-                content_type,
-                mqtt_version,
-            };
+            )
+            .await?;
 
-            let _ = ws_sender.try_send(WsEvent::Message(info));
-        }
-
+        self.emit_ws_event(
+            connection_id,
+            direction,
+            message_type,
+            payload,
+            size,
+            is_binary,
+        );
         Some(msg)
     }
 }
