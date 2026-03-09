@@ -123,17 +123,18 @@ pub fn run_daemon(port: u16, host: String) -> ! {
     std::process::exit(exit_code)
 }
 
-async fn daemon_main(port: u16, host: String) -> i32 {
+/// 파일시스템 초기화: stale lock 정리, UDS 경로 확보, lock 파일 작성.
+fn init_filesystem(port: u16) -> Result<(PathBuf, String), i32> {
     if !check_and_cleanup_stale_lock() {
         error!("Another daemon is already running. Exiting.");
-        return 1;
+        return Err(1);
     }
 
     let uds_path = match uds_socket_path() {
         Ok(p) => p,
         Err(e) => {
             error!("Failed to get UDS socket path: {}", e);
-            return 1;
+            return Err(1);
         }
     };
     let uds_path_str = uds_path.to_string_lossy().to_string();
@@ -146,82 +147,56 @@ async fn daemon_main(port: u16, host: String) -> i32 {
 
     if let Err(e) = write_lock_file(port, &uds_path_str) {
         error!("Failed to write lock file: {}", e);
-        return 1;
+        return Err(1);
     }
 
-    let (event_tx, _) = broadcast::channel::<String>(256);
+    Ok((uds_path, uds_path_str))
+}
 
-    let client_count = Arc::new(AtomicUsize::new(0));
+/// 데몬에서 사용하는 채널 및 공유 상태를 묶는 컨텍스트
+struct DaemonContext {
+    event_tx: broadcast::Sender<String>,
+    client_count: Arc<AtomicUsize>,
+    shutdown_tx: tokio::sync::mpsc::Sender<()>,
+    intercept_tx: watch::Sender<Vec<crate::protocol::InterceptRule>>,
+    upstream_tx: watch::Sender<Option<UpstreamProxyConfig>>,
+    server_replay_tx: watch::Sender<Vec<crate::protocol::ServerReplayEntry>>,
+    throttle_tx: watch::Sender<Option<ThrottleConfig>>,
+    ws_registry: WebSocketRegistry,
+    script_handle: scripting::ScriptHandle,
+}
 
-    let (shutdown_tx, mut shutdown_rx) = tokio::sync::mpsc::channel::<()>(1);
-
-    let (intercept_tx, intercept_rx) =
-        watch::channel::<Vec<crate::protocol::InterceptRule>>(Vec::new());
-
-    let (upstream_tx, upstream_rx) = watch::channel::<Option<UpstreamProxyConfig>>(None);
-
-    let (server_replay_tx, server_replay_rx) =
-        watch::channel::<Vec<crate::protocol::ServerReplayEntry>>(Vec::new());
-
-    let (throttle_tx, throttle_rx) = watch::channel::<Option<ThrottleConfig>>(None);
-
-    let ws_registry = WebSocketRegistry::new();
-    let script_handle = scripting::ScriptHandle::new();
-
-    let addr: std::net::SocketAddr = match format!("{}:{}", host, port).parse() {
-        Ok(addr) => addr,
-        Err(e) => {
-            error!("Invalid host:port {}:{} - {}", host, port, e);
-            cleanup(port, &uds_path);
-            return 1;
-        }
-    };
-
-    if let Err(e) = set_proxy(true, port) {
-        error!("Failed to set system proxy: {}", e);
-    }
-
-    let event_tx_proxy = event_tx.clone();
-    let registry_for_proxy = ws_registry.clone();
-    let script_handle_for_proxy = script_handle.clone();
-    let proxy_handle = tokio::spawn(async move {
+/// 프록시 태스크를 스폰합니다.
+fn spawn_proxy_task(
+    addr: std::net::SocketAddr,
+    event_tx: broadcast::Sender<String>,
+    intercept_rx: watch::Receiver<Vec<crate::protocol::InterceptRule>>,
+    upstream_rx: watch::Receiver<Option<UpstreamProxyConfig>>,
+    server_replay_rx: watch::Receiver<Vec<crate::protocol::ServerReplayEntry>>,
+    throttle_rx: watch::Receiver<Option<ThrottleConfig>>,
+    ws_registry: WebSocketRegistry,
+    script_handle: scripting::ScriptHandle,
+) -> tokio::task::JoinHandle<()> {
+    tokio::spawn(async move {
         if let Err(code) = run_proxy(
             addr,
-            event_tx_proxy,
+            event_tx,
             intercept_rx,
             upstream_rx,
             server_replay_rx,
             throttle_rx,
-            registry_for_proxy,
-            script_handle_for_proxy,
+            ws_registry,
+            script_handle,
         )
         .await
         {
             error!("Proxy error: {}", code);
         }
-    });
+    })
+}
 
-    let uds_listener = match UnixListener::bind(&uds_path) {
-        Ok(l) => l,
-        Err(e) => {
-            error!("Failed to bind UDS: {}", e);
-            cleanup(port, &uds_path);
-            return 1;
-        }
-    };
-
-    let log_path = app_support_dir()
-        .map(|d| d.join("daemon.log"))
-        .unwrap_or_default();
-    info!(
-        "Daemon started (PID {}, proxy={}:{}, uds={}, log={})",
-        std::process::id(),
-        host,
-        port,
-        uds_path_str,
-        log_path.display()
-    );
-
+/// Ctrl+C 및 SIGTERM 시그널 핸들러를 등록합니다.
+fn spawn_signal_handlers(shutdown_tx: tokio::sync::mpsc::Sender<()>) {
     let shutdown_tx_ctrlc = shutdown_tx.clone();
     tokio::spawn(async move {
         let _ = tokio::signal::ctrl_c().await;
@@ -229,8 +204,7 @@ async fn daemon_main(port: u16, host: String) -> i32 {
         let _ = shutdown_tx_ctrlc.send(()).await;
     });
 
-    // SIGTERM 시그널 처리 (프로세스 kill 시 프록시 설정 복원)
-    let shutdown_tx_term = shutdown_tx.clone();
+    let shutdown_tx_term = shutdown_tx;
     tokio::spawn(async move {
         match tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate()) {
             Ok(mut sigterm) => {
@@ -243,25 +217,33 @@ async fn daemon_main(port: u16, host: String) -> i32 {
             }
         }
     });
+}
 
+/// UDS accept 루프를 실행합니다. shutdown 시그널 수신 시 종료.
+async fn run_accept_loop(
+    uds_listener: UnixListener,
+    shutdown_rx: &mut tokio::sync::mpsc::Receiver<()>,
+    ctx: &DaemonContext,
+    port: u16,
+) {
     loop {
         tokio::select! {
             accept_result = uds_listener.accept() => {
                 match accept_result {
                     Ok((stream, _addr)) => {
-                        let count = client_count.fetch_add(1, Ordering::SeqCst) + 1;
+                        let count = ctx.client_count.fetch_add(1, Ordering::SeqCst) + 1;
                         info!("Client connected (total: {})", count);
 
-                        let event_rx = event_tx.subscribe();
-                        let event_tx_clone = event_tx.clone();
-                        let client_count_clone = client_count.clone();
-                        let shutdown_tx_clone = shutdown_tx.clone();
-                        let intercept_tx_clone = intercept_tx.clone();
-                        let upstream_tx_clone = upstream_tx.clone();
-                        let server_replay_tx_clone = server_replay_tx.clone();
-                        let throttle_tx_clone = throttle_tx.clone();
-                        let registry_clone = ws_registry.clone();
-                        let script_handle_clone = script_handle.clone();
+                        let event_rx = ctx.event_tx.subscribe();
+                        let event_tx_clone = ctx.event_tx.clone();
+                        let client_count_clone = ctx.client_count.clone();
+                        let shutdown_tx_clone = ctx.shutdown_tx.clone();
+                        let intercept_tx_clone = ctx.intercept_tx.clone();
+                        let upstream_tx_clone = ctx.upstream_tx.clone();
+                        let server_replay_tx_clone = ctx.server_replay_tx.clone();
+                        let throttle_tx_clone = ctx.throttle_tx.clone();
+                        let registry_clone = ctx.ws_registry.clone();
+                        let script_handle_clone = ctx.script_handle.clone();
 
                         tokio::spawn(async move {
                             handle_client(stream, event_rx, intercept_tx_clone, upstream_tx_clone, server_replay_tx_clone, throttle_tx_clone, event_tx_clone, port, registry_clone, script_handle_clone)
@@ -287,6 +269,86 @@ async fn daemon_main(port: u16, host: String) -> i32 {
             }
         }
     }
+}
+
+async fn daemon_main(port: u16, host: String) -> i32 {
+    let (uds_path, uds_path_str) = match init_filesystem(port) {
+        Ok(result) => result,
+        Err(code) => return code,
+    };
+
+    let (event_tx, _) = broadcast::channel::<String>(256);
+    let (shutdown_tx, mut shutdown_rx) = tokio::sync::mpsc::channel::<()>(1);
+    let (intercept_tx, intercept_rx) =
+        watch::channel::<Vec<crate::protocol::InterceptRule>>(Vec::new());
+    let (upstream_tx, upstream_rx) = watch::channel::<Option<UpstreamProxyConfig>>(None);
+    let (server_replay_tx, server_replay_rx) =
+        watch::channel::<Vec<crate::protocol::ServerReplayEntry>>(Vec::new());
+    let (throttle_tx, throttle_rx) = watch::channel::<Option<ThrottleConfig>>(None);
+
+    let addr: std::net::SocketAddr = match format!("{}:{}", host, port).parse() {
+        Ok(addr) => addr,
+        Err(e) => {
+            error!("Invalid host:port {}:{} - {}", host, port, e);
+            cleanup(port, &uds_path);
+            return 1;
+        }
+    };
+
+    if let Err(e) = set_proxy(true, port) {
+        error!("Failed to set system proxy: {}", e);
+    }
+
+    let ws_registry = WebSocketRegistry::new();
+    let script_handle = scripting::ScriptHandle::new();
+
+    let proxy_handle = spawn_proxy_task(
+        addr,
+        event_tx.clone(),
+        intercept_rx,
+        upstream_rx,
+        server_replay_rx,
+        throttle_rx,
+        ws_registry.clone(),
+        script_handle.clone(),
+    );
+
+    let uds_listener = match UnixListener::bind(&uds_path) {
+        Ok(l) => l,
+        Err(e) => {
+            error!("Failed to bind UDS: {}", e);
+            cleanup(port, &uds_path);
+            return 1;
+        }
+    };
+
+    let log_path = app_support_dir()
+        .map(|d| d.join("daemon.log"))
+        .unwrap_or_default();
+    info!(
+        "Daemon started (PID {}, proxy={}:{}, uds={}, log={})",
+        std::process::id(),
+        host,
+        port,
+        uds_path_str,
+        log_path.display()
+    );
+
+    spawn_signal_handlers(shutdown_tx.clone());
+
+    let ctx = DaemonContext {
+        event_tx,
+        client_count: Arc::new(AtomicUsize::new(0)),
+        shutdown_tx,
+        intercept_tx,
+        upstream_tx,
+        server_replay_tx,
+        throttle_tx,
+        ws_registry,
+        script_handle,
+    };
+
+    run_accept_loop(uds_listener, &mut shutdown_rx, &ctx, port).await;
 
     proxy_handle.abort();
     cleanup(port, &uds_path);
