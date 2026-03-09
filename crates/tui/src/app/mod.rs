@@ -74,6 +74,9 @@ pub struct App {
     pub ca_cert_installed: bool,
     pub ca_cert_path: Option<String>,
 
+    // Remote device cert info
+    pub local_ips: Vec<String>,
+
     // Status message
     pub status_message: Option<(String, std::time::Instant)>,
 
@@ -115,6 +118,7 @@ impl App {
             throttle_form: ThrottleForm::new(),
             ca_cert_installed: false,
             ca_cert_path: None,
+            local_ips: Self::get_local_ips(),
             status_message: None,
             conn: None,
             event_tx: None,

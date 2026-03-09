@@ -9,6 +9,7 @@ pub fn draw(f: &mut Frame, app: &App, area: Rect) {
         .constraints([
             Constraint::Length(10), // Proxy info
             Constraint::Length(5),  // CA certificate
+            Constraint::Length(7),  // Remote device cert
             Constraint::Length(3),  // Section tabs
             Constraint::Length(12), // Form (upstream or throttle)
             Constraint::Min(0),     // Keybindings
@@ -17,12 +18,13 @@ pub fn draw(f: &mut Frame, app: &App, area: Rect) {
 
     draw_proxy_info(f, app, chunks[0]);
     draw_ca_cert(f, app, chunks[1]);
-    draw_section_tabs(f, app, chunks[2]);
+    draw_remote_device_cert(f, app, chunks[2]);
+    draw_section_tabs(f, app, chunks[3]);
     match app.settings_section {
-        SettingsSection::UpstreamProxy => draw_upstream_proxy(f, app, chunks[3]),
-        SettingsSection::Throttle => draw_throttle(f, app, chunks[3]),
+        SettingsSection::UpstreamProxy => draw_upstream_proxy(f, app, chunks[4]),
+        SettingsSection::Throttle => draw_throttle(f, app, chunks[4]),
     }
-    draw_keybindings(f, app, chunks[4]);
+    draw_keybindings(f, app, chunks[5]);
 }
 
 fn draw_section_tabs(f: &mut Frame, app: &App, area: Rect) {
@@ -152,6 +154,66 @@ fn draw_ca_cert(f: &mut Frame, app: &App, area: Rect) {
         .borders(Borders::ALL)
         .border_style(Style::default().fg(Color::Gray))
         .title(" CA Certificate ");
+
+    let paragraph = Paragraph::new(lines).block(block);
+    f.render_widget(paragraph, area);
+}
+
+fn draw_remote_device_cert(f: &mut Frame, app: &App, area: Rect) {
+    let mut lines = vec![];
+
+    if app.connected {
+        let primary_ip = app
+            .local_ips
+            .first()
+            .cloned()
+            .unwrap_or_else(|| "127.0.0.1".to_string());
+
+        lines.push(Line::from(vec![
+            Span::styled("Proxy:    ", Style::default().fg(Color::Yellow)),
+            Span::styled(
+                format!("{}:{}", primary_ip, app.port),
+                Style::default()
+                    .fg(Color::White)
+                    .add_modifier(Modifier::BOLD),
+            ),
+        ]));
+        lines.push(Line::from(vec![
+            Span::styled("Cert URL: ", Style::default().fg(Color::Yellow)),
+            Span::styled(
+                "http://cheolsu.proxy/ssl",
+                Style::default()
+                    .fg(Color::Cyan)
+                    .add_modifier(Modifier::BOLD),
+            ),
+        ]));
+
+        if app.local_ips.len() > 1 {
+            let extra_ips: Vec<String> = app.local_ips[1..]
+                .iter()
+                .map(|ip| format!("{}:{}", ip, app.port))
+                .collect();
+            lines.push(Line::from(vec![
+                Span::styled("Also:     ", Style::default().fg(Color::DarkGray)),
+                Span::styled(extra_ips.join(", "), Style::default().fg(Color::DarkGray)),
+            ]));
+        }
+
+        lines.push(Line::from(Span::styled(
+            "  1) Set Wi-Fi proxy on device  2) Open URL  3) Install cert",
+            Style::default().fg(Color::DarkGray),
+        )));
+    } else {
+        lines.push(Line::from(Span::styled(
+            "Start proxy to see remote device setup info",
+            Style::default().fg(Color::DarkGray),
+        )));
+    }
+
+    let block = Block::default()
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(Color::Gray))
+        .title(" Remote Device Certificate ");
 
     let paragraph = Paragraph::new(lines).block(block);
     f.render_widget(paragraph, area);
