@@ -1038,3 +1038,27 @@ msgstr "WebSocket Replay"
 #: src/pages/script/ui/script-page.tsx:165
 msgid "Write or load JavaScript/TypeScript proxy scripts"
 msgstr "Write or load JavaScript/TypeScript proxy scripts"
+
+#: src/pages/settings/ui/settings-page.tsx
+msgid "Global Shortcut"
+msgstr "Global Shortcut"
+
+#: src/pages/settings/ui/settings-page.tsx
+msgid "Toggle proxy on/off with a global keyboard shortcut"
+msgstr "Toggle proxy on/off with a global keyboard shortcut"
+
+#: src/pages/settings/ui/settings-page.tsx
+msgid "Shortcut Key"
+msgstr "Shortcut Key"
+
+#: src/pages/settings/ui/settings-page.tsx
+msgid "Press a key combination..."
+msgstr "Press a key combination..."
+
+#: src/pages/settings/ui/settings-page.tsx
+msgid "Change"
+msgstr "Change"
+
+#: src/pages/settings/ui/settings-page.tsx
+msgid "Failed to register shortcut"
+msgstr "Failed to register shortcut"

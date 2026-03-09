@@ -1038,3 +1038,27 @@ msgstr "WebSocket 리플레이"
 #: src/pages/script/ui/script-page.tsx:165
 msgid "Write or load JavaScript/TypeScript proxy scripts"
 msgstr "JavaScript/TypeScript 프록시 스크립트 작성 또는 로드"
+
+#: src/pages/settings/ui/settings-page.tsx
+msgid "Global Shortcut"
+msgstr "글로벌 단축키"
+
+#: src/pages/settings/ui/settings-page.tsx
+msgid "Toggle proxy on/off with a global keyboard shortcut"
+msgstr "글로벌 키보드 단축키로 프록시 켜기/끄기"
+
+#: src/pages/settings/ui/settings-page.tsx
+msgid "Shortcut Key"
+msgstr "단축키"
+
+#: src/pages/settings/ui/settings-page.tsx
+msgid "Press a key combination..."
+msgstr "키 조합을 눌러주세요..."
+
+#: src/pages/settings/ui/settings-page.tsx
+msgid "Change"
+msgstr "변경"
+
+#: src/pages/settings/ui/settings-page.tsx
+msgid "Failed to register shortcut"
+msgstr "단축키 등록 실패"

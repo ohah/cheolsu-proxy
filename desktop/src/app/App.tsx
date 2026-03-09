@@ -14,8 +14,10 @@ import { listen } from "@tauri-apps/api/event";
 import type { ProxyEventTuple } from "@/entities/proxy";
 import type { WsMessageInfo, WsConnectionEvent } from "@/entities/websocket";
 import type { InterceptRule } from "@/entities/intercept-rule";
+import { useGlobalShortcut } from "@/hooks/use-global-shortcut";
 
 const App: React.FC = () => {
+  useGlobalShortcut();
   const initializeProxy = useProxyStore((s) => s.initializeProxy);
   const syncToProxy = useInterceptRuleStore((s) => s.syncToProxy);
   const addTransaction = useTransactionStore((s) => s.addTransaction);
