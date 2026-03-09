@@ -39,7 +39,7 @@ pub struct LoggingHandler {
     pub(crate) sender: tokio::sync::mpsc::Sender<RequestInfo>,
     pub(crate) ws_sender: Option<tokio::sync::mpsc::Sender<WsEvent>>,
     pub(crate) ws_sequence: Arc<std::sync::atomic::AtomicU64>,
-    pub(crate) mqtt_versions: Arc<std::sync::Mutex<std::collections::HashMap<String, u8>>>,
+    pub(crate) mqtt_versions: Arc<parking_lot::Mutex<std::collections::HashMap<String, u8>>>,
     pub(crate) req: Option<ProxiedRequest>,
     pub(crate) res: Option<ProxiedResponse>,
     pub(crate) intercept_rules: Arc<Mutex<Vec<InterceptRule>>>,
@@ -59,7 +59,7 @@ impl LoggingHandler {
             sender,
             ws_sender: None,
             ws_sequence: Arc::new(std::sync::atomic::AtomicU64::new(0)),
-            mqtt_versions: Arc::new(std::sync::Mutex::new(std::collections::HashMap::new())),
+            mqtt_versions: Arc::new(parking_lot::Mutex::new(std::collections::HashMap::new())),
             req: None,
             res: None,
             intercept_rules: Arc::new(Mutex::new(Vec::new())),
@@ -127,12 +127,7 @@ impl LoggingHandler {
                     )
                     .header("Content-Length", der.len().to_string())
                     .body(Body::from(http_body_util::Full::new(body_bytes)))
-                    .unwrap_or_else(|_| {
-                        Response::builder()
-                            .status(StatusCode::INTERNAL_SERVER_ERROR)
-                            .body(Body::from("인증서 응답 생성 실패"))
-                            .unwrap_or_else(|_| Response::new(Body::empty()))
-                    });
+                    .unwrap_or_else(|_| Response::new(Body::empty()));
             }
             return Response::builder()
                 .status(StatusCode::NOT_FOUND)
@@ -260,12 +255,7 @@ a:hover{background:#1d4ed8}</style></head>
             use http_body_util::Full;
             response
                 .body(Body::from(Full::new(cached_response.body().clone())))
-                .unwrap_or_else(|_| {
-                    Response::builder()
-                        .status(StatusCode::INTERNAL_SERVER_ERROR)
-                        .body(Body::from("Failed to create response from cached data"))
-                        .unwrap_or_else(|_| Response::new(Body::empty()))
-                })
+                .unwrap_or_else(|_| Response::new(Body::empty()))
         } else {
             Response::builder()
                 .status(StatusCode::INTERNAL_SERVER_ERROR)
@@ -453,12 +443,9 @@ impl HttpHandler for LoggingHandler {
             }
 
             let body_bytes = entry.body.unwrap_or_default();
-            let res = response.body(Body::from(body_bytes)).unwrap_or_else(|_| {
-                Response::builder()
-                    .status(StatusCode::INTERNAL_SERVER_ERROR)
-                    .body(Body::from("Server replay error"))
-                    .unwrap()
-            });
+            let res = response
+                .body(Body::from(body_bytes))
+                .unwrap_or_else(|_| Response::new(Body::empty()));
             self.send_output().await;
             return res.into();
         }
@@ -660,12 +647,7 @@ impl HttpHandler for LoggingHandler {
         Response::builder()
             .status(StatusCode::BAD_GATEWAY)
             .body(Body::from(format!("Proxy Error: {}", err)))
-            .unwrap_or_else(|_| {
-                Response::builder()
-                    .status(StatusCode::INTERNAL_SERVER_ERROR)
-                    .body(Body::empty())
-                    .unwrap_or_else(|_| Response::new(Body::empty()))
-            })
+            .unwrap_or_else(|_| Response::new(Body::empty()))
     }
 }
 
@@ -801,16 +783,11 @@ impl WebSocketHandler for LoggingHandler {
             let mqtt_version = if content_type == proxy_v2_models::WsContentType::Mqtt {
                 // CONNECT 패킷이면 버전을 추출하여 저장
                 if let Some(ver) = proxy_v2_models::extract_mqtt_version_from_connect(&payload) {
-                    if let Ok(mut versions) = self.mqtt_versions.lock() {
-                        versions.insert(connection_id.clone(), ver);
-                    }
+                    self.mqtt_versions.lock().insert(connection_id.clone(), ver);
                     Some(ver)
                 } else {
                     // 다른 MQTT 패킷이면 저장된 버전 참조
-                    self.mqtt_versions
-                        .lock()
-                        .ok()
-                        .and_then(|versions| versions.get(&connection_id).copied())
+                    self.mqtt_versions.lock().get(&connection_id).copied()
                 }
             } else {
                 None
