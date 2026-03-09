@@ -363,6 +363,231 @@ pub async fn replay_sequence(
     Ok(results)
 }
 
+/// 고급 반복 실행 파라미터
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct AdvancedRepeatParams {
+    pub method: String,
+    pub url: String,
+    pub headers: HashMap<String, String>,
+    pub body: Option<String>,
+    pub iterations: usize,
+    pub concurrency: usize,
+    pub delay_ms: u64,
+}
+
+/// 고급 반복 실행 진행 이벤트
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct AdvancedRepeatProgress {
+    pub completed: usize,
+    pub total: usize,
+    pub success_count: usize,
+    pub failure_count: usize,
+    pub last_status: Option<u16>,
+    pub last_elapsed_ms: Option<u64>,
+}
+
+/// 고급 반복 실행 최종 결과
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct AdvancedRepeatResult {
+    pub total: usize,
+    pub success_count: usize,
+    pub failure_count: usize,
+    pub min_time_ms: u64,
+    pub max_time_ms: u64,
+    pub avg_time_ms: f64,
+    pub total_time_ms: u64,
+    pub requests_per_second: f64,
+    pub status_codes: HashMap<u16, usize>,
+}
+
+/// 고급 반복 실행 (N회 반복 + 동시성 제어)
+#[tauri::command]
+pub async fn advanced_repeat<R: Runtime>(
+    app: AppHandle<R>,
+    params: AdvancedRepeatParams,
+) -> Result<AdvancedRepeatResult, String> {
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    use tokio::sync::Semaphore;
+
+    let iterations = params.iterations.max(1).min(10000);
+    let concurrency = params.concurrency.max(1).min(100);
+    let delay_ms = params.delay_ms;
+
+    let client = Arc::new(
+        reqwest::Client::builder()
+            .no_proxy()
+            .danger_accept_invalid_certs(true)
+            .build()
+            .map_err(|e| format!("HTTP 클라이언트 생성 실패: {}", e))?,
+    );
+
+    let method: reqwest::Method = params
+        .method
+        .parse()
+        .map_err(|e| format!("잘못된 HTTP 메서드: {}", e))?;
+
+    // hop-by-hop 헤더 필터링
+    let filtered_headers: HashMap<String, String> = params
+        .headers
+        .into_iter()
+        .filter(|(key, _)| {
+            let lower = key.to_lowercase();
+            !matches!(
+                lower.as_str(),
+                "host"
+                    | "connection"
+                    | "keep-alive"
+                    | "proxy-authenticate"
+                    | "proxy-authorization"
+                    | "te"
+                    | "trailers"
+                    | "transfer-encoding"
+                    | "upgrade"
+            )
+        })
+        .collect();
+
+    let semaphore = Arc::new(Semaphore::new(concurrency));
+    let success_count = Arc::new(AtomicUsize::new(0));
+    let failure_count = Arc::new(AtomicUsize::new(0));
+    let completed = Arc::new(AtomicUsize::new(0));
+    let elapsed_times = Arc::new(Mutex::new(Vec::with_capacity(iterations)));
+    let status_codes = Arc::new(Mutex::new(HashMap::<u16, usize>::new()));
+
+    let total_start = std::time::Instant::now();
+
+    let mut handles = Vec::with_capacity(iterations);
+
+    for _ in 0..iterations {
+        let permit = semaphore
+            .clone()
+            .acquire_owned()
+            .await
+            .map_err(|e| format!("세마포어 획득 실패: {}", e))?;
+
+        let client = client.clone();
+        let method = method.clone();
+        let url = params.url.clone();
+        let headers = filtered_headers.clone();
+        let body = params.body.clone();
+        let success_count = success_count.clone();
+        let failure_count = failure_count.clone();
+        let completed = completed.clone();
+        let elapsed_times = elapsed_times.clone();
+        let status_codes = status_codes.clone();
+        let app = app.clone();
+        let total = iterations;
+
+        let handle = tokio::spawn(async move {
+            let mut request_builder = client.request(method, &url);
+
+            for (key, value) in &headers {
+                request_builder = request_builder.header(key.as_str(), value.as_str());
+            }
+
+            if let Some(body) = body {
+                request_builder = request_builder.body(body);
+            }
+
+            let start = std::time::Instant::now();
+            let result = request_builder.send().await;
+            let elapsed_ms = start.elapsed().as_millis() as u64;
+
+            let (is_success, status) = match result {
+                Ok(response) => {
+                    let status = response.status().as_u16();
+                    // body를 소비하여 커넥션 반환
+                    let _ = response.bytes().await;
+                    let ok = (200..300).contains(&(status as i32));
+                    if ok {
+                        success_count.fetch_add(1, Ordering::Relaxed);
+                    } else {
+                        failure_count.fetch_add(1, Ordering::Relaxed);
+                    }
+                    // 상태 코드 카운트
+                    {
+                        let mut codes = status_codes.lock().await;
+                        *codes.entry(status).or_insert(0) += 1;
+                    }
+                    (ok, Some(status))
+                }
+                Err(_) => {
+                    failure_count.fetch_add(1, Ordering::Relaxed);
+                    (false, None)
+                }
+            };
+
+            {
+                let mut times = elapsed_times.lock().await;
+                times.push(elapsed_ms);
+            }
+
+            let done = completed.fetch_add(1, Ordering::Relaxed) + 1;
+
+            // 진행 이벤트 전송
+            let _ = app.emit(
+                "advanced_repeat_progress",
+                AdvancedRepeatProgress {
+                    completed: done,
+                    total,
+                    success_count: success_count.load(Ordering::Relaxed),
+                    failure_count: failure_count.load(Ordering::Relaxed),
+                    last_status: status,
+                    last_elapsed_ms: Some(elapsed_ms),
+                },
+            );
+
+            drop(permit);
+
+            // 배치 간 딜레이
+            if delay_ms > 0 && !is_success {
+                // 딜레이는 성공/실패 관계없이 적용
+            }
+        });
+
+        handles.push(handle);
+
+        // 배치 간 딜레이
+        if delay_ms > 0 {
+            tokio::time::sleep(tokio::time::Duration::from_millis(delay_ms)).await;
+        }
+    }
+
+    // 모든 작업 완료 대기
+    for handle in handles {
+        let _ = handle.await;
+    }
+
+    let total_time_ms = total_start.elapsed().as_millis() as u64;
+    let times = elapsed_times.lock().await;
+    let codes = status_codes.lock().await;
+
+    let min_time_ms = times.iter().copied().min().unwrap_or(0);
+    let max_time_ms = times.iter().copied().max().unwrap_or(0);
+    let avg_time_ms = if times.is_empty() {
+        0.0
+    } else {
+        times.iter().sum::<u64>() as f64 / times.len() as f64
+    };
+    let requests_per_second = if total_time_ms > 0 {
+        iterations as f64 / (total_time_ms as f64 / 1000.0)
+    } else {
+        0.0
+    };
+
+    Ok(AdvancedRepeatResult {
+        total: iterations,
+        success_count: success_count.load(Ordering::Relaxed),
+        failure_count: failure_count.load(Ordering::Relaxed),
+        min_time_ms,
+        max_time_ms,
+        avg_time_ms,
+        total_time_ms,
+        requests_per_second,
+        status_codes: codes.clone(),
+    })
+}
+
 /// Breakpoint 규칙 업데이트
 #[tauri::command]
 pub async fn update_breakpoint_rules(

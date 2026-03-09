@@ -71,6 +71,43 @@ export async function replaySequence(
   return invoke("replay_sequence", { requests });
 }
 
+// ─── Advanced Repeat ─────────────────────────────────────
+
+export interface AdvancedRepeatParams {
+  method: string;
+  url: string;
+  headers: Record<string, string>;
+  body?: string;
+  iterations: number;
+  concurrency: number;
+  delay_ms: number;
+}
+
+export interface AdvancedRepeatProgress {
+  completed: number;
+  total: number;
+  success_count: number;
+  failure_count: number;
+  last_status?: number;
+  last_elapsed_ms?: number;
+}
+
+export interface AdvancedRepeatResult {
+  total: number;
+  success_count: number;
+  failure_count: number;
+  min_time_ms: number;
+  max_time_ms: number;
+  avg_time_ms: number;
+  total_time_ms: number;
+  requests_per_second: number;
+  status_codes: Record<number, number>;
+}
+
+export async function advancedRepeat(params: AdvancedRepeatParams): Promise<AdvancedRepeatResult> {
+  return invoke("advanced_repeat", { params });
+}
+
 export interface ServerReplayEntry {
   id: string;
   method: string;
