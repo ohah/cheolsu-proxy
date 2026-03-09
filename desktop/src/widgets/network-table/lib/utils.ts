@@ -7,7 +7,7 @@ export const getAuthority = (uri: string) => {
 
     const url = new URL(uri);
     return `${url.hostname}${url.port ? `:${url.port}` : ""}`;
-  } catch (e) {
+  } catch {
     // CONNECT 요청의 경우 host:port 형식이므로 그대로 반환
     if (uri.includes(":") && !uri.startsWith("http")) {
       return uri;
