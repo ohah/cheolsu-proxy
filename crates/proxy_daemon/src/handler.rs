@@ -1537,6 +1537,7 @@ mod tests {
             config: ProxyConfig {
                 cache_dir: None,
                 ca_cert_der: None,
+                quick_settings: Arc::new(parking_lot::RwLock::new(QuickSettings::default())),
             },
             intercept: InterceptEngine {
                 intercept_rules: Arc::new(Mutex::new(Vec::new())),
@@ -1589,6 +1590,7 @@ mod tests {
             config: ProxyConfig {
                 cache_dir: None,
                 ca_cert_der: None,
+                quick_settings: Arc::new(parking_lot::RwLock::new(QuickSettings::default())),
             },
             intercept: InterceptEngine {
                 intercept_rules: Arc::new(Mutex::new(Vec::new())),

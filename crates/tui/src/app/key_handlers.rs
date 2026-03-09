@@ -638,7 +638,9 @@ impl App {
     }
 
     async fn handle_settings_key(&mut self, key: KeyEvent) {
-        use super::forms::{SettingsSection, ThrottleField, UpstreamProxyField};
+        use super::forms::{
+            QuickSettingsField, SettingsSection, ThrottleField, UpstreamProxyField,
+        };
 
         // Host Mapping form is open: handle it
         if self.host_mapping_form.is_some() {
@@ -650,7 +652,7 @@ impl App {
         let is_editing = match self.settings_section {
             SettingsSection::UpstreamProxy => self.upstream_form.editing,
             SettingsSection::Throttle => self.throttle_form.editing,
-            SettingsSection::HostMapping => false,
+            SettingsSection::HostMapping | SettingsSection::QuickSettings => false,
         };
 
         if is_editing {
@@ -720,8 +722,8 @@ impl App {
                         _ => {}
                     }
                 }
-                SettingsSection::HostMapping => {
-                    // HostMapping은 editing 모드가 없음 (폼으로 처리)
+                SettingsSection::HostMapping | SettingsSection::QuickSettings => {
+                    // HostMapping과 QuickSettings는 editing 모드가 없음
                 }
             }
             return;
@@ -754,6 +756,9 @@ impl App {
                         }
                     }
                 }
+                SettingsSection::QuickSettings => {
+                    self.quick_settings_form.field = self.quick_settings_form.field.prev();
+                }
             },
             KeyCode::Down | KeyCode::Char('j') => match self.settings_section {
                 SettingsSection::UpstreamProxy => {
@@ -773,6 +778,9 @@ impl App {
                             self.selected_host_mapping = Some(0);
                         }
                     }
+                }
+                SettingsSection::QuickSettings => {
+                    self.quick_settings_form.field = self.quick_settings_form.field.next();
                 }
             },
             KeyCode::Enter | KeyCode::Char(' ') => match self.settings_section {
@@ -798,6 +806,17 @@ impl App {
                     }
                 },
                 SettingsSection::HostMapping => {}
+                SettingsSection::QuickSettings => match self.quick_settings_form.field {
+                    QuickSettingsField::NoCaching => {
+                        self.quick_settings_form.no_caching = !self.quick_settings_form.no_caching;
+                        self.send_quick_settings_update().await;
+                    }
+                    QuickSettingsField::BlockCookies => {
+                        self.quick_settings_form.block_cookies =
+                            !self.quick_settings_form.block_cookies;
+                        self.send_quick_settings_update().await;
+                    }
+                },
             },
             // Host Mapping: a=add, d=delete, t=toggle
             KeyCode::Char('a') if self.settings_section == SettingsSection::HostMapping => {
