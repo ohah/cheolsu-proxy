@@ -964,6 +964,7 @@ dependencies = [
  "futures-util",
  "proxy_daemon",
  "proxy_v2_models",
+ "qrcode",
  "ratatui",
  "reqwest 0.12.28",
  "serde",
