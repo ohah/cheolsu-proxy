@@ -465,19 +465,19 @@ msgstr ""
 msgid "Go to <0>Settings → Security → Encryption & credentials</0>"
 msgstr ""
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:94
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:105
 msgid "HAR export failed"
 msgstr "HAR 내보내기 실패"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:91
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:102
 msgid "HAR exported successfully"
 msgstr "HAR 내보내기 완료"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:183
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:194
 msgid "HAR import failed"
 msgstr "HAR 가져오기 실패"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:180
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:191
 msgid "HAR imported successfully"
 msgstr "HAR 가져오기 완료"
 
@@ -595,7 +595,7 @@ msgstr "프록시 스크립트 로드 및 관리"
 msgid "Load Session"
 msgstr "세션 불러오기"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:129
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:140
 msgid "Load transactions"
 msgstr "트랜잭션 불러오기"
 
@@ -904,7 +904,7 @@ msgstr "헤더 삭제"
 
 #. placeholder {0}: transactions.length
 #. placeholder {1}: loaded.length
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:128
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:139
 msgid "Replace {0} existing transactions with {1} new ones? Cancel to append instead."
 msgstr "기존 {0}건의 트랜잭션을 {1}건으로 교체합니다. 취소하면 기존 트래픽에 추가합니다."
 
@@ -1119,19 +1119,19 @@ msgstr "시퀀스 리플레이 실패"
 msgid "Server Replay"
 msgstr "서버 리플레이"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:160
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:171
 msgid "Session load failed"
 msgstr "세션 불러오기 실패"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:157
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:168
 msgid "Session loaded successfully"
 msgstr "세션 불러오기 완료"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:118
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:129
 msgid "Session save failed"
 msgstr "세션 저장 실패"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:115
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:126
 msgid "Session saved successfully"
 msgstr "세션 저장 완료"
 
