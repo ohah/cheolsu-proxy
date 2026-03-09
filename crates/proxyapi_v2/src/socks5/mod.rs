@@ -2,11 +2,13 @@ mod protocol;
 
 pub use protocol::*;
 
+use crate::throttle::{ThrottleConfig, ThrottledIo};
 use crate::upstream_proxy::{UpstreamProxyConfig, connect_to_target};
 use std::net::SocketAddr;
 use std::sync::Arc;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::{TcpListener, TcpStream};
+use tokio::sync::watch;
 use tokio_graceful::Shutdown;
 use tracing::{debug, error, info, warn};
 
@@ -24,6 +26,7 @@ pub enum Socks5Auth {
 pub struct Socks5Config {
     pub auth: Socks5Auth,
     pub upstream_proxy: Option<UpstreamProxyConfig>,
+    pub throttle_rx: Option<Arc<watch::Receiver<Option<ThrottleConfig>>>>,
 }
 
 impl Default for Socks5Config {
@@ -31,6 +34,7 @@ impl Default for Socks5Config {
         Self {
             auth: Socks5Auth::NoAuth,
             upstream_proxy: None,
+            throttle_rx: None,
         }
     }
 }
@@ -265,8 +269,23 @@ async fn handle_connect(
 
             send_reply(stream, REPLY_SUCCEEDED, &bind_addr).await?;
 
-            // 양방향 데이터 복사
-            match tokio::io::copy_bidirectional(stream, &mut target).await {
+            // 양방향 데이터 복사 (스로틀링 적용)
+            let throttle_config = config
+                .throttle_rx
+                .as_ref()
+                .and_then(|rx| rx.borrow().clone());
+            let tunnel_result = if let Some(ref tc) = throttle_config {
+                if tc.enabled {
+                    let mut ts = ThrottledIo::new(stream, tc);
+                    let mut tt = ThrottledIo::new(target, tc);
+                    tokio::io::copy_bidirectional(&mut ts, &mut tt).await
+                } else {
+                    tokio::io::copy_bidirectional(stream, &mut target).await
+                }
+            } else {
+                tokio::io::copy_bidirectional(stream, &mut target).await
+            };
+            match tunnel_result {
                 Ok((client_to_server, server_to_client)) => {
                     debug!(client_to_server, server_to_client, "SOCKS5 터널 종료");
                 }
@@ -448,6 +467,7 @@ mod tests {
                 password: "pass".into(),
             },
             upstream_proxy: None,
+            throttle_rx: None,
         };
         assert_eq!(
             select_auth_method(&[AUTH_NO_AUTH, AUTH_USERNAME_PASSWORD], &config),
