@@ -249,3 +249,18 @@ export async function loadSession(path: string): Promise<LoadSessionResult> {
 export async function importHarFile(path: string): Promise<string> {
   return invoke("import_har_file_cmd", { path });
 }
+
+// ─── Host Mapping ────────────────────────────────────────
+
+export interface HostMapping {
+  id: string;
+  source_host: string;
+  source_port: number | null;
+  target_host: string;
+  target_port: number | null;
+  enabled: boolean;
+}
+
+export async function updateHostMappings(mappings: HostMapping[]): Promise<void> {
+  return invoke("update_host_mappings", { mappings });
+}
