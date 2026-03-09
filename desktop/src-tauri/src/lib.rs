@@ -10,7 +10,7 @@ use proxy_v2::{
     get_ca_cert_path, get_mcp_server_path, install_ca_cert, install_cli, load_script,
     proxy_v2_status, read_body_file, replay_request, replay_sequence, start_proxy_v2,
     stop_proxy_v2, uninstall_ca_cert, uninstall_cli, unload_script, update_intercept_rules_v2,
-    update_server_replay, update_upstream_proxy, ws_inject_message, ProxyV2State,
+    update_server_replay, update_throttle, update_upstream_proxy, ws_inject_message, ProxyV2State,
 };
 use system_proxy::get_proxy_status_command;
 use tauri::menu::SubmenuBuilder;
@@ -126,6 +126,7 @@ pub fn run() {
                 replay_sequence,
                 ws_inject_message,
                 update_upstream_proxy,
+                update_throttle,
                 update_server_replay,
                 get_mcp_server_path,
                 install_cli,
