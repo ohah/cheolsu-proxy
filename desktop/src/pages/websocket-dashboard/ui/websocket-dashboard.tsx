@@ -1,7 +1,9 @@
-import { useMemo, useCallback } from "react";
+import { useMemo, useCallback, useState } from "react";
 import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
 import { Trash2, Plug } from "lucide-react";
+
+import { WsReplayDialog } from "@/features/websocket-replay";
 
 import { useWebSocketStore } from "@/shared/stores";
 import { WsMessageTable, WsMessageDetail, WsConnectionList } from "@/widgets/websocket-messages";
@@ -54,6 +56,12 @@ export const WebSocketDashboard = () => {
   const handleCloseDetail = useCallback(() => {
     setSelectedMessage(null);
   }, [setSelectedMessage]);
+
+  const [replayMessage, setReplayMessage] = useState<WsMessageInfo | null>(null);
+
+  const handleReplayRequest = useCallback((message: WsMessageInfo) => {
+    setReplayMessage(message);
+  }, []);
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-x-hidden">
@@ -113,12 +121,26 @@ export const WebSocketDashboard = () => {
                 minSize="20%"
                 className="h-full overflow-hidden"
               >
-                <WsMessageDetail message={selectedMessage} onClose={handleCloseDetail} />
+                <WsMessageDetail
+                  message={selectedMessage}
+                  onClose={handleCloseDetail}
+                  onReplayRequest={handleReplayRequest}
+                />
               </ResizablePanel>
             </>
           )}
         </ResizablePanelGroup>
       </div>
+
+      {replayMessage && (
+        <WsReplayDialog
+          message={replayMessage}
+          open={!!replayMessage}
+          onOpenChange={(open) => {
+            if (!open) setReplayMessage(null);
+          }}
+        />
+      )}
     </div>
   );
 };

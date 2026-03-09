@@ -1,32 +1,26 @@
-import type { HttpTransaction } from "@/entities/proxy";
+import type { ReactNode } from "react";
 
 import { NetworkControls } from "./network-controls";
 import { NetworkFilters } from "./network-filters";
 
 interface NetworkHeaderProps {
-  filterQueryString: string;
-  appliedQueryString: string;
-  filteredCount: number;
-  totalCount: number;
   paused: boolean;
-  transactions: HttpTransaction[];
+  hasTransactions: boolean;
+  exporting: boolean;
   togglePause: () => void;
-  onFilterQueryChange: (query: string) => void;
-  onApplyFilter: (query: string) => void;
   clearTransactions: () => void;
+  onExportHar: () => void;
+  filterSlot: ReactNode;
 }
 
 export function NetworkHeader({
-  filterQueryString,
-  appliedQueryString,
-  filteredCount,
-  totalCount,
   paused,
-  transactions,
+  hasTransactions,
+  exporting,
   togglePause,
-  onFilterQueryChange,
-  onApplyFilter,
   clearTransactions,
+  onExportHar,
+  filterSlot,
 }: NetworkHeaderProps) {
   return (
     <div className="bg-sidebar w-full">
@@ -34,19 +28,14 @@ export function NetworkHeader({
         <div className="flex items-center gap-4 flex-1 w-full">
           <NetworkControls
             paused={paused}
-            transactions={transactions}
+            hasTransactions={hasTransactions}
+            exporting={exporting}
             onTogglePause={togglePause}
             onClearTransactions={clearTransactions}
+            onExportHar={onExportHar}
           />
 
-          <NetworkFilters
-            filterQueryString={filterQueryString}
-            appliedQueryString={appliedQueryString}
-            totalCount={totalCount}
-            filteredCount={filteredCount}
-            onFilterQueryChange={onFilterQueryChange}
-            onApplyFilter={onApplyFilter}
-          />
+          <NetworkFilters>{filterSlot}</NetworkFilters>
         </div>
       </div>
     </div>
