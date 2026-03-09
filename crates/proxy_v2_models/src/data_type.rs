@@ -32,6 +32,8 @@ pub enum DataType {
     Document,
     /// 압축 파일 (ZIP, GZIP 등)
     Archive,
+    /// Protobuf / gRPC 바이너리 데이터
+    Protobuf,
     /// 바이너리 데이터 (알 수 없는 형식)
     Binary,
     /// 빈 데이터
@@ -57,6 +59,7 @@ impl DataType {
             DataType::Audio => "audio/*",
             DataType::Document => "application/pdf",
             DataType::Archive => "application/zip",
+            DataType::Protobuf => "application/x-protobuf",
             DataType::Binary => "application/octet-stream",
             DataType::Empty => "empty",
             DataType::Unknown => "application/octet-stream",
@@ -78,6 +81,7 @@ impl DataType {
             | DataType::Audio
             | DataType::Document
             | DataType::Archive
+            | DataType::Protobuf
             | DataType::Binary
             | DataType::Empty
             | DataType::Unknown => "plaintext",
@@ -132,6 +136,7 @@ impl DataType {
                 | DataType::Audio
                 | DataType::Document
                 | DataType::Archive
+                | DataType::Protobuf
                 | DataType::Binary
         )
     }
@@ -396,7 +401,12 @@ pub fn detect_data_type(headers: &HeaderMap, body: &Bytes) -> DataType {
     if let Some(content_type_header) = headers.get("content-type") {
         if let Ok(content_type_str) = content_type_header.to_str() {
             let content_type = content_type_str.to_lowercase();
-            if content_type.contains("graphql") {
+            if content_type.contains("grpc")
+                || content_type.contains("protobuf")
+                || content_type.contains("x-protobuf")
+            {
+                return DataType::Protobuf;
+            } else if content_type.contains("graphql") {
                 return DataType::GraphQL;
             } else if content_type.contains("json") {
                 return DataType::Json;
