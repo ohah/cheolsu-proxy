@@ -6,6 +6,7 @@ use proxyapi_v2::{
     hyper::Response,
     Body, RequestOrResponse,
 };
+use regex::Regex;
 use tracing::{error, info};
 
 use super::handler::LoggingHandler;
@@ -149,6 +150,70 @@ impl LoggingHandler {
                 }
                 InterceptAction::ModifyResponse { .. } => {
                     // 응답 수정 규칙은 handle_response에서 처리
+                }
+                InterceptAction::Rewrite {
+                    target,
+                    match_pattern,
+                    replace_with,
+                } if target == "request_header" || target == "request_body" => {
+                    match Regex::new(match_pattern) {
+                        Ok(re) => {
+                            if target == "request_header" {
+                                info!(
+                                    "[Intercept] Rewrite 요청 헤더: {} {} (규칙: {})",
+                                    method, url, rule.name
+                                );
+                                let replacements: Vec<(HeaderName, HeaderValue)> = current_req
+                                    .headers()
+                                    .iter()
+                                    .filter_map(|(name, value)| {
+                                        let val_str = value.to_str().ok()?;
+                                        if re.is_match(val_str) {
+                                            let new_val =
+                                                re.replace_all(val_str, replace_with.as_str());
+                                            HeaderValue::from_str(&new_val)
+                                                .ok()
+                                                .map(|hv| (name.clone(), hv))
+                                        } else {
+                                            None
+                                        }
+                                    })
+                                    .collect();
+                                for (name, value) in replacements {
+                                    current_req.headers_mut().insert(name, value);
+                                }
+                            } else {
+                                // request_body
+                                info!(
+                                    "[Intercept] Rewrite 요청 바디: {} {} (규칙: {})",
+                                    method, url, rule.name
+                                );
+                                // 바디를 읽어서 치환 후 다시 설정
+                                use http_body_util::BodyExt;
+                                let body_bytes = current_req.body_mut().collect().await;
+                                if let Ok(collected) = body_bytes {
+                                    let bytes = collected.to_bytes();
+                                    if let Ok(body_str) = std::str::from_utf8(&bytes) {
+                                        let new_body =
+                                            re.replace_all(body_str, replace_with.as_str());
+                                        use http_body_util::Full;
+                                        *current_req.body_mut() = Body::from(Full::new(
+                                            bytes::Bytes::from(new_body.into_owned()),
+                                        ));
+                                    }
+                                }
+                            }
+                        }
+                        Err(e) => {
+                            error!(
+                                "[Intercept] Rewrite 정규식 컴파일 실패: {} - {}",
+                                match_pattern, e
+                            );
+                        }
+                    }
+                }
+                InterceptAction::Rewrite { .. } => {
+                    // response 대상 rewrite는 apply_response_intercept에서 처리
                 }
                 InterceptAction::MapLocal {
                     file_path,
@@ -331,6 +396,80 @@ impl LoggingHandler {
                         .parse()
                         .unwrap_or_else(|_| HeaderValue::from_static("unknown")),
                 );
+            }
+
+            if let InterceptAction::Rewrite {
+                target,
+                match_pattern,
+                replace_with,
+            } = &rule.action
+            {
+                if target == "response_header" || target == "response_body" {
+                    match Regex::new(match_pattern) {
+                        Ok(re) => {
+                            if target == "response_header" {
+                                info!(
+                                    "[Intercept] Rewrite 응답 헤더: {} {} (규칙: {})",
+                                    method, url, rule.name
+                                );
+                                let replacements: Vec<(HeaderName, HeaderValue)> = res
+                                    .headers()
+                                    .iter()
+                                    .filter_map(|(name, value)| {
+                                        let val_str = value.to_str().ok()?;
+                                        if re.is_match(val_str) {
+                                            let new_val =
+                                                re.replace_all(val_str, replace_with.as_str());
+                                            HeaderValue::from_str(&new_val)
+                                                .ok()
+                                                .map(|hv| (name.clone(), hv))
+                                        } else {
+                                            None
+                                        }
+                                    })
+                                    .collect();
+                                for (name, value) in replacements {
+                                    res.headers_mut().insert(name, value);
+                                }
+                            } else {
+                                // response_body
+                                info!(
+                                    "[Intercept] Rewrite 응답 바디: {} {} (규칙: {})",
+                                    method, url, rule.name
+                                );
+                                use http_body_util::BodyExt;
+                                let body_bytes = res.body_mut().collect().await;
+                                if let Ok(collected) = body_bytes {
+                                    let bytes = collected.to_bytes();
+                                    if let Ok(body_str) = std::str::from_utf8(&bytes) {
+                                        let new_body =
+                                            re.replace_all(body_str, replace_with.as_str());
+                                        use http_body_util::Full;
+                                        let new_bytes = bytes::Bytes::from(new_body.into_owned());
+                                        res.headers_mut().remove("content-length");
+                                        res.headers_mut().remove("content-encoding");
+                                        res.headers_mut().remove("transfer-encoding");
+                                        *res.body_mut() = Body::from(Full::new(new_bytes));
+                                    }
+                                }
+                            }
+                            res.headers_mut()
+                                .insert("x-cheolsu-intercepted", HeaderValue::from_static("true"));
+                            res.headers_mut().insert(
+                                "x-cheolsu-intercept-rule",
+                                rule.id
+                                    .parse()
+                                    .unwrap_or_else(|_| HeaderValue::from_static("unknown")),
+                            );
+                        }
+                        Err(e) => {
+                            error!(
+                                "[Intercept] Rewrite 정규식 컴파일 실패: {} - {}",
+                                match_pattern, e
+                            );
+                        }
+                    }
+                }
             }
         }
 
