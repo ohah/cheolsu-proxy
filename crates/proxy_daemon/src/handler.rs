@@ -587,7 +587,6 @@ impl LoggingHandler {
         req
     }
 
-
     fn check_cert_download_intercept(&self, req: &Request<Body>) -> Option<Response<Body>> {
         if cert_distribution::is_cert_download_request(req) {
             Some(self.serve_ca_cert_download(req))
