@@ -1,6 +1,8 @@
 import { useCallback, useMemo, useState } from "react";
-import { save, open } from "@tauri-apps/plugin-dialog";
+import { save, open, confirm } from "@tauri-apps/plugin-dialog";
 import { invoke } from "@tauri-apps/api/core";
+import { toast } from "sonner";
+import { useLingui } from "@lingui/react/macro";
 
 import { TransactionDetails, SequenceReplayDialog } from "@/features/transaction-details";
 import { buildHarLog } from "@/features/har-export";
@@ -16,17 +18,23 @@ import { ResizableHandle, ResizablePanel, ResizablePanelGroup, Button } from "@/
 import { useDefaultLayout } from "react-resizable-panels";
 import { Play, X, GitCompareArrows } from "lucide-react";
 
-import type { HttpTransaction } from "@/entities/proxy";
+import type { HttpTransaction, ProxyEventTuple } from "@/entities/proxy";
 import {
   diffTransactionPairs,
+  saveSession,
+  loadSession,
+  importHarFile,
   type DiffTransactionPair,
   type TrafficDiff,
 } from "@/shared/api/proxy";
 
 import { useTransactionFilters, useResizablePanelController } from "../hooks";
 import { useTransactionStore, useInterceptRuleDialogStore } from "@/shared/stores";
-import { saveSession, loadSession, importHarFile } from "@/shared/api/proxy";
-import type { HttpTransaction, ProxyEventTuple } from "@/entities/proxy";
+
+function parseTransactionsJson(json: string): HttpTransaction[] {
+  const tuples: ProxyEventTuple[] = JSON.parse(json);
+  return tuples.map(([request, response]) => ({ request, response }));
+}
 
 export const NetworkDashboard = () => {
   const transactions = useTransactionStore((s) => s.transactions);
@@ -65,13 +73,19 @@ export const NetworkDashboard = () => {
   const setTransactions = useTransactionStore((s) => s.setTransactions);
   const appendTransactions = useTransactionStore((s) => s.appendTransactions);
 
+  const { t } = useLingui();
+
   const [sequenceReplayOpen, setSequenceReplayOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [diffResult, setDiffResult] = useState<TrafficDiff | null>(null);
   const [diffLoading, setDiffLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const busy = exporting || saving || loading;
 
   const handleExportHar = useCallback(async () => {
-    if (filteredTransactions.length === 0 || exporting) return;
+    if (filteredTransactions.length === 0 || busy) return;
 
     try {
       setExporting(true);
@@ -85,18 +99,20 @@ export const NetworkDashboard = () => {
       const har = await buildHarLog(filteredTransactions);
       const content = JSON.stringify(har, null, 2);
       await invoke("export_har_file", { path: filePath, content });
+      toast.success(t`HAR exported successfully`);
     } catch (err) {
       console.error("HAR export failed:", err);
+      toast.error(t`HAR export failed`);
     } finally {
       setExporting(false);
     }
-  }, [filteredTransactions, exporting]);
+  }, [filteredTransactions, busy, t]);
 
   const handleSaveSession = useCallback(async () => {
-    if (filteredTransactions.length === 0 || exporting) return;
+    if (filteredTransactions.length === 0 || busy) return;
 
     try {
-      setExporting(true);
+      setSaving(true);
 
       const filePath = await save({
         defaultPath: "session.cheolsu",
@@ -104,20 +120,40 @@ export const NetworkDashboard = () => {
       });
       if (!filePath) return;
 
-      await saveSession(filePath, appliedQueryString || undefined);
+      const tuples = filteredTransactions.map((tx) => [tx.request, tx.response]);
+      const transactionsJson = JSON.stringify(tuples);
+      await saveSession(filePath, transactionsJson);
+      toast.success(t`Session saved successfully`);
     } catch (err) {
       console.error("Session save failed:", err);
+      toast.error(t`Session save failed`);
     } finally {
-      setExporting(false);
+      setSaving(false);
     }
-  }, [filteredTransactions, exporting, appliedQueryString]);
+  }, [filteredTransactions, busy, t]);
 
-  const parseTransactionsJson = useCallback((json: string): HttpTransaction[] => {
-    const tuples: ProxyEventTuple[] = JSON.parse(json);
-    return tuples.map(([request, response]) => ({ request, response }));
-  }, []);
+  const mergeOrReplaceTransactions = useCallback(
+    async (loaded: HttpTransaction[]) => {
+      if (transactions.length > 0) {
+        const shouldReplace = await confirm(
+          t`Replace ${transactions.length} existing transactions with ${loaded.length} new ones? Cancel to append instead.`,
+          { title: t`Load transactions`, kind: "warning" },
+        );
+        if (shouldReplace) {
+          setTransactions(loaded);
+        } else {
+          appendTransactions(loaded);
+        }
+      } else {
+        setTransactions(loaded);
+      }
+    },
+    [transactions.length, setTransactions, appendTransactions, t],
+  );
 
   const handleLoadSession = useCallback(async () => {
+    if (loading) return;
+
     try {
       const filePath = await open({
         filters: [{ name: "Cheolsu Session", extensions: ["cheolsu", "cheolsu.gz"] }],
@@ -125,31 +161,22 @@ export const NetworkDashboard = () => {
       });
       if (!filePath) return;
 
-      setExporting(true);
+      setLoading(true);
       const result = await loadSession(filePath);
       const loaded = parseTransactionsJson(result.transactions_json);
-
-      if (transactions.length > 0) {
-        // 기존 트랜잭션이 있으면 교체 (append는 사용하지 않음)
-        const shouldReplace = window.confirm(
-          `기존 ${transactions.length}건의 트래픽을 ${loaded.length}건으로 교체합니다.\n취소하면 기존 트래픽에 추가합니다.`,
-        );
-        if (shouldReplace) {
-          setTransactions(loaded);
-        } else {
-          appendTransactions(loaded);
-        }
-      } else {
-        setTransactions(loaded);
-      }
+      await mergeOrReplaceTransactions(loaded);
+      toast.success(t`Session loaded successfully`);
     } catch (err) {
       console.error("Session load failed:", err);
+      toast.error(t`Session load failed`);
     } finally {
-      setExporting(false);
+      setLoading(false);
     }
-  }, [transactions.length, setTransactions, appendTransactions, parseTransactionsJson]);
+  }, [loading, mergeOrReplaceTransactions, t]);
 
   const handleImportHar = useCallback(async () => {
+    if (loading) return;
+
     try {
       const filePath = await open({
         filters: [{ name: "HAR", extensions: ["har"] }],
@@ -157,28 +184,18 @@ export const NetworkDashboard = () => {
       });
       if (!filePath) return;
 
-      setExporting(true);
+      setLoading(true);
       const json = await importHarFile(filePath);
       const loaded = parseTransactionsJson(json);
-
-      if (transactions.length > 0) {
-        const shouldReplace = window.confirm(
-          `기존 ${transactions.length}건의 트래픽을 ${loaded.length}건으로 교체합니다.\n취소하면 기존 트래픽에 추가합니다.`,
-        );
-        if (shouldReplace) {
-          setTransactions(loaded);
-        } else {
-          appendTransactions(loaded);
-        }
-      } else {
-        setTransactions(loaded);
-      }
+      await mergeOrReplaceTransactions(loaded);
+      toast.success(t`HAR imported successfully`);
     } catch (err) {
       console.error("HAR import failed:", err);
+      toast.error(t`HAR import failed`);
     } finally {
-      setExporting(false);
+      setLoading(false);
     }
-  }, [transactions.length, setTransactions, appendTransactions, parseTransactionsJson]);
+  }, [loading, mergeOrReplaceTransactions, t]);
 
   const interceptRuleDialogOpen = useInterceptRuleDialogStore((s) => s.open);
   const interceptRuleInitialValues = useInterceptRuleDialogStore((s) => s.initialValues);
@@ -286,7 +303,7 @@ export const NetworkDashboard = () => {
         <NetworkHeader
           paused={paused}
           hasTransactions={filteredTransactions.length > 0}
-          exporting={exporting}
+          exporting={busy}
           togglePause={togglePause}
           clearTransactions={clearTransactions}
           onExportHar={handleExportHar}

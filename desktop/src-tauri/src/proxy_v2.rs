@@ -1112,26 +1112,21 @@ pub async fn export_har_file(path: String, content: String) -> Result<(), String
     std::fs::write(&path, content).map_err(|e| format!("HAR 파일 저장 실패: {} - {}", path, e))
 }
 
-/// 세션 저장: daemon에 현재 트래픽을 .cheolsu 파일로 저장 요청
+/// 세션 저장: 프론트엔드에서 전달받은 트랜잭션 데이터를 .cheolsu 파일로 직접 저장
 #[tauri::command]
-pub async fn save_session(
-    proxy: State<'_, ProxyV2State>,
-    path: String,
-    filter: Option<String>,
-) -> Result<(), String> {
-    let proxy_guard = proxy.lock().await;
-    let conn = proxy_guard
-        .as_ref()
-        .ok_or_else(|| "프록시가 실행 중이 아닙니다".to_string())?;
+pub async fn save_session(path: String, transactions_json: String) -> Result<(), String> {
+    use proxy_daemon::SessionFile;
+    use proxy_v2_models::RequestInfo;
 
     let file_path = proxy_daemon::ensure_extension(&path);
-    let cmd = ClientCommand::SaveSession {
-        path: file_path,
-        filter,
-    };
-    conn.send_command(&cmd)
-        .await
-        .map_err(|e| format!("세션 저장 명령 전송 실패: {}", e))?;
+
+    let transactions: Vec<RequestInfo> = serde_json::from_str(&transactions_json)
+        .map_err(|e| format!("트랜잭션 역직렬화 실패: {}", e))?;
+
+    let session = SessionFile::from_traffic(0, &transactions, &[], &[], &[], None);
+    session
+        .save(std::path::Path::new(&file_path))
+        .map_err(|e| format!("세션 저장 실패: {}", e))?;
 
     Ok(())
 }

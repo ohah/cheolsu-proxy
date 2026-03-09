@@ -465,6 +465,22 @@ msgstr "Go to <0>Settings → General → VPN & Device Management</0>"
 msgid "Go to <0>Settings → Security → Encryption & credentials</0>"
 msgstr "Go to <0>Settings → Security → Encryption & credentials</0>"
 
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:94
+msgid "HAR export failed"
+msgstr "HAR export failed"
+
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:91
+msgid "HAR exported successfully"
+msgstr "HAR exported successfully"
+
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:183
+msgid "HAR import failed"
+msgstr "HAR import failed"
+
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:180
+msgid "HAR imported successfully"
+msgstr "HAR imported successfully"
+
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:320
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:294
 #: src/features/transaction-details/ui/replay-dialog.tsx:396
@@ -578,6 +594,10 @@ msgstr "Load and manage proxy scripts"
 #: src/widgets/network-header/ui/network-controls.tsx:63
 msgid "Load Session"
 msgstr "Load Session"
+
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:129
+msgid "Load transactions"
+msgstr "Load transactions"
 
 #: src/pages/script/ui/script-page.tsx:214
 #: src/pages/script/ui/script-page.tsx:266
@@ -882,6 +902,12 @@ msgstr "Remove entry"
 msgid "Remove Headers"
 msgstr "Remove Headers"
 
+#. placeholder {0}: transactions.length
+#. placeholder {1}: loaded.length
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:128
+msgid "Replace {0} existing transactions with {1} new ones? Cancel to append instead."
+msgstr "Replace {0} existing transactions with {1} new ones? Cancel to append instead."
+
 #: src/features/transaction-details/ui/replay-dialog.tsx:337
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:122
 msgid "Replay"
@@ -1092,6 +1118,22 @@ msgstr "Sequence replay failed"
 #: src/shared/app-sidebar/model/consts.ts:44
 msgid "Server Replay"
 msgstr "Server Replay"
+
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:160
+msgid "Session load failed"
+msgstr "Session load failed"
+
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:157
+msgid "Session loaded successfully"
+msgstr "Session loaded successfully"
+
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:118
+msgid "Session save failed"
+msgstr "Session save failed"
+
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:115
+msgid "Session saved successfully"
+msgstr "Session saved successfully"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:372
 msgid "Set body (optional)"

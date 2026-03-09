@@ -465,6 +465,22 @@ msgstr ""
 msgid "Go to <0>Settings → Security → Encryption & credentials</0>"
 msgstr ""
 
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:94
+msgid "HAR export failed"
+msgstr "HAR 내보내기 실패"
+
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:91
+msgid "HAR exported successfully"
+msgstr "HAR 내보내기 완료"
+
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:183
+msgid "HAR import failed"
+msgstr "HAR 가져오기 실패"
+
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:180
+msgid "HAR imported successfully"
+msgstr "HAR 가져오기 완료"
+
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:320
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:294
 #: src/features/transaction-details/ui/replay-dialog.tsx:396
@@ -578,6 +594,10 @@ msgstr "프록시 스크립트 로드 및 관리"
 #: src/widgets/network-header/ui/network-controls.tsx:63
 msgid "Load Session"
 msgstr "세션 불러오기"
+
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:129
+msgid "Load transactions"
+msgstr "트랜잭션 불러오기"
 
 #: src/pages/script/ui/script-page.tsx:214
 #: src/pages/script/ui/script-page.tsx:266
@@ -882,6 +902,12 @@ msgstr "엔트리 삭제"
 msgid "Remove Headers"
 msgstr "헤더 삭제"
 
+#. placeholder {0}: transactions.length
+#. placeholder {1}: loaded.length
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:128
+msgid "Replace {0} existing transactions with {1} new ones? Cancel to append instead."
+msgstr "기존 {0}건의 트랜잭션을 {1}건으로 교체합니다. 취소하면 기존 트래픽에 추가합니다."
+
 #: src/features/transaction-details/ui/replay-dialog.tsx:337
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:122
 msgid "Replay"
@@ -1092,6 +1118,22 @@ msgstr "시퀀스 리플레이 실패"
 #: src/shared/app-sidebar/model/consts.ts:44
 msgid "Server Replay"
 msgstr "서버 리플레이"
+
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:160
+msgid "Session load failed"
+msgstr "세션 불러오기 실패"
+
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:157
+msgid "Session loaded successfully"
+msgstr "세션 불러오기 완료"
+
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:118
+msgid "Session save failed"
+msgstr "세션 저장 실패"
+
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:115
+msgid "Session saved successfully"
+msgstr "세션 저장 완료"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:372
 msgid "Set body (optional)"
