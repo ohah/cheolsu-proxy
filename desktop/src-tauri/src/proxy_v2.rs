@@ -1,6 +1,6 @@
 use proxy_daemon::{
     clean_old_cache, ClientCommand, DaemonConnection, DaemonMessage, InterceptRule,
-    ServerReplayEntry, UpstreamProxyConfig,
+    ServerReplayEntry, ThrottleConfig, UpstreamProxyConfig,
 };
 use std::collections::HashMap;
 use std::net::SocketAddr;
@@ -440,6 +440,25 @@ pub async fn update_upstream_proxy(
         let cmd = ClientCommand::UpdateUpstreamProxy { config };
         conn.send_command(&cmd).await?;
         tracing::info!("Daemon에 upstream proxy 설정 업데이트 완료");
+    } else {
+        return Err("프록시가 실행 중이 아닙니다".to_string());
+    }
+
+    Ok(())
+}
+
+/// 스로틀링 설정 업데이트
+#[tauri::command]
+pub async fn update_throttle(
+    proxy: State<'_, ProxyV2State>,
+    config: Option<ThrottleConfig>,
+) -> Result<(), String> {
+    let proxy_guard = proxy.lock().await;
+
+    if let Some(conn) = proxy_guard.as_ref() {
+        let cmd = ClientCommand::UpdateThrottle { config };
+        conn.send_command(&cmd).await?;
+        tracing::info!("Daemon에 스로틀링 설정 업데이트 완료");
     } else {
         return Err("프록시가 실행 중이 아닙니다".to_string());
     }

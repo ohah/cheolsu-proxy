@@ -116,6 +116,17 @@ export async function uninstallCaCert(): Promise<string> {
   return invoke("uninstall_ca_cert");
 }
 
+export interface ThrottleConfig {
+  enabled: boolean;
+  download_rate: number | null;
+  upload_rate: number | null;
+  latency_ms: number;
+}
+
+export async function updateThrottle(config: ThrottleConfig | null): Promise<void> {
+  return invoke("update_throttle", { config });
+}
+
 export async function loadScript(path?: string, code?: string): Promise<void> {
   return invoke("load_script", { path, code });
 }
