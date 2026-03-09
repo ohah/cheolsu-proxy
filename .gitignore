@@ -51,6 +51,7 @@ dd-flag
 **/src-tauri/target/
 **/src-tauri/dist/
 **/src-tauri/gen/
+**/src-tauri/openssl-bundle
 
 # RSPress build artifacts
 document/dist/
