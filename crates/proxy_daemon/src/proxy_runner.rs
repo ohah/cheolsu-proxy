@@ -5,7 +5,9 @@ use tracing::info;
 use crate::breakpoint::BreakpointManager;
 use crate::error::DaemonError;
 use crate::handler::{LoggingHandler, WsEvent};
-use crate::protocol::{BreakpointRule, DaemonMessage, HostMapping, InterceptRule, ServerReplayEntry};
+use crate::protocol::{
+    BreakpointRule, DaemonMessage, HostMapping, InterceptRule, ServerReplayEntry,
+};
 use crate::tls_client::create_hybrid_client;
 use proxyapi_v2::certificate_authority::CertificateAuthority;
 use proxyapi_v2::throttle::ThrottleConfig;
