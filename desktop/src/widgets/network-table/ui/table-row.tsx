@@ -16,7 +16,7 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "@/shared/ui";
-import { generateCurlCommand } from "@/features/transaction-details";
+import { generateCurlCommand } from "@/shared/lib";
 import { useInterceptRuleDialogStore } from "@/shared/stores";
 import { toast } from "sonner";
 import { Code, Pin, PinOff, Shield, Trash2 } from "lucide-react";
