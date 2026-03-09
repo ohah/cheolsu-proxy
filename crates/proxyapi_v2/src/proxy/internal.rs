@@ -4,7 +4,8 @@ use super::middleware::optimize_streaming_response;
 use crate::{
     HttpContext, HttpHandler, RequestOrResponse, WebSocketHandler, body::Body,
     certificate_authority::CertificateAuthority, hybrid_tls_handler::HybridTlsHandler,
-    rewind::Rewind, tls_version_detector::TlsVersionDetector, upstream_proxy::connect_to_target,
+    rewind::Rewind, throttle::ThrottledIo, tls_version_detector::TlsVersionDetector,
+    upstream_proxy::connect_to_target,
 };
 use http::uri::{Authority, Scheme};
 use hyper::{
@@ -203,6 +204,23 @@ where
                                 .await
                                 {
                                     Ok(mut server_stream) => {
+                                        let throttle_config = self
+                                            .ctx
+                                            .throttle_rx
+                                            .as_ref()
+                                            .and_then(|rx| rx.borrow().clone());
+                                        if let Some(ref config) = throttle_config {
+                                            if config.enabled {
+                                                let mut tc =
+                                                    ThrottledIo::new(client_stream, config);
+                                                let mut ts =
+                                                    ThrottledIo::new(server_stream, config);
+                                                let _ =
+                                                    tokio::io::copy_bidirectional(&mut tc, &mut ts)
+                                                        .await;
+                                                return;
+                                            }
+                                        }
                                         let _ = tokio::io::copy_bidirectional(
                                             &mut client_stream,
                                             &mut server_stream,
@@ -521,9 +539,23 @@ where
                                 }
                             };
 
-                            if let Err(e) =
+                            let throttle_config = self
+                                .ctx
+                                .throttle_rx
+                                .as_ref()
+                                .and_then(|rx| rx.borrow().clone());
+                            let tunnel_result = if let Some(ref config) = throttle_config {
+                                if config.enabled {
+                                    let mut tc = ThrottledIo::new(upgraded, config);
+                                    let mut ts = ThrottledIo::new(server, config);
+                                    tokio::io::copy_bidirectional(&mut tc, &mut ts).await
+                                } else {
+                                    tokio::io::copy_bidirectional(&mut upgraded, &mut server).await
+                                }
+                            } else {
                                 tokio::io::copy_bidirectional(&mut upgraded, &mut server).await
-                            {
+                            };
+                            if let Err(e) = tunnel_result {
                                 error!(
                                     authority = %authority,
                                     error = %e,

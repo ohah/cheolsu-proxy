@@ -173,6 +173,7 @@ async fn socks5_connect_with_auth_success() {
             password: "secret".into(),
         },
         upstream_proxy: None,
+        throttle_rx: None,
     };
     let (socks_port, stop) = start_socks5_server(config).await;
 
@@ -208,6 +209,7 @@ async fn socks5_auth_failure() {
             password: "secret".into(),
         },
         upstream_proxy: None,
+        throttle_rx: None,
     };
     let (socks_port, stop) = start_socks5_server(config).await;
 
@@ -230,6 +232,7 @@ async fn socks5_no_acceptable_method() {
             password: "pass".into(),
         },
         upstream_proxy: None,
+        throttle_rx: None,
     };
     let (socks_port, stop) = start_socks5_server(config).await;
 

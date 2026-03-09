@@ -1,8 +1,10 @@
+use crate::throttle::ThrottleConfig;
 use crate::tls_passthrough::TlsPassthrough;
 use crate::upstream_proxy::UpstreamProxyConfig;
 use crate::websocket_registry::WebSocketRegistry;
 use proxy_v2_models::RequestInfo;
-use tokio::sync::mpsc;
+use std::sync::Arc;
+use tokio::sync::{mpsc, watch};
 use tokio_tungstenite::Connector;
 
 /// 프록시의 공유 상태를 담는 컨텍스트 구조체.
@@ -15,6 +17,7 @@ pub struct ProxyContext {
     pub tls_passthrough: Option<TlsPassthrough>,
     pub websocket_registry: Option<WebSocketRegistry>,
     pub upstream_proxy: Option<UpstreamProxyConfig>,
+    pub throttle_rx: Option<Arc<watch::Receiver<Option<ThrottleConfig>>>>,
 }
 
 impl ProxyContext {
