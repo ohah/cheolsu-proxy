@@ -1179,6 +1179,20 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_server_diff_transactions_not_found() {
+        let store = Store::new();
+        let server = CheolsuMcpServer::new(store, None);
+        let params = DiffTransactionsParams {
+            transaction_id_a: "nonexistent_a".to_string(),
+            transaction_id_b: "nonexistent_b".to_string(),
+        };
+        let result = server.diff_transactions(Parameters(params)).await.unwrap();
+        assert!(result.is_error.unwrap_or(false));
+        let text = extract_text(&result);
+        assert!(text.contains("not found"));
+    }
+
+    #[tokio::test]
     async fn test_server_remove_rule_not_found() {
         let store = Store::new();
         let server = CheolsuMcpServer::new(store, None);
