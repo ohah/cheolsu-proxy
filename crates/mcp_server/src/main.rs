@@ -823,6 +823,82 @@ mod tests {
         assert_eq!(store.rules.lock().unwrap().len(), 2);
     }
 
+    // ─── broadcast 동기화 시뮬레이션 테스트 ─────────────────
+
+    #[test]
+    fn test_broadcast_sync_preserves_app_rules_on_mcp_add() {
+        let store = Store::new();
+
+        // 1. 데몬 연결 시 broadcast로 앱 UI 규칙 2개 수신
+        *store.rules.lock().unwrap() = vec![make_block_rule("uuid-1"), make_block_rule("uuid-2")];
+
+        // 2. MCP add_rule: 기존 규칙에 추가
+        store.rules.lock().unwrap().push(make_block_rule("mcp_0"));
+
+        // 3. send_rules()가 전체 규칙을 전송 → 앱 규칙 보존 확인
+        let rules = store.rules.lock().unwrap().clone();
+        assert_eq!(rules.len(), 3);
+        assert!(rules.iter().any(|r| r.id == "uuid-1"));
+        assert!(rules.iter().any(|r| r.id == "uuid-2"));
+        assert!(rules.iter().any(|r| r.id == "mcp_0"));
+    }
+
+    #[test]
+    fn test_broadcast_sync_updates_full_rules() {
+        let store = Store::new();
+
+        // 1. 초기 상태: MCP 규칙 1개
+        store.rules.lock().unwrap().push(make_block_rule("mcp_0"));
+
+        // 2. broadcast로 전체 규칙 수신 (앱 UI 규칙 + MCP 규칙 포함)
+        *store.rules.lock().unwrap() = vec![
+            make_block_rule("uuid-1"),
+            make_block_rule("uuid-2"),
+            make_block_rule("mcp_0"),
+        ];
+
+        let rules = store.rules.lock().unwrap().clone();
+        assert_eq!(rules.len(), 3);
+    }
+
+    #[test]
+    fn test_broadcast_sync_remove_mcp_rule() {
+        let store = Store::new();
+
+        // 1. broadcast로 전체 규칙 수신
+        *store.rules.lock().unwrap() = vec![
+            make_block_rule("uuid-1"),
+            make_block_rule("mcp_0"),
+            make_block_rule("mcp_1"),
+        ];
+
+        // 2. MCP remove_rule: mcp_1 제거
+        store.rules.lock().unwrap().retain(|r| r.id != "mcp_1");
+
+        // 3. 앱 규칙 + 남은 MCP 규칙 보존 확인
+        let rules = store.rules.lock().unwrap().clone();
+        assert_eq!(rules.len(), 2);
+        assert!(rules.iter().any(|r| r.id == "uuid-1"));
+        assert!(rules.iter().any(|r| r.id == "mcp_0"));
+    }
+
+    #[test]
+    fn test_broadcast_initial_empty_then_sync() {
+        let store = Store::new();
+
+        // 1. 초기 상태: 비어있음
+        assert_eq!(store.rules.lock().unwrap().len(), 0);
+
+        // 2. 데몬 연결 후 broadcast로 기존 규칙 수신
+        *store.rules.lock().unwrap() = vec![make_block_rule("uuid-1"), make_block_rule("uuid-2")];
+
+        // 3. MCP add_rule
+        store.rules.lock().unwrap().push(make_block_rule("mcp_0"));
+
+        let rules = store.rules.lock().unwrap().clone();
+        assert_eq!(rules.len(), 3);
+    }
+
     // ─── Helper function tests ──────────────────────────────
 
     #[test]
