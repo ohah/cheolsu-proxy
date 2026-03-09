@@ -36,17 +36,15 @@ pub async fn handle_client(
         let _ = w.write_all(line.as_bytes()).await;
         let _ = w.flush().await;
 
-        // 연결 직후 현재 인터셉트 규칙을 전송
+        // 연결 직후 현재 인터셉트 규칙을 전송 (빈 목록도 유효한 상태)
         let current_rules = intercept_tx.borrow().clone();
-        if !current_rules.is_empty() {
-            let rules_msg = DaemonMessage::InterceptRulesUpdated {
-                rules: current_rules,
-            };
-            let mut rules_line = serde_json::to_string(&rules_msg).unwrap_or_default();
-            rules_line.push('\n');
-            let _ = w.write_all(rules_line.as_bytes()).await;
-            let _ = w.flush().await;
-        }
+        let rules_msg = DaemonMessage::InterceptRulesUpdated {
+            rules: current_rules,
+        };
+        let mut rules_line = serde_json::to_string(&rules_msg).unwrap_or_default();
+        rules_line.push('\n');
+        let _ = w.write_all(rules_line.as_bytes()).await;
+        let _ = w.flush().await;
     }
 
     // 스크립트 로그 전달 태스크
