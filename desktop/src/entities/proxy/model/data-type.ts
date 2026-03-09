@@ -232,10 +232,6 @@ export const isBinaryDataType = (dataType: DataType): boolean => {
 };
 
 /**
- * 데이터 타입이 미디어 파일인지 확인 (이미지, 비디오, 오디오)
- * 이 타입들은 무조건 파일로 저장됨
- */
-/**
  * 데이터 타입이 Protobuf인지 확인
  */
 export const isProtobufDataType = (dataType: DataType): boolean => {

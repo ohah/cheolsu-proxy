@@ -110,7 +110,8 @@ function isLikelyString(data: Uint8Array): boolean {
 
 /** length-delimited 데이터를 중첩 메시지로 파싱 시도 */
 function tryDecodeAsMessage(data: Uint8Array): ProtobufField[] | null {
-  if (data.length === 0) return null;
+  // 2바이트 미만은 중첩 메시지로 판별하지 않음 (오탐 방지)
+  if (data.length < 2) return null;
   try {
     const fields = parseFields(data);
     // 파싱 결과 검증: 필드가 하나 이상이고, field number가 합리적인 범위 내
@@ -207,7 +208,11 @@ export function stripGrpcFraming(data: Uint8Array): Uint8Array[] {
   let offset = 0;
 
   while (offset + 5 <= data.length) {
-    // skip compressed flag (1 byte)
+    const compressedFlag = data[offset];
+    if (compressedFlag !== 0) {
+      // 압축된 gRPC 메시지는 현재 미지원
+      break;
+    }
     offset += 1;
     const view = new DataView(data.buffer, data.byteOffset + offset, 4);
     const msgLen = view.getUint32(0, false); // big-endian
