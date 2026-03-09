@@ -397,26 +397,28 @@ export function SettingsPage() {
     async (checked: boolean) => {
       setNoCaching(checked);
       localStorage.setItem("quick_settings_no_caching", JSON.stringify(checked));
-      try {
-        await updateQuickSettings(checked, blockCookies);
-      } catch (e) {
-        console.error("No Caching 설정 실패:", e);
-      }
+      setBlockCookies((currentBlockCookies) => {
+        updateQuickSettings(checked, currentBlockCookies).catch((e) => {
+          console.error("No Caching 설정 실패:", e);
+        });
+        return currentBlockCookies;
+      });
     },
-    [blockCookies],
+    [],
   );
 
   const handleBlockCookiesChange = useCallback(
     async (checked: boolean) => {
       setBlockCookies(checked);
       localStorage.setItem("quick_settings_block_cookies", JSON.stringify(checked));
-      try {
-        await updateQuickSettings(noCaching, checked);
-      } catch (e) {
-        console.error("Block Cookies 설정 실패:", e);
-      }
+      setNoCaching((currentNoCaching) => {
+        updateQuickSettings(currentNoCaching, checked).catch((e) => {
+          console.error("Block Cookies 설정 실패:", e);
+        });
+        return currentNoCaching;
+      });
     },
-    [noCaching],
+    [],
   );
 
   // 프록시 연결 시 Quick Settings 동기화
