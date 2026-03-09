@@ -6,6 +6,7 @@ use crate::error::DaemonError;
 use crate::handler::{LoggingHandler, WsEvent};
 use crate::protocol::{DaemonMessage, InterceptRule, ServerReplayEntry};
 use crate::tls_client::create_hybrid_client;
+use proxyapi_v2::certificate_authority::CertificateAuthority;
 use proxyapi_v2::throttle::ThrottleConfig;
 use proxyapi_v2::upstream_proxy::UpstreamProxyConfig;
 use proxyapi_v2::websocket_registry::WebSocketRegistry;
@@ -40,9 +41,12 @@ pub async fn run_proxy(
 
     let (ws_tx, mut ws_rx) = tokio::sync::mpsc::channel::<WsEvent>(256);
 
+    let ca_cert_der = ca.get_ca_cert_der().unwrap_or_default();
+
     let handler = LoggingHandler::new(tx.clone(), cache_dir)
         .with_ws_sender(ws_tx)
-        .with_script_handle(script_handle);
+        .with_script_handle(script_handle)
+        .with_ca_cert_der(ca_cert_der);
 
     // 인터셉트 규칙 초기값 로드
     {
