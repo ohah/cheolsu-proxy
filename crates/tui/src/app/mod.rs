@@ -27,6 +27,7 @@ use crate::ui;
 
 /// 대기 중인 breakpoint 엔트리 (TUI 표시용)
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct PendingBreakpointEntry {
     pub id: String,
     pub transaction_id: String,
