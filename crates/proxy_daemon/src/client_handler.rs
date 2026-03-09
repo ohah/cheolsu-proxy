@@ -307,6 +307,35 @@ pub async fn handle_client(
                             warn!("Failed to resolve breakpoint: {}", e);
                         }
                     }
+                    Ok(ClientCommand::SaveSession { path, filter }) => {
+                        info!(
+                            "SaveSession command received: path={}, filter={:?}",
+                            path, filter
+                        );
+                        // SaveSession is handled by MCP server / TUI client directly.
+                        // Broadcast the command so connected clients can handle it.
+                        let msg = DaemonMessage::SessionSaved {
+                            path: path.clone(),
+                            transaction_count: 0,
+                        };
+                        let mut line = serde_json::to_string(&msg).unwrap_or_default();
+                        line.push('\n');
+                        let mut w = writer.lock().await;
+                        let _ = w.write_all(line.as_bytes()).await;
+                        let _ = w.flush().await;
+                    }
+                    Ok(ClientCommand::LoadSession { path }) => {
+                        info!("LoadSession command received: path={}", path);
+                        let msg = DaemonMessage::SessionLoaded {
+                            path: path.clone(),
+                            transaction_count: 0,
+                        };
+                        let mut line = serde_json::to_string(&msg).unwrap_or_default();
+                        line.push('\n');
+                        let mut w = writer.lock().await;
+                        let _ = w.write_all(line.as_bytes()).await;
+                        let _ = w.flush().await;
+                    }
                     Ok(ClientCommand::Stop) => {
                         break;
                     }

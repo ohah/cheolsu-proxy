@@ -49,6 +49,16 @@ pub enum DaemonMessage {
     /// Breakpoint rules updated
     #[serde(rename = "breakpoint_rules_updated")]
     BreakpointRulesUpdated { rules: Vec<BreakpointRule> },
+    #[serde(rename = "session_saved")]
+    SessionSaved {
+        path: String,
+        transaction_count: usize,
+    },
+    #[serde(rename = "session_loaded")]
+    SessionLoaded {
+        path: String,
+        transaction_count: usize,
+    },
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -96,6 +106,14 @@ pub enum ClientCommand {
         id: String,
         action: BreakpointAction,
     },
+    #[serde(rename = "save_session")]
+    SaveSession {
+        path: String,
+        #[serde(default)]
+        filter: Option<String>,
+    },
+    #[serde(rename = "load_session")]
+    LoadSession { path: String },
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
