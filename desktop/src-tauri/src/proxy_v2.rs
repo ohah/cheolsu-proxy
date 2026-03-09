@@ -10,6 +10,22 @@ use std::sync::Arc;
 use tauri::{AppHandle, Emitter, Runtime, State};
 use tokio::sync::Mutex;
 
+/// hop-by-hop 헤더인지 대소문자 무시하고 확인
+fn is_hop_by_hop_header(name: &str) -> bool {
+    const HOP_BY_HOP: &[&str] = &[
+        "host",
+        "connection",
+        "keep-alive",
+        "proxy-authenticate",
+        "proxy-authorization",
+        "te",
+        "trailers",
+        "transfer-encoding",
+        "upgrade",
+    ];
+    HOP_BY_HOP.iter().any(|h| h.eq_ignore_ascii_case(name))
+}
+
 /// 프록시 상태: daemon과의 연결을 관리
 pub type ProxyV2State = Arc<Mutex<Option<DaemonConnection>>>;
 
@@ -266,19 +282,7 @@ pub async fn replay_request(params: ReplayRequestParams) -> Result<ReplayRespons
 
     for (key, value) in &params.headers {
         // hop-by-hop 헤더 제외
-        let lower = key.to_lowercase();
-        if matches!(
-            lower.as_str(),
-            "host"
-                | "connection"
-                | "keep-alive"
-                | "proxy-authenticate"
-                | "proxy-authorization"
-                | "te"
-                | "trailers"
-                | "transfer-encoding"
-                | "upgrade"
-        ) {
+        if is_hop_by_hop_header(key) {
             continue;
         }
         request_builder = request_builder.header(key.as_str(), value.as_str());
@@ -430,21 +434,7 @@ pub async fn advanced_repeat<R: Runtime>(
     let filtered_headers: HashMap<String, String> = params
         .headers
         .into_iter()
-        .filter(|(key, _)| {
-            let lower = key.to_lowercase();
-            !matches!(
-                lower.as_str(),
-                "host"
-                    | "connection"
-                    | "keep-alive"
-                    | "proxy-authenticate"
-                    | "proxy-authorization"
-                    | "te"
-                    | "trailers"
-                    | "transfer-encoding"
-                    | "upgrade"
-            )
-        })
+        .filter(|(key, _)| !is_hop_by_hop_header(key))
         .collect();
 
     let semaphore = Arc::new(Semaphore::new(concurrency));
@@ -493,12 +483,12 @@ pub async fn advanced_repeat<R: Runtime>(
             let result = request_builder.send().await;
             let elapsed_ms = start.elapsed().as_millis() as u64;
 
-            let (is_success, status) = match result {
+            let (_is_success, status) = match result {
                 Ok(response) => {
                     let status = response.status().as_u16();
                     // body를 소비하여 커넥션 반환
                     let _ = response.bytes().await;
-                    let ok = (200..300).contains(&(status as i32));
+                    let ok = (200..300).contains(&status);
                     if ok {
                         success_count.fetch_add(1, Ordering::Relaxed);
                     } else {
@@ -539,23 +529,20 @@ pub async fn advanced_repeat<R: Runtime>(
 
             drop(permit);
 
-            // 배치 간 딜레이
-            if delay_ms > 0 && !is_success {
-                // 딜레이는 성공/실패 관계없이 적용
+            // 배치 간 딜레이: permit 해제 후 딜레이를 적용하여 다음 요청 시작 전 대기
+            if delay_ms > 0 {
+                tokio::time::sleep(tokio::time::Duration::from_millis(delay_ms)).await;
             }
         });
 
         handles.push(handle);
-
-        // 배치 간 딜레이
-        if delay_ms > 0 {
-            tokio::time::sleep(tokio::time::Duration::from_millis(delay_ms)).await;
-        }
     }
 
-    // 모든 작업 완료 대기
+    // 모든 작업 완료 대기 (JoinError 발생 시 failure_count 증가)
     for handle in handles {
-        let _ = handle.await;
+        if handle.await.is_err() {
+            failure_count.fetch_add(1, Ordering::Relaxed);
+        }
     }
 
     let total_time_ms = total_start.elapsed().as_millis() as u64;
