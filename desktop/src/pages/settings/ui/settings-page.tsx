@@ -53,6 +53,13 @@ const THEME_OPTIONS = [
   { value: "dark", label: "Dark" },
 ] as const;
 
+const CERT_DOWNLOAD_URL = "http://cheolsu.proxy/ssl";
+const CERT_DOWNLOAD_PATHS = {
+  pem: "/ssl/pem",
+  der: "/ssl/der",
+  universal: "/ssl/ca.crt",
+} as const;
+
 const THROTTLE_PRESETS = [
   { value: "none", label: "None", config: null },
   {
@@ -242,6 +249,8 @@ export function SettingsPage() {
   useEffect(() => {
     if (isProxyConnected) {
       loadCertDownloadInfo();
+    } else {
+      setCertDownloadInfo(null);
     }
   }, [isProxyConnected, loadCertDownloadInfo]);
 
@@ -563,7 +572,7 @@ export function SettingsPage() {
                     <Trans>
                       Open{" "}
                       <code className="bg-muted px-1 py-0.5 rounded text-xs font-mono">
-                        http://cheolsu.proxy/ssl
+                        {CERT_DOWNLOAD_URL}
                       </code>{" "}
                       in your device browser
                     </Trans>
@@ -583,10 +592,28 @@ export function SettingsPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => {
-                      navigator.clipboard.writeText("http://cheolsu.proxy/ssl");
-                      setCertUrlCopied(true);
-                      setTimeout(() => setCertUrlCopied(false), 2000);
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(CERT_DOWNLOAD_URL);
+                        setCertUrlCopied(true);
+                        setTimeout(() => setCertUrlCopied(false), 2000);
+                      } catch {
+                        // Fallback for HTTP or unfocused contexts
+                        const textarea = document.createElement("textarea");
+                        textarea.value = CERT_DOWNLOAD_URL;
+                        textarea.style.position = "fixed";
+                        textarea.style.opacity = "0";
+                        document.body.appendChild(textarea);
+                        textarea.select();
+                        try {
+                          document.execCommand("copy");
+                          setCertUrlCopied(true);
+                          setTimeout(() => setCertUrlCopied(false), 2000);
+                        } catch {
+                          console.error("클립보드 복사 실패");
+                        }
+                        document.body.removeChild(textarea);
+                      }
                     }}
                   >
                     {certUrlCopied ? t`Copied!` : t`Copy URL`}
@@ -594,7 +621,7 @@ export function SettingsPage() {
                 </div>
 
                 <div className="font-mono text-sm bg-muted px-3 py-2 rounded text-center select-all">
-                  http://cheolsu.proxy/ssl
+                  {CERT_DOWNLOAD_URL}
                 </div>
 
                 <p className="text-xs text-muted-foreground">
@@ -606,16 +633,18 @@ export function SettingsPage() {
 
                 <div className="text-xs text-muted-foreground space-y-1">
                   <p>
-                    <code className="bg-muted px-1 py-0.5 rounded">/ssl/pem</code> — PEM {t`format`}{" "}
-                    (iOS)
+                    <code className="bg-muted px-1 py-0.5 rounded">{CERT_DOWNLOAD_PATHS.pem}</code>{" "}
+                    — PEM {t`format`} (iOS)
                   </p>
                   <p>
-                    <code className="bg-muted px-1 py-0.5 rounded">/ssl/der</code> — DER {t`format`}{" "}
-                    (Android)
+                    <code className="bg-muted px-1 py-0.5 rounded">{CERT_DOWNLOAD_PATHS.der}</code>{" "}
+                    — DER {t`format`} (Android)
                   </p>
                   <p>
-                    <code className="bg-muted px-1 py-0.5 rounded">/ssl/ca.crt</code> —{" "}
-                    {t`Universal format`}
+                    <code className="bg-muted px-1 py-0.5 rounded">
+                      {CERT_DOWNLOAD_PATHS.universal}
+                    </code>{" "}
+                    — {t`Universal format`}
                   </p>
                 </div>
 
@@ -623,6 +652,8 @@ export function SettingsPage() {
                 <div className="border rounded-md">
                   <button
                     type="button"
+                    aria-expanded={showIosGuide}
+                    aria-controls="ios-guide-content"
                     className="w-full text-left px-3 py-2 text-sm font-medium flex items-center justify-between hover:bg-muted/50 transition-colors"
                     onClick={() => setShowIosGuide(!showIosGuide)}
                   >
@@ -630,11 +661,14 @@ export function SettingsPage() {
                     <span className="text-muted-foreground">{showIosGuide ? "▲" : "▼"}</span>
                   </button>
                   {showIosGuide && (
-                    <div className="px-3 pb-3 text-xs text-muted-foreground space-y-1">
+                    <div
+                      id="ios-guide-content"
+                      className="px-3 pb-3 text-xs text-muted-foreground space-y-1"
+                    >
                       <ol className="list-decimal list-inside space-y-1">
                         <li>
                           <Trans>
-                            Open <strong>http://cheolsu.proxy/ssl</strong> in Safari
+                            Open <strong>{CERT_DOWNLOAD_URL}</strong> in Safari
                           </Trans>
                         </li>
                         <li>
@@ -668,6 +702,8 @@ export function SettingsPage() {
                 <div className="border rounded-md">
                   <button
                     type="button"
+                    aria-expanded={showAndroidGuide}
+                    aria-controls="android-guide-content"
                     className="w-full text-left px-3 py-2 text-sm font-medium flex items-center justify-between hover:bg-muted/50 transition-colors"
                     onClick={() => setShowAndroidGuide(!showAndroidGuide)}
                   >
@@ -675,11 +711,14 @@ export function SettingsPage() {
                     <span className="text-muted-foreground">{showAndroidGuide ? "▲" : "▼"}</span>
                   </button>
                   {showAndroidGuide && (
-                    <div className="px-3 pb-3 text-xs text-muted-foreground space-y-1">
+                    <div
+                      id="android-guide-content"
+                      className="px-3 pb-3 text-xs text-muted-foreground space-y-1"
+                    >
                       <ol className="list-decimal list-inside space-y-1">
                         <li>
                           <Trans>
-                            Open <strong>http://cheolsu.proxy/ssl</strong> in Chrome
+                            Open <strong>{CERT_DOWNLOAD_URL}</strong> in Chrome
                           </Trans>
                         </li>
                         <li>
@@ -709,7 +748,7 @@ export function SettingsPage() {
                   <div className="bg-white p-2 rounded-lg border">
                     <img
                       src={`data:image/png;base64,${certDownloadInfo.qr_code_base64}`}
-                      alt="QR Code"
+                      alt={`Certificate download QR code for ${CERT_DOWNLOAD_URL}`}
                       className="w-32 h-32"
                       style={{ imageRendering: "pixelated" }}
                     />
@@ -736,7 +775,7 @@ export function SettingsPage() {
                       <Trans>Certificate Download URL</Trans>
                     </label>
                     <div className="font-mono text-sm bg-muted px-3 py-1.5 rounded">
-                      http://cheolsu.proxy/ssl
+                      {CERT_DOWNLOAD_URL}
                     </div>
                   </div>
                   <Button variant="outline" size="sm" onClick={loadCertDownloadInfo}>
