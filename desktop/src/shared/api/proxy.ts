@@ -134,3 +134,15 @@ export async function loadScript(path?: string, code?: string): Promise<void> {
 export async function unloadScript(): Promise<void> {
   return invoke("unload_script");
 }
+
+export interface CertDownloadInfo {
+  port: number;
+  local_ips: string[];
+  download_url: string;
+  direct_url: string;
+  qr_code_base64: string;
+}
+
+export async function getCertDownloadInfo(port: number): Promise<CertDownloadInfo> {
+  return invoke("get_cert_download_info", { port });
+}

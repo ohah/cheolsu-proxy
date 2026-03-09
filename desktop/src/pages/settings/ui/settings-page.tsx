@@ -13,8 +13,11 @@ import {
   uninstallCaCert,
   getCaCertPath,
   updateThrottle,
+  getCertDownloadInfo,
   type ThrottleConfig,
+  type CertDownloadInfo,
 } from "@/shared/api/proxy";
+import { useProxyStore } from "@/shared/stores/proxy-store";
 import {
   getStoredShortcut,
   setStoredShortcut,
@@ -122,6 +125,10 @@ export function SettingsPage() {
   const [caInstalling, setCaInstalling] = useState(false);
   const [caMessage, setCaMessage] = useState("");
   const [caCertPath, setCaCertPath] = useState("");
+  const [certDownloadInfo, setCertDownloadInfo] = useState<CertDownloadInfo | null>(null);
+  const [certDownloadLoading, setCertDownloadLoading] = useState(false);
+  const proxyPort = useProxyStore((s) => s.port);
+  const isProxyConnected = useProxyStore((s) => s.isConnected);
 
   // Global Shortcut state
   const [hotkeyEnabled, setHotkeyEnabled] = useState(() => getShortcutEnabled());
@@ -214,6 +221,26 @@ export function SettingsPage() {
       .then(setCaCertPath)
       .catch(() => setCaCertPath(""));
   }, []);
+
+  // 프록시 실행 중일 때 인증서 다운로드 정보 로드
+  const loadCertDownloadInfo = useCallback(async () => {
+    setCertDownloadLoading(true);
+    try {
+      const info = await getCertDownloadInfo(proxyPort);
+      setCertDownloadInfo(info);
+    } catch (e) {
+      console.error("인증서 다운로드 정보 로드 실패:", e);
+      setCertDownloadInfo(null);
+    } finally {
+      setCertDownloadLoading(false);
+    }
+  }, [proxyPort]);
+
+  useEffect(() => {
+    if (isProxyConnected) {
+      loadCertDownloadInfo();
+    }
+  }, [isProxyConnected, loadCertDownloadInfo]);
 
   const handleInstallCli = useCallback(async () => {
     setCliInstalling(true);
@@ -487,6 +514,107 @@ export function SettingsPage() {
             )}
           </div>
           {caMessage && <p className="text-xs text-muted-foreground">{caMessage}</p>}
+        </div>
+
+        {/* Remote Device Certificate Section */}
+        <div className="border rounded-lg p-5 space-y-4">
+          <div>
+            <h2 className="text-lg font-semibold">
+              <Trans>Remote Device Certificate</Trans>
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              <Trans>
+                Install the CA certificate on external devices (mobile, tablet) to intercept HTTPS
+                traffic
+              </Trans>
+            </p>
+          </div>
+
+          {!isProxyConnected ? (
+            <div className="text-sm text-muted-foreground">
+              <Badge variant="outline" className="text-yellow-600 border-yellow-600">
+                <Trans>Start proxy first</Trans>
+              </Badge>
+            </div>
+          ) : certDownloadLoading ? (
+            <div className="text-sm text-muted-foreground">
+              <Trans>Loading...</Trans>
+            </div>
+          ) : certDownloadInfo ? (
+            <div className="space-y-4">
+              {/* 설치 안내 */}
+              <div className="bg-muted/50 rounded-lg p-4 text-sm space-y-2">
+                <p className="font-medium">
+                  <Trans>Setup Instructions:</Trans>
+                </p>
+                <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
+                  <li>
+                    <Trans>
+                      Set Wi-Fi proxy on your device to{" "}
+                      <code className="bg-muted px-1 py-0.5 rounded text-xs font-mono">
+                        {certDownloadInfo.local_ips[0] || "127.0.0.1"}:{certDownloadInfo.port}
+                      </code>
+                    </Trans>
+                  </li>
+                  <li>
+                    <Trans>
+                      Open{" "}
+                      <code className="bg-muted px-1 py-0.5 rounded text-xs font-mono">
+                        http://cheolsu.proxy/ssl
+                      </code>{" "}
+                      in your device browser
+                    </Trans>
+                  </li>
+                  <li>
+                    <Trans>Install and trust the downloaded certificate</Trans>
+                  </li>
+                </ol>
+              </div>
+
+              {/* QR 코드 + URL 정보 */}
+              <div className="flex gap-6 items-start">
+                {/* QR 코드 */}
+                <div className="flex-shrink-0">
+                  <div className="bg-white p-2 rounded-lg border">
+                    <img
+                      src={`data:image/png;base64,${certDownloadInfo.qr_code_base64}`}
+                      alt="QR Code"
+                      className="w-32 h-32"
+                      style={{ imageRendering: "pixelated" }}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1 text-center">
+                    <Trans>Scan for proxy info</Trans>
+                  </p>
+                </div>
+
+                {/* URL 정보 */}
+                <div className="flex-1 space-y-3">
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground block mb-1">
+                      <Trans>Proxy Address</Trans>
+                    </label>
+                    {certDownloadInfo.local_ips.map((ip) => (
+                      <div key={ip} className="font-mono text-sm bg-muted px-3 py-1.5 rounded mb-1">
+                        {ip}:{certDownloadInfo.port}
+                      </div>
+                    ))}
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground block mb-1">
+                      <Trans>Certificate Download URL</Trans>
+                    </label>
+                    <div className="font-mono text-sm bg-muted px-3 py-1.5 rounded">
+                      http://cheolsu.proxy/ssl
+                    </div>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={loadCertDownloadInfo}>
+                    {t`Refresh`}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ) : null}
         </div>
 
         {/* CLI Install Section */}
