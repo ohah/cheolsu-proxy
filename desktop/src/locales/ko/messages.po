@@ -20,7 +20,7 @@ msgstr " (경로 유지)"
 #. placeholder {0}: result.failure_count
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:273
 msgid "{0} failed"
-msgstr ""
+msgstr "{0}개 실패"
 
 #. placeholder {0}: transactions.length
 #: src/features/transaction-details/ui/sequence-replay-dialog.tsx:128
@@ -30,7 +30,7 @@ msgstr "{0}개의 요청을 순서대로 전송합니다."
 #. placeholder {0}: result.success_count
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:266
 msgid "{0} succeeded"
-msgstr ""
+msgstr "{0}개 성공"
 
 #: src/features/transaction-details/ui/sequence-replay-dialog.tsx:177
 msgid "{failCount} failed"
@@ -95,6 +95,10 @@ msgstr "트래픽에서 추가"
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:342
 msgid "Add Headers"
 msgstr "헤더 추가"
+
+#: src/widgets/network-table/ui/table-row.tsx:135
+msgid "Add Intercept Rule"
+msgstr "인터셉트 규칙 추가"
 
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:175
 msgid "Add Map Rule"
@@ -347,6 +351,10 @@ msgstr "콘솔"
 msgid "Copied!"
 msgstr ""
 
+#: src/widgets/network-table/ui/table-row.tsx:122
+msgid "Copy Curl Command"
+msgstr "Curl 명령어 복사"
+
 #: src/shared/app-sidebar/ui/sidebar-mcp.tsx:112
 #: src/shared/app-sidebar/ui/sidebar-mcp.tsx:138
 msgid "Copy to clipboard"
@@ -385,6 +393,10 @@ msgstr ""
 #: src/pages/map-rules/ui/map-rules-page.tsx:176
 msgid "Delete rule"
 msgstr "규칙 삭제"
+
+#: src/widgets/network-table/ui/table-row.tsx:130
+msgid "Delete Transaction"
+msgstr "트랜잭션 삭제"
 
 #: src/widgets/websocket-messages/ui/ws-message-table.tsx:163
 msgid "Dir"
@@ -961,6 +973,11 @@ msgid "Pending Breakpoints"
 msgstr ""
 
 #: src/pages/settings/ui/settings-page.tsx:1107
+#: src/widgets/network-table/ui/table-row.tsx:118
+msgid "Pin to Top"
+msgstr "상단에 고정"
+
+#: src/pages/settings/ui/settings-page.tsx:1018
 msgid "Port"
 msgstr "포트"
 
@@ -1532,6 +1549,11 @@ msgid "Unload"
 msgstr "언로드"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:470
+#: src/widgets/network-table/ui/table-row.tsx:118
+msgid "Unpin from Top"
+msgstr "상단 고정 해제"
+
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:387
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:348
 msgid "Update"
 msgstr "수정"

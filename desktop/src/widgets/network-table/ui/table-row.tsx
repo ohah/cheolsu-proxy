@@ -115,11 +115,11 @@ export const TableRow = memo(function TableRow({
         <ContextMenuContent className="w-3xs">
           <ContextMenuItem onClick={handleClickPinTransaction}>
             {isPinned ? <PinOff /> : <Pin />}
-            {isPinned ? "Unpin from Top" : "Pin to Top"}
+            {isPinned ? <Trans>Unpin from Top</Trans> : <Trans>Pin to Top</Trans>}
           </ContextMenuItem>
           <ContextMenuItem onClick={handleClickCopyCurlCommand}>
             <Code />
-            Copy Curl Command
+            <Trans>Copy Curl Command</Trans>
           </ContextMenuItem>
           <ContextMenuItem onClick={() => setAdvancedRepeatOpen(true)}>
             <Repeat />
@@ -127,12 +127,12 @@ export const TableRow = memo(function TableRow({
           </ContextMenuItem>
           <ContextMenuItem onClick={handleClickDeleteTransaction}>
             <Trash2 />
-            Delete Transaction
+            <Trans>Delete Transaction</Trans>
           </ContextMenuItem>
           <ContextMenuSeparator />
           <ContextMenuItem onClick={handleClickAddInterceptRule}>
             <Shield />
-            Add Intercept Rule
+            <Trans>Add Intercept Rule</Trans>
           </ContextMenuItem>
         </ContextMenuContent>
       </ContextMenu>
