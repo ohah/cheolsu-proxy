@@ -17,10 +17,20 @@ msgstr ""
 msgid " (preserve path)"
 msgstr " (경로 유지)"
 
+#. placeholder {0}: result.failure_count
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:273
+msgid "{0} failed"
+msgstr ""
+
 #. placeholder {0}: transactions.length
 #: src/features/transaction-details/ui/sequence-replay-dialog.tsx:128
 msgid "{0} requests will be sent sequentially."
 msgstr "{0}개의 요청을 순서대로 전송합니다."
+
+#. placeholder {0}: result.success_count
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:266
+msgid "{0} succeeded"
+msgstr ""
 
 #: src/features/transaction-details/ui/sequence-replay-dialog.tsx:177
 msgid "{failCount} failed"
@@ -132,6 +142,15 @@ msgstr "추가됨"
 #: src/pages/server-replay/ui/server-replay-page.tsx:65
 msgid "Added to server replay"
 msgstr "서버 리플레이에 추가되었습니다"
+
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:151
+#: src/widgets/network-table/ui/table-row.tsx:126
+msgid "Advanced Repeat"
+msgstr "고급 반복"
+
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:131
+msgid "Advanced repeat failed"
+msgstr "고급 반복 실행 실패"
 
 #: src/widgets/websocket-messages/ui/ws-connection-list.tsx:44
 msgid "All Connections"
@@ -277,6 +296,7 @@ msgstr "전체 삭제"
 msgid "Clear all transactions"
 msgstr "모든 트랜잭션 삭제"
 
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:386
 #: src/features/transaction-details/ui/sequence-replay-dialog.tsx:252
 msgid "Close"
 msgstr "닫기"
@@ -301,6 +321,9 @@ msgstr "요청 작성"
 #: src/features/transaction-details/ui/replay-dialog.tsx:364
 msgid "Compose Request"
 msgstr "요청 작성"
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:185
+msgid "Concurrency"
+msgstr "동시 요청 수"
 
 #: src/shared/app-sidebar/ui/sidebar-status.tsx:27
 #: src/shared/app-sidebar/ui/sidebar-status.tsx:42
@@ -348,6 +371,10 @@ msgstr "다크"
 #: src/widgets/websocket-messages/ui/ws-message-table.tsx:166
 msgid "Data"
 msgstr "데이터"
+
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:202
+msgid "Delay between requests (ms)"
+msgstr "요청 간 딜레이 (ms)"
 
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:241
 msgid "Delete mapping"
@@ -613,6 +640,10 @@ msgstr "설치 중..."
 msgid "Intercept Rules"
 msgstr "인터셉트 규칙"
 
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:168
+msgid "Iterations"
+msgstr "반복 횟수"
+
 #: src/shared/app-sidebar/ui/sidebar-mcp.tsx:125
 msgid "JSON Configuration"
 msgstr "JSON 설정"
@@ -837,6 +868,10 @@ msgstr "리플레이 엔트리 없음"
 msgid "No transactions to display"
 msgstr "표시할 트랜잭션이 없습니다"
 
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:111
+msgid "No valid request to replay"
+msgstr "재생할 유효한 요청이 없습니다"
+
 #: src/features/transaction-details/ui/sequence-replay-dialog.tsx:91
 msgid "No valid requests to replay"
 msgstr "리플레이할 유효한 요청이 없습니다"
@@ -850,6 +885,15 @@ msgid "Only http:// and https:// URLs are allowed"
 msgstr "http:// 및 https:// URL만 허용됩니다"
 
 #: src/pages/settings/ui/settings-page.tsx:767
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:195
+msgid "Number of simultaneous requests (1-100)"
+msgstr "동시에 전송할 요청 수 (1-100)"
+
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:178
+msgid "Number of times to send the request (1-10000)"
+msgstr "요청을 전송할 횟수 (1-10000)"
+
+#: src/pages/settings/ui/settings-page.tsx:720
 msgid "Open <0>{CERT_DOWNLOAD_URL}</0> in Chrome"
 msgstr ""
 
@@ -941,6 +985,11 @@ msgid "Profile"
 msgstr "프로파일"
 
 #: src/pages/settings/ui/settings-page.tsx:812
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:227
+msgid "Progress"
+msgstr "진행률"
+
+#: src/pages/settings/ui/settings-page.tsx:765
 msgid "Proxy Address"
 msgstr "프록시 주소"
 
@@ -1070,6 +1119,10 @@ msgid "Request Header"
 msgstr "요청 헤더"
 
 #: src/features/transaction-details/ui/replay-dialog.tsx:391
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:322
+msgid "Requests/sec"
+msgstr "초당 요청 수"
+
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:264
 msgid "Response"
 msgstr "응답"
@@ -1095,8 +1148,17 @@ msgid "Response Status Code"
 msgstr "응답 상태 코드"
 
 #: src/widgets/network-header/ui/network-controls.tsx:39
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:285
+msgid "Response Time"
+msgstr "응답 시간"
+
+#: src/widgets/network-header/ui/network-controls.tsx:37
 msgid "Resume recording"
 msgstr "기록 재개"
+
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:383
+msgid "Retry"
+msgstr "재시도"
 
 #: src/shared/app-sidebar/model/consts.ts:52
 msgid "Return cached responses for matching requests"
@@ -1149,6 +1211,13 @@ msgstr "실행"
 #: src/pages/settings/ui/settings-page.tsx:923
 #: src/pages/settings/ui/settings-page.tsx:1020
 #: src/pages/settings/ui/settings-page.tsx:1170
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:370
+msgid "Running..."
+msgstr "실행 중..."
+
+#: src/pages/settings/ui/settings-page.tsx:876
+#: src/pages/settings/ui/settings-page.tsx:973
+#: src/pages/settings/ui/settings-page.tsx:1081
 msgid "Save"
 msgstr "저장"
 
@@ -1326,6 +1395,12 @@ msgstr ""
 
 #: src/pages/settings/ui/settings-page.tsx:571
 #: src/pages/settings/ui/settings-page.tsx:595
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:364
+msgid "Start"
+msgstr "시작"
+
+#: src/pages/settings/ui/settings-page.tsx:524
+#: src/pages/settings/ui/settings-page.tsx:548
 msgid "Start proxy first"
 msgstr "프록시를 먼저 실행하세요"
 
@@ -1345,6 +1420,11 @@ msgid "Status Code"
 msgstr "상태 코드"
 
 #: src/pages/settings/ui/settings-page.tsx:528
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:337
+msgid "Status Code Distribution"
+msgstr "상태 코드 분포"
+
+#: src/pages/settings/ui/settings-page.tsx:481
 msgid "System"
 msgstr "시스템"
 
@@ -1388,6 +1468,10 @@ msgstr ""
 msgid "Theme"
 msgstr "테마"
 
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:311
+msgid "Throughput"
+msgstr "처리량"
+
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:63
 #: src/widgets/websocket-messages/ui/ws-message-table.tsx:167
 msgid "Time"
@@ -1411,6 +1495,11 @@ msgid "Total {0}ms"
 msgstr "총 {0}ms"
 
 #: src/features/transaction-details/ui/replay-dialog.tsx:364
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:316
+msgid "Total Time"
+msgstr "총 시간"
+
+#: src/features/transaction-details/ui/replay-dialog.tsx:310
 msgid "Traffic Replay"
 msgstr "트래픽 리플레이"
 

@@ -17,10 +17,20 @@ msgstr ""
 msgid " (preserve path)"
 msgstr " (preserve path)"
 
+#. placeholder {0}: result.failure_count
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:273
+msgid "{0} failed"
+msgstr "{0} failed"
+
 #. placeholder {0}: transactions.length
 #: src/features/transaction-details/ui/sequence-replay-dialog.tsx:128
 msgid "{0} requests will be sent sequentially."
 msgstr "{0} requests will be sent sequentially."
+
+#. placeholder {0}: result.success_count
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:266
+msgid "{0} succeeded"
+msgstr "{0} succeeded"
 
 #: src/features/transaction-details/ui/sequence-replay-dialog.tsx:177
 msgid "{failCount} failed"
@@ -132,6 +142,15 @@ msgstr "Added"
 #: src/pages/server-replay/ui/server-replay-page.tsx:65
 msgid "Added to server replay"
 msgstr "Added to server replay"
+
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:151
+#: src/widgets/network-table/ui/table-row.tsx:126
+msgid "Advanced Repeat"
+msgstr "Advanced Repeat"
+
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:131
+msgid "Advanced repeat failed"
+msgstr "Advanced repeat failed"
 
 #: src/widgets/websocket-messages/ui/ws-connection-list.tsx:44
 msgid "All Connections"
@@ -277,6 +296,7 @@ msgstr "Clear All"
 msgid "Clear all transactions"
 msgstr "Clear all transactions"
 
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:386
 #: src/features/transaction-details/ui/sequence-replay-dialog.tsx:252
 msgid "Close"
 msgstr "Close"
@@ -301,6 +321,9 @@ msgstr "Compose request"
 #: src/features/transaction-details/ui/replay-dialog.tsx:364
 msgid "Compose Request"
 msgstr "Compose Request"
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:185
+msgid "Concurrency"
+msgstr "Concurrency"
 
 #: src/shared/app-sidebar/ui/sidebar-status.tsx:27
 #: src/shared/app-sidebar/ui/sidebar-status.tsx:42
@@ -348,6 +371,10 @@ msgstr "Dark"
 #: src/widgets/websocket-messages/ui/ws-message-table.tsx:166
 msgid "Data"
 msgstr "Data"
+
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:202
+msgid "Delay between requests (ms)"
+msgstr "Delay between requests (ms)"
 
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:241
 msgid "Delete mapping"
@@ -613,6 +640,10 @@ msgstr "Installing..."
 msgid "Intercept Rules"
 msgstr "Intercept Rules"
 
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:168
+msgid "Iterations"
+msgstr "Iterations"
+
 #: src/shared/app-sidebar/ui/sidebar-mcp.tsx:125
 msgid "JSON Configuration"
 msgstr "JSON Configuration"
@@ -837,6 +868,10 @@ msgstr "No replay entries"
 msgid "No transactions to display"
 msgstr "No transactions to display"
 
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:111
+msgid "No valid request to replay"
+msgstr "No valid request to replay"
+
 #: src/features/transaction-details/ui/sequence-replay-dialog.tsx:91
 msgid "No valid requests to replay"
 msgstr "No valid requests to replay"
@@ -850,6 +885,15 @@ msgid "Only http:// and https:// URLs are allowed"
 msgstr "Only http:// and https:// URLs are allowed"
 
 #: src/pages/settings/ui/settings-page.tsx:767
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:195
+msgid "Number of simultaneous requests (1-100)"
+msgstr "Number of simultaneous requests (1-100)"
+
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:178
+msgid "Number of times to send the request (1-10000)"
+msgstr "Number of times to send the request (1-10000)"
+
+#: src/pages/settings/ui/settings-page.tsx:720
 msgid "Open <0>{CERT_DOWNLOAD_URL}</0> in Chrome"
 msgstr "Open <0>{CERT_DOWNLOAD_URL}</0> in Chrome"
 
@@ -941,6 +985,11 @@ msgid "Profile"
 msgstr "Profile"
 
 #: src/pages/settings/ui/settings-page.tsx:812
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:227
+msgid "Progress"
+msgstr "Progress"
+
+#: src/pages/settings/ui/settings-page.tsx:765
 msgid "Proxy Address"
 msgstr "Proxy Address"
 
@@ -1070,6 +1119,10 @@ msgid "Request Header"
 msgstr "Request Header"
 
 #: src/features/transaction-details/ui/replay-dialog.tsx:391
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:322
+msgid "Requests/sec"
+msgstr "Requests/sec"
+
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:264
 msgid "Response"
 msgstr "Response"
@@ -1095,8 +1148,17 @@ msgid "Response Status Code"
 msgstr "Response Status Code"
 
 #: src/widgets/network-header/ui/network-controls.tsx:39
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:285
+msgid "Response Time"
+msgstr "Response Time"
+
+#: src/widgets/network-header/ui/network-controls.tsx:37
 msgid "Resume recording"
 msgstr "Resume recording"
+
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:383
+msgid "Retry"
+msgstr "Retry"
 
 #: src/shared/app-sidebar/model/consts.ts:52
 msgid "Return cached responses for matching requests"
@@ -1149,6 +1211,13 @@ msgstr "Run"
 #: src/pages/settings/ui/settings-page.tsx:923
 #: src/pages/settings/ui/settings-page.tsx:1020
 #: src/pages/settings/ui/settings-page.tsx:1170
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:370
+msgid "Running..."
+msgstr "Running..."
+
+#: src/pages/settings/ui/settings-page.tsx:876
+#: src/pages/settings/ui/settings-page.tsx:973
+#: src/pages/settings/ui/settings-page.tsx:1081
 msgid "Save"
 msgstr "Save"
 
@@ -1326,6 +1395,12 @@ msgstr "Source Port"
 
 #: src/pages/settings/ui/settings-page.tsx:571
 #: src/pages/settings/ui/settings-page.tsx:595
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:364
+msgid "Start"
+msgstr "Start"
+
+#: src/pages/settings/ui/settings-page.tsx:524
+#: src/pages/settings/ui/settings-page.tsx:548
 msgid "Start proxy first"
 msgstr "Start proxy first"
 
@@ -1345,6 +1420,11 @@ msgid "Status Code"
 msgstr "Status Code"
 
 #: src/pages/settings/ui/settings-page.tsx:528
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:337
+msgid "Status Code Distribution"
+msgstr "Status Code Distribution"
+
+#: src/pages/settings/ui/settings-page.tsx:481
 msgid "System"
 msgstr "System"
 
@@ -1388,6 +1468,10 @@ msgstr "The DER certificate file will download automatically"
 msgid "Theme"
 msgstr "Theme"
 
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:311
+msgid "Throughput"
+msgstr "Throughput"
+
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:63
 #: src/widgets/websocket-messages/ui/ws-message-table.tsx:167
 msgid "Time"
@@ -1411,6 +1495,11 @@ msgid "Total {0}ms"
 msgstr "Total {0}ms"
 
 #: src/features/transaction-details/ui/replay-dialog.tsx:364
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:316
+msgid "Total Time"
+msgstr "Total Time"
+
+#: src/features/transaction-details/ui/replay-dialog.tsx:310
 msgid "Traffic Replay"
 msgstr "Traffic Replay"
 

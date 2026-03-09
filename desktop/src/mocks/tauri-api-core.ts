@@ -1,4 +1,4 @@
-import type { ReplayResponse, SequenceReplayResult } from "@/shared/api/proxy";
+import type { AdvancedRepeatResult, ReplayResponse, SequenceReplayResult } from "@/shared/api/proxy";
 
 const handlers: Record<string, (...args: any[]) => any> = {
   start_proxy_v2: async () => ({ status: true, message: "Mock proxy started" }),
@@ -40,6 +40,23 @@ const handlers: Record<string, (...args: any[]) => any> = {
       });
     }
     return results;
+  },
+
+  advanced_repeat: async (args: { params: any }): Promise<AdvancedRepeatResult> => {
+    const { iterations = 10 } = args.params;
+    await new Promise((r) => setTimeout(r, iterations * 50));
+    const avgTime = 150 + Math.random() * 100;
+    return {
+      total: iterations,
+      success_count: iterations - Math.floor(Math.random() * 2),
+      failure_count: Math.floor(Math.random() * 2),
+      min_time_ms: Math.round(avgTime * 0.5),
+      max_time_ms: Math.round(avgTime * 2),
+      avg_time_ms: Math.round(avgTime * 100) / 100,
+      total_time_ms: Math.round(iterations * avgTime * 0.3),
+      requests_per_second: Math.round((1000 / avgTime) * iterations * 0.3 * 100) / 100,
+      status_codes: { 200: iterations - Math.floor(Math.random() * 2), 500: Math.floor(Math.random() * 2) },
+    };
   },
 };
 
