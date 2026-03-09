@@ -13,10 +13,12 @@ import {
   isImageDataType,
   isMediaDataType,
   isBinaryDataType,
+  isProtobufDataType,
 } from "@/entities/proxy/model/data-type";
 import { toast } from "sonner";
 import { MediaPreview } from "./media-preview";
 import { BinaryPreview } from "./binary-preview";
+import { ProtobufPreview } from "./protobuf-preview";
 import { useBodyFile } from "@/hooks/use-body-file";
 
 interface TransactionResponseProps {
@@ -154,6 +156,14 @@ export const TransactionResponse = ({ transaction }: TransactionResponseProps) =
               filePath={response.file_path}
             />
           </div>
+        ) : isProtobufDataType(response.data_type) && !fileLoading && !fileError ? (
+          <ProtobufPreview
+            data={actualBody}
+            dataType={response.data_type}
+            bodySize={response.body_size}
+            contentType={response.headers["content-type"] || ""}
+            filePath={response.file_path}
+          />
         ) : isNonMediaBinary && binaryFileInfo && !fileLoading && !fileError ? (
           <BinaryPreview
             data={actualBody}
