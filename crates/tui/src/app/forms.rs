@@ -107,13 +107,56 @@ pub enum SettingsSection {
     UpstreamProxy,
     Throttle,
     HostMapping,
+    QuickSettings,
 }
 
 impl SettingsSection {
-    pub const ALL: [SettingsSection; 3] = [Self::UpstreamProxy, Self::Throttle, Self::HostMapping];
+    pub const ALL: [SettingsSection; 4] = [
+        Self::UpstreamProxy,
+        Self::Throttle,
+        Self::HostMapping,
+        Self::QuickSettings,
+    ];
 }
 
 cycle_enum!(SettingsSection);
+
+/// Quick Settings 폼
+#[derive(Debug, Clone)]
+pub struct QuickSettingsForm {
+    pub no_caching: bool,
+    pub block_cookies: bool,
+    pub field: QuickSettingsField,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum QuickSettingsField {
+    NoCaching,
+    BlockCookies,
+}
+
+impl QuickSettingsField {
+    pub const ALL: [QuickSettingsField; 2] = [Self::NoCaching, Self::BlockCookies];
+
+    pub fn label(&self) -> &str {
+        match self {
+            Self::NoCaching => "No Caching",
+            Self::BlockCookies => "Block Cookies",
+        }
+    }
+}
+
+cycle_enum!(QuickSettingsField);
+
+impl QuickSettingsForm {
+    pub fn new() -> Self {
+        Self {
+            no_caching: false,
+            block_cookies: false,
+            field: QuickSettingsField::NoCaching,
+        }
+    }
+}
 
 /// Host Mapping 폼
 #[derive(Debug, Clone)]
@@ -671,9 +714,11 @@ mod tests {
         section = section.next();
         assert_eq!(section, SettingsSection::HostMapping);
         section = section.next();
+        assert_eq!(section, SettingsSection::QuickSettings);
+        section = section.next();
         assert_eq!(section, SettingsSection::UpstreamProxy);
         section = section.prev();
-        assert_eq!(section, SettingsSection::HostMapping);
+        assert_eq!(section, SettingsSection::QuickSettings);
     }
 
     // -- ThrottlePresetChoice --
