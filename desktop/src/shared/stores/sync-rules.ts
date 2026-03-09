@@ -29,7 +29,13 @@ export function updateDaemonRules(rules: InterceptRule[]) {
 
 /** 첫 번째 데몬 규칙 broadcast 수신까지 대기 (최대 2초 타임아웃) */
 export function waitForDaemonRules(): Promise<void> {
-  return Promise.race([daemonRulesReady, new Promise<void>((r) => setTimeout(r, 2000))]);
+  return new Promise<void>((resolve) => {
+    const timer = setTimeout(resolve, 2000);
+    daemonRulesReady.then(() => {
+      clearTimeout(timer);
+      resolve();
+    });
+  });
 }
 
 /** 테스트용: 모듈 상태 초기화 */
