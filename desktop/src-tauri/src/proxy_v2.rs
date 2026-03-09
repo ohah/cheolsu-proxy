@@ -846,102 +846,17 @@ pub struct CertDownloadInfo {
 }
 
 /// QR 코드를 PNG base64 문자열로 생성합니다.
-/// 로고를 도트 매트릭스(픽셀아트) 스타일로 중앙에 오버레이합니다.
-/// 오류 정정 레벨 H(30%)를 사용하여 로고 영역이 가려져도 스캔 가능합니다.
 fn generate_qr_code_base64(data: &str) -> Result<String, String> {
-    use image::{imageops, Luma, Rgba, RgbaImage};
+    use image::Luma;
     use qrcode::QrCode;
 
-    // 오류 정정 레벨 H (30%) — 로고 오버레이로 가려지는 영역을 복원 가능
-    let code = QrCode::with_error_correction_level(data.as_bytes(), qrcode::EcLevel::H)
-        .map_err(|e| format!("QR 코드 생성 실패: {}", e))?;
+    let code = QrCode::new(data.as_bytes()).map_err(|e| format!("QR 코드 생성 실패: {}", e))?;
 
-    // QR 모듈 수
-    let modules = code.width();
+    let image = code.render::<Luma<u8>>().quiet_zone(true).build();
 
-    // 각 모듈을 pixel_per_module 픽셀로 렌더링
-    let pixel_per_module = 10u32;
-    let quiet_zone = 2u32; // 양쪽 quiet zone (모듈 단위)
-    let total_modules = modules as u32 + quiet_zone * 2;
-    let img_size = total_modules * pixel_per_module;
-
-    // QR 코드 렌더링
-    let qr_image = code
-        .render::<Luma<u8>>()
-        .quiet_zone(true)
-        .min_dimensions(img_size, img_size)
-        .build();
-    let (qr_w, qr_h) = (qr_image.width(), qr_image.height());
-
-    // Luma → RGBA 변환
-    let mut qr_rgba = RgbaImage::new(qr_w, qr_h);
-    for (x, y, luma_pixel) in qr_image.enumerate_pixels() {
-        let v = luma_pixel[0];
-        qr_rgba.put_pixel(x, y, Rgba([v, v, v, 255]));
-    }
-
-    // 로고를 도트 매트릭스(픽셀아트) 스타일로 변환
-    let logo_bytes: &[u8] = include_bytes!("../../../assets/logo.png");
-    let logo = image::load_from_memory(logo_bytes)
-        .map_err(|e| format!("로고 이미지 로드 실패: {}", e))?
-        .to_rgba8();
-
-    // 로고를 QR 모듈 기준 ~9x9 도트로 축소 (각 도트 = 1 QR 모듈)
-    let dot_count = 9u32;
-    let logo_tiny = imageops::resize(&logo, dot_count, dot_count, imageops::FilterType::Lanczos3);
-
-    // 실제 픽셀 기준 모듈 크기 계산
-    let actual_ppm = qr_w / total_modules;
-
-    // 로고 영역 시작 위치 (QR 중앙)
-    let logo_pixel_size = dot_count * actual_ppm;
-    let logo_start_x = (qr_w - logo_pixel_size) / 2;
-    let logo_start_y = (qr_h - logo_pixel_size) / 2;
-
-    // 1) 로고 영역을 흰색 배경으로 클리어 (패딩 1모듈)
-    let pad = actual_ppm;
-    let clear_x0 = logo_start_x.saturating_sub(pad);
-    let clear_y0 = logo_start_y.saturating_sub(pad);
-    let clear_x1 = (logo_start_x + logo_pixel_size + pad).min(qr_w);
-    let clear_y1 = (logo_start_y + logo_pixel_size + pad).min(qr_h);
-    for y in clear_y0..clear_y1 {
-        for x in clear_x0..clear_x1 {
-            qr_rgba.put_pixel(x, y, Rgba([255, 255, 255, 255]));
-        }
-    }
-
-    // 2) 각 도트를 QR 모듈 크기의 사각형으로 그리기 (도트 매트릭스 효과)
-    for dy in 0..dot_count {
-        for dx in 0..dot_count {
-            let pixel = logo_tiny.get_pixel(dx, dy);
-            // 투명 픽셀 건너뛰기
-            if pixel[3] < 128 {
-                continue;
-            }
-
-            let px = logo_start_x + dx * actual_ppm;
-            let py = logo_start_y + dy * actual_ppm;
-
-            // 도트 사이에 1px 간격을 두어 도트 매트릭스 느낌
-            // QR 코드와 통일감을 위해 블랙으로 렌더링
-            let black = Rgba([0, 0, 0, 255]);
-            let dot_size = actual_ppm.saturating_sub(1).max(1);
-            for iy in 0..dot_size {
-                for ix in 0..dot_size {
-                    let x = px + ix;
-                    let y = py + iy;
-                    if x < qr_w && y < qr_h {
-                        qr_rgba.put_pixel(x, y, black);
-                    }
-                }
-            }
-        }
-    }
-
-    // 최종 이미지를 PNG → base64로 인코딩
     let mut png_bytes = Vec::new();
     let mut cursor = std::io::Cursor::new(&mut png_bytes);
-    qr_rgba
+    image
         .write_to(&mut cursor, image::ImageFormat::Png)
         .map_err(|e| format!("PNG 인코딩 실패: {}", e))?;
 
