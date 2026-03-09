@@ -8,6 +8,8 @@ use crate::protocol::{
     BreakpointAction, BreakpointData, BreakpointPhase, BreakpointRule, DaemonMessage,
 };
 
+const DEFAULT_BREAKPOINT_TIMEOUT_SECS: u64 = 60;
+
 /// Pending breakpoint entry waiting for resolution.
 struct PendingBreakpoint {
     resolver: oneshot::Sender<BreakpointAction>,
@@ -29,7 +31,7 @@ impl BreakpointManager {
             rules: Arc::new(Mutex::new(Vec::new())),
             pending: Arc::new(Mutex::new(HashMap::new())),
             event_tx,
-            timeout_secs: 60,
+            timeout_secs: DEFAULT_BREAKPOINT_TIMEOUT_SECS,
             counter: Arc::new(std::sync::atomic::AtomicU64::new(0)),
         }
     }
@@ -65,7 +67,7 @@ impl BreakpointManager {
             if !phase_match {
                 return false;
             }
-            crate::handler::LoggingHandler::wildcard_matches(&rule.pattern, url)
+            crate::pattern_utils::wildcard_matches(&rule.pattern, url)
         })
     }
 

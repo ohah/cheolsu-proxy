@@ -1,4 +1,4 @@
-pub mod breakpoint;
+pub(crate) mod breakpoint;
 pub(crate) mod cert_distribution;
 pub mod client;
 pub mod client_handler;
@@ -9,6 +9,7 @@ pub mod error;
 pub mod handler;
 pub mod intercept;
 pub mod net_utils;
+pub(crate) mod pattern_utils;
 pub mod protocol;
 pub mod proxy_runner;
 pub mod script_bridge;
