@@ -62,7 +62,7 @@ msgstr "Active"
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:314
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:345
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:288
-#: src/features/transaction-details/ui/replay-dialog.tsx:384
+#: src/features/transaction-details/ui/replay-dialog.tsx:410
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:134
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:169
 #: src/pages/server-replay/ui/server-replay-page.tsx:170
@@ -186,9 +186,9 @@ msgid "Block Cookies"
 msgstr "Block Cookies"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:368
-#: src/features/transaction-details/ui/replay-dialog.tsx:123
-#: src/features/transaction-details/ui/replay-dialog.tsx:194
-#: src/features/transaction-details/ui/replay-dialog.tsx:433
+#: src/features/transaction-details/ui/replay-dialog.tsx:128
+#: src/features/transaction-details/ui/replay-dialog.tsx:199
+#: src/features/transaction-details/ui/replay-dialog.tsx:459
 msgid "Body"
 msgstr "Body"
 
@@ -273,7 +273,7 @@ msgstr "Clear all"
 msgid "Clear All"
 msgstr "Clear All"
 
-#: src/widgets/network-header/ui/network-controls.tsx:46
+#: src/widgets/network-header/ui/network-controls.tsx:49
 msgid "Clear all transactions"
 msgstr "Clear all transactions"
 
@@ -281,8 +281,8 @@ msgstr "Clear all transactions"
 msgid "Close"
 msgstr "Close"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:127
-#: src/features/transaction-details/ui/replay-dialog.tsx:443
+#: src/features/transaction-details/ui/replay-dialog.tsx:132
+#: src/features/transaction-details/ui/replay-dialog.tsx:469
 msgid "Collapse"
 msgstr "Collapse"
 
@@ -293,6 +293,14 @@ msgstr "Comma-separated list of hosts to connect directly (supports *.domain.com
 #: src/shared/app-sidebar/ui/sidebar-mcp.tsx:61
 msgid "Command copied to clipboard"
 msgstr "Command copied to clipboard"
+
+#: src/widgets/network-header/ui/network-controls.tsx:60
+msgid "Compose request"
+msgstr "Compose request"
+
+#: src/features/transaction-details/ui/replay-dialog.tsx:336
+msgid "Compose Request"
+msgstr "Compose Request"
 
 #: src/shared/app-sidebar/ui/sidebar-status.tsx:27
 #: src/shared/app-sidebar/ui/sidebar-status.tsx:42
@@ -413,8 +421,8 @@ msgstr "entries"
 msgid "Exclude OPTIONS method"
 msgstr "Exclude OPTIONS method"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:198
-#: src/features/transaction-details/ui/replay-dialog.tsx:448
+#: src/features/transaction-details/ui/replay-dialog.tsx:203
+#: src/features/transaction-details/ui/replay-dialog.tsx:474
 msgid "Expand"
 msgstr "Expand"
 
@@ -422,7 +430,7 @@ msgstr "Expand"
 msgid "Expand sidebar"
 msgstr "Expand sidebar"
 
-#: src/widgets/network-header/ui/network-controls.tsx:74
+#: src/widgets/network-header/ui/network-controls.tsx:89
 msgid "Export HAR"
 msgstr "Export HAR"
 
@@ -512,7 +520,7 @@ msgstr "HAR imported successfully"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:320
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:294
-#: src/features/transaction-details/ui/replay-dialog.tsx:396
+#: src/features/transaction-details/ui/replay-dialog.tsx:422
 msgid "Header name"
 msgstr "Header name"
 
@@ -527,8 +535,8 @@ msgstr "headers"
 
 #. placeholder {0}: headerEntries.length
 #. placeholder {0}: headers.length
-#: src/features/transaction-details/ui/replay-dialog.tsx:170
-#: src/features/transaction-details/ui/replay-dialog.tsx:381
+#: src/features/transaction-details/ui/replay-dialog.tsx:175
+#: src/features/transaction-details/ui/replay-dialog.tsx:407
 msgid "Headers ({0})"
 msgstr "Headers ({0})"
 
@@ -557,7 +565,7 @@ msgstr "Host Tree"
 msgid "HTTP requests and responses"
 msgstr "HTTP requests and responses"
 
-#: src/widgets/network-header/ui/network-controls.tsx:79
+#: src/widgets/network-header/ui/network-controls.tsx:94
 msgid "Import HAR"
 msgstr "Import HAR"
 
@@ -633,7 +641,7 @@ msgstr "Load a script file from disk. The file will be watched for changes and a
 msgid "Load and manage proxy scripts"
 msgstr "Load and manage proxy scripts"
 
-#: src/widgets/network-header/ui/network-controls.tsx:63
+#: src/widgets/network-header/ui/network-controls.tsx:78
 msgid "Load Session"
 msgstr "Load Session"
 
@@ -854,7 +862,7 @@ msgstr "Open this URL in your mobile browser after setting the Wi-Fi proxy. The 
 msgid "optional"
 msgstr "optional"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:327
+#: src/features/transaction-details/ui/replay-dialog.tsx:353
 msgid "Original"
 msgstr "Original"
 
@@ -880,7 +888,7 @@ msgstr "Pause and inspect HTTP requests/responses in real-time"
 msgid "Pause and inspect requests/responses"
 msgstr "Pause and inspect requests/responses"
 
-#: src/widgets/network-header/ui/network-controls.tsx:37
+#: src/widgets/network-header/ui/network-controls.tsx:40
 msgid "Pause recording"
 msgstr "Pause recording"
 
@@ -995,7 +1003,7 @@ msgstr "Remove Headers"
 msgid "Replace {0} existing transactions with {1} new ones? Cancel to append instead."
 msgstr "Replace {0} existing transactions with {1} new ones? Cancel to append instead."
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:337
+#: src/features/transaction-details/ui/replay-dialog.tsx:363
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:122
 msgid "Replay"
 msgstr "Replay"
@@ -1004,11 +1012,11 @@ msgstr "Replay"
 msgid "Replay message"
 msgstr "Replay message"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:302
+#: src/features/transaction-details/ui/replay-dialog.tsx:327
 msgid "Replay request"
 msgstr "Replay request"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:323
+#: src/features/transaction-details/ui/replay-dialog.tsx:349
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:259
 msgid "Request"
 msgstr "Request"
@@ -1025,10 +1033,11 @@ msgstr "Request Details"
 msgid "Request dropped"
 msgstr "Request dropped"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:279
+#: src/features/transaction-details/ui/replay-dialog.tsx:303
 msgid "Request failed"
 msgstr "Request failed"
 
+#: src/features/transaction-details/ui/replay-dialog.tsx:363
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:264
 msgid "Response"
 msgstr "Response"
@@ -1045,7 +1054,7 @@ msgstr "Response Headers"
 msgid "Response Status Code"
 msgstr "Response Status Code"
 
-#: src/widgets/network-header/ui/network-controls.tsx:37
+#: src/widgets/network-header/ui/network-controls.tsx:40
 msgid "Resume recording"
 msgstr "Resume recording"
 
@@ -1098,7 +1107,7 @@ msgstr "Run"
 msgid "Save"
 msgstr "Save"
 
-#: src/widgets/network-header/ui/network-controls.tsx:58
+#: src/widgets/network-header/ui/network-controls.tsx:73
 msgid "Save Session"
 msgstr "Save Session"
 
@@ -1158,15 +1167,19 @@ msgstr "Select the downloaded certificate file and confirm"
 msgid "Select the downloaded profile and tap \"Install\""
 msgstr "Select the downloaded profile and tap \"Install\""
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:522
+#: src/features/transaction-details/ui/replay-dialog.tsx:551
 msgid "Send a request to see the replay response"
 msgstr "Send a request to see the replay response"
+
+#: src/features/transaction-details/ui/replay-dialog.tsx:549
+msgid "Send a request to see the response"
+msgstr "Send a request to see the response"
 
 #: src/features/websocket-replay/ui/ws-replay-dialog.tsx:189
 msgid "Send Message"
 msgstr "Send Message"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:493
+#: src/features/transaction-details/ui/replay-dialog.tsx:519
 msgid "Send Request"
 msgstr "Send Request"
 
@@ -1174,7 +1187,7 @@ msgstr "Send Request"
 msgid "Sending requests sequentially..."
 msgstr "Sending requests sequentially..."
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:488
+#: src/features/transaction-details/ui/replay-dialog.tsx:514
 #: src/features/transaction-details/ui/sequence-replay-dialog.tsx:241
 #: src/features/websocket-replay/ui/ws-replay-dialog.tsx:184
 msgid "Sending..."
@@ -1348,7 +1361,7 @@ msgstr "Toggle proxy on/off with a global keyboard shortcut"
 msgid "Total {0}ms"
 msgstr "Total {0}ms"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:310
+#: src/features/transaction-details/ui/replay-dialog.tsx:336
 msgid "Traffic Replay"
 msgstr "Traffic Replay"
 
@@ -1393,7 +1406,7 @@ msgstr "Upload (KB/s)"
 msgid "Upstream Proxy"
 msgstr "Upstream Proxy"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:374
+#: src/features/transaction-details/ui/replay-dialog.tsx:400
 msgid "URL"
 msgstr "URL"
 
@@ -1419,7 +1432,7 @@ msgstr "Username"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:326
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:300
-#: src/features/transaction-details/ui/replay-dialog.tsx:404
+#: src/features/transaction-details/ui/replay-dialog.tsx:430
 msgid "Value"
 msgstr "Value"
 

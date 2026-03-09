@@ -33,7 +33,12 @@ import { uint8ArrayToString } from "../lib";
 const HTTP_METHODS = ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"] as const;
 
 interface ReplayDialogProps {
-  transaction: HttpTransaction;
+  transaction?: HttpTransaction;
+  /** 외부에서 다이얼로그 open 상태를 제어할 때 사용 */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  /** 트리거 버튼을 숨길 때 사용 (Compose 모드) */
+  hideTrigger?: boolean;
 }
 
 interface HeaderEntry {
@@ -222,11 +227,23 @@ function ResponseView({
   );
 }
 
-export function ReplayDialog({ transaction }: ReplayDialogProps) {
+export function ReplayDialog({
+  transaction,
+  open: controlledOpen,
+  onOpenChange,
+  hideTrigger,
+}: ReplayDialogProps) {
   const { t } = useLingui();
   const { resolvedTheme } = useTheme();
-  const { request, response: originalResponse } = transaction;
-  const [open, setOpen] = useState(false);
+  const request = transaction?.request;
+  const originalResponse = transaction?.response;
+  const isComposeMode = !transaction;
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = (v: boolean) => {
+    setInternalOpen(v);
+    onOpenChange?.(v);
+  };
   const [method, setMethod] = useState(request?.method || "GET");
   const [url, setUrl] = useState(request?.uri || "");
   const [headers, setHeaders] = useState<HeaderEntry[]>([]);
@@ -238,19 +255,26 @@ export function ReplayDialog({ transaction }: ReplayDialogProps) {
   const [bodyExpanded, setBodyExpanded] = useState(false);
 
   useEffect(() => {
-    if (open && request) {
-      setMethod(request.method);
-      setUrl(request.uri);
-      setHeaders(headersToEntries(request.headers || {}));
-      if (request.body && request.data_type && isTextBasedDataType(request.data_type)) {
-        setBody(uint8ArrayToString(request.body, request.data_type));
-      } else if (request.body_json) {
-        setBody(
-          typeof request.body_json === "string"
-            ? request.body_json
-            : JSON.stringify(request.body_json, null, 2),
-        );
+    if (open) {
+      if (request) {
+        setMethod(request.method);
+        setUrl(request.uri);
+        setHeaders(headersToEntries(request.headers || {}));
+        if (request.body && request.data_type && isTextBasedDataType(request.data_type)) {
+          setBody(uint8ArrayToString(request.body, request.data_type));
+        } else if (request.body_json) {
+          setBody(
+            typeof request.body_json === "string"
+              ? request.body_json
+              : JSON.stringify(request.body_json, null, 2),
+          );
+        } else {
+          setBody("");
+        }
       } else {
+        setMethod("GET");
+        setUrl("");
+        setHeaders([]);
         setBody("");
       }
       setReplayResponse(null);
@@ -299,15 +323,17 @@ export function ReplayDialog({ transaction }: ReplayDialogProps) {
 
   return (
     <>
-      <Button variant="ghost" size="sm" title={t`Replay request`} onClick={() => setOpen(true)}>
-        <Play className="w-4 h-4" />
-      </Button>
+      {!hideTrigger && (
+        <Button variant="ghost" size="sm" title={t`Replay request`} onClick={() => setOpen(true)}>
+          <Play className="w-4 h-4" />
+        </Button>
+      )}
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="!max-w-none !rounded-none w-screen h-screen flex flex-col">
           <DialogHeader className="flex-shrink-0">
             <DialogTitle>
-              <Trans>Traffic Replay</Trans>
+              {isComposeMode ? <Trans>Compose Request</Trans> : <Trans>Traffic Replay</Trans>}
             </DialogTitle>
           </DialogHeader>
 
@@ -334,7 +360,7 @@ export function ReplayDialog({ transaction }: ReplayDialogProps) {
                 </TabsTrigger>
               )}
               <TabsTrigger value="replay">
-                <Trans>Replay</Trans>
+                {isComposeMode ? <Trans>Response</Trans> : <Trans>Replay</Trans>}
                 {hasReplayResponse && (
                   <Badge
                     variant="outline"
@@ -371,7 +397,7 @@ export function ReplayDialog({ transaction }: ReplayDialogProps) {
                       <Input
                         value={url}
                         onChange={(e) => setUrl(e.target.value)}
-                        placeholder={t`URL`}
+                        placeholder={isComposeMode ? "https://api.example.com/endpoint" : t`URL`}
                         className="flex-1 font-mono text-xs"
                       />
                     </div>
@@ -519,7 +545,11 @@ export function ReplayDialog({ transaction }: ReplayDialogProps) {
                 />
               ) : (
                 <div className="flex items-center justify-center h-40 text-muted-foreground text-sm">
-                  <Trans>Send a request to see the replay response</Trans>
+                  {isComposeMode ? (
+                    <Trans>Send a request to see the response</Trans>
+                  ) : (
+                    <Trans>Send a request to see the replay response</Trans>
+                  )}
                 </div>
               )}
             </TabsContent>

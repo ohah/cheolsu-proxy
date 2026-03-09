@@ -62,7 +62,7 @@ msgstr "활성"
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:314
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:345
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:288
-#: src/features/transaction-details/ui/replay-dialog.tsx:384
+#: src/features/transaction-details/ui/replay-dialog.tsx:410
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:134
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:169
 #: src/pages/server-replay/ui/server-replay-page.tsx:170
@@ -186,9 +186,9 @@ msgid "Block Cookies"
 msgstr "쿠키 차단"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:368
-#: src/features/transaction-details/ui/replay-dialog.tsx:123
-#: src/features/transaction-details/ui/replay-dialog.tsx:194
-#: src/features/transaction-details/ui/replay-dialog.tsx:433
+#: src/features/transaction-details/ui/replay-dialog.tsx:128
+#: src/features/transaction-details/ui/replay-dialog.tsx:199
+#: src/features/transaction-details/ui/replay-dialog.tsx:459
 msgid "Body"
 msgstr "본문"
 
@@ -273,7 +273,7 @@ msgstr "전체 삭제"
 msgid "Clear All"
 msgstr "전체 삭제"
 
-#: src/widgets/network-header/ui/network-controls.tsx:46
+#: src/widgets/network-header/ui/network-controls.tsx:49
 msgid "Clear all transactions"
 msgstr "모든 트랜잭션 삭제"
 
@@ -281,8 +281,8 @@ msgstr "모든 트랜잭션 삭제"
 msgid "Close"
 msgstr "닫기"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:127
-#: src/features/transaction-details/ui/replay-dialog.tsx:443
+#: src/features/transaction-details/ui/replay-dialog.tsx:132
+#: src/features/transaction-details/ui/replay-dialog.tsx:469
 msgid "Collapse"
 msgstr "접기"
 
@@ -293,6 +293,14 @@ msgstr "직접 연결할 호스트 목록 (쉼표로 구분, *.domain.com 와일
 #: src/shared/app-sidebar/ui/sidebar-mcp.tsx:61
 msgid "Command copied to clipboard"
 msgstr "명령어가 클립보드에 복사되었습니다"
+
+#: src/widgets/network-header/ui/network-controls.tsx:60
+msgid "Compose request"
+msgstr "요청 작성"
+
+#: src/features/transaction-details/ui/replay-dialog.tsx:336
+msgid "Compose Request"
+msgstr "요청 작성"
 
 #: src/shared/app-sidebar/ui/sidebar-status.tsx:27
 #: src/shared/app-sidebar/ui/sidebar-status.tsx:42
@@ -413,8 +421,8 @@ msgstr "개 엔트리"
 msgid "Exclude OPTIONS method"
 msgstr "OPTIONS 메서드 제외"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:198
-#: src/features/transaction-details/ui/replay-dialog.tsx:448
+#: src/features/transaction-details/ui/replay-dialog.tsx:203
+#: src/features/transaction-details/ui/replay-dialog.tsx:474
 msgid "Expand"
 msgstr "펼치기"
 
@@ -422,7 +430,7 @@ msgstr "펼치기"
 msgid "Expand sidebar"
 msgstr "사이드바 펼치기"
 
-#: src/widgets/network-header/ui/network-controls.tsx:74
+#: src/widgets/network-header/ui/network-controls.tsx:89
 msgid "Export HAR"
 msgstr "HAR 내보내기"
 
@@ -512,7 +520,7 @@ msgstr ""
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:320
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:294
-#: src/features/transaction-details/ui/replay-dialog.tsx:396
+#: src/features/transaction-details/ui/replay-dialog.tsx:422
 msgid "Header name"
 msgstr "헤더 이름"
 
@@ -527,8 +535,8 @@ msgstr "헤더"
 
 #. placeholder {0}: headerEntries.length
 #. placeholder {0}: headers.length
-#: src/features/transaction-details/ui/replay-dialog.tsx:170
-#: src/features/transaction-details/ui/replay-dialog.tsx:381
+#: src/features/transaction-details/ui/replay-dialog.tsx:175
+#: src/features/transaction-details/ui/replay-dialog.tsx:407
 msgid "Headers ({0})"
 msgstr "헤더 ({0})"
 
@@ -557,7 +565,7 @@ msgstr "호스트 트리"
 msgid "HTTP requests and responses"
 msgstr "HTTP 요청 및 응답"
 
-#: src/widgets/network-header/ui/network-controls.tsx:79
+#: src/widgets/network-header/ui/network-controls.tsx:94
 msgid "Import HAR"
 msgstr ""
 
@@ -633,7 +641,7 @@ msgstr "디스크에서 스크립트 파일을 로드합니다. 파일 변경 �
 msgid "Load and manage proxy scripts"
 msgstr "프록시 스크립트 로드 및 관리"
 
-#: src/widgets/network-header/ui/network-controls.tsx:63
+#: src/widgets/network-header/ui/network-controls.tsx:78
 msgid "Load Session"
 msgstr ""
 
@@ -854,7 +862,7 @@ msgstr ""
 msgid "optional"
 msgstr ""
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:327
+#: src/features/transaction-details/ui/replay-dialog.tsx:353
 msgid "Original"
 msgstr "원본"
 
@@ -880,7 +888,7 @@ msgstr ""
 msgid "Pause and inspect requests/responses"
 msgstr ""
 
-#: src/widgets/network-header/ui/network-controls.tsx:37
+#: src/widgets/network-header/ui/network-controls.tsx:40
 msgid "Pause recording"
 msgstr "기록 일시정지"
 
@@ -995,7 +1003,7 @@ msgstr "헤더 삭제"
 msgid "Replace {0} existing transactions with {1} new ones? Cancel to append instead."
 msgstr ""
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:337
+#: src/features/transaction-details/ui/replay-dialog.tsx:363
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:122
 msgid "Replay"
 msgstr "리플레이"
@@ -1004,11 +1012,11 @@ msgstr "리플레이"
 msgid "Replay message"
 msgstr "메시지 리플레이"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:302
+#: src/features/transaction-details/ui/replay-dialog.tsx:327
 msgid "Replay request"
 msgstr "요청 리플레이"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:323
+#: src/features/transaction-details/ui/replay-dialog.tsx:349
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:259
 msgid "Request"
 msgstr "요청"
@@ -1025,13 +1033,14 @@ msgstr "요청 상세"
 msgid "Request dropped"
 msgstr ""
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:279
+#: src/features/transaction-details/ui/replay-dialog.tsx:303
 msgid "Request failed"
 msgstr "요청 실패"
 
+#: src/features/transaction-details/ui/replay-dialog.tsx:363
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:264
 msgid "Response"
-msgstr ""
+msgstr "응답"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:372
 msgid "Response body (optional)"
@@ -1045,7 +1054,7 @@ msgstr "응답 헤더"
 msgid "Response Status Code"
 msgstr "응답 상태 코드"
 
-#: src/widgets/network-header/ui/network-controls.tsx:37
+#: src/widgets/network-header/ui/network-controls.tsx:40
 msgid "Resume recording"
 msgstr "기록 재개"
 
@@ -1098,7 +1107,7 @@ msgstr "실행"
 msgid "Save"
 msgstr "저장"
 
-#: src/widgets/network-header/ui/network-controls.tsx:58
+#: src/widgets/network-header/ui/network-controls.tsx:73
 msgid "Save Session"
 msgstr ""
 
@@ -1158,15 +1167,19 @@ msgstr ""
 msgid "Select the downloaded profile and tap \"Install\""
 msgstr ""
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:522
+#: src/features/transaction-details/ui/replay-dialog.tsx:551
 msgid "Send a request to see the replay response"
 msgstr "리플레이 응답을 보려면 요청을 전송하세요"
+
+#: src/features/transaction-details/ui/replay-dialog.tsx:549
+msgid "Send a request to see the response"
+msgstr "응답을 보려면 요청을 전송하세요"
 
 #: src/features/websocket-replay/ui/ws-replay-dialog.tsx:189
 msgid "Send Message"
 msgstr "메시지 전송"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:493
+#: src/features/transaction-details/ui/replay-dialog.tsx:519
 msgid "Send Request"
 msgstr "요청 전송"
 
@@ -1174,7 +1187,7 @@ msgstr "요청 전송"
 msgid "Sending requests sequentially..."
 msgstr "요청을 순서대로 전송 중..."
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:488
+#: src/features/transaction-details/ui/replay-dialog.tsx:514
 #: src/features/transaction-details/ui/sequence-replay-dialog.tsx:241
 #: src/features/websocket-replay/ui/ws-replay-dialog.tsx:184
 msgid "Sending..."
@@ -1348,7 +1361,7 @@ msgstr "글로벌 키보드 단축키로 프록시 켜기/끄기"
 msgid "Total {0}ms"
 msgstr "총 {0}ms"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:310
+#: src/features/transaction-details/ui/replay-dialog.tsx:336
 msgid "Traffic Replay"
 msgstr "트래픽 리플레이"
 
@@ -1393,7 +1406,7 @@ msgstr "업로드 (KB/s)"
 msgid "Upstream Proxy"
 msgstr "업스트림 프록시"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:374
+#: src/features/transaction-details/ui/replay-dialog.tsx:400
 msgid "URL"
 msgstr "URL"
 
@@ -1419,7 +1432,7 @@ msgstr "사용자 이름"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:326
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:300
-#: src/features/transaction-details/ui/replay-dialog.tsx:404
+#: src/features/transaction-details/ui/replay-dialog.tsx:430
 msgid "Value"
 msgstr "값"
 
