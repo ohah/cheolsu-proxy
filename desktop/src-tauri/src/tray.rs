@@ -1,10 +1,22 @@
 use crate::proxy_v2::ProxyV2State;
+use std::sync::atomic::{AtomicU64, Ordering};
+use std::time::{SystemTime, UNIX_EPOCH};
 use tauri::image::Image;
 use tauri::menu::{MenuBuilder, MenuItemBuilder};
 use tauri::tray::TrayIconBuilder;
 use tauri::{
     AppHandle, Manager, Position, Rect, Runtime, Size, State, WebviewUrl, WebviewWindowBuilder,
 };
+
+/// 마지막으로 패널을 show한 시각(ms) — 포커스 잃음 이벤트의 레이스 컨디션 방지용
+static LAST_SHOW_MS: AtomicU64 = AtomicU64::new(0);
+
+fn now_ms() -> u64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_millis() as u64
+}
 
 const PANEL_WIDTH: f64 = 300.0;
 const PANEL_HEIGHT: f64 = 266.0;
@@ -51,6 +63,7 @@ fn toggle_tray_panel<R: Runtime>(app: &AppHandle<R>, tray_rect: Rect) {
         if panel.is_visible().unwrap_or(false) {
             let _ = panel.hide();
         } else {
+            LAST_SHOW_MS.store(now_ms(), Ordering::Relaxed);
             let _ = panel.set_position(panel_pos);
             let _ = panel.show();
             let _ = panel.set_focus();
@@ -61,6 +74,7 @@ fn toggle_tray_panel<R: Runtime>(app: &AppHandle<R>, tray_rect: Rect) {
             Position::Physical(p) => (p.x as f64, p.y as f64),
             Position::Logical(p) => (p.x, p.y),
         };
+        LAST_SHOW_MS.store(now_ms(), Ordering::Relaxed);
         if let Ok(panel) =
             WebviewWindowBuilder::new(app, "tray-panel", WebviewUrl::App("/tray.html".into()))
                 .title("Cheolsu Proxy")
@@ -77,11 +91,14 @@ fn toggle_tray_panel<R: Runtime>(app: &AppHandle<R>, tray_rect: Rect) {
                 .visible(true)
                 .build()
         {
-            // 포커스 잃으면 숨기기
+            // 포커스 잃으면 숨기기 (show 직후 300ms 이내는 무시 — 트레이 클릭 레이스 컨디션 방지)
             let panel_clone = panel.clone();
             panel.on_window_event(move |event| {
                 if let tauri::WindowEvent::Focused(false) = event {
-                    let _ = panel_clone.hide();
+                    let elapsed = now_ms() - LAST_SHOW_MS.load(Ordering::Relaxed);
+                    if elapsed > 300 {
+                        let _ = panel_clone.hide();
+                    }
                 }
             });
         }
