@@ -441,8 +441,14 @@ fn intercept_rules_command_with_all_action_types() {
         ClientCommand::UpdateInterceptRules { rules } => {
             assert_eq!(rules.len(), 5);
             assert!(matches!(rules[0].action, InterceptAction::Block { .. }));
-            assert!(matches!(rules[1].action, InterceptAction::ModifyRequest { .. }));
-            assert!(matches!(rules[2].action, InterceptAction::ModifyResponse { .. }));
+            assert!(matches!(
+                rules[1].action,
+                InterceptAction::ModifyRequest { .. }
+            ));
+            assert!(matches!(
+                rules[2].action,
+                InterceptAction::ModifyResponse { .. }
+            ));
             assert!(matches!(rules[3].action, InterceptAction::MapLocal { .. }));
             assert!(matches!(rules[4].action, InterceptAction::MapRemote { .. }));
         }

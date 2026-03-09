@@ -1133,10 +1133,7 @@ mod tests {
             .transactions
             .lock()
             .push_back(make_empty_request_info());
-        store
-            .ws_messages
-            .lock()
-            .push_back(make_ws_message("c1"));
+        store.ws_messages.lock().push_back(make_ws_message("c1"));
 
         let server = CheolsuMcpServer::new(store.clone(), None);
         let result = server.clear_traffic().await.unwrap();

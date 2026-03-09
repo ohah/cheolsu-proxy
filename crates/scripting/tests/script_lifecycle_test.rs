@@ -311,7 +311,11 @@ async fn on_ws_message_drop() {
         is_binary: false,
     };
     let result = handle.invoke_on_ws_message(&msg).await.unwrap();
-    assert!(matches!(result, WsAction::Drop), "Expected Drop, got {:?}", result);
+    assert!(
+        matches!(result, WsAction::Drop),
+        "Expected Drop, got {:?}",
+        result
+    );
 
     let msg2 = ScriptWsMessage {
         connection_id: "ws1".to_string(),
@@ -346,7 +350,11 @@ async fn load_typescript_code() {
             "#,
         )
         .await;
-    assert!(result.is_ok(), "TypeScript 코드 로드 성공해야 함: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "TypeScript 코드 로드 성공해야 함: {:?}",
+        result.err()
+    );
     assert!(handle.is_active());
     handle.shutdown().await;
 }
