@@ -4,7 +4,7 @@ use super::middleware::optimize_streaming_response;
 use crate::{
     HttpContext, HttpHandler, RequestOrResponse, WebSocketHandler, body::Body,
     certificate_authority::CertificateAuthority, hybrid_tls_handler::HybridTlsHandler,
-    rewind::Rewind, throttle::ThrottledIo, tls_version_detector::TlsVersionDetector,
+    rewind::Rewind, throttle, tls_version_detector::TlsVersionDetector,
     upstream_proxy::connect_to_target,
 };
 use http::uri::{Authority, Scheme};
@@ -209,23 +209,28 @@ where
                                             .throttle_rx
                                             .as_ref()
                                             .and_then(|rx| rx.borrow().clone());
-                                        if let Some(ref config) = throttle_config {
+                                        let _ = if let Some(ref config) = throttle_config {
                                             if config.enabled {
-                                                let mut tc =
-                                                    ThrottledIo::new(client_stream, config);
-                                                let mut ts =
-                                                    ThrottledIo::new(server_stream, config);
-                                                let _ =
-                                                    tokio::io::copy_bidirectional(&mut tc, &mut ts)
-                                                        .await;
-                                                return;
+                                                throttle::copy_bidirectional_throttled(
+                                                    &mut client_stream,
+                                                    &mut server_stream,
+                                                    config,
+                                                )
+                                                .await
+                                            } else {
+                                                tokio::io::copy_bidirectional(
+                                                    &mut client_stream,
+                                                    &mut server_stream,
+                                                )
+                                                .await
                                             }
-                                        }
-                                        let _ = tokio::io::copy_bidirectional(
-                                            &mut client_stream,
-                                            &mut server_stream,
-                                        )
-                                        .await;
+                                        } else {
+                                            tokio::io::copy_bidirectional(
+                                                &mut client_stream,
+                                                &mut server_stream,
+                                            )
+                                            .await
+                                        };
                                     }
                                     Err(e) => {
                                         error!(
@@ -546,9 +551,12 @@ where
                                 .and_then(|rx| rx.borrow().clone());
                             let tunnel_result = if let Some(ref config) = throttle_config {
                                 if config.enabled {
-                                    let mut tc = ThrottledIo::new(upgraded, config);
-                                    let mut ts = ThrottledIo::new(server, config);
-                                    tokio::io::copy_bidirectional(&mut tc, &mut ts).await
+                                    throttle::copy_bidirectional_throttled(
+                                        &mut upgraded,
+                                        &mut server,
+                                        config,
+                                    )
+                                    .await
                                 } else {
                                     tokio::io::copy_bidirectional(&mut upgraded, &mut server).await
                                 }

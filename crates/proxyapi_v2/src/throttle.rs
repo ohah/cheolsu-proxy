@@ -132,6 +132,23 @@ impl TokenBucket {
     }
 }
 
+/// 쓰로틀링이 적용된 양방향 복사.
+/// client 쪽만 ThrottledIo로 감싸서 이중 제한을 방지한다.
+/// - client → server: client의 read(download) 제한
+/// - server → client: client의 write(upload) 제한
+pub async fn copy_bidirectional_throttled<A, B>(
+    client: &mut A,
+    server: &mut B,
+    config: &ThrottleConfig,
+) -> std::io::Result<(u64, u64)>
+where
+    A: AsyncRead + AsyncWrite + Unpin,
+    B: AsyncRead + AsyncWrite + Unpin,
+{
+    let mut tc = ThrottledIo::new(client, config);
+    tokio::io::copy_bidirectional(&mut tc, server).await
+}
+
 /// AsyncRead + AsyncWrite를 감싸서 속도를 제한하는 래퍼.
 /// `copy_bidirectional`에서 사용: read = 다운로드, write = 업로드.
 pub struct ThrottledIo<T> {
