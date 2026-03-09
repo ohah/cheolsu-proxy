@@ -379,14 +379,16 @@ a:hover{background:#1d4ed8}</style></head>
         None
     }
 
-    /// WebSocketContext에서 방향과 connection_id를 추출합니다.
-    fn extract_ws_direction(ctx: &WebSocketContext) -> (WsDirection, String) {
+    /// WebSocketContext에서 방향, connection_id, URL을 추출합니다.
+    fn extract_ws_context(ctx: &WebSocketContext) -> (WsDirection, String, String) {
         match ctx {
             WebSocketContext::ClientToServer { dst, .. } => {
-                (WsDirection::ClientToServer, dst.to_string())
+                let url = dst.to_string();
+                (WsDirection::ClientToServer, url.clone(), url)
             }
             WebSocketContext::ServerToClient { src, .. } => {
-                (WsDirection::ServerToClient, src.to_string())
+                let url = src.to_string();
+                (WsDirection::ServerToClient, url.clone(), url)
             }
         }
     }
@@ -432,6 +434,7 @@ a:hover{background:#1d4ed8}</style></head>
         ctx: &WebSocketContext,
         msg: Message,
         connection_id: &str,
+        url: &str,
         message_type: WsMessageType,
         payload: String,
         is_binary: bool,
@@ -444,13 +447,9 @@ a:hover{background:#1d4ed8}</style></head>
             WebSocketContext::ClientToServer { .. } => scripting::WsDirection::ToServer,
             WebSocketContext::ServerToClient { .. } => scripting::WsDirection::ToClient,
         };
-        let url = match ctx {
-            WebSocketContext::ClientToServer { dst, .. } => dst.to_string(),
-            WebSocketContext::ServerToClient { src, .. } => src.to_string(),
-        };
         let script_msg = scripting::ScriptWsMessage {
             connection_id: connection_id.to_string(),
-            url,
+            url: url.to_string(),
             direction: script_direction,
             payload: payload.clone(),
             is_binary,
@@ -873,7 +872,7 @@ impl WebSocketHandler for LoggingHandler {
     }
 
     async fn handle_message(&mut self, ctx: &WebSocketContext, msg: Message) -> Option<Message> {
-        let (direction, connection_id) = Self::extract_ws_direction(ctx);
+        let (direction, connection_id, url) = Self::extract_ws_context(ctx);
 
         let (message_type, payload, size, is_binary) = match Self::convert_ws_message_payload(&msg)
         {
@@ -886,7 +885,8 @@ impl WebSocketHandler for LoggingHandler {
                 ctx,
                 msg,
                 &connection_id,
-                message_type.clone(),
+                &url,
+                message_type,
                 payload,
                 is_binary,
             )
@@ -1032,47 +1032,50 @@ mod tests {
     #[test]
     fn convert_text_message() {
         let msg = Message::Text("hello".into());
-        let result = LoggingHandler::convert_ws_message_payload(&msg).unwrap();
-        assert_eq!(result.0, WsMessageType::Text);
-        assert_eq!(result.1, "hello");
-        assert_eq!(result.2, 5);
-        assert!(!result.3); // is_binary = false
+        let (msg_type, payload, size, is_binary) =
+            LoggingHandler::convert_ws_message_payload(&msg).unwrap();
+        assert_eq!(msg_type, WsMessageType::Text);
+        assert_eq!(payload, "hello");
+        assert_eq!(size, 5);
+        assert!(!is_binary);
     }
 
     #[test]
     fn convert_binary_message() {
         let data = vec![0xDE, 0xAD, 0xBE, 0xEF];
         let msg = Message::Binary(data.clone().into());
-        let result = LoggingHandler::convert_ws_message_payload(&msg).unwrap();
-        assert_eq!(result.0, WsMessageType::Binary);
-        // base64 인코딩 확인
+        let (msg_type, payload, size, is_binary) =
+            LoggingHandler::convert_ws_message_payload(&msg).unwrap();
+        assert_eq!(msg_type, WsMessageType::Binary);
         use base64::Engine;
         assert_eq!(
-            result.1,
+            payload,
             base64::engine::general_purpose::STANDARD.encode(&data)
         );
-        assert_eq!(result.2, 4); // 원본 바이트 크기
-        assert!(result.3); // is_binary = true
+        assert_eq!(size, 4);
+        assert!(is_binary);
     }
 
     #[test]
     fn convert_ping_message() {
         let msg = Message::Ping(vec![1, 2, 3].into());
-        let result = LoggingHandler::convert_ws_message_payload(&msg).unwrap();
-        assert_eq!(result.0, WsMessageType::Ping);
-        assert_eq!(result.1, "3 bytes");
-        assert_eq!(result.2, 3);
-        assert!(result.3);
+        let (msg_type, payload, size, is_binary) =
+            LoggingHandler::convert_ws_message_payload(&msg).unwrap();
+        assert_eq!(msg_type, WsMessageType::Ping);
+        assert_eq!(payload, "3 bytes");
+        assert_eq!(size, 3);
+        assert!(is_binary);
     }
 
     #[test]
     fn convert_pong_message() {
         let msg = Message::Pong(vec![].into());
-        let result = LoggingHandler::convert_ws_message_payload(&msg).unwrap();
-        assert_eq!(result.0, WsMessageType::Pong);
-        assert_eq!(result.1, "0 bytes");
-        assert_eq!(result.2, 0);
-        assert!(result.3);
+        let (msg_type, payload, size, is_binary) =
+            LoggingHandler::convert_ws_message_payload(&msg).unwrap();
+        assert_eq!(msg_type, WsMessageType::Pong);
+        assert_eq!(payload, "0 bytes");
+        assert_eq!(size, 0);
+        assert!(is_binary);
     }
 
     #[test]
@@ -1083,18 +1086,20 @@ mod tests {
             reason: "bye".into(),
         };
         let msg = Message::Close(Some(frame));
-        let result = LoggingHandler::convert_ws_message_payload(&msg).unwrap();
-        assert_eq!(result.0, WsMessageType::Close);
-        assert!(result.1.contains("bye"));
-        assert!(!result.3);
+        let (msg_type, payload, _size, is_binary) =
+            LoggingHandler::convert_ws_message_payload(&msg).unwrap();
+        assert_eq!(msg_type, WsMessageType::Close);
+        assert!(payload.contains("bye"));
+        assert!(!is_binary);
     }
 
     #[test]
     fn convert_close_message_without_frame() {
         let msg = Message::Close(None);
-        let result = LoggingHandler::convert_ws_message_payload(&msg).unwrap();
-        assert_eq!(result.0, WsMessageType::Close);
-        assert!(result.1.is_empty());
+        let (msg_type, payload, _size, _is_binary) =
+            LoggingHandler::convert_ws_message_payload(&msg).unwrap();
+        assert_eq!(msg_type, WsMessageType::Close);
+        assert!(payload.is_empty());
     }
 
     #[test]
