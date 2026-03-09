@@ -1,3 +1,4 @@
+pub mod breakpoint;
 pub(crate) mod cert_distribution;
 pub mod client;
 pub mod client_handler;
@@ -24,8 +25,10 @@ pub use diff::{
 pub use error::DaemonError;
 pub use handler::{create_hybrid_client, LoggingHandler, WsEvent};
 pub use net_utils::get_local_ips;
+pub use breakpoint::BreakpointManager;
 pub use protocol::{
-    ClientCommand, DaemonMessage, InterceptAction, InterceptRule, ProxyLockInfo, ServerReplayEntry,
+    BreakpointAction, BreakpointData, BreakpointPhase, BreakpointRule, ClientCommand,
+    DaemonMessage, InterceptAction, InterceptRule, ProxyLockInfo, ServerReplayEntry,
 };
 pub use proxyapi_v2::certificate_authority::{clean_all_cache, clean_old_cache};
 pub use proxyapi_v2::throttle::{ThrottleConfig, ThrottlePreset};

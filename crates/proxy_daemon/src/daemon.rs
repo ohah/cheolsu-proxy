@@ -5,6 +5,7 @@ use tokio::net::UnixListener;
 use tokio::sync::{broadcast, watch};
 use tracing::{error, info, warn};
 
+use crate::breakpoint::BreakpointManager;
 use crate::client_handler::handle_client;
 use crate::error::DaemonError;
 use crate::protocol::ProxyLockInfo;
@@ -162,6 +163,8 @@ struct DaemonContext {
     upstream_tx: watch::Sender<Option<UpstreamProxyConfig>>,
     server_replay_tx: watch::Sender<Vec<crate::protocol::ServerReplayEntry>>,
     throttle_tx: watch::Sender<Option<ThrottleConfig>>,
+    breakpoint_tx: watch::Sender<Vec<crate::protocol::BreakpointRule>>,
+    breakpoint_manager: BreakpointManager,
     ws_registry: WebSocketRegistry,
     script_handle: scripting::ScriptHandle,
 }
@@ -174,6 +177,8 @@ fn spawn_proxy_task(
     upstream_rx: watch::Receiver<Option<UpstreamProxyConfig>>,
     server_replay_rx: watch::Receiver<Vec<crate::protocol::ServerReplayEntry>>,
     throttle_rx: watch::Receiver<Option<ThrottleConfig>>,
+    breakpoint_rx: watch::Receiver<Vec<crate::protocol::BreakpointRule>>,
+    breakpoint_manager: BreakpointManager,
     ws_registry: WebSocketRegistry,
     script_handle: scripting::ScriptHandle,
 ) -> tokio::task::JoinHandle<()> {
@@ -185,6 +190,8 @@ fn spawn_proxy_task(
             upstream_rx,
             server_replay_rx,
             throttle_rx,
+            breakpoint_rx,
+            breakpoint_manager,
             ws_registry,
             script_handle,
         )
@@ -242,11 +249,13 @@ async fn run_accept_loop(
                         let upstream_tx_clone = ctx.upstream_tx.clone();
                         let server_replay_tx_clone = ctx.server_replay_tx.clone();
                         let throttle_tx_clone = ctx.throttle_tx.clone();
+                        let breakpoint_tx_clone = ctx.breakpoint_tx.clone();
+                        let breakpoint_mgr_clone = ctx.breakpoint_manager.clone();
                         let registry_clone = ctx.ws_registry.clone();
                         let script_handle_clone = ctx.script_handle.clone();
 
                         tokio::spawn(async move {
-                            handle_client(stream, event_rx, intercept_tx_clone, upstream_tx_clone, server_replay_tx_clone, throttle_tx_clone, event_tx_clone, port, registry_clone, script_handle_clone)
+                            handle_client(stream, event_rx, intercept_tx_clone, upstream_tx_clone, server_replay_tx_clone, throttle_tx_clone, breakpoint_tx_clone, breakpoint_mgr_clone, event_tx_clone, port, registry_clone, script_handle_clone)
                                 .await;
 
                             let remaining = client_count_clone.fetch_sub(1, Ordering::SeqCst) - 1;
@@ -285,6 +294,9 @@ async fn daemon_main(port: u16, host: String) -> i32 {
     let (server_replay_tx, server_replay_rx) =
         watch::channel::<Vec<crate::protocol::ServerReplayEntry>>(Vec::new());
     let (throttle_tx, throttle_rx) = watch::channel::<Option<ThrottleConfig>>(None);
+    let (breakpoint_tx, breakpoint_rx) =
+        watch::channel::<Vec<crate::protocol::BreakpointRule>>(Vec::new());
+    let breakpoint_manager = BreakpointManager::new(event_tx.clone());
 
     let addr: std::net::SocketAddr = match format!("{}:{}", host, port).parse() {
         Ok(addr) => addr,
@@ -309,6 +321,8 @@ async fn daemon_main(port: u16, host: String) -> i32 {
         upstream_rx,
         server_replay_rx,
         throttle_rx,
+        breakpoint_rx,
+        breakpoint_manager.clone(),
         ws_registry.clone(),
         script_handle.clone(),
     );
@@ -344,6 +358,8 @@ async fn daemon_main(port: u16, host: String) -> i32 {
         upstream_tx,
         server_replay_tx,
         throttle_tx,
+        breakpoint_tx,
+        breakpoint_manager,
         ws_registry,
         script_handle,
     };

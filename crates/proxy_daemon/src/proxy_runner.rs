@@ -2,9 +2,10 @@ use std::net::SocketAddr;
 use tokio::sync::{broadcast, watch};
 use tracing::info;
 
+use crate::breakpoint::BreakpointManager;
 use crate::error::DaemonError;
 use crate::handler::{LoggingHandler, WsEvent};
-use crate::protocol::{DaemonMessage, InterceptRule, ServerReplayEntry};
+use crate::protocol::{BreakpointRule, DaemonMessage, InterceptRule, ServerReplayEntry};
 use crate::tls_client::create_hybrid_client;
 use proxyapi_v2::certificate_authority::CertificateAuthority;
 use proxyapi_v2::throttle::ThrottleConfig;
@@ -20,6 +21,8 @@ pub async fn run_proxy(
     upstream_rx: watch::Receiver<Option<UpstreamProxyConfig>>,
     mut server_replay_rx: watch::Receiver<Vec<ServerReplayEntry>>,
     throttle_rx: watch::Receiver<Option<ThrottleConfig>>,
+    mut breakpoint_rx: watch::Receiver<Vec<BreakpointRule>>,
+    breakpoint_manager: BreakpointManager,
     ws_registry: WebSocketRegistry,
     script_handle: scripting::ScriptHandle,
 ) -> Result<(), DaemonError> {
@@ -46,7 +49,8 @@ pub async fn run_proxy(
     let handler = LoggingHandler::new(tx.clone(), cache_dir)
         .with_ws_sender(ws_tx)
         .with_script_handle(script_handle)
-        .with_ca_cert_der(ca_cert_der);
+        .with_ca_cert_der(ca_cert_der)
+        .with_breakpoint_manager(breakpoint_manager.clone());
 
     // 인터셉트 규칙 초기값 로드
     {
@@ -77,6 +81,19 @@ pub async fn run_proxy(
             handler_for_replay_updates
                 .update_server_replay_entries(entries)
                 .await;
+        }
+    });
+
+    // Breakpoint rules initial load + watch
+    {
+        let rules = breakpoint_rx.borrow().clone();
+        breakpoint_manager.update_rules(rules).await;
+    }
+    let bp_mgr_for_updates = breakpoint_manager.clone();
+    tokio::spawn(async move {
+        while breakpoint_rx.changed().await.is_ok() {
+            let rules = breakpoint_rx.borrow().clone();
+            bp_mgr_for_updates.update_rules(rules).await;
         }
     });
 
