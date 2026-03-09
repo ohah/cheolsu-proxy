@@ -30,6 +30,8 @@ export const SidebarNavigation = memo(({ collapsed }: SidebarNavigationProps) =>
         return "server-replay";
       case "/breakpoint":
         return "breakpoint";
+      case "/host-mapping":
+        return "host-mapping";
       case "/script":
         return "script";
       case "/settings":
@@ -60,6 +62,9 @@ export const SidebarNavigation = memo(({ collapsed }: SidebarNavigationProps) =>
         break;
       case "breakpoint":
         navigate("/breakpoint");
+        break;
+      case "host-mapping":
+        navigate("/host-mapping");
         break;
       case "script":
         navigate("/script");

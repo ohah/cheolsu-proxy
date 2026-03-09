@@ -7,6 +7,7 @@ import {
   Database,
   FileCode,
   PauseCircle,
+  Globe,
 } from "lucide-react";
 import { msg } from "@lingui/core/macro";
 
@@ -50,6 +51,12 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
     label: msg`Breakpoints`,
     icon: PauseCircle,
     description: msg`Pause and inspect requests/responses`,
+  },
+  {
+    id: "host-mapping",
+    label: msg`Host Mapping`,
+    icon: Globe,
+    description: msg`Map DNS hostnames to different targets`,
   },
   {
     id: "script",
