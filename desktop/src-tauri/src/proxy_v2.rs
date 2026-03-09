@@ -1112,6 +1112,69 @@ pub async fn export_har_file(path: String, content: String) -> Result<(), String
     std::fs::write(&path, content).map_err(|e| format!("HAR 파일 저장 실패: {} - {}", path, e))
 }
 
+/// 세션 저장: daemon에 현재 트래픽을 .cheolsu 파일로 저장 요청
+#[tauri::command]
+pub async fn save_session(
+    proxy: State<'_, ProxyV2State>,
+    path: String,
+    filter: Option<String>,
+) -> Result<(), String> {
+    let proxy_guard = proxy.lock().await;
+    let conn = proxy_guard
+        .as_ref()
+        .ok_or_else(|| "프록시가 실행 중이 아닙니다".to_string())?;
+
+    let file_path = proxy_daemon::ensure_extension(&path);
+    let cmd = ClientCommand::SaveSession {
+        path: file_path,
+        filter,
+    };
+    conn.send_command(&cmd)
+        .await
+        .map_err(|e| format!("세션 저장 명령 전송 실패: {}", e))?;
+
+    Ok(())
+}
+
+/// 세션 로드 결과 (트랜잭션 데이터 포함)
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct LoadSessionResult {
+    pub name: Option<String>,
+    pub description: Option<String>,
+    pub transaction_count: usize,
+    pub transactions_json: String,
+}
+
+/// 세션 불러오기: .cheolsu 파일에서 트래픽 로드하여 트랜잭션 데이터 반환
+#[tauri::command]
+pub async fn load_session(path: String) -> Result<LoadSessionResult, String> {
+    use proxy_daemon::SessionFile;
+
+    let session = SessionFile::load(std::path::Path::new(&path))
+        .map_err(|e| format!("세션 로드 실패: {}", e))?;
+
+    let transactions = session.extract_transactions();
+    let transactions_json = serde_json::to_string(&transactions)
+        .map_err(|e| format!("트랜잭션 직렬화 실패: {}", e))?;
+
+    Ok(LoadSessionResult {
+        name: session.metadata.name,
+        description: session.metadata.description,
+        transaction_count: session.transactions.len(),
+        transactions_json,
+    })
+}
+
+/// HAR 파일 가져오기: HAR 파일에서 트래픽을 읽어서 트랜잭션 데이터 반환
+#[tauri::command]
+pub async fn import_har_file_cmd(path: String) -> Result<String, String> {
+    let transactions = proxy_daemon::import_har_file(std::path::Path::new(&path))
+        .map_err(|e| format!("HAR 가져오기 실패: {}", e))?;
+
+    serde_json::to_string(&transactions)
+        .map_err(|e| format!("트랜잭션 직렬화 실패: {}", e))
+}
+
 fn base64_engine() -> base64::engine::GeneralPurpose {
     use base64::engine::general_purpose::STANDARD;
     STANDARD
