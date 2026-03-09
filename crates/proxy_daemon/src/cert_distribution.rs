@@ -419,10 +419,7 @@ mod tests {
 
     #[test]
     fn is_cert_request_direct_ssl_path() {
-        let req = Request::builder()
-            .uri("/ssl")
-            .body(Body::from(""))
-            .unwrap();
+        let req = Request::builder().uri("/ssl").body(Body::from("")).unwrap();
         assert!(is_cert_download_request(&req));
     }
 
@@ -547,10 +544,7 @@ mod tests {
     #[test]
     fn handle_ssl_auto_unknown() {
         let der = Bytes::from(vec![0x30]);
-        let req = Request::builder()
-            .uri("/ssl")
-            .body(Body::from(""))
-            .unwrap();
+        let req = Request::builder().uri("/ssl").body(Body::from("")).unwrap();
         let resp = handle_cert_request(&req, Some(&der));
         assert_eq!(resp.status(), 200);
         assert!(resp
