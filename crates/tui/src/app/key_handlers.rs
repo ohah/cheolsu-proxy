@@ -1,12 +1,20 @@
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
+use proxy_daemon::BreakpointAction;
+
 use super::forms::RuleForm;
 use super::utils::{copy_to_clipboard, format_curl_command, format_ws_messages};
-use super::App;
+use super::{App, BreakpointAddForm, BreakpointFocus, BreakpointFormField};
 use crate::tabs::Tab;
 
 impl App {
     pub(crate) async fn handle_key(&mut self, key: KeyEvent) {
+        // If breakpoint add form is open, handle form input
+        if self.bp_add_form.is_some() {
+            self.handle_bp_add_form_key(key).await;
+            return;
+        }
+
         // If rule form is open, handle form input
         if self.rule_form.is_some() {
             self.handle_rule_form_key(key).await;
@@ -60,6 +68,10 @@ impl App {
                 return;
             }
             KeyCode::Char('5') if key.modifiers.contains(KeyModifiers::ALT) => {
+                self.tab = Tab::Breakpoint;
+                return;
+            }
+            KeyCode::Char('6') if key.modifiers.contains(KeyModifiers::ALT) => {
                 self.tab = Tab::Settings;
                 return;
             }
@@ -72,6 +84,7 @@ impl App {
             Tab::WebSocket => self.handle_ws_key(key),
             Tab::InterceptRules => self.handle_rules_key(key).await,
             Tab::Script => self.handle_script_key(key).await,
+            Tab::Breakpoint => self.handle_breakpoint_key(key).await,
             Tab::Settings => self.handle_settings_key(key).await,
         }
     }

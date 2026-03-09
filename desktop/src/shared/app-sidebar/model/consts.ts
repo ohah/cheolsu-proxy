@@ -1,4 +1,13 @@
-import { Network, Shield, Route, Plug, Settings, Database, FileCode } from "lucide-react";
+import {
+  Network,
+  Shield,
+  Route,
+  Plug,
+  Settings,
+  Database,
+  FileCode,
+  PauseCircle,
+} from "lucide-react";
 import { msg } from "@lingui/core/macro";
 
 import type { SidebarSection } from "./types";
@@ -35,6 +44,12 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
     label: msg`Server Replay`,
     icon: Database,
     description: msg`Return cached responses for matching requests`,
+  },
+  {
+    id: "breakpoint",
+    label: msg`Breakpoints`,
+    icon: PauseCircle,
+    description: msg`Pause and inspect requests/responses`,
   },
   {
     id: "script",

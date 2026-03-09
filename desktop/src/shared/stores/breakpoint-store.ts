@@ -6,7 +6,10 @@ import type {
   PendingBreakpoint,
   BreakpointStoreState,
 } from "@/entities/breakpoint";
-import { updateBreakpointRules, resolveBreakpoint as resolveBreakpointApi } from "@/shared/api/proxy";
+import {
+  updateBreakpointRules,
+  resolveBreakpoint as resolveBreakpointApi,
+} from "@/shared/api/proxy";
 
 export const useBreakpointStore = create<BreakpointStoreState>()(
   persist(

@@ -8,12 +8,14 @@ import {
   useWebSocketStore,
   useMapRuleStore,
   useScriptStore,
+  useBreakpointStore,
 } from "@/shared/stores";
 import { trayStore } from "@/shared/stores/tray-sync-store";
 import { listen } from "@tauri-apps/api/event";
 import type { ProxyEventTuple } from "@/entities/proxy";
 import type { WsMessageInfo, WsConnectionEvent } from "@/entities/websocket";
 import type { InterceptRule } from "@/entities/intercept-rule";
+import type { BreakpointRule, PendingBreakpoint } from "@/entities/breakpoint";
 import { useGlobalShortcut } from "@/features/proxy-toggle";
 import { updateDaemonRules, waitForDaemonRules } from "@/shared/stores/sync-rules";
 
@@ -29,6 +31,8 @@ const App: React.FC = () => {
   const setMapRules = useMapRuleStore((s) => s.setRules);
   const setScriptStatus = useScriptStore((s) => s.setStatus);
   const addScriptLog = useScriptStore((s) => s.addLog);
+  const setBreakpointRules = useBreakpointStore((s) => s.setRules);
+  const addPendingBreakpoint = useBreakpointStore((s) => s.addPendingBreakpoint);
 
   // 앱 시작 시 프록시 초기화 → 데몬 규칙 수신 대기 → 저장된 규칙 동기화
   useEffect(() => {
@@ -107,6 +111,21 @@ const App: React.FC = () => {
       unlistenStatus.then((f) => f());
     };
   }, [addScriptLog, setScriptStatus]);
+
+  // Breakpoint 이벤트 수신
+  useEffect(() => {
+    const unlistenRules = listen<BreakpointRule[]>("breakpoint_rules_updated", (event) => {
+      setBreakpointRules(event.payload);
+    });
+    const unlistenHit = listen<PendingBreakpoint>("breakpoint_hit", (event) => {
+      addPendingBreakpoint(event.payload);
+    });
+
+    return () => {
+      unlistenRules.then((f) => f());
+      unlistenHit.then((f) => f());
+    };
+  }, [setBreakpointRules, addPendingBreakpoint]);
 
   // 트레이 ↔ 메인 윈도우 양방향 동기화 (Tauri Store)
   const clearTransactions = useTransactionStore((s) => s.clearTransactions);
