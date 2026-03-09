@@ -127,6 +127,9 @@ export function SettingsPage() {
   const [caCertPath, setCaCertPath] = useState("");
   const [certDownloadInfo, setCertDownloadInfo] = useState<CertDownloadInfo | null>(null);
   const [certDownloadLoading, setCertDownloadLoading] = useState(false);
+  const [certUrlCopied, setCertUrlCopied] = useState(false);
+  const [showIosGuide, setShowIosGuide] = useState(false);
+  const [showAndroidGuide, setShowAndroidGuide] = useState(false);
   const proxyPort = useProxyStore((s) => s.port);
   const isProxyConnected = useProxyStore((s) => s.isConnected);
 
@@ -569,6 +572,133 @@ export function SettingsPage() {
                     <Trans>Install and trust the downloaded certificate</Trans>
                   </li>
                 </ol>
+              </div>
+
+              {/* 모바일 인증서 설치 카드 */}
+              <div className="border rounded-lg p-4 space-y-3 bg-muted/30">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-semibold">
+                    <Trans>Mobile Certificate Install</Trans>
+                  </h3>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      navigator.clipboard.writeText("http://cheolsu.proxy/ssl");
+                      setCertUrlCopied(true);
+                      setTimeout(() => setCertUrlCopied(false), 2000);
+                    }}
+                  >
+                    {certUrlCopied ? t`Copied!` : t`Copy URL`}
+                  </Button>
+                </div>
+
+                <div className="font-mono text-sm bg-muted px-3 py-2 rounded text-center select-all">
+                  http://cheolsu.proxy/ssl
+                </div>
+
+                <p className="text-xs text-muted-foreground">
+                  <Trans>
+                    Open this URL in your mobile browser after setting the Wi-Fi proxy. The page
+                    automatically detects your device and provides the correct certificate format.
+                  </Trans>
+                </p>
+
+                <div className="text-xs text-muted-foreground space-y-1">
+                  <p>
+                    <code className="bg-muted px-1 py-0.5 rounded">/ssl/pem</code> — PEM {t`format`}{" "}
+                    (iOS)
+                  </p>
+                  <p>
+                    <code className="bg-muted px-1 py-0.5 rounded">/ssl/der</code> — DER {t`format`}{" "}
+                    (Android)
+                  </p>
+                  <p>
+                    <code className="bg-muted px-1 py-0.5 rounded">/ssl/ca.crt</code> —{" "}
+                    {t`Universal format`}
+                  </p>
+                </div>
+
+                {/* iOS 가이드 */}
+                <div className="border rounded-md">
+                  <button
+                    type="button"
+                    className="w-full text-left px-3 py-2 text-sm font-medium flex items-center justify-between hover:bg-muted/50 transition-colors"
+                    onClick={() => setShowIosGuide(!showIosGuide)}
+                  >
+                    <span>iOS {t`Install Guide`}</span>
+                    <span className="text-muted-foreground">{showIosGuide ? "▲" : "▼"}</span>
+                  </button>
+                  {showIosGuide && (
+                    <div className="px-3 pb-3 text-xs text-muted-foreground space-y-1">
+                      <ol className="list-decimal list-inside space-y-1">
+                        <li>
+                          <Trans>
+                            Open <strong>http://cheolsu.proxy/ssl</strong> in Safari
+                          </Trans>
+                        </li>
+                        <li>
+                          <Trans>
+                            Tap "Allow" when prompted to download the configuration profile
+                          </Trans>
+                        </li>
+                        <li>
+                          <Trans>
+                            Go to <strong>Settings → General → VPN & Device Management</strong>
+                          </Trans>
+                        </li>
+                        <li>
+                          <Trans>Select the downloaded profile and tap "Install"</Trans>
+                        </li>
+                        <li>
+                          <Trans>
+                            Go to <strong>Settings → General → About → Certificate Trust Settings</strong>
+                          </Trans>
+                        </li>
+                        <li>
+                          <Trans>Enable full trust for the Cheolsu Proxy CA certificate</Trans>
+                        </li>
+                      </ol>
+                    </div>
+                  )}
+                </div>
+
+                {/* Android 가이드 */}
+                <div className="border rounded-md">
+                  <button
+                    type="button"
+                    className="w-full text-left px-3 py-2 text-sm font-medium flex items-center justify-between hover:bg-muted/50 transition-colors"
+                    onClick={() => setShowAndroidGuide(!showAndroidGuide)}
+                  >
+                    <span>Android {t`Install Guide`}</span>
+                    <span className="text-muted-foreground">{showAndroidGuide ? "▲" : "▼"}</span>
+                  </button>
+                  {showAndroidGuide && (
+                    <div className="px-3 pb-3 text-xs text-muted-foreground space-y-1">
+                      <ol className="list-decimal list-inside space-y-1">
+                        <li>
+                          <Trans>
+                            Open <strong>http://cheolsu.proxy/ssl</strong> in Chrome
+                          </Trans>
+                        </li>
+                        <li>
+                          <Trans>The DER certificate file will download automatically</Trans>
+                        </li>
+                        <li>
+                          <Trans>
+                            Go to <strong>Settings → Security → Encryption & credentials</strong>
+                          </Trans>
+                        </li>
+                        <li>
+                          <Trans>Tap "Install a certificate" → "CA certificate"</Trans>
+                        </li>
+                        <li>
+                          <Trans>Select the downloaded certificate file and confirm</Trans>
+                        </li>
+                      </ol>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* QR 코드 + URL 정보 */}
