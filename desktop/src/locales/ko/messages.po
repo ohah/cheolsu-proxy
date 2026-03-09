@@ -1569,7 +1569,7 @@ msgstr "URL"
 
 #: src/features/query-filter-editor/ui/filter-help-tooltip.tsx:56
 msgid "URL contains \"api\""
-msgstr "URL에 " 포함"
+msgstr "URL에 \" 포함"
 
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:200
 msgid "URL Pattern"
