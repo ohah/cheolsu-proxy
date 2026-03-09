@@ -47,12 +47,20 @@ impl LoggingHandler {
         // effective_port: target_port가 우선, 없으면 원본 URI 포트 유지
         let effective_port = target_port.or(uri.port_u16());
 
-        let authority = if target_host.contains(':') {
+        // IPv6 주소 판별: bracket이 이미 있으면 제거 후 처리
+        let is_ipv6 = target_host.starts_with('[')
+            || (target_host.contains(':') && !target_host.starts_with('['));
+        let bare_host = target_host
+            .strip_prefix('[')
+            .and_then(|s| s.strip_suffix(']'))
+            .unwrap_or(target_host);
+
+        let authority = if is_ipv6 {
             // IPv6 주소는 brackets로 감싸야 합니다 (e.g., [::1]:8080)
             if let Some(port) = effective_port {
-                format!("[{}]:{}", target_host, port)
+                format!("[{}]:{}", bare_host, port)
             } else {
-                format!("[{}]", target_host)
+                format!("[{}]", bare_host)
             }
         } else {
             // IPv4 또는 호스트명
@@ -68,8 +76,15 @@ impl LoggingHandler {
     }
 
     /// Extract host and port from a URI.
+    /// IPv6 주소의 경우 bracket을 제거하여 순수 주소만 반환합니다.
+    /// (http 1.x의 Uri::host()는 IPv6 bracket을 포함하여 반환하므로 strip 필요)
     pub(crate) fn extract_host_port(uri: &Uri) -> (Option<String>, Option<u16>) {
-        let host = uri.host().map(|h| h.to_string());
+        let host = uri.host().map(|h| {
+            h.strip_prefix('[')
+                .and_then(|s| s.strip_suffix(']'))
+                .unwrap_or(h)
+                .to_string()
+        });
         let port = uri.port_u16();
         (host, port)
     }
@@ -492,11 +507,18 @@ mod tests {
         ));
     }
 
+    /// 테스트 헬퍼: URI host()에서 IPv6 bracket을 제거하여 순수 주소 반환
+    fn strip_brackets(host: &str) -> &str {
+        host.strip_prefix('[')
+            .and_then(|s| s.strip_suffix(']'))
+            .unwrap_or(host)
+    }
+
     #[test]
     fn test_apply_host_mapping_to_uri_ipv6_no_port() {
         let uri: Uri = "https://example.com/path".parse().unwrap();
         let result = LoggingHandler::apply_host_mapping_to_uri(&uri, "::1", None).unwrap();
-        assert_eq!(result.host().unwrap(), "::1");
+        assert_eq!(strip_brackets(result.host().unwrap()), "::1");
         assert_eq!(result.path(), "/path");
         // URI 문자열에 brackets이 포함되어야 함
         assert!(result.to_string().contains("[::1]"));
@@ -507,7 +529,7 @@ mod tests {
         let uri: Uri = "https://example.com/api".parse().unwrap();
         let result =
             LoggingHandler::apply_host_mapping_to_uri(&uri, "2001:db8::1", Some(8443)).unwrap();
-        assert_eq!(result.host().unwrap(), "2001:db8::1");
+        assert_eq!(strip_brackets(result.host().unwrap()), "2001:db8::1");
         assert_eq!(result.port_u16().unwrap(), 8443);
         assert!(result.to_string().contains("[2001:db8::1]:8443"));
     }
@@ -516,7 +538,7 @@ mod tests {
     fn test_apply_host_mapping_to_uri_ipv6_preserves_source_port() {
         let uri: Uri = "https://example.com:9443/v1".parse().unwrap();
         let result = LoggingHandler::apply_host_mapping_to_uri(&uri, "::1", None).unwrap();
-        assert_eq!(result.host().unwrap(), "::1");
+        assert_eq!(strip_brackets(result.host().unwrap()), "::1");
         assert_eq!(result.port_u16().unwrap(), 9443);
         assert!(result.to_string().contains("[::1]:9443"));
     }
