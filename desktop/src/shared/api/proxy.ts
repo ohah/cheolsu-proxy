@@ -264,3 +264,9 @@ export interface HostMapping {
 export async function updateHostMappings(mappings: HostMapping[]): Promise<void> {
   return invoke("update_host_mappings", { mappings });
 }
+
+// ─── Quick Settings ──────────────────────────────────────
+
+export async function updateQuickSettings(noCaching: boolean, blockCookies: boolean): Promise<void> {
+  return invoke("update_quick_settings", { noCaching, blockCookies });
+}
