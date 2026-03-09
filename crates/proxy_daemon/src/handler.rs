@@ -33,21 +33,39 @@ pub enum WsEvent {
 const CERT_DOWNLOAD_HOST: &str = "cheolsu.proxy";
 const CERT_DOWNLOAD_HOST_COLON: &str = "cheolsu.proxy:";
 
+/// HTTP 요청/응답 상태를 추적하는 컨텍스트
+#[derive(Clone)]
+pub(crate) struct HttpState {
+    pub(crate) req: Option<ProxiedRequest>,
+    pub(crate) res: Option<ProxiedResponse>,
+    pub(crate) cache_dir: Option<std::path::PathBuf>,
+    /// CA 인증서 DER 바이트 (외부 기기 인증서 다운로드용, zero-copy)
+    pub(crate) ca_cert_der: Option<Bytes>,
+}
+
+/// 인터셉트 규칙 및 스크립트 엔진
+#[derive(Clone)]
+pub(crate) struct InterceptEngine {
+    pub(crate) intercept_rules: Arc<Mutex<Vec<InterceptRule>>>,
+    pub(crate) server_replay_entries: Arc<Mutex<Vec<ServerReplayEntry>>>,
+    pub(crate) script_handle: scripting::ScriptHandle,
+}
+
+/// WebSocket 상태 관리
+#[derive(Clone)]
+pub(crate) struct WebSocketState {
+    pub(crate) ws_sender: Option<tokio::sync::mpsc::Sender<WsEvent>>,
+    pub(crate) ws_sequence: Arc<std::sync::atomic::AtomicU64>,
+    pub(crate) mqtt_versions: Arc<parking_lot::Mutex<std::collections::HashMap<String, u8>>>,
+}
+
 /// HTTP 및 WebSocket 요청/응답을 로깅하는 핸들러
 #[derive(Clone)]
 pub struct LoggingHandler {
     pub(crate) sender: tokio::sync::mpsc::Sender<RequestInfo>,
-    pub(crate) ws_sender: Option<tokio::sync::mpsc::Sender<WsEvent>>,
-    pub(crate) ws_sequence: Arc<std::sync::atomic::AtomicU64>,
-    pub(crate) mqtt_versions: Arc<parking_lot::Mutex<std::collections::HashMap<String, u8>>>,
-    pub(crate) req: Option<ProxiedRequest>,
-    pub(crate) res: Option<ProxiedResponse>,
-    pub(crate) intercept_rules: Arc<Mutex<Vec<InterceptRule>>>,
-    pub(crate) server_replay_entries: Arc<Mutex<Vec<ServerReplayEntry>>>,
-    pub(crate) cache_dir: Option<std::path::PathBuf>,
-    pub(crate) script_handle: scripting::ScriptHandle,
-    /// CA 인증서 DER 바이트 (외부 기기 인증서 다운로드용, zero-copy)
-    pub(crate) ca_cert_der: Option<Bytes>,
+    pub(crate) http: HttpState,
+    pub(crate) intercept: InterceptEngine,
+    pub(crate) ws: WebSocketState,
 }
 
 impl LoggingHandler {
@@ -57,52 +75,58 @@ impl LoggingHandler {
     ) -> Self {
         Self {
             sender,
-            ws_sender: None,
-            ws_sequence: Arc::new(std::sync::atomic::AtomicU64::new(0)),
-            mqtt_versions: Arc::new(parking_lot::Mutex::new(std::collections::HashMap::new())),
-            req: None,
-            res: None,
-            intercept_rules: Arc::new(Mutex::new(Vec::new())),
-            server_replay_entries: Arc::new(Mutex::new(Vec::new())),
-            cache_dir: Some(cache_dir),
-            script_handle: scripting::ScriptHandle::new(),
-            ca_cert_der: None,
+            http: HttpState {
+                req: None,
+                res: None,
+                cache_dir: Some(cache_dir),
+                ca_cert_der: None,
+            },
+            intercept: InterceptEngine {
+                intercept_rules: Arc::new(Mutex::new(Vec::new())),
+                server_replay_entries: Arc::new(Mutex::new(Vec::new())),
+                script_handle: scripting::ScriptHandle::new(),
+            },
+            ws: WebSocketState {
+                ws_sender: None,
+                ws_sequence: Arc::new(std::sync::atomic::AtomicU64::new(0)),
+                mqtt_versions: Arc::new(parking_lot::Mutex::new(std::collections::HashMap::new())),
+            },
         }
     }
 
     /// CA 인증서 DER 바이트를 설정합니다 (외부 기기 인증서 다운로드용)
     pub fn with_ca_cert_der(mut self, der: Vec<u8>) -> Self {
-        self.ca_cert_der = Some(Bytes::from(der));
+        self.http.ca_cert_der = Some(Bytes::from(der));
         self
     }
 
     pub fn with_ws_sender(mut self, ws_sender: tokio::sync::mpsc::Sender<WsEvent>) -> Self {
-        self.ws_sender = Some(ws_sender);
+        self.ws.ws_sender = Some(ws_sender);
         self
     }
 
     pub fn with_script_handle(mut self, handle: scripting::ScriptHandle) -> Self {
-        self.script_handle = handle;
+        self.intercept.script_handle = handle;
         self
     }
 
     /// 인터셉트 규칙 업데이트
     pub async fn update_intercept_rules(&self, rules: Vec<InterceptRule>) {
-        let mut rules_guard = self.intercept_rules.lock().await;
+        let mut rules_guard = self.intercept.intercept_rules.lock().await;
         info!("[Intercept] 규칙 업데이트: {} 개", rules.len());
         *rules_guard = rules;
     }
 
     /// 서버 리플레이 엔트리 업데이트
     pub async fn update_server_replay_entries(&self, entries: Vec<ServerReplayEntry>) {
-        let mut entries_guard = self.server_replay_entries.lock().await;
+        let mut entries_guard = self.intercept.server_replay_entries.lock().await;
         info!("[ServerReplay] 엔트리 업데이트: {} 개", entries.len());
         *entries_guard = entries;
     }
 
     /// 스크립트 핸들 반환
     pub fn script_handle(&self) -> &scripting::ScriptHandle {
-        &self.script_handle
+        &self.intercept.script_handle
     }
 
     /// CA 인증서 다운로드 응답을 생성합니다.
@@ -112,7 +136,7 @@ impl LoggingHandler {
 
         // /ssl 또는 /cert 경로: 인증서 다운로드
         if path == "/ssl" || path == "/cert" || path == "/" {
-            if let Some(der) = &self.ca_cert_der {
+            if let Some(der) = &self.http.ca_cert_der {
                 info!(
                     "[CertDownload] CA 인증서 다운로드 제공 ({} bytes)",
                     der.len()
@@ -160,17 +184,19 @@ a:hover{background:#1d4ed8}</style></head>
     /// 요청과 응답을 묶어서 전송
     pub(crate) async fn send_output(&self) {
         let client_request = self
+            .http
             .req
             .as_ref()
-            .map(|req| req.clone().for_client(self.cache_dir.as_deref()));
-        let client_response = self.res.as_ref().map(|res| {
+            .map(|req| req.clone().for_client(self.http.cache_dir.as_deref()));
+        let client_response = self.http.res.as_ref().map(|res| {
             let request_id = self
+                .http
                 .req
                 .as_ref()
                 .map(|r| r.id().clone())
                 .unwrap_or_default();
             res.clone()
-                .for_client(&request_id, self.cache_dir.as_deref())
+                .for_client(&request_id, self.http.cache_dir.as_deref())
         });
         let request_info = RequestInfo(client_request, client_response);
         if let Err(e) = self.sender.send(request_info).await {
@@ -243,7 +269,7 @@ a:hover{background:#1d4ed8}</style></head>
     }
 
     fn create_response_from_cached_data(&self) -> Response<Body> {
-        if let Some(cached_response) = &self.res {
+        if let Some(cached_response) = &self.http.res {
             let mut response = Response::builder()
                 .status(*cached_response.status())
                 .version(*cached_response.version());
@@ -454,7 +480,12 @@ a:hover{background:#1d4ed8}</style></head>
             payload: payload.clone(),
             is_binary,
         };
-        match self.script_handle.invoke_on_ws_message(&script_msg).await {
+        match self
+            .intercept
+            .script_handle
+            .invoke_on_ws_message(&script_msg)
+            .await
+        {
             Ok(scripting::WsAction::Forward) => Some((msg, payload, is_binary)),
             Ok(scripting::WsAction::Modify {
                 payload: new_payload,
@@ -489,11 +520,12 @@ a:hover{background:#1d4ed8}</style></head>
         size: usize,
         is_binary: bool,
     ) {
-        let Some(ws_sender) = &self.ws_sender else {
+        let Some(ws_sender) = &self.ws.ws_sender else {
             return;
         };
 
         let sequence = self
+            .ws
             .ws_sequence
             .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
 
@@ -501,10 +533,13 @@ a:hover{background:#1d4ed8}</style></head>
 
         let mqtt_version = if content_type == proxy_v2_models::WsContentType::Mqtt {
             if let Some(ver) = proxy_v2_models::extract_mqtt_version_from_connect(&payload) {
-                self.mqtt_versions.lock().insert(connection_id.clone(), ver);
+                self.ws
+                    .mqtt_versions
+                    .lock()
+                    .insert(connection_id.clone(), ver);
                 Some(ver)
             } else {
-                self.mqtt_versions.lock().get(&connection_id).copied()
+                self.ws.mqtt_versions.lock().get(&connection_id).copied()
             }
         } else {
             None
@@ -583,7 +618,12 @@ a:hover{background:#1d4ed8}</style></head>
         url: &str,
     ) -> Result<Request<Body>, Response<Body>> {
         let script_req = Self::to_script_request(proxied_request);
-        match self.script_handle.invoke_on_request(&script_req).await {
+        match self
+            .intercept
+            .script_handle
+            .invoke_on_request(&script_req)
+            .await
+        {
             Ok(scripting::RequestAction::Forward) => Ok(req),
             Ok(scripting::RequestAction::ModifyRequest { request: modified }) => {
                 info!("[Script] 요청 수정: {} {}", method, url);
@@ -605,7 +645,7 @@ a:hover{background:#1d4ed8}</style></head>
 
     /// 인터셉트 규칙으로 응답을 수정합니다.
     async fn apply_response_intercept_if_needed(&self, res: Response<Body>) -> Response<Body> {
-        if let Some(req) = &self.req {
+        if let Some(req) = &self.http.req {
             let url = req.uri().to_string();
             let method = req.method().to_string();
             self.apply_response_intercept(res, &url, &method).await
@@ -616,12 +656,13 @@ a:hover{background:#1d4ed8}</style></head>
 
     /// 스크립트 on_response 훅을 적용합니다.
     async fn apply_script_on_response(&self, res: Response<Body>) -> Response<Body> {
-        let Some(req) = &self.req else {
+        let Some(req) = &self.http.req else {
             return res;
         };
         let script_req = Self::to_script_request(req);
         let script_res = Self::to_script_response_from_hyper(&res);
         match self
+            .intercept
             .script_handle
             .invoke_on_response(&script_req, &script_res)
             .await
@@ -683,7 +724,7 @@ a:hover{background:#1d4ed8}</style></head>
                     .unwrap_or_default(),
             );
 
-            handler_clone.res = Some(proxied_response);
+            handler_clone.http.res = Some(proxied_response);
             handler_clone.send_output().await;
         });
 
@@ -717,7 +758,7 @@ impl HttpHandler for LoggingHandler {
             return restored_req.into();
         }
 
-        self.req = Some(proxied_request.clone());
+        self.http.req = Some(proxied_request.clone());
 
         let url = proxied_request.uri().to_string();
         let method = proxied_request.method().to_string();
@@ -769,7 +810,7 @@ impl HttpHandler for LoggingHandler {
         }
 
         let (proxied_response, restored_res) = self.response_to_proxied_response(res).await;
-        self.res = Some(proxied_response);
+        self.http.res = Some(proxied_response);
         self.send_output().await;
         restored_res
     }
@@ -791,7 +832,7 @@ impl HttpHandler for LoggingHandler {
                     "TLS close_notify 없이 연결 종료됨 - 정상 종료로 처리"
                 );
 
-                if self.res.is_some() {
+                if self.http.res.is_some() {
                     return self.create_response_from_cached_data();
                 } else {
                     return Response::builder()
@@ -816,7 +857,7 @@ impl HttpHandler for LoggingHandler {
             .unwrap_or(false);
 
         if should_use_curl {
-            if let Some(req) = &self.req {
+            if let Some(req) = &self.http.req {
                 error!("TLS 핸드셰이크 실패 - curl 폴백 시도");
                 match crate::curl_fallback::fallback_with_curl(req).await {
                     Ok(response) => {
@@ -839,7 +880,7 @@ impl HttpHandler for LoggingHandler {
 
 impl WebSocketHandler for LoggingHandler {
     async fn on_connected(&mut self, ctx: &WebSocketContext) {
-        if let Some(ws_sender) = &self.ws_sender {
+        if let Some(ws_sender) = &self.ws.ws_sender {
             let (connection_id, uri) = match ctx {
                 WebSocketContext::ClientToServer { dst, .. } => (dst.to_string(), dst.to_string()),
                 WebSocketContext::ServerToClient { src, .. } => (src.to_string(), src.to_string()),
@@ -856,7 +897,7 @@ impl WebSocketHandler for LoggingHandler {
     }
 
     async fn on_disconnected(&mut self, ctx: &WebSocketContext) {
-        if let Some(ws_sender) = &self.ws_sender {
+        if let Some(ws_sender) = &self.ws.ws_sender {
             let connection_id = match ctx {
                 WebSocketContext::ClientToServer { dst, .. } => dst.to_string(),
                 WebSocketContext::ServerToClient { src, .. } => src.to_string(),
@@ -1012,11 +1053,11 @@ mod tests {
     #[test]
     fn with_ca_cert_der_sets_bytes() {
         let handler = make_test_handler(None);
-        assert!(handler.ca_cert_der.is_none());
+        assert!(handler.http.ca_cert_der.is_none());
 
         let handler = make_test_handler(Some(vec![0xFF, 0x00]));
-        assert!(handler.ca_cert_der.is_some());
-        assert_eq!(handler.ca_cert_der.unwrap().len(), 2);
+        assert!(handler.http.ca_cert_der.is_some());
+        assert_eq!(handler.http.ca_cert_der.unwrap().len(), 2);
     }
 
     #[test]
@@ -1203,16 +1244,22 @@ mod tests {
         let (ws_sender, mut ws_rx) = tokio::sync::mpsc::channel(8);
         let handler = LoggingHandler {
             sender,
-            ws_sender: Some(ws_sender),
-            ws_sequence: Arc::new(std::sync::atomic::AtomicU64::new(0)),
-            mqtt_versions: Arc::new(parking_lot::Mutex::new(std::collections::HashMap::new())),
-            req: None,
-            res: None,
-            intercept_rules: Arc::new(Mutex::new(Vec::new())),
-            server_replay_entries: Arc::new(Mutex::new(Vec::new())),
-            cache_dir: None,
-            script_handle: scripting::ScriptHandle::new(),
-            ca_cert_der: None,
+            http: HttpState {
+                req: None,
+                res: None,
+                cache_dir: None,
+                ca_cert_der: None,
+            },
+            intercept: InterceptEngine {
+                intercept_rules: Arc::new(Mutex::new(Vec::new())),
+                server_replay_entries: Arc::new(Mutex::new(Vec::new())),
+                script_handle: scripting::ScriptHandle::new(),
+            },
+            ws: WebSocketState {
+                ws_sender: Some(ws_sender),
+                ws_sequence: Arc::new(std::sync::atomic::AtomicU64::new(0)),
+                mqtt_versions: Arc::new(parking_lot::Mutex::new(std::collections::HashMap::new())),
+            },
         };
 
         handler.emit_ws_event(
@@ -1245,16 +1292,22 @@ mod tests {
         let (ws_sender, mut ws_rx) = tokio::sync::mpsc::channel(8);
         let handler = LoggingHandler {
             sender,
-            ws_sender: Some(ws_sender),
-            ws_sequence: Arc::new(std::sync::atomic::AtomicU64::new(0)),
-            mqtt_versions: Arc::new(parking_lot::Mutex::new(std::collections::HashMap::new())),
-            req: None,
-            res: None,
-            intercept_rules: Arc::new(Mutex::new(Vec::new())),
-            server_replay_entries: Arc::new(Mutex::new(Vec::new())),
-            cache_dir: None,
-            script_handle: scripting::ScriptHandle::new(),
-            ca_cert_der: None,
+            http: HttpState {
+                req: None,
+                res: None,
+                cache_dir: None,
+                ca_cert_der: None,
+            },
+            intercept: InterceptEngine {
+                intercept_rules: Arc::new(Mutex::new(Vec::new())),
+                server_replay_entries: Arc::new(Mutex::new(Vec::new())),
+                script_handle: scripting::ScriptHandle::new(),
+            },
+            ws: WebSocketState {
+                ws_sender: Some(ws_sender),
+                ws_sequence: Arc::new(std::sync::atomic::AtomicU64::new(0)),
+                mqtt_versions: Arc::new(parking_lot::Mutex::new(std::collections::HashMap::new())),
+            },
         };
 
         for i in 0..3 {
