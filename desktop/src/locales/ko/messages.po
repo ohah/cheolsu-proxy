@@ -168,7 +168,7 @@ msgstr "원본 요청 경로를 대상 URL에 추가"
 msgid "Apply:"
 msgstr "적용:"
 
-#: src/pages/settings/ui/settings-page.tsx:1034
+#: src/pages/settings/ui/settings-page.tsx:1127
 msgid "Authentication"
 msgstr "인증"
 
@@ -180,6 +180,10 @@ msgstr "개 사용 가능"
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:40
 msgid "Block"
 msgstr "차단"
+
+#: src/pages/settings/ui/settings-page.tsx:1068
+msgid "Block Cookies"
+msgstr "쿠키 차단"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:368
 #: src/features/transaction-details/ui/replay-dialog.tsx:123
@@ -213,7 +217,7 @@ msgstr ""
 msgid "Browse"
 msgstr "찾아보기"
 
-#: src/pages/settings/ui/settings-page.tsx:1061
+#: src/pages/settings/ui/settings-page.tsx:1154
 msgid "Bypass List"
 msgstr "바이패스 목록"
 
@@ -221,7 +225,7 @@ msgstr "바이패스 목록"
 msgid "bytes body"
 msgstr "바이트 본문"
 
-#: src/pages/settings/ui/settings-page.tsx:492
+#: src/pages/settings/ui/settings-page.tsx:543
 msgid "CA Certificate"
 msgstr "CA 인증서"
 
@@ -229,7 +233,7 @@ msgstr "CA 인증서"
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:345
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:137
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:166
-#: src/pages/settings/ui/settings-page.tsx:868
+#: src/pages/settings/ui/settings-page.tsx:919
 msgid "Cancel"
 msgstr "취소"
 
@@ -237,11 +241,11 @@ msgstr "취소"
 msgid "Cannot add: no response data"
 msgstr "추가할 수 없습니다: 응답 데이터 없음"
 
-#: src/pages/settings/ui/settings-page.tsx:775
+#: src/pages/settings/ui/settings-page.tsx:826
 msgid "Certificate Download URL"
 msgstr "인증서 다운로드 URL"
 
-#: src/pages/settings/ui/settings-page.tsx:868
+#: src/pages/settings/ui/settings-page.tsx:919
 msgid "Change"
 msgstr "변경"
 
@@ -282,7 +286,7 @@ msgstr "닫기"
 msgid "Collapse"
 msgstr "접기"
 
-#: src/pages/settings/ui/settings-page.tsx:1069
+#: src/pages/settings/ui/settings-page.tsx:1162
 msgid "Comma-separated list of hosts to connect directly (supports *.domain.com wildcards)"
 msgstr "직접 연결할 호스트 목록 (쉼표로 구분, *.domain.com 와일드카드 지원)"
 
@@ -308,7 +312,7 @@ msgstr "연결"
 msgid "Console"
 msgstr "콘솔"
 
-#: src/pages/settings/ui/settings-page.tsx:619
+#: src/pages/settings/ui/settings-page.tsx:670
 msgid "Copied!"
 msgstr ""
 
@@ -317,7 +321,7 @@ msgstr ""
 msgid "Copy to clipboard"
 msgstr "클립보드에 복사"
 
-#: src/pages/settings/ui/settings-page.tsx:619
+#: src/pages/settings/ui/settings-page.tsx:670
 msgid "Copy URL"
 msgstr ""
 
@@ -329,7 +333,7 @@ msgstr "Curl 명령어가 클립보드에 복사되었습니다"
 msgid "Custom body"
 msgstr "커스텀 본문"
 
-#: src/pages/settings/ui/settings-page.tsx:481
+#: src/pages/settings/ui/settings-page.tsx:532
 msgid "Dark"
 msgstr "다크"
 
@@ -366,7 +370,7 @@ msgstr "비활성"
 msgid "Disconnected"
 msgstr "연결 끊김"
 
-#: src/pages/settings/ui/settings-page.tsx:934
+#: src/pages/settings/ui/settings-page.tsx:985
 msgid "Download (KB/s)"
 msgstr "다운로드 (KB/s)"
 
@@ -392,7 +396,7 @@ msgstr "규칙 수정"
 msgid "Editor"
 msgstr "에디터"
 
-#: src/pages/settings/ui/settings-page.tsx:694
+#: src/pages/settings/ui/settings-page.tsx:745
 msgid "Enable full trust for the Cheolsu Proxy CA certificate"
 msgstr ""
 
@@ -422,8 +426,8 @@ msgstr "사이드바 펼치기"
 msgid "Export HAR"
 msgstr "HAR 내보내기"
 
-#: src/pages/settings/ui/settings-page.tsx:982
-#: src/pages/settings/ui/settings-page.tsx:1090
+#: src/pages/settings/ui/settings-page.tsx:1033
+#: src/pages/settings/ui/settings-page.tsx:1183
 msgid "Failed — is the proxy running?"
 msgstr "실패 — 프록시가 실행 중인가요?"
 
@@ -444,7 +448,7 @@ msgstr ""
 msgid "Failed to read file: {0}"
 msgstr "파일 읽기 실패: {0}"
 
-#: src/pages/settings/ui/settings-page.tsx:884
+#: src/pages/settings/ui/settings-page.tsx:935
 msgid "Failed to register shortcut"
 msgstr "단축키 등록 실패"
 
@@ -464,8 +468,8 @@ msgstr "파일 경로를 입력해주세요"
 msgid "For Cursor, Claude Desktop, and other MCP-compatible clients:"
 msgstr "Cursor, Claude Desktop 및 기타 MCP 호환 클라이언트용:"
 
-#: src/pages/settings/ui/settings-page.tsx:637
-#: src/pages/settings/ui/settings-page.tsx:641
+#: src/pages/settings/ui/settings-page.tsx:688
+#: src/pages/settings/ui/settings-page.tsx:692
 msgid "format"
 msgstr ""
 
@@ -474,19 +478,19 @@ msgstr ""
 msgid "Forward"
 msgstr ""
 
-#: src/pages/settings/ui/settings-page.tsx:826
+#: src/pages/settings/ui/settings-page.tsx:877
 msgid "Global Shortcut"
 msgstr "글로벌 단축키"
 
-#: src/pages/settings/ui/settings-page.tsx:688
+#: src/pages/settings/ui/settings-page.tsx:739
 msgid "Go to <0>Settings → General → About → Certificate Trust Settings</0>"
 msgstr ""
 
-#: src/pages/settings/ui/settings-page.tsx:680
+#: src/pages/settings/ui/settings-page.tsx:731
 msgid "Go to <0>Settings → General → VPN & Device Management</0>"
 msgstr ""
 
-#: src/pages/settings/ui/settings-page.tsx:728
+#: src/pages/settings/ui/settings-page.tsx:779
 msgid "Go to <0>Settings → Security → Encryption & credentials</0>"
 msgstr ""
 
@@ -528,7 +532,7 @@ msgstr "헤더"
 msgid "Headers ({0})"
 msgstr "헤더 ({0})"
 
-#: src/pages/settings/ui/settings-page.tsx:1008
+#: src/pages/settings/ui/settings-page.tsx:1101
 msgid "Host"
 msgstr "호스트"
 
@@ -561,38 +565,38 @@ msgstr ""
 msgid "Inactive"
 msgstr "비활성"
 
-#: src/pages/settings/ui/settings-page.tsx:505
-#: src/pages/settings/ui/settings-page.tsx:805
+#: src/pages/settings/ui/settings-page.tsx:556
+#: src/pages/settings/ui/settings-page.tsx:856
 msgid "Install"
 msgstr "설치"
 
-#: src/pages/settings/ui/settings-page.tsx:581
+#: src/pages/settings/ui/settings-page.tsx:632
 msgid "Install and trust the downloaded certificate"
 msgstr "다운로드된 인증서를 설치하고 신뢰"
 
-#: src/pages/settings/ui/settings-page.tsx:660
-#: src/pages/settings/ui/settings-page.tsx:710
+#: src/pages/settings/ui/settings-page.tsx:711
+#: src/pages/settings/ui/settings-page.tsx:761
 msgid "Install Guide"
 msgstr ""
 
-#: src/pages/settings/ui/settings-page.tsx:797
+#: src/pages/settings/ui/settings-page.tsx:848
 msgid "Install the <0>cheolsu</0> command to use the TUI from your terminal"
 msgstr "터미널에서 TUI를 사용하려면 <0>cheolsu</0> 명령어를 설치하세요"
 
-#: src/pages/settings/ui/settings-page.tsx:538
+#: src/pages/settings/ui/settings-page.tsx:589
 msgid "Install the CA certificate on external devices (mobile, tablet) to intercept HTTPS traffic"
 msgstr "HTTPS 트래픽을 가로채려면 외부 기기(모바일, 태블릿)에 CA 인증서를 설치하세요"
 
-#: src/pages/settings/ui/settings-page.tsx:495
+#: src/pages/settings/ui/settings-page.tsx:546
 msgid "Install the CA certificate to trust HTTPS traffic intercepted by the proxy"
 msgstr "프록시가 가로채는 HTTPS 트래픽을 신뢰하려면 CA 인증서를 설치하세요"
 
-#: src/pages/settings/ui/settings-page.tsx:814
+#: src/pages/settings/ui/settings-page.tsx:865
 msgid "Installed"
 msgstr "설치됨"
 
-#: src/pages/settings/ui/settings-page.tsx:505
-#: src/pages/settings/ui/settings-page.tsx:805
+#: src/pages/settings/ui/settings-page.tsx:556
+#: src/pages/settings/ui/settings-page.tsx:856
 msgid "Installing..."
 msgstr "설치 중..."
 
@@ -605,15 +609,15 @@ msgstr "인터셉트 규칙"
 msgid "JSON Configuration"
 msgstr "JSON 설정"
 
-#: src/pages/settings/ui/settings-page.tsx:445
+#: src/pages/settings/ui/settings-page.tsx:496
 msgid "Language"
 msgstr "언어"
 
-#: src/pages/settings/ui/settings-page.tsx:956
+#: src/pages/settings/ui/settings-page.tsx:1007
 msgid "Latency (ms)"
 msgstr "지연 (ms)"
 
-#: src/pages/settings/ui/settings-page.tsx:481
+#: src/pages/settings/ui/settings-page.tsx:532
 msgid "Light"
 msgstr "라이트"
 
@@ -639,7 +643,7 @@ msgstr ""
 
 #: src/pages/script/ui/script-page.tsx:214
 #: src/pages/script/ui/script-page.tsx:266
-#: src/pages/settings/ui/settings-page.tsx:553
+#: src/pages/settings/ui/settings-page.tsx:604
 msgid "Loading..."
 msgstr "로딩 중..."
 
@@ -647,7 +651,7 @@ msgstr "로딩 중..."
 msgid "Local File Path"
 msgstr "로컬 파일 경로"
 
-#: src/pages/settings/ui/settings-page.tsx:1064
+#: src/pages/settings/ui/settings-page.tsx:1157
 msgid "localhost, 127.0.0.1, *.internal.com"
 msgstr "localhost, 127.0.0.1, *.internal.com"
 
@@ -738,7 +742,7 @@ msgstr "메시지"
 msgid "Method"
 msgstr "메서드"
 
-#: src/pages/settings/ui/settings-page.tsx:590
+#: src/pages/settings/ui/settings-page.tsx:641
 msgid "Mobile Certificate Install"
 msgstr ""
 
@@ -769,7 +773,7 @@ msgstr "이름"
 msgid "Network"
 msgstr "네트워크"
 
-#: src/pages/settings/ui/settings-page.tsx:895
+#: src/pages/settings/ui/settings-page.tsx:946
 msgid "Network Throttling"
 msgstr "네트워크 쓰로틀링"
 
@@ -780,6 +784,10 @@ msgstr "활성 WebSocket 연결 없음"
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:227
 msgid "No breakpoint rules"
 msgstr ""
+
+#: src/pages/settings/ui/settings-page.tsx:1054
+msgid "No Caching"
+msgstr "캐시 비활성화"
 
 #: src/pages/server-replay/ui/server-replay-page.tsx:129
 msgid "No captured traffic with responses available. Capture some traffic first."
@@ -817,19 +825,19 @@ msgstr "표시할 트랜잭션이 없습니다"
 msgid "No valid requests to replay"
 msgstr "리플레이할 유효한 요청이 없습니다"
 
-#: src/pages/settings/ui/settings-page.tsx:519
+#: src/pages/settings/ui/settings-page.tsx:570
 msgid "Not Trusted"
 msgstr "신뢰되지 않음"
 
-#: src/pages/settings/ui/settings-page.tsx:720
+#: src/pages/settings/ui/settings-page.tsx:771
 msgid "Open <0>{CERT_DOWNLOAD_URL}</0> in Chrome"
 msgstr ""
 
-#: src/pages/settings/ui/settings-page.tsx:670
+#: src/pages/settings/ui/settings-page.tsx:721
 msgid "Open <0>{CERT_DOWNLOAD_URL}</0> in Safari"
 msgstr ""
 
-#: src/pages/settings/ui/settings-page.tsx:572
+#: src/pages/settings/ui/settings-page.tsx:623
 msgid "Open <0>{CERT_DOWNLOAD_URL}</0> in your device browser"
 msgstr ""
 
@@ -837,7 +845,7 @@ msgstr ""
 msgid "Open File"
 msgstr "파일 열기"
 
-#: src/pages/settings/ui/settings-page.tsx:628
+#: src/pages/settings/ui/settings-page.tsx:679
 msgid "Open this URL in your mobile browser after setting the Wi-Fi proxy. The page automatically detects your device and provides the correct certificate format."
 msgstr ""
 
@@ -850,7 +858,7 @@ msgstr ""
 msgid "Original"
 msgstr "원본"
 
-#: src/pages/settings/ui/settings-page.tsx:1049
+#: src/pages/settings/ui/settings-page.tsx:1142
 msgid "Password"
 msgstr "비밀번호"
 
@@ -888,7 +896,7 @@ msgstr ""
 msgid "Pending Breakpoints"
 msgstr ""
 
-#: src/pages/settings/ui/settings-page.tsx:1018
+#: src/pages/settings/ui/settings-page.tsx:1111
 msgid "Port"
 msgstr "포트"
 
@@ -900,19 +908,23 @@ msgstr ""
 msgid "Preserve Path"
 msgstr "경로 유지"
 
-#: src/pages/settings/ui/settings-page.tsx:861
+#: src/pages/settings/ui/settings-page.tsx:912
 msgid "Press a key combination..."
 msgstr "키 조합을 눌러주세요..."
 
-#: src/pages/settings/ui/settings-page.tsx:908
+#: src/pages/settings/ui/settings-page.tsx:1057
+msgid "Prevent caching by removing conditional headers and adding no-cache directives"
+msgstr "조건부 헤더를 제거하고 no-cache 지시어를 추가하여 캐싱을 방지합니다"
+
+#: src/pages/settings/ui/settings-page.tsx:959
 msgid "Profile"
 msgstr "프로파일"
 
-#: src/pages/settings/ui/settings-page.tsx:765
+#: src/pages/settings/ui/settings-page.tsx:816
 msgid "Proxy Address"
 msgstr "프록시 주소"
 
-#: src/pages/settings/ui/settings-page.tsx:437
+#: src/pages/settings/ui/settings-page.tsx:488
 msgid "Proxy configuration and preferences"
 msgstr "프록시 설정 및 환경설정"
 
@@ -920,7 +932,7 @@ msgstr "프록시 설정 및 환경설정"
 msgid "Proxy settings and configuration"
 msgstr "프록시 설정 및 구성"
 
-#: src/pages/settings/ui/settings-page.tsx:1011
+#: src/pages/settings/ui/settings-page.tsx:1104
 msgid "proxy.company.com"
 msgstr "proxy.company.com"
 
@@ -932,6 +944,14 @@ msgstr "쿼리 문법 가이드"
 msgid "Query syntax help"
 msgstr "쿼리 문법 도움말"
 
+#: src/pages/settings/ui/settings-page.tsx:1043
+msgid "Quick Settings"
+msgstr "빠른 설정"
+
+#: src/pages/settings/ui/settings-page.tsx:1046
+msgid "Quick toggles for common proxy behaviors"
+msgstr "자주 사용하는 프록시 동작을 빠르게 전환합니다"
+
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:87
 msgid "Received"
 msgstr "수신"
@@ -940,12 +960,12 @@ msgstr "수신"
 msgid "Received (Server → Client)"
 msgstr "수신 (서버 → 클라이언트)"
 
-#: src/pages/settings/ui/settings-page.tsx:782
+#: src/pages/settings/ui/settings-page.tsx:833
 msgid "Refresh"
 msgstr "새로고침"
 
-#: src/pages/settings/ui/settings-page.tsx:505
-#: src/pages/settings/ui/settings-page.tsx:805
+#: src/pages/settings/ui/settings-page.tsx:556
+#: src/pages/settings/ui/settings-page.tsx:856
 msgid "Reinstall"
 msgstr "재설치"
 
@@ -953,9 +973,13 @@ msgstr "재설치"
 msgid "Reload"
 msgstr "리로드"
 
-#: src/pages/settings/ui/settings-page.tsx:535
+#: src/pages/settings/ui/settings-page.tsx:586
 msgid "Remote Device Certificate"
 msgstr "외부 기기 인증서"
+
+#: src/pages/settings/ui/settings-page.tsx:1071
+msgid "Remove Cookie headers from requests and Set-Cookie headers from responses"
+msgstr "요청에서 Cookie 헤더를 제거하고 응답에서 Set-Cookie 헤더를 제거합니다"
 
 #: src/pages/server-replay/ui/server-replay-page.tsx:238
 msgid "Remove entry"
@@ -1033,7 +1057,7 @@ msgstr "매칭되는 요청에 캐시된 응답 반환"
 msgid "Return cached responses for matching requests instead of forwarding to the server"
 msgstr "서버로 전달하지 않고 매칭되는 요청에 캐시된 응답을 반환합니다"
 
-#: src/pages/settings/ui/settings-page.tsx:996
+#: src/pages/settings/ui/settings-page.tsx:1089
 msgid "Route traffic through an external proxy server"
 msgstr "외부 프록시 서버를 통해 트래픽 라우팅"
 
@@ -1068,9 +1092,9 @@ msgstr "규칙"
 msgid "Run"
 msgstr "실행"
 
-#: src/pages/settings/ui/settings-page.tsx:876
-#: src/pages/settings/ui/settings-page.tsx:973
-#: src/pages/settings/ui/settings-page.tsx:1081
+#: src/pages/settings/ui/settings-page.tsx:927
+#: src/pages/settings/ui/settings-page.tsx:1024
+#: src/pages/settings/ui/settings-page.tsx:1174
 msgid "Save"
 msgstr "저장"
 
@@ -1078,18 +1102,18 @@ msgstr "저장"
 msgid "Save Session"
 msgstr ""
 
-#: src/pages/settings/ui/settings-page.tsx:879
-#: src/pages/settings/ui/settings-page.tsx:977
-#: src/pages/settings/ui/settings-page.tsx:1085
+#: src/pages/settings/ui/settings-page.tsx:930
+#: src/pages/settings/ui/settings-page.tsx:1028
+#: src/pages/settings/ui/settings-page.tsx:1178
 msgid "Saved"
 msgstr "저장됨"
 
-#: src/pages/settings/ui/settings-page.tsx:973
-#: src/pages/settings/ui/settings-page.tsx:1081
+#: src/pages/settings/ui/settings-page.tsx:1024
+#: src/pages/settings/ui/settings-page.tsx:1174
 msgid "Saving..."
 msgstr "저장 중..."
 
-#: src/pages/settings/ui/settings-page.tsx:757
+#: src/pages/settings/ui/settings-page.tsx:808
 msgid "Scan for proxy info"
 msgstr "프록시 정보 스캔"
 
@@ -1126,11 +1150,11 @@ msgstr "캡처된 트래픽에서 선택"
 msgid "Select local file"
 msgstr "로컬 파일 선택"
 
-#: src/pages/settings/ui/settings-page.tsx:736
+#: src/pages/settings/ui/settings-page.tsx:787
 msgid "Select the downloaded certificate file and confirm"
 msgstr ""
 
-#: src/pages/settings/ui/settings-page.tsx:685
+#: src/pages/settings/ui/settings-page.tsx:736
 msgid "Select the downloaded profile and tap \"Install\""
 msgstr ""
 
@@ -1204,24 +1228,24 @@ msgstr "본문 설정 (선택사항)"
 
 #. placeholder {0}: certDownloadInfo.local_ips[0] || "127.0.0.1"
 #. placeholder {1}: certDownloadInfo.port
-#: src/pages/settings/ui/settings-page.tsx:564
+#: src/pages/settings/ui/settings-page.tsx:615
 msgid "Set Wi-Fi proxy on your device to <0>{0}:{1}</0>"
 msgstr "기기의 Wi-Fi 프록시를 <0>{0}:{1}</0>로 설정"
 
-#: src/pages/settings/ui/settings-page.tsx:434
+#: src/pages/settings/ui/settings-page.tsx:485
 #: src/shared/app-sidebar/model/consts.ts:78
 msgid "Settings"
 msgstr "설정"
 
-#: src/pages/settings/ui/settings-page.tsx:560
+#: src/pages/settings/ui/settings-page.tsx:611
 msgid "Setup Instructions:"
 msgstr "설정 방법:"
 
-#: src/pages/settings/ui/settings-page.tsx:844
+#: src/pages/settings/ui/settings-page.tsx:895
 msgid "Shortcut Key"
 msgstr "단축키"
 
-#: src/pages/settings/ui/settings-page.tsx:898
+#: src/pages/settings/ui/settings-page.tsx:949
 msgid "Simulate slow network conditions for testing"
 msgstr "테스트를 위한 저속 네트워크 환경 시뮬레이션"
 
@@ -1242,8 +1266,8 @@ msgstr ""
 msgid "Source Port"
 msgstr ""
 
-#: src/pages/settings/ui/settings-page.tsx:524
-#: src/pages/settings/ui/settings-page.tsx:548
+#: src/pages/settings/ui/settings-page.tsx:575
+#: src/pages/settings/ui/settings-page.tsx:599
 msgid "Start proxy first"
 msgstr "프록시를 먼저 실행하세요"
 
@@ -1262,15 +1286,15 @@ msgstr "상태"
 msgid "Status Code"
 msgstr "상태 코드"
 
-#: src/pages/settings/ui/settings-page.tsx:481
+#: src/pages/settings/ui/settings-page.tsx:532
 msgid "System"
 msgstr "시스템"
 
-#: src/pages/settings/ui/settings-page.tsx:675
+#: src/pages/settings/ui/settings-page.tsx:726
 msgid "Tap \"Allow\" when prompted to download the configuration profile"
 msgstr ""
 
-#: src/pages/settings/ui/settings-page.tsx:733
+#: src/pages/settings/ui/settings-page.tsx:784
 msgid "Tap \"Install a certificate\" → \"CA certificate\""
 msgstr ""
 
@@ -1290,15 +1314,15 @@ msgstr "대상 URL"
 msgid "Target URL is required"
 msgstr "대상 URL을 입력해주세요"
 
-#: src/pages/settings/ui/settings-page.tsx:794
+#: src/pages/settings/ui/settings-page.tsx:845
 msgid "Terminal Command"
 msgstr "터미널 명령어"
 
-#: src/pages/settings/ui/settings-page.tsx:725
+#: src/pages/settings/ui/settings-page.tsx:776
 msgid "The DER certificate file will download automatically"
 msgstr ""
 
-#: src/pages/settings/ui/settings-page.tsx:466
+#: src/pages/settings/ui/settings-page.tsx:517
 msgid "Theme"
 msgstr "테마"
 
@@ -1315,7 +1339,7 @@ msgstr "클라이언트로 (서버 → 클라이언트)"
 msgid "To Server (Client → Server)"
 msgstr "서버로 (클라이언트 → 서버)"
 
-#: src/pages/settings/ui/settings-page.tsx:829
+#: src/pages/settings/ui/settings-page.tsx:880
 msgid "Toggle proxy on/off with a global keyboard shortcut"
 msgstr "글로벌 키보드 단축키로 프록시 켜기/끄기"
 
@@ -1328,7 +1352,7 @@ msgstr "총 {0}ms"
 msgid "Traffic Replay"
 msgstr "트래픽 리플레이"
 
-#: src/pages/settings/ui/settings-page.tsx:514
+#: src/pages/settings/ui/settings-page.tsx:565
 msgid "Trusted"
 msgstr "신뢰됨"
 
@@ -1338,17 +1362,17 @@ msgstr "신뢰됨"
 msgid "Type"
 msgstr "타입"
 
-#: src/pages/settings/ui/settings-page.tsx:509
-#: src/pages/settings/ui/settings-page.tsx:809
+#: src/pages/settings/ui/settings-page.tsx:560
+#: src/pages/settings/ui/settings-page.tsx:860
 msgid "Uninstall"
 msgstr "제거"
 
-#: src/pages/settings/ui/settings-page.tsx:647
+#: src/pages/settings/ui/settings-page.tsx:698
 msgid "Universal format"
 msgstr ""
 
-#: src/pages/settings/ui/settings-page.tsx:938
-#: src/pages/settings/ui/settings-page.tsx:949
+#: src/pages/settings/ui/settings-page.tsx:989
+#: src/pages/settings/ui/settings-page.tsx:1000
 msgid "Unlimited"
 msgstr "무제한"
 
@@ -1361,11 +1385,11 @@ msgstr "언로드"
 msgid "Update"
 msgstr "수정"
 
-#: src/pages/settings/ui/settings-page.tsx:945
+#: src/pages/settings/ui/settings-page.tsx:996
 msgid "Upload (KB/s)"
 msgstr "업로드 (KB/s)"
 
-#: src/pages/settings/ui/settings-page.tsx:993
+#: src/pages/settings/ui/settings-page.tsx:1086
 msgid "Upstream Proxy"
 msgstr "업스트림 프록시"
 
@@ -1389,7 +1413,7 @@ msgstr ""
 msgid "Use wildcard patterns: * matches any string, ? matches a single character."
 msgstr "와일드카드 패턴 사용: *는 모든 문자열, ?는 단일 문자를 매칭합니다."
 
-#: src/pages/settings/ui/settings-page.tsx:1041
+#: src/pages/settings/ui/settings-page.tsx:1134
 msgid "Username"
 msgstr "사용자 이름"
 
