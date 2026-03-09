@@ -17,8 +17,7 @@ enum Platform {
 
 fn detect_platform(user_agent: &str) -> Platform {
     let ua = user_agent.to_lowercase();
-    if ua.contains("iphone") || ua.contains("ipad") || ua.contains("ipod") || ua.contains("mac os")
-    {
+    if ua.contains("iphone") || ua.contains("ipad") || ua.contains("ipod") {
         Platform::Ios
     } else if ua.contains("android") {
         Platform::Android
@@ -38,7 +37,7 @@ pub(crate) fn is_cert_download_request(req: &Request<Body>) -> bool {
             return true;
         }
     }
-    if req.uri().host().is_none() {
+    if req.uri().host().is_none() && req.headers().get("host").is_none() {
         let path = req.uri().path();
         if path == "/ssl" || path == "/cert" {
             return true;
@@ -154,59 +153,10 @@ fn serve_crt(ca_cert_der: Option<&Bytes>) -> Response<Body> {
 }
 
 fn serve_auto_download(ca_cert_der: Option<&Bytes>, platform: Platform) -> Response<Body> {
-    let Some(der) = ca_cert_der else {
-        return not_found_response();
-    };
     match platform {
-        Platform::Ios => {
-            let pem = der_to_pem(der);
-            info!(
-                "[CertDistribution] iOS auto-download PEM ({} bytes)",
-                pem.len()
-            );
-            Response::builder()
-                .status(200)
-                .header("Content-Type", "application/x-pem-file")
-                .header(
-                    "Content-Disposition",
-                    "attachment; filename=\"cheolsu-proxy-ca.pem\"",
-                )
-                .header("Content-Length", pem.len().to_string())
-                .body(Body::from(http_body_util::Full::new(Bytes::from(pem))))
-                .unwrap_or_else(|_| Response::new(Body::empty()))
-        }
-        Platform::Android => {
-            info!(
-                "[CertDistribution] Android auto-download DER ({} bytes)",
-                der.len()
-            );
-            Response::builder()
-                .status(200)
-                .header("Content-Type", "application/x-x509-ca-cert")
-                .header(
-                    "Content-Disposition",
-                    "attachment; filename=\"cheolsu-proxy-ca.der\"",
-                )
-                .header("Content-Length", der.len().to_string())
-                .body(Body::from(http_body_util::Full::new(der.clone())))
-                .unwrap_or_else(|_| Response::new(Body::empty()))
-        }
-        Platform::Unknown => {
-            info!(
-                "[CertDistribution] Generic auto-download CER ({} bytes)",
-                der.len()
-            );
-            Response::builder()
-                .status(200)
-                .header("Content-Type", "application/x-x509-ca-cert")
-                .header(
-                    "Content-Disposition",
-                    "attachment; filename=\"cheolsu-proxy-ca.cer\"",
-                )
-                .header("Content-Length", der.len().to_string())
-                .body(Body::from(http_body_util::Full::new(der.clone())))
-                .unwrap_or_else(|_| Response::new(Body::empty()))
-        }
+        Platform::Ios => serve_pem(ca_cert_der),
+        Platform::Android => serve_der(ca_cert_der),
+        Platform::Unknown => serve_crt(ca_cert_der),
     }
 }
 
@@ -221,7 +171,6 @@ fn serve_landing_page(cert_available: bool, platform: Platform) -> Response<Body
 }
 
 fn build_landing_html(cert_available: bool, platform: Platform) -> String {
-    let ios_active = matches!(platform, Platform::Ios);
     let android_active = matches!(platform, Platform::Android);
 
     let download_section = if cert_available {
@@ -340,17 +289,9 @@ function showTab(name){{
 </body>
 </html>"##,
         download_section = download_section,
-        ios_cls = if ios_active || (!ios_active && !android_active) {
-            " active"
-        } else {
-            ""
-        },
+        ios_cls = if !android_active { " active" } else { "" },
         android_cls = if android_active { " active" } else { "" },
-        ios_content_cls = if ios_active || (!ios_active && !android_active) {
-            " active"
-        } else {
-            ""
-        },
+        ios_content_cls = if !android_active { " active" } else { "" },
         android_content_cls = if android_active { " active" } else { "" },
     )
 }
@@ -553,7 +494,7 @@ mod tests {
             .unwrap()
             .to_str()
             .unwrap()
-            .contains(".cer"));
+            .contains(".crt"));
     }
 
     #[test]
@@ -689,7 +630,7 @@ mod tests {
         // /cert 경로도 /ssl과 동일하게 auto-download 동작해야 함
         let der = Bytes::from(vec![0x30, 0x82]);
 
-        // Unknown platform -> .cer 다운로드
+        // Unknown platform -> .crt 다운로드
         let req = Request::builder()
             .uri("/cert")
             .body(Body::from(""))
@@ -702,7 +643,7 @@ mod tests {
             .unwrap()
             .to_str()
             .unwrap()
-            .contains(".cer"));
+            .contains(".crt"));
 
         // iOS -> .pem 다운로드
         let req = Request::builder()
