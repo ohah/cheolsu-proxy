@@ -106,7 +106,7 @@ pub enum WsDirection {
 }
 
 /// WebSocket 메시지 타입
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum WsMessageType {
     Text,
