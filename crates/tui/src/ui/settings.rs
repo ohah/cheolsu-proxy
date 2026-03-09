@@ -1,7 +1,17 @@
+use qrcode::QrCode;
 use ratatui::prelude::*;
 use ratatui::widgets::*;
 
 use crate::app::{App, SettingsSection, ThrottleField, ThrottlePresetChoice, UpstreamProxyField};
+
+/// "CP" 로고 비트맵 (5x3) — QR 코드 중앙에 오버레이
+const LOGO_BITMAP: [[bool; 5]; 3] = [
+    [true, true, false, true, true],   // ██ ██
+    [true, false, false, true, false], // █  █
+    [true, true, false, true, false],  // ██ █
+];
+const LOGO_WIDTH: usize = 5;
+const LOGO_HEIGHT: usize = 3;
 
 pub fn draw(f: &mut Frame, app: &App, area: Rect) {
     let chunks = Layout::default()
@@ -9,7 +19,7 @@ pub fn draw(f: &mut Frame, app: &App, area: Rect) {
         .constraints([
             Constraint::Length(10), // Proxy info
             Constraint::Length(5),  // CA certificate
-            Constraint::Length(7),  // Remote device cert
+            Constraint::Length(20), // Remote device cert (QR code)
             Constraint::Length(3),  // Section tabs
             Constraint::Length(12), // Form (upstream or throttle)
             Constraint::Min(0),     // Keybindings
@@ -160,16 +170,49 @@ fn draw_ca_cert(f: &mut Frame, app: &App, area: Rect) {
 }
 
 fn draw_remote_device_cert(f: &mut Frame, app: &App, area: Rect) {
-    let mut lines = vec![];
+    let block = Block::default()
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(Color::Gray))
+        .title(" Remote Device Certificate ");
 
-    if app.connected {
-        let primary_ip = app
-            .local_ips
-            .first()
-            .cloned()
-            .unwrap_or_else(|| "127.0.0.1".to_string());
+    if !app.connected {
+        let lines = vec![Line::from(Span::styled(
+            "Start proxy to see remote device setup info",
+            Style::default().fg(Color::DarkGray),
+        ))];
+        let paragraph = Paragraph::new(lines).block(block);
+        f.render_widget(paragraph, area);
+        return;
+    }
 
-        lines.push(Line::from(vec![
+    let primary_ip = app
+        .local_ips
+        .first()
+        .cloned()
+        .unwrap_or_else(|| "127.0.0.1".to_string());
+
+    let qr_url = format!("http://{}:{}/ssl", primary_ip, app.port);
+
+    // 내부 영역 계산 (border 제외)
+    let inner = block.inner(area);
+
+    // 좌측: QR 코드, 우측: 정보 텍스트
+    let h_chunks = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([
+            Constraint::Length(qr_widget_width(&qr_url)),
+            Constraint::Min(30),
+        ])
+        .split(inner);
+
+    f.render_widget(block, area);
+
+    // QR 코드 렌더링
+    render_qr_code(f, &qr_url, h_chunks[0]);
+
+    // 우측 정보 텍스트
+    let mut info_lines = vec![
+        Line::from(vec![
             Span::styled("Proxy:    ", Style::default().fg(Color::Yellow)),
             Span::styled(
                 format!("{}:{}", primary_ip, app.port),
@@ -177,8 +220,8 @@ fn draw_remote_device_cert(f: &mut Frame, app: &App, area: Rect) {
                     .fg(Color::White)
                     .add_modifier(Modifier::BOLD),
             ),
-        ]));
-        lines.push(Line::from(vec![
+        ]),
+        Line::from(vec![
             Span::styled("Cert URL: ", Style::default().fg(Color::Yellow)),
             Span::styled(
                 "http://cheolsu.proxy/ssl",
@@ -186,37 +229,159 @@ fn draw_remote_device_cert(f: &mut Frame, app: &App, area: Rect) {
                     .fg(Color::Cyan)
                     .add_modifier(Modifier::BOLD),
             ),
+        ]),
+        Line::from(vec![
+            Span::styled("Direct:   ", Style::default().fg(Color::Yellow)),
+            Span::styled(
+                &qr_url,
+                Style::default()
+                    .fg(Color::Cyan)
+                    .add_modifier(Modifier::BOLD),
+            ),
+        ]),
+    ];
+
+    if app.local_ips.len() > 1 {
+        let extra_ips: Vec<String> = app.local_ips[1..]
+            .iter()
+            .map(|ip| format!("{}:{}", ip, app.port))
+            .collect();
+        info_lines.push(Line::from(vec![
+            Span::styled("Also:     ", Style::default().fg(Color::DarkGray)),
+            Span::styled(extra_ips.join(", "), Style::default().fg(Color::DarkGray)),
         ]));
-
-        if app.local_ips.len() > 1 {
-            let extra_ips: Vec<String> = app.local_ips[1..]
-                .iter()
-                .map(|ip| format!("{}:{}", ip, app.port))
-                .collect();
-            lines.push(Line::from(vec![
-                Span::styled("Also:     ", Style::default().fg(Color::DarkGray)),
-                Span::styled(extra_ips.join(", "), Style::default().fg(Color::DarkGray)),
-            ]));
-        }
-
-        lines.push(Line::from(Span::styled(
-            "  1) Set Wi-Fi proxy on device  2) Open URL  3) Install cert",
-            Style::default().fg(Color::DarkGray),
-        )));
-    } else {
-        lines.push(Line::from(Span::styled(
-            "Start proxy to see remote device setup info",
-            Style::default().fg(Color::DarkGray),
-        )));
     }
 
-    let block = Block::default()
-        .borders(Borders::ALL)
-        .border_style(Style::default().fg(Color::Gray))
-        .title(" Remote Device Certificate ");
+    info_lines.push(Line::from(""));
+    info_lines.push(Line::from(Span::styled(
+        "1) Set Wi-Fi proxy on device",
+        Style::default().fg(Color::DarkGray),
+    )));
+    info_lines.push(Line::from(Span::styled(
+        "2) Scan QR or open URL",
+        Style::default().fg(Color::DarkGray),
+    )));
+    info_lines.push(Line::from(Span::styled(
+        "3) Install & trust certificate",
+        Style::default().fg(Color::DarkGray),
+    )));
 
-    let paragraph = Paragraph::new(lines).block(block);
-    f.render_widget(paragraph, area);
+    let info_paragraph = Paragraph::new(info_lines);
+    f.render_widget(info_paragraph, h_chunks[1]);
+}
+
+/// QR 코드 위젯의 필요 너비를 계산합니다 (반블록 문자 사용 시 width = modules + 2 quiet zone).
+fn qr_widget_width(data: &str) -> u16 {
+    if let Ok(code) = QrCode::with_error_correction_level(data, qrcode::EcLevel::H) {
+        // +2 for quiet zone on each side, +1 for spacing
+        (code.width() + 4 + 1) as u16
+    } else {
+        0
+    }
+}
+
+/// QR 코드를 유니코드 반블록 문자(▀▄█)로 렌더링합니다.
+/// 중앙에 "CP" 로고를 오버레이합니다 (에러 보정 레벨 H 사용).
+fn render_qr_code(f: &mut Frame, data: &str, area: Rect) {
+    let Ok(code) = QrCode::with_error_correction_level(data, qrcode::EcLevel::H) else {
+        return;
+    };
+
+    let width = code.width();
+    // quiet zone 포함한 전체 크기
+    let total = width + 4; // 2 quiet zone on each side
+
+    // QR 모듈 데이터를 2D bool 배열로 변환 (quiet zone 포함)
+    let mut modules = vec![vec![false; total]; total];
+    for y in 0..width {
+        for x in 0..width {
+            use qrcode::Color as QrColor;
+            if code[(x, y)] == QrColor::Dark {
+                modules[y + 2][x + 2] = true;
+            }
+        }
+    }
+
+    // 중앙에 로고 오버레이 (패딩 1셀 포함)
+    let pad = 1;
+    let logo_total_w = LOGO_WIDTH + pad * 2;
+    let logo_total_h = LOGO_HEIGHT + pad * 2;
+    let cx = total / 2;
+    let cy = total / 2;
+    let logo_x0 = cx.saturating_sub(logo_total_w / 2);
+    let logo_y0 = cy.saturating_sub(logo_total_h / 2);
+
+    // 로고 영역을 흰색(false)으로 클리어
+    for dy in 0..logo_total_h {
+        for dx in 0..logo_total_w {
+            let y = logo_y0 + dy;
+            let x = logo_x0 + dx;
+            if y < total && x < total {
+                modules[y][x] = false;
+            }
+        }
+    }
+
+    // 로고 비트맵 그리기
+    let logo_inner_x0 = logo_x0 + pad;
+    let logo_inner_y0 = logo_y0 + pad;
+    for (dy, row) in LOGO_BITMAP.iter().enumerate() {
+        for (dx, &dark) in row.iter().enumerate() {
+            if dark {
+                let y = logo_inner_y0 + dy;
+                let x = logo_inner_x0 + dx;
+                if y < total && x < total {
+                    modules[y][x] = true;
+                }
+            }
+        }
+    }
+
+    // 반블록 문자로 렌더링: 2행을 1터미널 행으로
+    // 검정=Dark, 흰색=Light
+    // 터미널 배경이 어두우므로: dark=흰색 전경, light=검정 배경
+    let dark_color = Color::White;
+    let light_color = Color::Black;
+
+    let mut lines: Vec<Line> = Vec::new();
+    let mut y = 0;
+    while y < total {
+        let mut spans: Vec<Span> = Vec::new();
+        for x in 0..total {
+            let top = modules.get(y).map_or(false, |row| row[x]);
+            let bottom = modules.get(y + 1).map_or(false, |row| row[x]);
+
+            match (top, bottom) {
+                (true, true) => {
+                    // 전체 블록: 전경=dark
+                    spans.push(Span::styled("█", Style::default().fg(dark_color)));
+                }
+                (true, false) => {
+                    // 상단만: ▀ 전경=dark, 배경=light
+                    spans.push(Span::styled(
+                        "▀",
+                        Style::default().fg(dark_color).bg(light_color),
+                    ));
+                }
+                (false, true) => {
+                    // 하단만: ▄ 전경=dark, 배경=light
+                    spans.push(Span::styled(
+                        "▄",
+                        Style::default().fg(dark_color).bg(light_color),
+                    ));
+                }
+                (false, false) => {
+                    // 둘 다 흰색: 배경=light
+                    spans.push(Span::styled(" ", Style::default().bg(light_color)));
+                }
+            }
+        }
+        lines.push(Line::from(spans));
+        y += 2;
+    }
+
+    let qr_paragraph = Paragraph::new(lines);
+    f.render_widget(qr_paragraph, area);
 }
 
 fn draw_upstream_proxy(f: &mut Frame, app: &App, area: Rect) {
