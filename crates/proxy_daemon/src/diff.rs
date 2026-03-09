@@ -245,6 +245,14 @@ fn compare_json_values(
     }
 }
 
+/// Check if a data type string represents text-based content.
+pub fn is_text_data_type(dt: &str) -> bool {
+    matches!(
+        dt,
+        "Json" | "GraphQL" | "Html" | "Css" | "JavaScript" | "Xml" | "Text" | "FormUrlEncoded"
+    )
+}
+
 fn format_json_value(value: &serde_json::Value) -> String {
     match value {
         serde_json::Value::String(s) => format!("\"{}\"", s),

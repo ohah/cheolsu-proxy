@@ -202,6 +202,13 @@ export interface TrafficDiff {
   response_diff?: TransactionPartDiff;
 }
 
+export async function diffTransactions(
+  transactionA: DiffTransactionData,
+  transactionB: DiffTransactionData,
+): Promise<TrafficDiff> {
+  return invoke("diff_transactions", { transactionA, transactionB });
+}
+
 export async function diffTransactionPairs(
   pairA: DiffTransactionPair,
   pairB: DiffTransactionPair,

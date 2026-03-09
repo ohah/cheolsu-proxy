@@ -1,7 +1,7 @@
 use proxy_daemon::{
-    clean_old_cache, diff_headers, diff_json, diff_text, get_local_ips, BodyDiff, ClientCommand,
-    DaemonConnection, DaemonMessage, InterceptRule, ServerReplayEntry, ThrottleConfig, TrafficDiff,
-    TransactionPartDiff, UpstreamProxyConfig,
+    clean_old_cache, diff_headers, diff_json, diff_text, get_local_ips, is_text_data_type,
+    BodyDiff, ClientCommand, DaemonConnection, DaemonMessage, InterceptRule, ServerReplayEntry,
+    ThrottleConfig, TrafficDiff, TransactionPartDiff, UpstreamProxyConfig,
 };
 use std::collections::HashMap;
 use std::net::SocketAddr;
@@ -903,71 +903,79 @@ pub struct DiffTransactionData {
     pub data_type: Option<String>,
 }
 
+/// DiffTransactionData 두 개를 비교하여 TransactionPartDiff를 생성하는 헬퍼 함수.
+/// `is_request`가 true이면 method/url을 비교하고, false이면 status를 비교합니다.
+fn diff_transaction_part(
+    a: &DiffTransactionData,
+    b: &DiffTransactionData,
+    is_request: bool,
+) -> Option<TransactionPartDiff> {
+    let method_diff = if is_request {
+        match (&a.method, &b.method) {
+            (Some(ma), Some(mb)) if ma != mb => Some((ma.clone(), mb.clone())),
+            _ => None,
+        }
+    } else {
+        None
+    };
+
+    let url_diff = if is_request {
+        match (&a.uri, &b.uri) {
+            (Some(ua), Some(ub)) if ua != ub => Some((ua.clone(), ub.clone())),
+            _ => None,
+        }
+    } else {
+        None
+    };
+
+    let status_diff = if !is_request {
+        match (a.status, b.status) {
+            (Some(sa), Some(sb)) if sa != sb => Some((sa, sb)),
+            _ => None,
+        }
+    } else {
+        None
+    };
+
+    let header_diffs = diff_headers(&a.headers, &b.headers);
+
+    let body_diff = compute_body_diff_from_strings(
+        a.body.as_deref(),
+        b.body.as_deref(),
+        a.body_size,
+        b.body_size,
+        a.data_type.as_deref(),
+        b.data_type.as_deref(),
+    );
+
+    if method_diff.is_none()
+        && url_diff.is_none()
+        && status_diff.is_none()
+        && header_diffs.is_empty()
+        && body_diff.is_none()
+    {
+        None
+    } else {
+        Some(TransactionPartDiff {
+            method_diff,
+            url_diff,
+            status_diff,
+            header_diffs,
+            body_diff,
+        })
+    }
+}
+
 /// 두 트랜잭션 비교 결과 반환
+/// request 부분은 method/url/headers/body를 비교하고,
+/// response 부분은 status/headers/body를 모두 비교합니다.
 #[tauri::command]
 pub async fn diff_transactions(
     transaction_a: DiffTransactionData,
     transaction_b: DiffTransactionData,
 ) -> Result<TrafficDiff, String> {
-    // Request diff (method, uri, headers, body)
-    let request_diff = {
-        let method_diff = match (&transaction_a.method, &transaction_b.method) {
-            (Some(a), Some(b)) if a != b => Some((a.clone(), b.clone())),
-            _ => None,
-        };
-
-        let url_diff = match (&transaction_a.uri, &transaction_b.uri) {
-            (Some(a), Some(b)) if a != b => Some((a.clone(), b.clone())),
-            _ => None,
-        };
-
-        let header_diffs = diff_headers(&transaction_a.headers, &transaction_b.headers);
-
-        let body_diff = compute_body_diff_from_strings(
-            transaction_a.body.as_deref(),
-            transaction_b.body.as_deref(),
-            transaction_a.body_size,
-            transaction_b.body_size,
-            transaction_a.data_type.as_deref(),
-            transaction_b.data_type.as_deref(),
-        );
-
-        if method_diff.is_none()
-            && url_diff.is_none()
-            && header_diffs.is_empty()
-            && body_diff.is_none()
-        {
-            None
-        } else {
-            Some(TransactionPartDiff {
-                method_diff,
-                url_diff,
-                status_diff: None,
-                header_diffs,
-                body_diff,
-            })
-        }
-    };
-
-    // Response diff (status, headers, body) - status만 별도 취급
-    let response_diff = {
-        let status_diff = match (transaction_a.status, transaction_b.status) {
-            (Some(a), Some(b)) if a != b => Some((a, b)),
-            _ => None,
-        };
-
-        if status_diff.is_some() {
-            Some(TransactionPartDiff {
-                method_diff: None,
-                url_diff: None,
-                status_diff,
-                header_diffs: vec![],
-                body_diff: None,
-            })
-        } else {
-            None
-        }
-    };
+    let request_diff = diff_transaction_part(&transaction_a, &transaction_b, true);
+    let response_diff = diff_transaction_part(&transaction_a, &transaction_b, false);
 
     Ok(TrafficDiff {
         request_diff,
@@ -989,75 +997,12 @@ pub async fn diff_transaction_pairs(
     pair_b: DiffTransactionPair,
 ) -> Result<TrafficDiff, String> {
     let request_diff = match (&pair_a.request, &pair_b.request) {
-        (Some(req_a), Some(req_b)) => {
-            let method_diff = match (&req_a.method, &req_b.method) {
-                (Some(a), Some(b)) if a != b => Some((a.clone(), b.clone())),
-                _ => None,
-            };
-
-            let url_diff = match (&req_a.uri, &req_b.uri) {
-                (Some(a), Some(b)) if a != b => Some((a.clone(), b.clone())),
-                _ => None,
-            };
-
-            let header_diffs = diff_headers(&req_a.headers, &req_b.headers);
-            let body_diff = compute_body_diff_from_strings(
-                req_a.body.as_deref(),
-                req_b.body.as_deref(),
-                req_a.body_size,
-                req_b.body_size,
-                req_a.data_type.as_deref(),
-                req_b.data_type.as_deref(),
-            );
-
-            if method_diff.is_none()
-                && url_diff.is_none()
-                && header_diffs.is_empty()
-                && body_diff.is_none()
-            {
-                None
-            } else {
-                Some(TransactionPartDiff {
-                    method_diff,
-                    url_diff,
-                    status_diff: None,
-                    header_diffs,
-                    body_diff,
-                })
-            }
-        }
+        (Some(req_a), Some(req_b)) => diff_transaction_part(req_a, req_b, true),
         _ => None,
     };
 
     let response_diff = match (&pair_a.response, &pair_b.response) {
-        (Some(res_a), Some(res_b)) => {
-            let status_diff = match (res_a.status, res_b.status) {
-                (Some(a), Some(b)) if a != b => Some((a, b)),
-                _ => None,
-            };
-
-            let header_diffs = diff_headers(&res_a.headers, &res_b.headers);
-            let body_diff = compute_body_diff_from_strings(
-                res_a.body.as_deref(),
-                res_b.body.as_deref(),
-                res_a.body_size,
-                res_b.body_size,
-                res_a.data_type.as_deref(),
-                res_b.data_type.as_deref(),
-            );
-
-            if status_diff.is_none() && header_diffs.is_empty() && body_diff.is_none() {
-                None
-            } else {
-                Some(TransactionPartDiff {
-                    method_diff: None,
-                    url_diff: None,
-                    status_diff,
-                    header_diffs,
-                    body_diff,
-                })
-            }
-        }
+        (Some(res_a), Some(res_b)) => diff_transaction_part(res_a, res_b, false),
         _ => None,
     };
 
@@ -1105,13 +1050,6 @@ fn compute_body_diff_from_strings(
         old_size: size_a,
         new_size: size_b,
     })
-}
-
-fn is_text_data_type(dt: &str) -> bool {
-    matches!(
-        dt,
-        "Json" | "GraphQL" | "Html" | "Css" | "JavaScript" | "Xml" | "Text" | "FormUrlEncoded"
-    )
 }
 
 /// HAR 파일 내보내기 (지정된 경로에 JSON 문자열 저장)
