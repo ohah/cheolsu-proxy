@@ -33,7 +33,7 @@ pub use protocol::{
     DaemonMessage, InterceptAction, InterceptRule, ProxyLockInfo, ServerReplayEntry,
 };
 pub use proxyapi_v2::certificate_authority::{clean_all_cache, clean_old_cache};
-pub use session::{import_har, import_har_file, SessionFile, SessionMetadata, SessionTransaction};
 pub use proxyapi_v2::throttle::{ThrottleConfig, ThrottlePreset};
 pub use proxyapi_v2::upstream_proxy::{UpstreamProxyAuth, UpstreamProxyConfig};
+pub use session::{import_har, import_har_file, SessionFile, SessionMetadata, SessionTransaction};
 pub use system_proxy::{get_proxy_status, set_proxy, ProxyStatus};
