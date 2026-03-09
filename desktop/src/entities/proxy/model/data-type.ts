@@ -12,6 +12,7 @@ export type DataType =
   | "Audio"
   | "Document"
   | "Archive"
+  | "Protobuf"
   | "Binary"
   | "Empty"
   | "Unknown";
@@ -40,6 +41,7 @@ export const dataTypeToMonacoLanguage = (dataType: DataType): string => {
     case "Audio":
     case "Document":
     case "Archive":
+    case "Protobuf":
     case "Binary":
     case "Empty":
     case "Unknown":
@@ -77,6 +79,8 @@ export const dataTypeToMimeType = (dataType: DataType): string => {
       return "application/pdf";
     case "Archive":
       return "application/zip";
+    case "Protobuf":
+      return "application/x-protobuf";
     case "Binary":
       return "application/octet-stream";
     case "Empty":
@@ -116,6 +120,8 @@ export const dataTypeToDisplayName = (dataType: DataType): string => {
       return "Document";
     case "Archive":
       return "Archive";
+    case "Protobuf":
+      return "Protobuf";
     case "Binary":
       return "Binary Data";
     case "Empty":
@@ -154,6 +160,8 @@ export const dataTypeToIcon = (dataType: DataType): string => {
     case "Document":
       return "📕";
     case "Archive":
+      return "📦";
+    case "Protobuf":
       return "📦";
     case "Binary":
       return "📦";
@@ -218,7 +226,20 @@ export const isCompressedDataType = (dataType: DataType): boolean => {
  * 데이터 타입이 바이너리인지 확인
  */
 export const isBinaryDataType = (dataType: DataType): boolean => {
-  return ["Image", "Video", "Audio", "Document", "Archive", "Binary"].includes(dataType);
+  return ["Image", "Video", "Audio", "Document", "Archive", "Protobuf", "Binary"].includes(
+    dataType,
+  );
+};
+
+/**
+ * 데이터 타입이 미디어 파일인지 확인 (이미지, 비디오, 오디오)
+ * 이 타입들은 무조건 파일로 저장됨
+ */
+/**
+ * 데이터 타입이 Protobuf인지 확인
+ */
+export const isProtobufDataType = (dataType: DataType): boolean => {
+  return dataType === "Protobuf";
 };
 
 /**
