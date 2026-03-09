@@ -559,6 +559,9 @@ mod tests {
             config: crate::handler::ProxyConfig {
                 cache_dir: None,
                 ca_cert_der: None,
+                quick_settings: Arc::new(parking_lot::RwLock::new(
+                    crate::handler::QuickSettings::default(),
+                )),
             },
             intercept: InterceptEngine {
                 intercept_rules: Arc::new(Mutex::new(Vec::new())),
@@ -571,6 +574,7 @@ mod tests {
                 ws_sequence: Arc::new(std::sync::atomic::AtomicU64::new(0)),
                 mqtt_versions: Arc::new(parking_lot::Mutex::new(std::collections::HashMap::new())),
             },
+            breakpoint_manager: None,
         }
     }
 }

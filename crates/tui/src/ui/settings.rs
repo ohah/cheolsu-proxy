@@ -3,7 +3,8 @@ use ratatui::prelude::*;
 use ratatui::widgets::*;
 
 use crate::app::{
-    App, HostMappingField, SettingsSection, ThrottleField, ThrottlePresetChoice, UpstreamProxyField,
+    App, HostMappingField, QuickSettingsField, SettingsSection, ThrottleField,
+    ThrottlePresetChoice, UpstreamProxyField,
 };
 
 pub fn draw(f: &mut Frame, app: &App, area: Rect) {
@@ -51,6 +52,7 @@ pub fn draw(f: &mut Frame, app: &App, area: Rect) {
         SettingsSection::UpstreamProxy => draw_upstream_proxy(f, app, chunks[4]),
         SettingsSection::Throttle => draw_throttle(f, app, chunks[4]),
         SettingsSection::HostMapping => draw_host_mapping(f, app, chunks[4]),
+        SettingsSection::QuickSettings => draw_quick_settings(f, app, chunks[4]),
     }
     draw_keybindings(f, app, chunks[5]);
 }
@@ -89,6 +91,17 @@ fn draw_section_tabs(f: &mut Frame, app: &App, area: Rect) {
                 )
             } else {
                 Span::styled(" ○ Host Mapping ", Style::default().fg(Color::DarkGray))
+            },
+            Span::raw("  "),
+            if app.settings_section == SettingsSection::QuickSettings {
+                Span::styled(
+                    " ● Quick Settings ",
+                    Style::default()
+                        .fg(Color::Cyan)
+                        .add_modifier(Modifier::BOLD),
+                )
+            } else {
+                Span::styled(" ○ Quick Settings ", Style::default().fg(Color::DarkGray))
             },
         ]),
         Line::from(Span::styled(
@@ -743,6 +756,76 @@ fn draw_host_mapping_form(f: &mut Frame, form: &crate::app::HostMappingForm, are
         .borders(Borders::ALL)
         .border_style(Style::default().fg(Color::Cyan))
         .title(" Add Host Mapping (Enter: save, Esc: cancel, Tab: next field) ");
+
+    let paragraph = Paragraph::new(fields).block(block);
+    f.render_widget(paragraph, area);
+}
+
+fn draw_quick_settings(f: &mut Frame, app: &App, area: Rect) {
+    let form = &app.quick_settings_form;
+
+    let fields: Vec<Line> = QuickSettingsField::ALL
+        .iter()
+        .map(|field| {
+            let is_active =
+                *field == form.field && app.settings_section == SettingsSection::QuickSettings;
+            let cursor = if is_active {
+                Span::styled("▸ ", Style::default().fg(Color::Cyan))
+            } else {
+                Span::raw("  ")
+            };
+
+            let label = Span::styled(
+                format!("{:<16}", field.label()),
+                if is_active {
+                    Style::default()
+                        .fg(Color::Cyan)
+                        .add_modifier(Modifier::BOLD)
+                } else {
+                    Style::default().fg(Color::White)
+                },
+            );
+
+            let value = match field {
+                QuickSettingsField::NoCaching => {
+                    let (text, color) = if form.no_caching {
+                        ("[ON]", Color::Green)
+                    } else {
+                        ("[OFF]", Color::Red)
+                    };
+                    Span::styled(text, Style::default().fg(color))
+                }
+                QuickSettingsField::BlockCookies => {
+                    let (text, color) = if form.block_cookies {
+                        ("[ON]", Color::Green)
+                    } else {
+                        ("[OFF]", Color::Red)
+                    };
+                    Span::styled(text, Style::default().fg(color))
+                }
+            };
+
+            Line::from(vec![cursor, label, value])
+        })
+        .collect();
+
+    let title = if form.no_caching || form.block_cookies {
+        let mut active = Vec::new();
+        if form.no_caching {
+            active.push("No Caching");
+        }
+        if form.block_cookies {
+            active.push("Block Cookies");
+        }
+        format!(" Quick Settings [{}] ", active.join(", "))
+    } else {
+        " Quick Settings [OFF] ".to_string()
+    };
+
+    let block = Block::default()
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(Color::Cyan))
+        .title(title);
 
     let paragraph = Paragraph::new(fields).block(block);
     f.render_widget(paragraph, area);

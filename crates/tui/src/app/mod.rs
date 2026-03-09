@@ -134,6 +134,9 @@ pub struct App {
     // Throttle
     pub throttle_form: ThrottleForm,
 
+    // Quick Settings
+    pub quick_settings_form: QuickSettingsForm,
+
     // Host Mapping
     pub host_mappings: Vec<HostMapping>,
     pub selected_host_mapping: Option<usize>,
@@ -204,6 +207,7 @@ impl App {
             settings_section: SettingsSection::UpstreamProxy,
             upstream_form: UpstreamProxyForm::new(),
             throttle_form: ThrottleForm::new(),
+            quick_settings_form: QuickSettingsForm::new(),
             host_mappings: Vec::new(),
             selected_host_mapping: None,
             host_mapping_form: None,
@@ -510,6 +514,36 @@ impl App {
                 self.set_status(&format!("Throttle: {}", label));
             } else {
                 self.set_status("Throttle: OFF");
+            }
+        }
+    }
+
+    async fn send_quick_settings_update(&mut self) {
+        if let Some(conn) = &self.conn {
+            let cmd = ClientCommand::UpdateQuickSettings {
+                no_caching: self.quick_settings_form.no_caching,
+                block_cookies: self.quick_settings_form.block_cookies,
+            };
+            let _ = conn.send_command(&cmd).await;
+            let parts: Vec<&str> = [
+                if self.quick_settings_form.no_caching {
+                    Some("No Caching")
+                } else {
+                    None
+                },
+                if self.quick_settings_form.block_cookies {
+                    Some("Block Cookies")
+                } else {
+                    None
+                },
+            ]
+            .into_iter()
+            .flatten()
+            .collect();
+            if parts.is_empty() {
+                self.set_status("Quick Settings: OFF");
+            } else {
+                self.set_status(&format!("Quick Settings: {}", parts.join(", ")));
             }
         }
     }
