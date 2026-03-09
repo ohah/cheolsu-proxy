@@ -85,8 +85,8 @@ describe("sync-rules", () => {
       expect(sentRules).toHaveLength(3);
       // 앱 규칙이 먼저, 외부 규칙이 뒤에
       expect(sentRules[0].id).toBe("app-1");
-      expect(sentRules.some((r: InterceptRule) => r.id === "mcp_0")).toBe(true);
-      expect(sentRules.some((r: InterceptRule) => r.id === "mcp_1")).toBe(true);
+      expect(sentRules[1].id).toBe("mcp_0");
+      expect(sentRules[2].id).toBe("mcp_1");
     });
 
     test("daemonRules가 비어있으면 앱 규칙만 전송", async () => {
