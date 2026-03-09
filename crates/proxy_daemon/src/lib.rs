@@ -3,6 +3,7 @@ pub mod client;
 pub mod client_handler;
 pub mod curl_fallback;
 pub mod daemon;
+pub mod diff;
 pub mod error;
 pub mod handler;
 pub mod intercept;
@@ -19,6 +20,10 @@ pub use daemon::{check_and_cleanup_stale_lock, lock_file_path, run_daemon, uds_s
 pub use error::DaemonError;
 pub use handler::{create_hybrid_client, LoggingHandler, WsEvent};
 pub use net_utils::get_local_ips;
+pub use diff::{
+    diff_headers, diff_json, diff_text, format_diff_text, BodyDiff, DiffLine, HeaderDiff,
+    JsonDiffEntry, TrafficDiff, TransactionPartDiff,
+};
 pub use protocol::{
     ClientCommand, DaemonMessage, InterceptAction, InterceptRule, ProxyLockInfo, ServerReplayEntry,
 };

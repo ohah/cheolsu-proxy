@@ -85,3 +85,11 @@ pub(crate) struct LoadScriptParams {
 
 #[derive(Debug, Deserialize, schemars::JsonSchema)]
 pub(crate) struct UnloadScriptParams {}
+
+#[derive(Debug, Deserialize, schemars::JsonSchema)]
+pub(crate) struct DiffTransactionsParams {
+    /// First transaction ID (from search_traffic results)
+    pub(crate) transaction_id_a: String,
+    /// Second transaction ID (from search_traffic results)
+    pub(crate) transaction_id_b: String,
+}

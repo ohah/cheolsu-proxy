@@ -7,7 +7,8 @@ use std::sync::Arc;
 
 use anyhow::Result;
 use proxy_daemon::{
-    is_daemon_running, ClientCommand, DaemonConnection, InterceptAction, InterceptRule,
+    diff_headers, diff_json, diff_text, format_diff_text, is_daemon_running, BodyDiff, ClientCommand,
+    DaemonConnection, InterceptAction, InterceptRule, TrafficDiff, TransactionPartDiff,
 };
 use proxy_v2_models::WsDirection;
 use rmcp::{
@@ -484,6 +485,139 @@ impl CheolsuMcpServer {
         }
     }
 
+    #[tool(
+        description = "Compare two captured HTTP transactions (request + response) and show differences. Useful for regression testing and comparing API responses before/after deployment."
+    )]
+    async fn diff_transactions(
+        &self,
+        Parameters(p): Parameters<DiffTransactionsParams>,
+    ) -> Result<CallToolResult, McpError> {
+        let txns = self.store.transactions.lock();
+
+        let txn_a = txns
+            .iter()
+            .find(|info| info.0.as_ref().map(|r| r.id() == p.transaction_id_a).unwrap_or(false));
+        let txn_b = txns
+            .iter()
+            .find(|info| info.0.as_ref().map(|r| r.id() == p.transaction_id_b).unwrap_or(false));
+
+        let Some(txn_a) = txn_a else {
+            return tool_error(format!("Transaction '{}' not found.", p.transaction_id_a));
+        };
+        let Some(txn_b) = txn_b else {
+            return tool_error(format!("Transaction '{}' not found.", p.transaction_id_b));
+        };
+
+        let request_diff = match (&txn_a.0, &txn_b.0) {
+            (Some(req_a), Some(req_b)) => {
+                let method_diff = if req_a.method() != req_b.method() {
+                    Some((req_a.method().to_string(), req_b.method().to_string()))
+                } else {
+                    None
+                };
+
+                let url_diff = if req_a.uri().to_string() != req_b.uri().to_string() {
+                    Some((req_a.uri().to_string(), req_b.uri().to_string()))
+                } else {
+                    None
+                };
+
+                let old_headers: Vec<(String, String)> = req_a
+                    .headers()
+                    .iter()
+                    .map(|(k, v)| (k.to_string(), v.to_str().unwrap_or("<binary>").to_string()))
+                    .collect();
+                let new_headers: Vec<(String, String)> = req_b
+                    .headers()
+                    .iter()
+                    .map(|(k, v)| (k.to_string(), v.to_str().unwrap_or("<binary>").to_string()))
+                    .collect();
+                let header_diffs = diff_headers(&old_headers, &new_headers);
+
+                let body_diff = compute_body_diff(
+                    req_a.body().map(|b| b.as_ref()),
+                    req_b.body().map(|b| b.as_ref()),
+                    req_a.body_size(),
+                    req_b.body_size(),
+                    req_a.file_path(),
+                    req_b.file_path(),
+                    req_a.data_type(),
+                    req_b.data_type(),
+                );
+
+                if method_diff.is_none()
+                    && url_diff.is_none()
+                    && header_diffs.is_empty()
+                    && body_diff.is_none()
+                {
+                    None
+                } else {
+                    Some(TransactionPartDiff {
+                        method_diff,
+                        url_diff,
+                        status_diff: None,
+                        header_diffs,
+                        body_diff,
+                    })
+                }
+            }
+            _ => None,
+        };
+
+        let response_diff = match (&txn_a.1, &txn_b.1) {
+            (Some(res_a), Some(res_b)) => {
+                let status_diff = if res_a.status() != res_b.status() {
+                    Some((res_a.status().as_u16(), res_b.status().as_u16()))
+                } else {
+                    None
+                };
+
+                let old_headers: Vec<(String, String)> = res_a
+                    .headers()
+                    .iter()
+                    .map(|(k, v)| (k.to_string(), v.to_str().unwrap_or("<binary>").to_string()))
+                    .collect();
+                let new_headers: Vec<(String, String)> = res_b
+                    .headers()
+                    .iter()
+                    .map(|(k, v)| (k.to_string(), v.to_str().unwrap_or("<binary>").to_string()))
+                    .collect();
+                let header_diffs = diff_headers(&old_headers, &new_headers);
+
+                let body_diff = compute_body_diff(
+                    res_a.body().map(|b| b.as_ref()),
+                    res_b.body().map(|b| b.as_ref()),
+                    res_a.body_size(),
+                    res_b.body_size(),
+                    res_a.file_path(),
+                    res_b.file_path(),
+                    res_a.data_type(),
+                    res_b.data_type(),
+                );
+
+                if status_diff.is_none() && header_diffs.is_empty() && body_diff.is_none() {
+                    None
+                } else {
+                    Some(TransactionPartDiff {
+                        method_diff: None,
+                        url_diff: None,
+                        status_diff,
+                        header_diffs,
+                        body_diff,
+                    })
+                }
+            }
+            _ => None,
+        };
+
+        let diff = TrafficDiff {
+            request_diff,
+            response_diff,
+        };
+
+        tool_ok(format_diff_text(&diff))
+    }
+
     #[tool(description = "Check proxy daemon status and traffic statistics.")]
     async fn proxy_status(&self) -> Result<CallToolResult, McpError> {
         let connected = self.daemon_conn.lock().await.is_some();
@@ -517,6 +651,67 @@ impl ServerHandler for CheolsuMcpServer {
                 "Cheolsu Proxy MCP Server — search/inspect captured HTTP & WebSocket traffic, replay requests, and manage intercept rules. Start the Cheolsu Proxy app first.".to_string(),
             )
     }
+}
+
+fn compute_body_diff(
+    body_a: Option<&[u8]>,
+    body_b: Option<&[u8]>,
+    size_a: usize,
+    size_b: usize,
+    file_path_a: &Option<String>,
+    file_path_b: &Option<String>,
+    data_type_a: &proxy_v2_models::DataType,
+    data_type_b: &proxy_v2_models::DataType,
+) -> Option<BodyDiff> {
+    let bytes_a = body_a
+        .map(|b| b.to_vec())
+        .or_else(|| file_path_a.as_ref().and_then(|p| std::fs::read(p).ok()))
+        .unwrap_or_default();
+    let bytes_b = body_b
+        .map(|b| b.to_vec())
+        .or_else(|| file_path_b.as_ref().and_then(|p| std::fs::read(p).ok()))
+        .unwrap_or_default();
+
+    if bytes_a == bytes_b {
+        return None;
+    }
+
+    let is_json = matches!(
+        data_type_a,
+        proxy_v2_models::DataType::Json | proxy_v2_models::DataType::GraphQL
+    ) && matches!(
+        data_type_b,
+        proxy_v2_models::DataType::Json | proxy_v2_models::DataType::GraphQL
+    );
+
+    if is_json {
+        if let (Ok(text_a), Ok(text_b)) = (
+            std::str::from_utf8(&bytes_a),
+            std::str::from_utf8(&bytes_b),
+        ) {
+            if let (Ok(json_a), Ok(json_b)) = (
+                serde_json::from_str::<serde_json::Value>(text_a),
+                serde_json::from_str::<serde_json::Value>(text_b),
+            ) {
+                return Some(diff_json(&json_a, &json_b));
+            }
+        }
+    }
+
+    let is_text = data_type_a.is_text_based() && data_type_b.is_text_based();
+    if is_text {
+        if let (Ok(text_a), Ok(text_b)) = (
+            std::str::from_utf8(&bytes_a),
+            std::str::from_utf8(&bytes_b),
+        ) {
+            return Some(diff_text(text_a, text_b));
+        }
+    }
+
+    Some(BodyDiff::Binary {
+        old_size: size_a,
+        new_size: size_b,
+    })
 }
 
 // ─── Tests ──────────────────────────────────────────────────
