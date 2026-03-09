@@ -4,7 +4,7 @@ use tracing::info;
 
 use crate::breakpoint::BreakpointManager;
 use crate::error::DaemonError;
-use crate::handler::{LoggingHandler, WsEvent};
+use crate::handler::{LoggingHandler, QuickSettings, WsEvent};
 use crate::protocol::{
     BreakpointRule, DaemonMessage, HostMapping, InterceptRule, ServerReplayEntry,
 };
@@ -28,6 +28,7 @@ pub async fn run_proxy(
     mut host_mapping_rx: watch::Receiver<Vec<HostMapping>>,
     ws_registry: WebSocketRegistry,
     script_handle: scripting::ScriptHandle,
+    quick_settings: std::sync::Arc<parking_lot::RwLock<QuickSettings>>,
 ) -> Result<(), DaemonError> {
     use proxyapi_v2::builder::ProxyBuilder;
     use proxyapi_v2::certificate_authority::{
@@ -53,7 +54,8 @@ pub async fn run_proxy(
         .with_ws_sender(ws_tx)
         .with_script_handle(script_handle)
         .with_ca_cert_der(ca_cert_der)
-        .with_breakpoint_manager(breakpoint_manager.clone());
+        .with_breakpoint_manager(breakpoint_manager.clone())
+        .with_quick_settings(quick_settings);
 
     // 인터셉트 규칙 초기값 로드
     {

@@ -42,12 +42,21 @@ pub(crate) struct RequestState {
     pub(crate) res: Option<ProxiedResponse>,
 }
 
+/// 빠른 설정 (No Caching, Block Cookies)
+#[derive(Clone, Debug, Default)]
+pub struct QuickSettings {
+    pub no_caching: bool,
+    pub block_cookies: bool,
+}
+
 /// 프록시 전역 설정 (세션 수명 동안 유지)
 #[derive(Clone)]
 pub(crate) struct ProxyConfig {
     pub(crate) cache_dir: Option<std::path::PathBuf>,
     /// CA 인증서 DER 바이트 (외부 기기 인증서 다운로드용, zero-copy)
     pub(crate) ca_cert_der: Option<Bytes>,
+    /// 빠른 설정 (No Caching, Block Cookies)
+    pub(crate) quick_settings: Arc<parking_lot::RwLock<QuickSettings>>,
 }
 
 /// 인터셉트 규칙 및 스크립트 엔진
@@ -92,6 +101,7 @@ impl LoggingHandler {
             config: ProxyConfig {
                 cache_dir: Some(cache_dir),
                 ca_cert_der: None,
+                quick_settings: Arc::new(parking_lot::RwLock::new(QuickSettings::default())),
             },
             intercept: InterceptEngine {
                 intercept_rules: Arc::new(Mutex::new(Vec::new())),
@@ -129,6 +139,14 @@ impl LoggingHandler {
         self
     }
 
+    pub fn with_quick_settings(
+        mut self,
+        quick_settings: Arc<parking_lot::RwLock<QuickSettings>>,
+    ) -> Self {
+        self.config.quick_settings = quick_settings;
+        self
+    }
+
     pub fn breakpoint_manager(&self) -> Option<&BreakpointManager> {
         self.breakpoint_manager.as_ref()
     }
@@ -154,6 +172,17 @@ impl LoggingHandler {
         *mappings_guard = mappings;
     }
 
+    /// 빠른 설정 업데이트 (No Caching, Block Cookies)
+    pub fn update_quick_settings(&self, no_caching: bool, block_cookies: bool) {
+        let mut settings = self.config.quick_settings.write();
+        settings.no_caching = no_caching;
+        settings.block_cookies = block_cookies;
+        info!(
+            "[QuickSettings] no_caching={}, block_cookies={}",
+            no_caching, block_cookies
+        );
+    }
+
     /// 스크립트 핸들 반환
     pub fn script_handle(&self) -> &scripting::ScriptHandle {
         &self.intercept.script_handle
@@ -161,6 +190,45 @@ impl LoggingHandler {
 
     fn serve_ca_cert_download(&self, req: &Request<Body>) -> Response<Body> {
         cert_distribution::handle_cert_request(req, self.config.ca_cert_der.as_ref())
+    }
+
+    /// No Caching / Block Cookies 설정을 요청에 적용
+    fn apply_quick_settings_on_request(&self, mut req: Request<Body>) -> Request<Body> {
+        use proxyapi_v2::hyper::header::{
+            CACHE_CONTROL, COOKIE, IF_MODIFIED_SINCE, IF_NONE_MATCH, PRAGMA,
+        };
+
+        let settings = self.config.quick_settings.read();
+
+        if settings.no_caching {
+            req.headers_mut().remove(IF_MODIFIED_SINCE);
+            req.headers_mut().remove(IF_NONE_MATCH);
+            req.headers_mut().insert(
+                CACHE_CONTROL,
+                "no-cache, no-store, must-revalidate".parse().unwrap(),
+            );
+            req.headers_mut()
+                .insert(PRAGMA, "no-cache".parse().unwrap());
+        }
+
+        if settings.block_cookies {
+            req.headers_mut().remove(COOKIE);
+        }
+
+        req
+    }
+
+    /// Block Cookies 설정을 응답에 적용 (Set-Cookie 제거)
+    fn apply_quick_settings_on_response(&self, mut res: Response<Body>) -> Response<Body> {
+        use proxyapi_v2::hyper::header::SET_COOKIE;
+
+        let settings = self.config.quick_settings.read();
+
+        if settings.block_cookies {
+            res.headers_mut().remove(SET_COOKIE);
+        }
+
+        res
     }
 
     /// 요청과 응답을 묶어서 전송
@@ -969,6 +1037,8 @@ impl HttpHandler for LoggingHandler {
 
         let restored_req = self.apply_host_mapping_if_needed(restored_req).await;
 
+        let restored_req = self.apply_quick_settings_on_request(restored_req);
+
         let result = self
             .apply_request_intercept(restored_req, &url, &method)
             .await;
@@ -986,6 +1056,7 @@ impl HttpHandler for LoggingHandler {
         }
 
         let res = self.apply_response_intercept_if_needed(res).await;
+        let res = self.apply_quick_settings_on_response(res);
         let res = self.apply_script_on_response(res).await;
 
         let res = if let Some(req) = &self.request.req {

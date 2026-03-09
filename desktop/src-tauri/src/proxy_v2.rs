@@ -562,6 +562,33 @@ pub async fn update_host_mappings(
     Ok(())
 }
 
+/// 빠른 설정 업데이트 (No Caching, Block Cookies)
+#[tauri::command]
+pub async fn update_quick_settings(
+    proxy: State<'_, ProxyV2State>,
+    no_caching: bool,
+    block_cookies: bool,
+) -> Result<(), String> {
+    let proxy_guard = proxy.lock().await;
+
+    if let Some(conn) = proxy_guard.as_ref() {
+        let cmd = ClientCommand::UpdateQuickSettings {
+            no_caching,
+            block_cookies,
+        };
+        conn.send_command(&cmd).await?;
+        tracing::info!(
+            "Daemon에 빠른 설정 업데이트 완료: no_caching={}, block_cookies={}",
+            no_caching,
+            block_cookies
+        );
+    } else {
+        return Err("프록시가 실행 중이 아닙니다".to_string());
+    }
+
+    Ok(())
+}
+
 /// 스크립트 로드
 #[tauri::command]
 pub async fn load_script(
