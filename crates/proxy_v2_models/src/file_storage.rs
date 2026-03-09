@@ -69,7 +69,9 @@ pub fn save_body_to_file(
 
     // 상대 경로만 반환 (BaseDirectory.Cache 기준)
     // cache_dir에서 세션 해시 부분을 제외한 기본 캐시 디렉토리 기준으로 상대 경로 생성
-    let base_cache_dir = cache_dir.parent().unwrap(); // /Users/[username]/Library/Caches/com.cheolsu-proxy/data/
+    let base_cache_dir = cache_dir
+        .parent()
+        .ok_or_else(|| "cache_dir has no parent directory".to_string())?;
     let relative_path: String = file_path
         .strip_prefix(base_cache_dir)
         .map_err(|e| format!("Failed to create relative path: {}", e))?

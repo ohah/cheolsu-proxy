@@ -293,10 +293,12 @@ impl App {
                     let body = req.body().cloned();
                     self.set_status(&format!("Replaying {} {}...", method, uri));
                     tokio::spawn(async move {
-                        let client = reqwest::Client::builder()
+                        let Ok(client) = reqwest::Client::builder()
                             .danger_accept_invalid_certs(true)
                             .build()
-                            .unwrap();
+                        else {
+                            return;
+                        };
                         let method: reqwest::Method =
                             method.parse().unwrap_or(reqwest::Method::GET);
                         let mut builder = client.request(method, &uri);

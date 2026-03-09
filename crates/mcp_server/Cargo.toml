@@ -18,4 +18,5 @@ schemars = "1"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 anyhow = "1"
+parking_lot = "0.12"
 reqwest = { version = "0.12", default-features = false, features = ["rustls-tls"] }

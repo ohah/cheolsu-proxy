@@ -2,6 +2,8 @@ use std::collections::{HashMap, VecDeque};
 use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::Arc;
 
+use parking_lot::Mutex;
+
 use anyhow::Result;
 use proxy_daemon::{
     connect_to_daemon, is_daemon_running, ClientCommand, DaemonConnection, DaemonMessage,
@@ -26,28 +28,24 @@ const MAX_WS_MESSAGES: usize = 5000;
 
 #[derive(Clone)]
 struct Store {
-    transactions: Arc<std::sync::Mutex<VecDeque<RequestInfo>>>,
-    ws_messages: Arc<std::sync::Mutex<VecDeque<WsMessageInfo>>>,
-    ws_connections: Arc<std::sync::Mutex<Vec<WsConnectionEvent>>>,
-    rules: Arc<std::sync::Mutex<Vec<InterceptRule>>>,
+    transactions: Arc<Mutex<VecDeque<RequestInfo>>>,
+    ws_messages: Arc<Mutex<VecDeque<WsMessageInfo>>>,
+    ws_connections: Arc<Mutex<Vec<WsConnectionEvent>>>,
+    rules: Arc<Mutex<Vec<InterceptRule>>>,
 }
 
 impl Store {
     fn new() -> Self {
         Self {
-            transactions: Arc::new(std::sync::Mutex::new(VecDeque::with_capacity(
-                MAX_TRANSACTIONS,
-            ))),
-            ws_messages: Arc::new(std::sync::Mutex::new(VecDeque::with_capacity(
-                MAX_WS_MESSAGES,
-            ))),
-            ws_connections: Arc::new(std::sync::Mutex::new(Vec::new())),
-            rules: Arc::new(std::sync::Mutex::new(Vec::new())),
+            transactions: Arc::new(Mutex::new(VecDeque::with_capacity(MAX_TRANSACTIONS))),
+            ws_messages: Arc::new(Mutex::new(VecDeque::with_capacity(MAX_WS_MESSAGES))),
+            ws_connections: Arc::new(Mutex::new(Vec::new())),
+            rules: Arc::new(Mutex::new(Vec::new())),
         }
     }
 
     fn push_transaction(&self, info: RequestInfo) {
-        let mut txns = self.transactions.lock().unwrap();
+        let mut txns = self.transactions.lock();
         if txns.len() >= MAX_TRANSACTIONS {
             txns.pop_front();
         }
@@ -55,7 +53,7 @@ impl Store {
     }
 
     fn push_ws_message(&self, msg: WsMessageInfo) {
-        let mut msgs = self.ws_messages.lock().unwrap();
+        let mut msgs = self.ws_messages.lock();
         if msgs.len() >= MAX_WS_MESSAGES {
             msgs.pop_front();
         }
@@ -63,7 +61,7 @@ impl Store {
     }
 
     fn push_ws_connection(&self, event: WsConnectionEvent) {
-        self.ws_connections.lock().unwrap().push(event);
+        self.ws_connections.lock().push(event);
     }
 }
 
@@ -227,7 +225,7 @@ impl CheolsuMcpServer {
         let Some(conn) = conn_guard.as_ref() else {
             return Err("Not connected to proxy daemon".to_string());
         };
-        let rules = self.store.rules.lock().unwrap().clone();
+        let rules = self.store.rules.lock().clone();
         conn.send_command(&ClientCommand::UpdateInterceptRules { rules })
             .await
             .map_err(|e| e.to_string())
@@ -240,7 +238,7 @@ impl CheolsuMcpServer {
         &self,
         Parameters(p): Parameters<SearchTrafficParams>,
     ) -> Result<CallToolResult, McpError> {
-        let txns = self.store.transactions.lock().unwrap();
+        let txns = self.store.transactions.lock();
         let limit = p.limit.unwrap_or(50);
 
         let results: Vec<String> = txns
@@ -321,7 +319,7 @@ impl CheolsuMcpServer {
         &self,
         Parameters(p): Parameters<GetTransactionParams>,
     ) -> Result<CallToolResult, McpError> {
-        let txns = self.store.transactions.lock().unwrap();
+        let txns = self.store.transactions.lock();
         let info = txns
             .iter()
             .find(|info| info.0.as_ref().map(|r| r.id() == p.id).unwrap_or(false));
@@ -397,7 +395,7 @@ impl CheolsuMcpServer {
         &self,
         Parameters(p): Parameters<GetWsMessagesParams>,
     ) -> Result<CallToolResult, McpError> {
-        let msgs = self.store.ws_messages.lock().unwrap();
+        let msgs = self.store.ws_messages.lock();
         let limit = p.limit.unwrap_or(100);
 
         let results: Vec<String> = msgs
@@ -512,7 +510,7 @@ impl CheolsuMcpServer {
 
     #[tool(description = "List all current intercept rules (block, modify, map local/remote).")]
     async fn list_rules(&self) -> Result<CallToolResult, McpError> {
-        let rules = self.store.rules.lock().unwrap();
+        let rules = self.store.rules.lock();
         if rules.is_empty() {
             return tool_ok("No intercept rules configured.");
         }
@@ -580,7 +578,7 @@ impl CheolsuMcpServer {
             action,
         };
 
-        self.store.rules.lock().unwrap().push(rule);
+        self.store.rules.lock().push(rule);
 
         match self.send_rules().await {
             Ok(()) => tool_ok(format!("Rule '{}' added successfully.", id)),
@@ -597,7 +595,7 @@ impl CheolsuMcpServer {
         Parameters(p): Parameters<RemoveRuleParams>,
     ) -> Result<CallToolResult, McpError> {
         let removed = {
-            let mut rules = self.store.rules.lock().unwrap();
+            let mut rules = self.store.rules.lock();
             let before = rules.len();
             rules.retain(|r| r.id != p.id);
             rules.len() < before
@@ -665,10 +663,10 @@ impl CheolsuMcpServer {
     #[tool(description = "Check proxy daemon status and traffic statistics.")]
     async fn proxy_status(&self) -> Result<CallToolResult, McpError> {
         let connected = self.daemon_conn.lock().await.is_some();
-        let txn_count = self.store.transactions.lock().unwrap().len();
-        let ws_msg_count = self.store.ws_messages.lock().unwrap().len();
-        let ws_conn_count = self.store.ws_connections.lock().unwrap().len();
-        let rule_count = self.store.rules.lock().unwrap().len();
+        let txn_count = self.store.transactions.lock().len();
+        let ws_msg_count = self.store.ws_messages.lock().len();
+        let ws_conn_count = self.store.ws_connections.lock().len();
+        let rule_count = self.store.rules.lock().len();
         let daemon_running = is_daemon_running().is_some();
 
         tool_ok(format!(
@@ -679,9 +677,9 @@ impl CheolsuMcpServer {
 
     #[tool(description = "Clear all captured traffic data from memory.")]
     async fn clear_traffic(&self) -> Result<CallToolResult, McpError> {
-        self.store.transactions.lock().unwrap().clear();
-        self.store.ws_messages.lock().unwrap().clear();
-        self.store.ws_connections.lock().unwrap().clear();
+        self.store.transactions.lock().clear();
+        self.store.ws_messages.lock().clear();
+        self.store.ws_connections.lock().clear();
         tool_ok("All captured traffic cleared.")
     }
 }
@@ -710,7 +708,7 @@ async fn try_connect_daemon(store: &Store) -> Option<DaemonConnection> {
         DaemonMessage::WsMessage { data } => store.push_ws_message(data),
         DaemonMessage::WsConnection { data } => store.push_ws_connection(data),
         DaemonMessage::InterceptRulesUpdated { rules } => {
-            *store.rules.lock().unwrap() = rules;
+            *store.rules.lock() = rules;
         }
         _ => {}
     })
@@ -779,10 +777,10 @@ mod tests {
     #[test]
     fn test_store_new_is_empty() {
         let store = Store::new();
-        assert_eq!(store.transactions.lock().unwrap().len(), 0);
-        assert_eq!(store.ws_messages.lock().unwrap().len(), 0);
-        assert_eq!(store.ws_connections.lock().unwrap().len(), 0);
-        assert_eq!(store.rules.lock().unwrap().len(), 0);
+        assert_eq!(store.transactions.lock().len(), 0);
+        assert_eq!(store.ws_messages.lock().len(), 0);
+        assert_eq!(store.ws_connections.lock().len(), 0);
+        assert_eq!(store.rules.lock().len(), 0);
     }
 
     #[test]
@@ -791,7 +789,7 @@ mod tests {
         for _ in 0..MAX_TRANSACTIONS + 100 {
             store.push_transaction(make_empty_request_info());
         }
-        assert_eq!(store.transactions.lock().unwrap().len(), MAX_TRANSACTIONS);
+        assert_eq!(store.transactions.lock().len(), MAX_TRANSACTIONS);
     }
 
     #[test]
@@ -800,7 +798,7 @@ mod tests {
         for _ in 0..MAX_WS_MESSAGES + 100 {
             store.push_ws_message(make_ws_message("test"));
         }
-        assert_eq!(store.ws_messages.lock().unwrap().len(), MAX_WS_MESSAGES);
+        assert_eq!(store.ws_messages.lock().len(), MAX_WS_MESSAGES);
     }
 
     #[test]
@@ -812,15 +810,15 @@ mod tests {
             time: 0,
         };
         store.push_ws_connection(event);
-        assert_eq!(store.ws_connections.lock().unwrap().len(), 1);
+        assert_eq!(store.ws_connections.lock().len(), 1);
     }
 
     #[test]
     fn test_store_rules_sync() {
         let store = Store::new();
         let rules = vec![make_block_rule("r1"), make_block_rule("r2")];
-        *store.rules.lock().unwrap() = rules;
-        assert_eq!(store.rules.lock().unwrap().len(), 2);
+        *store.rules.lock() = rules;
+        assert_eq!(store.rules.lock().len(), 2);
     }
 
     // ─── broadcast 동기화 시뮬레이션 테스트 ─────────────────
@@ -830,13 +828,13 @@ mod tests {
         let store = Store::new();
 
         // 1. 데몬 연결 시 broadcast로 앱 UI 규칙 2개 수신
-        *store.rules.lock().unwrap() = vec![make_block_rule("uuid-1"), make_block_rule("uuid-2")];
+        *store.rules.lock() = vec![make_block_rule("uuid-1"), make_block_rule("uuid-2")];
 
         // 2. MCP add_rule: 기존 규칙에 추가
-        store.rules.lock().unwrap().push(make_block_rule("mcp_0"));
+        store.rules.lock().push(make_block_rule("mcp_0"));
 
         // 3. send_rules()가 전체 규칙을 전송 → 앱 규칙 보존 확인
-        let rules = store.rules.lock().unwrap().clone();
+        let rules = store.rules.lock().clone();
         assert_eq!(rules.len(), 3);
         assert!(rules.iter().any(|r| r.id == "uuid-1"));
         assert!(rules.iter().any(|r| r.id == "uuid-2"));
@@ -848,16 +846,16 @@ mod tests {
         let store = Store::new();
 
         // 1. 초기 상태: MCP 규칙 1개
-        store.rules.lock().unwrap().push(make_block_rule("mcp_0"));
+        store.rules.lock().push(make_block_rule("mcp_0"));
 
         // 2. broadcast로 전체 규칙 수신 (앱 UI 규칙 + MCP 규칙 포함)
-        *store.rules.lock().unwrap() = vec![
+        *store.rules.lock() = vec![
             make_block_rule("uuid-1"),
             make_block_rule("uuid-2"),
             make_block_rule("mcp_0"),
         ];
 
-        let rules = store.rules.lock().unwrap().clone();
+        let rules = store.rules.lock().clone();
         assert_eq!(rules.len(), 3);
     }
 
@@ -866,17 +864,17 @@ mod tests {
         let store = Store::new();
 
         // 1. broadcast로 전체 규칙 수신
-        *store.rules.lock().unwrap() = vec![
+        *store.rules.lock() = vec![
             make_block_rule("uuid-1"),
             make_block_rule("mcp_0"),
             make_block_rule("mcp_1"),
         ];
 
         // 2. MCP remove_rule: mcp_1 제거
-        store.rules.lock().unwrap().retain(|r| r.id != "mcp_1");
+        store.rules.lock().retain(|r| r.id != "mcp_1");
 
         // 3. 앱 규칙 + 남은 MCP 규칙 보존 확인
-        let rules = store.rules.lock().unwrap().clone();
+        let rules = store.rules.lock().clone();
         assert_eq!(rules.len(), 2);
         assert!(rules.iter().any(|r| r.id == "uuid-1"));
         assert!(rules.iter().any(|r| r.id == "mcp_0"));
@@ -887,15 +885,15 @@ mod tests {
         let store = Store::new();
 
         // 1. 초기 상태: 비어있음
-        assert_eq!(store.rules.lock().unwrap().len(), 0);
+        assert_eq!(store.rules.lock().len(), 0);
 
         // 2. 데몬 연결 후 broadcast로 기존 규칙 수신
-        *store.rules.lock().unwrap() = vec![make_block_rule("uuid-1"), make_block_rule("uuid-2")];
+        *store.rules.lock() = vec![make_block_rule("uuid-1"), make_block_rule("uuid-2")];
 
         // 3. MCP add_rule
-        store.rules.lock().unwrap().push(make_block_rule("mcp_0"));
+        store.rules.lock().push(make_block_rule("mcp_0"));
 
-        let rules = store.rules.lock().unwrap().clone();
+        let rules = store.rules.lock().clone();
         assert_eq!(rules.len(), 3);
     }
 
@@ -1134,19 +1132,17 @@ mod tests {
         store
             .transactions
             .lock()
-            .unwrap()
             .push_back(make_empty_request_info());
         store
             .ws_messages
             .lock()
-            .unwrap()
             .push_back(make_ws_message("c1"));
 
         let server = CheolsuMcpServer::new(store.clone(), None);
         let result = server.clear_traffic().await.unwrap();
         assert!(!result.is_error.unwrap_or(false));
-        assert_eq!(store.transactions.lock().unwrap().len(), 0);
-        assert_eq!(store.ws_messages.lock().unwrap().len(), 0);
+        assert_eq!(store.transactions.lock().len(), 0);
+        assert_eq!(store.ws_messages.lock().len(), 0);
     }
 
     #[tokio::test]
@@ -1207,7 +1203,7 @@ mod tests {
     #[tokio::test]
     async fn test_server_list_rules_with_rules() {
         let store = Store::new();
-        *store.rules.lock().unwrap() = vec![make_block_rule("r1"), make_block_rule("r2")];
+        *store.rules.lock() = vec![make_block_rule("r1"), make_block_rule("r2")];
         let server = CheolsuMcpServer::new(store, None);
         let result = server.list_rules().await.unwrap();
         let text = extract_text(&result);

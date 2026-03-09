@@ -80,7 +80,7 @@ impl LoggingHandler {
             Response::builder()
                 .status(StatusCode::INTERNAL_SERVER_ERROR)
                 .body(Body::from("Script response error"))
-                .unwrap()
+                .unwrap_or_else(|_| Response::new(Body::empty()))
         })
     }
 

@@ -942,6 +942,7 @@ name = "cheolsu-proxy-mcp"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "parking_lot",
  "proxy_daemon",
  "proxy_v2_models",
  "reqwest 0.12.28",
