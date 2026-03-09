@@ -8,3 +8,4 @@ export * from "./websocket-store";
 export * from "./server-replay-store";
 export * from "./script-store";
 export * from "./tray-sync-store";
+export * from "./breakpoint-store";

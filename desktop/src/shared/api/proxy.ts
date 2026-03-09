@@ -215,3 +215,16 @@ export async function diffTransactionPairs(
 ): Promise<TrafficDiff> {
   return invoke("diff_transaction_pairs", { pairA, pairB });
 }
+
+export async function updateBreakpointRules(
+  rules: import("@/entities/breakpoint").BreakpointRule[],
+): Promise<void> {
+  return invoke("update_breakpoint_rules", { rules });
+}
+
+export async function resolveBreakpoint(
+  id: string,
+  action: import("@/entities/breakpoint").BreakpointAction,
+): Promise<void> {
+  return invoke("resolve_breakpoint", { id, action });
+}

@@ -1,7 +1,8 @@
 use proxy_daemon::{
     clean_old_cache, diff_headers, diff_json, diff_text, get_local_ips, is_text_data_type,
-    BodyDiff, ClientCommand, DaemonConnection, DaemonMessage, InterceptRule, ServerReplayEntry,
-    ThrottleConfig, TrafficDiff, TransactionPartDiff, UpstreamProxyConfig,
+    BodyDiff, BreakpointAction, BreakpointRule, ClientCommand, DaemonConnection, DaemonMessage,
+    InterceptRule, ServerReplayEntry, ThrottleConfig, TrafficDiff, TransactionPartDiff,
+    UpstreamProxyConfig,
 };
 use std::collections::HashMap;
 use std::net::SocketAddr;
@@ -77,6 +78,20 @@ pub async fn start_proxy_v2<R: Runtime>(
             let _ = app_clone.emit(
                 "script_result",
                 serde_json::json!({ "success": success, "error": error }),
+            );
+        }
+        DaemonMessage::BreakpointRulesUpdated { rules } => {
+            let _ = app_clone.emit("breakpoint_rules_updated", rules);
+        }
+        DaemonMessage::BreakpointHit {
+            id,
+            transaction_id,
+            phase,
+            data,
+        } => {
+            let _ = app_clone.emit(
+                "breakpoint_hit",
+                serde_json::json!({ "id": id, "transaction_id": transaction_id, "phase": phase, "data": data }),
             );
         }
         _ => {}
@@ -343,6 +358,45 @@ pub async fn replay_sequence(
     }
 
     Ok(results)
+}
+
+/// Breakpoint 규칙 업데이트
+#[tauri::command]
+pub async fn update_breakpoint_rules(
+    proxy: tauri::State<'_, ProxyV2State>,
+    rules: Vec<BreakpointRule>,
+) -> Result<(), String> {
+    let proxy_guard = proxy.lock().await;
+
+    if let Some(conn) = proxy_guard.as_ref() {
+        let cmd = ClientCommand::UpdateBreakpointRules { rules };
+        conn.send_command(&cmd).await?;
+        println!("Daemon에 breakpoint 규칙 업데이트 완료");
+    } else {
+        return Err("프록시가 실행 중이 아닙니다".to_string());
+    }
+
+    Ok(())
+}
+
+/// 대기 중인 breakpoint 해제
+#[tauri::command]
+pub async fn resolve_breakpoint(
+    proxy: tauri::State<'_, ProxyV2State>,
+    id: String,
+    action: BreakpointAction,
+) -> Result<(), String> {
+    let proxy_guard = proxy.lock().await;
+
+    if let Some(conn) = proxy_guard.as_ref() {
+        let cmd = ClientCommand::ResolveBreakpoint { id, action };
+        conn.send_command(&cmd).await?;
+        println!("Daemon에 breakpoint 해제 완료");
+    } else {
+        return Err("프록시가 실행 중이 아닙니다".to_string());
+    }
+
+    Ok(())
 }
 
 /// 앱 번들 내부의 sidecar 바이너리를 ~/.cheolsu/bin/에 복사하고 격리 속성 제거
