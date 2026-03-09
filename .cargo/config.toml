@@ -1,0 +1,4 @@
+[env]
+# macOS: openssl-sys가 번들용 dylib(@rpath install_name)을 링크하도록 설정
+# build-mcp.sh가 이 디렉토리에 패치된 dylib + 헤더 심볼릭 링크를 준비함
+OPENSSL_DIR = { value = "desktop/src-tauri/openssl-bundle", relative = true }

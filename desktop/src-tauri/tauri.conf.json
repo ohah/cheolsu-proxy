@@ -38,8 +38,8 @@
       "entitlements": null,
       "exceptionDomain": "",
       "frameworks": [
-        "frameworks/libssl.3.dylib",
-        "frameworks/libcrypto.3.dylib"
+        "openssl-bundle/lib/libssl.3.dylib",
+        "openssl-bundle/lib/libcrypto.3.dylib"
       ],
       "providerShortName": null,
       "signingIdentity": null
