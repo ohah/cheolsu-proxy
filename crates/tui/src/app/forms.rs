@@ -119,7 +119,6 @@ cycle_enum!(SettingsSection);
 #[derive(Debug, Clone)]
 pub struct HostMappingForm {
     pub field: HostMappingField,
-    pub editing: bool,
     pub source_host: String,
     pub source_port: String,
     pub target_host: String,
@@ -158,7 +157,6 @@ impl HostMappingForm {
     pub fn new() -> Self {
         Self {
             field: HostMappingField::SourceHost,
-            editing: false,
             source_host: String::new(),
             source_port: String::new(),
             target_host: String::new(),
@@ -180,13 +178,13 @@ impl HostMappingForm {
         })
     }
 
+    #[allow(dead_code)]
     pub fn clear(&mut self) {
         self.source_host.clear();
         self.source_port.clear();
         self.target_host.clear();
         self.target_port.clear();
         self.field = HostMappingField::SourceHost;
-        self.editing = false;
     }
 }
 
@@ -671,9 +669,11 @@ mod tests {
         section = section.next();
         assert_eq!(section, SettingsSection::Throttle);
         section = section.next();
+        assert_eq!(section, SettingsSection::HostMapping);
+        section = section.next();
         assert_eq!(section, SettingsSection::UpstreamProxy);
         section = section.prev();
-        assert_eq!(section, SettingsSection::Throttle);
+        assert_eq!(section, SettingsSection::HostMapping);
     }
 
     // -- ThrottlePresetChoice --

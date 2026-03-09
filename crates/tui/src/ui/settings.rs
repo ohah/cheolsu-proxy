@@ -2,7 +2,9 @@ use qrcode::QrCode;
 use ratatui::prelude::*;
 use ratatui::widgets::*;
 
-use crate::app::{App, SettingsSection, ThrottleField, ThrottlePresetChoice, UpstreamProxyField};
+use crate::app::{
+    App, HostMappingField, SettingsSection, ThrottleField, ThrottlePresetChoice, UpstreamProxyField,
+};
 
 pub fn draw(f: &mut Frame, app: &App, area: Rect) {
     // QR 코드 높이를 동적으로 계산
@@ -48,6 +50,7 @@ pub fn draw(f: &mut Frame, app: &App, area: Rect) {
     match app.settings_section {
         SettingsSection::UpstreamProxy => draw_upstream_proxy(f, app, chunks[4]),
         SettingsSection::Throttle => draw_throttle(f, app, chunks[4]),
+        SettingsSection::HostMapping => draw_host_mapping(f, app, chunks[4]),
     }
     draw_keybindings(f, app, chunks[5]);
 }
@@ -75,6 +78,17 @@ fn draw_section_tabs(f: &mut Frame, app: &App, area: Rect) {
                 )
             } else {
                 Span::styled(" ○ Throttle ", Style::default().fg(Color::DarkGray))
+            },
+            Span::raw("  "),
+            if app.settings_section == SettingsSection::HostMapping {
+                Span::styled(
+                    " ● Host Mapping ",
+                    Style::default()
+                        .fg(Color::Cyan)
+                        .add_modifier(Modifier::BOLD),
+                )
+            } else {
+                Span::styled(" ○ Host Mapping ", Style::default().fg(Color::DarkGray))
             },
         ]),
         Line::from(Span::styled(
@@ -577,10 +591,197 @@ fn render_text_field<'a>(value: &'a str, is_editing: bool) -> Span<'a> {
     }
 }
 
+fn draw_host_mapping(f: &mut Frame, app: &App, area: Rect) {
+    // If form is open, draw form instead
+    if let Some(form) = &app.host_mapping_form {
+        draw_host_mapping_form(f, form, area);
+        return;
+    }
+
+    let mappings = &app.host_mappings;
+
+    if mappings.is_empty() {
+        let lines = vec![
+            Line::from(""),
+            Line::from(Span::styled(
+                "  No host mappings configured",
+                Style::default().fg(Color::DarkGray),
+            )),
+            Line::from(""),
+            Line::from(Span::styled(
+                "  Press 'a' to add a new mapping",
+                Style::default().fg(Color::DarkGray),
+            )),
+        ];
+
+        let block = Block::default()
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(Color::Gray))
+            .title(format!(" Host Mapping [{} entries] ", mappings.len()));
+
+        let paragraph = Paragraph::new(lines).block(block);
+        f.render_widget(paragraph, area);
+        return;
+    }
+
+    let rows: Vec<Row> = mappings
+        .iter()
+        .enumerate()
+        .map(|(i, m)| {
+            let is_selected = app.selected_host_mapping == Some(i);
+            let style = if !m.enabled {
+                Style::default().fg(Color::DarkGray)
+            } else if is_selected {
+                Style::default()
+                    .fg(Color::Cyan)
+                    .add_modifier(Modifier::BOLD)
+            } else {
+                Style::default().fg(Color::White)
+            };
+
+            let src = if let Some(port) = m.source_port {
+                format!("{}:{}", m.source_host, port)
+            } else {
+                m.source_host.clone()
+            };
+            let tgt = if let Some(port) = m.target_port {
+                format!("{}:{}", m.target_host, port)
+            } else {
+                m.target_host.clone()
+            };
+            let status = if m.enabled { "ON" } else { "OFF" };
+
+            Row::new(vec![src, "->".to_string(), tgt, status.to_string()]).style(style)
+        })
+        .collect();
+
+    let widths = [
+        Constraint::Percentage(35),
+        Constraint::Length(4),
+        Constraint::Percentage(35),
+        Constraint::Length(5),
+    ];
+
+    let header = Row::new(vec!["Source", "  ", "Target", "State"])
+        .style(
+            Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD),
+        )
+        .bottom_margin(0);
+
+    let table = Table::new(rows, widths)
+        .header(header)
+        .row_highlight_style(
+            Style::default()
+                .bg(Color::Rgb(40, 40, 60))
+                .add_modifier(Modifier::BOLD),
+        )
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .border_style(Style::default().fg(Color::Blue))
+                .title(format!(" Host Mapping [{} entries] ", mappings.len())),
+        );
+
+    let mut table_state = app.host_mapping_table_state.clone();
+    f.render_stateful_widget(table, area, &mut table_state);
+}
+
+fn draw_host_mapping_form(f: &mut Frame, form: &crate::app::HostMappingForm, area: Rect) {
+    let fields: Vec<Line> = HostMappingField::ALL
+        .iter()
+        .map(|field| {
+            let is_selected = *field == form.field;
+
+            let label = Span::styled(
+                format!("  {:<14} ", field.label()),
+                if is_selected {
+                    Style::default()
+                        .fg(Color::Cyan)
+                        .add_modifier(Modifier::BOLD)
+                } else {
+                    Style::default().fg(Color::Yellow)
+                },
+            );
+
+            let value_str = match field {
+                HostMappingField::SourceHost => &form.source_host,
+                HostMappingField::SourcePort => &form.source_port,
+                HostMappingField::TargetHost => &form.target_host,
+                HostMappingField::TargetPort => &form.target_port,
+            };
+
+            let value = if is_selected {
+                Span::styled(
+                    format!("{}█", value_str),
+                    Style::default().fg(Color::White).bg(Color::Rgb(50, 50, 50)),
+                )
+            } else if value_str.is_empty() {
+                let placeholder = match field {
+                    HostMappingField::SourceHost => "(e.g. *.api.example.com)",
+                    HostMappingField::SourcePort => "(optional)",
+                    HostMappingField::TargetHost => "(e.g. 192.168.1.100)",
+                    HostMappingField::TargetPort => "(optional)",
+                };
+                Span::styled(placeholder, Style::default().fg(Color::DarkGray))
+            } else {
+                Span::styled(value_str.as_str(), Style::default().fg(Color::White))
+            };
+
+            let cursor = if is_selected {
+                Span::styled("▶ ", Style::default().fg(Color::Cyan))
+            } else {
+                Span::raw("  ")
+            };
+
+            Line::from(vec![cursor, label, value])
+        })
+        .collect();
+
+    let block = Block::default()
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(Color::Cyan))
+        .title(" Add Host Mapping (Enter: save, Esc: cancel, Tab: next field) ");
+
+    let paragraph = Paragraph::new(fields).block(block);
+    f.render_widget(paragraph, area);
+}
+
 fn draw_keybindings(f: &mut Frame, app: &App, area: Rect) {
     let editing = app.upstream_form.editing || app.throttle_form.editing;
+    let in_host_mapping_form = app.host_mapping_form.is_some();
 
-    let help_lines = if editing {
+    let help_lines = if in_host_mapping_form {
+        vec![
+            Line::from(Span::styled(
+                "Add Host Mapping",
+                Style::default()
+                    .fg(Color::Yellow)
+                    .add_modifier(Modifier::BOLD),
+            )),
+            Line::from(""),
+            Line::from("  Tab / Shift+Tab    Next / Previous field"),
+            Line::from("  Enter              Save mapping"),
+            Line::from("  Esc                Cancel"),
+            Line::from("  Type               Input text"),
+        ]
+    } else if app.settings_section == SettingsSection::HostMapping && !editing {
+        vec![
+            Line::from(Span::styled(
+                "Host Mapping",
+                Style::default()
+                    .fg(Color::Yellow)
+                    .add_modifier(Modifier::BOLD),
+            )),
+            Line::from(""),
+            Line::from("  j / k / ↑ / ↓      Navigate mappings"),
+            Line::from("  a                  Add mapping"),
+            Line::from("  d / Delete         Delete mapping"),
+            Line::from("  t                  Toggle enabled/disabled"),
+            Line::from("  h / l              Switch section"),
+        ]
+    } else if editing {
         vec![
             Line::from(Span::styled(
                 "Editing",
