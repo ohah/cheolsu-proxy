@@ -56,8 +56,8 @@ msgstr "* = any string, ? = single character"
 msgid "200 (optional)"
 msgstr "200 (optional)"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:207
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:211
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:289
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:293
 msgid "Abort"
 msgstr "Abort"
 
@@ -79,7 +79,7 @@ msgstr "Active"
 msgid "Add"
 msgstr "Add"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:230
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:168
 msgid "Add breakpoint rules to pause HTTP requests/responses for inspection."
 msgstr "Add breakpoint rules to pause HTTP requests/responses for inspection."
 
@@ -231,7 +231,7 @@ msgstr "Breakpoint forwarded"
 msgid "Breakpoint rule added"
 msgstr "Breakpoint rule added"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:91
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:90
 #: src/shared/app-sidebar/model/consts.ts:57
 msgid "Breakpoints"
 msgstr "Breakpoints"
@@ -288,7 +288,7 @@ msgstr "Clear"
 msgid "Clear all"
 msgstr "Clear all"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:109
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:108
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:98
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:91
 #: src/pages/map-rules/ui/map-rules-page.tsx:80
@@ -422,8 +422,8 @@ msgstr "Disconnected"
 msgid "Download (KB/s)"
 msgstr "Download (KB/s)"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:198
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:201
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:280
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:283
 msgid "Drop"
 msgstr "Drop"
 
@@ -521,8 +521,8 @@ msgstr "For Cursor, Claude Desktop, and other MCP-compatible clients:"
 msgid "format"
 msgstr "format"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:189
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:192
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:271
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:274
 msgid "Forward"
 msgstr "Forward"
 
@@ -841,7 +841,7 @@ msgstr "Network Throttling"
 msgid "No active WebSocket connections"
 msgstr "No active WebSocket connections"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:227
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:165
 msgid "No breakpoint rules"
 msgstr "No breakpoint rules"
 
@@ -869,7 +869,11 @@ msgstr "No intercept rules"
 msgid "No map rules"
 msgstr "No map rules"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:269
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:237
+msgid "No pending breakpoints. Matched requests will appear here."
+msgstr "No pending breakpoints. Matched requests will appear here."
+
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:201
 msgid "No phase selected"
 msgstr "No phase selected"
 
@@ -948,7 +952,7 @@ msgstr "Pattern"
 msgid "Pattern is required"
 msgstr "Pattern is required"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:94
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:93
 msgid "Pause and inspect HTTP requests/responses in real-time"
 msgstr "Pause and inspect HTTP requests/responses in real-time"
 
@@ -964,11 +968,11 @@ msgstr "Pause recording"
 msgid "Payload"
 msgstr "Payload"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:100
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:99
 msgid "pending"
 msgstr "pending"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:158
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:226
 msgid "Pending Breakpoints"
 msgstr "Pending Breakpoints"
 
@@ -1217,6 +1221,10 @@ msgstr "Rule updated"
 #: src/pages/map-rules/ui/map-rules-page.tsx:75
 msgid "rules"
 msgstr "rules"
+
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:160
+msgid "Rules"
+msgstr "Rules"
 
 #: src/pages/script/ui/script-page.tsx:214
 msgid "Run"
