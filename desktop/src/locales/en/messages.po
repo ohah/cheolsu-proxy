@@ -46,6 +46,11 @@ msgstr "* = any string, ? = single character"
 msgid "200 (optional)"
 msgstr "200 (optional)"
 
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:194
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:198
+msgid "Abort"
+msgstr "Abort"
+
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:256
 msgid "Action"
 msgstr "Action"
@@ -58,9 +63,14 @@ msgstr "Active"
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:345
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:288
 #: src/features/transaction-details/ui/replay-dialog.tsx:384
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:122
 #: src/pages/server-replay/ui/server-replay-page.tsx:170
 msgid "Add"
 msgstr "Add"
+
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:217
+msgid "Add breakpoint rules to pause HTTP requests/responses for inspection."
+msgstr "Add breakpoint rules to pause HTTP requests/responses for inspection."
 
 #: src/pages/server-replay/ui/server-replay-page.tsx:193
 msgid "Add captured traffic to replay stored responses for matching requests."
@@ -82,6 +92,7 @@ msgstr "Add Map Rule"
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:199
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:387
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:348
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:102
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:92
 #: src/pages/map-rules/ui/map-rules-page.tsx:85
 msgid "Add Rule"
@@ -95,6 +106,7 @@ msgstr "Add rules to intercept, block, or modify HTTP requests and responses."
 msgid "Add rules to map URLs to local files or redirect to other servers."
 msgstr "Add rules to map URLs to local files or redirect to other servers."
 
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:223
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:111
 #: src/pages/map-rules/ui/map-rules-page.tsx:104
 msgid "Add your first rule"
@@ -121,6 +133,7 @@ msgstr "All entries cleared"
 msgid "All Methods"
 msgstr "All Methods"
 
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:54
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:64
 #: src/pages/map-rules/ui/map-rules-page.tsx:55
 msgid "All rules cleared"
@@ -138,7 +151,7 @@ msgstr "Append the original request path to the target URL"
 msgid "Apply:"
 msgstr "Apply:"
 
-#: src/pages/settings/ui/settings-page.tsx:1034
+#: src/pages/settings/ui/settings-page.tsx:864
 msgid "Authentication"
 msgstr "Authentication"
 
@@ -158,11 +171,32 @@ msgstr "Block"
 msgid "Body"
 msgstr "Body"
 
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:131
+msgid "Break on Request"
+msgstr "Break on Request"
+
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:135
+msgid "Break on Response"
+msgstr "Break on Response"
+
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:59
+msgid "Breakpoint forwarded"
+msgstr "Breakpoint forwarded"
+
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:44
+msgid "Breakpoint rule added"
+msgstr "Breakpoint rule added"
+
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:79
+#: src/shared/app-sidebar/model/consts.ts:50
+msgid "Breakpoints"
+msgstr "Breakpoints"
+
 #: src/pages/script/ui/script-page.tsx:263
 msgid "Browse"
 msgstr "Browse"
 
-#: src/pages/settings/ui/settings-page.tsx:1061
+#: src/pages/settings/ui/settings-page.tsx:891
 msgid "Bypass List"
 msgstr "Bypass List"
 
@@ -170,13 +204,14 @@ msgstr "Bypass List"
 msgid "bytes body"
 msgstr "bytes body"
 
-#: src/pages/settings/ui/settings-page.tsx:492
+#: src/pages/settings/ui/settings-page.tsx:480
 msgid "CA Certificate"
 msgstr "CA Certificate"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:384
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:345
-#: src/pages/settings/ui/settings-page.tsx:868
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:125
+#: src/pages/settings/ui/settings-page.tsx:698
 msgid "Cancel"
 msgstr "Cancel"
 
@@ -184,11 +219,11 @@ msgstr "Cancel"
 msgid "Cannot add: no response data"
 msgstr "Cannot add: no response data"
 
-#: src/pages/settings/ui/settings-page.tsx:775
+#: src/pages/settings/ui/settings-page.tsx:605
 msgid "Certificate Download URL"
 msgstr "Certificate Download URL"
 
-#: src/pages/settings/ui/settings-page.tsx:868
+#: src/pages/settings/ui/settings-page.tsx:698
 msgid "Change"
 msgstr "Change"
 
@@ -208,6 +243,7 @@ msgstr "Clear"
 msgid "Clear all"
 msgstr "Clear all"
 
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:97
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:87
 #: src/pages/map-rules/ui/map-rules-page.tsx:80
 #: src/pages/server-replay/ui/server-replay-page.tsx:105
@@ -227,7 +263,7 @@ msgstr "Close"
 msgid "Collapse"
 msgstr "Collapse"
 
-#: src/pages/settings/ui/settings-page.tsx:1069
+#: src/pages/settings/ui/settings-page.tsx:899
 msgid "Comma-separated list of hosts to connect directly (supports *.domain.com wildcards)"
 msgstr "Comma-separated list of hosts to connect directly (supports *.domain.com wildcards)"
 
@@ -253,18 +289,10 @@ msgstr "connections"
 msgid "Console"
 msgstr "Console"
 
-#: src/pages/settings/ui/settings-page.tsx:619
-msgid "Copied!"
-msgstr "Copied!"
-
 #: src/shared/app-sidebar/ui/sidebar-mcp.tsx:112
 #: src/shared/app-sidebar/ui/sidebar-mcp.tsx:138
 msgid "Copy to clipboard"
 msgstr "Copy to clipboard"
-
-#: src/pages/settings/ui/settings-page.tsx:619
-msgid "Copy URL"
-msgstr "Copy URL"
 
 #: src/features/transaction-details/ui/transaction-header.tsx:31
 msgid "Curl command copied to clipboard"
@@ -274,7 +302,7 @@ msgstr "Curl command copied to clipboard"
 msgid "Custom body"
 msgstr "Custom body"
 
-#: src/pages/settings/ui/settings-page.tsx:481
+#: src/pages/settings/ui/settings-page.tsx:469
 msgid "Dark"
 msgstr "Dark"
 
@@ -282,6 +310,7 @@ msgstr "Dark"
 msgid "Data"
 msgstr "Data"
 
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:266
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:193
 #: src/pages/map-rules/ui/map-rules-page.tsx:176
 msgid "Delete rule"
@@ -305,9 +334,14 @@ msgstr "Disabled"
 msgid "Disconnected"
 msgstr "Disconnected"
 
-#: src/pages/settings/ui/settings-page.tsx:934
+#: src/pages/settings/ui/settings-page.tsx:764
 msgid "Download (KB/s)"
 msgstr "Download (KB/s)"
+
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:185
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:188
+msgid "Drop"
+msgstr "Drop"
 
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:175
 msgid "Edit Map Rule"
@@ -325,10 +359,6 @@ msgstr "Edit Rule"
 #: src/pages/script/ui/script-page.tsx:198
 msgid "Editor"
 msgstr "Editor"
-
-#: src/pages/settings/ui/settings-page.tsx:694
-msgid "Enable full trust for the Cheolsu Proxy CA certificate"
-msgstr "Enable full trust for the Cheolsu Proxy CA certificate"
 
 #: src/pages/server-replay/ui/server-replay-page.tsx:96
 msgid "Enabled"
@@ -355,8 +385,8 @@ msgstr "Expand sidebar"
 msgid "Export HAR"
 msgstr "Export HAR"
 
-#: src/pages/settings/ui/settings-page.tsx:982
-#: src/pages/settings/ui/settings-page.tsx:1090
+#: src/pages/settings/ui/settings-page.tsx:812
+#: src/pages/settings/ui/settings-page.tsx:920
 msgid "Failed — is the proxy running?"
 msgstr "Failed — is the proxy running?"
 
@@ -365,7 +395,7 @@ msgstr "Failed — is the proxy running?"
 msgid "Failed to read file: {0}"
 msgstr "Failed to read file: {0}"
 
-#: src/pages/settings/ui/settings-page.tsx:884
+#: src/pages/settings/ui/settings-page.tsx:714
 msgid "Failed to register shortcut"
 msgstr "Failed to register shortcut"
 
@@ -385,26 +415,14 @@ msgstr "File path is required"
 msgid "For Cursor, Claude Desktop, and other MCP-compatible clients:"
 msgstr "For Cursor, Claude Desktop, and other MCP-compatible clients:"
 
-#: src/pages/settings/ui/settings-page.tsx:637
-#: src/pages/settings/ui/settings-page.tsx:641
-msgid "format"
-msgstr "format"
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:176
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:179
+msgid "Forward"
+msgstr "Forward"
 
-#: src/pages/settings/ui/settings-page.tsx:826
+#: src/pages/settings/ui/settings-page.tsx:656
 msgid "Global Shortcut"
 msgstr "Global Shortcut"
-
-#: src/pages/settings/ui/settings-page.tsx:688
-msgid "Go to <0>Settings → General → About → Certificate Trust Settings</0>"
-msgstr "Go to <0>Settings → General → About → Certificate Trust Settings</0>"
-
-#: src/pages/settings/ui/settings-page.tsx:680
-msgid "Go to <0>Settings → General → VPN & Device Management</0>"
-msgstr "Go to <0>Settings → General → VPN & Device Management</0>"
-
-#: src/pages/settings/ui/settings-page.tsx:728
-msgid "Go to <0>Settings → Security → Encryption & credentials</0>"
-msgstr "Go to <0>Settings → Security → Encryption & credentials</0>"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:320
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:294
@@ -428,7 +446,7 @@ msgstr "headers"
 msgid "Headers ({0})"
 msgstr "Headers ({0})"
 
-#: src/pages/settings/ui/settings-page.tsx:1008
+#: src/pages/settings/ui/settings-page.tsx:838
 msgid "Host"
 msgstr "Host"
 
@@ -436,7 +454,7 @@ msgstr "Host"
 msgid "Host Tree"
 msgstr "Host Tree"
 
-#: src/shared/app-sidebar/model/consts.ts:13
+#: src/shared/app-sidebar/model/consts.ts:22
 msgid "HTTP requests and responses"
 msgstr "HTTP requests and responses"
 
@@ -444,43 +462,38 @@ msgstr "HTTP requests and responses"
 msgid "Inactive"
 msgstr "Inactive"
 
-#: src/pages/settings/ui/settings-page.tsx:505
-#: src/pages/settings/ui/settings-page.tsx:805
+#: src/pages/settings/ui/settings-page.tsx:493
+#: src/pages/settings/ui/settings-page.tsx:635
 msgid "Install"
 msgstr "Install"
 
-#: src/pages/settings/ui/settings-page.tsx:581
+#: src/pages/settings/ui/settings-page.tsx:569
 msgid "Install and trust the downloaded certificate"
 msgstr "Install and trust the downloaded certificate"
 
-#: src/pages/settings/ui/settings-page.tsx:660
-#: src/pages/settings/ui/settings-page.tsx:710
-msgid "Install Guide"
-msgstr "Install Guide"
-
-#: src/pages/settings/ui/settings-page.tsx:797
+#: src/pages/settings/ui/settings-page.tsx:627
 msgid "Install the <0>cheolsu</0> command to use the TUI from your terminal"
 msgstr "Install the <0>cheolsu</0> command to use the TUI from your terminal"
 
-#: src/pages/settings/ui/settings-page.tsx:538
+#: src/pages/settings/ui/settings-page.tsx:526
 msgid "Install the CA certificate on external devices (mobile, tablet) to intercept HTTPS traffic"
 msgstr "Install the CA certificate on external devices (mobile, tablet) to intercept HTTPS traffic"
 
-#: src/pages/settings/ui/settings-page.tsx:495
+#: src/pages/settings/ui/settings-page.tsx:483
 msgid "Install the CA certificate to trust HTTPS traffic intercepted by the proxy"
 msgstr "Install the CA certificate to trust HTTPS traffic intercepted by the proxy"
 
-#: src/pages/settings/ui/settings-page.tsx:814
+#: src/pages/settings/ui/settings-page.tsx:644
 msgid "Installed"
 msgstr "Installed"
 
-#: src/pages/settings/ui/settings-page.tsx:505
-#: src/pages/settings/ui/settings-page.tsx:805
+#: src/pages/settings/ui/settings-page.tsx:493
+#: src/pages/settings/ui/settings-page.tsx:635
 msgid "Installing..."
 msgstr "Installing..."
 
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:74
-#: src/shared/app-sidebar/model/consts.ts:23
+#: src/shared/app-sidebar/model/consts.ts:32
 msgid "Intercept Rules"
 msgstr "Intercept Rules"
 
@@ -488,15 +501,15 @@ msgstr "Intercept Rules"
 msgid "JSON Configuration"
 msgstr "JSON Configuration"
 
-#: src/pages/settings/ui/settings-page.tsx:445
+#: src/pages/settings/ui/settings-page.tsx:433
 msgid "Language"
 msgstr "Language"
 
-#: src/pages/settings/ui/settings-page.tsx:956
+#: src/pages/settings/ui/settings-page.tsx:786
 msgid "Latency (ms)"
 msgstr "Latency (ms)"
 
-#: src/pages/settings/ui/settings-page.tsx:481
+#: src/pages/settings/ui/settings-page.tsx:469
 msgid "Light"
 msgstr "Light"
 
@@ -508,13 +521,13 @@ msgstr "Load"
 msgid "Load a script file from disk. The file will be watched for changes and auto-reloaded."
 msgstr "Load a script file from disk. The file will be watched for changes and auto-reloaded."
 
-#: src/shared/app-sidebar/model/consts.ts:43
+#: src/shared/app-sidebar/model/consts.ts:58
 msgid "Load and manage proxy scripts"
 msgstr "Load and manage proxy scripts"
 
 #: src/pages/script/ui/script-page.tsx:214
 #: src/pages/script/ui/script-page.tsx:266
-#: src/pages/settings/ui/settings-page.tsx:553
+#: src/pages/settings/ui/settings-page.tsx:541
 msgid "Loading..."
 msgstr "Loading..."
 
@@ -522,7 +535,7 @@ msgstr "Loading..."
 msgid "Local File Path"
 msgstr "Local File Path"
 
-#: src/pages/settings/ui/settings-page.tsx:1064
+#: src/pages/settings/ui/settings-page.tsx:894
 msgid "localhost, 127.0.0.1, *.internal.com"
 msgstr "localhost, 127.0.0.1, *.internal.com"
 
@@ -530,7 +543,7 @@ msgstr "localhost, 127.0.0.1, *.internal.com"
 msgid "Logical OR:"
 msgstr "Logical OR:"
 
-#: src/shared/app-sidebar/model/consts.ts:25
+#: src/shared/app-sidebar/model/consts.ts:34
 msgid "Manage request/response intercept rules"
 msgstr "Manage request/response intercept rules"
 
@@ -544,7 +557,7 @@ msgstr "Manage wildcard-based request/response intercept rules"
 msgid "Map Local"
 msgstr "Map Local"
 
-#: src/shared/app-sidebar/model/consts.ts:31
+#: src/shared/app-sidebar/model/consts.ts:40
 msgid "Map Local / Map Remote rules"
 msgstr "Map Local / Map Remote rules"
 
@@ -563,7 +576,7 @@ msgid "Map Remote"
 msgstr "Map Remote"
 
 #: src/pages/map-rules/ui/map-rules-page.tsx:65
-#: src/shared/app-sidebar/model/consts.ts:29
+#: src/shared/app-sidebar/model/consts.ts:38
 msgid "Map Rules"
 msgstr "Map Rules"
 
@@ -601,10 +614,6 @@ msgstr "messages"
 msgid "Method"
 msgstr "Method"
 
-#: src/pages/settings/ui/settings-page.tsx:590
-msgid "Mobile Certificate Install"
-msgstr "Mobile Certificate Install"
-
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:267
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:41
 msgid "Modify Request"
@@ -628,17 +637,21 @@ msgstr "Multiple conditions:"
 msgid "Name"
 msgstr "Name"
 
-#: src/shared/app-sidebar/model/consts.ts:11
+#: src/shared/app-sidebar/model/consts.ts:20
 msgid "Network"
 msgstr "Network"
 
-#: src/pages/settings/ui/settings-page.tsx:895
+#: src/pages/settings/ui/settings-page.tsx:725
 msgid "Network Throttling"
 msgstr "Network Throttling"
 
 #: src/widgets/websocket-messages/ui/ws-connection-list.tsx:27
 msgid "No active WebSocket connections"
 msgstr "No active WebSocket connections"
+
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:214
+msgid "No breakpoint rules"
+msgstr "No breakpoint rules"
 
 #: src/pages/server-replay/ui/server-replay-page.tsx:129
 msgid "No captured traffic with responses available. Capture some traffic first."
@@ -656,6 +669,10 @@ msgstr "No intercept rules"
 msgid "No map rules"
 msgstr "No map rules"
 
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:256
+msgid "No phase selected"
+msgstr "No phase selected"
+
 #: src/pages/server-replay/ui/server-replay-page.tsx:190
 msgid "No replay entries"
 msgstr "No replay entries"
@@ -668,35 +685,23 @@ msgstr "No transactions to display"
 msgid "No valid requests to replay"
 msgstr "No valid requests to replay"
 
-#: src/pages/settings/ui/settings-page.tsx:519
+#: src/pages/settings/ui/settings-page.tsx:507
 msgid "Not Trusted"
 msgstr "Not Trusted"
 
-#: src/pages/settings/ui/settings-page.tsx:720
-msgid "Open <0>{CERT_DOWNLOAD_URL}</0> in Chrome"
-msgstr "Open <0>{CERT_DOWNLOAD_URL}</0> in Chrome"
-
-#: src/pages/settings/ui/settings-page.tsx:670
-msgid "Open <0>{CERT_DOWNLOAD_URL}</0> in Safari"
-msgstr "Open <0>{CERT_DOWNLOAD_URL}</0> in Safari"
-
-#: src/pages/settings/ui/settings-page.tsx:572
-msgid "Open <0>{CERT_DOWNLOAD_URL}</0> in your device browser"
-msgstr "Open <0>{CERT_DOWNLOAD_URL}</0> in your device browser"
+#: src/pages/settings/ui/settings-page.tsx:560
+msgid "Open <0>http://cheolsu.proxy/ssl</0> in your device browser"
+msgstr "Open <0>http://cheolsu.proxy/ssl</0> in your device browser"
 
 #: src/pages/script/ui/script-page.tsx:211
 msgid "Open File"
 msgstr "Open File"
 
-#: src/pages/settings/ui/settings-page.tsx:628
-msgid "Open this URL in your mobile browser after setting the Wi-Fi proxy. The page automatically detects your device and provides the correct certificate format."
-msgstr "Open this URL in your mobile browser after setting the Wi-Fi proxy. The page automatically detects your device and provides the correct certificate format."
-
 #: src/features/transaction-details/ui/replay-dialog.tsx:327
 msgid "Original"
 msgstr "Original"
 
-#: src/pages/settings/ui/settings-page.tsx:1049
+#: src/pages/settings/ui/settings-page.tsx:879
 msgid "Password"
 msgstr "Password"
 
@@ -706,8 +711,17 @@ msgstr "Pattern"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:153
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:112
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:29
 msgid "Pattern is required"
 msgstr "Pattern is required"
+
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:82
+msgid "Pause and inspect HTTP requests/responses in real-time"
+msgstr "Pause and inspect HTTP requests/responses in real-time"
+
+#: src/shared/app-sidebar/model/consts.ts:52
+msgid "Pause and inspect requests/responses"
+msgstr "Pause and inspect requests/responses"
 
 #: src/widgets/network-header/ui/network-controls.tsx:31
 msgid "Pause recording"
@@ -717,7 +731,15 @@ msgstr "Pause recording"
 msgid "Payload"
 msgstr "Payload"
 
-#: src/pages/settings/ui/settings-page.tsx:1018
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:88
+msgid "pending"
+msgstr "pending"
+
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:146
+msgid "Pending Breakpoints"
+msgstr "Pending Breakpoints"
+
+#: src/pages/settings/ui/settings-page.tsx:848
 msgid "Port"
 msgstr "Port"
 
@@ -725,27 +747,27 @@ msgstr "Port"
 msgid "Preserve Path"
 msgstr "Preserve Path"
 
-#: src/pages/settings/ui/settings-page.tsx:861
+#: src/pages/settings/ui/settings-page.tsx:691
 msgid "Press a key combination..."
 msgstr "Press a key combination..."
 
-#: src/pages/settings/ui/settings-page.tsx:908
+#: src/pages/settings/ui/settings-page.tsx:738
 msgid "Profile"
 msgstr "Profile"
 
-#: src/pages/settings/ui/settings-page.tsx:765
+#: src/pages/settings/ui/settings-page.tsx:595
 msgid "Proxy Address"
 msgstr "Proxy Address"
 
-#: src/pages/settings/ui/settings-page.tsx:437
+#: src/pages/settings/ui/settings-page.tsx:425
 msgid "Proxy configuration and preferences"
 msgstr "Proxy configuration and preferences"
 
-#: src/shared/app-sidebar/model/consts.ts:49
+#: src/shared/app-sidebar/model/consts.ts:64
 msgid "Proxy settings and configuration"
 msgstr "Proxy settings and configuration"
 
-#: src/pages/settings/ui/settings-page.tsx:1011
+#: src/pages/settings/ui/settings-page.tsx:841
 msgid "proxy.company.com"
 msgstr "proxy.company.com"
 
@@ -765,12 +787,12 @@ msgstr "Received"
 msgid "Received (Server → Client)"
 msgstr "Received (Server → Client)"
 
-#: src/pages/settings/ui/settings-page.tsx:782
+#: src/pages/settings/ui/settings-page.tsx:612
 msgid "Refresh"
 msgstr "Refresh"
 
-#: src/pages/settings/ui/settings-page.tsx:505
-#: src/pages/settings/ui/settings-page.tsx:805
+#: src/pages/settings/ui/settings-page.tsx:493
+#: src/pages/settings/ui/settings-page.tsx:635
 msgid "Reinstall"
 msgstr "Reinstall"
 
@@ -778,7 +800,7 @@ msgstr "Reinstall"
 msgid "Reload"
 msgstr "Reload"
 
-#: src/pages/settings/ui/settings-page.tsx:535
+#: src/pages/settings/ui/settings-page.tsx:523
 msgid "Remote Device Certificate"
 msgstr "Remote Device Certificate"
 
@@ -804,16 +826,29 @@ msgid "Replay request"
 msgstr "Replay request"
 
 #: src/features/transaction-details/ui/replay-dialog.tsx:323
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:246
 msgid "Request"
 msgstr "Request"
+
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:69
+msgid "Request aborted"
+msgstr "Request aborted"
 
 #: src/features/transaction-details/ui/transaction-header.tsx:38
 msgid "Request Details"
 msgstr "Request Details"
 
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:64
+msgid "Request dropped"
+msgstr "Request dropped"
+
 #: src/features/transaction-details/ui/replay-dialog.tsx:279
 msgid "Request failed"
 msgstr "Request failed"
+
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:251
+msgid "Response"
+msgstr "Response"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:372
 msgid "Response body (optional)"
@@ -831,7 +866,7 @@ msgstr "Response Status Code"
 msgid "Resume recording"
 msgstr "Resume recording"
 
-#: src/shared/app-sidebar/model/consts.ts:37
+#: src/shared/app-sidebar/model/consts.ts:46
 msgid "Return cached responses for matching requests"
 msgstr "Return cached responses for matching requests"
 
@@ -839,7 +874,7 @@ msgstr "Return cached responses for matching requests"
 msgid "Return cached responses for matching requests instead of forwarding to the server"
 msgstr "Return cached responses for matching requests instead of forwarding to the server"
 
-#: src/pages/settings/ui/settings-page.tsx:996
+#: src/pages/settings/ui/settings-page.tsx:826
 msgid "Route traffic through an external proxy server"
 msgstr "Route traffic through an external proxy server"
 
@@ -848,6 +883,7 @@ msgstr "Route traffic through an external proxy server"
 msgid "Rule added"
 msgstr "Rule added"
 
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:49
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:59
 #: src/pages/map-rules/ui/map-rules-page.tsx:50
 msgid "Rule deleted"
@@ -863,6 +899,7 @@ msgstr "Rule name (optional)"
 msgid "Rule updated"
 msgstr "Rule updated"
 
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:92
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:82
 #: src/pages/map-rules/ui/map-rules-page.tsx:75
 msgid "rules"
@@ -872,29 +909,29 @@ msgstr "rules"
 msgid "Run"
 msgstr "Run"
 
-#: src/pages/settings/ui/settings-page.tsx:876
-#: src/pages/settings/ui/settings-page.tsx:973
-#: src/pages/settings/ui/settings-page.tsx:1081
+#: src/pages/settings/ui/settings-page.tsx:706
+#: src/pages/settings/ui/settings-page.tsx:803
+#: src/pages/settings/ui/settings-page.tsx:911
 msgid "Save"
 msgstr "Save"
 
-#: src/pages/settings/ui/settings-page.tsx:879
-#: src/pages/settings/ui/settings-page.tsx:977
-#: src/pages/settings/ui/settings-page.tsx:1085
+#: src/pages/settings/ui/settings-page.tsx:709
+#: src/pages/settings/ui/settings-page.tsx:807
+#: src/pages/settings/ui/settings-page.tsx:915
 msgid "Saved"
 msgstr "Saved"
 
-#: src/pages/settings/ui/settings-page.tsx:973
-#: src/pages/settings/ui/settings-page.tsx:1081
+#: src/pages/settings/ui/settings-page.tsx:803
+#: src/pages/settings/ui/settings-page.tsx:911
 msgid "Saving..."
 msgstr "Saving..."
 
-#: src/pages/settings/ui/settings-page.tsx:757
+#: src/pages/settings/ui/settings-page.tsx:587
 msgid "Scan for proxy info"
 msgstr "Scan for proxy info"
 
 #: src/pages/script/ui/script-page.tsx:162
-#: src/shared/app-sidebar/model/consts.ts:41
+#: src/shared/app-sidebar/model/consts.ts:56
 msgid "Script"
 msgstr "Script"
 
@@ -925,14 +962,6 @@ msgstr "Select from captured traffic"
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:100
 msgid "Select local file"
 msgstr "Select local file"
-
-#: src/pages/settings/ui/settings-page.tsx:736
-msgid "Select the downloaded certificate file and confirm"
-msgstr "Select the downloaded certificate file and confirm"
-
-#: src/pages/settings/ui/settings-page.tsx:685
-msgid "Select the downloaded profile and tap \"Install\""
-msgstr "Select the downloaded profile and tap \"Install\""
 
 #: src/features/transaction-details/ui/replay-dialog.tsx:522
 msgid "Send a request to see the replay response"
@@ -978,7 +1007,7 @@ msgid "Sequence replay failed"
 msgstr "Sequence replay failed"
 
 #: src/pages/server-replay/ui/server-replay-page.tsx:84
-#: src/shared/app-sidebar/model/consts.ts:35
+#: src/shared/app-sidebar/model/consts.ts:44
 msgid "Server Replay"
 msgstr "Server Replay"
 
@@ -988,24 +1017,24 @@ msgstr "Set body (optional)"
 
 #. placeholder {0}: certDownloadInfo.local_ips[0] || "127.0.0.1"
 #. placeholder {1}: certDownloadInfo.port
-#: src/pages/settings/ui/settings-page.tsx:564
+#: src/pages/settings/ui/settings-page.tsx:552
 msgid "Set Wi-Fi proxy on your device to <0>{0}:{1}</0>"
 msgstr "Set Wi-Fi proxy on your device to <0>{0}:{1}</0>"
 
-#: src/pages/settings/ui/settings-page.tsx:434
-#: src/shared/app-sidebar/model/consts.ts:47
+#: src/pages/settings/ui/settings-page.tsx:422
+#: src/shared/app-sidebar/model/consts.ts:62
 msgid "Settings"
 msgstr "Settings"
 
-#: src/pages/settings/ui/settings-page.tsx:560
+#: src/pages/settings/ui/settings-page.tsx:548
 msgid "Setup Instructions:"
 msgstr "Setup Instructions:"
 
-#: src/pages/settings/ui/settings-page.tsx:844
+#: src/pages/settings/ui/settings-page.tsx:674
 msgid "Shortcut Key"
 msgstr "Shortcut Key"
 
-#: src/pages/settings/ui/settings-page.tsx:898
+#: src/pages/settings/ui/settings-page.tsx:728
 msgid "Simulate slow network conditions for testing"
 msgstr "Simulate slow network conditions for testing"
 
@@ -1014,8 +1043,8 @@ msgstr "Simulate slow network conditions for testing"
 msgid "Size"
 msgstr "Size"
 
-#: src/pages/settings/ui/settings-page.tsx:524
-#: src/pages/settings/ui/settings-page.tsx:548
+#: src/pages/settings/ui/settings-page.tsx:512
+#: src/pages/settings/ui/settings-page.tsx:536
 msgid "Start proxy first"
 msgstr "Start proxy first"
 
@@ -1034,17 +1063,9 @@ msgstr "Status"
 msgid "Status Code"
 msgstr "Status Code"
 
-#: src/pages/settings/ui/settings-page.tsx:481
+#: src/pages/settings/ui/settings-page.tsx:469
 msgid "System"
 msgstr "System"
-
-#: src/pages/settings/ui/settings-page.tsx:675
-msgid "Tap \"Allow\" when prompted to download the configuration profile"
-msgstr "Tap \"Allow\" when prompted to download the configuration profile"
-
-#: src/pages/settings/ui/settings-page.tsx:733
-msgid "Tap \"Install a certificate\" → \"CA certificate\""
-msgstr "Tap \"Install a certificate\" → \"CA certificate\""
 
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:319
 msgid "Target URL"
@@ -1054,15 +1075,11 @@ msgstr "Target URL"
 msgid "Target URL is required"
 msgstr "Target URL is required"
 
-#: src/pages/settings/ui/settings-page.tsx:794
+#: src/pages/settings/ui/settings-page.tsx:624
 msgid "Terminal Command"
 msgstr "Terminal Command"
 
-#: src/pages/settings/ui/settings-page.tsx:725
-msgid "The DER certificate file will download automatically"
-msgstr "The DER certificate file will download automatically"
-
-#: src/pages/settings/ui/settings-page.tsx:466
+#: src/pages/settings/ui/settings-page.tsx:454
 msgid "Theme"
 msgstr "Theme"
 
@@ -1079,7 +1096,7 @@ msgstr "To Client (Server → Client)"
 msgid "To Server (Client → Server)"
 msgstr "To Server (Client → Server)"
 
-#: src/pages/settings/ui/settings-page.tsx:829
+#: src/pages/settings/ui/settings-page.tsx:659
 msgid "Toggle proxy on/off with a global keyboard shortcut"
 msgstr "Toggle proxy on/off with a global keyboard shortcut"
 
@@ -1092,7 +1109,7 @@ msgstr "Total {0}ms"
 msgid "Traffic Replay"
 msgstr "Traffic Replay"
 
-#: src/pages/settings/ui/settings-page.tsx:514
+#: src/pages/settings/ui/settings-page.tsx:502
 msgid "Trusted"
 msgstr "Trusted"
 
@@ -1102,17 +1119,13 @@ msgstr "Trusted"
 msgid "Type"
 msgstr "Type"
 
-#: src/pages/settings/ui/settings-page.tsx:509
-#: src/pages/settings/ui/settings-page.tsx:809
+#: src/pages/settings/ui/settings-page.tsx:497
+#: src/pages/settings/ui/settings-page.tsx:639
 msgid "Uninstall"
 msgstr "Uninstall"
 
-#: src/pages/settings/ui/settings-page.tsx:647
-msgid "Universal format"
-msgstr "Universal format"
-
-#: src/pages/settings/ui/settings-page.tsx:938
-#: src/pages/settings/ui/settings-page.tsx:949
+#: src/pages/settings/ui/settings-page.tsx:768
+#: src/pages/settings/ui/settings-page.tsx:779
 msgid "Unlimited"
 msgstr "Unlimited"
 
@@ -1125,11 +1138,11 @@ msgstr "Unload"
 msgid "Update"
 msgstr "Update"
 
-#: src/pages/settings/ui/settings-page.tsx:945
+#: src/pages/settings/ui/settings-page.tsx:775
 msgid "Upload (KB/s)"
 msgstr "Upload (KB/s)"
 
-#: src/pages/settings/ui/settings-page.tsx:993
+#: src/pages/settings/ui/settings-page.tsx:823
 msgid "Upstream Proxy"
 msgstr "Upstream Proxy"
 
@@ -1145,11 +1158,15 @@ msgstr "URL contains \"api\""
 msgid "URL Pattern"
 msgstr "URL Pattern"
 
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:115
+msgid "URL pattern (e.g., *api.example.com*)"
+msgstr "URL pattern (e.g., *api.example.com*)"
+
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:202
 msgid "Use wildcard patterns: * matches any string, ? matches a single character."
 msgstr "Use wildcard patterns: * matches any string, ? matches a single character."
 
-#: src/pages/settings/ui/settings-page.tsx:1041
+#: src/pages/settings/ui/settings-page.tsx:871
 msgid "Username"
 msgstr "Username"
 
@@ -1168,11 +1185,11 @@ msgid "Waiting for WebSocket messages..."
 msgstr "Waiting for WebSocket messages..."
 
 #: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:73
-#: src/shared/app-sidebar/model/consts.ts:17
+#: src/shared/app-sidebar/model/consts.ts:26
 msgid "WebSocket"
 msgstr "WebSocket"
 
-#: src/shared/app-sidebar/model/consts.ts:19
+#: src/shared/app-sidebar/model/consts.ts:28
 msgid "WebSocket connections and messages"
 msgstr "WebSocket connections and messages"
 
