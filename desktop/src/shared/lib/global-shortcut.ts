@@ -1,9 +1,4 @@
-import { useEffect } from "react";
 import { register, unregister, isRegistered } from "@tauri-apps/plugin-global-shortcut";
-import { useProxyStore } from "@/shared/stores";
-import { startProxyV2, stopProxyV2 } from "@/shared/api/proxy";
-import { toast } from "sonner";
-import { trayStore } from "@/shared/stores/tray-sync-store";
 
 const STORAGE_KEY = "proxy_toggle_shortcut";
 const DEFAULT_SHORTCUT = "CommandOrControl+Shift+P";
@@ -28,29 +23,7 @@ export function setShortcutEnabled(enabled: boolean) {
   localStorage.setItem(STORAGE_KEY + "_enabled", String(enabled));
 }
 
-export async function toggleProxy() {
-  const { isConnected, port } = useProxyStore.getState();
-
-  try {
-    if (isConnected) {
-      await stopProxyV2();
-      useProxyStore.getState().setConnected(false);
-      await trayStore.set("proxyConnected", false);
-      await trayStore.save();
-      toast.info("Proxy stopped");
-    } else {
-      await startProxyV2(port);
-      useProxyStore.getState().setConnected(true);
-      await trayStore.set("proxyConnected", true);
-      await trayStore.save();
-      toast.success("Proxy started");
-    }
-  } catch {
-    toast.error("Proxy toggle failed");
-  }
-}
-
-export async function registerShortcut(shortcut: string) {
+export async function registerShortcut(shortcut: string, onPressed: () => void) {
   // 이전 단축키 해제
   if (currentRegisteredShortcut) {
     try {
@@ -64,11 +37,11 @@ export async function registerShortcut(shortcut: string) {
     currentRegisteredShortcut = null;
   }
 
-  if (!shortcut || !getShortcutEnabled()) return;
+  if (!shortcut) return;
 
   await register(shortcut, (event) => {
     if (event.state === "Pressed") {
-      toggleProxy();
+      onPressed();
     }
   });
   currentRegisteredShortcut = shortcut;
@@ -83,23 +56,4 @@ export async function unregisterShortcut() {
     }
     currentRegisteredShortcut = null;
   }
-}
-
-/**
- * 앱 시작 시 글로벌 단축키를 자동 등록하는 훅.
- * App.tsx에서 한 번만 호출해야 합니다.
- */
-export function useGlobalShortcut() {
-  useEffect(() => {
-    if (getShortcutEnabled()) {
-      const shortcut = getStoredShortcut();
-      registerShortcut(shortcut).catch(() => {
-        // 앱 시작 시 등록 실패 무시
-      });
-    }
-
-    return () => {
-      unregisterShortcut();
-    };
-  }, []);
 }
