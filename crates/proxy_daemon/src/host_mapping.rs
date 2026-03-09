@@ -28,8 +28,9 @@ impl LoggingHandler {
 
     /// Wildcard host pattern matching.
     /// Supports glob-style patterns: `*` matches any substring, `?` matches a single character.
+    /// DNS 호스트명은 대소문자를 구분하지 않으므로 (RFC 4343), 비교 전 소문자로 정규화합니다.
     fn host_pattern_matches(pattern: &str, host: &str) -> bool {
-        Self::wildcard_matches(pattern, host)
+        Self::wildcard_matches(&pattern.to_lowercase(), &host.to_lowercase())
     }
 
     /// Apply host mapping to a request URI.
@@ -43,12 +44,23 @@ impl LoggingHandler {
         let scheme = uri.scheme_str().unwrap_or("https");
         let path_and_query = uri.path_and_query().map(|pq| pq.as_str()).unwrap_or("/");
 
-        let authority = if let Some(port) = target_port {
-            format!("{}:{}", target_host, port)
-        } else if let Some(port) = uri.port_u16() {
-            format!("{}:{}", target_host, port)
+        // effective_port: target_port가 우선, 없으면 원본 URI 포트 유지
+        let effective_port = target_port.or(uri.port_u16());
+
+        let authority = if target_host.contains(':') {
+            // IPv6 주소는 brackets로 감싸야 합니다 (e.g., [::1]:8080)
+            if let Some(port) = effective_port {
+                format!("[{}]:{}", target_host, port)
+            } else {
+                format!("[{}]", target_host)
+            }
         } else {
-            target_host.to_string()
+            // IPv4 또는 호스트명
+            if let Some(port) = effective_port {
+                format!("{}:{}", target_host, port)
+            } else {
+                target_host.to_string()
+            }
         };
 
         let new_uri_str = format!("{}://{}{}", scheme, authority, path_and_query);
@@ -457,6 +469,56 @@ mod tests {
             "first-target.com",
             "첫 번째 매칭 규칙이 사용되어야 함"
         );
+    }
+
+    #[test]
+    fn test_host_pattern_matches_case_insensitive_mixed() {
+        // 대소문자가 섞인 패턴과 호스트도 매칭되어야 함 (RFC 4343)
+        assert!(LoggingHandler::host_pattern_matches(
+            "API.Example.COM",
+            "api.example.com"
+        ));
+        assert!(LoggingHandler::host_pattern_matches(
+            "api.example.com",
+            "API.EXAMPLE.COM"
+        ));
+        assert!(LoggingHandler::host_pattern_matches(
+            "*.Example.COM",
+            "Sub.EXAMPLE.com"
+        ));
+        assert!(!LoggingHandler::host_pattern_matches(
+            "*.Example.COM",
+            "Sub.OTHER.org"
+        ));
+    }
+
+    #[test]
+    fn test_apply_host_mapping_to_uri_ipv6_no_port() {
+        let uri: Uri = "https://example.com/path".parse().unwrap();
+        let result = LoggingHandler::apply_host_mapping_to_uri(&uri, "::1", None).unwrap();
+        assert_eq!(result.host().unwrap(), "::1");
+        assert_eq!(result.path(), "/path");
+        // URI 문자열에 brackets이 포함되어야 함
+        assert!(result.to_string().contains("[::1]"));
+    }
+
+    #[test]
+    fn test_apply_host_mapping_to_uri_ipv6_with_port() {
+        let uri: Uri = "https://example.com/api".parse().unwrap();
+        let result =
+            LoggingHandler::apply_host_mapping_to_uri(&uri, "2001:db8::1", Some(8443)).unwrap();
+        assert_eq!(result.host().unwrap(), "2001:db8::1");
+        assert_eq!(result.port_u16().unwrap(), 8443);
+        assert!(result.to_string().contains("[2001:db8::1]:8443"));
+    }
+
+    #[test]
+    fn test_apply_host_mapping_to_uri_ipv6_preserves_source_port() {
+        let uri: Uri = "https://example.com:9443/v1".parse().unwrap();
+        let result = LoggingHandler::apply_host_mapping_to_uri(&uri, "::1", None).unwrap();
+        assert_eq!(result.host().unwrap(), "::1");
+        assert_eq!(result.port_u16().unwrap(), 9443);
+        assert!(result.to_string().contains("[::1]:9443"));
     }
 
     /// 테스트용 LoggingHandler 생성 헬퍼

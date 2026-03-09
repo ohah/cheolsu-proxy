@@ -572,6 +572,11 @@ impl LoggingHandler {
                 *req.uri_mut() = new_uri;
                 // Keep the original Host header intact so the server
                 // can route to the correct virtual host.
+                //
+                // x-cheolsu-host-mapped: 요청 디버깅/로깅 전용 마커 헤더.
+                // 호스트 매핑이 적용되었음을 프록시 내부에서 추적하기 위한 용도이며,
+                // 실제 서버로 전송됩니다. 서버 측에서 이 헤더가 문제가 될 경우
+                // 향후 요청 전송 직전에 제거하는 옵션을 추가할 수 있습니다.
                 req.headers_mut().insert(
                     "x-cheolsu-host-mapped",
                     proxyapi_v2::hyper::http::HeaderValue::from_static("true"),
