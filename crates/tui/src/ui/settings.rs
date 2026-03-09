@@ -1,7 +1,7 @@
 use ratatui::prelude::*;
 use ratatui::widgets::*;
 
-use crate::app::{App, UpstreamProxyField};
+use crate::app::{App, SettingsSection, ThrottleField, ThrottlePresetChoice, UpstreamProxyField};
 
 pub fn draw(f: &mut Frame, app: &App, area: Rect) {
     let chunks = Layout::default()
@@ -9,15 +9,59 @@ pub fn draw(f: &mut Frame, app: &App, area: Rect) {
         .constraints([
             Constraint::Length(10), // Proxy info
             Constraint::Length(5),  // CA certificate
-            Constraint::Length(12), // Upstream proxy
+            Constraint::Length(3),  // Section tabs
+            Constraint::Length(12), // Form (upstream or throttle)
             Constraint::Min(0),     // Keybindings
         ])
         .split(area);
 
     draw_proxy_info(f, app, chunks[0]);
     draw_ca_cert(f, app, chunks[1]);
-    draw_upstream_proxy(f, app, chunks[2]);
-    draw_keybindings(f, app, chunks[3]);
+    draw_section_tabs(f, app, chunks[2]);
+    match app.settings_section {
+        SettingsSection::UpstreamProxy => draw_upstream_proxy(f, app, chunks[3]),
+        SettingsSection::Throttle => draw_throttle(f, app, chunks[3]),
+    }
+    draw_keybindings(f, app, chunks[4]);
+}
+
+fn draw_section_tabs(f: &mut Frame, app: &App, area: Rect) {
+    let titles: Vec<Line> = vec![
+        Line::from(vec![
+            if app.settings_section == SettingsSection::UpstreamProxy {
+                Span::styled(
+                    " ● Upstream Proxy ",
+                    Style::default()
+                        .fg(Color::Cyan)
+                        .add_modifier(Modifier::BOLD),
+                )
+            } else {
+                Span::styled(" ○ Upstream Proxy ", Style::default().fg(Color::DarkGray))
+            },
+            Span::raw("  "),
+            if app.settings_section == SettingsSection::Throttle {
+                Span::styled(
+                    " ● Throttle ",
+                    Style::default()
+                        .fg(Color::Cyan)
+                        .add_modifier(Modifier::BOLD),
+                )
+            } else {
+                Span::styled(" ○ Throttle ", Style::default().fg(Color::DarkGray))
+            },
+        ]),
+        Line::from(Span::styled(
+            "  h/l: switch section",
+            Style::default().fg(Color::DarkGray),
+        )),
+    ];
+
+    let block = Block::default()
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(Color::Gray));
+
+    let paragraph = Paragraph::new(titles).block(block);
+    f.render_widget(paragraph, area);
 }
 
 fn draw_proxy_info(f: &mut Frame, app: &App, area: Rect) {
@@ -181,6 +225,102 @@ fn draw_upstream_proxy(f: &mut Frame, app: &App, area: Rect) {
 
     let border_color = if form.enabled {
         Color::Green
+    } else {
+        Color::Gray
+    };
+
+    let block = Block::default()
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(border_color))
+        .title(title);
+
+    let paragraph = Paragraph::new(fields).block(block);
+    f.render_widget(paragraph, area);
+}
+
+fn draw_throttle(f: &mut Frame, app: &App, area: Rect) {
+    let form = &app.throttle_form;
+
+    let fields: Vec<Line> = ThrottleField::ALL
+        .iter()
+        .map(|field| {
+            let is_selected =
+                *field == form.field && app.settings_section == SettingsSection::Throttle;
+            let is_editing = is_selected && form.editing;
+
+            let label = Span::styled(
+                format!("  {:<16} ", field.label()),
+                if is_selected {
+                    Style::default()
+                        .fg(Color::Cyan)
+                        .add_modifier(Modifier::BOLD)
+                } else {
+                    Style::default().fg(Color::Yellow)
+                },
+            );
+
+            let value = match field {
+                ThrottleField::Enabled => {
+                    let (text, color) = if form.enabled {
+                        ("ON", Color::Green)
+                    } else {
+                        ("OFF", Color::Red)
+                    };
+                    Span::styled(
+                        text,
+                        Style::default().fg(color).add_modifier(Modifier::BOLD),
+                    )
+                }
+                ThrottleField::Preset => Span::styled(
+                    format!("◀ {} ▶", form.preset.label()),
+                    Style::default()
+                        .fg(Color::White)
+                        .add_modifier(if is_selected {
+                            Modifier::BOLD
+                        } else {
+                            Modifier::empty()
+                        }),
+                ),
+                ThrottleField::Download => render_text_field(&form.download, is_editing),
+                ThrottleField::Upload => render_text_field(&form.upload, is_editing),
+                ThrottleField::Latency => render_text_field(&form.latency, is_editing),
+            };
+
+            let cursor = if is_selected {
+                Span::styled("▶ ", Style::default().fg(Color::Cyan))
+            } else {
+                Span::raw("  ")
+            };
+
+            // Custom이 아닌 프리셋일 때 Download/Upload/Latency 필드는 흐리게
+            let dim = matches!(
+                field,
+                ThrottleField::Download | ThrottleField::Upload | ThrottleField::Latency
+            ) && form.preset != ThrottlePresetChoice::Custom;
+
+            if dim {
+                Line::from(vec![
+                    Span::raw("  "),
+                    Span::styled(
+                        format!("  {:<16} ", field.label()),
+                        Style::default().fg(Color::DarkGray),
+                    ),
+                    Span::styled("—", Style::default().fg(Color::DarkGray)),
+                ])
+            } else {
+                Line::from(vec![cursor, label, value])
+            }
+        })
+        .collect();
+
+    let title = if form.enabled {
+        format!(" Throttle [ON: {}] ", form.preset.label())
+    } else {
+        " Throttle [OFF] ".to_string()
+    };
+
+    let border_color = if form.enabled {
+        Color::Magenta
     } else {
         Color::Gray
     };

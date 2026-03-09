@@ -391,65 +391,152 @@ impl App {
     }
 
     async fn handle_settings_key(&mut self, key: KeyEvent) {
-        if self.upstream_form.editing {
-            // Text input mode
-            match key.code {
-                KeyCode::Esc => {
-                    self.upstream_form.editing = false;
-                }
-                KeyCode::Enter => {
-                    self.upstream_form.editing = false;
-                    self.send_upstream_update().await;
-                }
-                KeyCode::Char(c) => {
-                    let field = match self.upstream_form.field {
-                        super::forms::UpstreamProxyField::Host => &mut self.upstream_form.host,
-                        super::forms::UpstreamProxyField::Port => &mut self.upstream_form.port,
-                        super::forms::UpstreamProxyField::Username => {
-                            &mut self.upstream_form.username
+        use super::forms::{SettingsSection, ThrottleField, UpstreamProxyField};
+
+        // Text editing mode (upstream or throttle)
+        let is_editing = match self.settings_section {
+            SettingsSection::UpstreamProxy => self.upstream_form.editing,
+            SettingsSection::Throttle => self.throttle_form.editing,
+        };
+
+        if is_editing {
+            match self.settings_section {
+                SettingsSection::UpstreamProxy => match key.code {
+                    KeyCode::Esc => {
+                        self.upstream_form.editing = false;
+                    }
+                    KeyCode::Enter => {
+                        self.upstream_form.editing = false;
+                        self.send_upstream_update().await;
+                    }
+                    KeyCode::Char(c) => {
+                        let field = match self.upstream_form.field {
+                            UpstreamProxyField::Host => &mut self.upstream_form.host,
+                            UpstreamProxyField::Port => &mut self.upstream_form.port,
+                            UpstreamProxyField::Username => &mut self.upstream_form.username,
+                            UpstreamProxyField::Password => &mut self.upstream_form.password,
+                            UpstreamProxyField::Bypass => &mut self.upstream_form.bypass,
+                            _ => return,
+                        };
+                        field.push(c);
+                    }
+                    KeyCode::Backspace => {
+                        let field = match self.upstream_form.field {
+                            UpstreamProxyField::Host => &mut self.upstream_form.host,
+                            UpstreamProxyField::Port => &mut self.upstream_form.port,
+                            UpstreamProxyField::Username => &mut self.upstream_form.username,
+                            UpstreamProxyField::Password => &mut self.upstream_form.password,
+                            UpstreamProxyField::Bypass => &mut self.upstream_form.bypass,
+                            _ => return,
+                        };
+                        field.pop();
+                    }
+                    _ => {}
+                },
+                SettingsSection::Throttle => {
+                    match key.code {
+                        KeyCode::Esc => {
+                            self.throttle_form.editing = false;
                         }
-                        super::forms::UpstreamProxyField::Password => {
-                            &mut self.upstream_form.password
+                        KeyCode::Enter => {
+                            self.throttle_form.editing = false;
+                            self.send_throttle_update().await;
                         }
-                        super::forms::UpstreamProxyField::Bypass => &mut self.upstream_form.bypass,
-                        _ => return,
-                    };
-                    field.push(c);
+                        KeyCode::Char(c) => {
+                            let field = match self.throttle_form.field {
+                                ThrottleField::Download => &mut self.throttle_form.download,
+                                ThrottleField::Upload => &mut self.throttle_form.upload,
+                                ThrottleField::Latency => &mut self.throttle_form.latency,
+                                _ => return,
+                            };
+                            // 숫자만 허용
+                            if c.is_ascii_digit() {
+                                field.push(c);
+                            }
+                        }
+                        KeyCode::Backspace => {
+                            let field = match self.throttle_form.field {
+                                ThrottleField::Download => &mut self.throttle_form.download,
+                                ThrottleField::Upload => &mut self.throttle_form.upload,
+                                ThrottleField::Latency => &mut self.throttle_form.latency,
+                                _ => return,
+                            };
+                            field.pop();
+                        }
+                        _ => {}
+                    }
                 }
-                KeyCode::Backspace => {
-                    let field = match self.upstream_form.field {
-                        super::forms::UpstreamProxyField::Host => &mut self.upstream_form.host,
-                        super::forms::UpstreamProxyField::Port => &mut self.upstream_form.port,
-                        super::forms::UpstreamProxyField::Username => {
-                            &mut self.upstream_form.username
-                        }
-                        super::forms::UpstreamProxyField::Password => {
-                            &mut self.upstream_form.password
-                        }
-                        super::forms::UpstreamProxyField::Bypass => &mut self.upstream_form.bypass,
-                        _ => return,
-                    };
-                    field.pop();
-                }
-                _ => {}
             }
             return;
         }
 
         // Navigation mode
         match key.code {
-            KeyCode::Up | KeyCode::Char('k') => {
-                self.upstream_form.field = self.upstream_form.field.prev();
+            // 섹션 전환: H/L 또는 Left/Right
+            KeyCode::Char('H') | KeyCode::Char('h') if !is_editing => {
+                self.settings_section = self.settings_section.prev();
             }
-            KeyCode::Down | KeyCode::Char('j') => {
-                self.upstream_form.field = self.upstream_form.field.next();
+            KeyCode::Char('L') | KeyCode::Char('l') if !is_editing => {
+                self.settings_section = self.settings_section.next();
             }
-            KeyCode::Enter | KeyCode::Char(' ') => {
-                if self.upstream_form.field == super::forms::UpstreamProxyField::Enabled {
-                    self.upstream_form.enabled = !self.upstream_form.enabled;
-                    self.send_upstream_update().await;
+
+            KeyCode::Up | KeyCode::Char('k') => match self.settings_section {
+                SettingsSection::UpstreamProxy => {
+                    self.upstream_form.field = self.upstream_form.field.prev();
+                }
+                SettingsSection::Throttle => {
+                    self.throttle_form.field = self.throttle_form.field.prev();
+                }
+            },
+            KeyCode::Down | KeyCode::Char('j') => match self.settings_section {
+                SettingsSection::UpstreamProxy => {
+                    self.upstream_form.field = self.upstream_form.field.next();
+                }
+                SettingsSection::Throttle => {
+                    self.throttle_form.field = self.throttle_form.field.next();
+                }
+            },
+            KeyCode::Enter | KeyCode::Char(' ') => match self.settings_section {
+                SettingsSection::UpstreamProxy => {
+                    if self.upstream_form.field == UpstreamProxyField::Enabled {
+                        self.upstream_form.enabled = !self.upstream_form.enabled;
+                        self.send_upstream_update().await;
+                    } else {
+                        self.upstream_form.editing = true;
+                    }
+                }
+                SettingsSection::Throttle => match self.throttle_form.field {
+                    ThrottleField::Enabled => {
+                        self.throttle_form.enabled = !self.throttle_form.enabled;
+                        self.send_throttle_update().await;
+                    }
+                    ThrottleField::Preset => {
+                        self.throttle_form.preset = self.throttle_form.preset.next();
+                        self.send_throttle_update().await;
+                    }
+                    ThrottleField::Download | ThrottleField::Upload | ThrottleField::Latency => {
+                        self.throttle_form.editing = true;
+                    }
+                },
+            },
+            KeyCode::Left => {
+                if self.settings_section == SettingsSection::Throttle
+                    && self.throttle_form.field == ThrottleField::Preset
+                {
+                    self.throttle_form.preset = self.throttle_form.preset.prev();
+                    self.send_throttle_update().await;
                 } else {
-                    self.upstream_form.editing = true;
+                    self.settings_section = self.settings_section.prev();
+                }
+            }
+            KeyCode::Right => {
+                if self.settings_section == SettingsSection::Throttle
+                    && self.throttle_form.field == ThrottleField::Preset
+                {
+                    self.throttle_form.preset = self.throttle_form.preset.next();
+                    self.send_throttle_update().await;
+                } else {
+                    self.settings_section = self.settings_section.next();
                 }
             }
             KeyCode::Char('i') => {

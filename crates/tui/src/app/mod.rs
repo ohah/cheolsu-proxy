@@ -61,8 +61,14 @@ pub struct App {
     pub script_logs: Vec<ScriptLogEntry>,
     pub script_log_scroll: usize,
 
+    // Settings section
+    pub settings_section: SettingsSection,
+
     // Upstream Proxy
     pub upstream_form: UpstreamProxyForm,
+
+    // Throttle
+    pub throttle_form: ThrottleForm,
 
     // CA Certificate
     pub ca_cert_installed: bool,
@@ -104,7 +110,9 @@ impl App {
             script_editing: false,
             script_logs: Vec::new(),
             script_log_scroll: 0,
+            settings_section: SettingsSection::UpstreamProxy,
             upstream_form: UpstreamProxyForm::new(),
+            throttle_form: ThrottleForm::new(),
             ca_cert_installed: false,
             ca_cert_path: None,
             status_message: None,
@@ -363,6 +371,20 @@ impl App {
             let config = self.upstream_form.to_config();
             let cmd = ClientCommand::UpdateUpstreamProxy { config };
             let _ = conn.send_command(&cmd).await;
+        }
+    }
+
+    async fn send_throttle_update(&mut self) {
+        if let Some(conn) = &self.conn {
+            let config = self.throttle_form.to_config();
+            let cmd = ClientCommand::UpdateThrottle { config };
+            let _ = conn.send_command(&cmd).await;
+            let label = self.throttle_form.preset.label();
+            if self.throttle_form.enabled {
+                self.set_status(&format!("Throttle: {}", label));
+            } else {
+                self.set_status("Throttle: OFF");
+            }
         }
     }
 
