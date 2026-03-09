@@ -10,6 +10,7 @@ use crate::error::DaemonError;
 use crate::protocol::ProxyLockInfo;
 use crate::proxy_runner::run_proxy;
 use crate::system_proxy::set_proxy;
+use proxyapi_v2::throttle::ThrottleConfig;
 use proxyapi_v2::upstream_proxy::UpstreamProxyConfig;
 use proxyapi_v2::websocket_registry::WebSocketRegistry;
 
@@ -156,6 +157,8 @@ async fn daemon_main(port: u16, host: String) -> i32 {
     let (server_replay_tx, server_replay_rx) =
         watch::channel::<Vec<crate::protocol::ServerReplayEntry>>(Vec::new());
 
+    let (throttle_tx, throttle_rx) = watch::channel::<Option<ThrottleConfig>>(None);
+
     let ws_registry = WebSocketRegistry::new();
     let script_handle = scripting::ScriptHandle::new();
 
@@ -177,6 +180,7 @@ async fn daemon_main(port: u16, host: String) -> i32 {
             intercept_rx,
             upstream_rx,
             server_replay_rx,
+            throttle_rx,
             registry_for_proxy,
             script_handle_for_proxy,
         )
@@ -239,11 +243,12 @@ async fn daemon_main(port: u16, host: String) -> i32 {
                         let intercept_tx_clone = intercept_tx.clone();
                         let upstream_tx_clone = upstream_tx.clone();
                         let server_replay_tx_clone = server_replay_tx.clone();
+                        let throttle_tx_clone = throttle_tx.clone();
                         let registry_clone = ws_registry.clone();
                         let script_handle_clone = script_handle.clone();
 
                         tokio::spawn(async move {
-                            handle_client(stream, event_rx, intercept_tx_clone, upstream_tx_clone, server_replay_tx_clone, event_tx_clone, port, registry_clone, script_handle_clone)
+                            handle_client(stream, event_rx, intercept_tx_clone, upstream_tx_clone, server_replay_tx_clone, throttle_tx_clone, event_tx_clone, port, registry_clone, script_handle_clone)
                                 .await;
 
                             let remaining = client_count_clone.fetch_sub(1, Ordering::SeqCst) - 1;

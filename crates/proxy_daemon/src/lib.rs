@@ -19,6 +19,7 @@ pub use handler::{create_hybrid_client, LoggingHandler, WsEvent};
 pub use protocol::{
     ClientCommand, DaemonMessage, InterceptAction, InterceptRule, ProxyLockInfo, ServerReplayEntry,
 };
+pub use proxyapi_v2::throttle::ThrottleConfig;
 pub use proxyapi_v2::upstream_proxy::{UpstreamProxyAuth, UpstreamProxyConfig};
 pub use system_proxy::{get_proxy_status, set_proxy, ProxyStatus};
 

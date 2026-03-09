@@ -1,4 +1,5 @@
 use proxy_v2_models::{RequestInfo, WsConnectionEvent, WsMessageInfo};
+use proxyapi_v2::throttle::ThrottleConfig;
 use proxyapi_v2::upstream_proxy::UpstreamProxyConfig;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -72,6 +73,9 @@ pub enum ClientCommand {
     /// 스크립트 언로드
     #[serde(rename = "unload_script")]
     UnloadScript,
+    /// 스로틀링 설정 업데이트
+    #[serde(rename = "update_throttle")]
+    UpdateThrottle { config: Option<ThrottleConfig> },
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
