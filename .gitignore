@@ -66,3 +66,4 @@ c/
 licenses/
 perl/
 win32/
+desktop/src-tauri/openssl-bundle
