@@ -37,7 +37,10 @@
     "macOS": {
       "entitlements": null,
       "exceptionDomain": "",
-      "frameworks": [],
+      "frameworks": [
+        "frameworks/libssl.3.dylib",
+        "frameworks/libcrypto.3.dylib"
+      ],
       "providerShortName": null,
       "signingIdentity": null
     },
