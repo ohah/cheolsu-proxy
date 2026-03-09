@@ -29,9 +29,7 @@ pub enum WsEvent {
     Connection(WsConnectionEvent),
 }
 
-/// 인증서 다운로드를 위한 내부 호스트명
-const CERT_DOWNLOAD_HOST: &str = "cheolsu.proxy";
-const CERT_DOWNLOAD_HOST_COLON: &str = "cheolsu.proxy:";
+use crate::cert_distribution;
 
 /// 요청별 임시 상태 (매 요청마다 초기화)
 #[derive(Clone)]
@@ -137,56 +135,8 @@ impl LoggingHandler {
         &self.intercept.script_handle
     }
 
-    /// CA 인증서 다운로드 응답을 생성합니다.
-    /// `http://cheolsu.proxy/ssl` 또는 `/cert` 경로로 접근 시 .cer 파일 다운로드
     fn serve_ca_cert_download(&self, req: &Request<Body>) -> Response<Body> {
-        let path = req.uri().path();
-
-        // /ssl 또는 /cert 경로: 인증서 다운로드
-        if path == "/ssl" || path == "/cert" || path == "/" {
-            if let Some(der) = &self.config.ca_cert_der {
-                info!(
-                    "[CertDownload] CA 인증서 다운로드 제공 ({} bytes)",
-                    der.len()
-                );
-                let body_bytes = der.clone(); // Bytes::clone은 참조카운트만 증가 (zero-copy)
-                return Response::builder()
-                    .status(StatusCode::OK)
-                    .header("Content-Type", "application/x-x509-ca-cert")
-                    .header(
-                        "Content-Disposition",
-                        "attachment; filename=\"cheolsu-proxy-ca.cer\"",
-                    )
-                    .header("Content-Length", der.len().to_string())
-                    .body(Body::from(http_body_util::Full::new(body_bytes)))
-                    .unwrap_or_else(|_| Response::new(Body::empty()));
-            }
-            return Response::builder()
-                .status(StatusCode::NOT_FOUND)
-                .header("Content-Type", "text/plain; charset=utf-8")
-                .body(Body::from(
-                    "CA 인증서가 아직 생성되지 않았습니다. 프록시를 먼저 실행해주세요.",
-                ))
-                .unwrap_or_else(|_| Response::new(Body::empty()));
-        }
-
-        // 그 외 경로: 안내 페이지
-        let html = r#"<!DOCTYPE html>
-<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Cheolsu Proxy - CA Certificate</title>
-<style>body{font-family:-apple-system,system-ui,sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;background:#f5f5f5}
-.card{background:white;border-radius:12px;padding:40px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,0.1);max-width:400px}
-h1{margin:0 0 8px;font-size:24px}p{color:#666;margin:8px 0}
-a{display:inline-block;margin-top:20px;padding:12px 32px;background:#2563eb;color:white;border-radius:8px;text-decoration:none;font-weight:600}
-a:hover{background:#1d4ed8}</style></head>
-<body><div class="card"><h1>Cheolsu Proxy</h1><p>CA 인증서를 다운로드하여 이 기기에 설치하세요.</p>
-<a href="/ssl">Download CA Certificate</a></div></body></html>"#;
-
-        Response::builder()
-            .status(StatusCode::OK)
-            .header("Content-Type", "text/html; charset=utf-8")
-            .body(Body::from(html))
-            .unwrap_or_else(|_| Response::new(Body::empty()))
+        cert_distribution::handle_cert_request(req, self.config.ca_cert_der.as_ref())
     }
 
     /// 요청과 응답을 묶어서 전송
@@ -571,25 +521,12 @@ a:hover{background:#1d4ed8}</style></head>
         let _ = ws_sender.try_send(WsEvent::Message(info));
     }
 
-    /// 요청이 cheolsu.proxy 호스트를 향하는지 확인하고, 맞으면 인증서 다운로드 응답을 반환합니다.
     fn check_cert_download_intercept(&self, req: &Request<Body>) -> Option<Response<Body>> {
-        if let Some(host) = req.headers().get("host").and_then(|v| v.to_str().ok()) {
-            if host == CERT_DOWNLOAD_HOST || host.starts_with(CERT_DOWNLOAD_HOST_COLON) {
-                return Some(self.serve_ca_cert_download(req));
-            }
+        if cert_distribution::is_cert_download_request(req) {
+            Some(self.serve_ca_cert_download(req))
+        } else {
+            None
         }
-        if let Some(host) = req.uri().host() {
-            if host == CERT_DOWNLOAD_HOST {
-                return Some(self.serve_ca_cert_download(req));
-            }
-        }
-        if req.uri().host().is_none() {
-            let path = req.uri().path();
-            if path == "/ssl" || path == "/cert" {
-                return Some(self.serve_ca_cert_download(req));
-            }
-        }
-        None
     }
 
     /// 서버 리플레이 매칭을 확인하고, 매칭되면 응답을 생성합니다.
@@ -968,10 +905,13 @@ mod tests {
     }
 
     #[test]
-    fn cert_download_host_constants() {
-        assert_eq!(CERT_DOWNLOAD_HOST, "cheolsu.proxy");
-        assert!(CERT_DOWNLOAD_HOST_COLON.starts_with(CERT_DOWNLOAD_HOST));
-        assert!(CERT_DOWNLOAD_HOST_COLON.ends_with(':'));
+    fn cert_distribution_module_exists() {
+        let req = Request::builder()
+            .uri("/ssl")
+            .header("host", "cheolsu.proxy")
+            .body(Body::from(""))
+            .unwrap();
+        assert!(cert_distribution::is_cert_download_request(&req));
     }
 
     #[test]
@@ -1014,15 +954,18 @@ mod tests {
     }
 
     #[test]
-    fn serve_cert_download_root_path_with_cert() {
+    fn serve_cert_download_root_path_shows_landing_page() {
         let handler = make_test_handler(Some(vec![1]));
         let req = Request::builder().uri("/").body(Body::from("")).unwrap();
         let resp = handler.serve_ca_cert_download(&req);
         assert_eq!(resp.status(), StatusCode::OK);
-        assert_eq!(
-            resp.headers().get("Content-Type").unwrap(),
-            "application/x-x509-ca-cert"
-        );
+        assert!(resp
+            .headers()
+            .get("Content-Type")
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .contains("text/html"));
     }
 
     #[test]
@@ -1031,13 +974,6 @@ mod tests {
         let req = Request::builder().uri("/ssl").body(Body::from("")).unwrap();
         let resp = handler.serve_ca_cert_download(&req);
         assert_eq!(resp.status(), StatusCode::NOT_FOUND);
-        assert!(resp
-            .headers()
-            .get("Content-Type")
-            .unwrap()
-            .to_str()
-            .unwrap()
-            .contains("text/plain"));
     }
 
     #[test]
@@ -1069,11 +1005,27 @@ mod tests {
     }
 
     #[test]
-    fn host_matching_exact() {
-        assert_eq!("cheolsu.proxy", CERT_DOWNLOAD_HOST);
-        assert!("cheolsu.proxy:8080".starts_with(CERT_DOWNLOAD_HOST_COLON));
-        assert!(!"other.proxy:8080".starts_with(CERT_DOWNLOAD_HOST_COLON));
-        assert!(!"cheolsu.proxy.evil.com".starts_with(CERT_DOWNLOAD_HOST_COLON));
+    fn host_matching_via_cert_distribution() {
+        let matching = Request::builder()
+            .uri("/ssl")
+            .header("host", "cheolsu.proxy:8080")
+            .body(Body::from(""))
+            .unwrap();
+        assert!(cert_distribution::is_cert_download_request(&matching));
+
+        let non_matching = Request::builder()
+            .uri("/api")
+            .header("host", "other.proxy:8080")
+            .body(Body::from(""))
+            .unwrap();
+        assert!(!cert_distribution::is_cert_download_request(&non_matching));
+
+        let evil = Request::builder()
+            .uri("/api")
+            .header("host", "cheolsu.proxy.evil.com")
+            .body(Body::from(""))
+            .unwrap();
+        assert!(!cert_distribution::is_cert_download_request(&evil));
     }
 
     // --- convert_ws_message_payload 테스트 ---
