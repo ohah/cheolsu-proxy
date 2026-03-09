@@ -1,6 +1,5 @@
 use crate::proxy_v2::ProxyV2State;
-use std::sync::atomic::{AtomicU64, Ordering};
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::sync::atomic::{AtomicBool, Ordering};
 use tauri::image::Image;
 use tauri::menu::{MenuBuilder, MenuItemBuilder};
 use tauri::tray::TrayIconBuilder;
@@ -8,18 +7,11 @@ use tauri::{
     AppHandle, Manager, Position, Rect, Runtime, Size, State, WebviewUrl, WebviewWindowBuilder,
 };
 
-/// 마지막으로 패널을 show한 시각(ms) — 포커스 잃음 이벤트의 레이스 컨디션 방지용
-static LAST_SHOW_MS: AtomicU64 = AtomicU64::new(0);
-
-fn now_ms() -> u64 {
-    SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap_or_default()
-        .as_millis() as u64
-}
-
 const PANEL_WIDTH: f64 = 300.0;
 const PANEL_HEIGHT: f64 = 266.0;
+
+/// 트레이 클릭 중 포커스 잃음 이벤트를 무시하기 위한 플래그
+static SUPPRESS_FOCUS_LOST: AtomicBool = AtomicBool::new(false);
 
 /// 트레이 Rect에서 패널 위치를 계산하고 적절한 Position 타입으로 반환
 fn calc_panel_position(tray_rect: &Rect) -> Position {
@@ -54,50 +46,23 @@ fn calc_panel_position(tray_rect: &Rect) -> Position {
 }
 
 /// 트레이 패널 윈도우 토글 (좌클릭)
-/// 첫 클릭에서 생성, 이후에는 show/hide 토글
 fn toggle_tray_panel<R: Runtime>(app: &AppHandle<R>, tray_rect: Rect) {
-    let panel_pos = calc_panel_position(&tray_rect);
-
     if let Some(panel) = app.get_webview_window("tray-panel") {
-        // 이미 존재하면 show/hide 토글
         if panel.is_visible().unwrap_or(false) {
             let _ = panel.hide();
         } else {
-            LAST_SHOW_MS.store(now_ms(), Ordering::Relaxed);
+            let panel_pos = calc_panel_position(&tray_rect);
+            SUPPRESS_FOCUS_LOST.store(true, Ordering::Relaxed);
             let _ = panel.set_position(panel_pos);
             let _ = panel.show();
             let _ = panel.set_focus();
-        }
-    } else {
-        // 첫 클릭: 패널 생성
-        let (x, y) = match &panel_pos {
-            Position::Physical(p) => (p.x as f64, p.y as f64),
-            Position::Logical(p) => (p.x, p.y),
-        };
-        LAST_SHOW_MS.store(now_ms(), Ordering::Relaxed);
-        if let Ok(panel) =
-            WebviewWindowBuilder::new(app, "tray-panel", WebviewUrl::App("/tray.html".into()))
-                .title("Cheolsu Proxy")
-                .inner_size(PANEL_WIDTH, PANEL_HEIGHT)
-                .position(x, y)
-                .resizable(false)
-                .maximizable(false)
-                .minimizable(false)
-                .closable(false)
-                .decorations(false)
-                .always_on_top(true)
-                .skip_taskbar(true)
-                .focused(true)
-                .visible(true)
-                .build()
-        {
-            // 포커스 잃으면 숨기기 (show 직후 300ms 이내는 무시 — 트레이 클릭 레이스 컨디션 방지)
-            let panel_clone = panel.clone();
-            panel.on_window_event(move |event| {
-                if let tauri::WindowEvent::Focused(false) = event {
-                    let elapsed = now_ms() - LAST_SHOW_MS.load(Ordering::Relaxed);
-                    if elapsed > 300 {
-                        let _ = panel_clone.hide();
+            let app_clone = app.clone();
+            std::thread::spawn(move || {
+                std::thread::sleep(std::time::Duration::from_millis(500));
+                SUPPRESS_FOCUS_LOST.store(false, Ordering::Relaxed);
+                if let Some(panel) = app_clone.get_webview_window("tray-panel") {
+                    if !panel.is_focused().unwrap_or(true) {
+                        let _ = panel.hide();
                     }
                 }
             });
@@ -105,8 +70,38 @@ fn toggle_tray_panel<R: Runtime>(app: &AppHandle<R>, tray_rect: Rect) {
     }
 }
 
+/// 앱 시작 시 트레이 패널을 hidden 상태로 미리 생성
+fn precreate_tray_panel(app: &tauri::App) {
+    if let Ok(panel) =
+        WebviewWindowBuilder::new(app, "tray-panel", WebviewUrl::App("/tray.html".into()))
+            .title("Cheolsu Proxy")
+            .inner_size(PANEL_WIDTH, PANEL_HEIGHT)
+            .resizable(false)
+            .maximizable(false)
+            .minimizable(false)
+            .closable(false)
+            .decorations(false)
+            .always_on_top(true)
+            .skip_taskbar(true)
+            .focused(false)
+            .visible(false)
+            .build()
+    {
+        let panel_clone = panel.clone();
+        panel.on_window_event(move |event| {
+            if let tauri::WindowEvent::Focused(false) = event {
+                if !SUPPRESS_FOCUS_LOST.load(Ordering::Relaxed) {
+                    let _ = panel_clone.hide();
+                }
+            }
+        });
+    }
+}
+
 /// 시스템 트레이 설정
 pub fn setup_tray(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
+    precreate_tray_panel(app);
+
     let tray_icon = Image::from_bytes(include_bytes!("../icons/tray-icon.png"))?;
 
     let show_item = MenuItemBuilder::with_id("show", "메인 창 열기").build(app)?;
