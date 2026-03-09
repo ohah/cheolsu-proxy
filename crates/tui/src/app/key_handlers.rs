@@ -39,6 +39,12 @@ impl App {
             return;
         }
 
+        // If host mapping form is open, handle it
+        if self.tab == Tab::Settings && self.host_mapping_form.is_some() {
+            self.handle_settings_key(key).await;
+            return;
+        }
+
         // If upstream proxy form is in editing mode, handle it
         if self.tab == Tab::Settings && self.upstream_form.editing {
             self.handle_settings_key(key).await;
@@ -634,10 +640,17 @@ impl App {
     async fn handle_settings_key(&mut self, key: KeyEvent) {
         use super::forms::{SettingsSection, ThrottleField, UpstreamProxyField};
 
+        // Host Mapping form is open: handle it
+        if self.host_mapping_form.is_some() {
+            self.handle_host_mapping_form_key(key).await;
+            return;
+        }
+
         // Text editing mode (upstream or throttle)
         let is_editing = match self.settings_section {
             SettingsSection::UpstreamProxy => self.upstream_form.editing,
             SettingsSection::Throttle => self.throttle_form.editing,
+            SettingsSection::HostMapping => false,
         };
 
         if is_editing {
@@ -707,6 +720,9 @@ impl App {
                         _ => {}
                     }
                 }
+                SettingsSection::HostMapping => {
+                    // HostMapping은 editing 모드가 없음 (폼으로 처리)
+                }
             }
             return;
         }
@@ -728,6 +744,16 @@ impl App {
                 SettingsSection::Throttle => {
                     self.throttle_form.field = self.throttle_form.field.prev();
                 }
+                SettingsSection::HostMapping => {
+                    let len = self.host_mappings.len();
+                    if len > 0 {
+                        if let Some(ref mut idx) = self.selected_host_mapping {
+                            *idx = idx.saturating_sub(1);
+                        } else {
+                            self.selected_host_mapping = Some(len.saturating_sub(1));
+                        }
+                    }
+                }
             },
             KeyCode::Down | KeyCode::Char('j') => match self.settings_section {
                 SettingsSection::UpstreamProxy => {
@@ -735,6 +761,18 @@ impl App {
                 }
                 SettingsSection::Throttle => {
                     self.throttle_form.field = self.throttle_form.field.next();
+                }
+                SettingsSection::HostMapping => {
+                    let len = self.host_mappings.len();
+                    if len > 0 {
+                        if let Some(ref mut idx) = self.selected_host_mapping {
+                            if *idx + 1 < len {
+                                *idx += 1;
+                            }
+                        } else {
+                            self.selected_host_mapping = Some(0);
+                        }
+                    }
                 }
             },
             KeyCode::Enter | KeyCode::Char(' ') => match self.settings_section {
@@ -759,7 +797,35 @@ impl App {
                         self.throttle_form.editing = true;
                     }
                 },
+                SettingsSection::HostMapping => {}
             },
+            // Host Mapping: a=add, d=delete, t=toggle
+            KeyCode::Char('a') if self.settings_section == SettingsSection::HostMapping => {
+                self.host_mapping_form = Some(super::forms::HostMappingForm::new());
+            }
+            KeyCode::Char('d') | KeyCode::Delete
+                if self.settings_section == SettingsSection::HostMapping =>
+            {
+                if let Some(idx) = self.selected_host_mapping {
+                    if idx < self.host_mappings.len() {
+                        self.host_mappings.remove(idx);
+                        if self.host_mappings.is_empty() {
+                            self.selected_host_mapping = None;
+                        } else if idx >= self.host_mappings.len() {
+                            self.selected_host_mapping = Some(self.host_mappings.len() - 1);
+                        }
+                        self.send_host_mappings_update().await;
+                    }
+                }
+            }
+            KeyCode::Char('t') if self.settings_section == SettingsSection::HostMapping => {
+                if let Some(idx) = self.selected_host_mapping {
+                    if idx < self.host_mappings.len() {
+                        self.host_mappings[idx].enabled = !self.host_mappings[idx].enabled;
+                        self.send_host_mappings_update().await;
+                    }
+                }
+            }
             KeyCode::Left => {
                 if self.settings_section == SettingsSection::Throttle
                     && self.throttle_form.field == ThrottleField::Preset
@@ -823,6 +889,61 @@ impl App {
             }
             KeyCode::Backspace => {
                 self.session_load_path_input.pop();
+
+    async fn handle_host_mapping_form_key(&mut self, key: KeyEvent) {
+        use super::forms::HostMappingField;
+
+        let Some(form) = self.host_mapping_form.as_mut() else {
+            return;
+        };
+
+        match key.code {
+            KeyCode::Esc => {
+                self.host_mapping_form = None;
+            }
+            KeyCode::Tab => {
+                form.field = form.field.next();
+            }
+            KeyCode::BackTab => {
+                form.field = form.field.prev();
+            }
+            KeyCode::Enter => {
+                if let Some(mapping) = form.to_mapping() {
+                    self.host_mappings.push(mapping);
+                    self.send_host_mappings_update().await;
+                    self.set_status("Host mapping added");
+                    self.host_mapping_form = None;
+                } else {
+                    self.set_status("Source host and target host are required");
+                }
+            }
+            KeyCode::Char(c) => {
+                let field = match form.field {
+                    HostMappingField::SourceHost => &mut form.source_host,
+                    HostMappingField::SourcePort => &mut form.source_port,
+                    HostMappingField::TargetHost => &mut form.target_host,
+                    HostMappingField::TargetPort => &mut form.target_port,
+                };
+                // 포트 필드는 숫자만 허용
+                match form.field {
+                    HostMappingField::SourcePort | HostMappingField::TargetPort => {
+                        if c.is_ascii_digit() {
+                            field.push(c);
+                        }
+                    }
+                    _ => {
+                        field.push(c);
+                    }
+                }
+            }
+            KeyCode::Backspace => {
+                let field = match form.field {
+                    HostMappingField::SourceHost => &mut form.source_host,
+                    HostMappingField::SourcePort => &mut form.source_port,
+                    HostMappingField::TargetHost => &mut form.target_host,
+                    HostMappingField::TargetPort => &mut form.target_port,
+                };
+                field.pop();
             }
             _ => {}
         }
