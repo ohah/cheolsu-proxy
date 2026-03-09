@@ -15,6 +15,17 @@ import {
   updateThrottle,
   type ThrottleConfig,
 } from "@/shared/api/proxy";
+import { register, unregister, isRegistered } from "@tauri-apps/plugin-global-shortcut";
+import { useProxyStore } from "@/shared/stores";
+import { startProxyV2, stopProxyV2 } from "@/shared/api/proxy";
+import { trayStore } from "@/shared/stores/tray-sync-store";
+import { toast } from "sonner";
+import {
+  getStoredShortcut,
+  setStoredShortcut,
+  getShortcutEnabled,
+  setShortcutEnabled,
+} from "@/hooks/use-global-shortcut";
 import {
   Button,
   Input,
@@ -112,6 +123,91 @@ export function SettingsPage() {
   const [caInstalling, setCaInstalling] = useState(false);
   const [caMessage, setCaMessage] = useState("");
   const [caCertPath, setCaCertPath] = useState("");
+
+  // Global Shortcut state
+  const [hotkeyEnabled, setHotkeyEnabled] = useState(() => getShortcutEnabled());
+  const [hotkey, setHotkey] = useState(() => getStoredShortcut());
+  const [isRecording, setIsRecording] = useState(false);
+  const [hotkeyStatus, setHotkeyStatus] = useState<"idle" | "saved" | "error">("idle");
+
+  const handleHotkeyRecord = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (!isRecording) return;
+      e.preventDefault();
+      e.stopPropagation();
+
+      const parts: string[] = [];
+      if (e.metaKey || e.ctrlKey) parts.push("CommandOrControl");
+      if (e.altKey) parts.push("Alt");
+      if (e.shiftKey) parts.push("Shift");
+
+      const key = e.key;
+      // modifier 키만 누른 경우 무시
+      if (["Control", "Meta", "Alt", "Shift"].includes(key)) return;
+
+      // 알파벳/숫자/F키 등
+      let keyName = key;
+      if (key.length === 1) {
+        keyName = key.toUpperCase();
+      } else if (key === " ") {
+        keyName = "Space";
+      }
+
+      parts.push(keyName);
+      if (parts.length >= 2) {
+        setHotkey(parts.join("+"));
+        setIsRecording(false);
+      }
+    },
+    [isRecording],
+  );
+
+  const handleHotkeySave = useCallback(async () => {
+    try {
+      // 기존 단축키 해제
+      const oldShortcut = getStoredShortcut();
+      try {
+        const wasRegistered = await isRegistered(oldShortcut);
+        if (wasRegistered) await unregister(oldShortcut);
+      } catch {
+        // 무시
+      }
+
+      setStoredShortcut(hotkey);
+      setShortcutEnabled(hotkeyEnabled);
+
+      if (hotkeyEnabled) {
+        await register(hotkey, async (event) => {
+          if (event.state === "Pressed") {
+            const { isConnected, port } = useProxyStore.getState();
+            try {
+              if (isConnected) {
+                await stopProxyV2();
+                useProxyStore.getState().setConnected(false);
+                await trayStore.set("proxyConnected", false);
+                await trayStore.save();
+                toast.info("Proxy stopped");
+              } else {
+                await startProxyV2(port);
+                useProxyStore.getState().setConnected(true);
+                await trayStore.set("proxyConnected", true);
+                await trayStore.save();
+                toast.success("Proxy started");
+              }
+            } catch {
+              toast.error("Proxy toggle failed");
+            }
+          }
+        });
+      }
+
+      setHotkeyStatus("saved");
+      setTimeout(() => setHotkeyStatus("idle"), 2000);
+    } catch (e) {
+      console.error("Failed to save hotkey:", e);
+      setHotkeyStatus("error");
+    }
+  }, [hotkey, hotkeyEnabled]);
 
   // Throttle state
   const [throttleEnabled, setThrottleEnabled] = useState(false);
@@ -450,6 +546,75 @@ export function SettingsPage() {
           {cliMessage && <p className="text-xs text-muted-foreground">{cliMessage}</p>}
         </div>
 
+        {/* Global Shortcut Section */}
+        <div className="border rounded-lg p-5 space-y-5">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold">
+                <Trans>Global Shortcut</Trans>
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                <Trans>Toggle proxy on/off with a global keyboard shortcut</Trans>
+              </p>
+            </div>
+            <Switch
+              checked={hotkeyEnabled}
+              onCheckedChange={(checked) => {
+                setHotkeyEnabled(checked);
+              }}
+            />
+          </div>
+
+          {hotkeyEnabled && (
+            <div className="space-y-3 pt-2">
+              <div>
+                <label className="text-sm font-medium mb-1.5 block">
+                  <Trans>Shortcut Key</Trans>
+                </label>
+                <div className="flex gap-3 items-center">
+                  <div
+                    tabIndex={0}
+                    role="button"
+                    className={`flex-1 h-9 px-3 border rounded-md flex items-center text-sm cursor-pointer focus:outline-none ${
+                      isRecording
+                        ? "border-primary ring-2 ring-primary/30 text-muted-foreground"
+                        : "bg-background"
+                    }`}
+                    onKeyDown={handleHotkeyRecord}
+                    onClick={() => setIsRecording(true)}
+                    onBlur={() => setIsRecording(false)}
+                  >
+                    {isRecording ? (
+                      <span className="text-muted-foreground">
+                        <Trans>Press a key combination...</Trans>
+                      </span>
+                    ) : (
+                      <ShortcutDisplay shortcut={hotkey} />
+                    )}
+                  </div>
+                  <Button variant="outline" size="sm" onClick={() => setIsRecording(!isRecording)}>
+                    {isRecording ? t`Cancel` : t`Change`}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="flex items-center gap-3 pt-2">
+            <Button onClick={handleHotkeySave}>{t`Save`}</Button>
+            {hotkeyStatus === "saved" && (
+              <Badge variant="outline" className="text-green-600 border-green-600">
+                <Trans>Saved</Trans>
+              </Badge>
+            )}
+            {hotkeyStatus === "error" && (
+              <Badge variant="outline" className="text-red-600 border-red-600">
+                <Trans>Failed to register shortcut</Trans>
+              </Badge>
+            )}
+          </div>
+        </div>
+
         {/* Network Throttling Section */}
         <div className="border rounded-lg p-5 space-y-5">
           <div className="flex items-center justify-between">
@@ -656,6 +821,34 @@ export function SettingsPage() {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function ShortcutDisplay({ shortcut }: { shortcut: string }) {
+  const parts = shortcut.split("+").map((part) => {
+    switch (part) {
+      case "CommandOrControl":
+        return navigator.platform.includes("Mac") ? "\u2318" : "Ctrl";
+      case "Shift":
+        return "\u21E7";
+      case "Alt":
+        return navigator.platform.includes("Mac") ? "\u2325" : "Alt";
+      case "Space":
+        return "Space";
+      default:
+        return part;
+    }
+  });
+
+  return (
+    <div className="flex items-center gap-1">
+      {parts.map((part, i) => (
+        <span key={i}>
+          {i > 0 && <span className="text-muted-foreground mx-0.5">+</span>}
+          <kbd className="px-1.5 py-0.5 bg-muted border rounded text-xs font-mono">{part}</kbd>
+        </span>
+      ))}
     </div>
   );
 }
