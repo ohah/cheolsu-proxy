@@ -123,13 +123,18 @@ impl LoggingHandler {
                     // Content-Type 설정
                     if !body.is_empty() {
                         if body.starts_with('{') || body.starts_with('[') {
-                            response
-                                .headers_mut()
-                                .insert("content-type", "application/json".parse().unwrap_or_else(|_| HeaderValue::from_static("application/json")));
+                            response.headers_mut().insert(
+                                "content-type",
+                                "application/json".parse().unwrap_or_else(|_| {
+                                    HeaderValue::from_static("application/json")
+                                }),
+                            );
                         } else {
                             response.headers_mut().insert(
                                 "content-type",
-                                "text/plain; charset=utf-8".parse().unwrap_or_else(|_| HeaderValue::from_static("text/plain; charset=utf-8")),
+                                "text/plain; charset=utf-8".parse().unwrap_or_else(|_| {
+                                    HeaderValue::from_static("text/plain; charset=utf-8")
+                                }),
                             );
                         }
                     }
@@ -277,7 +282,8 @@ impl LoggingHandler {
                             .insert("x-cheolsu-intercepted", HeaderValue::from_static("true"));
                         current_req.headers_mut().insert(
                             "x-cheolsu-map-remote-original",
-                            url.parse().unwrap_or_else(|_| HeaderValue::from_static("unknown")),
+                            url.parse()
+                                .unwrap_or_else(|_| HeaderValue::from_static("unknown")),
                         );
                     } else {
                         error!("[Intercept] Map Remote URL 파싱 실패: {}", new_url);
