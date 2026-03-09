@@ -5,15 +5,28 @@ use ratatui::widgets::*;
 use crate::app::{App, SettingsSection, ThrottleField, ThrottlePresetChoice, UpstreamProxyField};
 
 pub fn draw(f: &mut Frame, app: &App, area: Rect) {
+    // QR 코드 높이를 동적으로 계산
+    let primary_ip = app
+        .local_ips
+        .first()
+        .cloned()
+        .unwrap_or_else(|| "127.0.0.1".to_string());
+    let qr_url = format!("http://{}:{}/ssl", primary_ip, app.port);
+    let qr_height = if app.connected {
+        qr_widget_height(&qr_url)
+    } else {
+        5
+    };
+
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
-            Constraint::Length(10), // Proxy info
-            Constraint::Length(5),  // CA certificate
-            Constraint::Length(20), // Remote device cert (QR code)
-            Constraint::Length(3),  // Section tabs
-            Constraint::Length(12), // Form (upstream or throttle)
-            Constraint::Min(0),     // Keybindings
+            Constraint::Length(10),        // Proxy info
+            Constraint::Length(5),         // CA certificate
+            Constraint::Length(qr_height), // Remote device cert (QR code)
+            Constraint::Length(3),         // Section tabs
+            Constraint::Length(12),        // Form (upstream or throttle)
+            Constraint::Min(0),            // Keybindings
         ])
         .split(area);
 
@@ -261,14 +274,25 @@ fn draw_remote_device_cert(f: &mut Frame, app: &App, area: Rect) {
     f.render_widget(info_paragraph, h_chunks[1]);
 }
 
-/// QR 코드 위젯의 필요 너비를 계산합니다 (반블록 문자 사용 시 width = modules + 2 quiet zone).
+/// QR 코드의 모듈 수를 반환합니다.
+fn qr_modules(data: &str) -> Option<usize> {
+    QrCode::with_error_correction_level(data, qrcode::EcLevel::H)
+        .ok()
+        .map(|code| code.width())
+}
+
+/// QR 코드 위젯의 필요 너비를 계산합니다 (반블록 문자 사용 시 width = modules + 4 quiet zone + 1 spacing).
 fn qr_widget_width(data: &str) -> u16 {
-    if let Ok(code) = QrCode::with_error_correction_level(data, qrcode::EcLevel::H) {
-        // +2 for quiet zone on each side, +1 for spacing
-        (code.width() + 4 + 1) as u16
-    } else {
-        0
-    }
+    qr_modules(data).map_or(0, |w| (w + 4 + 1) as u16)
+}
+
+/// QR 코드 위젯의 필요 높이를 계산합니다 (반블록: 2행→1줄, +2 border).
+fn qr_widget_height(data: &str) -> u16 {
+    qr_modules(data).map_or(5, |w| {
+        let total = w + 4; // quiet zone 포함
+        let lines = (total + 1) / 2; // 반블록이므로 2행→1줄
+        (lines + 2) as u16 // +2 for border
+    })
 }
 
 /// QR 코드를 유니코드 반블록 문자(▀▄█)로 렌더링합니다.
