@@ -24,8 +24,8 @@ export const setupAutoCompleteTriggers = (editor: editor.IStandaloneCodeEditor):
 
 const shouldTriggerAutoComplete = (text: string): boolean => {
   return (
-    /(method|methods|status|url)$/.test(text) ||
-    /(=|\|=|\|~|!=|!~)"$/.test(text) ||
+    /(method|methods|status|url)\s*$/.test(text) ||
+    /(=|\|=|\|~|!=|!~)\s*"$/.test(text) ||
     /"[^"]*,$/.test(text)
   );
 };

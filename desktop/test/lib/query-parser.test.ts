@@ -117,4 +117,45 @@ describe("parseFilterQuery", () => {
     const result = parseFilterQuery('method="GET , POST"');
     expect(result.methods).toEqual(["GET", "POST"]);
   });
+
+  // --- 연산자 공백 재현 테스트 ---
+
+  describe("연산자와 키워드 사이 공백 처리", () => {
+    test("키워드와 연산자 사이 공백: method =\"GET\"", () => {
+      const result = parseFilterQuery('method ="GET"');
+      expect(result.methods).toEqual(["GET"]);
+    });
+
+    test("연산자와 값 사이 공백: method= \"GET\"", () => {
+      const result = parseFilterQuery('method= "GET"');
+      expect(result.methods).toEqual(["GET"]);
+    });
+
+    test("양쪽 모두 공백: method = \"GET\"", () => {
+      const result = parseFilterQuery('method = "GET"');
+      expect(result.methods).toEqual(["GET"]);
+    });
+
+    test("!= 연산자 공백: method != \"OPTIONS\"", () => {
+      const result = parseFilterQuery('method != "OPTIONS"');
+      expect(result.excludeMethods).toEqual(["OPTIONS"]);
+    });
+
+    test("|= 연산자 공백: url |= \"api\"", () => {
+      const result = parseFilterQuery('url |= "api"');
+      expect(result.urls).toEqual(["api"]);
+    });
+
+    test("혼합 필터에서 공백: method = \"GET\" status = \"2xx\"", () => {
+      const result = parseFilterQuery('method = "GET" status = "2xx"');
+      expect(result.methods).toEqual(["GET"]);
+      expect(result.status).toEqual(["2xx"]);
+    });
+
+    test("공백 있는 것과 없는 것 혼합: method=\"GET\" status = \"2xx\"", () => {
+      const result = parseFilterQuery('method="GET" status = "2xx"');
+      expect(result.methods).toEqual(["GET"]);
+      expect(result.status).toEqual(["2xx"]);
+    });
+  });
 });
