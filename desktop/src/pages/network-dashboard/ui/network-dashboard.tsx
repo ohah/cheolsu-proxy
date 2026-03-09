@@ -6,6 +6,7 @@ import { TransactionDetails, SequenceReplayDialog } from "@/features/transaction
 import { buildHarLog } from "@/features/har-export";
 import { QueryFilterEditor } from "@/features/query-filter-editor";
 import { RuleFormDialog } from "@/features/intercept-rule-form";
+import { DiffView } from "@/features/traffic-diff";
 
 import { NetworkHeader } from "@/widgets/network-header";
 import { NetworkTable } from "@/widgets/network-table";
@@ -13,7 +14,14 @@ import { HostPathTree } from "@/widgets/host-path-tree";
 
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup, Button } from "@/shared/ui";
 import { useDefaultLayout } from "react-resizable-panels";
-import { Play, X } from "lucide-react";
+import { Play, X, GitCompareArrows } from "lucide-react";
+
+import type { HttpTransaction } from "@/entities/proxy";
+import {
+  diffTransactionPairs,
+  type DiffTransactionPair,
+  type TrafficDiff,
+} from "@/shared/api/proxy";
 
 import { useTransactionFilters, useResizablePanelController } from "../hooks";
 import { useTransactionStore, useInterceptRuleDialogStore } from "@/shared/stores";
@@ -54,6 +62,8 @@ export const NetworkDashboard = () => {
 
   const [sequenceReplayOpen, setSequenceReplayOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [diffResult, setDiffResult] = useState<TrafficDiff | null>(null);
+  const [diffLoading, setDiffLoading] = useState(false);
 
   const handleExportHar = useCallback(async () => {
     if (filteredTransactions.length === 0 || exporting) return;
@@ -131,6 +141,51 @@ export const NetworkDashboard = () => {
     () => transactions.filter((t) => t.request?.id && checkedTransactionIds.has(t.request.id)),
     [transactions, checkedTransactionIds],
   );
+
+  const canCompare = checkedTransactionIds.size === 2;
+
+  const handleCompare = useCallback(async () => {
+    if (!canCompare || diffLoading) return;
+
+    const checked = checkedTransactions;
+    if (checked.length !== 2) return;
+
+    const toPair = (tx: HttpTransaction): DiffTransactionPair => {
+      const req = tx.request;
+      const res = tx.response;
+      return {
+        request: req
+          ? {
+              method: req.method,
+              uri: req.uri,
+              headers: Object.entries(req.headers ?? {}),
+              body: req.body_json != null ? JSON.stringify(req.body_json) : undefined,
+              body_size: req.body_size ?? 0,
+              data_type: req.data_type,
+            }
+          : undefined,
+        response: res
+          ? {
+              status: res.status,
+              headers: Object.entries(res.headers ?? {}),
+              body: res.body_json != null ? JSON.stringify(res.body_json) : undefined,
+              body_size: res.body_size ?? 0,
+              data_type: res.data_type,
+            }
+          : undefined,
+      };
+    };
+
+    try {
+      setDiffLoading(true);
+      const result = await diffTransactionPairs(toPair(checked[0]), toPair(checked[1]));
+      setDiffResult(result);
+    } catch (err) {
+      console.error("Diff failed:", err);
+    } finally {
+      setDiffLoading(false);
+    }
+  }, [canCompare, diffLoading, checkedTransactions]);
 
   return (
     <>
@@ -223,6 +278,17 @@ export const NetworkDashboard = () => {
                 <Play className="w-4 h-4 mr-1" />
                 Replay
               </Button>
+              {canCompare && (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={handleCompare}
+                  disabled={diffLoading}
+                >
+                  <GitCompareArrows className="w-4 h-4 mr-1" />
+                  {diffLoading ? "Comparing..." : "Compare"}
+                </Button>
+              )}
               <Button
                 size="sm"
                 variant="ghost"
@@ -231,6 +297,12 @@ export const NetworkDashboard = () => {
               >
                 <X className="w-4 h-4" />
               </Button>
+            </div>
+          )}
+
+          {diffResult && (
+            <div className="absolute inset-0 z-20 bg-background border rounded-lg shadow-xl overflow-hidden">
+              <DiffView diff={diffResult} onClose={() => setDiffResult(null)} />
             </div>
           )}
         </div>
