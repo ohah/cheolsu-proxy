@@ -15,6 +15,9 @@ pub async fn try_connect_daemon(store: &Store) -> Option<DaemonConnection> {
         DaemonMessage::InterceptRulesUpdated { rules } => {
             *store.rules.lock() = rules;
         }
+        DaemonMessage::BreakpointRulesUpdated { rules } => {
+            *store.breakpoint_rules.lock() = rules;
+        }
         _ => {}
     })
     .await

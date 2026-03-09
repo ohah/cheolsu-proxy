@@ -2,7 +2,7 @@ use std::collections::VecDeque;
 use std::sync::Arc;
 
 use parking_lot::Mutex;
-use proxy_daemon::InterceptRule;
+use proxy_daemon::{BreakpointRule, InterceptRule};
 use proxy_v2_models::{RequestInfo, WsConnectionEvent, WsMessageInfo};
 
 pub const MAX_TRANSACTIONS: usize = 1000;
@@ -14,6 +14,7 @@ pub struct Store {
     pub ws_messages: Arc<Mutex<VecDeque<WsMessageInfo>>>,
     pub ws_connections: Arc<Mutex<Vec<WsConnectionEvent>>>,
     pub rules: Arc<Mutex<Vec<InterceptRule>>>,
+    pub breakpoint_rules: Arc<Mutex<Vec<BreakpointRule>>>,
 }
 
 impl Store {
@@ -23,6 +24,7 @@ impl Store {
             ws_messages: Arc::new(Mutex::new(VecDeque::with_capacity(MAX_WS_MESSAGES))),
             ws_connections: Arc::new(Mutex::new(Vec::new())),
             rules: Arc::new(Mutex::new(Vec::new())),
+            breakpoint_rules: Arc::new(Mutex::new(Vec::new())),
         }
     }
 

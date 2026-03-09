@@ -93,3 +93,33 @@ pub(crate) struct DiffTransactionsParams {
     /// Second transaction ID (from search_traffic results)
     pub(crate) transaction_id_b: String,
 }
+
+#[derive(Debug, Deserialize, schemars::JsonSchema)]
+pub(crate) struct AddBreakpointParams {
+    /// URL pattern with wildcards (e.g., *.example.com/api/*)
+    pub(crate) pattern: String,
+    /// Break on request (default: true)
+    pub(crate) break_on_request: Option<bool>,
+    /// Break on response (default: false)
+    pub(crate) break_on_response: Option<bool>,
+}
+
+#[derive(Debug, Deserialize, schemars::JsonSchema)]
+pub(crate) struct RemoveBreakpointParams {
+    /// Breakpoint rule ID to remove
+    pub(crate) id: String,
+}
+
+#[derive(Debug, Deserialize, schemars::JsonSchema)]
+pub(crate) struct ResolveBreakpointParams {
+    /// Breakpoint ID to resolve (from list_pending_breakpoints)
+    pub(crate) id: String,
+    /// Action: "forward", "modify_and_forward", "drop", "abort"
+    pub(crate) action: String,
+    /// Headers to set (for modify_and_forward)
+    pub(crate) headers: Option<HashMap<String, String>>,
+    /// Body to set (for modify_and_forward)
+    pub(crate) body: Option<String>,
+    /// Status code to set (for modify_and_forward, response only)
+    pub(crate) status: Option<u16>,
+}

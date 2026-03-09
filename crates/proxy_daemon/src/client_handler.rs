@@ -4,7 +4,10 @@ use tokio::net::UnixStream;
 use tokio::sync::{broadcast, watch, Mutex};
 use tracing::{error, info, warn};
 
-use crate::protocol::{ClientCommand, DaemonMessage, InterceptRule, ServerReplayEntry};
+use crate::breakpoint::BreakpointManager;
+use crate::protocol::{
+    BreakpointRule, ClientCommand, DaemonMessage, InterceptRule, ServerReplayEntry,
+};
 use proxyapi_v2::throttle::ThrottleConfig;
 use proxyapi_v2::upstream_proxy::UpstreamProxyConfig;
 use proxyapi_v2::websocket_registry::WebSocketRegistry;
@@ -16,6 +19,8 @@ pub async fn handle_client(
     upstream_tx: watch::Sender<Option<UpstreamProxyConfig>>,
     server_replay_tx: watch::Sender<Vec<ServerReplayEntry>>,
     throttle_tx: watch::Sender<Option<ThrottleConfig>>,
+    breakpoint_tx: watch::Sender<Vec<BreakpointRule>>,
+    breakpoint_manager: BreakpointManager,
     event_tx: broadcast::Sender<String>,
     port: u16,
     ws_registry: WebSocketRegistry,
@@ -282,6 +287,25 @@ pub async fn handle_client(
                         let mut w = writer.lock().await;
                         let _ = w.write_all(line.as_bytes()).await;
                         let _ = w.flush().await;
+                    }
+                    Ok(ClientCommand::UpdateBreakpointRules { rules }) => {
+                        info!(
+                            "Breakpoint rules updated from client: {} rules",
+                            rules.len()
+                        );
+                        let broadcast_msg = DaemonMessage::BreakpointRulesUpdated {
+                            rules: rules.clone(),
+                        };
+                        if let Ok(json) = serde_json::to_string(&broadcast_msg) {
+                            let _ = event_tx.send(json);
+                        }
+                        let _ = breakpoint_tx.send(rules);
+                    }
+                    Ok(ClientCommand::ResolveBreakpoint { id, action }) => {
+                        info!("Resolving breakpoint: {} -> {:?}", id, action);
+                        if let Err(e) = breakpoint_manager.resolve(&id, action).await {
+                            warn!("Failed to resolve breakpoint: {}", e);
+                        }
                     }
                     Ok(ClientCommand::Stop) => {
                         break;
