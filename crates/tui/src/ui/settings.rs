@@ -13,7 +13,8 @@ pub fn draw(f: &mut Frame, app: &App, area: Rect) {
         .unwrap_or_else(|| "127.0.0.1".to_string());
     let qr_url = format!("http://{}:{}/ssl", primary_ip, app.port);
     let qr_height = if app.connected {
-        qr_widget_height(&qr_url)
+        // QR 코드 높이와 우측 텍스트 높이(12줄 + 2 border) 중 큰 값 사용
+        qr_widget_height(&qr_url).max(14)
     } else {
         5
     };
@@ -262,11 +263,24 @@ fn draw_remote_device_cert(f: &mut Frame, app: &App, area: Rect) {
         Style::default().fg(Color::DarkGray),
     )));
     info_lines.push(Line::from(Span::styled(
-        "2) Scan QR or open URL",
+        "2) Scan QR or open URL in mobile browser",
         Style::default().fg(Color::DarkGray),
     )));
     info_lines.push(Line::from(Span::styled(
         "3) Install & trust certificate",
+        Style::default().fg(Color::DarkGray),
+    )));
+    info_lines.push(Line::from(""));
+    info_lines.push(Line::from(vec![
+        Span::styled("Downloads: ", Style::default().fg(Color::Yellow)),
+        Span::styled("/ssl/pem", Style::default().fg(Color::Cyan)),
+        Span::styled(" (iOS)  ", Style::default().fg(Color::DarkGray)),
+        Span::styled("/ssl/der", Style::default().fg(Color::Cyan)),
+        Span::styled(" (Android)  ", Style::default().fg(Color::DarkGray)),
+        Span::styled("/ssl/ca.crt", Style::default().fg(Color::Cyan)),
+    ]));
+    info_lines.push(Line::from(Span::styled(
+        "iOS: .pem / Android: .der — auto-detected by device",
         Style::default().fg(Color::DarkGray),
     )));
 
