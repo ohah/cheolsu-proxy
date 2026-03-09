@@ -4,14 +4,21 @@ use ratatui::widgets::*;
 
 use crate::app::{App, SettingsSection, ThrottleField, ThrottlePresetChoice, UpstreamProxyField};
 
-/// "CP" 로고 비트맵 (5x3) — QR 코드 중앙에 오버레이
-const LOGO_BITMAP: [[bool; 5]; 3] = [
-    [true, true, false, true, true],   // ██ ██
-    [true, false, false, true, false], // █  █
-    [true, true, false, true, false],  // ██ █
+/// 청자 항아리 로고 비트맵 (7x9) — QR 코드 중앙에 오버레이
+/// 에러 보정 레벨 H(30%)로 스캔 가능
+const LOGO_BITMAP: [[bool; 7]; 9] = [
+    [false, false, true, true, true, false, false], //   ███
+    [false, true, true, true, true, true, false],   //  █████
+    [false, true, false, true, false, true, false], //  █ █ █  (학 날개)
+    [true, true, false, true, false, true, true],   // ██ █ ██
+    [true, true, true, true, true, true, true],     // ███████
+    [true, true, true, true, true, true, true],     // ███████
+    [false, true, true, true, true, true, false],   //  █████
+    [false, false, true, true, true, false, false], //   ███
+    [false, false, false, true, false, false, false], //    █   (받침)
 ];
-const LOGO_WIDTH: usize = 5;
-const LOGO_HEIGHT: usize = 3;
+const LOGO_WIDTH: usize = 7;
+const LOGO_HEIGHT: usize = 9;
 
 pub fn draw(f: &mut Frame, app: &App, area: Rect) {
     let chunks = Layout::default()
