@@ -22,7 +22,8 @@ import {
   setShortcutEnabled,
   registerShortcut,
   unregisterShortcut,
-} from "@/hooks/use-global-shortcut";
+} from "@/shared/lib/global-shortcut";
+import { toggleProxy } from "@/features/proxy-toggle";
 import { platform } from "@tauri-apps/plugin-os";
 import {
   Button,
@@ -170,7 +171,7 @@ export function SettingsPage() {
 
       if (hotkeyEnabled) {
         // 훅의 registerShortcut이 기존 단축키 해제 + 새 단축키 등록을 모두 처리
-        await registerShortcut(hotkey);
+        await registerShortcut(hotkey, toggleProxy);
       } else {
         await unregisterShortcut();
       }
@@ -180,7 +181,7 @@ export function SettingsPage() {
     } catch {
       setHotkeyStatus("error");
     }
-  }, [hotkey, hotkeyEnabled, registerShortcut, unregisterShortcut]);
+  }, [hotkey, hotkeyEnabled]);
 
   // Throttle state
   const [throttleEnabled, setThrottleEnabled] = useState(false);
