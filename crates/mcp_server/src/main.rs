@@ -639,7 +639,9 @@ impl CheolsuMcpServer {
             .map_err(|e| e.to_string())
     }
 
-    #[tool(description = "List all current breakpoint rules. Breakpoints pause matching requests/responses for manual inspection and editing.")]
+    #[tool(
+        description = "List all current breakpoint rules. Breakpoints pause matching requests/responses for manual inspection and editing."
+    )]
     async fn list_breakpoints(&self) -> Result<CallToolResult, McpError> {
         let rules = self.store.breakpoint_rules.lock();
         if rules.is_empty() {

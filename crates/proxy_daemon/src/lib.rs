@@ -16,6 +16,7 @@ pub mod system_proxy;
 pub mod tls_client;
 
 // Re-exports for convenience
+pub use breakpoint::BreakpointManager;
 pub use client::{connect_to_daemon, ensure_daemon, is_daemon_running, DaemonConnection};
 pub use daemon::{check_and_cleanup_stale_lock, lock_file_path, run_daemon, uds_socket_path};
 pub use diff::{
@@ -25,7 +26,6 @@ pub use diff::{
 pub use error::DaemonError;
 pub use handler::{create_hybrid_client, LoggingHandler, WsEvent};
 pub use net_utils::get_local_ips;
-pub use breakpoint::BreakpointManager;
 pub use protocol::{
     BreakpointAction, BreakpointData, BreakpointPhase, BreakpointRule, ClientCommand,
     DaemonMessage, InterceptAction, InterceptRule, ProxyLockInfo, ServerReplayEntry,
