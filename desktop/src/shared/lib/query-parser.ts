@@ -40,7 +40,7 @@ export function parseFilterQuery(query: string): ParsedQuery {
   }
 
   // key(operator)"value" 패턴 추출
-  const regex = /(\w+)(!?=|\|=)"([^"]*)"/g;
+  const regex = /(\w+)\s*(!?=|\|=)\s*"([^"]*)"/g;
   let match;
 
   while ((match = regex.exec(query)) !== null) {

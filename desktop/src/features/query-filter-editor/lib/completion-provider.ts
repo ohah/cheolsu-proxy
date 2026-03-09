@@ -22,28 +22,28 @@ export const createCompletionProvider = (monaco: Monaco): IDisposable => {
       };
 
       // 연산자 제안
-      if (/(method|methods|status|url)$/.test(textUntilPosition)) {
+      if (/(method|methods|status|url)\s*$/.test(textUntilPosition)) {
         return {
           suggestions: createOperatorSuggestions(monaco, range),
         };
       }
 
       // Method 값 제안
-      if (/(method|methods)(=|\|=|\|~|!=|!~)"[^"]*$/.test(textUntilPosition)) {
+      if (/(method|methods)\s*(=|\|=|\|~|!=|!~)\s*"[^"]*$/.test(textUntilPosition)) {
         return {
           suggestions: createMethodSuggestions(monaco, range),
         };
       }
 
       // Status 값 제안
-      if (/status(=|\|=|\|~|!=|!~)"[^"]*$/.test(textUntilPosition)) {
+      if (/status\s*(=|\|=|\|~|!=|!~)\s*"[^"]*$/.test(textUntilPosition)) {
         return {
           suggestions: createStatusSuggestions(monaco, range),
         };
       }
 
       // URL 값 제안
-      if (/url(=|\|=|\|~|!=|!~)"[^"]*$/.test(textUntilPosition)) {
+      if (/url\s*(=|\|=|\|~|!=|!~)\s*"[^"]*$/.test(textUntilPosition)) {
         return {
           suggestions: createUrlSuggestions(monaco, range),
         };
