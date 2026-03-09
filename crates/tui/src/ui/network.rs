@@ -40,7 +40,11 @@ fn draw_transaction_list(f: &mut Frame, app: &mut App, area: Rect) {
             let status_style = status_color(status);
 
             let mark = if app.diff_mark == Some(i) {
-                Cell::from("D").style(Style::default().fg(Color::Magenta).add_modifier(Modifier::BOLD))
+                Cell::from("D").style(
+                    Style::default()
+                        .fg(Color::Magenta)
+                        .add_modifier(Modifier::BOLD),
+                )
             } else {
                 Cell::from(" ")
             };
@@ -109,7 +113,10 @@ fn draw_diff_view(f: &mut Frame, app: &mut App, area: Rect) {
                 Style::default()
                     .fg(Color::Cyan)
                     .add_modifier(Modifier::BOLD)
-            } else if line.starts_with("Method:") || line.starts_with("URL:") || line.starts_with("Status:") {
+            } else if line.starts_with("Method:")
+                || line.starts_with("URL:")
+                || line.starts_with("Status:")
+            {
                 Style::default().fg(Color::Magenta)
             } else {
                 Style::default().fg(Color::White)
