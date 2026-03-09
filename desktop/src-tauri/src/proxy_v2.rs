@@ -846,17 +846,49 @@ pub struct CertDownloadInfo {
 }
 
 /// QR 코드를 PNG base64 문자열로 생성합니다.
+/// 로고를 중앙에 오버레이하며, 오류 정정 레벨 H(30%)를 사용합니다.
 fn generate_qr_code_base64(data: &str) -> Result<String, String> {
-    use image::Luma;
+    use image::{imageops, Luma, RgbaImage};
     use qrcode::QrCode;
 
-    let code = QrCode::new(data.as_bytes()).map_err(|e| format!("QR 코드 생성 실패: {}", e))?;
+    // 오류 정정 레벨 H (30%) — 로고 오버레이로 가려지는 영역을 복원 가능
+    let code = QrCode::with_error_correction_level(data.as_bytes(), qrcode::EcLevel::H)
+        .map_err(|e| format!("QR 코드 생성 실패: {}", e))?;
 
-    let image = code.render::<Luma<u8>>().quiet_zone(true).build();
+    let qr_image = code.render::<Luma<u8>>().quiet_zone(true).build();
+    let (qr_w, qr_h) = (qr_image.width(), qr_image.height());
 
+    // Luma → RGBA 변환 (로고 오버레이를 위해)
+    let mut qr_rgba = RgbaImage::new(qr_w, qr_h);
+    for (x, y, luma_pixel) in qr_image.enumerate_pixels() {
+        let v = luma_pixel[0];
+        qr_rgba.put_pixel(x, y, image::Rgba([v, v, v, 255]));
+    }
+
+    // 컴파일 타임에 로고 PNG를 임베드
+    let logo_bytes: &[u8] = include_bytes!("../../../assets/logo.png");
+    let logo = image::load_from_memory(logo_bytes)
+        .map_err(|e| format!("로고 이미지 로드 실패: {}", e))?
+        .to_rgba8();
+
+    // 로고를 QR 코드 면적의 ~25% (한 변의 ~50%) 크기로 리사이즈
+    let logo_max = (qr_w.min(qr_h) as f64 * 0.25) as u32;
+    let logo_resized = imageops::resize(&logo, logo_max, logo_max, imageops::FilterType::Lanczos3);
+
+    // QR 코드 중앙에 로고 오버레이
+    let offset_x = (qr_w - logo_resized.width()) / 2;
+    let offset_y = (qr_h - logo_resized.height()) / 2;
+    imageops::overlay(
+        &mut qr_rgba,
+        &logo_resized,
+        offset_x as i64,
+        offset_y as i64,
+    );
+
+    // 최종 이미지를 PNG → base64로 인코딩
     let mut png_bytes = Vec::new();
     let mut cursor = std::io::Cursor::new(&mut png_bytes);
-    image
+    qr_rgba
         .write_to(&mut cursor, image::ImageFormat::Png)
         .map_err(|e| format!("PNG 인코딩 실패: {}", e))?;
 
