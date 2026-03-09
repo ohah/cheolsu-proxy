@@ -12,8 +12,8 @@ use proxy_v2::{
     load_session, proxy_v2_status, read_body_file, replay_request, replay_sequence,
     resolve_breakpoint, save_session, start_proxy_v2, stop_proxy_v2, uninstall_ca_cert,
     uninstall_cli, unload_script, update_breakpoint_rules, update_host_mappings,
-    update_intercept_rules_v2, update_server_replay, update_throttle, update_upstream_proxy,
-    ws_inject_message, ProxyV2State,
+    update_intercept_rules_v2, update_quick_settings, update_server_replay, update_throttle,
+    update_upstream_proxy, ws_inject_message, ProxyV2State,
 };
 use system_proxy::get_proxy_status_command;
 use tauri::menu::SubmenuBuilder;
@@ -134,6 +134,7 @@ pub fn run() {
                 update_throttle,
                 update_server_replay,
                 update_host_mappings,
+                update_quick_settings,
                 get_mcp_server_path,
                 install_cli,
                 uninstall_cli,

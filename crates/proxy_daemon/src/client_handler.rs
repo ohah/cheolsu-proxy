@@ -26,6 +26,7 @@ pub async fn handle_client(
     port: u16,
     ws_registry: WebSocketRegistry,
     script_handle: scripting::ScriptHandle,
+    quick_settings: std::sync::Arc<parking_lot::RwLock<crate::handler::QuickSettings>>,
 ) {
     let (reader, writer) = stream.into_split();
     let mut reader = BufReader::new(reader);
@@ -218,6 +219,20 @@ pub async fn handle_client(
                             let _ = event_tx.send(json);
                         }
                         let _ = host_mapping_tx.send(mappings);
+                    }
+                    Ok(ClientCommand::UpdateQuickSettings {
+                        no_caching,
+                        block_cookies,
+                    }) => {
+                        info!(
+                            "Quick settings updated: no_caching={}, block_cookies={}",
+                            no_caching, block_cookies
+                        );
+                        {
+                            let mut settings = quick_settings.write();
+                            settings.no_caching = no_caching;
+                            settings.block_cookies = block_cookies;
+                        }
                     }
                     Ok(ClientCommand::UpdateServerReplay { entries }) => {
                         info!("Server replay entries updated: {} entries", entries.len());

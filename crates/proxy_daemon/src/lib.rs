@@ -27,7 +27,7 @@ pub use diff::{
     HeaderDiff, JsonDiffEntry, TrafficDiff, TransactionPartDiff,
 };
 pub use error::DaemonError;
-pub use handler::{create_hybrid_client, LoggingHandler, WsEvent};
+pub use handler::{create_hybrid_client, LoggingHandler, QuickSettings, WsEvent};
 pub use net_utils::get_local_ips;
 pub use protocol::{
     BreakpointAction, BreakpointData, BreakpointPhase, BreakpointRule, ClientCommand,
