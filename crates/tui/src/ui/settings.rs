@@ -19,6 +19,16 @@ pub fn draw(f: &mut Frame, app: &App, area: Rect) {
         5
     };
 
+    // 터미널 높이에 따라 동적 레이아웃 조정
+    let fixed_min = 10 + 5 + qr_height + 3 + 12 + 5; // 최소 필요 높이 (keybindings 최소 5줄)
+    let (form_height, kb_constraint) = if area.height < fixed_min {
+        // 작은 터미널: form을 축소하고 keybindings 최소 보장
+        let available = area.height.saturating_sub(10 + 5 + qr_height + 3 + 5);
+        (Constraint::Length(available.max(4)), Constraint::Min(5))
+    } else {
+        (Constraint::Length(12), Constraint::Min(5))
+    };
+
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
@@ -26,8 +36,8 @@ pub fn draw(f: &mut Frame, app: &App, area: Rect) {
             Constraint::Length(5),         // CA certificate
             Constraint::Length(qr_height), // Remote device cert (QR code)
             Constraint::Length(3),         // Section tabs
-            Constraint::Length(12),        // Form (upstream or throttle)
-            Constraint::Min(0),            // Keybindings
+            form_height,                   // Form (upstream or throttle)
+            kb_constraint,                 // Keybindings (최소 5줄 보장)
         ])
         .split(area);
 
