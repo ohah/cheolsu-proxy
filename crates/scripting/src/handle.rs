@@ -63,10 +63,16 @@ impl ScriptHandle {
         let active_clone = active.clone();
         let log_tx_clone = log_tx.clone();
         std::thread::spawn(move || {
-            let rt = tokio::runtime::Builder::new_current_thread()
+            let rt = match tokio::runtime::Builder::new_current_thread()
                 .enable_all()
                 .build()
-                .expect("Failed to create scripting runtime");
+            {
+                Ok(rt) => rt,
+                Err(e) => {
+                    eprintln!("Failed to create scripting runtime: {}", e);
+                    return;
+                }
+            };
             rt.block_on(script_engine_loop(rx, active_clone, log_tx_clone));
         });
 

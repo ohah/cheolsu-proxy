@@ -118,18 +118,18 @@ impl LoggingHandler {
                             Response::builder()
                                 .status(StatusCode::FORBIDDEN)
                                 .body(Body::from("Blocked by intercept rule"))
-                                .unwrap()
+                                .unwrap_or_else(|_| Response::new(Body::empty()))
                         });
                     // Content-Type 설정
                     if !body.is_empty() {
                         if body.starts_with('{') || body.starts_with('[') {
                             response
                                 .headers_mut()
-                                .insert("content-type", "application/json".parse().unwrap());
+                                .insert("content-type", "application/json".parse().unwrap_or_else(|_| HeaderValue::from_static("application/json")));
                         } else {
                             response.headers_mut().insert(
                                 "content-type",
-                                "text/plain; charset=utf-8".parse().unwrap(),
+                                "text/plain; charset=utf-8".parse().unwrap_or_else(|_| HeaderValue::from_static("text/plain; charset=utf-8")),
                             );
                         }
                     }
@@ -212,7 +212,7 @@ impl LoggingHandler {
                                     Response::builder()
                                         .status(StatusCode::INTERNAL_SERVER_ERROR)
                                         .body(Body::from("Failed to build map local response"))
-                                        .unwrap()
+                                        .unwrap_or_else(|_| Response::new(Body::empty()))
                                 })
                                 .into();
                         }
@@ -229,7 +229,7 @@ impl LoggingHandler {
                                     "Map Local Error: file not found - {}",
                                     file_path
                                 )))
-                                .unwrap()
+                                .unwrap_or_else(|_| Response::new(Body::empty()))
                                 .into();
                         }
                     }
@@ -274,10 +274,10 @@ impl LoggingHandler {
                         }
                         current_req
                             .headers_mut()
-                            .insert("x-cheolsu-intercepted", "true".parse().unwrap());
+                            .insert("x-cheolsu-intercepted", HeaderValue::from_static("true"));
                         current_req.headers_mut().insert(
                             "x-cheolsu-map-remote-original",
-                            url.parse().unwrap_or_else(|_| "unknown".parse().unwrap()),
+                            url.parse().unwrap_or_else(|_| HeaderValue::from_static("unknown")),
                         );
                     } else {
                         error!("[Intercept] Map Remote URL 파싱 실패: {}", new_url);
@@ -346,12 +346,12 @@ impl LoggingHandler {
                 }
 
                 res.headers_mut()
-                    .insert("x-cheolsu-intercepted", "true".parse().unwrap());
+                    .insert("x-cheolsu-intercepted", HeaderValue::from_static("true"));
                 res.headers_mut().insert(
                     "x-cheolsu-intercept-rule",
                     rule.id
                         .parse()
-                        .unwrap_or_else(|_| "unknown".parse().unwrap()),
+                        .unwrap_or_else(|_| HeaderValue::from_static("unknown")),
                 );
             }
         }

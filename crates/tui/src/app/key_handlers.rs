@@ -311,7 +311,9 @@ impl App {
     }
 
     async fn handle_rule_form_key(&mut self, key: KeyEvent) {
-        let form = self.rule_form.as_mut().unwrap();
+        let Some(form) = self.rule_form.as_mut() else {
+            return;
+        };
 
         match key.code {
             KeyCode::Esc => {

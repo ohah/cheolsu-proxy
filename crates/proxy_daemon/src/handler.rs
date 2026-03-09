@@ -131,7 +131,7 @@ impl LoggingHandler {
                         Response::builder()
                             .status(StatusCode::INTERNAL_SERVER_ERROR)
                             .body(Body::from("인증서 응답 생성 실패"))
-                            .unwrap()
+                            .unwrap_or_else(|_| Response::new(Body::empty()))
                     });
             }
             return Response::builder()
@@ -140,7 +140,7 @@ impl LoggingHandler {
                 .body(Body::from(
                     "CA 인증서가 아직 생성되지 않았습니다. 프록시를 먼저 실행해주세요.",
                 ))
-                .unwrap();
+                .unwrap_or_else(|_| Response::new(Body::empty()));
         }
 
         // 그 외 경로: 안내 페이지
@@ -159,7 +159,7 @@ a:hover{background:#1d4ed8}</style></head>
             .status(StatusCode::OK)
             .header("Content-Type", "text/html; charset=utf-8")
             .body(Body::from(html))
-            .unwrap()
+            .unwrap_or_else(|_| Response::new(Body::empty()))
     }
 
     /// 요청과 응답을 묶어서 전송
@@ -264,13 +264,13 @@ a:hover{background:#1d4ed8}</style></head>
                     Response::builder()
                         .status(StatusCode::INTERNAL_SERVER_ERROR)
                         .body(Body::from("Failed to create response from cached data"))
-                        .unwrap()
+                        .unwrap_or_else(|_| Response::new(Body::empty()))
                 })
         } else {
             Response::builder()
                 .status(StatusCode::INTERNAL_SERVER_ERROR)
                 .body(Body::from("No cached response data available"))
-                .unwrap()
+                .unwrap_or_else(|_| Response::new(Body::empty()))
         }
     }
 
@@ -624,12 +624,7 @@ impl HttpHandler for LoggingHandler {
                     return Response::builder()
                         .status(StatusCode::OK)
                         .body(Body::empty())
-                        .unwrap_or_else(|_| {
-                            Response::builder()
-                                .status(StatusCode::INTERNAL_SERVER_ERROR)
-                                .body(Body::from("Internal Server Error"))
-                                .unwrap()
-                        });
+                        .unwrap_or_else(|_| Response::new(Body::empty()));
                 }
             }
         }
@@ -665,7 +660,12 @@ impl HttpHandler for LoggingHandler {
         Response::builder()
             .status(StatusCode::BAD_GATEWAY)
             .body(Body::from(format!("Proxy Error: {}", err)))
-            .expect("Failed to build error response")
+            .unwrap_or_else(|_| {
+                Response::builder()
+                    .status(StatusCode::INTERNAL_SERVER_ERROR)
+                    .body(Body::empty())
+                    .unwrap_or_else(|_| Response::new(Body::empty()))
+            })
     }
 }
 
@@ -801,18 +801,16 @@ impl WebSocketHandler for LoggingHandler {
             let mqtt_version = if content_type == proxy_v2_models::WsContentType::Mqtt {
                 // CONNECT 패킷이면 버전을 추출하여 저장
                 if let Some(ver) = proxy_v2_models::extract_mqtt_version_from_connect(&payload) {
-                    self.mqtt_versions
-                        .lock()
-                        .unwrap()
-                        .insert(connection_id.clone(), ver);
+                    if let Ok(mut versions) = self.mqtt_versions.lock() {
+                        versions.insert(connection_id.clone(), ver);
+                    }
                     Some(ver)
                 } else {
                     // 다른 MQTT 패킷이면 저장된 버전 참조
                     self.mqtt_versions
                         .lock()
-                        .unwrap()
-                        .get(&connection_id)
-                        .copied()
+                        .ok()
+                        .and_then(|versions| versions.get(&connection_id).copied())
                 }
             } else {
                 None

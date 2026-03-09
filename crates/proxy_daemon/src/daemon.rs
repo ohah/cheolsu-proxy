@@ -108,10 +108,16 @@ pub fn run_daemon(port: u16, host: String) -> ! {
         )
         .try_init();
 
-    let rt = tokio::runtime::Builder::new_multi_thread()
+    let rt = match tokio::runtime::Builder::new_multi_thread()
         .enable_all()
         .build()
-        .expect("Failed to create tokio runtime");
+    {
+        Ok(rt) => rt,
+        Err(e) => {
+            eprintln!("Failed to create tokio runtime: {}", e);
+            std::process::exit(1);
+        }
+    };
 
     let exit_code = rt.block_on(async move { daemon_main(port, host).await });
     std::process::exit(exit_code)
@@ -162,9 +168,14 @@ async fn daemon_main(port: u16, host: String) -> i32 {
     let ws_registry = WebSocketRegistry::new();
     let script_handle = scripting::ScriptHandle::new();
 
-    let addr: std::net::SocketAddr = format!("{}:{}", host, port)
-        .parse()
-        .expect("Invalid host:port");
+    let addr: std::net::SocketAddr = match format!("{}:{}", host, port).parse() {
+        Ok(addr) => addr,
+        Err(e) => {
+            error!("Invalid host:port {}:{} - {}", host, port, e);
+            cleanup(port, &uds_path);
+            return 1;
+        }
+    };
 
     if let Err(e) = set_proxy(true, port) {
         error!("Failed to set system proxy: {}", e);
@@ -221,11 +232,16 @@ async fn daemon_main(port: u16, host: String) -> i32 {
     // SIGTERM 시그널 처리 (프로세스 kill 시 프록시 설정 복원)
     let shutdown_tx_term = shutdown_tx.clone();
     tokio::spawn(async move {
-        let mut sigterm = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
-            .expect("Failed to register SIGTERM handler");
-        sigterm.recv().await;
-        warn!("SIGTERM received, shutting down daemon...");
-        let _ = shutdown_tx_term.send(()).await;
+        match tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate()) {
+            Ok(mut sigterm) => {
+                sigterm.recv().await;
+                warn!("SIGTERM received, shutting down daemon...");
+                let _ = shutdown_tx_term.send(()).await;
+            }
+            Err(e) => {
+                error!("Failed to register SIGTERM handler: {}", e);
+            }
+        }
     });
 
     loop {
