@@ -1026,4 +1026,245 @@ mod tests {
         assert!(!"other.proxy:8080".starts_with(CERT_DOWNLOAD_HOST_COLON));
         assert!(!"cheolsu.proxy.evil.com".starts_with(CERT_DOWNLOAD_HOST_COLON));
     }
+
+    // --- convert_ws_message_payload 테스트 ---
+
+    #[test]
+    fn convert_text_message() {
+        let msg = Message::Text("hello".into());
+        let result = LoggingHandler::convert_ws_message_payload(&msg).unwrap();
+        assert_eq!(result.0, WsMessageType::Text);
+        assert_eq!(result.1, "hello");
+        assert_eq!(result.2, 5);
+        assert!(!result.3); // is_binary = false
+    }
+
+    #[test]
+    fn convert_binary_message() {
+        let data = vec![0xDE, 0xAD, 0xBE, 0xEF];
+        let msg = Message::Binary(data.clone().into());
+        let result = LoggingHandler::convert_ws_message_payload(&msg).unwrap();
+        assert_eq!(result.0, WsMessageType::Binary);
+        // base64 인코딩 확인
+        use base64::Engine;
+        assert_eq!(
+            result.1,
+            base64::engine::general_purpose::STANDARD.encode(&data)
+        );
+        assert_eq!(result.2, 4); // 원본 바이트 크기
+        assert!(result.3); // is_binary = true
+    }
+
+    #[test]
+    fn convert_ping_message() {
+        let msg = Message::Ping(vec![1, 2, 3].into());
+        let result = LoggingHandler::convert_ws_message_payload(&msg).unwrap();
+        assert_eq!(result.0, WsMessageType::Ping);
+        assert_eq!(result.1, "3 bytes");
+        assert_eq!(result.2, 3);
+        assert!(result.3);
+    }
+
+    #[test]
+    fn convert_pong_message() {
+        let msg = Message::Pong(vec![].into());
+        let result = LoggingHandler::convert_ws_message_payload(&msg).unwrap();
+        assert_eq!(result.0, WsMessageType::Pong);
+        assert_eq!(result.1, "0 bytes");
+        assert_eq!(result.2, 0);
+        assert!(result.3);
+    }
+
+    #[test]
+    fn convert_close_message_with_frame() {
+        use proxyapi_v2::tokio_tungstenite::tungstenite::protocol::CloseFrame;
+        let frame = CloseFrame {
+            code: proxyapi_v2::tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode::Normal,
+            reason: "bye".into(),
+        };
+        let msg = Message::Close(Some(frame));
+        let result = LoggingHandler::convert_ws_message_payload(&msg).unwrap();
+        assert_eq!(result.0, WsMessageType::Close);
+        assert!(result.1.contains("bye"));
+        assert!(!result.3);
+    }
+
+    #[test]
+    fn convert_close_message_without_frame() {
+        let msg = Message::Close(None);
+        let result = LoggingHandler::convert_ws_message_payload(&msg).unwrap();
+        assert_eq!(result.0, WsMessageType::Close);
+        assert!(result.1.is_empty());
+    }
+
+    #[test]
+    fn convert_frame_message_returns_none() {
+        use proxyapi_v2::tokio_tungstenite::tungstenite::protocol::frame::Frame;
+        let msg = Message::Frame(Frame::ping(Bytes::new()));
+        assert!(LoggingHandler::convert_ws_message_payload(&msg).is_none());
+    }
+
+    // --- check_cert_download_intercept 테스트 ---
+
+    #[test]
+    fn cert_intercept_host_header_exact() {
+        let handler = make_test_handler(Some(vec![1]));
+        let req = Request::builder()
+            .uri("/anything")
+            .header("host", "cheolsu.proxy")
+            .body(Body::from(""))
+            .unwrap();
+        assert!(handler.check_cert_download_intercept(&req).is_some());
+    }
+
+    #[test]
+    fn cert_intercept_host_header_with_port() {
+        let handler = make_test_handler(Some(vec![1]));
+        let req = Request::builder()
+            .uri("/anything")
+            .header("host", "cheolsu.proxy:8100")
+            .body(Body::from(""))
+            .unwrap();
+        assert!(handler.check_cert_download_intercept(&req).is_some());
+    }
+
+    #[test]
+    fn cert_intercept_absolute_uri() {
+        let handler = make_test_handler(Some(vec![1]));
+        let req = Request::builder()
+            .uri("http://cheolsu.proxy/ssl")
+            .body(Body::from(""))
+            .unwrap();
+        assert!(handler.check_cert_download_intercept(&req).is_some());
+    }
+
+    #[test]
+    fn cert_intercept_direct_ip_ssl_path() {
+        let handler = make_test_handler(Some(vec![1]));
+        let req = Request::builder().uri("/ssl").body(Body::from("")).unwrap();
+        assert!(handler.check_cert_download_intercept(&req).is_some());
+    }
+
+    #[test]
+    fn cert_intercept_direct_ip_cert_path() {
+        let handler = make_test_handler(Some(vec![1]));
+        let req = Request::builder()
+            .uri("/cert")
+            .body(Body::from(""))
+            .unwrap();
+        assert!(handler.check_cert_download_intercept(&req).is_some());
+    }
+
+    #[test]
+    fn cert_intercept_non_matching_host() {
+        let handler = make_test_handler(Some(vec![1]));
+        let req = Request::builder()
+            .uri("/api/data")
+            .header("host", "example.com")
+            .body(Body::from(""))
+            .unwrap();
+        assert!(handler.check_cert_download_intercept(&req).is_none());
+    }
+
+    #[test]
+    fn cert_intercept_non_matching_path_without_host() {
+        let handler = make_test_handler(Some(vec![1]));
+        let req = Request::builder()
+            .uri("/api/data")
+            .body(Body::from(""))
+            .unwrap();
+        assert!(handler.check_cert_download_intercept(&req).is_none());
+    }
+
+    // --- emit_ws_event 테스트 ---
+
+    #[test]
+    fn emit_ws_event_without_sender_does_nothing() {
+        let handler = make_test_handler(None);
+        // ws_sender가 None이면 패닉 없이 조용히 반환
+        handler.emit_ws_event(
+            "conn1".to_string(),
+            WsDirection::ClientToServer,
+            WsMessageType::Text,
+            "hello".to_string(),
+            5,
+            false,
+        );
+    }
+
+    #[test]
+    fn emit_ws_event_sends_to_channel() {
+        let (sender, _rx) = tokio::sync::mpsc::channel(1);
+        let (ws_sender, mut ws_rx) = tokio::sync::mpsc::channel(8);
+        let handler = LoggingHandler {
+            sender,
+            ws_sender: Some(ws_sender),
+            ws_sequence: Arc::new(std::sync::atomic::AtomicU64::new(0)),
+            mqtt_versions: Arc::new(parking_lot::Mutex::new(std::collections::HashMap::new())),
+            req: None,
+            res: None,
+            intercept_rules: Arc::new(Mutex::new(Vec::new())),
+            server_replay_entries: Arc::new(Mutex::new(Vec::new())),
+            cache_dir: None,
+            script_handle: scripting::ScriptHandle::new(),
+            ca_cert_der: None,
+        };
+
+        handler.emit_ws_event(
+            "wss://example.com".to_string(),
+            WsDirection::ClientToServer,
+            WsMessageType::Text,
+            "test payload".to_string(),
+            12,
+            false,
+        );
+
+        let event = ws_rx.try_recv().unwrap();
+        match event {
+            WsEvent::Message(info) => {
+                assert_eq!(info.connection_id, "wss://example.com");
+                assert_eq!(info.sequence, 0);
+                assert_eq!(info.direction, WsDirection::ClientToServer);
+                assert_eq!(info.message_type, WsMessageType::Text);
+                assert_eq!(info.payload, "test payload");
+                assert_eq!(info.size, 12);
+                assert!(!info.is_binary);
+            }
+            _ => panic!("Expected WsEvent::Message"),
+        }
+    }
+
+    #[test]
+    fn emit_ws_event_increments_sequence() {
+        let (sender, _rx) = tokio::sync::mpsc::channel(1);
+        let (ws_sender, mut ws_rx) = tokio::sync::mpsc::channel(8);
+        let handler = LoggingHandler {
+            sender,
+            ws_sender: Some(ws_sender),
+            ws_sequence: Arc::new(std::sync::atomic::AtomicU64::new(0)),
+            mqtt_versions: Arc::new(parking_lot::Mutex::new(std::collections::HashMap::new())),
+            req: None,
+            res: None,
+            intercept_rules: Arc::new(Mutex::new(Vec::new())),
+            server_replay_entries: Arc::new(Mutex::new(Vec::new())),
+            cache_dir: None,
+            script_handle: scripting::ScriptHandle::new(),
+            ca_cert_der: None,
+        };
+
+        for i in 0..3 {
+            handler.emit_ws_event(
+                "conn".to_string(),
+                WsDirection::ClientToServer,
+                WsMessageType::Text,
+                "msg".to_string(),
+                3,
+                false,
+            );
+            match ws_rx.try_recv().unwrap() {
+                WsEvent::Message(info) => assert_eq!(info.sequence, i),
+                _ => panic!("Expected WsEvent::Message"),
+            }
+        }
+    }
 }
