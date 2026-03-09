@@ -1,175 +1,17 @@
-use brotli::Decompressor;
 use bytes::Bytes;
-use flate2::read::GzDecoder;
 use http::HeaderMap;
-use serde::{Deserialize, Serialize};
-use std::io::Read;
 
-/// 데이터 타입을 나타내는 열거형 (MITM 프록시에 최적화)
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
-pub enum DataType {
-    /// JSON 데이터
-    Json,
-    /// XML 데이터
-    Xml,
-    /// HTML 데이터
-    Html,
-    /// 일반 텍스트
-    Text,
-    /// CSS 스타일시트
-    Css,
-    /// JavaScript/TypeScript 코드
-    Javascript,
-    /// GraphQL 쿼리/뮤테이션
-    GraphQL,
-    /// 이미지 파일 (PNG, JPEG, GIF, WebP, SVG 등)
-    Image,
-    /// 비디오 파일 (MP4, WebM 등)
-    Video,
-    /// 오디오 파일 (MP3, WAV 등)
-    Audio,
-    /// 문서 파일 (PDF 등)
-    Document,
-    /// 압축 파일 (ZIP, GZIP 등)
-    Archive,
-    /// Protobuf / gRPC 바이너리 데이터
-    Protobuf,
-    /// 바이너리 데이터 (알 수 없는 형식)
-    Binary,
-    /// 빈 데이터
-    Empty,
-    /// 알 수 없는 타입
-    #[default]
-    Unknown,
-}
-
-impl DataType {
-    /// DataType을 MIME 타입 문자열로 변환
-    pub fn to_mime_type(&self) -> &'static str {
-        match self {
-            DataType::Json => "application/json",
-            DataType::Xml => "application/xml",
-            DataType::Html => "text/html",
-            DataType::Text => "text/plain",
-            DataType::Css => "text/css",
-            DataType::Javascript => "application/javascript",
-            DataType::GraphQL => "application/json",
-            DataType::Image => "image/*",
-            DataType::Video => "video/*",
-            DataType::Audio => "audio/*",
-            DataType::Document => "application/pdf",
-            DataType::Archive => "application/zip",
-            DataType::Protobuf => "application/x-protobuf",
-            DataType::Binary => "application/octet-stream",
-            DataType::Empty => "empty",
-            DataType::Unknown => "application/octet-stream",
-        }
-    }
-
-    /// DataType을 Monaco Editor 언어 모드로 변환
-    pub fn to_monaco_language(&self) -> &'static str {
-        match self {
-            DataType::Json => "json",
-            DataType::Xml => "xml",
-            DataType::Html => "html",
-            DataType::Css => "css",
-            DataType::Javascript => "javascript",
-            DataType::GraphQL => "graphql",
-            DataType::Text => "plaintext",
-            DataType::Image
-            | DataType::Video
-            | DataType::Audio
-            | DataType::Document
-            | DataType::Archive
-            | DataType::Protobuf
-            | DataType::Binary
-            | DataType::Empty
-            | DataType::Unknown => "plaintext",
-        }
-    }
-
-    /// 데이터 타입이 텍스트 기반인지 확인
-    pub fn is_text_based(&self) -> bool {
-        matches!(
-            self,
-            DataType::Json
-                | DataType::Xml
-                | DataType::Html
-                | DataType::Css
-                | DataType::Javascript
-                | DataType::GraphQL
-                | DataType::Text
-        )
-    }
-
-    /// 데이터 타입이 이미지인지 확인
-    pub fn is_image(&self) -> bool {
-        matches!(self, DataType::Image)
-    }
-
-    /// 데이터 타입이 비디오인지 확인
-    pub fn is_video(&self) -> bool {
-        matches!(self, DataType::Video)
-    }
-
-    /// 데이터 타입이 오디오인지 확인
-    pub fn is_audio(&self) -> bool {
-        matches!(self, DataType::Audio)
-    }
-
-    /// 데이터 타입이 문서인지 확인
-    pub fn is_document(&self) -> bool {
-        matches!(self, DataType::Document)
-    }
-
-    /// 데이터 타입이 압축 파일인지 확인
-    pub fn is_archive(&self) -> bool {
-        matches!(self, DataType::Archive)
-    }
-
-    /// 데이터 타입이 바이너리인지 확인
-    pub fn is_binary(&self) -> bool {
-        matches!(
-            self,
-            DataType::Image
-                | DataType::Video
-                | DataType::Audio
-                | DataType::Document
-                | DataType::Archive
-                | DataType::Protobuf
-                | DataType::Binary
-        )
-    }
-}
-
-/// GZIP 압축 해제 함수
-pub fn decompress_gzip(data: &[u8]) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
-    let mut decoder = GzDecoder::new(data);
-    let mut decompressed = Vec::new();
-    decoder.read_to_end(&mut decompressed)?;
-    Ok(decompressed)
-}
-
-/// Brotli 압축 해제 함수
-pub fn decompress_brotli(data: &[u8]) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
-    let mut decoder = Decompressor::new(data, 4096);
-    let mut decompressed = Vec::new();
-    decoder.read_to_end(&mut decompressed)?;
-    Ok(decompressed)
-}
+use super::decompression::{decompress_brotli, decompress_gzip};
+use super::DataType;
 
 /// GZIP 압축된 데이터의 실제 내용 타입 감지
 fn detect_gzip_content_type(data: &[u8]) -> DataType {
     match decompress_gzip(data) {
         Ok(decompressed) => {
-            // 압축 해제된 데이터로 타입 감지
             let headers = HeaderMap::new();
             detect_data_type(&headers, &Bytes::from(decompressed))
         }
-        Err(_) => {
-            // 압축 해제 실패 시 Archive로 반환
-            DataType::Archive
-        }
+        Err(_) => DataType::Archive,
     }
 }
 
@@ -177,14 +19,10 @@ fn detect_gzip_content_type(data: &[u8]) -> DataType {
 fn detect_brotli_content_type(data: &[u8]) -> DataType {
     match decompress_brotli(data) {
         Ok(decompressed) => {
-            // 압축 해제된 데이터로 타입 감지
             let headers = HeaderMap::new();
             detect_data_type(&headers, &Bytes::from(decompressed))
         }
-        Err(_) => {
-            // 압축 해제 실패 시 Binary로 반환
-            DataType::Binary
-        }
+        Err(_) => DataType::Binary,
     }
 }
 
@@ -229,7 +67,6 @@ pub fn detect_data_type(headers: &HeaderMap, body: &Bytes) -> DataType {
 
         // GZIP 압축 파일 감지 및 내용 분석 (magic number로 확인)
         if body.len() >= 2 && body[0] == 0x1f && body[1] == 0x8b {
-            // GZIP 압축 파일 - 압축 해제 후 실제 내용 타입 감지
             return detect_gzip_content_type(body);
         }
 
@@ -518,33 +355,15 @@ mod tests {
     }
 
     #[test]
-    fn test_data_type_methods() {
-        let json_type = DataType::Json;
-        assert_eq!(json_type.to_mime_type(), "application/json");
-        assert_eq!(json_type.to_monaco_language(), "json");
-        assert!(json_type.is_text_based());
-        assert!(!json_type.is_binary());
-
-        let image_type = DataType::Image;
-        assert_eq!(image_type.to_mime_type(), "image/*");
-        assert_eq!(image_type.to_monaco_language(), "plaintext");
-        assert!(!image_type.is_text_based());
-        assert!(image_type.is_binary());
-        assert!(image_type.is_image());
-    }
-
-    #[test]
     fn test_css_detection() {
         use http::HeaderValue;
 
-        // Content-Type 헤더로 CSS 감지
         let mut headers = HeaderMap::new();
         headers.insert("content-type", HeaderValue::from_static("text/css"));
 
         let css_content = Bytes::from("@import url('style.css'); body { color: red; }");
         assert_eq!(detect_data_type(&headers, &css_content), DataType::Css);
 
-        // Content-Type이 없는 경우 텍스트로 분류
         headers.clear();
         let css_without_header = Bytes::from(".my-class { background: blue; }");
         assert_eq!(
@@ -557,7 +376,6 @@ mod tests {
     fn test_javascript_detection() {
         use http::HeaderValue;
 
-        // Content-Type 헤더로 JavaScript 감지
         let mut headers = HeaderMap::new();
         headers.insert(
             "content-type",
@@ -567,7 +385,6 @@ mod tests {
         let js_code = Bytes::from("function hello() { console.log('Hello World'); }");
         assert_eq!(detect_data_type(&headers, &js_code), DataType::Javascript);
 
-        // TypeScript도 JavaScript로 감지
         headers.clear();
         headers.insert(
             "content-type",
@@ -579,7 +396,6 @@ mod tests {
             DataType::Javascript
         );
 
-        // Content-Type이 없는 경우 텍스트로 분류
         headers.clear();
         let js_without_header = Bytes::from("const add = (a, b) => a + b;");
         assert_eq!(
@@ -592,53 +408,53 @@ mod tests {
     fn test_image_detection() {
         let headers = HeaderMap::new();
 
-        // PNG 시그니처 테스트
+        // PNG
         let png_data = Bytes::from(vec![0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]);
         assert_eq!(detect_data_type(&headers, &png_data), DataType::Image);
 
-        // JPEG 시그니처 테스트
+        // JPEG
         let jpeg_data = Bytes::from(vec![0xFF, 0xD8, 0xFF]);
         assert_eq!(detect_data_type(&headers, &jpeg_data), DataType::Image);
 
-        // SVG 테스트
+        // SVG
         let svg_data = Bytes::from(
             "<svg width=\"100\" height=\"100\"><circle cx=\"50\" cy=\"50\" r=\"40\"/></svg>",
         );
         assert_eq!(detect_data_type(&headers, &svg_data), DataType::Image);
 
-        // GIF 시그니처 테스트
+        // GIF
         let gif_data = Bytes::from(b"GIF89a\x01\x00".as_slice());
         assert_eq!(detect_data_type(&headers, &gif_data), DataType::Image);
 
-        // WebP 시그니처 테스트
+        // WebP
         let webp_data = Bytes::from(vec![
             b'R', b'I', b'F', b'F', 0x00, 0x00, 0x00, 0x00, b'W', b'E', b'B', b'P',
         ]);
         assert_eq!(detect_data_type(&headers, &webp_data), DataType::Image);
 
-        // BMP 시그니처 테스트
+        // BMP
         let bmp_data = Bytes::from(vec![b'B', b'M', 0x00, 0x00]);
         assert_eq!(detect_data_type(&headers, &bmp_data), DataType::Image);
 
-        // ICO 시그니처 테스트
+        // ICO
         let ico_data = Bytes::from(vec![0x00, 0x00, 0x01, 0x00]);
         assert_eq!(detect_data_type(&headers, &ico_data), DataType::Image);
 
-        // TIFF 시그니처 테스트 (Little Endian)
+        // TIFF (Little Endian)
         let tiff_le_data = Bytes::from(b"II*\x00".as_slice());
         assert_eq!(detect_data_type(&headers, &tiff_le_data), DataType::Image);
 
-        // TIFF 시그니처 테스트 (Big Endian)
+        // TIFF (Big Endian)
         let tiff_be_data = Bytes::from(b"MM\x00*".as_slice());
         assert_eq!(detect_data_type(&headers, &tiff_be_data), DataType::Image);
 
-        // AVIF 시그니처 테스트
+        // AVIF
         let avif_data = Bytes::from(vec![
             0x00, 0x00, 0x00, 0x1C, b'f', b't', b'y', b'p', b'a', b'v', b'i', b'f',
         ]);
         assert_eq!(detect_data_type(&headers, &avif_data), DataType::Image);
 
-        // HEIC 시그니처 테스트
+        // HEIC
         let heic_data = Bytes::from(vec![
             0x00, 0x00, 0x00, 0x18, b'f', b't', b'y', b'p', b'h', b'e', b'i', b'c',
         ]);
@@ -649,31 +465,31 @@ mod tests {
     fn test_video_detection() {
         let headers = HeaderMap::new();
 
-        // MP4 시그니처 테스트 (4바이트 크기 + "ftyp" + 브랜드 식별자 "isom")
+        // MP4
         let mp4_data = Bytes::from(vec![
             0x00, 0x00, 0x00, 0x20, 0x66, 0x74, 0x79, 0x70, 0x69, 0x73, 0x6F, 0x6D,
         ]);
         assert_eq!(detect_data_type(&headers, &mp4_data), DataType::Video);
 
-        // WebM 시그니처 테스트
+        // WebM
         let webm_data = Bytes::from(vec![0x1A, 0x45, 0xDF, 0xA3]);
         assert_eq!(detect_data_type(&headers, &webm_data), DataType::Video);
 
-        // MOV 시그니처 테스트 (moov)
+        // MOV (moov)
         let mov_data = Bytes::from(vec![0x00, 0x00, 0x00, 0x08, b'm', b'o', b'o', b'v']);
         assert_eq!(detect_data_type(&headers, &mov_data), DataType::Video);
 
-        // AVI 시그니처 테스트
+        // AVI
         let avi_data = Bytes::from(vec![
             b'R', b'I', b'F', b'F', 0x00, 0x00, 0x00, 0x00, b'A', b'V', b'I', b' ',
         ]);
         assert_eq!(detect_data_type(&headers, &avi_data), DataType::Video);
 
-        // FLV 시그니처 테스트
+        // FLV
         let flv_data = Bytes::from(vec![b'F', b'L', b'V', 0x01]);
         assert_eq!(detect_data_type(&headers, &flv_data), DataType::Video);
 
-        // 3GP 시그니처 테스트
+        // 3GP
         let gp3_data = Bytes::from(vec![
             0x00, 0x00, 0x00, 0x14, b'f', b't', b'y', b'p', b'3', b'g', b'p', b'5',
         ]);
@@ -690,35 +506,35 @@ mod tests {
     fn test_audio_detection() {
         let headers = HeaderMap::new();
 
-        // MP3 시그니처 테스트 (ID3)
+        // MP3 (ID3)
         let mp3_data = Bytes::from(vec![0x49, 0x44, 0x33]);
         assert_eq!(detect_data_type(&headers, &mp3_data), DataType::Audio);
 
-        // MP3 프레임 동기 테스트
+        // MP3 프레임 동기
         let mp3_sync = Bytes::from(vec![0xFF, 0xFB, 0x90, 0x00]);
         assert_eq!(detect_data_type(&headers, &mp3_sync), DataType::Audio);
 
-        // WAV 시그니처 테스트
+        // WAV
         let wav_data = Bytes::from(vec![
             0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00, 0x57, 0x41, 0x56, 0x45,
         ]);
         assert_eq!(detect_data_type(&headers, &wav_data), DataType::Audio);
 
-        // OGG 시그니처 테스트
+        // OGG
         let ogg_data = Bytes::from(b"OggS\x00\x02".as_slice());
         assert_eq!(detect_data_type(&headers, &ogg_data), DataType::Audio);
 
-        // FLAC 시그니처 테스트
+        // FLAC
         let flac_data = Bytes::from(b"fLaC\x00\x00".as_slice());
         assert_eq!(detect_data_type(&headers, &flac_data), DataType::Audio);
 
-        // AIFF 시그니처 테스트
+        // AIFF
         let aiff_data = Bytes::from(vec![
             b'F', b'O', b'R', b'M', 0x00, 0x00, 0x00, 0x00, b'A', b'I', b'F', b'F',
         ]);
         assert_eq!(detect_data_type(&headers, &aiff_data), DataType::Audio);
 
-        // M4A 시그니처 테스트
+        // M4A
         let m4a_data = Bytes::from(vec![
             0x00, 0x00, 0x00, 0x20, b'f', b't', b'y', b'p', b'M', b'4', b'A', b' ',
         ]);
@@ -728,8 +544,6 @@ mod tests {
     #[test]
     fn test_document_detection() {
         let headers = HeaderMap::new();
-
-        // PDF 시그니처 테스트
         let pdf_data = Bytes::from(vec![0x25, 0x50, 0x44, 0x46]);
         assert_eq!(detect_data_type(&headers, &pdf_data), DataType::Document);
     }
@@ -738,11 +552,11 @@ mod tests {
     fn test_archive_detection() {
         let headers = HeaderMap::new();
 
-        // ZIP 시그니처 테스트
+        // ZIP
         let zip_data = Bytes::from(vec![0x50, 0x4B, 0x03, 0x04]);
         assert_eq!(detect_data_type(&headers, &zip_data), DataType::Archive);
 
-        // GZIP 시그니처 테스트 (압축 해제 실패 시 Archive 반환)
+        // GZIP (압축 해제 실패 시 Archive 반환)
         let gzip_data = Bytes::from(vec![0x1F, 0x8B]);
         assert_eq!(detect_data_type(&headers, &gzip_data), DataType::Archive);
     }
@@ -761,7 +575,6 @@ mod tests {
         encoder.write_all(json_data.as_bytes()).unwrap();
         let compressed = encoder.finish().unwrap();
 
-        // 압축 해제된 JSON 데이터는 JSON으로 감지
         assert_eq!(
             detect_data_type(&headers, &Bytes::from(compressed)),
             DataType::Json
@@ -774,7 +587,6 @@ mod tests {
         encoder.write_all(html_data.as_bytes()).unwrap();
         let compressed = encoder.finish().unwrap();
 
-        // 압축 해제된 HTML 데이터는 텍스트로 분류 (HTML 패턴 감지 없음)
         assert_eq!(
             detect_data_type(&headers, &Bytes::from(compressed)),
             DataType::Text
@@ -785,15 +597,12 @@ mod tests {
     fn test_content_type_header_priority() {
         use http::HeaderValue;
 
-        // Content-Type 헤더가 있으면 내용 분석보다 우선
         let mut headers = HeaderMap::new();
         headers.insert("content-type", HeaderValue::from_static("application/json"));
 
-        // JSON이 아닌 내용이어도 헤더를 우선시
         let non_json_body = Bytes::from("this is not json");
         assert_eq!(detect_data_type(&headers, &non_json_body), DataType::Json);
 
-        // CSS 헤더 테스트
         headers.clear();
         headers.insert("content-type", HeaderValue::from_static("text/css"));
         let non_css_body = Bytes::from("this is not css");
@@ -804,11 +613,9 @@ mod tests {
     fn test_fallback_to_text_or_binary() {
         let headers = HeaderMap::new();
 
-        // Content-Type이 없고 내용 분석도 실패하는 경우 텍스트로 분류
         let unknown_text = Bytes::from("some random text that doesn't match any pattern");
         assert_eq!(detect_data_type(&headers, &unknown_text), DataType::Text);
 
-        // 바이너리 데이터는 바이너리로 분류
         let binary_data = Bytes::from(vec![0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF0]);
         assert_eq!(detect_data_type(&headers, &binary_data), DataType::Binary);
     }
@@ -819,20 +626,16 @@ mod tests {
 
         let headers = HeaderMap::new();
 
-        // JSON body with "query" field → GraphQL
         let graphql_body =
             Bytes::from(r#"{"query":"query { user(id: 1) { name } }","variables":{}}"#);
         assert_eq!(detect_data_type(&headers, &graphql_body), DataType::GraphQL);
 
-        // JSON body without "query" field → Json
         let json_body = Bytes::from(r#"{"name":"test","value":123}"#);
         assert_eq!(detect_data_type(&headers, &json_body), DataType::Json);
 
-        // JSON array → Json (not GraphQL)
         let array_body = Bytes::from(r#"[{"query":"test"}]"#);
         assert_eq!(detect_data_type(&headers, &array_body), DataType::Json);
 
-        // Content-Type: application/graphql → GraphQL
         let mut graphql_headers = HeaderMap::new();
         graphql_headers.insert(
             "content-type",
@@ -843,19 +646,10 @@ mod tests {
     }
 
     #[test]
-    fn test_graphql_type_properties() {
-        let gql = DataType::GraphQL;
-        assert_eq!(gql.to_monaco_language(), "graphql");
-        assert_eq!(gql.to_mime_type(), "application/json");
-        assert!(gql.is_text_based());
-        assert!(!gql.is_binary());
-    }
-
-    #[test]
     fn test_protobuf_detection_by_content_type() {
         use http::HeaderValue;
 
-        let body = Bytes::from(vec![0x08, 0x96, 0x01]); // varint field 1 = 150
+        let body = Bytes::from(vec![0x08, 0x96, 0x01]);
 
         let cases = vec![
             "application/protobuf",
@@ -879,18 +673,8 @@ mod tests {
     }
 
     #[test]
-    fn test_protobuf_type_properties() {
-        let pb = DataType::Protobuf;
-        assert_eq!(pb.to_mime_type(), "application/x-protobuf");
-        assert_eq!(pb.to_monaco_language(), "plaintext");
-        assert!(!pb.is_text_based());
-        assert!(pb.is_binary());
-    }
-
-    #[test]
     fn test_protobuf_not_detected_without_content_type() {
         let headers = HeaderMap::new();
-        // protobuf 바이너리는 magic number가 없으므로 Binary로 감지됨
         let body = Bytes::from(vec![0x08, 0x96, 0x01]);
         assert_eq!(detect_data_type(&headers, &body), DataType::Binary);
     }
