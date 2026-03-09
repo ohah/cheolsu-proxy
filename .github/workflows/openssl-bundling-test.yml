@@ -7,6 +7,7 @@ on:
       - "desktop/src-tauri/build.rs"
       - "desktop/src-tauri/tauri.conf.json"
       - "desktop/tests/test-openssl-bundling.sh"
+      - ".cargo/config.toml"
       - ".github/workflows/openssl-bundling-test.yml"
   push:
     branches: [main]
@@ -15,6 +16,7 @@ on:
       - "desktop/src-tauri/build.rs"
       - "desktop/src-tauri/tauri.conf.json"
       - "desktop/tests/test-openssl-bundling.sh"
+      - ".cargo/config.toml"
       - ".github/workflows/openssl-bundling-test.yml"
 
 jobs:
