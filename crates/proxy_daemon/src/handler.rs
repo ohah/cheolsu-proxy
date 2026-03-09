@@ -43,7 +43,7 @@ pub(crate) struct RequestState {
 }
 
 /// 빠른 설정 (No Caching, Block Cookies)
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Copy, Debug, Default)]
 pub struct QuickSettings {
     pub no_caching: bool,
     pub block_cookies: bool,
@@ -172,17 +172,6 @@ impl LoggingHandler {
         *mappings_guard = mappings;
     }
 
-    /// 빠른 설정 업데이트 (No Caching, Block Cookies)
-    pub fn update_quick_settings(&self, no_caching: bool, block_cookies: bool) {
-        let mut settings = self.config.quick_settings.write();
-        settings.no_caching = no_caching;
-        settings.block_cookies = block_cookies;
-        info!(
-            "[QuickSettings] no_caching={}, block_cookies={}",
-            no_caching, block_cookies
-        );
-    }
-
     /// 스크립트 핸들 반환
     pub fn script_handle(&self) -> &scripting::ScriptHandle {
         &self.intercept.script_handle
@@ -198,7 +187,7 @@ impl LoggingHandler {
             CACHE_CONTROL, COOKIE, IF_MODIFIED_SINCE, IF_NONE_MATCH, PRAGMA,
         };
 
-        let settings = self.config.quick_settings.read();
+        let settings = { *self.config.quick_settings.read() };
 
         if settings.no_caching {
             req.headers_mut().remove(IF_MODIFIED_SINCE);
@@ -222,7 +211,7 @@ impl LoggingHandler {
     fn apply_quick_settings_on_response(&self, mut res: Response<Body>) -> Response<Body> {
         use proxyapi_v2::hyper::header::SET_COOKIE;
 
-        let settings = self.config.quick_settings.read();
+        let settings = { *self.config.quick_settings.read() };
 
         if settings.block_cookies {
             res.headers_mut().remove(SET_COOKIE);
