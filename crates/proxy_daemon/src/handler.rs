@@ -839,3 +839,127 @@ impl WebSocketHandler for LoggingHandler {
         Some(msg)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// 테스트용 LoggingHandler를 생성합니다.
+    fn make_test_handler(ca_cert_der: Option<Vec<u8>>) -> LoggingHandler {
+        let (sender, _rx) = tokio::sync::mpsc::channel(1);
+        let mut handler = LoggingHandler::new(sender, std::path::PathBuf::from("/tmp"));
+        if let Some(der) = ca_cert_der {
+            handler = handler.with_ca_cert_der(der);
+        }
+        handler
+    }
+
+    #[test]
+    fn cert_download_host_constants() {
+        assert_eq!(CERT_DOWNLOAD_HOST, "cheolsu.proxy");
+        assert!(CERT_DOWNLOAD_HOST_COLON.starts_with(CERT_DOWNLOAD_HOST));
+        assert!(CERT_DOWNLOAD_HOST_COLON.ends_with(':'));
+    }
+
+    #[test]
+    fn serve_cert_download_ssl_path_with_cert() {
+        let handler = make_test_handler(Some(vec![0xDE, 0xAD, 0xBE, 0xEF]));
+        let req = Request::builder()
+            .uri("/ssl")
+            .header("host", "cheolsu.proxy")
+            .body(Body::from(""))
+            .unwrap();
+        let resp = handler.serve_ca_cert_download(&req);
+        assert_eq!(resp.status(), StatusCode::OK);
+        assert_eq!(
+            resp.headers().get("Content-Type").unwrap(),
+            "application/x-x509-ca-cert"
+        );
+        assert_eq!(resp.headers().get("Content-Length").unwrap(), "4");
+        assert!(resp
+            .headers()
+            .get("Content-Disposition")
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .contains("cheolsu-proxy-ca.cer"));
+    }
+
+    #[test]
+    fn serve_cert_download_cert_path_with_cert() {
+        let handler = make_test_handler(Some(vec![1, 2, 3]));
+        let req = Request::builder()
+            .uri("/cert")
+            .body(Body::from(""))
+            .unwrap();
+        let resp = handler.serve_ca_cert_download(&req);
+        assert_eq!(resp.status(), StatusCode::OK);
+        assert_eq!(
+            resp.headers().get("Content-Type").unwrap(),
+            "application/x-x509-ca-cert"
+        );
+    }
+
+    #[test]
+    fn serve_cert_download_root_path_with_cert() {
+        let handler = make_test_handler(Some(vec![1]));
+        let req = Request::builder().uri("/").body(Body::from("")).unwrap();
+        let resp = handler.serve_ca_cert_download(&req);
+        assert_eq!(resp.status(), StatusCode::OK);
+        assert_eq!(
+            resp.headers().get("Content-Type").unwrap(),
+            "application/x-x509-ca-cert"
+        );
+    }
+
+    #[test]
+    fn serve_cert_download_ssl_path_without_cert() {
+        let handler = make_test_handler(None);
+        let req = Request::builder().uri("/ssl").body(Body::from("")).unwrap();
+        let resp = handler.serve_ca_cert_download(&req);
+        assert_eq!(resp.status(), StatusCode::NOT_FOUND);
+        assert!(resp
+            .headers()
+            .get("Content-Type")
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .contains("text/plain"));
+    }
+
+    #[test]
+    fn serve_cert_download_other_path_returns_html() {
+        let handler = make_test_handler(Some(vec![1]));
+        let req = Request::builder()
+            .uri("/about")
+            .body(Body::from(""))
+            .unwrap();
+        let resp = handler.serve_ca_cert_download(&req);
+        assert_eq!(resp.status(), StatusCode::OK);
+        assert!(resp
+            .headers()
+            .get("Content-Type")
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .contains("text/html"));
+    }
+
+    #[test]
+    fn with_ca_cert_der_sets_bytes() {
+        let handler = make_test_handler(None);
+        assert!(handler.ca_cert_der.is_none());
+
+        let handler = make_test_handler(Some(vec![0xFF, 0x00]));
+        assert!(handler.ca_cert_der.is_some());
+        assert_eq!(handler.ca_cert_der.unwrap().len(), 2);
+    }
+
+    #[test]
+    fn host_matching_exact() {
+        assert_eq!("cheolsu.proxy", CERT_DOWNLOAD_HOST);
+        assert!("cheolsu.proxy:8080".starts_with(CERT_DOWNLOAD_HOST_COLON));
+        assert!(!"other.proxy:8080".starts_with(CERT_DOWNLOAD_HOST_COLON));
+        assert!(!"cheolsu.proxy.evil.com".starts_with(CERT_DOWNLOAD_HOST_COLON));
+    }
+}

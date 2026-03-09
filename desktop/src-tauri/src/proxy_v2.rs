@@ -937,3 +937,71 @@ fn base64_encode(engine: &base64::engine::GeneralPurpose, data: &[u8]) -> String
     use base64::Engine;
     engine.encode(data)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn generate_qr_code_base64_returns_valid_base64() {
+        let result = generate_qr_code_base64("http://192.168.1.1:8100/ssl");
+        assert!(result.is_ok(), "QR 코드 생성 실패: {:?}", result.err());
+
+        let base64_str = result.unwrap();
+        assert!(!base64_str.is_empty(), "base64 문자열이 비어있음");
+
+        // 유효한 base64인지 확인
+        use base64::Engine;
+        let decoded = base64::engine::general_purpose::STANDARD.decode(&base64_str);
+        assert!(decoded.is_ok(), "유효한 base64가 아님");
+
+        // PNG 매직 바이트 확인
+        let bytes = decoded.unwrap();
+        assert!(bytes.len() > 8, "PNG 데이터가 너무 짧음");
+        assert_eq!(&bytes[..4], b"\x89PNG", "PNG 매직 바이트가 아님");
+    }
+
+    #[test]
+    fn generate_qr_code_base64_contains_logo() {
+        // 로고가 합성되면 이미지 크기가 로고 없는 것보다 커야 함
+        let result = generate_qr_code_base64("http://test.local/ssl");
+        assert!(result.is_ok());
+
+        use base64::Engine;
+        let bytes = base64::engine::general_purpose::STANDARD
+            .decode(result.unwrap())
+            .unwrap();
+        // 로고가 합성된 QR코드 PNG는 일반적으로 수 KB 이상
+        assert!(
+            bytes.len() > 1000,
+            "로고가 합성된 QR코드가 너무 작음: {} bytes",
+            bytes.len()
+        );
+    }
+
+    #[test]
+    fn get_cert_download_info_returns_valid_info() {
+        let result = get_cert_download_info(8100);
+        assert!(result.is_ok(), "인증서 다운로드 정보 생성 실패");
+
+        let info = result.unwrap();
+        assert_eq!(info.port, 8100);
+        assert_eq!(info.download_url, "http://cheolsu.proxy/ssl");
+        assert!(!info.local_ips.is_empty(), "로컬 IP가 비어있음");
+        assert!(!info.qr_code_base64.is_empty(), "QR 코드가 비어있음");
+        assert!(info.direct_url.contains("cheolsu.proxy/ssl"));
+    }
+
+    #[test]
+    fn cert_download_info_struct_fields() {
+        let info = CertDownloadInfo {
+            port: 9090,
+            local_ips: vec!["192.168.1.1".to_string()],
+            download_url: "http://cheolsu.proxy/ssl".to_string(),
+            direct_url: "http://cheolsu.proxy/ssl (proxy: 192.168.1.1:9090)".to_string(),
+            qr_code_base64: "dGVzdA==".to_string(),
+        };
+        assert_eq!(info.port, 9090);
+        assert_eq!(info.local_ips.len(), 1);
+    }
+}
