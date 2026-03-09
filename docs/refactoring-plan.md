@@ -37,27 +37,27 @@ proxy_daemon (데몬 프로세스) ← scripting (TS/JS 엔진)
 
 ### 테스트 현황
 
-| 크레이트 | 단위 테스트 | 통합 테스트 | 합계 |
-|---------|-----------|-----------|------|
-| proxy_v2_models | 114 | 0 | 114 |
-| proxyapi_v2 | 73 | 81 | 154 |
-| proxy_daemon | 50 | 0 | **50** |
-| mcp_server | 31 | 0 | 31 |
-| tui | 29 | 0 | 29 |
-| scripting | 19 | 0 | 19 |
-| **합계** | **316** | **81** | **397** |
+| 크레이트        | 단위 테스트 | 통합 테스트 | 합계    |
+| --------------- | ----------- | ----------- | ------- |
+| proxy_v2_models | 114         | 0           | 114     |
+| proxyapi_v2     | 73          | 81          | 154     |
+| proxy_daemon    | 50          | 0           | **50**  |
+| mcp_server      | 31          | 0           | 31      |
+| tui             | 29          | 0           | 29      |
+| scripting       | 19          | 0           | 19      |
+| **합계**        | **316**     | **81**      | **397** |
 
 ### 주요 문제 파일 (줄 수 기준)
 
-| 파일 | 줄 수 | 핵심 문제 |
-|------|-------|----------|
-| `mcp_server/src/main.rs` | 1,251 | 모든 MCP 도구가 단일 파일 |
-| `proxyapi_v2/src/hybrid_tls_handler.rs` | 1,149 | 370줄짜리 함수 |
-| `proxy_daemon/src/handler.rs` | 965 | God Object (11개 필드) |
-| `proxy_v2_models/src/data_type.rs` | 897 | 하나의 impl에 60+개 메서드 |
-| `proxyapi_v2/src/proxy/internal.rs` | 832 | 프록시 내부 로직 혼재 |
-| `proxy_v2_models/src/har.rs` | 801 | HAR 변환 + 테스트 |
-| `tui/src/app/forms.rs` | 788 | TUI 폼 로직 |
+| 파일                                    | 줄 수 | 핵심 문제                  |
+| --------------------------------------- | ----- | -------------------------- |
+| `mcp_server/src/main.rs`                | 1,251 | 모든 MCP 도구가 단일 파일  |
+| `proxyapi_v2/src/hybrid_tls_handler.rs` | 1,149 | 370줄짜리 함수             |
+| `proxy_daemon/src/handler.rs`           | 965   | God Object (11개 필드)     |
+| `proxy_v2_models/src/data_type.rs`      | 897   | 하나의 impl에 60+개 메서드 |
+| `proxyapi_v2/src/proxy/internal.rs`     | 832   | 프록시 내부 로직 혼재      |
+| `proxy_v2_models/src/har.rs`            | 801   | HAR 변환 + 테스트          |
+| `tui/src/app/forms.rs`                  | 788   | TUI 폼 로직                |
 
 ---
 
@@ -116,6 +116,7 @@ self.store.rules.lock().unwrap()
 ```
 
 **조치:** 두 가지 선택지
+
 - (A) `parking_lot::Mutex` 사용 — lock poisoning 자체가 발생하지 않음
 - (B) `.lock().unwrap_or_else(|e| e.into_inner())` — poisoned lock 복구
 
@@ -200,13 +201,13 @@ crates/proxy_daemon/tests/
 
 **테스트 시나리오:**
 
-| 테스트 | 검증 대상 |
-|--------|----------|
-| 데몬 시작 → HTTP 요청 → 캡처 확인 | 기본 프록시 동작 |
-| 인터셉트 규칙 등록 → 요청 차단 확인 | 규칙 엔진 |
-| 서버 리플레이 등록 → 매칭 응답 확인 | 리플레이 기능 |
-| WS 연결 → 메시지 캡처 확인 | WebSocket 핸들링 |
-| 데몬 graceful shutdown | 리소스 정리 |
+| 테스트                              | 검증 대상        |
+| ----------------------------------- | ---------------- |
+| 데몬 시작 → HTTP 요청 → 캡처 확인   | 기본 프록시 동작 |
+| 인터셉트 규칙 등록 → 요청 차단 확인 | 규칙 엔진        |
+| 서버 리플레이 등록 → 매칭 응답 확인 | 리플레이 기능    |
+| WS 연결 → 메시지 캡처 확인          | WebSocket 핸들링 |
+| 데몬 graceful shutdown              | 리소스 정리      |
 
 ### 3.2 scripting 통합 테스트
 
@@ -225,11 +226,11 @@ crates/mcp_server/tests/
 
 ### 3.4 기존 테스트 보강
 
-| 크레이트 | 보강 대상 |
-|---------|----------|
-| proxy_v2_models | `file_storage.rs` 경로 엣지 케이스 |
-| proxyapi_v2 | `hybrid_tls_handler.rs` 핸드셰이크 실패 경로 |
-| proxy_daemon | `intercept.rs` 규칙 매칭 엣지 케이스 |
+| 크레이트        | 보강 대상                                    |
+| --------------- | -------------------------------------------- |
+| proxy_v2_models | `file_storage.rs` 경로 엣지 케이스           |
+| proxyapi_v2     | `hybrid_tls_handler.rs` 핸드셰이크 실패 경로 |
+| proxy_daemon    | `intercept.rs` 규칙 매칭 엣지 케이스         |
 
 ---
 
@@ -412,6 +413,7 @@ parking_lot = "0.12"
 ```
 
 **장점:**
+
 - Lock poisoning 없음 (unwrap 불필요)
 - std::sync::Mutex 대비 2~3배 빠름
 - API 거의 동일 (drop-in replacement)
@@ -492,12 +494,12 @@ Phase 5: 동시성 개선 (Phase 4와 병행 가능)
 ### 예상 변경 규모
 
 | Phase | 변경 파일 수 | 신규 파일 수 | 삭제 파일 수 |
-|-------|------------|------------|------------|
-| 1 | ~15 | 0 | 0 |
-| 2 | ~3 | ~8 | 0 |
-| 3 | ~5 | 0 | 0 |
-| 4 | ~6 | ~8 | 0 |
-| 5 | ~5 | 0 | 0 |
+| ----- | ------------ | ------------ | ------------ |
+| 1     | ~15          | 0            | 0            |
+| 2     | ~3           | ~8           | 0            |
+| 3     | ~5           | 0            | 0            |
+| 4     | ~6           | ~8           | 0            |
+| 5     | ~5           | 0            | 0            |
 
 ### 브랜치 전략
 

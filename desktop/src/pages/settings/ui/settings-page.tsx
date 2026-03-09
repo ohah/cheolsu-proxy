@@ -652,7 +652,8 @@ export function SettingsPage() {
                         </li>
                         <li>
                           <Trans>
-                            Go to <strong>Settings → General → About → Certificate Trust Settings</strong>
+                            Go to{" "}
+                            <strong>Settings → General → About → Certificate Trust Settings</strong>
                           </Trans>
                         </li>
                         <li>
