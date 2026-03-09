@@ -262,4 +262,112 @@ mod tests {
         let mgr = make_manager();
         assert!(mgr.list_pending().await.is_empty());
     }
+
+    #[tokio::test]
+    async fn test_disabled_rule_does_not_match() {
+        let mgr = make_manager();
+        let mut rule = make_rule("*example.com*", true, true);
+        rule.enabled = false;
+        mgr.update_rules(vec![rule]).await;
+
+        assert!(
+            !mgr.should_break("https://example.com/api", &BreakpointPhase::Request)
+                .await
+        );
+        assert!(
+            !mgr.should_break("https://example.com/api", &BreakpointPhase::Response)
+                .await
+        );
+    }
+
+    #[tokio::test]
+    async fn test_break_on_request_false_no_request_trigger() {
+        let mgr = make_manager();
+        // break_on_request=false, break_on_response=true
+        mgr.update_rules(vec![make_rule("*example.com*", false, true)])
+            .await;
+        assert!(
+            !mgr.should_break("https://example.com/api", &BreakpointPhase::Request)
+                .await
+        );
+    }
+
+    #[tokio::test]
+    async fn test_break_on_response_false_no_response_trigger() {
+        let mgr = make_manager();
+        // break_on_request=true, break_on_response=false
+        mgr.update_rules(vec![make_rule("*example.com*", true, false)])
+            .await;
+        assert!(
+            !mgr.should_break("https://example.com/api", &BreakpointPhase::Response)
+                .await
+        );
+    }
+
+    #[tokio::test]
+    async fn test_first_matching_rule_used() {
+        let mgr = make_manager();
+        // 첫 번째 규칙: request만, 두 번째 규칙: response만
+        let rule1 = BreakpointRule {
+            id: "rule1".to_string(),
+            pattern: "*example.com*".to_string(),
+            break_on_request: true,
+            break_on_response: false,
+            enabled: true,
+        };
+        let rule2 = BreakpointRule {
+            id: "rule2".to_string(),
+            pattern: "*example.com*".to_string(),
+            break_on_request: false,
+            break_on_response: true,
+            enabled: true,
+        };
+        mgr.update_rules(vec![rule1, rule2]).await;
+
+        // should_break은 any()를 사용하므로 둘 다 매칭됨을 확인
+        // 하지만 첫 번째 규칙이 request에 매칭되면 true
+        assert!(
+            mgr.should_break("https://example.com/api", &BreakpointPhase::Request)
+                .await
+        );
+        // 두 번째 규칙이 response에 매칭되면 true
+        assert!(
+            mgr.should_break("https://example.com/api", &BreakpointPhase::Response)
+                .await
+        );
+    }
+
+    #[tokio::test]
+    async fn test_update_rules_replaces_previous() {
+        let mgr = make_manager();
+        mgr.update_rules(vec![make_rule("*old.com*", true, true)])
+            .await;
+        assert!(
+            mgr.should_break("https://old.com/api", &BreakpointPhase::Request)
+                .await
+        );
+
+        // 새 규칙으로 업데이트 → 이전 규칙 사라짐
+        mgr.update_rules(vec![make_rule("*new.com*", true, true)])
+            .await;
+        assert!(
+            !mgr.should_break("https://old.com/api", &BreakpointPhase::Request)
+                .await
+        );
+        assert!(
+            mgr.should_break("https://new.com/api", &BreakpointPhase::Request)
+                .await
+        );
+    }
+
+    #[tokio::test]
+    async fn test_resolve_nonexistent_returns_error() {
+        let mgr = make_manager();
+        let result = mgr
+            .resolve("does_not_exist", BreakpointAction::Forward)
+            .await;
+        assert!(result.is_err());
+        let err_msg = result.unwrap_err();
+        assert!(err_msg.contains("does_not_exist"));
+    }
 }
