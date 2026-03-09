@@ -1,4 +1,4 @@
-pub mod cert_distribution;
+pub(crate) mod cert_distribution;
 pub mod client;
 pub mod client_handler;
 pub mod curl_fallback;
