@@ -1,205 +1,29 @@
-use std::collections::{HashMap, VecDeque};
-use std::sync::atomic::{AtomicU32, Ordering};
-use std::sync::Arc;
+mod connection;
+mod helpers;
+mod params;
+mod store;
 
-use parking_lot::Mutex;
+use std::sync::Arc;
 
 use anyhow::Result;
 use proxy_daemon::{
-    connect_to_daemon, is_daemon_running, ClientCommand, DaemonConnection, DaemonMessage,
-    InterceptAction, InterceptRule,
+    is_daemon_running, ClientCommand, DaemonConnection, InterceptAction, InterceptRule,
 };
-use proxy_v2_models::{RequestInfo, WsConnectionEvent, WsDirection, WsMessageInfo};
+use proxy_v2_models::WsDirection;
 use rmcp::{
     handler::server::{router::tool::ToolRouter, wrapper::Parameters},
     model::*,
-    schemars, tool, tool_handler, tool_router,
+    tool, tool_handler, tool_router,
     transport::stdio,
     ErrorData as McpError, ServerHandler, ServiceExt,
 };
-use serde::Deserialize;
 use tokio::sync::Mutex as TokioMutex;
 use tracing_subscriber::EnvFilter;
 
-const MAX_TRANSACTIONS: usize = 1000;
-const MAX_WS_MESSAGES: usize = 5000;
-
-// ─── Store ──────────────────────────────────────────────────
-
-#[derive(Clone)]
-struct Store {
-    transactions: Arc<Mutex<VecDeque<RequestInfo>>>,
-    ws_messages: Arc<Mutex<VecDeque<WsMessageInfo>>>,
-    ws_connections: Arc<Mutex<Vec<WsConnectionEvent>>>,
-    rules: Arc<Mutex<Vec<InterceptRule>>>,
-}
-
-impl Store {
-    fn new() -> Self {
-        Self {
-            transactions: Arc::new(Mutex::new(VecDeque::with_capacity(MAX_TRANSACTIONS))),
-            ws_messages: Arc::new(Mutex::new(VecDeque::with_capacity(MAX_WS_MESSAGES))),
-            ws_connections: Arc::new(Mutex::new(Vec::new())),
-            rules: Arc::new(Mutex::new(Vec::new())),
-        }
-    }
-
-    fn push_transaction(&self, info: RequestInfo) {
-        let mut txns = self.transactions.lock();
-        if txns.len() >= MAX_TRANSACTIONS {
-            txns.pop_front();
-        }
-        txns.push_back(info);
-    }
-
-    fn push_ws_message(&self, msg: WsMessageInfo) {
-        let mut msgs = self.ws_messages.lock();
-        if msgs.len() >= MAX_WS_MESSAGES {
-            msgs.pop_front();
-        }
-        msgs.push_back(msg);
-    }
-
-    fn push_ws_connection(&self, event: WsConnectionEvent) {
-        self.ws_connections.lock().push(event);
-    }
-}
-
-// ─── Tool Parameters ────────────────────────────────────────
-
-#[derive(Debug, Deserialize, schemars::JsonSchema)]
-struct SearchTrafficParams {
-    /// Filter by hostname or URL substring
-    host: Option<String>,
-    /// Filter by HTTP method (GET, POST, etc.)
-    method: Option<String>,
-    /// Filter by response status code
-    status: Option<u16>,
-    /// Filter by URL path substring
-    path: Option<String>,
-    /// Maximum results to return (default: 50)
-    limit: Option<usize>,
-}
-
-#[derive(Debug, Deserialize, schemars::JsonSchema)]
-struct GetTransactionParams {
-    /// Transaction ID (from search_traffic results)
-    id: String,
-}
-
-#[derive(Debug, Deserialize, schemars::JsonSchema)]
-struct GetWsMessagesParams {
-    /// Filter by connection URI substring
-    connection_id: Option<String>,
-    /// Maximum results (default: 100)
-    limit: Option<usize>,
-}
-
-#[derive(Debug, Deserialize, schemars::JsonSchema)]
-struct ReplayRequestParams {
-    /// HTTP method (GET, POST, PUT, DELETE, etc.)
-    method: String,
-    /// Full URL to send the request to
-    url: String,
-    /// Request headers as key-value pairs
-    headers: Option<HashMap<String, String>>,
-    /// Request body content
-    body: Option<String>,
-}
-
-#[derive(Debug, Deserialize, schemars::JsonSchema)]
-struct AddRuleParams {
-    /// Rule display name
-    name: String,
-    /// URL pattern with wildcards (e.g., *.example.com/api/*)
-    pattern: String,
-    /// HTTP method filter (optional)
-    method: Option<String>,
-    /// Action: "block", "modify_request", "modify_response", "map_local", "map_remote"
-    action_type: String,
-    /// Status code (for block: default 403, for modify_response)
-    status_code: Option<u16>,
-    /// Body content (for block/modify_request/modify_response)
-    response_body: Option<String>,
-    /// Headers to add
-    add_headers: Option<HashMap<String, String>>,
-    /// Header names to remove
-    remove_headers: Option<Vec<String>>,
-    /// Local file path (required for map_local)
-    file_path: Option<String>,
-    /// Target URL (required for map_remote)
-    target_url: Option<String>,
-    /// Preserve original path for map_remote (default: true)
-    preserve_path: Option<bool>,
-}
-
-#[derive(Debug, Deserialize, schemars::JsonSchema)]
-struct RemoveRuleParams {
-    /// Rule ID to remove
-    id: String,
-}
-
-#[derive(Debug, Deserialize, schemars::JsonSchema)]
-struct LoadScriptParams {
-    /// File path to a JavaScript/TypeScript script
-    path: Option<String>,
-    /// Inline JavaScript/TypeScript code
-    code: Option<String>,
-}
-
-#[derive(Debug, Deserialize, schemars::JsonSchema)]
-struct UnloadScriptParams {}
-
-// ─── Helpers ────────────────────────────────────────────────
-
-fn tool_error(msg: impl Into<String>) -> Result<CallToolResult, McpError> {
-    Ok(CallToolResult::error(vec![Content::text(msg.into())]))
-}
-
-fn tool_ok(msg: impl Into<String>) -> Result<CallToolResult, McpError> {
-    Ok(CallToolResult::success(vec![Content::text(msg.into())]))
-}
-
-fn format_size(bytes: usize) -> String {
-    if bytes < 1024 {
-        format!("{}B", bytes)
-    } else if bytes < 1024 * 1024 {
-        format!("{:.1}KB", bytes as f64 / 1024.0)
-    } else {
-        format!("{:.1}MB", bytes as f64 / (1024.0 * 1024.0))
-    }
-}
-
-fn next_rule_id() -> String {
-    static COUNTER: AtomicU32 = AtomicU32::new(0);
-    format!("mcp_{}", COUNTER.fetch_add(1, Ordering::Relaxed))
-}
-
-fn read_body_text(file_path: &Option<String>, data_type: &proxy_v2_models::DataType) -> String {
-    let Some(path) = file_path else {
-        return "(body not available)".to_string();
-    };
-    let Ok(bytes) = std::fs::read(path) else {
-        return "(file read error)".to_string();
-    };
-    if !data_type.is_text_based() {
-        return format!("(binary, {:?})", data_type);
-    }
-    match String::from_utf8(bytes) {
-        Ok(text) => {
-            if text.len() > 10000 {
-                format!(
-                    "{}...\n(truncated, {} total)",
-                    &text[..10000],
-                    format_size(text.len())
-                )
-            } else {
-                text
-            }
-        }
-        Err(_) => "(binary data)".to_string(),
-    }
-}
+use connection::try_connect_daemon;
+use helpers::{format_size, next_rule_id, read_body_text, tool_error, tool_ok};
+use params::*;
+use store::Store;
 
 // ─── MCP Server ─────────────────────────────────────────────
 
@@ -695,42 +519,14 @@ impl ServerHandler for CheolsuMcpServer {
     }
 }
 
-// ─── Daemon Connection ──────────────────────────────────────
-
-async fn try_connect_daemon(store: &Store) -> Option<DaemonConnection> {
-    if is_daemon_running().is_none() {
-        return None;
-    }
-
-    let store = store.clone();
-    match connect_to_daemon(move |msg| match msg {
-        DaemonMessage::Event { data } => store.push_transaction(data),
-        DaemonMessage::WsMessage { data } => store.push_ws_message(data),
-        DaemonMessage::WsConnection { data } => store.push_ws_connection(data),
-        DaemonMessage::InterceptRulesUpdated { rules } => {
-            *store.rules.lock() = rules;
-        }
-        _ => {}
-    })
-    .await
-    {
-        Ok(conn) => {
-            tracing::info!("Connected to proxy daemon on port {}", conn.port);
-            Some(conn)
-        }
-        Err(e) => {
-            tracing::warn!("Failed to connect to daemon: {}", e);
-            None
-        }
-    }
-}
-
 // ─── Tests ──────────────────────────────────────────────────
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use proxy_daemon::{InterceptAction, InterceptRule};
+    use proxy_v2_models::{RequestInfo, WsConnectionEvent, WsDirection, WsMessageInfo};
+    use store::{MAX_TRANSACTIONS, MAX_WS_MESSAGES};
 
     fn make_block_rule(id: &str) -> InterceptRule {
         InterceptRule {
@@ -826,14 +622,8 @@ mod tests {
     #[test]
     fn test_broadcast_sync_preserves_app_rules_on_mcp_add() {
         let store = Store::new();
-
-        // 1. 데몬 연결 시 broadcast로 앱 UI 규칙 2개 수신
         *store.rules.lock() = vec![make_block_rule("uuid-1"), make_block_rule("uuid-2")];
-
-        // 2. MCP add_rule: 기존 규칙에 추가
         store.rules.lock().push(make_block_rule("mcp_0"));
-
-        // 3. send_rules()가 전체 규칙을 전송 → 앱 규칙 보존 확인
         let rules = store.rules.lock().clone();
         assert_eq!(rules.len(), 3);
         assert!(rules.iter().any(|r| r.id == "uuid-1"));
@@ -844,17 +634,12 @@ mod tests {
     #[test]
     fn test_broadcast_sync_updates_full_rules() {
         let store = Store::new();
-
-        // 1. 초기 상태: MCP 규칙 1개
         store.rules.lock().push(make_block_rule("mcp_0"));
-
-        // 2. broadcast로 전체 규칙 수신 (앱 UI 규칙 + MCP 규칙 포함)
         *store.rules.lock() = vec![
             make_block_rule("uuid-1"),
             make_block_rule("uuid-2"),
             make_block_rule("mcp_0"),
         ];
-
         let rules = store.rules.lock().clone();
         assert_eq!(rules.len(), 3);
     }
@@ -862,18 +647,12 @@ mod tests {
     #[test]
     fn test_broadcast_sync_remove_mcp_rule() {
         let store = Store::new();
-
-        // 1. broadcast로 전체 규칙 수신
         *store.rules.lock() = vec![
             make_block_rule("uuid-1"),
             make_block_rule("mcp_0"),
             make_block_rule("mcp_1"),
         ];
-
-        // 2. MCP remove_rule: mcp_1 제거
         store.rules.lock().retain(|r| r.id != "mcp_1");
-
-        // 3. 앱 규칙 + 남은 MCP 규칙 보존 확인
         let rules = store.rules.lock().clone();
         assert_eq!(rules.len(), 2);
         assert!(rules.iter().any(|r| r.id == "uuid-1"));
@@ -883,16 +662,9 @@ mod tests {
     #[test]
     fn test_broadcast_initial_empty_then_sync() {
         let store = Store::new();
-
-        // 1. 초기 상태: 비어있음
         assert_eq!(store.rules.lock().len(), 0);
-
-        // 2. 데몬 연결 후 broadcast로 기존 규칙 수신
         *store.rules.lock() = vec![make_block_rule("uuid-1"), make_block_rule("uuid-2")];
-
-        // 3. MCP add_rule
         store.rules.lock().push(make_block_rule("mcp_0"));
-
         let rules = store.rules.lock().clone();
         assert_eq!(rules.len(), 3);
     }
@@ -1128,7 +900,6 @@ mod tests {
     #[tokio::test]
     async fn test_server_clear_traffic() {
         let store = Store::new();
-        // 데이터 추가
         store
             .transactions
             .lock()
