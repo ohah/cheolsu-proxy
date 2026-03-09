@@ -60,12 +60,7 @@ export const NetworkControls = ({
         <Save className="w-4 h-4" />
       </Button>
 
-      <Button
-        size="sm"
-        variant="outline"
-        onClick={onLoadSession}
-        title={t`Load Session`}
-      >
+      <Button size="sm" variant="outline" onClick={onLoadSession} title={t`Load Session`}>
         <FolderOpen className="w-4 h-4" />
       </Button>
 
@@ -81,12 +76,7 @@ export const NetworkControls = ({
         <Download className="w-4 h-4" />
       </Button>
 
-      <Button
-        size="sm"
-        variant="outline"
-        onClick={onImportHar}
-        title={t`Import HAR`}
-      >
+      <Button size="sm" variant="outline" onClick={onImportHar} title={t`Import HAR`}>
         <Upload className="w-4 h-4" />
       </Button>
     </div>
