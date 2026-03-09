@@ -4,22 +4,6 @@ use ratatui::widgets::*;
 
 use crate::app::{App, SettingsSection, ThrottleField, ThrottlePresetChoice, UpstreamProxyField};
 
-/// 청자 항아리 로고 비트맵 (7x9) — QR 코드 중앙에 오버레이
-/// 에러 보정 레벨 H(30%)로 스캔 가능
-const LOGO_BITMAP: [[bool; 7]; 9] = [
-    [false, false, true, true, true, false, false], //   ███
-    [false, true, true, true, true, true, false],   //  █████
-    [false, true, false, true, false, true, false], //  █ █ █  (학 날개)
-    [true, true, false, true, false, true, true],   // ██ █ ██
-    [true, true, true, true, true, true, true],     // ███████
-    [true, true, true, true, true, true, true],     // ███████
-    [false, true, true, true, true, true, false],   //  █████
-    [false, false, true, true, true, false, false], //   ███
-    [false, false, false, true, false, false, false], //    █   (받침)
-];
-const LOGO_WIDTH: usize = 7;
-const LOGO_HEIGHT: usize = 9;
-
 pub fn draw(f: &mut Frame, app: &App, area: Rect) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
@@ -288,7 +272,6 @@ fn qr_widget_width(data: &str) -> u16 {
 }
 
 /// QR 코드를 유니코드 반블록 문자(▀▄█)로 렌더링합니다.
-/// 중앙에 "CP" 로고를 오버레이합니다 (에러 보정 레벨 H 사용).
 fn render_qr_code(f: &mut Frame, data: &str, area: Rect) {
     let Ok(code) = QrCode::with_error_correction_level(data, qrcode::EcLevel::H) else {
         return;
@@ -305,41 +288,6 @@ fn render_qr_code(f: &mut Frame, data: &str, area: Rect) {
             use qrcode::Color as QrColor;
             if code[(x, y)] == QrColor::Dark {
                 modules[y + 2][x + 2] = true;
-            }
-        }
-    }
-
-    // 중앙에 로고 오버레이 (패딩 1셀 포함)
-    let pad = 1;
-    let logo_total_w = LOGO_WIDTH + pad * 2;
-    let logo_total_h = LOGO_HEIGHT + pad * 2;
-    let cx = total / 2;
-    let cy = total / 2;
-    let logo_x0 = cx.saturating_sub(logo_total_w / 2);
-    let logo_y0 = cy.saturating_sub(logo_total_h / 2);
-
-    // 로고 영역을 흰색(false)으로 클리어
-    for dy in 0..logo_total_h {
-        for dx in 0..logo_total_w {
-            let y = logo_y0 + dy;
-            let x = logo_x0 + dx;
-            if y < total && x < total {
-                modules[y][x] = false;
-            }
-        }
-    }
-
-    // 로고 비트맵 그리기
-    let logo_inner_x0 = logo_x0 + pad;
-    let logo_inner_y0 = logo_y0 + pad;
-    for (dy, row) in LOGO_BITMAP.iter().enumerate() {
-        for (dx, &dark) in row.iter().enumerate() {
-            if dark {
-                let y = logo_inner_y0 + dy;
-                let x = logo_inner_x0 + dx;
-                if y < total && x < total {
-                    modules[y][x] = true;
-                }
             }
         }
     }
