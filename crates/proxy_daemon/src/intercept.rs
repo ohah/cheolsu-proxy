@@ -6,7 +6,6 @@ use proxyapi_v2::{
     hyper::Response,
     Body, RequestOrResponse,
 };
-use regex::Regex;
 use tracing::{error, info};
 
 use super::handler::LoggingHandler;
@@ -25,19 +24,6 @@ impl LoggingHandler {
             .cloned()
     }
 
-    /// 와일드카드 패턴 매칭 (* = 임의 문자열, ? = 단일 문자)
-    pub(crate) fn wildcard_matches(pattern: &str, text: &str) -> bool {
-        let regex_pattern = format!(
-            "(?i){}",
-            regex::escape(pattern)
-                .replace("\\*", ".*")
-                .replace("\\?", ".")
-        );
-        Regex::new(&regex_pattern)
-            .map(|re| re.is_match(text))
-            .unwrap_or(false)
-    }
-
     /// URL과 메서드가 인터셉트 규칙에 매칭되는지 확인
     pub(crate) fn rule_matches(rule: &InterceptRule, url: &str, method: &str) -> bool {
         if !rule.enabled {
@@ -48,7 +34,7 @@ impl LoggingHandler {
                 return false;
             }
         }
-        Self::wildcard_matches(&rule.pattern, url)
+        crate::pattern_utils::wildcard_matches(&rule.pattern, url)
     }
 
     /// 파일 확장자로 Content-Type 추론
@@ -356,100 +342,6 @@ impl LoggingHandler {
 mod tests {
     use super::*;
     use crate::protocol::{InterceptAction, InterceptRule};
-
-    // --- wildcard_matches 테스트 ---
-
-    #[test]
-    fn test_wildcard_star_prefix() {
-        assert!(LoggingHandler::wildcard_matches(
-            "*ads.example.com*",
-            "https://ads.example.com/banner"
-        ));
-    }
-
-    #[test]
-    fn test_wildcard_subdomain_and_path() {
-        assert!(LoggingHandler::wildcard_matches(
-            "*.example.com/api/*",
-            "https://sub.example.com/api/v1/users"
-        ));
-    }
-
-    #[test]
-    fn test_wildcard_no_match() {
-        assert!(!LoggingHandler::wildcard_matches(
-            "*ads.example.com*",
-            "https://other.com/page"
-        ));
-    }
-
-    #[test]
-    fn test_wildcard_exact_domain() {
-        assert!(LoggingHandler::wildcard_matches(
-            "*example.com*",
-            "https://example.com"
-        ));
-    }
-
-    #[test]
-    fn test_wildcard_path_only() {
-        assert!(LoggingHandler::wildcard_matches(
-            "*/api/v1/*",
-            "https://any.com/api/v1/users"
-        ));
-        assert!(!LoggingHandler::wildcard_matches(
-            "*/api/v1/*",
-            "https://any.com/api/v2/users"
-        ));
-    }
-
-    #[test]
-    fn test_wildcard_question_mark() {
-        assert!(LoggingHandler::wildcard_matches(
-            "*api/v?/users*",
-            "https://example.com/api/v1/users"
-        ));
-        assert!(LoggingHandler::wildcard_matches(
-            "*api/v?/users*",
-            "https://example.com/api/v2/users"
-        ));
-        assert!(!LoggingHandler::wildcard_matches(
-            "*api/v?/users*",
-            "https://example.com/api/v10/users"
-        ));
-    }
-
-    #[test]
-    fn test_wildcard_case_insensitive() {
-        assert!(LoggingHandler::wildcard_matches(
-            "*Example.COM*",
-            "https://example.com/page"
-        ));
-    }
-
-    #[test]
-    fn test_wildcard_catch_all() {
-        assert!(LoggingHandler::wildcard_matches(
-            "*",
-            "https://anything.com/any/path"
-        ));
-    }
-
-    #[test]
-    fn test_wildcard_no_wildcards_partial() {
-        assert!(LoggingHandler::wildcard_matches(
-            "example.com",
-            "https://example.com/api"
-        ));
-    }
-
-    #[test]
-    fn test_wildcard_special_chars_escaped() {
-        assert!(LoggingHandler::wildcard_matches(
-            "*example.com/api?key=*",
-            "https://example.com/api?key=value"
-        ));
-    }
 
     // --- rule_matches 테스트 ---
 
