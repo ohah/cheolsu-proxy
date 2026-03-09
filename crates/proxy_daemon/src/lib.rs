@@ -7,7 +7,7 @@ pub mod daemon;
 pub(crate) mod diff;
 pub mod error;
 pub mod handler;
-pub mod host_mapping;
+pub(crate) mod host_mapping;
 pub mod intercept;
 pub mod net_utils;
 pub(crate) mod pattern_utils;
