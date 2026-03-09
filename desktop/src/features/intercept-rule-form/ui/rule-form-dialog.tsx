@@ -24,6 +24,7 @@ import type {
   InterceptRule,
   InterceptAction,
   InterceptActionType,
+  RewriteTarget,
 } from "@/entities/intercept-rule";
 import type { InterceptRuleInitialValues } from "@/shared/stores";
 
@@ -54,6 +55,9 @@ export const RuleFormDialog = ({
   const [responseStatus, setResponseStatus] = useState("");
   const [headers, setHeaders] = useState<Array<{ key: string; value: string }>>([]);
   const [removeHeaders, setRemoveHeaders] = useState<string[]>([]);
+  const [rewriteTarget, setRewriteTarget] = useState<RewriteTarget>("request_header");
+  const [matchPattern, setMatchPattern] = useState("");
+  const [replaceWith, setReplaceWith] = useState("");
 
   useEffect(() => {
     if (!open) return;
@@ -88,6 +92,15 @@ export const RuleFormDialog = ({
         );
         setRemoveHeaders(editingRule.action.remove_headers);
         setStatusCode("403");
+      } else if (editingRule.action.type === "rewrite") {
+        setRewriteTarget(editingRule.action.target);
+        setMatchPattern(editingRule.action.match_pattern);
+        setReplaceWith(editingRule.action.replace_with);
+        setStatusCode("403");
+        setBody("");
+        setResponseStatus("");
+        setHeaders([]);
+        setRemoveHeaders([]);
       }
     } else if (initialValues) {
       setName("");
@@ -99,6 +112,9 @@ export const RuleFormDialog = ({
       setResponseStatus("");
       setHeaders([]);
       setRemoveHeaders([]);
+      setRewriteTarget("request_header");
+      setMatchPattern("");
+      setReplaceWith("");
     } else {
       setName("");
       setPattern("");
@@ -109,6 +125,9 @@ export const RuleFormDialog = ({
       setResponseStatus("");
       setHeaders([]);
       setRemoveHeaders([]);
+      setRewriteTarget("request_header");
+      setMatchPattern("");
+      setReplaceWith("");
     }
   }, [open, editingRule, initialValues]);
 
@@ -139,6 +158,13 @@ export const RuleFormDialog = ({
           remove_headers: removeHeaders.filter((h) => h.trim()),
           set_body: body.trim() || null,
         };
+      case "rewrite":
+        return {
+          type: "rewrite",
+          target: rewriteTarget,
+          match_pattern: matchPattern,
+          replace_with: replaceWith,
+        };
       default:
         return {
           type: "block",
@@ -151,6 +177,11 @@ export const RuleFormDialog = ({
   const handleSubmit = () => {
     if (!pattern.trim()) {
       toast.error(t`Pattern is required`);
+      return;
+    }
+
+    if (actionType === "rewrite" && !matchPattern.trim()) {
+      toast.error(t`Match pattern is required`);
       return;
     }
 
@@ -266,6 +297,7 @@ export const RuleFormDialog = ({
                   <SelectItem value="block">{t`Block`}</SelectItem>
                   <SelectItem value="modify_request">{t`Modify Request`}</SelectItem>
                   <SelectItem value="modify_response">{t`Modify Response`}</SelectItem>
+                  <SelectItem value="rewrite">{t`Rewrite`}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -362,7 +394,57 @@ export const RuleFormDialog = ({
             </>
           )}
 
+          {/* Rewrite fields */}
+          {actionType === "rewrite" && (
+            <>
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium">
+                  <Trans>Target</Trans>
+                </label>
+                <Select
+                  value={rewriteTarget}
+                  onValueChange={(v) => v && setRewriteTarget(v as RewriteTarget)}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="request_header">{t`Request Header`}</SelectItem>
+                    <SelectItem value="response_header">{t`Response Header`}</SelectItem>
+                    <SelectItem value="request_body">{t`Request Body`}</SelectItem>
+                    <SelectItem value="response_body">{t`Response Body`}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium">
+                  <Trans>Match Pattern</Trans> <span className="text-destructive">*</span>
+                </label>
+                <Input
+                  placeholder={t`Regex pattern (e.g. old-domain\\.com)`}
+                  value={matchPattern}
+                  onChange={(e) => setMatchPattern(e.target.value)}
+                  className="font-mono text-xs"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium">
+                  <Trans>Replace With</Trans>
+                </label>
+                <Input
+                  placeholder={t`Replacement string (supports $1, $2 capture groups)`}
+                  value={replaceWith}
+                  onChange={(e) => setReplaceWith(e.target.value)}
+                  className="font-mono text-xs"
+                />
+              </div>
+            </>
+          )}
+
           {/* Body */}
+          {actionType !== "rewrite" && (
           <div className="space-y-1.5">
             <label className="text-sm font-medium">
               <Trans>Body</Trans>
@@ -377,6 +459,7 @@ export const RuleFormDialog = ({
               className="font-mono text-xs"
             />
           </div>
+          )}
         </div>
 
         <DialogFooter>

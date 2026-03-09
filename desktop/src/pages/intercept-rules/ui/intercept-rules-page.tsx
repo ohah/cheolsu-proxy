@@ -3,7 +3,7 @@ import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
 import { useInterceptRuleStore } from "@/shared/stores";
 import { Card, CardContent, Badge, Button, Switch } from "@/shared/ui";
-import { Plus, Trash2, Pencil, Ban, ArrowUpDown, ArrowDownUp, Eraser } from "lucide-react";
+import { Plus, Trash2, Pencil, Ban, ArrowUpDown, ArrowDownUp, Eraser, Replace } from "lucide-react";
 import { toast } from "sonner";
 import type { InterceptRule } from "@/entities/intercept-rule";
 import { RuleFormDialog } from "@/features/intercept-rule-form";
@@ -16,6 +16,8 @@ function getActionIcon(type: string) {
       return <ArrowUpDown className="w-3.5 h-3.5" />;
     case "modify_response":
       return <ArrowDownUp className="w-3.5 h-3.5" />;
+    case "rewrite":
+      return <Replace className="w-3.5 h-3.5" />;
   }
 }
 
@@ -28,6 +30,7 @@ const ACTION_LABELS: Record<
   modify_response: { labelKey: "modify_response", variant: "secondary" },
   map_local: { labelKey: "map_local", variant: "outline" },
   map_remote: { labelKey: "map_remote", variant: "outline" },
+  rewrite: { labelKey: "rewrite", variant: "default" },
 };
 
 export const InterceptRulesPage = () => {
@@ -42,6 +45,7 @@ export const InterceptRulesPage = () => {
     modify_response: t`Modify Response`,
     map_local: t`Map Local`,
     map_remote: t`Map Remote`,
+    rewrite: t`Rewrite`,
   };
 
   const handleAdd = () => {
@@ -174,6 +178,11 @@ export const InterceptRulesPage = () => {
                                   <Trans>Custom body</Trans>
                                 </span>
                               )}
+                            {rule.action.type === "rewrite" && (
+                              <span className="text-xs text-muted-foreground font-mono">
+                                s/{rule.action.match_pattern}/{rule.action.replace_with}/
+                              </span>
+                            )}
                           </div>
                         </div>
 

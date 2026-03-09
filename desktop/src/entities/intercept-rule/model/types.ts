@@ -3,7 +3,8 @@ export type InterceptActionType =
   | "modify_request"
   | "modify_response"
   | "map_local"
-  | "map_remote";
+  | "map_remote"
+  | "rewrite";
 
 export interface BlockAction {
   type: "block";
@@ -39,12 +40,26 @@ export interface MapRemoteAction {
   preserve_path: boolean;
 }
 
+export type RewriteTarget =
+  | "request_header"
+  | "response_header"
+  | "request_body"
+  | "response_body";
+
+export interface RewriteAction {
+  type: "rewrite";
+  target: RewriteTarget;
+  match_pattern: string;
+  replace_with: string;
+}
+
 export type InterceptAction =
   | BlockAction
   | ModifyRequestAction
   | ModifyResponseAction
   | MapLocalAction
-  | MapRemoteAction;
+  | MapRemoteAction
+  | RewriteAction;
 
 export interface InterceptRule {
   id: string;
