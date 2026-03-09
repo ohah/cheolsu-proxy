@@ -114,27 +114,18 @@ impl LoggingHandler {
                         .header("x-cheolsu-intercepted", "true")
                         .header("x-cheolsu-intercept-rule", &rule.id)
                         .body(Body::from(body.clone()))
-                        .unwrap_or_else(|_| {
-                            Response::builder()
-                                .status(StatusCode::FORBIDDEN)
-                                .body(Body::from("Blocked by intercept rule"))
-                                .unwrap_or_else(|_| Response::new(Body::empty()))
-                        });
+                        .unwrap_or_else(|_| Response::new(Body::empty()));
                     // Content-Type 설정
                     if !body.is_empty() {
                         if body.starts_with('{') || body.starts_with('[') {
                             response.headers_mut().insert(
                                 "content-type",
-                                "application/json".parse().unwrap_or_else(|_| {
-                                    HeaderValue::from_static("application/json")
-                                }),
+                                HeaderValue::from_static("application/json"),
                             );
                         } else {
                             response.headers_mut().insert(
                                 "content-type",
-                                "text/plain; charset=utf-8".parse().unwrap_or_else(|_| {
-                                    HeaderValue::from_static("text/plain; charset=utf-8")
-                                }),
+                                HeaderValue::from_static("text/plain; charset=utf-8"),
                             );
                         }
                     }
@@ -213,12 +204,7 @@ impl LoggingHandler {
 
                             return response
                                 .body(Body::from(http_body_util::Full::new(file_bytes)))
-                                .unwrap_or_else(|_| {
-                                    Response::builder()
-                                        .status(StatusCode::INTERNAL_SERVER_ERROR)
-                                        .body(Body::from("Failed to build map local response"))
-                                        .unwrap_or_else(|_| Response::new(Body::empty()))
-                                })
+                                .unwrap_or_else(|_| Response::new(Body::empty()))
                                 .into();
                         }
                         Err(e) => {
