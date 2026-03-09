@@ -393,33 +393,27 @@ export function SettingsPage() {
   }, [throttleEnabled, throttlePreset, throttleDownload, throttleUpload, throttleLatency]);
 
   // Quick Settings 변경 시 즉시 적용
-  const handleNoCachingChange = useCallback(
-    async (checked: boolean) => {
-      setNoCaching(checked);
-      localStorage.setItem("quick_settings_no_caching", JSON.stringify(checked));
-      setBlockCookies((currentBlockCookies) => {
-        updateQuickSettings(checked, currentBlockCookies).catch((e) => {
-          console.error("No Caching 설정 실패:", e);
-        });
-        return currentBlockCookies;
+  const handleNoCachingChange = useCallback(async (checked: boolean) => {
+    setNoCaching(checked);
+    localStorage.setItem("quick_settings_no_caching", JSON.stringify(checked));
+    setBlockCookies((currentBlockCookies) => {
+      updateQuickSettings(checked, currentBlockCookies).catch((e) => {
+        console.error("No Caching 설정 실패:", e);
       });
-    },
-    [],
-  );
+      return currentBlockCookies;
+    });
+  }, []);
 
-  const handleBlockCookiesChange = useCallback(
-    async (checked: boolean) => {
-      setBlockCookies(checked);
-      localStorage.setItem("quick_settings_block_cookies", JSON.stringify(checked));
-      setNoCaching((currentNoCaching) => {
-        updateQuickSettings(currentNoCaching, checked).catch((e) => {
-          console.error("Block Cookies 설정 실패:", e);
-        });
-        return currentNoCaching;
+  const handleBlockCookiesChange = useCallback(async (checked: boolean) => {
+    setBlockCookies(checked);
+    localStorage.setItem("quick_settings_block_cookies", JSON.stringify(checked));
+    setNoCaching((currentNoCaching) => {
+      updateQuickSettings(currentNoCaching, checked).catch((e) => {
+        console.error("Block Cookies 설정 실패:", e);
       });
-    },
-    [],
-  );
+      return currentNoCaching;
+    });
+  }, []);
 
   // 프록시 연결 시 Quick Settings 동기화
   useEffect(() => {
