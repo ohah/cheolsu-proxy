@@ -5,7 +5,9 @@ use super::{format_size, format_time};
 use crate::app::App;
 
 pub fn draw(f: &mut Frame, app: &mut App, area: Rect) {
-    if app.show_detail && app.selected_transaction.is_some() {
+    if app.show_diff && app.diff_result.is_some() {
+        draw_diff_view(f, app, area);
+    } else if app.show_detail && app.selected_transaction.is_some() {
         // Full-screen detail view
         draw_transaction_detail(f, app, area);
     } else {
@@ -15,6 +17,7 @@ pub fn draw(f: &mut Frame, app: &mut App, area: Rect) {
 
 fn draw_transaction_list(f: &mut Frame, app: &mut App, area: Rect) {
     let header = Row::new(vec![
+        Cell::from(" "),
         Cell::from("Time"),
         Cell::from("Method"),
         Cell::from("URL"),
@@ -31,11 +34,19 @@ fn draw_transaction_list(f: &mut Frame, app: &mut App, area: Rect) {
     let rows: Vec<Row> = app
         .transactions
         .iter()
-        .map(|info| {
+        .enumerate()
+        .map(|(i, info)| {
             let (method, uri, time, status, size) = extract_transaction_info(info);
             let status_style = status_color(status);
 
+            let mark = if app.diff_mark == Some(i) {
+                Cell::from("D").style(Style::default().fg(Color::Magenta).add_modifier(Modifier::BOLD))
+            } else {
+                Cell::from(" ")
+            };
+
             Row::new(vec![
+                mark,
                 Cell::from(format_time(time)),
                 Cell::from(method).style(Style::default().fg(Color::Cyan)),
                 Cell::from(uri),
@@ -45,15 +56,22 @@ fn draw_transaction_list(f: &mut Frame, app: &mut App, area: Rect) {
         })
         .collect();
 
+    let diff_hint = if app.diff_mark.is_some() {
+        " [D: diff target marked] "
+    } else {
+        ""
+    };
     let title = format!(
-        " Network ({}) {}",
+        " Network ({}) {}{}",
         app.transactions.len(),
-        if app.paused { "[PAUSED]" } else { "" }
+        if app.paused { "[PAUSED] " } else { "" },
+        diff_hint,
     );
 
     let table = Table::new(
         rows,
         [
+            Constraint::Length(1),
             Constraint::Length(8),
             Constraint::Length(7),
             Constraint::Min(30),
@@ -68,12 +86,58 @@ fn draw_transaction_list(f: &mut Frame, app: &mut App, area: Rect) {
             .border_style(Style::default().fg(Color::Gray))
             .title(title)
             .title_bottom(Line::from(
-                " j/k: navigate | Enter: detail | y: URL | c: cURL | r: replay | e: export | Space: pause | x: clear "
+                " j/k: nav | Enter: detail | D: diff | y: URL | c: cURL | r: replay | e: export | Space: pause | x: clear "
             ).style(Style::default().fg(Color::Cyan))),
     )
     .row_highlight_style(Style::default().bg(Color::Rgb(50, 60, 140)).fg(Color::White));
 
     f.render_stateful_widget(table, area, &mut app.network_table_state);
+}
+
+fn draw_diff_view(f: &mut Frame, app: &mut App, area: Rect) {
+    let text = app.diff_result.as_deref().unwrap_or("No diff result");
+    let lines: Vec<Line> = text
+        .lines()
+        .map(|line| {
+            let style = if line.starts_with("+ ") {
+                Style::default().fg(Color::Green)
+            } else if line.starts_with("- ") {
+                Style::default().fg(Color::Red)
+            } else if line.starts_with("~ ") {
+                Style::default().fg(Color::Yellow)
+            } else if line.starts_with("## ") || line.starts_with("### ") {
+                Style::default()
+                    .fg(Color::Cyan)
+                    .add_modifier(Modifier::BOLD)
+            } else if line.starts_with("Method:") || line.starts_with("URL:") || line.starts_with("Status:") {
+                Style::default().fg(Color::Magenta)
+            } else {
+                Style::default().fg(Color::White)
+            };
+            Line::from(Span::styled(line.to_string(), style))
+        })
+        .collect();
+
+    let visible_height = area.height.saturating_sub(2) as u16;
+    let total_lines = lines.len() as u16;
+    let max_scroll = total_lines.saturating_sub(visible_height);
+    app.diff_scroll = app.diff_scroll.min(max_scroll);
+
+    let paragraph = Paragraph::new(lines)
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .border_style(Style::default().fg(Color::Magenta))
+                .title(" Diff Result ")
+                .title_bottom(
+                    Line::from(" j/k: scroll | g: top | Esc: close ")
+                        .style(Style::default().fg(Color::Cyan)),
+                ),
+        )
+        .wrap(Wrap { trim: false })
+        .scroll((app.diff_scroll, 0));
+
+    f.render_widget(paragraph, area);
 }
 
 fn draw_transaction_detail(f: &mut Frame, app: &mut App, area: Rect) {
