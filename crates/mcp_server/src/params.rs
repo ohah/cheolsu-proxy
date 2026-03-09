@@ -123,3 +123,24 @@ pub(crate) struct ResolveBreakpointParams {
     /// Status code to set (for modify_and_forward, response only)
     pub(crate) status: Option<u16>,
 }
+
+#[derive(Debug, Deserialize, schemars::JsonSchema)]
+pub(crate) struct SaveSessionParams {
+    /// File path to save the session (extension .cheolsu will be added if missing, use .cheolsu.gz for gzip compression)
+    pub(crate) path: String,
+    /// Optional filter: only save transactions matching this URL substring
+    pub(crate) filter: Option<String>,
+    /// Optional session name
+    pub(crate) name: Option<String>,
+    /// Optional session description
+    pub(crate) description: Option<String>,
+}
+
+#[derive(Debug, Deserialize, schemars::JsonSchema)]
+pub(crate) struct LoadSessionParams {
+    /// File path to load the session from (.cheolsu or .cheolsu.gz or .har)
+    pub(crate) path: String,
+    /// If true, append to existing traffic instead of replacing
+    #[serde(default)]
+    pub(crate) append: bool,
+}
