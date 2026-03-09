@@ -1,5 +1,6 @@
-use crate::protocol::{InterceptAction, InterceptRule, ServerReplayEntry};
+use crate::protocol::{InterceptAction, InterceptRule, RewriteTarget, ServerReplayEntry};
 use bytes::Bytes;
+use proxyapi_v2::hyper::http::HeaderMap;
 use proxyapi_v2::hyper::Request;
 use proxyapi_v2::{
     hyper::http::{HeaderName, HeaderValue, StatusCode},
@@ -10,6 +11,46 @@ use regex::Regex;
 use tracing::{error, info};
 
 use super::handler::LoggingHandler;
+
+/// 헤더 값에 대해 정규식 치환을 수행하는 공통 함수
+fn rewrite_headers(
+    headers: &HeaderMap,
+    re: &Regex,
+    replace_with: &str,
+) -> Vec<(HeaderName, HeaderValue)> {
+    headers
+        .iter()
+        .filter_map(|(name, value)| {
+            let val_str = value.to_str().ok()?;
+            if re.is_match(val_str) {
+                let new_val = re.replace_all(val_str, replace_with);
+                HeaderValue::from_str(&new_val)
+                    .ok()
+                    .map(|hv| (name.clone(), hv))
+            } else {
+                None
+            }
+        })
+        .collect()
+}
+
+/// 바디를 읽어서 정규식 치환 후 새 바디 바이트를 반환하는 공통 함수
+async fn rewrite_body_bytes(
+    body: &mut Body,
+    re: &Regex,
+    replace_with: &str,
+) -> Option<bytes::Bytes> {
+    use http_body_util::BodyExt;
+    let body_bytes = body.collect().await;
+    if let Ok(collected) = body_bytes {
+        let bytes = collected.to_bytes();
+        if let Ok(body_str) = std::str::from_utf8(&bytes) {
+            let new_body = re.replace_all(body_str, replace_with);
+            return Some(bytes::Bytes::from(new_body.into_owned()));
+        }
+    }
+    None
+}
 
 impl LoggingHandler {
     /// 서버 리플레이 매칭: method + URL이 일치하는 엔트리 검색
@@ -155,30 +196,18 @@ impl LoggingHandler {
                     target,
                     match_pattern,
                     replace_with,
-                } if target == "request_header" || target == "request_body" => {
+                } if *target == RewriteTarget::RequestHeader
+                    || *target == RewriteTarget::RequestBody =>
+                {
                     match Regex::new(match_pattern) {
                         Ok(re) => {
-                            if target == "request_header" {
+                            if *target == RewriteTarget::RequestHeader {
                                 info!(
                                     "[Intercept] Rewrite 요청 헤더: {} {} (규칙: {})",
                                     method, url, rule.name
                                 );
-                                let replacements: Vec<(HeaderName, HeaderValue)> = current_req
-                                    .headers()
-                                    .iter()
-                                    .filter_map(|(name, value)| {
-                                        let val_str = value.to_str().ok()?;
-                                        if re.is_match(val_str) {
-                                            let new_val =
-                                                re.replace_all(val_str, replace_with.as_str());
-                                            HeaderValue::from_str(&new_val)
-                                                .ok()
-                                                .map(|hv| (name.clone(), hv))
-                                        } else {
-                                            None
-                                        }
-                                    })
-                                    .collect();
+                                let replacements =
+                                    rewrite_headers(current_req.headers(), &re, replace_with);
                                 for (name, value) in replacements {
                                     current_req.headers_mut().insert(name, value);
                                 }
@@ -188,21 +217,25 @@ impl LoggingHandler {
                                     "[Intercept] Rewrite 요청 바디: {} {} (규칙: {})",
                                     method, url, rule.name
                                 );
-                                // 바디를 읽어서 치환 후 다시 설정
-                                use http_body_util::BodyExt;
-                                let body_bytes = current_req.body_mut().collect().await;
-                                if let Ok(collected) = body_bytes {
-                                    let bytes = collected.to_bytes();
-                                    if let Ok(body_str) = std::str::from_utf8(&bytes) {
-                                        let new_body =
-                                            re.replace_all(body_str, replace_with.as_str());
-                                        use http_body_util::Full;
-                                        *current_req.body_mut() = Body::from(Full::new(
-                                            bytes::Bytes::from(new_body.into_owned()),
-                                        ));
-                                    }
+                                if let Some(new_bytes) =
+                                    rewrite_body_bytes(current_req.body_mut(), &re, replace_with)
+                                        .await
+                                {
+                                    current_req.headers_mut().remove("content-length");
+                                    current_req.headers_mut().remove("content-encoding");
+                                    use http_body_util::Full;
+                                    *current_req.body_mut() = Body::from(Full::new(new_bytes));
                                 }
                             }
+                            current_req
+                                .headers_mut()
+                                .insert("x-cheolsu-intercepted", HeaderValue::from_static("true"));
+                            current_req.headers_mut().insert(
+                                "x-cheolsu-intercept-rule",
+                                rule.id
+                                    .parse()
+                                    .unwrap_or_else(|_| HeaderValue::from_static("unknown")),
+                            );
                         }
                         Err(e) => {
                             error!(
@@ -404,30 +437,18 @@ impl LoggingHandler {
                 replace_with,
             } = &rule.action
             {
-                if target == "response_header" || target == "response_body" {
+                if *target == RewriteTarget::ResponseHeader
+                    || *target == RewriteTarget::ResponseBody
+                {
                     match Regex::new(match_pattern) {
                         Ok(re) => {
-                            if target == "response_header" {
+                            if *target == RewriteTarget::ResponseHeader {
                                 info!(
                                     "[Intercept] Rewrite 응답 헤더: {} {} (규칙: {})",
                                     method, url, rule.name
                                 );
-                                let replacements: Vec<(HeaderName, HeaderValue)> = res
-                                    .headers()
-                                    .iter()
-                                    .filter_map(|(name, value)| {
-                                        let val_str = value.to_str().ok()?;
-                                        if re.is_match(val_str) {
-                                            let new_val =
-                                                re.replace_all(val_str, replace_with.as_str());
-                                            HeaderValue::from_str(&new_val)
-                                                .ok()
-                                                .map(|hv| (name.clone(), hv))
-                                        } else {
-                                            None
-                                        }
-                                    })
-                                    .collect();
+                                let replacements =
+                                    rewrite_headers(res.headers(), &re, replace_with);
                                 for (name, value) in replacements {
                                     res.headers_mut().insert(name, value);
                                 }
@@ -437,20 +458,14 @@ impl LoggingHandler {
                                     "[Intercept] Rewrite 응답 바디: {} {} (규칙: {})",
                                     method, url, rule.name
                                 );
-                                use http_body_util::BodyExt;
-                                let body_bytes = res.body_mut().collect().await;
-                                if let Ok(collected) = body_bytes {
-                                    let bytes = collected.to_bytes();
-                                    if let Ok(body_str) = std::str::from_utf8(&bytes) {
-                                        let new_body =
-                                            re.replace_all(body_str, replace_with.as_str());
-                                        use http_body_util::Full;
-                                        let new_bytes = bytes::Bytes::from(new_body.into_owned());
-                                        res.headers_mut().remove("content-length");
-                                        res.headers_mut().remove("content-encoding");
-                                        res.headers_mut().remove("transfer-encoding");
-                                        *res.body_mut() = Body::from(Full::new(new_bytes));
-                                    }
+                                if let Some(new_bytes) =
+                                    rewrite_body_bytes(res.body_mut(), &re, replace_with).await
+                                {
+                                    res.headers_mut().remove("content-length");
+                                    res.headers_mut().remove("content-encoding");
+                                    res.headers_mut().remove("transfer-encoding");
+                                    use http_body_util::Full;
+                                    *res.body_mut() = Body::from(Full::new(new_bytes));
                                 }
                             }
                             res.headers_mut()
