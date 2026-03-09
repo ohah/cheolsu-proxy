@@ -31,6 +31,11 @@ pub fn next_breakpoint_id() -> String {
     format!("mcp_bp_{}", COUNTER.fetch_add(1, Ordering::Relaxed))
 }
 
+pub fn next_mapping_id() -> String {
+    static COUNTER: AtomicU32 = AtomicU32::new(0);
+    format!("hm_{}", COUNTER.fetch_add(1, Ordering::Relaxed))
+}
+
 pub fn read_body_text(file_path: &Option<String>, data_type: &proxy_v2_models::DataType) -> String {
     let Some(path) = file_path else {
         return "(body not available)".to_string();

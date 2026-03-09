@@ -1,6 +1,7 @@
 use crate::breakpoint::BreakpointManager;
 use crate::protocol::{
-    BreakpointAction, BreakpointData, BreakpointPhase, InterceptRule, ServerReplayEntry,
+    BreakpointAction, BreakpointData, BreakpointPhase, HostMapping, InterceptRule,
+    ServerReplayEntry,
 };
 use bytes::Bytes;
 use futures_util::stream::StreamExt;
@@ -54,6 +55,7 @@ pub(crate) struct ProxyConfig {
 pub(crate) struct InterceptEngine {
     pub(crate) intercept_rules: Arc<Mutex<Vec<InterceptRule>>>,
     pub(crate) server_replay_entries: Arc<Mutex<Vec<ServerReplayEntry>>>,
+    pub(crate) host_mappings: Arc<Mutex<Vec<HostMapping>>>,
     pub(crate) script_handle: scripting::ScriptHandle,
 }
 
@@ -94,6 +96,7 @@ impl LoggingHandler {
             intercept: InterceptEngine {
                 intercept_rules: Arc::new(Mutex::new(Vec::new())),
                 server_replay_entries: Arc::new(Mutex::new(Vec::new())),
+                host_mappings: Arc::new(Mutex::new(Vec::new())),
                 script_handle: scripting::ScriptHandle::new(),
             },
             ws: WebSocketState {
@@ -142,6 +145,13 @@ impl LoggingHandler {
         let mut entries_guard = self.intercept.server_replay_entries.lock().await;
         info!("[ServerReplay] 엔트리 업데이트: {} 개", entries.len());
         *entries_guard = entries;
+    }
+
+    /// Update host mappings
+    pub async fn update_host_mappings(&self, mappings: Vec<HostMapping>) {
+        let mut mappings_guard = self.intercept.host_mappings.lock().await;
+        info!("[HostMapping] mappings updated: {} entries", mappings.len());
+        *mappings_guard = mappings;
     }
 
     /// 스크립트 핸들 반환
@@ -535,6 +545,41 @@ impl LoggingHandler {
         let _ = ws_sender.try_send(WsEvent::Message(info));
     }
 
+    /// Apply host mapping to the request if a matching rule exists.
+    /// Rewrites the URI to point to the mapped target host/port,
+    /// while preserving the original Host header for correct virtual host routing.
+    async fn apply_host_mapping_if_needed(&self, mut req: Request<Body>) -> Request<Body> {
+        let (host, port) = Self::extract_host_port(req.uri());
+        let Some(host) = host else {
+            return req;
+        };
+
+        if let Some((target_host, target_port)) =
+            self.resolve_host_mapping(&host, port).await
+        {
+            info!(
+                "[HostMapping] {}:{} -> {}:{}",
+                host,
+                port.map(|p| p.to_string()).unwrap_or_else(|| "default".to_string()),
+                target_host,
+                target_port.map(|p| p.to_string()).unwrap_or_else(|| "default".to_string()),
+            );
+
+            if let Some(new_uri) = Self::apply_host_mapping_to_uri(req.uri(), &target_host, target_port) {
+                *req.uri_mut() = new_uri;
+                // Keep the original Host header intact so the server
+                // can route to the correct virtual host.
+                req.headers_mut().insert(
+                    "x-cheolsu-host-mapped",
+                    proxyapi_v2::hyper::http::HeaderValue::from_static("true"),
+                );
+            }
+        }
+
+        req
+    }
+
+
     fn check_cert_download_intercept(&self, req: &Request<Body>) -> Option<Response<Body>> {
         if cert_distribution::is_cert_download_request(req) {
             Some(self.serve_ca_cert_download(req))
@@ -914,6 +959,8 @@ impl HttpHandler for LoggingHandler {
                 return response.into();
             }
         };
+
+        let restored_req = self.apply_host_mapping_if_needed(restored_req).await;
 
         let result = self
             .apply_request_intercept(restored_req, &url, &method)
@@ -1416,6 +1463,7 @@ mod tests {
             intercept: InterceptEngine {
                 intercept_rules: Arc::new(Mutex::new(Vec::new())),
                 server_replay_entries: Arc::new(Mutex::new(Vec::new())),
+                host_mappings: Arc::new(Mutex::new(Vec::new())),
                 script_handle: scripting::ScriptHandle::new(),
             },
             ws: WebSocketState {
@@ -1467,6 +1515,7 @@ mod tests {
             intercept: InterceptEngine {
                 intercept_rules: Arc::new(Mutex::new(Vec::new())),
                 server_replay_entries: Arc::new(Mutex::new(Vec::new())),
+                host_mappings: Arc::new(Mutex::new(Vec::new())),
                 script_handle: scripting::ScriptHandle::new(),
             },
             ws: WebSocketState {

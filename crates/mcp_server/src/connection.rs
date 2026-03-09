@@ -18,6 +18,9 @@ pub async fn try_connect_daemon(store: &Store) -> Option<DaemonConnection> {
         DaemonMessage::BreakpointRulesUpdated { rules } => {
             *store.breakpoint_rules.lock() = rules;
         }
+        DaemonMessage::HostMappingsUpdated { mappings } => {
+            *store.host_mappings.lock() = mappings;
+        }
         _ => {}
     })
     .await

@@ -165,6 +165,7 @@ struct DaemonContext {
     throttle_tx: watch::Sender<Option<ThrottleConfig>>,
     breakpoint_tx: watch::Sender<Vec<crate::protocol::BreakpointRule>>,
     breakpoint_manager: BreakpointManager,
+    host_mapping_tx: watch::Sender<Vec<crate::protocol::HostMapping>>,
     ws_registry: WebSocketRegistry,
     script_handle: scripting::ScriptHandle,
 }
@@ -179,6 +180,7 @@ fn spawn_proxy_task(
     throttle_rx: watch::Receiver<Option<ThrottleConfig>>,
     breakpoint_rx: watch::Receiver<Vec<crate::protocol::BreakpointRule>>,
     breakpoint_manager: BreakpointManager,
+    host_mapping_rx: watch::Receiver<Vec<crate::protocol::HostMapping>>,
     ws_registry: WebSocketRegistry,
     script_handle: scripting::ScriptHandle,
 ) -> tokio::task::JoinHandle<()> {
@@ -192,6 +194,7 @@ fn spawn_proxy_task(
             throttle_rx,
             breakpoint_rx,
             breakpoint_manager,
+            host_mapping_rx,
             ws_registry,
             script_handle,
         )
@@ -251,11 +254,12 @@ async fn run_accept_loop(
                         let throttle_tx_clone = ctx.throttle_tx.clone();
                         let breakpoint_tx_clone = ctx.breakpoint_tx.clone();
                         let breakpoint_mgr_clone = ctx.breakpoint_manager.clone();
+                        let host_mapping_tx_clone = ctx.host_mapping_tx.clone();
                         let registry_clone = ctx.ws_registry.clone();
                         let script_handle_clone = ctx.script_handle.clone();
 
                         tokio::spawn(async move {
-                            handle_client(stream, event_rx, intercept_tx_clone, upstream_tx_clone, server_replay_tx_clone, throttle_tx_clone, breakpoint_tx_clone, breakpoint_mgr_clone, event_tx_clone, port, registry_clone, script_handle_clone)
+                            handle_client(stream, event_rx, intercept_tx_clone, upstream_tx_clone, server_replay_tx_clone, throttle_tx_clone, breakpoint_tx_clone, breakpoint_mgr_clone, host_mapping_tx_clone, event_tx_clone, port, registry_clone, script_handle_clone)
                                 .await;
 
                             let remaining = client_count_clone.fetch_sub(1, Ordering::SeqCst) - 1;
@@ -297,6 +301,8 @@ async fn daemon_main(port: u16, host: String) -> i32 {
     let (breakpoint_tx, breakpoint_rx) =
         watch::channel::<Vec<crate::protocol::BreakpointRule>>(Vec::new());
     let breakpoint_manager = BreakpointManager::new(event_tx.clone());
+    let (host_mapping_tx, host_mapping_rx) =
+        watch::channel::<Vec<crate::protocol::HostMapping>>(Vec::new());
 
     let addr: std::net::SocketAddr = match format!("{}:{}", host, port).parse() {
         Ok(addr) => addr,
@@ -323,6 +329,7 @@ async fn daemon_main(port: u16, host: String) -> i32 {
         throttle_rx,
         breakpoint_rx,
         breakpoint_manager.clone(),
+        host_mapping_rx,
         ws_registry.clone(),
         script_handle.clone(),
     );
@@ -360,6 +367,7 @@ async fn daemon_main(port: u16, host: String) -> i32 {
         throttle_tx,
         breakpoint_tx,
         breakpoint_manager,
+        host_mapping_tx,
         ws_registry,
         script_handle,
     };

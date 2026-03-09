@@ -144,3 +144,21 @@ pub(crate) struct LoadSessionParams {
     #[serde(default)]
     pub(crate) append: bool,
 }
+
+#[derive(Debug, Deserialize, schemars::JsonSchema)]
+pub(crate) struct AddHostMappingParams {
+    /// Source host pattern, supports wildcards (e.g., "*.api.example.com")
+    pub(crate) source_host: String,
+    /// Source port filter (optional, None = any port)
+    pub(crate) source_port: Option<u16>,
+    /// Target host (IP address or domain name)
+    pub(crate) target_host: String,
+    /// Target port (optional, None = keep original port)
+    pub(crate) target_port: Option<u16>,
+}
+
+#[derive(Debug, Deserialize, schemars::JsonSchema)]
+pub(crate) struct RemoveHostMappingParams {
+    /// Host mapping ID to remove
+    pub(crate) id: String,
+}

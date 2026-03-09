@@ -5,7 +5,7 @@ use tracing::info;
 use crate::breakpoint::BreakpointManager;
 use crate::error::DaemonError;
 use crate::handler::{LoggingHandler, WsEvent};
-use crate::protocol::{BreakpointRule, DaemonMessage, InterceptRule, ServerReplayEntry};
+use crate::protocol::{BreakpointRule, DaemonMessage, HostMapping, InterceptRule, ServerReplayEntry};
 use crate::tls_client::create_hybrid_client;
 use proxyapi_v2::certificate_authority::CertificateAuthority;
 use proxyapi_v2::throttle::ThrottleConfig;
@@ -23,6 +23,7 @@ pub async fn run_proxy(
     throttle_rx: watch::Receiver<Option<ThrottleConfig>>,
     mut breakpoint_rx: watch::Receiver<Vec<BreakpointRule>>,
     breakpoint_manager: BreakpointManager,
+    mut host_mapping_rx: watch::Receiver<Vec<HostMapping>>,
     ws_registry: WebSocketRegistry,
     script_handle: scripting::ScriptHandle,
 ) -> Result<(), DaemonError> {
@@ -94,6 +95,22 @@ pub async fn run_proxy(
         while breakpoint_rx.changed().await.is_ok() {
             let rules = breakpoint_rx.borrow().clone();
             bp_mgr_for_updates.update_rules(rules).await;
+        }
+    });
+
+    // Host mapping initial load and watcher
+    {
+        let mappings = host_mapping_rx.borrow().clone();
+        handler.update_host_mappings(mappings).await;
+    }
+
+    let handler_for_mapping_updates = handler.clone();
+    tokio::spawn(async move {
+        while host_mapping_rx.changed().await.is_ok() {
+            let mappings = host_mapping_rx.borrow().clone();
+            handler_for_mapping_updates
+                .update_host_mappings(mappings)
+                .await;
         }
     });
 
