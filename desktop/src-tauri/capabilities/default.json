@@ -32,6 +32,7 @@
     "clipboard-manager:allow-read-text",
     "clipboard-manager:allow-read-image",
     "mcp-bridge:default",
+    "os:default",
     "global-shortcut:allow-register",
     "global-shortcut:allow-unregister",
     "global-shortcut:allow-is-registered"
