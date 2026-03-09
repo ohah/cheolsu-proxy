@@ -10,8 +10,9 @@ use crossterm::{
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
 use proxy_daemon::{
-    diff_headers, diff_json, diff_text, format_diff_text, BodyDiff, ClientCommand,
-    DaemonConnection, DaemonMessage, InterceptRule, TrafficDiff, TransactionPartDiff,
+    diff_headers, diff_json, diff_text, format_diff_text, BodyDiff, BreakpointAction,
+    BreakpointData, BreakpointPhase, BreakpointRule, ClientCommand, DaemonConnection,
+    DaemonMessage, InterceptRule, TrafficDiff, TransactionPartDiff,
 };
 use proxy_v2_models::{RequestInfo, WsConnectionEvent, WsMessageInfo};
 use ratatui::prelude::*;
@@ -23,6 +24,49 @@ use tokio::sync::mpsc;
 use crate::event::{Event, EventHandler};
 use crate::tabs::Tab;
 use crate::ui;
+
+/// 대기 중인 breakpoint 엔트리 (TUI 표시용)
+#[derive(Debug, Clone)]
+pub struct PendingBreakpointEntry {
+    pub id: String,
+    pub transaction_id: String,
+    pub phase: BreakpointPhase,
+    pub data: BreakpointData,
+}
+
+/// Breakpoint 탭 포커스 영역
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum BreakpointFocus {
+    Rules,
+    Pending,
+}
+
+/// Breakpoint 규칙 추가 폼
+#[derive(Debug, Clone)]
+pub struct BreakpointAddForm {
+    pub pattern: String,
+    pub break_on_request: bool,
+    pub break_on_response: bool,
+    pub field: BreakpointFormField,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum BreakpointFormField {
+    Pattern,
+    BreakOnRequest,
+    BreakOnResponse,
+}
+
+impl BreakpointAddForm {
+    pub fn new() -> Self {
+        Self {
+            pattern: String::new(),
+            break_on_request: true,
+            break_on_response: false,
+            field: BreakpointFormField::Pattern,
+        }
+    }
+}
 
 /// TUI app state
 pub struct App {
@@ -56,6 +100,16 @@ pub struct App {
 
     // Rule form
     pub rule_form: Option<RuleForm>,
+
+    // Breakpoint
+    pub breakpoint_rules: Vec<BreakpointRule>,
+    pub pending_breakpoints: Vec<PendingBreakpointEntry>,
+    pub selected_bp_rule: Option<usize>,
+    pub selected_pending_bp: Option<usize>,
+    pub bp_rules_table_state: TableState,
+    pub bp_pending_table_state: TableState,
+    pub bp_focus: BreakpointFocus,
+    pub bp_add_form: Option<BreakpointAddForm>,
 
     // Table states (for scroll)
     pub network_table_state: TableState,
@@ -117,6 +171,14 @@ impl App {
             rules: Vec::new(),
             selected_rule: None,
             rule_form: None,
+            breakpoint_rules: Vec::new(),
+            pending_breakpoints: Vec::new(),
+            selected_bp_rule: None,
+            selected_pending_bp: None,
+            bp_rules_table_state: TableState::default(),
+            bp_pending_table_state: TableState::default(),
+            bp_focus: BreakpointFocus::Rules,
+            bp_add_form: None,
             network_table_state: TableState::default(),
             ws_conn_table_state: TableState::default(),
             rules_table_state: TableState::default(),
@@ -162,6 +224,8 @@ impl App {
             self.network_table_state.select(self.selected_transaction);
             self.ws_conn_table_state.select(self.selected_ws_conn);
             self.rules_table_state.select(self.selected_rule);
+            self.bp_rules_table_state.select(self.selected_bp_rule);
+            self.bp_pending_table_state.select(self.selected_pending_bp);
 
             terminal.draw(|f| ui::draw(f, self))?;
 
@@ -287,6 +351,23 @@ impl App {
                 } else if let Some(e) = error {
                     self.set_status(&format!("Script error: {}", e));
                 }
+            }
+            DaemonMessage::BreakpointRulesUpdated { rules } => {
+                self.breakpoint_rules = rules;
+            }
+            DaemonMessage::BreakpointHit {
+                id,
+                transaction_id,
+                phase,
+                data,
+            } => {
+                self.pending_breakpoints.push(PendingBreakpointEntry {
+                    id,
+                    transaction_id,
+                    phase,
+                    data,
+                });
+                self.set_status("Breakpoint hit!");
             }
             _ => {}
         }
@@ -582,5 +663,43 @@ impl App {
             old_size: size_a,
             new_size: size_b,
         })
+    }
+
+    pub(crate) async fn send_breakpoint_rules_update(&self) {
+        if let Some(conn) = &self.conn {
+            let cmd = ClientCommand::UpdateBreakpointRules {
+                rules: self.breakpoint_rules.clone(),
+            };
+            let _ = conn.send_command(&cmd).await;
+        }
+    }
+
+    pub(crate) async fn send_breakpoint_resolve(&mut self, action: BreakpointAction) {
+        if let Some(idx) = self.selected_pending_bp {
+            if idx < self.pending_breakpoints.len() {
+                let bp = &self.pending_breakpoints[idx];
+                let id = bp.id.clone();
+                if let Some(conn) = &self.conn {
+                    let cmd = ClientCommand::ResolveBreakpoint {
+                        id,
+                        action: action.clone(),
+                    };
+                    let _ = conn.send_command(&cmd).await;
+                }
+                self.pending_breakpoints.remove(idx);
+                if self.pending_breakpoints.is_empty() {
+                    self.selected_pending_bp = None;
+                } else if idx >= self.pending_breakpoints.len() {
+                    self.selected_pending_bp = Some(self.pending_breakpoints.len() - 1);
+                }
+                let action_name = match action {
+                    BreakpointAction::Forward => "forwarded",
+                    BreakpointAction::ModifyAndForward { .. } => "modified & forwarded",
+                    BreakpointAction::Drop => "dropped",
+                    BreakpointAction::Abort => "aborted",
+                };
+                self.set_status(&format!("Breakpoint {}", action_name));
+            }
+        }
     }
 }

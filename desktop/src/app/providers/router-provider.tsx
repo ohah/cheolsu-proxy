@@ -10,6 +10,7 @@ import { WebSocketDashboard } from "@/pages/websocket-dashboard";
 import { SettingsPage } from "@/pages/settings";
 import { ServerReplayPage } from "@/pages/server-replay";
 import { ScriptPage } from "@/pages/script";
+import { BreakpointPage } from "@/pages/breakpoint";
 import { AppSidebar } from "@/shared/app-sidebar";
 
 function RootLayout() {
@@ -52,6 +53,10 @@ export const router = createBrowserRouter([
       {
         path: "/script",
         element: <ScriptPage />,
+      },
+      {
+        path: "/breakpoint",
+        element: <BreakpointPage />,
       },
       {
         path: "/settings",
