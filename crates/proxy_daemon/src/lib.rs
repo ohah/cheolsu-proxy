@@ -5,6 +5,7 @@ pub mod daemon;
 pub mod error;
 pub mod handler;
 pub mod intercept;
+pub mod net_utils;
 pub mod protocol;
 pub mod proxy_runner;
 pub mod script_bridge;
@@ -16,6 +17,7 @@ pub use client::{connect_to_daemon, ensure_daemon, is_daemon_running, DaemonConn
 pub use daemon::{check_and_cleanup_stale_lock, lock_file_path, run_daemon, uds_socket_path};
 pub use error::DaemonError;
 pub use handler::{create_hybrid_client, LoggingHandler, WsEvent};
+pub use net_utils::get_local_ips;
 pub use protocol::{
     ClientCommand, DaemonMessage, InterceptAction, InterceptRule, ProxyLockInfo, ServerReplayEntry,
 };

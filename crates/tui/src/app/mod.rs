@@ -118,7 +118,7 @@ impl App {
             throttle_form: ThrottleForm::new(),
             ca_cert_installed: false,
             ca_cert_path: None,
-            local_ips: Self::get_local_ips(),
+            local_ips: proxy_daemon::get_local_ips(),
             status_message: None,
             conn: None,
             event_tx: None,

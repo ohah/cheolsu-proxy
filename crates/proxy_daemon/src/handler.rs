@@ -31,6 +31,7 @@ pub enum WsEvent {
 
 /// 인증서 다운로드를 위한 내부 호스트명
 const CERT_DOWNLOAD_HOST: &str = "cheolsu.proxy";
+const CERT_DOWNLOAD_HOST_COLON: &str = "cheolsu.proxy:";
 
 /// HTTP 및 WebSocket 요청/응답을 로깅하는 핸들러
 #[derive(Clone)]
@@ -45,8 +46,8 @@ pub struct LoggingHandler {
     pub(crate) server_replay_entries: Arc<Mutex<Vec<ServerReplayEntry>>>,
     pub(crate) cache_dir: Option<std::path::PathBuf>,
     pub(crate) script_handle: scripting::ScriptHandle,
-    /// CA 인증서 DER 바이트 (외부 기기 인증서 다운로드용)
-    pub(crate) ca_cert_der: Option<Arc<Vec<u8>>>,
+    /// CA 인증서 DER 바이트 (외부 기기 인증서 다운로드용, zero-copy)
+    pub(crate) ca_cert_der: Option<Bytes>,
 }
 
 impl LoggingHandler {
@@ -71,7 +72,7 @@ impl LoggingHandler {
 
     /// CA 인증서 DER 바이트를 설정합니다 (외부 기기 인증서 다운로드용)
     pub fn with_ca_cert_der(mut self, der: Vec<u8>) -> Self {
-        self.ca_cert_der = Some(Arc::new(der));
+        self.ca_cert_der = Some(Bytes::from(der));
         self
     }
 
@@ -116,7 +117,7 @@ impl LoggingHandler {
                     "[CertDownload] CA 인증서 다운로드 제공 ({} bytes)",
                     der.len()
                 );
-                let body_bytes = Bytes::from(der.as_ref().clone());
+                let body_bytes = der.clone(); // Bytes::clone은 참조카운트만 증가 (zero-copy)
                 return Response::builder()
                     .status(StatusCode::OK)
                     .header("Content-Type", "application/x-x509-ca-cert")
@@ -397,13 +398,20 @@ impl HttpHandler for LoggingHandler {
     ) -> RequestOrResponse {
         // cheolsu.proxy 호스트 요청 인터셉트: CA 인증서 다운로드 제공
         if let Some(host) = req.headers().get("host").and_then(|v| v.to_str().ok()) {
-            if host == CERT_DOWNLOAD_HOST || host.starts_with(&format!("{}:", CERT_DOWNLOAD_HOST)) {
+            if host == CERT_DOWNLOAD_HOST || host.starts_with(CERT_DOWNLOAD_HOST_COLON) {
                 return self.serve_ca_cert_download(&req).into();
             }
         }
         // URI에서도 호스트 확인 (절대 URI 형식)
         if let Some(host) = req.uri().host() {
             if host == CERT_DOWNLOAD_HOST {
+                return self.serve_ca_cert_download(&req).into();
+            }
+        }
+        // 직접 IP 접속: URI가 상대 경로이고 /ssl 또는 /cert 경로인 경우 인증서 제공
+        if req.uri().host().is_none() {
+            let path = req.uri().path();
+            if path == "/ssl" || path == "/cert" {
                 return self.serve_ca_cert_download(&req).into();
             }
         }

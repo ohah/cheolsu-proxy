@@ -1,42 +1,6 @@
 use super::App;
 
 impl App {
-    /// 로컬 네트워크 IP 주소 목록을 반환합니다.
-    pub(crate) fn get_local_ips() -> Vec<String> {
-        let mut ips = Vec::new();
-
-        if let Ok(socket) = std::net::UdpSocket::bind("0.0.0.0:0") {
-            if socket.connect("8.8.8.8:80").is_ok() {
-                if let Ok(local_addr) = socket.local_addr() {
-                    let ip = local_addr.ip().to_string();
-                    if ip != "0.0.0.0" && !ips.contains(&ip) {
-                        ips.push(ip);
-                    }
-                }
-            }
-        }
-
-        #[cfg(unix)]
-        {
-            if let Ok(output) = std::process::Command::new("ifconfig").output() {
-                let stdout = String::from_utf8_lossy(&output.stdout);
-                for line in stdout.lines() {
-                    let line = line.trim();
-                    if line.starts_with("inet ") && !line.contains("127.0.0.1") {
-                        if let Some(ip) = line.split_whitespace().nth(1) {
-                            let ip = ip.to_string();
-                            if !ips.contains(&ip) {
-                                ips.push(ip);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        ips
-    }
-
     pub(crate) fn get_ca_storage_dir() -> Option<std::path::PathBuf> {
         #[cfg(target_os = "macos")]
         {
