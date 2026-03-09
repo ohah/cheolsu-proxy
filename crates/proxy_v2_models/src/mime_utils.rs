@@ -244,6 +244,7 @@ pub fn get_mime_type_from_extension(extension: &str) -> &'static str {
         "js" => "application/javascript",
         "json" => "application/json",
         "xml" => "application/xml",
+        "pb" | "proto" => "application/x-protobuf",
 
         _ => "application/octet-stream",
     }
@@ -304,6 +305,11 @@ pub fn get_extension_from_mime_type(mime_type: &str) -> &'static str {
         "application/javascript" | "text/javascript" => "js",
         "application/json" => "json",
         "application/xml" | "text/xml" => "xml",
+        "application/protobuf" | "application/x-protobuf" => "pb",
+        "application/grpc"
+        | "application/grpc+proto"
+        | "application/grpc-web"
+        | "application/grpc-web+proto" => "pb",
 
         _ => "", // 기본값
     }
