@@ -6,7 +6,7 @@ use tracing::{error, info, warn};
 
 use crate::breakpoint::BreakpointManager;
 use crate::protocol::{
-    BreakpointRule, ClientCommand, DaemonMessage, InterceptRule, ServerReplayEntry,
+    BreakpointRule, ClientCommand, DaemonMessage, HostMapping, InterceptRule, ServerReplayEntry,
 };
 use proxyapi_v2::throttle::ThrottleConfig;
 use proxyapi_v2::upstream_proxy::UpstreamProxyConfig;
@@ -21,6 +21,7 @@ pub async fn handle_client(
     throttle_tx: watch::Sender<Option<ThrottleConfig>>,
     breakpoint_tx: watch::Sender<Vec<BreakpointRule>>,
     breakpoint_manager: BreakpointManager,
+    host_mapping_tx: watch::Sender<Vec<HostMapping>>,
     event_tx: broadcast::Sender<String>,
     port: u16,
     ws_registry: WebSocketRegistry,
@@ -49,6 +50,15 @@ pub async fn handle_client(
         let mut rules_line = serde_json::to_string(&rules_msg).unwrap_or_default();
         rules_line.push('\n');
         let _ = w.write_all(rules_line.as_bytes()).await;
+        let _ = w.flush().await;
+
+        let current_mappings = host_mapping_tx.borrow().clone();
+        let mappings_msg = DaemonMessage::HostMappingsUpdated {
+            mappings: current_mappings,
+        };
+        let mut mappings_line = serde_json::to_string(&mappings_msg).unwrap_or_default();
+        mappings_line.push('\n');
+        let _ = w.write_all(mappings_line.as_bytes()).await;
         let _ = w.flush().await;
     }
 
@@ -195,6 +205,16 @@ pub async fn handle_client(
                             config.as_ref().map(|c| c.enabled)
                         );
                         let _ = throttle_tx.send(config);
+                    }
+                    Ok(ClientCommand::UpdateHostMappings { mappings }) => {
+                        info!("Host mappings updated from client: {} mappings", mappings.len());
+                        let broadcast_msg = DaemonMessage::HostMappingsUpdated {
+                            mappings: mappings.clone(),
+                        };
+                        if let Ok(json) = serde_json::to_string(&broadcast_msg) {
+                            let _ = event_tx.send(json);
+                        }
+                        let _ = host_mapping_tx.send(mappings);
                     }
                     Ok(ClientCommand::UpdateServerReplay { entries }) => {
                         info!("Server replay entries updated: {} entries", entries.len());

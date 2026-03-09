@@ -7,6 +7,7 @@ pub mod daemon;
 pub(crate) mod diff;
 pub mod error;
 pub mod handler;
+pub mod host_mapping;
 pub mod intercept;
 pub mod net_utils;
 pub(crate) mod pattern_utils;
@@ -30,7 +31,7 @@ pub use handler::{create_hybrid_client, LoggingHandler, WsEvent};
 pub use net_utils::get_local_ips;
 pub use protocol::{
     BreakpointAction, BreakpointData, BreakpointPhase, BreakpointRule, ClientCommand,
-    DaemonMessage, InterceptAction, InterceptRule, ProxyLockInfo, ServerReplayEntry,
+    DaemonMessage, HostMapping, InterceptAction, InterceptRule, ProxyLockInfo, ServerReplayEntry,
 };
 pub use proxyapi_v2::certificate_authority::{clean_all_cache, clean_old_cache};
 pub use proxyapi_v2::throttle::{ThrottleConfig, ThrottlePreset};
