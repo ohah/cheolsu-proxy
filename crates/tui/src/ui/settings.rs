@@ -348,7 +348,7 @@ fn render_text_field<'a>(value: &'a str, is_editing: bool) -> Span<'a> {
 }
 
 fn draw_keybindings(f: &mut Frame, app: &App, area: Rect) {
-    let editing = app.upstream_form.editing;
+    let editing = app.upstream_form.editing || app.throttle_form.editing;
 
     let help_lines = if editing {
         vec![

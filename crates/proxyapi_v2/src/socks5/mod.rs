@@ -2,7 +2,7 @@ mod protocol;
 
 pub use protocol::*;
 
-use crate::throttle::{ThrottleConfig, ThrottledIo};
+use crate::throttle::{self, ThrottleConfig};
 use crate::upstream_proxy::{UpstreamProxyConfig, connect_to_target};
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -276,9 +276,7 @@ async fn handle_connect(
                 .and_then(|rx| rx.borrow().clone());
             let tunnel_result = if let Some(ref tc) = throttle_config {
                 if tc.enabled {
-                    let mut ts = ThrottledIo::new(stream, tc);
-                    let mut tt = ThrottledIo::new(target, tc);
-                    tokio::io::copy_bidirectional(&mut ts, &mut tt).await
+                    throttle::copy_bidirectional_throttled(stream, &mut target, tc).await
                 } else {
                     tokio::io::copy_bidirectional(stream, &mut target).await
                 }

@@ -1,3 +1,4 @@
+use proxy_daemon::ThrottlePreset;
 use proxy_daemon::{
     InterceptAction, InterceptRule, ThrottleConfig, UpstreamProxyAuth, UpstreamProxyConfig,
 };
@@ -212,36 +213,11 @@ impl ThrottleForm {
 
         match self.preset {
             ThrottlePresetChoice::None => None,
-            ThrottlePresetChoice::Gprs => Some(ThrottleConfig {
-                enabled: true,
-                download_rate: Some(50 * 1024),
-                upload_rate: Some(20 * 1024),
-                latency_ms: 500,
-            }),
-            ThrottlePresetChoice::Slow3G => Some(ThrottleConfig {
-                enabled: true,
-                download_rate: Some(500 * 1024),
-                upload_rate: Some(500 * 1024),
-                latency_ms: 400,
-            }),
-            ThrottlePresetChoice::Fast3G => Some(ThrottleConfig {
-                enabled: true,
-                download_rate: Some(1_600 * 1024),
-                upload_rate: Some(768 * 1024),
-                latency_ms: 150,
-            }),
-            ThrottlePresetChoice::Lte => Some(ThrottleConfig {
-                enabled: true,
-                download_rate: Some(4 * 1024 * 1024),
-                upload_rate: Some(3 * 1024 * 1024),
-                latency_ms: 50,
-            }),
-            ThrottlePresetChoice::Wifi => Some(ThrottleConfig {
-                enabled: true,
-                download_rate: Some(30 * 1024 * 1024),
-                upload_rate: Some(15 * 1024 * 1024),
-                latency_ms: 2,
-            }),
+            ThrottlePresetChoice::Gprs => Some(ThrottlePreset::Gprs.to_config()),
+            ThrottlePresetChoice::Slow3G => Some(ThrottlePreset::Slow3G.to_config()),
+            ThrottlePresetChoice::Fast3G => Some(ThrottlePreset::Fast3G.to_config()),
+            ThrottlePresetChoice::Lte => Some(ThrottlePreset::Lte.to_config()),
+            ThrottlePresetChoice::Wifi => Some(ThrottlePreset::Wifi.to_config()),
             ThrottlePresetChoice::Custom => {
                 let dl: u64 = self.download.parse().unwrap_or(0);
                 let ul: u64 = self.upload.parse().unwrap_or(0);
@@ -606,5 +582,205 @@ mod tests {
 
         let config = form.to_config().unwrap();
         assert_eq!(config.bypass, vec!["localhost", "*.test.com"]);
+    }
+
+    // -- SettingsSection --
+
+    #[test]
+    fn settings_section_next_prev_cycle() {
+        let mut section = SettingsSection::UpstreamProxy;
+        section = section.next();
+        assert_eq!(section, SettingsSection::Throttle);
+        section = section.next();
+        assert_eq!(section, SettingsSection::UpstreamProxy);
+        section = section.prev();
+        assert_eq!(section, SettingsSection::Throttle);
+    }
+
+    // -- ThrottlePresetChoice --
+
+    #[test]
+    fn throttle_preset_choice_labels_not_empty() {
+        for preset in ThrottlePresetChoice::ALL {
+            assert!(!preset.label().is_empty());
+        }
+    }
+
+    #[test]
+    fn throttle_preset_choice_full_cycle() {
+        let mut preset = ThrottlePresetChoice::None;
+        for _ in 0..ThrottlePresetChoice::ALL.len() {
+            preset = preset.next();
+        }
+        assert_eq!(preset, ThrottlePresetChoice::None);
+    }
+
+    // -- ThrottleField --
+
+    #[test]
+    fn throttle_field_labels_not_empty() {
+        for field in ThrottleField::ALL {
+            assert!(!field.label().is_empty());
+        }
+    }
+
+    #[test]
+    fn throttle_field_next_prev_cycle() {
+        let mut field = ThrottleField::Enabled;
+        for _ in 0..ThrottleField::ALL.len() {
+            field = field.next();
+        }
+        assert_eq!(field, ThrottleField::Enabled);
+
+        for _ in 0..ThrottleField::ALL.len() {
+            field = field.prev();
+        }
+        assert_eq!(field, ThrottleField::Enabled);
+    }
+
+    // -- ThrottleForm --
+
+    #[test]
+    fn throttle_form_new_defaults() {
+        let form = ThrottleForm::new();
+        assert!(!form.enabled);
+        assert_eq!(form.preset, ThrottlePresetChoice::None);
+        assert_eq!(form.field, ThrottleField::Enabled);
+        assert!(!form.editing);
+        assert!(form.download.is_empty());
+        assert!(form.upload.is_empty());
+        assert_eq!(form.latency, "0");
+    }
+
+    #[test]
+    fn throttle_form_to_config_disabled_returns_none() {
+        let form = ThrottleForm::new();
+        assert!(form.to_config().is_none());
+    }
+
+    #[test]
+    fn throttle_form_to_config_enabled_none_preset_returns_none() {
+        let mut form = ThrottleForm::new();
+        form.enabled = true;
+        form.preset = ThrottlePresetChoice::None;
+        assert!(form.to_config().is_none());
+    }
+
+    #[test]
+    fn throttle_form_to_config_gprs_matches_core_preset() {
+        let mut form = ThrottleForm::new();
+        form.enabled = true;
+        form.preset = ThrottlePresetChoice::Gprs;
+        let config = form.to_config().unwrap();
+        let core_config = proxy_daemon::ThrottlePreset::Gprs.to_config();
+        assert_eq!(config.download_rate, core_config.download_rate);
+        assert_eq!(config.upload_rate, core_config.upload_rate);
+        assert_eq!(config.latency_ms, core_config.latency_ms);
+    }
+
+    #[test]
+    fn throttle_form_to_config_all_presets_match_core() {
+        let pairs: Vec<(ThrottlePresetChoice, proxy_daemon::ThrottlePreset)> = vec![
+            (
+                ThrottlePresetChoice::Gprs,
+                proxy_daemon::ThrottlePreset::Gprs,
+            ),
+            (
+                ThrottlePresetChoice::Slow3G,
+                proxy_daemon::ThrottlePreset::Slow3G,
+            ),
+            (
+                ThrottlePresetChoice::Fast3G,
+                proxy_daemon::ThrottlePreset::Fast3G,
+            ),
+            (ThrottlePresetChoice::Lte, proxy_daemon::ThrottlePreset::Lte),
+            (
+                ThrottlePresetChoice::Wifi,
+                proxy_daemon::ThrottlePreset::Wifi,
+            ),
+        ];
+        for (tui_preset, core_preset) in pairs {
+            let mut form = ThrottleForm::new();
+            form.enabled = true;
+            form.preset = tui_preset;
+            let config = form.to_config().unwrap();
+            let core_config = core_preset.to_config();
+            assert_eq!(
+                config.download_rate, core_config.download_rate,
+                "download mismatch for {:?}",
+                tui_preset
+            );
+            assert_eq!(
+                config.upload_rate, core_config.upload_rate,
+                "upload mismatch for {:?}",
+                tui_preset
+            );
+            assert_eq!(
+                config.latency_ms, core_config.latency_ms,
+                "latency mismatch for {:?}",
+                tui_preset
+            );
+        }
+    }
+
+    #[test]
+    fn throttle_form_to_config_custom() {
+        let mut form = ThrottleForm::new();
+        form.enabled = true;
+        form.preset = ThrottlePresetChoice::Custom;
+        form.download = "1024".to_string();
+        form.upload = "512".to_string();
+        form.latency = "100".to_string();
+
+        let config = form.to_config().unwrap();
+        assert!(config.enabled);
+        assert_eq!(config.download_rate, Some(1024 * 1024));
+        assert_eq!(config.upload_rate, Some(512 * 1024));
+        assert_eq!(config.latency_ms, 100);
+    }
+
+    #[test]
+    fn throttle_form_to_config_custom_zero_rate_is_none() {
+        let mut form = ThrottleForm::new();
+        form.enabled = true;
+        form.preset = ThrottlePresetChoice::Custom;
+        form.download = "0".to_string();
+        form.upload = "0".to_string();
+        form.latency = "50".to_string();
+
+        let config = form.to_config().unwrap();
+        assert!(config.download_rate.is_none());
+        assert!(config.upload_rate.is_none());
+        assert_eq!(config.latency_ms, 50);
+    }
+
+    #[test]
+    fn throttle_form_to_config_custom_empty_strings() {
+        let mut form = ThrottleForm::new();
+        form.enabled = true;
+        form.preset = ThrottlePresetChoice::Custom;
+        form.download = "".to_string();
+        form.upload = "".to_string();
+        form.latency = "".to_string();
+
+        let config = form.to_config().unwrap();
+        assert!(config.download_rate.is_none());
+        assert!(config.upload_rate.is_none());
+        assert_eq!(config.latency_ms, 0);
+    }
+
+    #[test]
+    fn throttle_form_to_config_custom_invalid_input() {
+        let mut form = ThrottleForm::new();
+        form.enabled = true;
+        form.preset = ThrottlePresetChoice::Custom;
+        form.download = "abc".to_string();
+        form.upload = "xyz".to_string();
+        form.latency = "not_a_number".to_string();
+
+        let config = form.to_config().unwrap();
+        assert!(config.download_rate.is_none());
+        assert!(config.upload_rate.is_none());
+        assert_eq!(config.latency_ms, 0);
     }
 }
