@@ -18,6 +18,8 @@ interface TransactionStoreState {
   toggleCheckTransaction: (id: string) => void;
   checkAllTransactions: (ids: string[]) => void;
   clearCheckedTransactions: () => void;
+  setTransactions: (transactions: HttpTransaction[]) => void;
+  appendTransactions: (transactions: HttpTransaction[]) => void;
   togglePause: () => void;
   setPaused: (paused: boolean) => void;
 }
@@ -97,6 +99,19 @@ export const useTransactionStore = create<TransactionStoreState>()((set) => ({
     }),
 
   clearCheckedTransactions: () => set({ checkedTransactionIds: new Set() }),
+
+  setTransactions: (transactions) =>
+    set({
+      transactions,
+      selectedTransaction: null,
+      pinnedTransactionIds: new Set(),
+      checkedTransactionIds: new Set(),
+    }),
+
+  appendTransactions: (newTransactions) =>
+    set((state) => ({
+      transactions: [...state.transactions, ...newTransactions],
+    })),
 
   togglePause: () => set((state) => ({ paused: !state.paused })),
   setPaused: (paused: boolean) => set({ paused }),

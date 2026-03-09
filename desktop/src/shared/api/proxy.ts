@@ -228,3 +228,27 @@ export async function resolveBreakpoint(
 ): Promise<void> {
   return invoke("resolve_breakpoint", { id, action });
 }
+
+// --- Session save/load ---
+
+export async function saveSession(
+  path: string,
+  filter?: string,
+): Promise<void> {
+  return invoke("save_session", { path, filter });
+}
+
+export interface LoadSessionResult {
+  name: string | null;
+  description: string | null;
+  transaction_count: number;
+  transactions_json: string;
+}
+
+export async function loadSession(path: string): Promise<LoadSessionResult> {
+  return invoke("load_session", { path });
+}
+
+export async function importHarFile(path: string): Promise<string> {
+  return invoke("import_har_file_cmd", { path });
+}

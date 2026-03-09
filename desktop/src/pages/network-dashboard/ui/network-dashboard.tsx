@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import { save } from "@tauri-apps/plugin-dialog";
+import { save, open } from "@tauri-apps/plugin-dialog";
 import { invoke } from "@tauri-apps/api/core";
 
 import { TransactionDetails, SequenceReplayDialog } from "@/features/transaction-details";
@@ -25,6 +25,8 @@ import {
 
 import { useTransactionFilters, useResizablePanelController } from "../hooks";
 import { useTransactionStore, useInterceptRuleDialogStore } from "@/shared/stores";
+import { saveSession, loadSession, importHarFile } from "@/shared/api/proxy";
+import type { HttpTransaction, ProxyEventTuple } from "@/entities/proxy";
 
 export const NetworkDashboard = () => {
   const transactions = useTransactionStore((s) => s.transactions);

@@ -10,6 +10,9 @@ interface NetworkHeaderProps {
   togglePause: () => void;
   clearTransactions: () => void;
   onExportHar: () => void;
+  onSaveSession: () => void;
+  onLoadSession: () => void;
+  onImportHar: () => void;
   filterSlot: ReactNode;
 }
 
@@ -20,6 +23,9 @@ export function NetworkHeader({
   togglePause,
   clearTransactions,
   onExportHar,
+  onSaveSession,
+  onLoadSession,
+  onImportHar,
   filterSlot,
 }: NetworkHeaderProps) {
   return (
@@ -33,6 +39,9 @@ export function NetworkHeader({
             onTogglePause={togglePause}
             onClearTransactions={clearTransactions}
             onExportHar={onExportHar}
+            onSaveSession={onSaveSession}
+            onLoadSession={onLoadSession}
+            onImportHar={onImportHar}
           />
 
           <NetworkFilters>{filterSlot}</NetworkFilters>
