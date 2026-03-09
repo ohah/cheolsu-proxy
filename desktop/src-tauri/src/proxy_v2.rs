@@ -923,13 +923,15 @@ fn generate_qr_code_base64(data: &str) -> Result<String, String> {
             let py = logo_start_y + dy * actual_ppm;
 
             // 도트 사이에 1px 간격을 두어 도트 매트릭스 느낌
+            // QR 코드와 통일감을 위해 블랙으로 렌더링
+            let black = Rgba([0, 0, 0, 255]);
             let dot_size = actual_ppm.saturating_sub(1).max(1);
             for iy in 0..dot_size {
                 for ix in 0..dot_size {
                     let x = px + ix;
                     let y = py + iy;
                     if x < qr_w && y < qr_h {
-                        qr_rgba.put_pixel(x, y, *pixel);
+                        qr_rgba.put_pixel(x, y, black);
                     }
                 }
             }
