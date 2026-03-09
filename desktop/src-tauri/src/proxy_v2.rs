@@ -1,7 +1,7 @@
 use proxy_daemon::{
     clean_old_cache, diff_headers, diff_json, diff_text, get_local_ips, BodyDiff, ClientCommand,
-    DaemonConnection, DaemonMessage, InterceptRule, ServerReplayEntry, ThrottleConfig,
-    TrafficDiff, TransactionPartDiff, UpstreamProxyConfig,
+    DaemonConnection, DaemonMessage, InterceptRule, ServerReplayEntry, ThrottleConfig, TrafficDiff,
+    TransactionPartDiff, UpstreamProxyConfig,
 };
 use std::collections::HashMap;
 use std::net::SocketAddr;
@@ -1094,12 +1094,8 @@ fn compute_body_diff_from_strings(
         }
     }
 
-    let is_text = data_type_a
-        .map(|t| is_text_data_type(t))
-        .unwrap_or(true)
-        && data_type_b
-            .map(|t| is_text_data_type(t))
-            .unwrap_or(true);
+    let is_text = data_type_a.map(|t| is_text_data_type(t)).unwrap_or(true)
+        && data_type_b.map(|t| is_text_data_type(t)).unwrap_or(true);
 
     if is_text && !text_a.is_empty() && !text_b.is_empty() {
         return Some(diff_text(text_a, text_b));
