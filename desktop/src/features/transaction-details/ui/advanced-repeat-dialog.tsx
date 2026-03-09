@@ -56,9 +56,7 @@ function buildReplayParams(transaction: HttpTransaction) {
     body = uint8ArrayToString(request.body, request.data_type);
   } else if (request.body_json) {
     body =
-      typeof request.body_json === "string"
-        ? request.body_json
-        : JSON.stringify(request.body_json);
+      typeof request.body_json === "string" ? request.body_json : JSON.stringify(request.body_json);
   }
 
   return {
