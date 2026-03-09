@@ -15,17 +15,15 @@ import {
   updateThrottle,
   type ThrottleConfig,
 } from "@/shared/api/proxy";
-import { register, unregister, isRegistered } from "@tauri-apps/plugin-global-shortcut";
-import { useProxyStore } from "@/shared/stores";
-import { startProxyV2, stopProxyV2 } from "@/shared/api/proxy";
-import { trayStore } from "@/shared/stores/tray-sync-store";
-import { toast } from "sonner";
 import {
   getStoredShortcut,
   setStoredShortcut,
   getShortcutEnabled,
   setShortcutEnabled,
+  registerShortcut,
+  unregisterShortcut,
 } from "@/hooks/use-global-shortcut";
+import { platform } from "@tauri-apps/plugin-os";
 import {
   Button,
   Input,
@@ -137,13 +135,18 @@ export function SettingsPage() {
       e.stopPropagation();
 
       const parts: string[] = [];
-      if (e.metaKey || e.ctrlKey) parts.push("CommandOrControl");
-      if (e.altKey) parts.push("Alt");
+      const hasCtrlOrCmd = e.metaKey || e.ctrlKey;
+      const hasAlt = e.altKey;
+      if (hasCtrlOrCmd) parts.push("CommandOrControl");
+      if (hasAlt) parts.push("Alt");
       if (e.shiftKey) parts.push("Shift");
 
       const key = e.key;
       // modifier 키만 누른 경우 무시
       if (["Control", "Meta", "Alt", "Shift"].includes(key)) return;
+
+      // CommandOrControl 또는 Alt 필수 (Shift 단독은 일반 타이핑과 충돌)
+      if (!hasCtrlOrCmd && !hasAlt) return;
 
       // 알파벳/숫자/F키 등
       let keyName = key;
@@ -154,60 +157,30 @@ export function SettingsPage() {
       }
 
       parts.push(keyName);
-      if (parts.length >= 2) {
-        setHotkey(parts.join("+"));
-        setIsRecording(false);
-      }
+      setHotkey(parts.join("+"));
+      setIsRecording(false);
     },
     [isRecording],
   );
 
   const handleHotkeySave = useCallback(async () => {
     try {
-      // 기존 단축키 해제
-      const oldShortcut = getStoredShortcut();
-      try {
-        const wasRegistered = await isRegistered(oldShortcut);
-        if (wasRegistered) await unregister(oldShortcut);
-      } catch {
-        // 무시
-      }
-
       setStoredShortcut(hotkey);
       setShortcutEnabled(hotkeyEnabled);
 
       if (hotkeyEnabled) {
-        await register(hotkey, async (event) => {
-          if (event.state === "Pressed") {
-            const { isConnected, port } = useProxyStore.getState();
-            try {
-              if (isConnected) {
-                await stopProxyV2();
-                useProxyStore.getState().setConnected(false);
-                await trayStore.set("proxyConnected", false);
-                await trayStore.save();
-                toast.info("Proxy stopped");
-              } else {
-                await startProxyV2(port);
-                useProxyStore.getState().setConnected(true);
-                await trayStore.set("proxyConnected", true);
-                await trayStore.save();
-                toast.success("Proxy started");
-              }
-            } catch {
-              toast.error("Proxy toggle failed");
-            }
-          }
-        });
+        // 훅의 registerShortcut이 기존 단축키 해제 + 새 단축키 등록을 모두 처리
+        await registerShortcut(hotkey);
+      } else {
+        await unregisterShortcut();
       }
 
       setHotkeyStatus("saved");
       setTimeout(() => setHotkeyStatus("idle"), 2000);
-    } catch (e) {
-      console.error("Failed to save hotkey:", e);
+    } catch {
       setHotkeyStatus("error");
     }
-  }, [hotkey, hotkeyEnabled]);
+  }, [hotkey, hotkeyEnabled, registerShortcut, unregisterShortcut]);
 
   // Throttle state
   const [throttleEnabled, setThrottleEnabled] = useState(false);
@@ -825,15 +798,17 @@ export function SettingsPage() {
   );
 }
 
+const isMac = platform() === "macos";
+
 function ShortcutDisplay({ shortcut }: { shortcut: string }) {
   const parts = shortcut.split("+").map((part) => {
     switch (part) {
       case "CommandOrControl":
-        return navigator.platform.includes("Mac") ? "\u2318" : "Ctrl";
+        return isMac ? "\u2318" : "Ctrl";
       case "Shift":
         return "\u21E7";
       case "Alt":
-        return navigator.platform.includes("Mac") ? "\u2325" : "Alt";
+        return isMac ? "\u2325" : "Alt";
       case "Space":
         return "Space";
       default:
