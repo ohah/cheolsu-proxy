@@ -10,6 +10,7 @@ import {
   updateBreakpointRules,
   resolveBreakpoint as resolveBreakpointApi,
 } from "@/shared/api/proxy";
+import { toast } from "sonner";
 
 export const useBreakpointStore = create<BreakpointStoreState>()(
   persist(
@@ -46,9 +47,11 @@ export const useBreakpointStore = create<BreakpointStoreState>()(
       },
 
       addPendingBreakpoint: (bp: PendingBreakpoint) => {
-        set((state) => ({
-          pendingBreakpoints: [...state.pendingBreakpoints, bp],
-        }));
+        set((state) => {
+          const exists = state.pendingBreakpoints.some((existing) => existing.id === bp.id);
+          if (exists) return state;
+          return { pendingBreakpoints: [...state.pendingBreakpoints, bp] };
+        });
       },
 
       removePendingBreakpoint: (id: string) => {
@@ -58,14 +61,10 @@ export const useBreakpointStore = create<BreakpointStoreState>()(
       },
 
       resolveBreakpoint: async (id: string, action: BreakpointAction) => {
-        try {
-          await resolveBreakpointApi(id, action);
-          set((state) => ({
-            pendingBreakpoints: state.pendingBreakpoints.filter((bp) => bp.id !== id),
-          }));
-        } catch (error) {
-          console.error("Failed to resolve breakpoint:", error);
-        }
+        await resolveBreakpointApi(id, action);
+        set((state) => ({
+          pendingBreakpoints: state.pendingBreakpoints.filter((bp) => bp.id !== id),
+        }));
       },
 
       syncToProxy: async () => {
@@ -74,6 +73,7 @@ export const useBreakpointStore = create<BreakpointStoreState>()(
           await updateBreakpointRules(rules);
         } catch (error) {
           console.error("Failed to sync breakpoint rules:", error);
+          toast.warning("Failed to sync rules to proxy. Is the proxy running?");
         }
       },
     }),
