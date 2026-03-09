@@ -21,9 +21,20 @@ export const HostMappingPage = () => {
   const [targetHost, setTargetHost] = useState("");
   const [targetPort, setTargetPort] = useState("");
 
+  const isValidPort = (port: string): boolean => {
+    if (!port) return true; // optional
+    const num = parseInt(port, 10);
+    return Number.isInteger(num) && num >= 1 && num <= 65535;
+  };
+
   const handleAdd = () => {
     if (!sourceHost.trim() || !targetHost.trim()) {
       toast.error(t`Source host and target host are required`);
+      return;
+    }
+
+    if (!isValidPort(sourcePort) || !isValidPort(targetPort)) {
+      toast.error(t`Port must be between 1 and 65535`);
       return;
     }
 

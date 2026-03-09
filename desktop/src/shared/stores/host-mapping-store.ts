@@ -8,9 +8,22 @@ interface HostMappingStoreState {
   addMapping: (mapping: HostMapping) => void;
   removeMapping: (id: string) => void;
   toggleMapping: (id: string) => void;
+  /** 데몬 이벤트(host_mappings_updated)로 수신한 매핑을 반영할 때 사용.
+   *  데몬에서 이미 반영된 상태이므로 syncToProxy를 호출하지 않는다. */
   setMappings: (mappings: HostMapping[]) => void;
   clearMappings: () => void;
-  syncToProxy: () => Promise<void>;
+  syncToProxy: () => void;
+}
+
+let syncTimer: ReturnType<typeof setTimeout> | null = null;
+
+/** syncToProxy 연속 호출을 방지하기 위한 debounce (300ms) */
+function debouncedSync(fn: () => Promise<void>) {
+  if (syncTimer) clearTimeout(syncTimer);
+  syncTimer = setTimeout(() => {
+    syncTimer = null;
+    fn();
+  }, 300);
 }
 
 export const useHostMappingStore = create<HostMappingStoreState>()(
@@ -39,6 +52,7 @@ export const useHostMappingStore = create<HostMappingStoreState>()(
         get().syncToProxy();
       },
 
+      /** 데몬 이벤트로 수신한 매핑 반영 전용 — syncToProxy 호출 안 함 */
       setMappings: (mappings: HostMapping[]) => {
         set({ hostMappings: mappings });
       },
@@ -48,13 +62,15 @@ export const useHostMappingStore = create<HostMappingStoreState>()(
         get().syncToProxy();
       },
 
-      syncToProxy: async () => {
-        try {
-          const { hostMappings } = get();
-          await updateHostMappings(hostMappings);
-        } catch (error) {
-          console.error("Failed to sync host mappings:", error);
-        }
+      syncToProxy: () => {
+        debouncedSync(async () => {
+          try {
+            const { hostMappings } = get();
+            await updateHostMappings(hostMappings);
+          } catch (error) {
+            console.error("Failed to sync host mappings:", error);
+          }
+        });
       },
     }),
     {
