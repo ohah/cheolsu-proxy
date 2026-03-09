@@ -49,7 +49,8 @@ function readVarint(data: Uint8Array, offset: number): [bigint, number] {
 
   for (let i = 0; i < 10; i++) {
     if (pos >= data.length) throw new Error("unexpected end of varint");
-    const byte = data[pos++];
+    const byte = data[pos];
+    pos += 1;
     result |= BigInt(byte & 0x7f) << shift;
     if ((byte & 0x80) === 0) return [result, pos];
     shift += 7n;
