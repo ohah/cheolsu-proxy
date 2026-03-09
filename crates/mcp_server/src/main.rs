@@ -529,19 +529,9 @@ impl CheolsuMcpServer {
                     None
                 };
 
-                let old_headers: Vec<(String, String)> = req_a
-                    .headers()
-                    .iter()
-                    .map(|(k, v)| (k.to_string(), v.to_str().unwrap_or("<binary>").to_string()))
-                    .collect();
-                let new_headers: Vec<(String, String)> = req_b
-                    .headers()
-                    .iter()
-                    .map(|(k, v)| (k.to_string(), v.to_str().unwrap_or("<binary>").to_string()))
-                    .collect();
-                let header_diffs = diff_headers(&old_headers, &new_headers);
-
-                let body_diff = compute_body_diff(
+                let (header_diffs, body_diff) = diff_part(
+                    req_a.headers(),
+                    req_b.headers(),
                     req_a.body().map(|b| b.as_ref()),
                     req_b.body().map(|b| b.as_ref()),
                     req_a.body_size(),
@@ -579,19 +569,9 @@ impl CheolsuMcpServer {
                     None
                 };
 
-                let old_headers: Vec<(String, String)> = res_a
-                    .headers()
-                    .iter()
-                    .map(|(k, v)| (k.to_string(), v.to_str().unwrap_or("<binary>").to_string()))
-                    .collect();
-                let new_headers: Vec<(String, String)> = res_b
-                    .headers()
-                    .iter()
-                    .map(|(k, v)| (k.to_string(), v.to_str().unwrap_or("<binary>").to_string()))
-                    .collect();
-                let header_diffs = diff_headers(&old_headers, &new_headers);
-
-                let body_diff = compute_body_diff(
+                let (header_diffs, body_diff) = diff_part(
+                    res_a.headers(),
+                    res_b.headers(),
                     res_a.body().map(|b| b.as_ref()),
                     res_b.body().map(|b| b.as_ref()),
                     res_a.body_size(),
@@ -660,6 +640,38 @@ impl ServerHandler for CheolsuMcpServer {
     }
 }
 
+/// Compute header diffs and body diff for a transaction part.
+fn diff_part(
+    headers_a: &http::HeaderMap,
+    headers_b: &http::HeaderMap,
+    body_a: Option<&[u8]>,
+    body_b: Option<&[u8]>,
+    size_a: usize,
+    size_b: usize,
+    file_path_a: &Option<String>,
+    file_path_b: &Option<String>,
+    data_type_a: &proxy_v2_models::DataType,
+    data_type_b: &proxy_v2_models::DataType,
+) -> (Vec<proxy_daemon::HeaderDiff>, Option<BodyDiff>) {
+    let extract = |h: &http::HeaderMap| -> Vec<(String, String)> {
+        h.iter()
+            .map(|(k, v)| (k.to_string(), v.to_str().unwrap_or("<binary>").to_string()))
+            .collect()
+    };
+    let header_diffs = diff_headers(&extract(headers_a), &extract(headers_b));
+    let body_diff = compute_body_diff(
+        body_a,
+        body_b,
+        size_a,
+        size_b,
+        file_path_a,
+        file_path_b,
+        data_type_a,
+        data_type_b,
+    );
+    (header_diffs, body_diff)
+}
+
 fn compute_body_diff(
     body_a: Option<&[u8]>,
     body_b: Option<&[u8]>,
@@ -672,11 +684,29 @@ fn compute_body_diff(
 ) -> Option<BodyDiff> {
     let bytes_a = body_a
         .map(|b| b.to_vec())
-        .or_else(|| file_path_a.as_ref().and_then(|p| std::fs::read(p).ok()))
+        .or_else(|| {
+            file_path_a.as_ref().and_then(|p| {
+                std::fs::read(p)
+                    .map_err(|e| {
+                        tracing::warn!("Failed to read body file {}: {}", p, e);
+                        e
+                    })
+                    .ok()
+            })
+        })
         .unwrap_or_default();
     let bytes_b = body_b
         .map(|b| b.to_vec())
-        .or_else(|| file_path_b.as_ref().and_then(|p| std::fs::read(p).ok()))
+        .or_else(|| {
+            file_path_b.as_ref().and_then(|p| {
+                std::fs::read(p)
+                    .map_err(|e| {
+                        tracing::warn!("Failed to read body file {}: {}", p, e);
+                        e
+                    })
+                    .ok()
+            })
+        })
         .unwrap_or_default();
 
     if bytes_a == bytes_b {
