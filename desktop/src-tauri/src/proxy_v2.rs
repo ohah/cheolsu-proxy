@@ -1154,8 +1154,8 @@ pub async fn load_session(path: String) -> Result<LoadSessionResult, String> {
         .map_err(|e| format!("세션 로드 실패: {}", e))?;
 
     let transactions = session.extract_transactions();
-    let transactions_json = serde_json::to_string(&transactions)
-        .map_err(|e| format!("트랜잭션 직렬화 실패: {}", e))?;
+    let transactions_json =
+        serde_json::to_string(&transactions).map_err(|e| format!("트랜잭션 직렬화 실패: {}", e))?;
 
     Ok(LoadSessionResult {
         name: session.metadata.name,
@@ -1171,8 +1171,7 @@ pub async fn import_har_file_cmd(path: String) -> Result<String, String> {
     let transactions = proxy_daemon::import_har_file(std::path::Path::new(&path))
         .map_err(|e| format!("HAR 가져오기 실패: {}", e))?;
 
-    serde_json::to_string(&transactions)
-        .map_err(|e| format!("트랜잭션 직렬화 실패: {}", e))
+    serde_json::to_string(&transactions).map_err(|e| format!("트랜잭션 직렬화 실패: {}", e))
 }
 
 fn base64_engine() -> base64::engine::GeneralPurpose {

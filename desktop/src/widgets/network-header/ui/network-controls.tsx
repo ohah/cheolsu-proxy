@@ -1,4 +1,4 @@
-import { Download, Pause, Play, Trash2 } from "lucide-react";
+import { Download, FolderOpen, Pause, Play, Save, Trash2, Upload } from "lucide-react";
 import { useLingui } from "@lingui/react/macro";
 
 import { Button } from "@/shared/ui";
@@ -10,6 +10,9 @@ interface NetworkControlsProps {
   onTogglePause: () => void;
   onClearTransactions: () => void;
   onExportHar: () => void;
+  onSaveSession: () => void;
+  onLoadSession: () => void;
+  onImportHar: () => void;
 }
 
 export const NetworkControls = ({
@@ -19,6 +22,9 @@ export const NetworkControls = ({
   onTogglePause,
   onClearTransactions,
   onExportHar,
+  onSaveSession,
+  onLoadSession,
+  onImportHar,
 }: NetworkControlsProps) => {
   const { t } = useLingui();
 
@@ -42,6 +48,29 @@ export const NetworkControls = ({
         <Trash2 className="w-4 h-4" />
       </Button>
 
+      <div className="w-px h-5 bg-border" />
+
+      <Button
+        size="sm"
+        variant="outline"
+        onClick={onSaveSession}
+        disabled={!hasTransactions || exporting}
+        title={t`Save Session`}
+      >
+        <Save className="w-4 h-4" />
+      </Button>
+
+      <Button
+        size="sm"
+        variant="outline"
+        onClick={onLoadSession}
+        title={t`Load Session`}
+      >
+        <FolderOpen className="w-4 h-4" />
+      </Button>
+
+      <div className="w-px h-5 bg-border" />
+
       <Button
         size="sm"
         variant="outline"
@@ -50,6 +79,15 @@ export const NetworkControls = ({
         title={t`Export HAR`}
       >
         <Download className="w-4 h-4" />
+      </Button>
+
+      <Button
+        size="sm"
+        variant="outline"
+        onClick={onImportHar}
+        title={t`Import HAR`}
+      >
+        <Upload className="w-4 h-4" />
       </Button>
     </div>
   );
