@@ -33,11 +33,16 @@ pub enum WsEvent {
 const CERT_DOWNLOAD_HOST: &str = "cheolsu.proxy";
 const CERT_DOWNLOAD_HOST_COLON: &str = "cheolsu.proxy:";
 
-/// HTTP 요청/응답 상태를 추적하는 컨텍스트
+/// 요청별 임시 상태 (매 요청마다 초기화)
 #[derive(Clone)]
-pub(crate) struct HttpState {
+pub(crate) struct RequestState {
     pub(crate) req: Option<ProxiedRequest>,
     pub(crate) res: Option<ProxiedResponse>,
+}
+
+/// 프록시 전역 설정 (세션 수명 동안 유지)
+#[derive(Clone)]
+pub(crate) struct ProxyConfig {
     pub(crate) cache_dir: Option<std::path::PathBuf>,
     /// CA 인증서 DER 바이트 (외부 기기 인증서 다운로드용, zero-copy)
     pub(crate) ca_cert_der: Option<Bytes>,
@@ -63,7 +68,8 @@ pub(crate) struct WebSocketState {
 #[derive(Clone)]
 pub struct LoggingHandler {
     pub(crate) sender: tokio::sync::mpsc::Sender<RequestInfo>,
-    pub(crate) http: HttpState,
+    pub(crate) request: RequestState,
+    pub(crate) config: ProxyConfig,
     pub(crate) intercept: InterceptEngine,
     pub(crate) ws: WebSocketState,
 }
@@ -75,9 +81,11 @@ impl LoggingHandler {
     ) -> Self {
         Self {
             sender,
-            http: HttpState {
+            request: RequestState {
                 req: None,
                 res: None,
+            },
+            config: ProxyConfig {
                 cache_dir: Some(cache_dir),
                 ca_cert_der: None,
             },
@@ -96,7 +104,7 @@ impl LoggingHandler {
 
     /// CA 인증서 DER 바이트를 설정합니다 (외부 기기 인증서 다운로드용)
     pub fn with_ca_cert_der(mut self, der: Vec<u8>) -> Self {
-        self.http.ca_cert_der = Some(Bytes::from(der));
+        self.config.ca_cert_der = Some(Bytes::from(der));
         self
     }
 
@@ -136,7 +144,7 @@ impl LoggingHandler {
 
         // /ssl 또는 /cert 경로: 인증서 다운로드
         if path == "/ssl" || path == "/cert" || path == "/" {
-            if let Some(der) = &self.http.ca_cert_der {
+            if let Some(der) = &self.config.ca_cert_der {
                 info!(
                     "[CertDownload] CA 인증서 다운로드 제공 ({} bytes)",
                     der.len()
@@ -184,19 +192,19 @@ a:hover{background:#1d4ed8}</style></head>
     /// 요청과 응답을 묶어서 전송
     pub(crate) async fn send_output(&self) {
         let client_request = self
-            .http
+            .request
             .req
             .as_ref()
-            .map(|req| req.clone().for_client(self.http.cache_dir.as_deref()));
-        let client_response = self.http.res.as_ref().map(|res| {
+            .map(|req| req.clone().for_client(self.config.cache_dir.as_deref()));
+        let client_response = self.request.res.as_ref().map(|res| {
             let request_id = self
-                .http
+                .request
                 .req
                 .as_ref()
                 .map(|r| r.id().clone())
                 .unwrap_or_default();
             res.clone()
-                .for_client(&request_id, self.http.cache_dir.as_deref())
+                .for_client(&request_id, self.config.cache_dir.as_deref())
         });
         let request_info = RequestInfo(client_request, client_response);
         if let Err(e) = self.sender.send(request_info).await {
@@ -269,7 +277,7 @@ a:hover{background:#1d4ed8}</style></head>
     }
 
     fn create_response_from_cached_data(&self) -> Response<Body> {
-        if let Some(cached_response) = &self.http.res {
+        if let Some(cached_response) = &self.request.res {
             let mut response = Response::builder()
                 .status(*cached_response.status())
                 .version(*cached_response.version());
@@ -645,7 +653,7 @@ a:hover{background:#1d4ed8}</style></head>
 
     /// 인터셉트 규칙으로 응답을 수정합니다.
     async fn apply_response_intercept_if_needed(&self, res: Response<Body>) -> Response<Body> {
-        if let Some(req) = &self.http.req {
+        if let Some(req) = &self.request.req {
             let url = req.uri().to_string();
             let method = req.method().to_string();
             self.apply_response_intercept(res, &url, &method).await
@@ -656,7 +664,7 @@ a:hover{background:#1d4ed8}</style></head>
 
     /// 스크립트 on_response 훅을 적용합니다.
     async fn apply_script_on_response(&self, res: Response<Body>) -> Response<Body> {
-        let Some(req) = &self.http.req else {
+        let Some(req) = &self.request.req else {
             return res;
         };
         let script_req = Self::to_script_request(req);
@@ -724,7 +732,7 @@ a:hover{background:#1d4ed8}</style></head>
                     .unwrap_or_default(),
             );
 
-            handler_clone.http.res = Some(proxied_response);
+            handler_clone.request.res = Some(proxied_response);
             handler_clone.send_output().await;
         });
 
@@ -758,7 +766,7 @@ impl HttpHandler for LoggingHandler {
             return restored_req.into();
         }
 
-        self.http.req = Some(proxied_request.clone());
+        self.request.req = Some(proxied_request.clone());
 
         let url = proxied_request.uri().to_string();
         let method = proxied_request.method().to_string();
@@ -810,7 +818,7 @@ impl HttpHandler for LoggingHandler {
         }
 
         let (proxied_response, restored_res) = self.response_to_proxied_response(res).await;
-        self.http.res = Some(proxied_response);
+        self.request.res = Some(proxied_response);
         self.send_output().await;
         restored_res
     }
@@ -832,7 +840,7 @@ impl HttpHandler for LoggingHandler {
                     "TLS close_notify 없이 연결 종료됨 - 정상 종료로 처리"
                 );
 
-                if self.http.res.is_some() {
+                if self.request.res.is_some() {
                     return self.create_response_from_cached_data();
                 } else {
                     return Response::builder()
@@ -857,7 +865,7 @@ impl HttpHandler for LoggingHandler {
             .unwrap_or(false);
 
         if should_use_curl {
-            if let Some(req) = &self.http.req {
+            if let Some(req) = &self.request.req {
                 error!("TLS 핸드셰이크 실패 - curl 폴백 시도");
                 match crate::curl_fallback::fallback_with_curl(req).await {
                     Ok(response) => {
@@ -1053,11 +1061,11 @@ mod tests {
     #[test]
     fn with_ca_cert_der_sets_bytes() {
         let handler = make_test_handler(None);
-        assert!(handler.http.ca_cert_der.is_none());
+        assert!(handler.config.ca_cert_der.is_none());
 
         let handler = make_test_handler(Some(vec![0xFF, 0x00]));
-        assert!(handler.http.ca_cert_der.is_some());
-        assert_eq!(handler.http.ca_cert_der.unwrap().len(), 2);
+        assert!(handler.config.ca_cert_der.is_some());
+        assert_eq!(handler.config.ca_cert_der.unwrap().len(), 2);
     }
 
     #[test]
@@ -1244,9 +1252,11 @@ mod tests {
         let (ws_sender, mut ws_rx) = tokio::sync::mpsc::channel(8);
         let handler = LoggingHandler {
             sender,
-            http: HttpState {
+            request: RequestState {
                 req: None,
                 res: None,
+            },
+            config: ProxyConfig {
                 cache_dir: None,
                 ca_cert_der: None,
             },
@@ -1292,9 +1302,11 @@ mod tests {
         let (ws_sender, mut ws_rx) = tokio::sync::mpsc::channel(8);
         let handler = LoggingHandler {
             sender,
-            http: HttpState {
+            request: RequestState {
                 req: None,
                 res: None,
+            },
+            config: ProxyConfig {
                 cache_dir: None,
                 ca_cert_der: None,
             },
