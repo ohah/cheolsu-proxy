@@ -5,6 +5,7 @@ use proxy_daemon::{
 
 /// 스크립트 로그 엔트리 (TUI 표시용)
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct ScriptLogEntry {
     pub level: String,
     pub message: String,
@@ -233,6 +234,7 @@ impl ThrottleForm {
 }
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct WsConnection {
     pub connection_id: String,
     pub uri: String,
