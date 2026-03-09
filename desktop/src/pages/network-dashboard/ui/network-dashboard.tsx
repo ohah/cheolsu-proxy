@@ -62,6 +62,9 @@ export const NetworkDashboard = () => {
     storage: localStorage,
   });
 
+  const setTransactions = useTransactionStore((s) => s.setTransactions);
+  const appendTransactions = useTransactionStore((s) => s.appendTransactions);
+
   const [sequenceReplayOpen, setSequenceReplayOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [diffResult, setDiffResult] = useState<TrafficDiff | null>(null);
@@ -88,6 +91,94 @@ export const NetworkDashboard = () => {
       setExporting(false);
     }
   }, [filteredTransactions, exporting]);
+
+  const handleSaveSession = useCallback(async () => {
+    if (filteredTransactions.length === 0 || exporting) return;
+
+    try {
+      setExporting(true);
+
+      const filePath = await save({
+        defaultPath: "session.cheolsu",
+        filters: [{ name: "Cheolsu Session", extensions: ["cheolsu", "cheolsu.gz"] }],
+      });
+      if (!filePath) return;
+
+      await saveSession(filePath, appliedQueryString || undefined);
+    } catch (err) {
+      console.error("Session save failed:", err);
+    } finally {
+      setExporting(false);
+    }
+  }, [filteredTransactions, exporting, appliedQueryString]);
+
+  const parseTransactionsJson = useCallback((json: string): HttpTransaction[] => {
+    const tuples: ProxyEventTuple[] = JSON.parse(json);
+    return tuples.map(([request, response]) => ({ request, response }));
+  }, []);
+
+  const handleLoadSession = useCallback(async () => {
+    try {
+      const filePath = await open({
+        filters: [{ name: "Cheolsu Session", extensions: ["cheolsu", "cheolsu.gz"] }],
+        multiple: false,
+      });
+      if (!filePath) return;
+
+      setExporting(true);
+      const result = await loadSession(filePath);
+      const loaded = parseTransactionsJson(result.transactions_json);
+
+      if (transactions.length > 0) {
+        // 기존 트랜잭션이 있으면 교체 (append는 사용하지 않음)
+        const shouldReplace = window.confirm(
+          `기존 ${transactions.length}건의 트래픽을 ${loaded.length}건으로 교체합니다.\n취소하면 기존 트래픽에 추가합니다.`,
+        );
+        if (shouldReplace) {
+          setTransactions(loaded);
+        } else {
+          appendTransactions(loaded);
+        }
+      } else {
+        setTransactions(loaded);
+      }
+    } catch (err) {
+      console.error("Session load failed:", err);
+    } finally {
+      setExporting(false);
+    }
+  }, [transactions.length, setTransactions, appendTransactions, parseTransactionsJson]);
+
+  const handleImportHar = useCallback(async () => {
+    try {
+      const filePath = await open({
+        filters: [{ name: "HAR", extensions: ["har"] }],
+        multiple: false,
+      });
+      if (!filePath) return;
+
+      setExporting(true);
+      const json = await importHarFile(filePath);
+      const loaded = parseTransactionsJson(json);
+
+      if (transactions.length > 0) {
+        const shouldReplace = window.confirm(
+          `기존 ${transactions.length}건의 트래픽을 ${loaded.length}건으로 교체합니다.\n취소하면 기존 트래픽에 추가합니다.`,
+        );
+        if (shouldReplace) {
+          setTransactions(loaded);
+        } else {
+          appendTransactions(loaded);
+        }
+      } else {
+        setTransactions(loaded);
+      }
+    } catch (err) {
+      console.error("HAR import failed:", err);
+    } finally {
+      setExporting(false);
+    }
+  }, [transactions.length, setTransactions, appendTransactions, parseTransactionsJson]);
 
   const interceptRuleDialogOpen = useInterceptRuleDialogStore((s) => s.open);
   const interceptRuleInitialValues = useInterceptRuleDialogStore((s) => s.initialValues);
@@ -199,6 +290,9 @@ export const NetworkDashboard = () => {
           togglePause={togglePause}
           clearTransactions={clearTransactions}
           onExportHar={handleExportHar}
+          onSaveSession={handleSaveSession}
+          onLoadSession={handleLoadSession}
+          onImportHar={handleImportHar}
           filterSlot={
             <QueryFilterEditor
               totalCount={totalCount}

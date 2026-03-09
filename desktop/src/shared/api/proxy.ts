@@ -231,10 +231,7 @@ export async function resolveBreakpoint(
 
 // --- Session save/load ---
 
-export async function saveSession(
-  path: string,
-  filter?: string,
-): Promise<void> {
+export async function saveSession(path: string, filter?: string): Promise<void> {
   return invoke("save_session", { path, filter });
 }
 
