@@ -445,20 +445,20 @@ export const RuleFormDialog = ({
 
           {/* Body */}
           {actionType !== "rewrite" && (
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium">
-              <Trans>Body</Trans>
-            </label>
-            <Textarea
-              placeholder={
-                actionType === "block" ? t`Response body (optional)` : t`Set body (optional)`
-              }
-              value={body}
-              onChange={(e) => setBody(e.target.value)}
-              rows={4}
-              className="font-mono text-xs"
-            />
-          </div>
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">
+                <Trans>Body</Trans>
+              </label>
+              <Textarea
+                placeholder={
+                  actionType === "block" ? t`Response body (optional)` : t`Set body (optional)`
+                }
+                value={body}
+                onChange={(e) => setBody(e.target.value)}
+                rows={4}
+                className="font-mono text-xs"
+              />
+            </div>
           )}
         </div>
 

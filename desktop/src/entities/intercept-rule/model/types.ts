@@ -40,11 +40,7 @@ export interface MapRemoteAction {
   preserve_path: boolean;
 }
 
-export type RewriteTarget =
-  | "request_header"
-  | "response_header"
-  | "request_body"
-  | "response_body";
+export type RewriteTarget = "request_header" | "response_header" | "request_body" | "response_body";
 
 export interface RewriteAction {
   type: "rewrite";
