@@ -15,6 +15,7 @@ import type { ProxyEventTuple } from "@/entities/proxy";
 import type { WsMessageInfo, WsConnectionEvent } from "@/entities/websocket";
 import type { InterceptRule } from "@/entities/intercept-rule";
 import { useGlobalShortcut } from "@/features/proxy-toggle";
+import { updateDaemonRules } from "@/shared/stores/sync-rules";
 
 const App: React.FC = () => {
   useGlobalShortcut();
@@ -70,6 +71,7 @@ const App: React.FC = () => {
   useEffect(() => {
     const unlisten = listen<InterceptRule[]>("intercept_rules_updated", (event) => {
       const rules = event.payload;
+      updateDaemonRules(rules);
       const interceptRules = rules.filter(
         (r) =>
           r.action.type === "block" ||
