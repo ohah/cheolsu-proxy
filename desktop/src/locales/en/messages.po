@@ -96,6 +96,10 @@ msgstr "Add from Traffic"
 msgid "Add Headers"
 msgstr "Add Headers"
 
+#: src/widgets/network-table/ui/table-row.tsx:135
+msgid "Add Intercept Rule"
+msgstr "Add Intercept Rule"
+
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:175
 msgid "Add Map Rule"
 msgstr "Add Map Rule"
@@ -347,6 +351,10 @@ msgstr "Console"
 msgid "Copied!"
 msgstr "Copied!"
 
+#: src/widgets/network-table/ui/table-row.tsx:122
+msgid "Copy Curl Command"
+msgstr "Copy Curl Command"
+
 #: src/shared/app-sidebar/ui/sidebar-mcp.tsx:112
 #: src/shared/app-sidebar/ui/sidebar-mcp.tsx:138
 msgid "Copy to clipboard"
@@ -385,6 +393,10 @@ msgstr "Delete mapping"
 #: src/pages/map-rules/ui/map-rules-page.tsx:176
 msgid "Delete rule"
 msgstr "Delete rule"
+
+#: src/widgets/network-table/ui/table-row.tsx:130
+msgid "Delete Transaction"
+msgstr "Delete Transaction"
 
 #: src/widgets/websocket-messages/ui/ws-message-table.tsx:163
 msgid "Dir"
@@ -961,6 +973,11 @@ msgid "Pending Breakpoints"
 msgstr "Pending Breakpoints"
 
 #: src/pages/settings/ui/settings-page.tsx:1107
+#: src/widgets/network-table/ui/table-row.tsx:118
+msgid "Pin to Top"
+msgstr "Pin to Top"
+
+#: src/pages/settings/ui/settings-page.tsx:1018
 msgid "Port"
 msgstr "Port"
 
@@ -1532,6 +1549,11 @@ msgid "Unload"
 msgstr "Unload"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:470
+#: src/widgets/network-table/ui/table-row.tsx:118
+msgid "Unpin from Top"
+msgstr "Unpin from Top"
+
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:387
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:348
 msgid "Update"
 msgstr "Update"
