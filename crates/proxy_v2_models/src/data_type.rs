@@ -401,9 +401,9 @@ pub fn detect_data_type(headers: &HeaderMap, body: &Bytes) -> DataType {
     if let Some(content_type_header) = headers.get("content-type") {
         if let Ok(content_type_str) = content_type_header.to_str() {
             let content_type = content_type_str.to_lowercase();
-            if content_type.contains("grpc")
-                || content_type.contains("protobuf")
-                || content_type.contains("x-protobuf")
+            if content_type.contains("application/grpc")
+                || content_type.contains("application/protobuf")
+                || content_type.contains("application/x-protobuf")
             {
                 return DataType::Protobuf;
             } else if content_type.contains("graphql") {
@@ -849,5 +849,49 @@ mod tests {
         assert_eq!(gql.to_mime_type(), "application/json");
         assert!(gql.is_text_based());
         assert!(!gql.is_binary());
+    }
+
+    #[test]
+    fn test_protobuf_detection_by_content_type() {
+        use http::HeaderValue;
+
+        let body = Bytes::from(vec![0x08, 0x96, 0x01]); // varint field 1 = 150
+
+        let cases = vec![
+            "application/protobuf",
+            "application/x-protobuf",
+            "application/grpc",
+            "application/grpc+proto",
+            "application/grpc-web",
+            "application/grpc-web+proto",
+        ];
+
+        for ct in cases {
+            let mut headers = HeaderMap::new();
+            headers.insert("content-type", HeaderValue::from_str(ct).unwrap());
+            assert_eq!(
+                detect_data_type(&headers, &body),
+                DataType::Protobuf,
+                "Content-Type: {} should be detected as Protobuf",
+                ct
+            );
+        }
+    }
+
+    #[test]
+    fn test_protobuf_type_properties() {
+        let pb = DataType::Protobuf;
+        assert_eq!(pb.to_mime_type(), "application/x-protobuf");
+        assert_eq!(pb.to_monaco_language(), "plaintext");
+        assert!(!pb.is_text_based());
+        assert!(pb.is_binary());
+    }
+
+    #[test]
+    fn test_protobuf_not_detected_without_content_type() {
+        let headers = HeaderMap::new();
+        // protobuf 바이너리는 magic number가 없으므로 Binary로 감지됨
+        let body = Bytes::from(vec![0x08, 0x96, 0x01]);
+        assert_eq!(detect_data_type(&headers, &body), DataType::Binary);
     }
 }

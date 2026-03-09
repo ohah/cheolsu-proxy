@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { ChevronRight, ChevronDown, AlertTriangle, Download } from "lucide-react";
 import { readFile, BaseDirectory } from "@tauri-apps/plugin-fs";
 
@@ -118,6 +118,8 @@ const FieldValue = ({ value }: { value: ProtobufValue }) => {
   }
 };
 
+const INITIAL_FIELDS_LIMIT = 200;
+
 export const ProtobufPreview = ({
   data,
   bodySize,
@@ -126,6 +128,7 @@ export const ProtobufPreview = ({
 }: ProtobufPreviewProps) => {
   const [fileData, setFileData] = useState<Uint8Array | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showAll, setShowAll] = useState(false);
 
   const actualData = data || fileData;
 
@@ -144,9 +147,11 @@ export const ProtobufPreview = ({
   };
 
   // 자동 로드
-  if (!actualData && filePath && !loading) {
-    loadFileData();
-  }
+  useEffect(() => {
+    if (!actualData && filePath && !loading) {
+      loadFileData();
+    }
+  }, [filePath, actualData, loading]);
 
   const decoded = useMemo(() => {
     if (!actualData || actualData.length === 0) return null;
@@ -227,9 +232,16 @@ export const ProtobufPreview = ({
 
       {/* 트리 뷰 */}
       <div className="p-3">
-        {decoded.fields.map((field, i) => (
-          <FieldNode key={`${field.fieldNumber}-${i}`} field={field} />
-        ))}
+        {(showAll ? decoded.fields : decoded.fields.slice(0, INITIAL_FIELDS_LIMIT)).map(
+          (field, i) => (
+            <FieldNode key={`${field.fieldNumber}-${i}`} field={field} />
+          ),
+        )}
+        {!showAll && decoded.fields.length > INITIAL_FIELDS_LIMIT && (
+          <Button variant="ghost" size="sm" className="mt-2" onClick={() => setShowAll(true)}>
+            Show all ({decoded.fields.length - INITIAL_FIELDS_LIMIT} more fields)
+          </Button>
+        )}
       </div>
     </div>
   );
