@@ -124,6 +124,17 @@ pub async fn start_proxy_v2<R: Runtime>(
                     DaemonMessage::SslProxyingListUpdated { entries } => {
                         let _ = app_emitter.emit("ssl_proxying_list_updated", entries);
                     }
+                    DaemonMessage::Disconnected { reason } => {
+                        eprintln!("데몬 연결 끊김: {}", reason);
+                        let _ = app_emitter.emit(
+                            "daemon_disconnected",
+                            serde_json::json!({ "reason": reason }),
+                        );
+                    }
+                    DaemonMessage::Reconnected => {
+                        eprintln!("데몬 재연결 성공");
+                        let _ = app_emitter.emit("daemon_reconnected", ());
+                    }
                     _ => {}
                 }
             }

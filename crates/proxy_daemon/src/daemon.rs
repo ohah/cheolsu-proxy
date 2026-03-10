@@ -258,7 +258,14 @@ struct ClientCountGuard {
 
 impl Drop for ClientCountGuard {
     fn drop(&mut self) {
-        let remaining = self.client_count.fetch_sub(1, Ordering::SeqCst) - 1;
+        let prev = self.client_count.fetch_sub(1, Ordering::SeqCst);
+        if prev == 0 {
+            // 언더플로우 방지: 이미 0이면 복구
+            self.client_count.store(0, Ordering::SeqCst);
+            warn!("ClientCountGuard: 언더플로우 감지, 카운트를 0으로 복구");
+            return;
+        }
+        let remaining = prev - 1;
         info!("Client disconnected. Remaining clients: {}", remaining);
         if remaining == 0 {
             info!("No clients remaining, shutting down daemon...");
@@ -435,15 +442,16 @@ async fn daemon_main(port: u16, host: String) -> i32 {
     let _ = proxy_shutdown_tx.send(());
 
     // 최대 5초 대기 후 강제 종료
-    match tokio::time::timeout(std::time::Duration::from_secs(5), proxy_handle).await {
-        Ok(Ok(())) => {
-            info!("Proxy task shut down gracefully");
+    tokio::select! {
+        result = proxy_handle => {
+            match result {
+                Ok(()) => info!("Proxy task shut down gracefully"),
+                Err(e) => warn!("Proxy task panicked during shutdown: {}", e),
+            }
         }
-        Ok(Err(e)) => {
-            warn!("Proxy task panicked during shutdown: {}", e);
-        }
-        Err(_) => {
-            warn!("Proxy task did not shut down within 5 seconds, aborting...");
+        _ = tokio::time::sleep(std::time::Duration::from_secs(5)) => {
+            warn!("Proxy task did not shut down within 5 seconds");
+            // select! 분기에서 다른 future(proxy_handle)는 자동으로 drop되어 abort됨
         }
     }
 
