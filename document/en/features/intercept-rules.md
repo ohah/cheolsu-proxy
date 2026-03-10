@@ -10,6 +10,21 @@ This is one of the most powerful features of Cheolsu Proxy and covers a wide ran
 - **Injecting headers** -- Add authentication tokens, CORS headers, or feature flags to every request or response.
 - **Mocking responses** -- Return a local JSON file instead of calling the real server, useful for offline development or reproducing specific edge cases.
 
+```mermaid
+flowchart TD
+    A[HTTP Request Received] --> B{Intercept Rule Match?}
+    B -->|No Match| C[Forward to Server]
+    B -->|Matched| D{Action Type}
+    D -->|Block| E[Return Block Response]
+    D -->|Modify Request| F[Modify Request → Forward to Server]
+    D -->|Modify Response| G[Forward → Modify Response → Return to Client]
+    D -->|Map Local| H[Return Local File Response]
+    D -->|Map Remote| I[Redirect to Different URL]
+
+    style A fill:#e1f5fe
+    style D fill:#fff3e0
+```
+
 ---
 
 ## Action Types

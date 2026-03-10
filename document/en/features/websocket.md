@@ -45,6 +45,20 @@ MQTT packets transmitted over WebSocket are detected and decoded. Both MQTT v3.1
 
 For PUBLISH packets, the topic name and payload are extracted and shown directly in the message viewer.
 
+```mermaid
+flowchart TD
+    A[WebSocket Message Received] --> B{Message Analysis}
+    B --> C{Socket.IO<br/>Pattern Detected?}
+    C -->|Yes| D[Socket.IO Decoding<br/>Show Packet Types]
+    C -->|No| E{MQTT<br/>Pattern Detected?}
+    E -->|Yes| F[MQTT Decoding<br/>Show Packet Types]
+    E -->|No| G[Plain Text / JSON<br/>Show Raw Content]
+
+    style D fill:#e8f5e9
+    style F fill:#e1f5fe
+    style G fill:#fff3e0
+```
+
 ---
 
 ## Connection List

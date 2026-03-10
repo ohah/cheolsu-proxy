@@ -14,6 +14,21 @@
 
 스크립팅과 비교하면, 인터셉트 규칙은 코드 작성 없이 GUI에서 간단히 설정할 수 있다는 장점이 있습니다. 반복적이고 정형화된 트래픽 조작에 적합하며, 복잡한 조건 분기나 동적 로직이 필요한 경우에는 [스크립팅](./scripting.md)을 사용하는 것이 좋습니다.
 
+```mermaid
+flowchart TD
+    A[HTTP 요청 수신] --> B{인터셉트 규칙 매칭?}
+    B -->|매칭 없음| C[서버로 전달]
+    B -->|매칭됨| D{액션 타입}
+    D -->|Block| E[차단 응답 반환]
+    D -->|Modify Request| F[요청 수정 후 서버 전달]
+    D -->|Modify Response| G[서버 전달 → 응답 수정 후 클라이언트 반환]
+    D -->|Map Local| H[로컬 파일 응답 반환]
+    D -->|Map Remote| I[다른 URL로 리다이렉트]
+
+    style A fill:#e1f5fe
+    style D fill:#fff3e0
+```
+
 ---
 
 ## 액션 타입

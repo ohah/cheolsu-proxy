@@ -19,6 +19,25 @@ Cheolsu Proxy로 HTTPS 트래픽을 가로채려면 자체 CA 인증서를 시�
 
 이 과정에서 클라이언트가 프록시의 동적 인증서를 신뢰하려면, 프록시의 **CA(Certificate Authority) 인증서**를 시스템에 설치하고 신뢰해야 합니다.
 
+```mermaid
+sequenceDiagram
+    participant C as 클라이언트
+    participant P as Cheolsu Proxy
+    participant S as 대상 서버
+
+    C->>P: CONNECT example.com:443
+    P->>C: 200 Connection Established
+    Note over P: example.com용<br/>동적 인증서 생성
+    C->>P: TLS 핸드셰이크 (프록시 인증서)
+    P->>S: TLS 핸드셰이크 (실제 서버 인증서)
+    C->>P: HTTPS 요청 (암호화)
+    Note over P: 요청 복호화 → 캡처/수정
+    P->>S: HTTPS 요청 (재암호화)
+    S->>P: HTTPS 응답
+    Note over P: 응답 복호화 → 캡처/수정
+    P->>C: HTTPS 응답
+```
+
 > TLS 버전별 처리 방식에 대한 기술적인 상세 내용은 [TLS 지원](../features/tls-support.md) 문서를 참고하세요.
 
 ---

@@ -17,6 +17,22 @@ Cheolsu Proxy는 클라이언트가 보내는 TLS ClientHello 메시지에서 TL
 
 이 하이브리드 방식 덕분에 최신 클라이언트와 레거시 클라이언트가 혼재하는 환경에서도 모든 HTTPS 트래픽을 캡처할 수 있습니다. 예를 들어, 모바일 앱을 다양한 OS 버전에서 테스트할 때 TLS 버전 차이로 인해 일부 디바이스의 트래픽을 캡처하지 못하는 문제를 방지합니다.
 
+```mermaid
+flowchart TD
+    A[CONNECT 요청 수신] --> B{터널 모드<br/>대상 호스트?}
+    B -->|Yes| C[직접 TCP 터널<br/>트래픽 미캡처]
+    B -->|No| D[ClientHello에서<br/>TLS 버전 감지]
+    D --> E{TLS 버전}
+    E -->|TLS 1.2 / 1.3| F[rustls<br/>순수 Rust]
+    E -->|TLS 1.0 / 1.1| G[native-tls<br/>OpenSSL 기반]
+    F --> H[HTTPS 트래픽 캡처]
+    G --> H
+
+    style C fill:#fff3e0
+    style F fill:#e8f5e9
+    style G fill:#e8f5e9
+```
+
 ---
 
 ## 터널 모드

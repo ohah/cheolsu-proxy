@@ -15,6 +15,16 @@ The proxy supports two protocols:
 
 By default, Cheolsu Proxy listens on port `8100`. All traffic routed to this port is captured, inspected, and forwarded to its original destination.
 
+```mermaid
+graph LR
+    A[Client<br/>Browser/App] -->|HTTP/HTTPS Request| B[Cheolsu Proxy<br/>:8100]
+    B -->|Decrypted Request| C[Target Server]
+    C -->|Response| B
+    B -->|Decrypted Response| A
+
+    style B fill:#f9f,stroke:#333,stroke-width:2px
+```
+
 ## System Proxy Auto-Configuration (macOS)
 
 On macOS, Cheolsu Proxy can automatically configure your system's proxy settings so that all network traffic from all applications is routed through the proxy. This uses the `networksetup` command under the hood to set the system-wide HTTP and HTTPS proxy.
@@ -90,6 +100,16 @@ This means the traffic flow becomes:
 Your Browser → Cheolsu Proxy → Corporate Proxy → Internet
 ```
 
+```mermaid
+graph LR
+    A[Client] --> B[Cheolsu Proxy]
+    B --> C[Upstream Proxy<br/>Corporate Proxy, etc.]
+    C --> D[Internet]
+
+    style B fill:#f9f,stroke:#333,stroke-width:2px
+    style C fill:#bbf,stroke:#333,stroke-width:2px
+```
+
 To configure an upstream proxy:
 
 1. Open Cheolsu Proxy **Settings**
@@ -108,6 +128,16 @@ Cheolsu Proxy uses a **daemon architecture** where the proxy engine runs as a ba
 - **Stability** — If a UI crashes, the proxy keeps running. No traffic is lost.
 
 The daemon starts automatically when you launch any Cheolsu Proxy interface and stops when the last client disconnects (or when you explicitly stop it).
+
+```mermaid
+graph TB
+    A[Desktop GUI] -->|Unix Domain Socket| D[Proxy Daemon]
+    B[TUI] -->|Unix Domain Socket| D
+    C[MCP Server] -->|Unix Domain Socket| D
+    D -->|HTTP/HTTPS| E[Internet]
+
+    style D fill:#f9f,stroke:#333,stroke-width:2px
+```
 
 ## Mobile Device Proxy Setup
 
