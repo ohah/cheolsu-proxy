@@ -568,6 +568,7 @@ mod tests {
                 server_replay_entries: Arc::new(Mutex::new(Vec::new())),
                 host_mappings: Arc::new(Mutex::new(Vec::new())),
                 script_handle: scripting::ScriptHandle::new(),
+                ssl_proxying_entries: Arc::new(Mutex::new(Vec::new())),
             },
             ws: WebSocketState {
                 ws_sender: None,

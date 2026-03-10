@@ -7,6 +7,7 @@ use tracing::{error, info, warn};
 use crate::breakpoint::BreakpointManager;
 use crate::protocol::{
     BreakpointRule, ClientCommand, DaemonMessage, HostMapping, InterceptRule, ServerReplayEntry,
+    SslProxyingEntry,
 };
 use proxyapi_v2::throttle::ThrottleConfig;
 use proxyapi_v2::upstream_proxy::UpstreamProxyConfig;
@@ -22,6 +23,7 @@ pub async fn handle_client(
     breakpoint_tx: watch::Sender<Vec<BreakpointRule>>,
     breakpoint_manager: BreakpointManager,
     host_mapping_tx: watch::Sender<Vec<HostMapping>>,
+    ssl_proxying_tx: watch::Sender<Vec<SslProxyingEntry>>,
     event_tx: broadcast::Sender<String>,
     port: u16,
     ws_registry: WebSocketRegistry,
@@ -60,6 +62,15 @@ pub async fn handle_client(
         let mut mappings_line = serde_json::to_string(&mappings_msg).unwrap_or_default();
         mappings_line.push('\n');
         let _ = w.write_all(mappings_line.as_bytes()).await;
+        let _ = w.flush().await;
+
+        let current_ssl_proxying = ssl_proxying_tx.borrow().clone();
+        let ssl_msg = DaemonMessage::SslProxyingListUpdated {
+            entries: current_ssl_proxying,
+        };
+        let mut ssl_line = serde_json::to_string(&ssl_msg).unwrap_or_default();
+        ssl_line.push('\n');
+        let _ = w.write_all(ssl_line.as_bytes()).await;
         let _ = w.flush().await;
     }
 
@@ -219,6 +230,19 @@ pub async fn handle_client(
                             let _ = event_tx.send(json);
                         }
                         let _ = host_mapping_tx.send(mappings);
+                    }
+                    Ok(ClientCommand::UpdateSslProxyingList { entries }) => {
+                        info!(
+                            "SSL Proxying list updated from client: {} entries",
+                            entries.len()
+                        );
+                        let broadcast_msg = DaemonMessage::SslProxyingListUpdated {
+                            entries: entries.clone(),
+                        };
+                        if let Ok(json) = serde_json::to_string(&broadcast_msg) {
+                            let _ = event_tx.send(json);
+                        }
+                        let _ = ssl_proxying_tx.send(entries);
                     }
                     Ok(ClientCommand::UpdateQuickSettings {
                         no_caching,

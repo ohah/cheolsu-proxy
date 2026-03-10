@@ -61,6 +61,9 @@ pub enum DaemonMessage {
         path: String,
         transaction_count: usize,
     },
+    /// SSL Proxying 화이트리스트 업데이트됨
+    #[serde(rename = "ssl_proxying_list_updated")]
+    SslProxyingListUpdated { entries: Vec<SslProxyingEntry> },
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -124,6 +127,9 @@ pub enum ClientCommand {
         no_caching: bool,
         block_cookies: bool,
     },
+    /// SSL Proxying 화이트리스트 업데이트
+    #[serde(rename = "update_ssl_proxying_list")]
+    UpdateSslProxyingList { entries: Vec<SslProxyingEntry> },
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -332,6 +338,15 @@ pub struct BreakpointData {
     pub status: Option<u16>,
 }
 
+/// SSL Proxying 화이트리스트 엔트리
+/// 지정된 도메인만 HTTPS 트래픽을 인터셉트(MITM)하고, 나머지는 TLS Passthrough
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct SslProxyingEntry {
+    /// 도메인 패턴 (예: "example.com", "*.example.com", "example.com:443")
+    pub pattern: String,
+    pub enabled: bool,
+}
+
 fn default_block_status() -> u16 {
     403
 }
@@ -532,6 +547,70 @@ mod tests {
                 assert_eq!(mappings[1].source_host, "*.staging.com");
             }
             _ => panic!("Expected UpdateHostMappings"),
+        }
+    }
+
+    #[test]
+    fn test_ssl_proxying_entry_serde_roundtrip() {
+        let entry = SslProxyingEntry {
+            pattern: "*.example.com".to_string(),
+            enabled: true,
+        };
+        let json = serde_json::to_string(&entry).unwrap();
+        let deserialized: SslProxyingEntry = serde_json::from_str(&json).unwrap();
+        assert_eq!(deserialized.pattern, "*.example.com");
+        assert!(deserialized.enabled);
+    }
+
+    #[test]
+    fn test_update_ssl_proxying_list_command_serialize() {
+        let cmd = ClientCommand::UpdateSslProxyingList {
+            entries: vec![
+                SslProxyingEntry {
+                    pattern: "example.com".to_string(),
+                    enabled: true,
+                },
+                SslProxyingEntry {
+                    pattern: "*.api.io:8443".to_string(),
+                    enabled: false,
+                },
+            ],
+        };
+        let json = serde_json::to_string(&cmd).unwrap();
+        assert!(json.contains("update_ssl_proxying_list"));
+        assert!(json.contains("example.com"));
+
+        let deserialized: ClientCommand = serde_json::from_str(&json).unwrap();
+        match deserialized {
+            ClientCommand::UpdateSslProxyingList { entries } => {
+                assert_eq!(entries.len(), 2);
+                assert_eq!(entries[0].pattern, "example.com");
+                assert!(entries[0].enabled);
+                assert_eq!(entries[1].pattern, "*.api.io:8443");
+                assert!(!entries[1].enabled);
+            }
+            _ => panic!("Expected UpdateSslProxyingList"),
+        }
+    }
+
+    #[test]
+    fn test_ssl_proxying_list_updated_message_serialize() {
+        let msg = DaemonMessage::SslProxyingListUpdated {
+            entries: vec![SslProxyingEntry {
+                pattern: "*.example.com".to_string(),
+                enabled: true,
+            }],
+        };
+        let json = serde_json::to_string(&msg).unwrap();
+        assert!(json.contains("ssl_proxying_list_updated"));
+
+        let deserialized: DaemonMessage = serde_json::from_str(&json).unwrap();
+        match deserialized {
+            DaemonMessage::SslProxyingListUpdated { entries } => {
+                assert_eq!(entries.len(), 1);
+                assert_eq!(entries[0].pattern, "*.example.com");
+            }
+            _ => panic!("Expected SslProxyingListUpdated"),
         }
     }
 

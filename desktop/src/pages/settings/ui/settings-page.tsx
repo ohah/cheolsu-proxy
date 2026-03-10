@@ -19,6 +19,7 @@ import {
   type CertDownloadInfo,
 } from "@/shared/api/proxy";
 import { useProxyStore } from "@/shared/stores/proxy-store";
+import { useSslProxyingStore } from "@/shared/stores/ssl-proxying-store";
 import {
   getStoredShortcut,
   setStoredShortcut,
@@ -1041,6 +1042,9 @@ export function SettingsPage() {
           </div>
         </div>
 
+        {/* SSL Proxying Section */}
+        <SslProxyingSection />
+
         {/* Quick Settings Section */}
         <div className="border rounded-lg p-5 space-y-5">
           <div>
@@ -1206,6 +1210,105 @@ export function SettingsPage() {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function SslProxyingSection() {
+  const { t } = useLingui();
+  const entries = useSslProxyingStore((s) => s.entries);
+  const addEntry = useSslProxyingStore((s) => s.addEntry);
+  const removeEntry = useSslProxyingStore((s) => s.removeEntry);
+  const toggleEntry = useSslProxyingStore((s) => s.toggleEntry);
+  const [newPattern, setNewPattern] = useState("");
+
+  const handleAdd = useCallback(() => {
+    const pattern = newPattern.trim();
+    if (!pattern) return;
+    // 중복 체크
+    if (entries.some((e) => e.pattern === pattern)) return;
+    addEntry({ pattern, enabled: true });
+    setNewPattern("");
+  }, [newPattern, entries, addEntry]);
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        handleAdd();
+      }
+    },
+    [handleAdd],
+  );
+
+  const enabledCount = entries.filter((e) => e.enabled).length;
+
+  return (
+    <div className="border rounded-lg p-5 space-y-4">
+      <div>
+        <h2 className="text-lg font-semibold">
+          <Trans>SSL Proxying</Trans>
+        </h2>
+        <p className="text-sm text-muted-foreground">
+          {enabledCount === 0 ? (
+            <Trans>All HTTPS traffic is being intercepted (no whitelist configured)</Trans>
+          ) : (
+            <Trans>
+              Only whitelisted domains ({enabledCount}) will have HTTPS traffic intercepted
+            </Trans>
+          )}
+        </p>
+      </div>
+
+      {/* 도메인 입력 */}
+      <div className="flex items-center gap-2">
+        <Input
+          placeholder={t`example.com, *.example.com, or example.com:443`}
+          value={newPattern}
+          onChange={(e) => setNewPattern(e.target.value)}
+          onKeyDown={handleKeyDown}
+          className="flex-1"
+        />
+        <Button onClick={handleAdd} disabled={!newPattern.trim()}>
+          <Trans>Add</Trans>
+        </Button>
+      </div>
+
+      <p className="text-xs text-muted-foreground">
+        <Trans>
+          Supports exact domains (example.com), wildcards (*.example.com), and port-specific
+          patterns (example.com:443). When the list is empty, all domains are intercepted.
+        </Trans>
+      </p>
+
+      {/* 도메인 목록 */}
+      {entries.length > 0 && (
+        <div className="border rounded-lg divide-y">
+          {entries.map((entry) => (
+            <div key={entry.pattern} className="flex items-center justify-between px-4 py-2">
+              <div className="flex items-center gap-3">
+                <Switch
+                  checked={entry.enabled}
+                  onCheckedChange={() => toggleEntry(entry.pattern)}
+                />
+                <span
+                  className={`font-mono text-sm ${entry.enabled ? "text-foreground" : "text-muted-foreground line-through"}`}
+                >
+                  {entry.pattern}
+                </span>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => removeEntry(entry.pattern)}
+                className="text-muted-foreground hover:text-destructive"
+              >
+                <Trans>Remove</Trans>
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

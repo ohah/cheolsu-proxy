@@ -6,7 +6,7 @@ use crate::breakpoint::BreakpointManager;
 use crate::error::DaemonError;
 use crate::handler::{LoggingHandler, QuickSettings, WsEvent};
 use crate::protocol::{
-    BreakpointRule, DaemonMessage, HostMapping, InterceptRule, ServerReplayEntry,
+    BreakpointRule, DaemonMessage, HostMapping, InterceptRule, ServerReplayEntry, SslProxyingEntry,
 };
 use crate::tls_client::create_hybrid_client;
 use proxyapi_v2::certificate_authority::CertificateAuthority;
@@ -26,6 +26,7 @@ pub async fn run_proxy(
     mut breakpoint_rx: watch::Receiver<Vec<BreakpointRule>>,
     breakpoint_manager: BreakpointManager,
     mut host_mapping_rx: watch::Receiver<Vec<HostMapping>>,
+    mut ssl_proxying_rx: watch::Receiver<Vec<SslProxyingEntry>>,
     ws_registry: WebSocketRegistry,
     script_handle: scripting::ScriptHandle,
     quick_settings: std::sync::Arc<parking_lot::RwLock<QuickSettings>>,
@@ -114,6 +115,22 @@ pub async fn run_proxy(
             let mappings = host_mapping_rx.borrow().clone();
             handler_for_mapping_updates
                 .update_host_mappings(mappings)
+                .await;
+        }
+    });
+
+    // SSL Proxying 화이트리스트 초기값 로드 및 감시
+    {
+        let entries = ssl_proxying_rx.borrow().clone();
+        handler.update_ssl_proxying_entries(entries).await;
+    }
+
+    let handler_for_ssl_updates = handler.clone();
+    tokio::spawn(async move {
+        while ssl_proxying_rx.changed().await.is_ok() {
+            let entries = ssl_proxying_rx.borrow().clone();
+            handler_for_ssl_updates
+                .update_ssl_proxying_entries(entries)
                 .await;
         }
     });
