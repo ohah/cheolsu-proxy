@@ -23,10 +23,22 @@ export const RewriteActionFields = () => {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="request_header" label={t`Request Header`}>{t`Request Header`}</SelectItem>
-                <SelectItem value="response_header" label={t`Response Header`}>{t`Response Header`}</SelectItem>
-                <SelectItem value="request_body" label={t`Request Body`}>{t`Request Body`}</SelectItem>
-                <SelectItem value="response_body" label={t`Response Body`}>{t`Response Body`}</SelectItem>
+                <SelectItem
+                  value="request_header"
+                  label={t`Request Header`}
+                >{t`Request Header`}</SelectItem>
+                <SelectItem
+                  value="response_header"
+                  label={t`Response Header`}
+                >{t`Response Header`}</SelectItem>
+                <SelectItem
+                  value="request_body"
+                  label={t`Request Body`}
+                >{t`Request Body`}</SelectItem>
+                <SelectItem
+                  value="response_body"
+                  label={t`Response Body`}
+                >{t`Response Body`}</SelectItem>
               </SelectContent>
             </Select>
           )}
