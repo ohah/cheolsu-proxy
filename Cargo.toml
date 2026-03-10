@@ -10,3 +10,9 @@ members = [
   "desktop/src-tauri",
   "crates/scripting",
 ]
+
+[profile.release]
+lto = true
+strip = "symbols"
+codegen-units = 1
+opt-level = "s"
