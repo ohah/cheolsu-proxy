@@ -49,11 +49,11 @@ fn compare_cas(c: &mut Criterion) {
     let mut group = c.benchmark_group("cas");
     group.bench_function("rcgen", |b| {
         b.to_async(&runtime)
-            .iter(|| rcgen_ca.gen_server_config(black_box(&authority)))
+            .iter(|| rcgen_ca.gen_server_config(black_box(&authority), None))
     });
     group.bench_function("openssl", |b| {
         b.to_async(&runtime)
-            .iter(|| openssl_ca.gen_server_config(black_box(&authority)))
+            .iter(|| openssl_ca.gen_server_config(black_box(&authority), None))
     });
     group.finish();
 }
@@ -67,11 +67,11 @@ fn rcgen_ca(c: &mut Criterion) {
     let mut group = c.benchmark_group("rcgen ca");
     group.bench_function("with cache", |b| {
         b.to_async(&runtime)
-            .iter(|| cache_ca.gen_server_config(black_box(&authority)))
+            .iter(|| cache_ca.gen_server_config(black_box(&authority), None))
     });
     group.bench_function("without cache", |b| {
         b.to_async(&runtime)
-            .iter(|| no_cache_ca.gen_server_config(black_box(&authority)))
+            .iter(|| no_cache_ca.gen_server_config(black_box(&authority), None))
     });
     group.finish();
 }
@@ -85,11 +85,11 @@ fn openssl_ca(c: &mut Criterion) {
     let mut group = c.benchmark_group("openssl ca");
     group.bench_function("with cache", |b| {
         b.to_async(&runtime)
-            .iter(|| cache_ca.gen_server_config(black_box(&authority)))
+            .iter(|| cache_ca.gen_server_config(black_box(&authority), None))
     });
     group.bench_function("without cache", |b| {
         b.to_async(&runtime)
-            .iter(|| no_cache_ca.gen_server_config(black_box(&authority)))
+            .iter(|| no_cache_ca.gen_server_config(black_box(&authority), None))
     });
     group.finish();
 }

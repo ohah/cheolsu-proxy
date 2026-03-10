@@ -31,6 +31,7 @@ pub mod throttle;
 pub mod tls_passthrough;
 pub mod tls_version_detector;
 pub mod tunnel_event;
+pub mod upstream_cert;
 pub mod upstream_proxy;
 pub mod websocket_registry;
 

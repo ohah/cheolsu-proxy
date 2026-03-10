@@ -1,4 +1,5 @@
 use crate::certificate_authority::{CACHE_TTL, CertificateAuthority, NOT_BEFORE_OFFSET, TTL_SECS};
+use crate::upstream_cert::UpstreamCertInfo;
 use http::uri::Authority;
 use moka::future::Cache;
 use openssl::{
@@ -11,6 +12,7 @@ use openssl::{
     x509::{X509, X509Builder, X509NameBuilder, extension::SubjectAlternativeName},
 };
 use std::{
+    collections::HashSet,
     sync::Arc,
     time::{Duration, SystemTime},
 };
@@ -102,9 +104,27 @@ impl OpensslAuthority {
         }
     }
 
-    fn gen_cert(&self, authority: &Authority) -> Result<CertificateDer<'static>, ErrorStack> {
+    fn gen_cert(
+        &self,
+        authority: &Authority,
+        upstream_cert: Option<&UpstreamCertInfo>,
+    ) -> Result<CertificateDer<'static>, ErrorStack> {
+        let host = authority.host();
+
+        // CN 설정 - upstream 인증서 정보 우선 사용
         let mut name_builder = X509NameBuilder::new()?;
-        name_builder.append_entry_by_text("CN", authority.host())?;
+        if let Some(upstream) = upstream_cert {
+            if let Some(ref cn) = upstream.common_name {
+                name_builder.append_entry_by_text("CN", cn)?;
+            } else {
+                name_builder.append_entry_by_text("CN", host)?;
+            }
+            if let Some(ref org) = upstream.organization {
+                name_builder.append_entry_by_text("O", org)?;
+            }
+        } else {
+            name_builder.append_entry_by_text("CN", host)?;
+        }
         let name = name_builder.build();
 
         let mut x509_builder = X509Builder::new()?;
@@ -122,9 +142,27 @@ impl OpensslAuthority {
         x509_builder.set_pubkey(&self.pkey)?;
         x509_builder.set_issuer_name(self.ca_cert.subject_name())?;
 
-        let alternative_name = SubjectAlternativeName::new()
-            .dns(authority.host())
-            .build(&x509_builder.x509v3_context(Some(&self.ca_cert), None))?;
+        // SAN 설정 - upstream 인증서 정보 우선 사용
+        let mut san_builder = SubjectAlternativeName::new();
+        if let Some(upstream) = upstream_cert {
+            let mut added_dns: HashSet<String> = HashSet::new();
+            for dns in &upstream.sans_dns {
+                if added_dns.insert(dns.clone()) {
+                    san_builder.dns(dns);
+                }
+            }
+            if added_dns.insert(host.to_string()) {
+                san_builder.dns(host);
+            }
+            for ip in &upstream.sans_ip {
+                san_builder.ip(&ip.to_string());
+            }
+        } else {
+            san_builder.dns(host);
+        }
+
+        let alternative_name =
+            san_builder.build(&x509_builder.x509v3_context(Some(&self.ca_cert), None))?;
         x509_builder.append_extension(alternative_name)?;
 
         let mut serial_number = [0; 16];
@@ -141,7 +179,11 @@ impl OpensslAuthority {
 }
 
 impl CertificateAuthority for OpensslAuthority {
-    async fn gen_server_config(&self, authority: &Authority) -> Arc<ServerConfig> {
+    async fn gen_server_config(
+        &self,
+        authority: &Authority,
+        upstream_cert: Option<&UpstreamCertInfo>,
+    ) -> Arc<ServerConfig> {
         if let Some(server_cfg) = self.cache.get(authority).await {
             debug!("Using cached server config");
             return server_cfg;
@@ -149,7 +191,7 @@ impl CertificateAuthority for OpensslAuthority {
         debug!("Generating server config");
 
         let certs = vec![
-            self.gen_cert(authority)
+            self.gen_cert(authority, upstream_cert)
                 .unwrap_or_else(|_| panic!("Failed to generate certificate for {}", authority)),
         ];
 
@@ -190,6 +232,7 @@ impl CertificateAuthority for OpensslAuthority {
     async fn gen_openssl_context(
         &self,
         authority: &Authority,
+        upstream_cert: Option<&UpstreamCertInfo>,
     ) -> Result<openssl::ssl::SslContext, Box<dyn std::error::Error + Send + Sync>> {
         // 캐시에서 조회
         if let Some(ctx) = self.openssl_ctx_cache.get(authority).await {
@@ -207,6 +250,7 @@ impl CertificateAuthority for OpensslAuthority {
         let pkey_der = self.pkey_der.clone();
         let host = authority.host().to_string();
         let hash = self.hash;
+        let upstream_cert = upstream_cert.cloned();
 
         // 인증서 생성 + OpenSSL 컨텍스트 빌드를 모두 spawn_blocking으로 오프로드
         let ctx = tokio::task::spawn_blocking(move || -> Result<openssl::ssl::SslContext, Box<dyn std::error::Error + Send + Sync>> {
@@ -215,7 +259,18 @@ impl CertificateAuthority for OpensslAuthority {
             let ca_cert = openssl::x509::X509::from_der(&ca_cert_der)?;
 
             let mut name_builder = X509NameBuilder::new()?;
-            name_builder.append_entry_by_text("CN", &host)?;
+            if let Some(ref upstream) = upstream_cert {
+                if let Some(ref cn) = upstream.common_name {
+                    name_builder.append_entry_by_text("CN", cn)?;
+                } else {
+                    name_builder.append_entry_by_text("CN", &host)?;
+                }
+                if let Some(ref org) = upstream.organization {
+                    name_builder.append_entry_by_text("O", org)?;
+                }
+            } else {
+                name_builder.append_entry_by_text("CN", &host)?;
+            }
             let name = name_builder.build();
 
             let mut x509_builder = X509Builder::new()?;
@@ -233,9 +288,26 @@ impl CertificateAuthority for OpensslAuthority {
             x509_builder.set_pubkey(&pkey)?;
             x509_builder.set_issuer_name(ca_cert.subject_name())?;
 
-            let alternative_name = SubjectAlternativeName::new()
-                .dns(&host)
-                .build(&x509_builder.x509v3_context(Some(&ca_cert), None))?;
+            let mut san_builder = SubjectAlternativeName::new();
+            if let Some(ref upstream) = upstream_cert {
+                let mut added_dns: HashSet<String> = HashSet::new();
+                for dns in &upstream.sans_dns {
+                    if added_dns.insert(dns.clone()) {
+                        san_builder.dns(dns);
+                    }
+                }
+                if added_dns.insert(host.clone()) {
+                    san_builder.dns(&host);
+                }
+                for ip in &upstream.sans_ip {
+                    san_builder.ip(&ip.to_string());
+                }
+            } else {
+                san_builder.dns(&host);
+            }
+
+            let alternative_name =
+                san_builder.build(&x509_builder.x509v3_context(Some(&ca_cert), None))?;
             x509_builder.append_extension(alternative_name)?;
 
             let mut serial_bytes = [0u8; 16];
@@ -311,7 +383,7 @@ mod tests {
         let ca = build_ca(1_000);
         let authority = Authority::from_static("example.com");
 
-        let ctx = ca.gen_openssl_context(&authority).await;
+        let ctx = ca.gen_openssl_context(&authority, None).await;
         assert!(ctx.is_ok(), "OpenSSL 컨텍스트 생성 실패: {:?}", ctx.err());
     }
 
@@ -321,15 +393,14 @@ mod tests {
         let authority = Authority::from_static("cache-test.com");
 
         // 첫 번째 호출 - 캐시 미스
-        let ctx1 = ca.gen_openssl_context(&authority).await.unwrap();
+        let ctx1 = ca.gen_openssl_context(&authority, None).await.unwrap();
         // 두 번째 호출 - 캐시 히트
-        let ctx2 = ca.gen_openssl_context(&authority).await.unwrap();
+        let ctx2 = ca.gen_openssl_context(&authority, None).await.unwrap();
 
-        // 같은 SslContext가 반환되는지 확인 (내부 포인터 비교)
-        assert_eq!(
-            format!("{:?}", ctx1.cert_store()),
-            format!("{:?}", ctx2.cert_store()),
-        );
+        // 캐시된 컨텍스트의 인증서가 동일한지 확인
+        let cert1 = ctx1.certificate().unwrap().to_der().unwrap();
+        let cert2 = ctx2.certificate().unwrap().to_der().unwrap();
+        assert_eq!(cert1, cert2);
     }
 
     #[tokio::test]
@@ -338,8 +409,8 @@ mod tests {
         let auth1 = Authority::from_static("example1.com");
         let auth2 = Authority::from_static("example2.com");
 
-        let ctx1 = ca.gen_openssl_context(&auth1).await.unwrap();
-        let ctx2 = ca.gen_openssl_context(&auth2).await.unwrap();
+        let ctx1 = ca.gen_openssl_context(&auth1, None).await.unwrap();
+        let ctx2 = ca.gen_openssl_context(&auth2, None).await.unwrap();
 
         // 다른 authority에 대해 다른 인증서가 설정되어야 함
         let cert1 = ctx1.certificate().expect("cert1 없음");
@@ -380,7 +451,7 @@ mod tests {
                 let authority =
                     Authority::try_from(format!("concurrent-{}.example.com", i)).unwrap();
                 ca_clone
-                    .gen_openssl_context(&authority)
+                    .gen_openssl_context(&authority, None)
                     .await
                     .expect("컨텍스트 생성 실패");
             }));
@@ -407,7 +478,7 @@ mod tests {
             let auth_clone = authority.clone();
             handles.push(tokio::spawn(async move {
                 ca_clone
-                    .gen_openssl_context(&auth_clone)
+                    .gen_openssl_context(&auth_clone, None)
                     .await
                     .expect("컨텍스트 생성 실패");
             }));
@@ -430,10 +501,10 @@ mod tests {
         let authority1 = Authority::from_static("example.com");
         let authority2 = Authority::from_static("example2.com");
 
-        let c1 = ca.gen_cert(&authority1).unwrap();
-        let c2 = ca.gen_cert(&authority2).unwrap();
-        let c3 = ca.gen_cert(&authority1).unwrap();
-        let c4 = ca.gen_cert(&authority2).unwrap();
+        let c1 = ca.gen_cert(&authority1, None).unwrap();
+        let c2 = ca.gen_cert(&authority2, None).unwrap();
+        let c3 = ca.gen_cert(&authority1, None).unwrap();
+        let c4 = ca.gen_cert(&authority2, None).unwrap();
 
         let (_, cert1) = x509_parser::parse_x509_certificate(&c1).unwrap();
         let (_, cert2) = x509_parser::parse_x509_certificate(&c2).unwrap();
@@ -447,5 +518,31 @@ mod tests {
 
         assert_ne!(cert1.raw_serial(), cert3.raw_serial());
         assert_ne!(cert2.raw_serial(), cert4.raw_serial());
+    }
+
+    #[test]
+    fn gen_cert_with_upstream_info() {
+        let ca = build_ca(0);
+        let authority = Authority::from_static("example.com");
+
+        let upstream = UpstreamCertInfo {
+            common_name: Some("Real Server".to_string()),
+            organization: Some("Real Org".to_string()),
+            sans_dns: vec!["example.com".to_string(), "www.example.com".to_string()],
+            sans_ip: vec![],
+        };
+
+        let cert_der = ca.gen_cert(&authority, Some(&upstream)).unwrap();
+        let (_, cert) = x509_parser::parse_x509_certificate(&cert_der).unwrap();
+
+        // CN 확인
+        let cn = cert
+            .subject()
+            .iter()
+            .flat_map(|rdn| rdn.iter())
+            .find(|attr| *attr.attr_type() == x509_parser::oid_registry::OID_X509_COMMON_NAME)
+            .and_then(|attr| attr.as_str().ok())
+            .unwrap();
+        assert_eq!(cn, "Real Server");
     }
 }

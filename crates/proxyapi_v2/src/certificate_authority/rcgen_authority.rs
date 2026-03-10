@@ -1,10 +1,12 @@
 use crate::certificate_authority::{CACHE_TTL, CertificateAuthority, NOT_BEFORE_OFFSET, TTL_SECS};
+use crate::upstream_cert::UpstreamCertInfo;
 use http::uri::Authority;
 use moka::future::Cache;
 use rand::{Rng, rng};
 use rcgen::{
     Certificate, CertificateParams, DistinguishedName, DnType, Ia5String, KeyPair, SanType,
 };
+use std::collections::HashSet;
 use std::sync::Arc;
 use time::{Duration, OffsetDateTime};
 use tokio_rustls::rustls::{
@@ -73,7 +75,11 @@ impl RcgenAuthority {
         }
     }
 
-    fn gen_cert(&self, authority: &Authority) -> CertificateDer<'static> {
+    fn gen_cert(
+        &self,
+        authority: &Authority,
+        upstream_cert: Option<&UpstreamCertInfo>,
+    ) -> CertificateDer<'static> {
         info!("Generating certificate for authority: {}", authority);
 
         let mut params = CertificateParams::default();
@@ -87,13 +93,31 @@ impl RcgenAuthority {
         debug!("Certificate host: {}", host);
 
         let mut distinguished_name = DistinguishedName::new();
-        distinguished_name.push(DnType::CommonName, host);
+
+        if let Some(upstream) = upstream_cert {
+            // upstream 인증서의 CN 사용
+            if let Some(ref cn) = upstream.common_name {
+                distinguished_name.push(DnType::CommonName, cn);
+            } else {
+                distinguished_name.push(DnType::CommonName, host);
+            }
+            // upstream 인증서의 Organization 복제
+            if let Some(ref org) = upstream.organization {
+                distinguished_name.push(DnType::OrganizationName, org);
+            }
+        } else {
+            distinguished_name.push(DnType::CommonName, host);
+        }
+
         params.distinguished_name = distinguished_name;
 
-        // SAN에 여러 형태의 도메인 추가로 호환성 향상
-        self.add_san_entries(&mut params, host);
+        // SAN 엔트리 설정
+        if let Some(upstream) = upstream_cert {
+            self.add_upstream_san_entries(&mut params, host, upstream);
+        } else {
+            self.add_san_entries(&mut params, host);
+        }
 
-        // 에러 발생 시 더 자세한 정보 제공
         let cert = params
             .signed_by(&self.key_pair, &self.ca_cert, &self.key_pair)
             .map_err(|e| {
@@ -104,6 +128,60 @@ impl RcgenAuthority {
 
         info!("Successfully generated certificate for '{}'", authority);
         cert.into()
+    }
+
+    /// 상류 인증서의 SAN 정보를 복제하여 위조 인증서에 추가
+    fn add_upstream_san_entries(
+        &self,
+        params: &mut CertificateParams,
+        host: &str,
+        upstream: &UpstreamCertInfo,
+    ) {
+        debug!(
+            "Adding upstream SAN entries for host: {} (upstream DNS SANs: {}, IP SANs: {})",
+            host,
+            upstream.sans_dns.len(),
+            upstream.sans_ip.len()
+        );
+
+        let mut added_dns: HashSet<String> = HashSet::new();
+
+        // upstream 인증서의 DNS SAN 복제
+        for dns in &upstream.sans_dns {
+            if added_dns.insert(dns.clone()) {
+                if let Ok(dns_name) = Ia5String::try_from(dns.as_str()) {
+                    params.subject_alt_names.push(SanType::DnsName(dns_name));
+                }
+            }
+        }
+
+        // 호스트 도메인이 SAN에 없으면 추가
+        if added_dns.insert(host.to_string()) {
+            if let Ok(dns_name) = Ia5String::try_from(host) {
+                params.subject_alt_names.push(SanType::DnsName(dns_name));
+            }
+        }
+
+        // upstream 인증서의 IP SAN 복제
+        let mut added_ip: HashSet<IpAddr> = HashSet::new();
+        for ip in &upstream.sans_ip {
+            if added_ip.insert(*ip) {
+                params.subject_alt_names.push(SanType::IpAddress(*ip));
+            }
+        }
+
+        // host가 IP 주소인 경우 추가
+        if let Ok(ip_addr) = host.parse::<std::net::IpAddr>() {
+            if added_ip.insert(ip_addr) {
+                params.subject_alt_names.push(SanType::IpAddress(ip_addr));
+            }
+        }
+
+        info!(
+            "Generated {} SAN entries for host '{}' (upstream cert sniffing)",
+            params.subject_alt_names.len(),
+            host
+        );
     }
 
     /// SAN(Subject Alternative Name) 엔트리를 추가하여 호환성 향상
@@ -157,8 +235,14 @@ impl RcgenAuthority {
     }
 }
 
+use std::net::IpAddr;
+
 impl CertificateAuthority for RcgenAuthority {
-    async fn gen_server_config(&self, authority: &Authority) -> Arc<ServerConfig> {
+    async fn gen_server_config(
+        &self,
+        authority: &Authority,
+        upstream_cert: Option<&UpstreamCertInfo>,
+    ) -> Arc<ServerConfig> {
         if let Some(server_cfg) = self.cache.get(authority).await {
             debug!("Using cached server config for {}", authority);
             return server_cfg;
@@ -168,7 +252,7 @@ impl CertificateAuthority for RcgenAuthority {
         let start_time = std::time::Instant::now();
 
         info!("🔧 [SERVER-CONFIG] 인증서 생성 중: {}", authority);
-        let certs = vec![self.gen_cert(authority)];
+        let certs = vec![self.gen_cert(authority, upstream_cert)];
         info!(
             "🔧 [SERVER-CONFIG] 인증서 생성 완료: {} bytes",
             certs[0].len()
@@ -235,6 +319,7 @@ impl CertificateAuthority for RcgenAuthority {
     async fn gen_openssl_context(
         &self,
         authority: &Authority,
+        upstream_cert: Option<&UpstreamCertInfo>,
     ) -> Result<openssl::ssl::SslContext, Box<dyn std::error::Error + Send + Sync>> {
         // 캐시에서 조회
         if let Some(ctx) = self.openssl_ctx_cache.get(authority).await {
@@ -251,6 +336,7 @@ impl CertificateAuthority for RcgenAuthority {
         let ca_cert_pem = self.ca_cert.pem();
         let ca_key_pem = self.key_pair.serialize_pem();
         let host = authority.host().to_string();
+        let upstream_cert = upstream_cert.cloned();
 
         // 인증서 생성 + OpenSSL 컨텍스트 빌드를 모두 spawn_blocking으로 오프로드
         let ctx = tokio::task::spawn_blocking(move || -> Result<openssl::ssl::SslContext, Box<dyn std::error::Error + Send + Sync>> {
@@ -267,21 +353,57 @@ impl CertificateAuthority for RcgenAuthority {
             params.not_after = not_before + Duration::seconds(TTL_SECS);
 
             let mut distinguished_name = DistinguishedName::new();
-            distinguished_name.push(DnType::CommonName, &host);
+
+            if let Some(ref upstream) = upstream_cert {
+                if let Some(ref cn) = upstream.common_name {
+                    distinguished_name.push(DnType::CommonName, cn);
+                } else {
+                    distinguished_name.push(DnType::CommonName, &host);
+                }
+                if let Some(ref org) = upstream.organization {
+                    distinguished_name.push(DnType::OrganizationName, org);
+                }
+            } else {
+                distinguished_name.push(DnType::CommonName, &host);
+            }
             params.distinguished_name = distinguished_name;
 
             // SAN 엔트리 추가
-            if let Ok(dns_name) = Ia5String::try_from(host.as_str()) {
-                params.subject_alt_names.push(SanType::DnsName(dns_name));
-            }
-            if !host.starts_with("*.") {
-                let wildcard = format!("*.{}", host);
-                if let Ok(wildcard_name) = Ia5String::try_from(wildcard.as_str()) {
-                    params.subject_alt_names.push(SanType::DnsName(wildcard_name));
+            if let Some(ref upstream) = upstream_cert {
+                let mut added_dns: HashSet<String> = HashSet::new();
+                for dns in &upstream.sans_dns {
+                    if added_dns.insert(dns.clone()) {
+                        if let Ok(dns_name) = Ia5String::try_from(dns.as_str()) {
+                            params.subject_alt_names.push(SanType::DnsName(dns_name));
+                        }
+                    }
                 }
-            }
-            if let Ok(ip_addr) = host.parse::<std::net::IpAddr>() {
-                params.subject_alt_names.push(SanType::IpAddress(ip_addr));
+                if added_dns.insert(host.clone()) {
+                    if let Ok(dns_name) = Ia5String::try_from(host.as_str()) {
+                        params.subject_alt_names.push(SanType::DnsName(dns_name));
+                    }
+                }
+                for ip in &upstream.sans_ip {
+                    params.subject_alt_names.push(SanType::IpAddress(*ip));
+                }
+                if let Ok(ip_addr) = host.parse::<IpAddr>() {
+                    if !upstream.sans_ip.contains(&ip_addr) {
+                        params.subject_alt_names.push(SanType::IpAddress(ip_addr));
+                    }
+                }
+            } else {
+                if let Ok(dns_name) = Ia5String::try_from(host.as_str()) {
+                    params.subject_alt_names.push(SanType::DnsName(dns_name));
+                }
+                if !host.starts_with("*.") {
+                    let wildcard = format!("*.{}", host);
+                    if let Ok(wildcard_name) = Ia5String::try_from(wildcard.as_str()) {
+                        params.subject_alt_names.push(SanType::DnsName(wildcard_name));
+                    }
+                }
+                if let Ok(ip_addr) = host.parse::<IpAddr>() {
+                    params.subject_alt_names.push(SanType::IpAddress(ip_addr));
+                }
             }
 
             let server_cert: CertificateDer<'static> = params
@@ -353,7 +475,7 @@ mod tests {
         let ca = build_ca(1_000);
         let authority = Authority::from_static("example.com");
 
-        let ctx = ca.gen_openssl_context(&authority).await;
+        let ctx = ca.gen_openssl_context(&authority, None).await;
         assert!(ctx.is_ok(), "OpenSSL 컨텍스트 생성 실패: {:?}", ctx.err());
     }
 
@@ -362,13 +484,13 @@ mod tests {
         let ca = build_ca(1_000);
         let authority = Authority::from_static("cache-test.com");
 
-        let ctx1 = ca.gen_openssl_context(&authority).await.unwrap();
-        let ctx2 = ca.gen_openssl_context(&authority).await.unwrap();
+        let ctx1 = ca.gen_openssl_context(&authority, None).await.unwrap();
+        let ctx2 = ca.gen_openssl_context(&authority, None).await.unwrap();
 
-        assert_eq!(
-            format!("{:?}", ctx1.cert_store()),
-            format!("{:?}", ctx2.cert_store()),
-        );
+        // 캐시된 컨텍스트의 인증서가 동일한지 확인
+        let cert1 = ctx1.certificate().unwrap().to_der().unwrap();
+        let cert2 = ctx2.certificate().unwrap().to_der().unwrap();
+        assert_eq!(cert1, cert2);
     }
 
     #[tokio::test]
@@ -382,7 +504,7 @@ mod tests {
                 let authority =
                     Authority::try_from(format!("rcgen-concurrent-{}.example.com", i)).unwrap();
                 ca_clone
-                    .gen_openssl_context(&authority)
+                    .gen_openssl_context(&authority, None)
                     .await
                     .expect("컨텍스트 생성 실패");
             }));
@@ -409,10 +531,10 @@ mod tests {
             "https//ad.aceplanet.co.kr/cgi-bin/PelicanC.dll?impr?pageid=06P0&campaignid=01sL&gothrough=nextgrade&out=iframe",
         );
 
-        let c1 = ca.gen_cert(&authority1);
-        let c2 = ca.gen_cert(&authority2);
-        let c3 = ca.gen_cert(&authority1);
-        let c4 = ca.gen_cert(&authority2);
+        let c1 = ca.gen_cert(&authority1, None);
+        let c2 = ca.gen_cert(&authority2, None);
+        let c3 = ca.gen_cert(&authority1, None);
+        let c4 = ca.gen_cert(&authority2, None);
 
         let (_, cert1) = x509_parser::parse_x509_certificate(&c1).unwrap();
         let (_, cert2) = x509_parser::parse_x509_certificate(&c2).unwrap();
@@ -426,5 +548,69 @@ mod tests {
 
         assert_ne!(cert1.raw_serial(), cert3.raw_serial());
         assert_ne!(cert2.raw_serial(), cert4.raw_serial());
+    }
+
+    #[test]
+    fn gen_cert_with_upstream_info_uses_upstream_sans() {
+        let ca = build_ca(0);
+        let authority = Authority::from_static("example.com");
+
+        let upstream = UpstreamCertInfo {
+            common_name: Some("Real Example".to_string()),
+            organization: Some("Example Inc.".to_string()),
+            sans_dns: vec![
+                "example.com".to_string(),
+                "www.example.com".to_string(),
+                "api.example.com".to_string(),
+            ],
+            sans_ip: vec!["93.184.216.34".parse().unwrap()],
+        };
+
+        let cert_der = ca.gen_cert(&authority, Some(&upstream));
+        let (_, cert) = x509_parser::parse_x509_certificate(&cert_der).unwrap();
+
+        // CN이 upstream의 CN인지 확인
+        let cn = cert
+            .subject()
+            .iter()
+            .flat_map(|rdn| rdn.iter())
+            .find(|attr| *attr.attr_type() == x509_parser::oid_registry::OID_X509_COMMON_NAME)
+            .and_then(|attr| attr.as_str().ok())
+            .unwrap();
+        assert_eq!(cn, "Real Example");
+
+        // SAN에 upstream의 DNS SAN이 포함되는지 확인
+        let san = cert.subject_alternative_name().unwrap().unwrap();
+        let dns_sans: Vec<&str> = san
+            .value
+            .general_names
+            .iter()
+            .filter_map(|name| match name {
+                x509_parser::extensions::GeneralName::DNSName(dns) => Some(*dns),
+                _ => None,
+            })
+            .collect();
+
+        assert!(dns_sans.contains(&"example.com"));
+        assert!(dns_sans.contains(&"www.example.com"));
+        assert!(dns_sans.contains(&"api.example.com"));
+    }
+
+    #[test]
+    fn gen_cert_without_upstream_falls_back_to_host() {
+        let ca = build_ca(0);
+        let authority = Authority::from_static("fallback.example.com");
+
+        let cert_der = ca.gen_cert(&authority, None);
+        let (_, cert) = x509_parser::parse_x509_certificate(&cert_der).unwrap();
+
+        let cn = cert
+            .subject()
+            .iter()
+            .flat_map(|rdn| rdn.iter())
+            .find(|attr| *attr.attr_type() == x509_parser::oid_registry::OID_X509_COMMON_NAME)
+            .and_then(|attr| attr.as_str().ok())
+            .unwrap();
+        assert_eq!(cn, "fallback.example.com");
     }
 }
