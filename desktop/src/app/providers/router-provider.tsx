@@ -41,9 +41,7 @@ const HostMappingPage = lazy(() =>
     default: m.HostMappingPage,
   })),
 );
-const LogsPage = lazy(() =>
-  import("@/pages/log-viewer").then((m) => ({ default: m.LogsPage })),
-);
+const LogsPage = lazy(() => import("@/pages/log-viewer").then((m) => ({ default: m.LogsPage })));
 
 function RootLayout() {
   return (

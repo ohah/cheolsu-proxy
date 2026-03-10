@@ -155,12 +155,7 @@ export function LogsPage() {
               <RefreshCw className={`w-4 h-4 mr-1 ${loading ? "animate-spin" : ""}`} />
               <Trans>Refresh</Trans>
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleClear}
-              disabled={!selectedFile}
-            >
+            <Button variant="outline" size="sm" onClick={handleClear} disabled={!selectedFile}>
               <Trash2 className="w-4 h-4 mr-1" />
               <Trans>Clear</Trans>
             </Button>
