@@ -8,6 +8,21 @@ use tauri::{
     WebviewWindowBuilder,
 };
 
+/// 자동 세션 저장 이벤트를 전송하고, 잠시 대기 후 앱을 종료하는 공통 함수
+fn graceful_quit<R: Runtime>(app: AppHandle<R>) {
+    // 메인 윈도우에 종료 이벤트 전송하여 자동 세션 저장 트리거
+    let _ = app.emit_to("main", "app_quit_requested", ());
+    let app_clone = app.clone();
+    // 자동 저장 완료를 위해 잠시 대기 후 종료
+    std::thread::spawn(move || {
+        std::thread::sleep(std::time::Duration::from_millis(500));
+        if let Some(panel) = app_clone.get_webview_window("tray-panel") {
+            let _ = panel.close();
+        }
+        app_clone.exit(0);
+    });
+}
+
 const PANEL_WIDTH: f64 = 300.0;
 const PANEL_HEIGHT: f64 = 266.0;
 
@@ -127,17 +142,7 @@ pub fn setup_tray(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
                 }
             }
             "quit" => {
-                // 메인 윈도우에 종료 이벤트 전송하여 자동 세션 저장 트리거
-                let _ = app.emit_to("main", "app_quit_requested", ());
-                let app_clone = app.clone();
-                // 자동 저장 완료를 위해 잠시 대기 후 종료
-                std::thread::spawn(move || {
-                    std::thread::sleep(std::time::Duration::from_millis(500));
-                    if let Some(panel) = app_clone.get_webview_window("tray-panel") {
-                        let _ = panel.close();
-                    }
-                    app_clone.exit(0);
-                });
+                graceful_quit(app.clone());
             }
             _ => {}
         })
@@ -195,16 +200,6 @@ pub fn tray_show_main_window<R: Runtime>(app: AppHandle<R>) -> Result<(), String
 /// 앱 완전 종료 커맨드
 #[tauri::command]
 pub fn tray_quit_app<R: Runtime>(app: AppHandle<R>) -> Result<(), String> {
-    // 메인 윈도우에 종료 이벤트 전송하여 자동 세션 저장 트리거
-    let _ = app.emit_to("main", "app_quit_requested", ());
-    let app_clone = app.clone();
-    // 자동 저장 완료를 위해 잠시 대기 후 종료
-    std::thread::spawn(move || {
-        std::thread::sleep(std::time::Duration::from_millis(500));
-        if let Some(panel) = app_clone.get_webview_window("tray-panel") {
-            let _ = panel.close();
-        }
-        app_clone.exit(0);
-    });
+    graceful_quit(app);
     Ok(())
 }
