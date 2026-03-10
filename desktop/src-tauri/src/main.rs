@@ -9,7 +9,7 @@ use tracing_subscriber::EnvFilter;
 fn main() {
     // Initialize logging only when the LOG environment variable is "true"
     if std::env::var("LOG").unwrap_or_default() == "true" {
-        let kst_offset = FixedOffset::east_opt(9 * 3600).unwrap();
+        let kst_offset = FixedOffset::east_opt(9 * 3600).expect("KST offset (9h) is always valid");
         let now = Utc::now().with_timezone(&kst_offset);
         let date_str = now.format("%Y-%m-%d").to_string();
 
