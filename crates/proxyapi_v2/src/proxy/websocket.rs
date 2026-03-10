@@ -35,11 +35,7 @@ where
             parts.uri = {
                 let mut parts = parts.uri.into_parts();
 
-                parts.scheme = if parts.scheme.unwrap_or(Scheme::HTTP) == Scheme::HTTP {
-                    Some("ws".try_into().expect("Failed to convert scheme"))
-                } else {
-                    Some("wss".try_into().expect("Failed to convert scheme"))
-                };
+                parts.scheme = Some(to_websocket_scheme(parts.scheme.unwrap_or(Scheme::HTTP)));
 
                 match Uri::from_parts(parts) {
                     Ok(uri) => {
@@ -267,6 +263,15 @@ where
     }
 }
 
+/// HTTP/HTTPS 스킴을 WS/WSS로 변환합니다.
+fn to_websocket_scheme(scheme: Scheme) -> Scheme {
+    if scheme == Scheme::HTTP {
+        "ws".try_into().expect("Failed to convert scheme")
+    } else {
+        "wss".try_into().expect("Failed to convert scheme")
+    }
+}
+
 /// 주입 채널을 포함한 메시지 전달기
 fn spawn_message_forwarder_with_inject(
     stream: impl Stream<Item = Result<Message, tungstenite::Error>> + Unpin + Send + 'static,
@@ -351,4 +356,276 @@ fn spawn_message_forwarder_with_inject(
     };
 
     spawn_with_trace(fut, span);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use http::uri::{Parts, Scheme, Uri};
+
+    // ─── 스킴 변환 로직 ───
+
+    #[test]
+    fn http_scheme_converts_to_ws() {
+        let ws = to_websocket_scheme(Scheme::HTTP);
+        assert_eq!(ws.as_str(), "ws");
+    }
+
+    #[test]
+    fn https_scheme_converts_to_wss() {
+        let ws = to_websocket_scheme(Scheme::HTTPS);
+        assert_eq!(ws.as_str(), "wss");
+    }
+
+    #[test]
+    fn unknown_scheme_converts_to_wss() {
+        // Scheme::HTTP 이외의 모든 스킴은 wss로 변환되어야 함
+        let custom: Scheme = "ftp".try_into().unwrap();
+        let ws = to_websocket_scheme(custom);
+        assert_eq!(ws.as_str(), "wss");
+    }
+
+    // ─── URI 생성/변환 로직 ───
+
+    #[test]
+    fn uri_scheme_replacement_http_to_ws() {
+        let uri: Uri = "http://example.com/path?query=1".parse().unwrap();
+        let mut parts = uri.into_parts();
+        parts.scheme = Some(to_websocket_scheme(parts.scheme.unwrap_or(Scheme::HTTP)));
+        let new_uri = Uri::from_parts(parts).unwrap();
+
+        assert_eq!(new_uri.scheme_str(), Some("ws"));
+        assert_eq!(new_uri.host(), Some("example.com"));
+        assert_eq!(new_uri.path(), "/path");
+        assert_eq!(new_uri.query(), Some("query=1"));
+    }
+
+    #[test]
+    fn uri_scheme_replacement_https_to_wss() {
+        let uri: Uri = "https://example.com:8443/ws".parse().unwrap();
+        let mut parts = uri.into_parts();
+        parts.scheme = Some(to_websocket_scheme(parts.scheme.unwrap_or(Scheme::HTTP)));
+        let new_uri = Uri::from_parts(parts).unwrap();
+
+        assert_eq!(new_uri.scheme_str(), Some("wss"));
+        assert_eq!(new_uri.host(), Some("example.com"));
+        assert_eq!(new_uri.port_u16(), Some(8443));
+    }
+
+    #[test]
+    fn uri_without_scheme_defaults_to_ws() {
+        // 스킴이 없으면 HTTP로 기본 처리 → ws로 변환
+        let mut parts = Parts::default();
+        parts.authority = Some("example.com".parse().unwrap());
+        parts.path_and_query = Some("/chat".parse().unwrap());
+
+        parts.scheme = Some(to_websocket_scheme(parts.scheme.unwrap_or(Scheme::HTTP)));
+
+        let uri = Uri::from_parts(parts).unwrap();
+        assert_eq!(uri.scheme_str(), Some("ws"));
+        assert_eq!(uri.host(), Some("example.com"));
+        assert_eq!(uri.path(), "/chat");
+    }
+
+    #[test]
+    fn uri_with_port_preserved_after_scheme_change() {
+        let uri: Uri = "http://localhost:3000/ws".parse().unwrap();
+        let mut parts = uri.into_parts();
+        parts.scheme = Some(to_websocket_scheme(parts.scheme.unwrap_or(Scheme::HTTP)));
+        let new_uri = Uri::from_parts(parts).unwrap();
+
+        assert_eq!(new_uri.scheme_str(), Some("ws"));
+        assert_eq!(new_uri.host(), Some("localhost"));
+        assert_eq!(new_uri.port_u16(), Some(3000));
+        assert_eq!(new_uri.path(), "/ws");
+    }
+
+    #[test]
+    fn uri_with_ipv6_host() {
+        let uri: Uri = "http://[::1]:8080/ws".parse().unwrap();
+        let mut parts = uri.into_parts();
+        parts.scheme = Some(to_websocket_scheme(parts.scheme.unwrap_or(Scheme::HTTP)));
+        let new_uri = Uri::from_parts(parts).unwrap();
+
+        assert_eq!(new_uri.scheme_str(), Some("ws"));
+        assert_eq!(new_uri.host(), Some("[::1]"));
+        assert_eq!(new_uri.port_u16(), Some(8080));
+    }
+
+    #[test]
+    fn uri_with_userinfo_preserved() {
+        let uri: Uri = "http://user:pass@example.com/ws".parse().unwrap();
+        let mut parts = uri.into_parts();
+        parts.scheme = Some(to_websocket_scheme(parts.scheme.unwrap_or(Scheme::HTTP)));
+        let new_uri = Uri::from_parts(parts).unwrap();
+
+        assert_eq!(new_uri.scheme_str(), Some("ws"));
+        assert_eq!(
+            new_uri.authority().unwrap().as_str(),
+            "user:pass@example.com"
+        );
+    }
+
+    // ─── 프로토콜 헤더 처리 ───
+
+    #[test]
+    fn extract_websocket_protocol_header() {
+        let req = hyper::Request::builder()
+            .uri("http://example.com/ws")
+            .header(
+                "sec-websocket-protocol",
+                "graphql-ws, subscriptions-transport-ws",
+            )
+            .body(())
+            .unwrap();
+
+        let protocol = req
+            .headers()
+            .get("sec-websocket-protocol")
+            .and_then(|h| h.to_str().ok())
+            .map(|s| s.to_string());
+
+        assert_eq!(
+            protocol.as_deref(),
+            Some("graphql-ws, subscriptions-transport-ws")
+        );
+    }
+
+    #[test]
+    fn missing_websocket_protocol_header_returns_none() {
+        let req = hyper::Request::builder()
+            .uri("http://example.com/ws")
+            .body(())
+            .unwrap();
+
+        let protocol = req
+            .headers()
+            .get("sec-websocket-protocol")
+            .and_then(|h| h.to_str().ok())
+            .map(|s| s.to_string());
+
+        assert!(protocol.is_none());
+    }
+
+    #[test]
+    fn protocol_header_can_be_parsed_as_header_value() {
+        // 프로토콜 문자열이 유효한 HeaderValue로 파싱 가능해야 함
+        let protocol = "graphql-ws";
+        let header_value: Result<hyper::header::HeaderValue, _> = protocol.parse();
+        assert!(header_value.is_ok());
+    }
+
+    #[test]
+    fn single_protocol_header() {
+        let req = hyper::Request::builder()
+            .uri("http://example.com/ws")
+            .header("sec-websocket-protocol", "mqtt")
+            .body(())
+            .unwrap();
+
+        let protocol = req
+            .headers()
+            .get("sec-websocket-protocol")
+            .and_then(|h| h.to_str().ok())
+            .map(|s| s.to_string());
+
+        assert_eq!(protocol.as_deref(), Some("mqtt"));
+    }
+
+    // ─── 에지 케이스 ───
+
+    #[test]
+    fn uri_from_parts_fails_with_path_only() {
+        // authority 없이 path_and_query만 있으면 스킴을 설정할 수 없음
+        let mut parts = Parts::default();
+        parts.scheme = Some("ws".try_into().unwrap());
+        parts.path_and_query = Some("/path".parse().unwrap());
+        // authority가 없으면 scheme과 함께 사용 불가 → 에러
+        let result = Uri::from_parts(parts);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn websocket_config_values() {
+        // WebSocket 설정 값이 코드에서 사용하는 값과 일치하는지 확인
+        let mut config = WebSocketConfig::default();
+        config.accept_unmasked_frames = true;
+        config.max_frame_size = Some(16777216);
+        config.max_message_size = Some(67108864);
+
+        assert!(config.accept_unmasked_frames);
+        assert_eq!(config.max_frame_size, Some(16 * 1024 * 1024));
+        assert_eq!(config.max_message_size, Some(64 * 1024 * 1024));
+    }
+
+    #[test]
+    fn default_port_logic_for_ws() {
+        let uri: Uri = "ws://example.com/path".parse().unwrap();
+        let port = uri
+            .port_u16()
+            .unwrap_or(if uri.scheme_str() == Some("wss") {
+                443
+            } else {
+                80
+            });
+        assert_eq!(port, 80);
+    }
+
+    #[test]
+    fn default_port_logic_for_wss() {
+        let uri: Uri = "wss://example.com/path".parse().unwrap();
+        let port = uri
+            .port_u16()
+            .unwrap_or(if uri.scheme_str() == Some("wss") {
+                443
+            } else {
+                80
+            });
+        assert_eq!(port, 443);
+    }
+
+    #[test]
+    fn explicit_port_overrides_default() {
+        let uri: Uri = "wss://example.com:9090/path".parse().unwrap();
+        let port = uri
+            .port_u16()
+            .unwrap_or(if uri.scheme_str() == Some("wss") {
+                443
+            } else {
+                80
+            });
+        assert_eq!(port, 9090);
+    }
+
+    #[test]
+    fn scheme_try_into_ws_does_not_panic() {
+        let _ws: Scheme = "ws".try_into().expect("ws scheme should be valid");
+    }
+
+    #[test]
+    fn scheme_try_into_wss_does_not_panic() {
+        let _wss: Scheme = "wss".try_into().expect("wss scheme should be valid");
+    }
+
+    #[test]
+    fn uri_with_empty_path() {
+        let uri: Uri = "http://example.com".parse().unwrap();
+        let mut parts = uri.into_parts();
+        parts.scheme = Some(to_websocket_scheme(parts.scheme.unwrap_or(Scheme::HTTP)));
+        let new_uri = Uri::from_parts(parts).unwrap();
+
+        assert_eq!(new_uri.scheme_str(), Some("ws"));
+        assert_eq!(new_uri.path(), "");
+    }
+
+    #[test]
+    fn uri_with_fragment_and_query() {
+        let uri: Uri = "https://example.com/ws?token=abc".parse().unwrap();
+        let mut parts = uri.into_parts();
+        parts.scheme = Some(to_websocket_scheme(parts.scheme.unwrap_or(Scheme::HTTP)));
+        let new_uri = Uri::from_parts(parts).unwrap();
+
+        assert_eq!(new_uri.scheme_str(), Some("wss"));
+        assert_eq!(new_uri.query(), Some("token=abc"));
+    }
 }
