@@ -5,6 +5,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { openPath } from "@tauri-apps/plugin-opener";
 import { Button, Badge, Input } from "@/shared/ui";
 import { RefreshCw, Trash2, FolderOpen, Search } from "lucide-react";
+import { toast } from "sonner";
 
 interface LogFileInfo {
   name: string;
@@ -56,7 +57,7 @@ export function LogsPage() {
         }
       }
     } catch (e) {
-      console.error("Failed to fetch log files:", e);
+      toast.error(e instanceof Error ? e.message : String(e));
     }
   }, [selectedFile]);
 
@@ -69,7 +70,7 @@ export function LogsPage() {
       });
       setLogContent(content);
     } catch (e) {
-      console.error("Failed to read log file:", e);
+      toast.error(e instanceof Error ? e.message : String(e));
     }
   }, [selectedFile]);
 
@@ -87,7 +88,7 @@ export function LogsPage() {
       setLogContent("");
       await fetchLogFiles();
     } catch (e) {
-      console.error("Failed to clear log file:", e);
+      toast.error(e instanceof Error ? e.message : String(e));
     }
   }, [selectedFile, fetchLogFiles]);
 
@@ -96,7 +97,7 @@ export function LogsPage() {
       const dir = await invoke<string>("get_log_dir");
       await openPath(dir);
     } catch (e) {
-      console.error("Failed to open log directory:", e);
+      toast.error(e instanceof Error ? e.message : String(e));
     }
   }, []);
 
