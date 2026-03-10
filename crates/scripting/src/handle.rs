@@ -4,7 +4,8 @@ use crate::types::{
     RequestAction, ResponseAction, ScriptLogEntry, ScriptRequest, ScriptResponse, ScriptWsMessage,
     WsAction,
 };
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
+use std::thread::JoinHandle;
 use std::time::Duration;
 use tokio::sync::{broadcast, mpsc, oneshot};
 
@@ -51,6 +52,7 @@ pub struct ScriptHandle {
     tx: mpsc::Sender<ScriptCommand>,
     active: Arc<std::sync::atomic::AtomicBool>,
     log_tx: broadcast::Sender<ScriptLogEntry>,
+    thread_handle: Arc<Mutex<Option<JoinHandle<()>>>>,
 }
 
 impl ScriptHandle {
@@ -62,7 +64,7 @@ impl ScriptHandle {
 
         let active_clone = active.clone();
         let log_tx_clone = log_tx.clone();
-        std::thread::spawn(move || {
+        let handle = std::thread::spawn(move || {
             let rt = match tokio::runtime::Builder::new_current_thread()
                 .enable_all()
                 .build()
@@ -76,12 +78,22 @@ impl ScriptHandle {
             rt.block_on(script_engine_loop(rx, active_clone, log_tx_clone));
         });
 
-        Self { tx, active, log_tx }
+        Self {
+            tx,
+            active,
+            log_tx,
+            thread_handle: Arc::new(Mutex::new(Some(handle))),
+        }
     }
 
-    /// 엔진 스레드를 종료
+    /// 엔진 스레드를 종료하고 join하여 리소스 회수
     pub async fn shutdown(&self) {
         let _ = self.tx.send(ScriptCommand::Shutdown).await;
+        // 엔진 스레드가 종료될 때까지 대기하여 리소스 leak 방지
+        let handle = self.thread_handle.lock().ok().and_then(|mut g| g.take());
+        if let Some(h) = handle {
+            let _ = tokio::task::spawn_blocking(move || h.join()).await;
+        }
     }
 
     /// 스크립트가 활성화되어 있는지 확인
@@ -218,6 +230,20 @@ impl ScriptHandle {
             .await
             .map_err(|_| ScriptError::Timeout("onWebSocketMessage".to_string()))?
             .map_err(|_| ScriptError::NoResponse)?
+    }
+}
+
+impl Drop for ScriptHandle {
+    fn drop(&mut self) {
+        // Arc의 마지막 소유자인 경우에만 스레드를 정리
+        if Arc::strong_count(&self.thread_handle) == 1 {
+            let handle = self.thread_handle.lock().ok().and_then(|mut g| g.take());
+            if let Some(h) = handle {
+                // blocking_send로 Shutdown 커맨드를 전송하여 엔진 루프 종료
+                let _ = self.tx.blocking_send(ScriptCommand::Shutdown);
+                let _ = h.join();
+            }
+        }
     }
 }
 

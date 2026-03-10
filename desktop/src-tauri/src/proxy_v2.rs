@@ -71,41 +71,57 @@ pub async fn start_proxy_v2<R: Runtime>(
             while let Some(msg) = event_rx.blocking_recv() {
                 match msg {
                     DaemonMessage::Event { data } => {
-                        let _ = app_emitter.emit("proxy_event", data);
+                        if let Err(e) = app_emitter.emit("proxy_event", data) {
+                            eprintln!("emit proxy_event 실패: {}", e);
+                        }
                     }
                     DaemonMessage::WsMessage { data } => {
-                        let _ = app_emitter.emit("ws_message", data);
+                        if let Err(e) = app_emitter.emit("ws_message", data) {
+                            eprintln!("emit ws_message 실패: {}", e);
+                        }
                     }
                     DaemonMessage::WsConnection { data } => {
-                        let _ = app_emitter.emit("ws_connection", data);
+                        if let Err(e) = app_emitter.emit("ws_connection", data) {
+                            eprintln!("emit ws_connection 실패: {}", e);
+                        }
                     }
                     DaemonMessage::InterceptRulesUpdated { rules } => {
-                        let _ = app_emitter.emit("intercept_rules_updated", rules);
+                        if let Err(e) = app_emitter.emit("intercept_rules_updated", rules) {
+                            eprintln!("emit intercept_rules_updated 실패: {}", e);
+                        }
                     }
                     DaemonMessage::ScriptLog { level, message } => {
-                        let _ = app_emitter.emit(
+                        if let Err(e) = app_emitter.emit(
                             "script_log",
                             serde_json::json!({ "level": level, "message": message }),
-                        );
+                        ) {
+                            eprintln!("emit script_log 실패: {}", e);
+                        }
                     }
                     DaemonMessage::ScriptStatus {
                         active,
                         path,
                         message,
                     } => {
-                        let _ = app_emitter.emit(
+                        if let Err(e) = app_emitter.emit(
                             "script_status",
                             serde_json::json!({ "active": active, "path": path, "message": message }),
-                        );
+                        ) {
+                            eprintln!("emit script_status 실패: {}", e);
+                        }
                     }
                     DaemonMessage::ScriptResult { success, error } => {
-                        let _ = app_emitter.emit(
+                        if let Err(e) = app_emitter.emit(
                             "script_result",
                             serde_json::json!({ "success": success, "error": error }),
-                        );
+                        ) {
+                            eprintln!("emit script_result 실패: {}", e);
+                        }
                     }
                     DaemonMessage::BreakpointRulesUpdated { rules } => {
-                        let _ = app_emitter.emit("breakpoint_rules_updated", rules);
+                        if let Err(e) = app_emitter.emit("breakpoint_rules_updated", rules) {
+                            eprintln!("emit breakpoint_rules_updated 실패: {}", e);
+                        }
                     }
                     DaemonMessage::BreakpointHit {
                         id,
@@ -113,27 +129,37 @@ pub async fn start_proxy_v2<R: Runtime>(
                         phase,
                         data,
                     } => {
-                        let _ = app_emitter.emit(
+                        if let Err(e) = app_emitter.emit(
                             "breakpoint_hit",
                             serde_json::json!({ "id": id, "transaction_id": transaction_id, "phase": phase, "data": data }),
-                        );
+                        ) {
+                            eprintln!("emit breakpoint_hit 실패: {}", e);
+                        }
                     }
                     DaemonMessage::HostMappingsUpdated { mappings } => {
-                        let _ = app_emitter.emit("host_mappings_updated", mappings);
+                        if let Err(e) = app_emitter.emit("host_mappings_updated", mappings) {
+                            eprintln!("emit host_mappings_updated 실패: {}", e);
+                        }
                     }
                     DaemonMessage::SslProxyingListUpdated { entries } => {
-                        let _ = app_emitter.emit("ssl_proxying_list_updated", entries);
+                        if let Err(e) = app_emitter.emit("ssl_proxying_list_updated", entries) {
+                            eprintln!("emit ssl_proxying_list_updated 실패: {}", e);
+                        }
                     }
                     DaemonMessage::Disconnected { reason } => {
                         eprintln!("데몬 연결 끊김: {}", reason);
-                        let _ = app_emitter.emit(
+                        if let Err(e) = app_emitter.emit(
                             "daemon_disconnected",
                             serde_json::json!({ "reason": reason }),
-                        );
+                        ) {
+                            eprintln!("emit daemon_disconnected 실패: {}", e);
+                        }
                     }
                     DaemonMessage::Reconnected => {
                         eprintln!("데몬 재연결 성공");
-                        let _ = app_emitter.emit("daemon_reconnected", ());
+                        if let Err(e) = app_emitter.emit("daemon_reconnected", ()) {
+                            eprintln!("emit daemon_reconnected 실패: {}", e);
+                        }
                     }
                     _ => {}
                 }

@@ -163,16 +163,23 @@ where
         spawn_daemon(port, host)?;
 
         let mut ready = false;
-        for _ in 0..50 {
-            tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+        let mut delay = std::time::Duration::from_millis(100);
+        let max_delay = std::time::Duration::from_secs(2);
+        let deadline = tokio::time::Instant::now() + std::time::Duration::from_secs(15);
+        loop {
+            tokio::time::sleep(delay).await;
             if is_daemon_running().is_some() {
                 ready = true;
                 break;
             }
+            if tokio::time::Instant::now() >= deadline {
+                break;
+            }
+            delay = (delay * 2).min(max_delay);
         }
         if !ready {
             return Err(DaemonError::Daemon(
-                "Daemon did not start within 5 seconds".to_string(),
+                "Daemon did not start within 15 seconds".to_string(),
             ));
         }
     }
@@ -180,16 +187,23 @@ where
     // Wait for the UDS socket file to actually exist.
     let uds_path = uds_socket_path()?;
     let mut socket_ready = false;
-    for _ in 0..50 {
+    let mut delay = std::time::Duration::from_millis(100);
+    let max_delay = std::time::Duration::from_secs(2);
+    let deadline = tokio::time::Instant::now() + std::time::Duration::from_secs(15);
+    loop {
         if uds_path.exists() {
             socket_ready = true;
             break;
         }
-        tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+        if tokio::time::Instant::now() >= deadline {
+            break;
+        }
+        tokio::time::sleep(delay).await;
+        delay = (delay * 2).min(max_delay);
     }
     if !socket_ready {
         return Err(DaemonError::Daemon(
-            "UDS socket was not created within 5 seconds".to_string(),
+            "UDS socket was not created within 15 seconds".to_string(),
         ));
     }
 

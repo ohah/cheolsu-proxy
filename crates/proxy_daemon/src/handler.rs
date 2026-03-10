@@ -59,6 +59,9 @@ pub(crate) struct ProxyConfig {
     pub(crate) ca_cert_der: Option<Bytes>,
     /// 빠른 설정 (No Caching, Block Cookies)
     pub(crate) quick_settings: Arc<tokio::sync::RwLock<QuickSettings>>,
+    // SAFETY: parking_lot::RwLock - async 컨텍스트에서 사용 중이나,
+    // .await를 넘어서 lock을 유지하지 않으므로 안전함.
+    // 리팩토링 시 tokio::sync::RwLock으로 교체 검토 필요.
     /// 프록시 인증 설정
     pub(crate) proxy_auth: Arc<parking_lot::RwLock<Option<crate::protocol::ProxyAuthConfig>>>,
 }
@@ -79,6 +82,9 @@ pub(crate) struct InterceptEngine {
 pub(crate) struct WebSocketState {
     pub(crate) ws_sender: Option<tokio::sync::mpsc::Sender<WsEvent>>,
     pub(crate) ws_sequence: Arc<std::sync::atomic::AtomicU64>,
+    // SAFETY: parking_lot::Mutex - async 컨텍스트에서 사용 중이나,
+    // .await를 넘어서 lock을 유지하지 않으므로 안전함.
+    // 리팩토링 시 tokio::sync::Mutex으로 교체 검토 필요.
     pub(crate) mqtt_versions: Arc<parking_lot::Mutex<std::collections::HashMap<String, u8>>>,
 }
 
@@ -192,6 +198,7 @@ impl LoggingHandler {
 
     /// 프록시 인증 설정 업데이트
     pub fn update_proxy_auth(&self, config: crate::protocol::ProxyAuthConfig) {
+        // SAFETY: parking_lot write lock - .await 없이 즉시 해제되므로 안전함.
         let mut auth = self.config.proxy_auth.write();
         info!(
             "[ProxyAuth] 설정 업데이트: enabled={}, username={}",
@@ -210,6 +217,7 @@ impl LoggingHandler {
 
     /// 프록시 인증을 확인합니다. 인증 실패 시 407 응답을 반환합니다.
     fn check_proxy_auth(&self, req: &Request<Body>) -> Option<Response<Body>> {
+        // SAFETY: parking_lot read lock - .await 없이 즉시 해제되므로 안전함.
         let auth_config = self.config.proxy_auth.read();
         let config = match auth_config.as_ref() {
             Some(c) if c.enabled && !c.username.is_empty() => c,
@@ -642,12 +650,14 @@ impl LoggingHandler {
 
         let mqtt_version = if content_type == proxy_v2_models::WsContentType::Mqtt {
             if let Some(ver) = proxy_v2_models::extract_mqtt_version_from_connect(&payload) {
+                // SAFETY: parking_lot lock - .await 없이 즉시 해제되므로 안전함.
                 self.ws
                     .mqtt_versions
                     .lock()
                     .insert(connection_id.clone(), ver);
                 Some(ver)
             } else {
+                // SAFETY: parking_lot lock - .await 없이 즉시 해제되므로 안전함.
                 self.ws.mqtt_versions.lock().get(&connection_id).copied()
             }
         } else {
@@ -1033,6 +1043,7 @@ impl HttpHandler for LoggingHandler {
     async fn should_intercept(&mut self, _ctx: &HttpContext, req: &Request<Body>) -> bool {
         // 프록시 인증 체크: 인증 실패 여부를 먼저 판정
         let auth_failed = {
+            // SAFETY: parking_lot read lock - .await 없이 블록 내에서 즉시 해제되므로 안전함.
             let auth_config = self.config.proxy_auth.read();
             if let Some(config) = auth_config.as_ref() {
                 if config.enabled && !config.username.is_empty() {

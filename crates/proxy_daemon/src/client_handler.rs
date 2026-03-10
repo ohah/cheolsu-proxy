@@ -496,6 +496,8 @@ pub async fn handle_client(
         }
     }
 
+    // event_task와 log_task는 broadcast recv/writer만 수행하므로
+    // abort()로 안전하게 종료 가능 (상태 변경 없음)
     event_task.abort();
     log_task.abort();
 }
@@ -539,11 +541,10 @@ fn start_file_watcher(
 
         while notify_rx.recv().await.is_some() {
             // 감시 경로가 해제되었으면 종료
-            {
-                let wp = watched_path.lock().await;
-                if wp.as_deref() != Some(&path) {
-                    break;
-                }
+            // 로컬 변수에 클론하여 레이스 컨디션 방지
+            let current_path = watched_path.lock().await.clone();
+            if current_path.as_deref() != Some(&path) {
+                break;
             }
 
             // debounce
