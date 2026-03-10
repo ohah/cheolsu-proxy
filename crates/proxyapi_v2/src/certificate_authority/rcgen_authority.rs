@@ -41,6 +41,8 @@ pub struct RcgenAuthority {
     ca_cert: Certificate,
     private_key: PrivateKeyDer<'static>,
     cache: Cache<Authority, Arc<ServerConfig>>,
+    #[cfg(feature = "openssl-ca")]
+    openssl_ctx_cache: Cache<Authority, Arc<openssl::ssl::SslContext>>,
     provider: Arc<CryptoProvider>,
 }
 
@@ -59,6 +61,11 @@ impl RcgenAuthority {
             ca_cert,
             private_key,
             cache: Cache::builder()
+                .max_capacity(cache_size)
+                .time_to_live(std::time::Duration::from_secs(CACHE_TTL))
+                .build(),
+            #[cfg(feature = "openssl-ca")]
+            openssl_ctx_cache: Cache::builder()
                 .max_capacity(cache_size)
                 .time_to_live(std::time::Duration::from_secs(CACHE_TTL))
                 .build(),
@@ -229,60 +236,59 @@ impl CertificateAuthority for RcgenAuthority {
         &self,
         authority: &Authority,
     ) -> Result<openssl::ssl::SslContext, Box<dyn std::error::Error + Send + Sync>> {
+        // 캐시에서 조회
+        if let Some(ctx) = self.openssl_ctx_cache.get(authority).await {
+            debug!("[OPENSSL-CONTEXT] 캐시된 컨텍스트 사용: {}", authority);
+            return Ok((*ctx).clone());
+        }
+
         info!(
-            "🔧 [OPENSSL-CONTEXT] OpenSSL 컨텍스트 생성 시작: {}",
+            "[OPENSSL-CONTEXT] OpenSSL 컨텍스트 생성 시작: {}",
             authority
         );
 
-        // OpenSSL 컨텍스트 생성
-        let mut ctx = openssl::ssl::SslContext::builder(openssl::ssl::SslMethod::tls_server())?;
-
-        // TLS 버전 설정: 모든 TLS 버전 지원 (프록시 목적)
-        ctx.set_min_proto_version(Some(openssl::ssl::SslVersion::TLS1))?;
-        ctx.set_max_proto_version(Some(openssl::ssl::SslVersion::TLS1_3))?;
-
-        // OpenSSL 3.0+에서 레거시 TLS 1.0/1.1 지원을 위해 SECLEVEL=0 설정
-        ctx.set_cipher_list("@SECLEVEL=0:ALL:!aNULL:!eNULL")?;
-
-        // 프록시를 위한 인증서 검증 비활성화
-        ctx.set_verify(openssl::ssl::SslVerifyMode::NONE);
-        ctx.set_verify_depth(10);
-
-        // 클라이언트 호환성을 위한 추가 설정
-        ctx.set_options(openssl::ssl::SslOptions::NO_COMPRESSION);
-        ctx.set_options(openssl::ssl::SslOptions::SINGLE_DH_USE);
-        ctx.set_options(openssl::ssl::SslOptions::SINGLE_ECDH_USE);
-
-        // 서버 인증서 생성
-        let server_cert_der = self.gen_cert(authority);
-        let server_cert = openssl::x509::X509::from_der(&server_cert_der)?;
-
-        // CA 인증서를 PEM 형식으로 변환
+        // 동기 작업에 필요한 데이터를 미리 준비
+        let server_cert_der = self.gen_cert(authority).to_vec();
         let ca_cert_pem = self.ca_cert.pem();
-        let ca_cert = openssl::x509::X509::from_pem(ca_cert_pem.as_bytes())?;
-
-        // CA 개인키를 PEM 형식으로 변환
         let ca_key_pem = self.key_pair.serialize_pem();
-        let ca_key = openssl::pkey::PKey::private_key_from_pem(ca_key_pem.as_bytes())?;
 
-        // 인증서 체인 설정 (서버 인증서 + CA 인증서)
-        let mut cert_chain = vec![server_cert];
-        cert_chain.push(ca_cert);
-        ctx.set_certificate(&cert_chain[0])?;
+        // OpenSSL 컨텍스트 빌드를 spawn_blocking으로 오프로드
+        let ctx = tokio::task::spawn_blocking(move || -> Result<openssl::ssl::SslContext, Box<dyn std::error::Error + Send + Sync>> {
+            let mut ctx = openssl::ssl::SslContext::builder(openssl::ssl::SslMethod::tls_server())?;
 
-        // CA 인증서를 중간 인증서로 추가
-        for cert in cert_chain.iter().skip(1) {
-            ctx.add_extra_chain_cert(cert.to_owned())?;
-        }
+            ctx.set_min_proto_version(Some(openssl::ssl::SslVersion::TLS1))?;
+            ctx.set_max_proto_version(Some(openssl::ssl::SslVersion::TLS1_3))?;
+            ctx.set_cipher_list("@SECLEVEL=0:ALL:!aNULL:!eNULL")?;
 
-        // 개인키 설정
-        ctx.set_private_key(&ca_key)?;
+            ctx.set_verify(openssl::ssl::SslVerifyMode::NONE);
+            ctx.set_verify_depth(10);
 
-        // 컨텍스트 빌드
-        let ctx = ctx.build();
+            ctx.set_options(openssl::ssl::SslOptions::NO_COMPRESSION);
+            ctx.set_options(openssl::ssl::SslOptions::SINGLE_DH_USE);
+            ctx.set_options(openssl::ssl::SslOptions::SINGLE_ECDH_USE);
+
+            let server_cert = openssl::x509::X509::from_der(&server_cert_der)?;
+            let ca_cert = openssl::x509::X509::from_pem(ca_cert_pem.as_bytes())?;
+            let ca_key = openssl::pkey::PKey::private_key_from_pem(ca_key_pem.as_bytes())?;
+
+            ctx.set_certificate(&server_cert)?;
+            ctx.add_extra_chain_cert(ca_cert)?;
+            ctx.set_private_key(&ca_key)?;
+
+            Ok(ctx.build())
+        })
+        .await
+        .map_err(|e| -> Box<dyn std::error::Error + Send + Sync> {
+            format!("spawn_blocking failed: {}", e).into()
+        })??;
+
+        // 캐시에 저장
+        self.openssl_ctx_cache
+            .insert(authority.clone(), Arc::new(ctx.clone()))
+            .await;
 
         info!(
-            "✅ [OPENSSL-CONTEXT] OpenSSL 컨텍스트 생성 완료: {}",
+            "[OPENSSL-CONTEXT] OpenSSL 컨텍스트 생성 완료: {}",
             authority
         );
         Ok(ctx)
