@@ -10,6 +10,101 @@ use std::sync::Arc;
 use tauri::{AppHandle, Emitter, Runtime, State};
 use tokio::sync::Mutex;
 
+// ─── Log Viewer ──────────────────────────────────────────
+
+/// 로그 파일 목록 항목
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct LogFileInfo {
+    pub name: String,
+    pub path: String,
+    pub size: u64,
+    pub modified: u64,
+}
+
+/// 로그 디렉토리 경로와 파일 목록을 반환
+#[tauri::command]
+pub async fn get_log_files() -> Result<Vec<LogFileInfo>, String> {
+    let log_dir = proxy_daemon::daemon::app_support_dir()
+        .map(|d| d.join("logs"))
+        .map_err(|e| format!("로그 디렉토리를 찾을 수 없습니다: {}", e))?;
+
+    let mut files = Vec::new();
+
+    // daemon.log (상위 디렉토리)
+    if let Ok(parent) = proxy_daemon::daemon::app_support_dir() {
+        let daemon_log = parent.join("daemon.log");
+        if daemon_log.exists() {
+            if let Ok(meta) = std::fs::metadata(&daemon_log) {
+                files.push(LogFileInfo {
+                    name: "daemon.log".to_string(),
+                    path: daemon_log.display().to_string(),
+                    size: meta.len(),
+                    modified: meta
+                        .modified()
+                        .ok()
+                        .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
+                        .map(|d| d.as_secs())
+                        .unwrap_or(0),
+                });
+            }
+        }
+    }
+
+    // logs/ 디렉토리 내 로그 파일들
+    if log_dir.exists() {
+        if let Ok(entries) = std::fs::read_dir(&log_dir) {
+            for entry in entries.flatten() {
+                let path = entry.path();
+                if path.extension().map(|e| e == "log").unwrap_or(false) {
+                    if let Ok(meta) = entry.metadata() {
+                        files.push(LogFileInfo {
+                            name: entry.file_name().to_string_lossy().to_string(),
+                            path: path.display().to_string(),
+                            size: meta.len(),
+                            modified: meta
+                                .modified()
+                                .ok()
+                                .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
+                                .map(|d| d.as_secs())
+                                .unwrap_or(0),
+                        });
+                    }
+                }
+            }
+        }
+    }
+
+    // 최신 파일 순으로 정렬
+    files.sort_by(|a, b| b.modified.cmp(&a.modified));
+    Ok(files)
+}
+
+/// 로그 파일 내용 읽기 (마지막 N줄)
+#[tauri::command]
+pub async fn read_log_file(path: String, tail_lines: Option<usize>) -> Result<String, String> {
+    let content =
+        std::fs::read_to_string(&path).map_err(|e| format!("로그 파일 읽기 실패: {}", e))?;
+
+    let max_lines = tail_lines.unwrap_or(1000);
+    let lines: Vec<&str> = content.lines().collect();
+    let start = lines.len().saturating_sub(max_lines);
+    Ok(lines[start..].join("\n"))
+}
+
+/// 로그 파일 삭제
+#[tauri::command]
+pub async fn clear_log_file(path: String) -> Result<(), String> {
+    std::fs::write(&path, "").map_err(|e| format!("로그 파일 초기화 실패: {}", e))
+}
+
+/// 로그 디렉토리 경로 반환
+#[tauri::command]
+pub async fn get_log_dir() -> Result<String, String> {
+    proxy_daemon::daemon::app_support_dir()
+        .map(|d| d.display().to_string())
+        .map_err(|e| format!("로그 디렉토리를 찾을 수 없습니다: {}", e))
+}
+
 /// hop-by-hop 헤더인지 대소문자 무시하고 확인
 fn is_hop_by_hop_header(name: &str) -> bool {
     const HOP_BY_HOP: &[&str] = &[
@@ -1710,5 +1805,72 @@ mod tests {
         // 상대 경로
         let path = build_autosave_path(std::path::Path::new("data"));
         assert_eq!(path, std::path::PathBuf::from("data/autosave.cheolsu.gz"));
+    }
+
+    #[test]
+    fn read_log_file_returns_tail_lines() {
+        let dir = std::env::temp_dir().join("cheolsu_log_test");
+        std::fs::create_dir_all(&dir).unwrap();
+        let log_path = dir.join("test.log");
+
+        // 100줄 작성
+        let content: String = (0..100).map(|i| format!("line {}\n", i)).collect();
+        std::fs::write(&log_path, &content).unwrap();
+
+        // 마지막 10줄만 읽기
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        let result = rt
+            .block_on(super::read_log_file(
+                log_path.display().to_string(),
+                Some(10),
+            ))
+            .unwrap();
+
+        let lines: Vec<&str> = result.lines().collect();
+        assert_eq!(lines.len(), 10);
+        assert!(lines[0].contains("line 90"));
+        assert!(lines[9].contains("line 99"));
+
+        // 정리
+        std::fs::remove_dir_all(&dir).unwrap();
+    }
+
+    #[test]
+    fn clear_log_file_empties_content() {
+        let dir = std::env::temp_dir().join("cheolsu_log_clear_test");
+        std::fs::create_dir_all(&dir).unwrap();
+        let log_path = dir.join("test_clear.log");
+
+        std::fs::write(&log_path, "some log content\n").unwrap();
+        assert!(!std::fs::read_to_string(&log_path).unwrap().is_empty());
+
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        rt.block_on(super::clear_log_file(log_path.display().to_string()))
+            .unwrap();
+
+        assert!(std::fs::read_to_string(&log_path).unwrap().is_empty());
+
+        std::fs::remove_dir_all(&dir).unwrap();
+    }
+
+    #[test]
+    fn read_log_file_default_tail() {
+        let dir = std::env::temp_dir().join("cheolsu_log_default_test");
+        std::fs::create_dir_all(&dir).unwrap();
+        let log_path = dir.join("test_default.log");
+
+        // 5줄 작성 (1000보다 적음)
+        let content = "line1\nline2\nline3\nline4\nline5\n";
+        std::fs::write(&log_path, content).unwrap();
+
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        let result = rt
+            .block_on(super::read_log_file(log_path.display().to_string(), None))
+            .unwrap();
+
+        let lines: Vec<&str> = result.lines().collect();
+        assert_eq!(lines.len(), 5);
+
+        std::fs::remove_dir_all(&dir).unwrap();
     }
 }
