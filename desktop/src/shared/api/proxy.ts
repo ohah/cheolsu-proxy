@@ -287,6 +287,16 @@ export async function importHarFile(path: string): Promise<string> {
   return invoke("import_har_file_cmd", { path });
 }
 
+// --- Auto session save/load ---
+
+export async function autosaveSession(transactionsJson: string): Promise<void> {
+  return invoke("autosave_session", { transactionsJson });
+}
+
+export async function autoloadSession(): Promise<LoadSessionResult | null> {
+  return invoke("autoload_session");
+}
+
 // ─── Host Mapping ────────────────────────────────────────
 
 export interface HostMapping {
