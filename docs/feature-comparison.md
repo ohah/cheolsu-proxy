@@ -26,7 +26,7 @@
 | Map Remote              |     O     |       O       | 경로 보존 옵션 지원                  |
 | Upstream Proxy          |     O     |       O       | CONNECT 터널, Basic 인증, Bypass     |
 | 필터링/검색             |     O     |       O       | mitmproxy: DSL, cheolsu: 쿼리 에디터 |
-| cURL 복사               |     O     |       O       |                                      |
+| cURL 복사               |     O     |       O       | + fetch, httpie, Python requests     |
 | gzip/brotli 압축 해제   |     O     |       O       |                                      |
 | 시스템 프록시 자동 설정 |     X     |       O       | 앱 시작/종료 시 자동 관리            |
 | 대용량 바디 파일 저장   |     X     |       O       | 1MB 이상 자동 파일 저장              |
@@ -67,6 +67,10 @@
 | CLI 인터셉트 셸         | headless 모드에서 규칙 관리 (block, modify-request 등) |
 | 스트리밍 응답 최적화    | SSE, Chunked, NDJSON 자동 감지 및 최적화               |
 | 세션별 캐시 격리        | 세션 해시 기반 독립 캐시 디렉토리                      |
+| SSL Proxying 화이트리스트 | 특정 도메인만 HTTPS 인터셉트 (GUI + TUI)             |
+| 자동 세션 저장/복원     | 앱 종료 시 자동 저장, 시작 시 자동 복원                |
+| multipart/urlencoded 뷰어 | 폼 데이터 파싱 및 키-값 테이블 표시                  |
+| 다양한 코드 내보내기    | curl, fetch, httpie, Python requests 4종 지원          |
 
 ## 아키텍처 차이
 
