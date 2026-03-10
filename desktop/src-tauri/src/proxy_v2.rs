@@ -821,11 +821,16 @@ pub async fn update_client_certificate(
     proxy: State<'_, ProxyV2State>,
     config: Option<proxy_daemon::ClientCertConfig>,
 ) -> Result<(), String> {
-    // 설정이 활성화된 경우 유효성 검증
+    // 설정이 활성화된 경우 유효성 검증 (blocking I/O를 spawn_blocking으로 처리)
     if let Some(ref cert_config) = config {
         if cert_config.enabled {
-            proxy_daemon::validate_client_cert_config(cert_config)
-                .map_err(|e| format!("인증서 검증 실패: {}", e))?;
+            let cert_config_clone = cert_config.clone();
+            tokio::task::spawn_blocking(move || {
+                proxy_daemon::validate_client_cert_config(&cert_config_clone)
+                    .map_err(|e| format!("인증서 검증 실패: {}", e))
+            })
+            .await
+            .map_err(|e| format!("검증 태스크 실패: {}", e))??;
         }
     }
 
