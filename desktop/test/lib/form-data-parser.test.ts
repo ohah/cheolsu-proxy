@@ -186,7 +186,7 @@ describe("parseMultipartFormData", () => {
     expect(fields[0].value).toBe("value");
   });
 
-  test("빈 filename은 파일로 감지 (filename=\"\")", () => {
+  test('빈 filename은 파일로 감지 (filename="")', () => {
     const body = [
       `------WebKitFormBoundary7MA4YWxkTrZu0gW`,
       `Content-Disposition: form-data; name="file"; filename=""`,
@@ -255,9 +255,7 @@ describe("parseUrlencoded", () => {
   });
 
   test("한국어 디코딩", () => {
-    const fields = parseUrlencoded(
-      "name=%ED%85%8C%EC%8A%A4%ED%8A%B8",
-    );
+    const fields = parseUrlencoded("name=%ED%85%8C%EC%8A%A4%ED%8A%B8");
     expect(fields).toHaveLength(1);
     expect(fields[0].value).toBe("테스트");
   });

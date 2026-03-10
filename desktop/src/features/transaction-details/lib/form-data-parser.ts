@@ -64,12 +64,9 @@ export const isUrlencoded = (contentType: string): boolean => {
 /**
  * Content-Disposition 헤더에서 name과 filename을 추출
  */
-const parseContentDisposition = (
-  header: string,
-): { name: string; fileName?: string } => {
+const parseContentDisposition = (header: string): { name: string; fileName?: string } => {
   const nameMatch = header.match(/name="([^"]*)"/) || header.match(/name=([^\s;]+)/);
-  const fileNameMatch =
-    header.match(/filename="([^"]*)"/) || header.match(/filename=([^\s;]+)/);
+  const fileNameMatch = header.match(/filename="([^"]*)"/) || header.match(/filename=([^\s;]+)/);
 
   return {
     name: nameMatch ? nameMatch[1] : "",
@@ -113,7 +110,8 @@ export const parseMultipartFormData = (
   body: Uint8Array | string,
   boundary: string,
 ): MultipartField[] => {
-  const text = typeof body === "string" ? body : new TextDecoder("utf-8", { fatal: false }).decode(body);
+  const text =
+    typeof body === "string" ? body : new TextDecoder("utf-8", { fatal: false }).decode(body);
 
   const delimiter = `--${boundary}`;
   const closeDelimiter = `--${boundary}--`;
@@ -185,7 +183,8 @@ export const parseMultipartFormData = (
  * @returns 파싱된 키-값 배열
  */
 export const parseUrlencoded = (body: Uint8Array | string): UrlencodedField[] => {
-  const text = typeof body === "string" ? body : new TextDecoder("utf-8", { fatal: false }).decode(body);
+  const text =
+    typeof body === "string" ? body : new TextDecoder("utf-8", { fatal: false }).decode(body);
 
   const trimmed = text.trim();
   if (!trimmed) return [];
@@ -195,19 +194,22 @@ export const parseUrlencoded = (body: Uint8Array | string): UrlencodedField[] =>
 
   if (!queryString) return [];
 
-  return queryString.split("&").filter(Boolean).map((pair) => {
-    const eqIndex = pair.indexOf("=");
-    if (eqIndex === -1) {
+  return queryString
+    .split("&")
+    .filter(Boolean)
+    .map((pair) => {
+      const eqIndex = pair.indexOf("=");
+      if (eqIndex === -1) {
+        return {
+          key: safeDecodeURIComponent(pair),
+          value: "",
+        };
+      }
       return {
-        key: safeDecodeURIComponent(pair),
-        value: "",
+        key: safeDecodeURIComponent(pair.substring(0, eqIndex)),
+        value: safeDecodeURIComponent(pair.substring(eqIndex + 1)),
       };
-    }
-    return {
-      key: safeDecodeURIComponent(pair.substring(0, eqIndex)),
-      value: safeDecodeURIComponent(pair.substring(eqIndex + 1)),
-    };
-  });
+    });
 };
 
 /**
