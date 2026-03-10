@@ -66,20 +66,6 @@ export const TransactionResponse = ({ transaction }: TransactionResponseProps) =
   // 실제 사용할 body 데이터 (파일이 있으면 파일에서 읽어온 것, 없으면 메모리의 것)
   const actualBody = response.file_path ? fileBody : response.body || null;
 
-  // DEBUG: 데이터 흐름 추적
-  console.log("[TransactionResponse] DEBUG:", {
-    file_path: response.file_path,
-    data_type: response.data_type,
-    body_size: response.body_size,
-    hasResponseBody: !!response.body,
-    responseBodyLength: response.body?.length,
-    fileLoading,
-    fileError,
-    hasFileBody: !!fileBody,
-    fileBodyLength: fileBody?.length,
-    hasActualBody: !!actualBody,
-    actualBodyLength: actualBody?.length,
-  });
 
   // Content-Type 헤더에서 MIME 타입 추출
   const contentTypeHeader = response.headers["content-type"] || "";
