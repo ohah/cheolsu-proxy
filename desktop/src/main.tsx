@@ -1,18 +1,19 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { I18nProvider } from "@lingui/react";
-import { loader } from "@monaco-editor/react";
 import App from "./app/App";
 import { i18n, defaultLocale, loadCatalog } from "@/shared/lib/i18n";
-import { registerContentViewLanguages } from "@/shared/lib/monaco-languages";
-import { setupMonacoLanguage } from "@/features/query-filter-editor/lib/monaco-setup";
 import { useAppSettingsStore } from "@/shared/stores/app-settings-store";
 import "./main.css";
 import "../styles.css";
 
-loader.init().then((monaco) => {
-  registerContentViewLanguages(monaco);
-  setupMonacoLanguage(monaco);
+import("@monaco-editor/react").then(({ loader }) => {
+  loader.init().then(async (monaco) => {
+    const { registerContentViewLanguages } = await import("@/shared/lib/monaco-languages");
+    const { setupMonacoLanguage } = await import("@/features/query-filter-editor/lib/monaco-setup");
+    registerContentViewLanguages(monaco);
+    setupMonacoLanguage(monaco);
+  });
 });
 
 const container = document.getElementById("root");

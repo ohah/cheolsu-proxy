@@ -1,24 +1,54 @@
+import { lazy, Suspense } from "react";
 import {
   createBrowserRouter,
   RouterProvider as ReactRouterProvider,
   Outlet,
 } from "react-router-dom";
-import { NetworkDashboard } from "@/pages/network-dashboard";
-import { InterceptRulesPage } from "@/pages/intercept-rules";
-import { MapRulesPage } from "@/pages/map-rules";
-import { WebSocketDashboard } from "@/pages/websocket-dashboard";
-import { SettingsPage } from "@/pages/settings";
-import { ServerReplayPage } from "@/pages/server-replay";
-import { ScriptPage } from "@/pages/script";
-import { BreakpointPage } from "@/pages/breakpoint";
-import { HostMappingPage } from "@/pages/host-mapping";
 import { AppSidebar } from "@/shared/app-sidebar";
+
+const NetworkDashboard = lazy(() =>
+  import("@/pages/network-dashboard").then((m) => ({
+    default: m.NetworkDashboard,
+  })),
+);
+const InterceptRulesPage = lazy(() =>
+  import("@/pages/intercept-rules").then((m) => ({
+    default: m.InterceptRulesPage,
+  })),
+);
+const MapRulesPage = lazy(() =>
+  import("@/pages/map-rules").then((m) => ({ default: m.MapRulesPage })),
+);
+const WebSocketDashboard = lazy(() =>
+  import("@/pages/websocket-dashboard").then((m) => ({
+    default: m.WebSocketDashboard,
+  })),
+);
+const SettingsPage = lazy(() =>
+  import("@/pages/settings").then((m) => ({ default: m.SettingsPage })),
+);
+const ServerReplayPage = lazy(() =>
+  import("@/pages/server-replay").then((m) => ({
+    default: m.ServerReplayPage,
+  })),
+);
+const ScriptPage = lazy(() => import("@/pages/script").then((m) => ({ default: m.ScriptPage })));
+const BreakpointPage = lazy(() =>
+  import("@/pages/breakpoint").then((m) => ({ default: m.BreakpointPage })),
+);
+const HostMappingPage = lazy(() =>
+  import("@/pages/host-mapping").then((m) => ({
+    default: m.HostMappingPage,
+  })),
+);
 
 function RootLayout() {
   return (
     <div className="flex h-[100vh] w-full">
       <AppSidebar />
-      <Outlet />
+      <Suspense>
+        <Outlet />
+      </Suspense>
     </div>
   );
 }
