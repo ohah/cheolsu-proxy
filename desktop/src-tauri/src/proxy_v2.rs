@@ -62,7 +62,7 @@ pub async fn start_proxy_v2<R: Runtime>(
 
     // app.emit()을 tokio worker가 아닌 전용 OS 스레드에서 호출하여
     // macOS WebKit의 메인 스레드 dispatch로 인한 데드락을 방지
-    let (event_tx, mut event_rx) = tokio::sync::mpsc::unbounded_channel::<DaemonMessage>();
+    let (event_tx, mut event_rx) = tokio::sync::mpsc::channel::<DaemonMessage>(2048);
 
     let app_emitter = app.clone();
     std::thread::Builder::new()
@@ -131,7 +131,9 @@ pub async fn start_proxy_v2<R: Runtime>(
         .expect("event-emitter 스레드 생성 실패");
 
     let conn = match proxy_daemon::ensure_daemon(port, &host, move |msg| {
-        let _ = event_tx.send(msg);
+        if let Err(e) = event_tx.try_send(msg) {
+            eprintln!("이벤트 채널 전송 실패 (백프레셔): {}", e);
+        }
     })
     .await
     {
