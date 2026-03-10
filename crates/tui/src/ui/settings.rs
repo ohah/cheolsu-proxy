@@ -1132,8 +1132,10 @@ fn draw_client_certificate(f: &mut Frame, app: &App, area: Rect) {
 }
 
 fn draw_keybindings(f: &mut Frame, app: &App, area: Rect) {
-    let editing =
-        app.upstream_form.editing || app.throttle_form.editing || app.proxy_auth_form.editing || app.client_cert_form.editing;
+    let editing = app.upstream_form.editing
+        || app.throttle_form.editing
+        || app.proxy_auth_form.editing
+        || app.client_cert_form.editing;
     let in_host_mapping_form = app.host_mapping_form.is_some();
     let in_ssl_proxying_form = app.ssl_proxying_add_form.is_some();
 

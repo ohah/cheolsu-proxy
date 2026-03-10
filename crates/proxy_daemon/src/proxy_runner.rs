@@ -146,6 +146,17 @@ pub async fn run_proxy(
         create_hybrid_client_with_cert(upstream_rx, initial_client_cert.as_ref())
             .map_err(|e| DaemonError::Proxy(format!("Client creation failed: {}", e)))?;
 
+    // 클라이언트 인증서 변경 감시 - 현재는 런타임 변경 시 경고만 출력
+    // rustls ClientConfig는 빌드 시 고정되므로 인증서 변경 시 프록시 재시작 필요
+    tokio::spawn(async move {
+        let mut cert_rx = client_cert_rx;
+        while cert_rx.changed().await.is_ok() {
+            tracing::warn!(
+                "클라이언트 인증서 설정이 변경되었습니다. 변경 사항을 적용하려면 프록시를 재시작해야 합니다."
+            );
+        }
+    });
+
     let listener = TcpListener::bind(addr)
         .await
         .map_err(|e| DaemonError::Proxy(format!("Port {} bind failed: {}", addr.port(), e)))?;
