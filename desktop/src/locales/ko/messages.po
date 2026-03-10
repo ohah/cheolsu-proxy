@@ -325,7 +325,7 @@ msgstr "요청 작성"
 #: src/features/transaction-details/ui/replay-dialog.tsx:364
 msgid "Compose Request"
 msgstr "요청 작성"
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:185
+
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:183
 msgid "Concurrency"
 msgstr "동시 요청 수"
@@ -542,19 +542,19 @@ msgstr ""
 msgid "Go to <0>Settings → Security → Encryption & credentials</0>"
 msgstr ""
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:110
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:112
 msgid "HAR export failed"
 msgstr ""
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:107
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:109
 msgid "HAR exported successfully"
 msgstr ""
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:199
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:201
 msgid "HAR import failed"
 msgstr ""
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:196
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:198
 msgid "HAR imported successfully"
 msgstr ""
 
@@ -689,7 +689,7 @@ msgstr "프록시 스크립트 로드 및 관리"
 msgid "Load Session"
 msgstr ""
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:145
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:147
 msgid "Load transactions"
 msgstr ""
 
@@ -893,12 +893,6 @@ msgstr "리플레이할 유효한 요청이 없습니다"
 msgid "Not Trusted"
 msgstr "신뢰되지 않음"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:311
-msgid "Only http:// and https:// URLs are allowed"
-msgstr "http:// 및 https:// URL만 허용됩니다"
-
-#: src/pages/settings/ui/settings-page.tsx:767
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:195
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:193
 msgid "Number of simultaneous requests (1-100)"
 msgstr "동시에 전송할 요청 수 (1-100)"
@@ -907,7 +901,11 @@ msgstr "동시에 전송할 요청 수 (1-100)"
 msgid "Number of times to send the request (1-10000)"
 msgstr "요청을 전송할 횟수 (1-10000)"
 
-#: src/pages/settings/ui/settings-page.tsx:720
+#: src/features/transaction-details/ui/replay-dialog.tsx:311
+msgid "Only http:// and https:// URLs are allowed"
+msgstr "http:// 및 https:// URL만 허용됩니다"
+
+#: src/pages/settings/ui/settings-page.tsx:767
 msgid "Open <0>{CERT_DOWNLOAD_URL}</0> in Chrome"
 msgstr ""
 
@@ -974,12 +972,11 @@ msgstr ""
 msgid "Pending Breakpoints"
 msgstr ""
 
-#: src/pages/settings/ui/settings-page.tsx:1107
 #: src/widgets/network-table/ui/table-row.tsx:118
 msgid "Pin to Top"
 msgstr "상단에 고정"
 
-#: src/pages/settings/ui/settings-page.tsx:1018
+#: src/pages/settings/ui/settings-page.tsx:1107
 msgid "Port"
 msgstr "포트"
 
@@ -1003,13 +1000,11 @@ msgstr "조건부 헤더를 제거하고 no-cache 지시어를 추가하여 캐�
 msgid "Profile"
 msgstr "프로파일"
 
-#: src/pages/settings/ui/settings-page.tsx:812
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:227
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:225
 msgid "Progress"
 msgstr "진행률"
 
-#: src/pages/settings/ui/settings-page.tsx:765
+#: src/pages/settings/ui/settings-page.tsx:812
 msgid "Proxy Address"
 msgstr "프록시 주소"
 
@@ -1084,7 +1079,7 @@ msgstr "헤더 삭제"
 
 #. placeholder {0}: transactions.length
 #. placeholder {1}: loaded.length
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:144
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:146
 msgid "Replace {0} existing transactions with {1} new ones? Cancel to append instead."
 msgstr ""
 
@@ -1138,12 +1133,11 @@ msgstr "요청 실패"
 msgid "Request Header"
 msgstr "요청 헤더"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:391
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:322
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:320
 msgid "Requests/sec"
 msgstr "초당 요청 수"
 
+#: src/features/transaction-details/ui/replay-dialog.tsx:391
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:264
 msgid "Response"
 msgstr "응답"
@@ -1168,13 +1162,11 @@ msgstr "응답 헤더"
 msgid "Response Status Code"
 msgstr "응답 상태 코드"
 
-#: src/widgets/network-header/ui/network-controls.tsx:39
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:285
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:283
 msgid "Response Time"
 msgstr "응답 시간"
 
-#: src/widgets/network-header/ui/network-controls.tsx:37
+#: src/widgets/network-header/ui/network-controls.tsx:39
 msgid "Resume recording"
 msgstr "기록 재개"
 
@@ -1230,17 +1222,13 @@ msgstr "규칙"
 msgid "Run"
 msgstr "실행"
 
-#: src/pages/settings/ui/settings-page.tsx:923
-#: src/pages/settings/ui/settings-page.tsx:1020
-#: src/pages/settings/ui/settings-page.tsx:1170
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:370
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:368
 msgid "Running..."
 msgstr "실행 중..."
 
-#: src/pages/settings/ui/settings-page.tsx:876
-#: src/pages/settings/ui/settings-page.tsx:973
-#: src/pages/settings/ui/settings-page.tsx:1081
+#: src/pages/settings/ui/settings-page.tsx:923
+#: src/pages/settings/ui/settings-page.tsx:1020
+#: src/pages/settings/ui/settings-page.tsx:1170
 msgid "Save"
 msgstr "저장"
 
@@ -1356,19 +1344,19 @@ msgstr "시퀀스 리플레이 실패"
 msgid "Server Replay"
 msgstr "서버 리플레이"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:176
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:178
 msgid "Session load failed"
 msgstr ""
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:173
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:175
 msgid "Session loaded successfully"
 msgstr ""
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:134
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:136
 msgid "Session save failed"
 msgstr ""
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:131
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:133
 msgid "Session saved successfully"
 msgstr ""
 
@@ -1416,15 +1404,12 @@ msgstr ""
 msgid "Source Port"
 msgstr ""
 
-#: src/pages/settings/ui/settings-page.tsx:571
-#: src/pages/settings/ui/settings-page.tsx:595
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:364
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:362
 msgid "Start"
 msgstr "시작"
 
-#: src/pages/settings/ui/settings-page.tsx:524
-#: src/pages/settings/ui/settings-page.tsx:548
+#: src/pages/settings/ui/settings-page.tsx:571
+#: src/pages/settings/ui/settings-page.tsx:595
 msgid "Start proxy first"
 msgstr "프록시를 먼저 실행하세요"
 
@@ -1443,13 +1428,11 @@ msgstr "상태"
 msgid "Status Code"
 msgstr "상태 코드"
 
-#: src/pages/settings/ui/settings-page.tsx:528
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:337
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:335
 msgid "Status Code Distribution"
 msgstr "상태 코드 분포"
 
-#: src/pages/settings/ui/settings-page.tsx:481
+#: src/pages/settings/ui/settings-page.tsx:528
 msgid "System"
 msgstr "시스템"
 
@@ -1519,13 +1502,11 @@ msgstr "글로벌 키보드 단축키로 프록시 켜기/끄기"
 msgid "Total {0}ms"
 msgstr "총 {0}ms"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:364
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:316
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:314
 msgid "Total Time"
 msgstr "총 시간"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:310
+#: src/features/transaction-details/ui/replay-dialog.tsx:364
 msgid "Traffic Replay"
 msgstr "트래픽 리플레이"
 
@@ -1557,12 +1538,11 @@ msgstr "무제한"
 msgid "Unload"
 msgstr "언로드"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:470
 #: src/widgets/network-table/ui/table-row.tsx:118
 msgid "Unpin from Top"
 msgstr "상단 고정 해제"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:387
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:470
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:348
 msgid "Update"
 msgstr "수정"
