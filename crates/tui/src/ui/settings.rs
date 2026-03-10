@@ -3,7 +3,7 @@ use ratatui::prelude::*;
 use ratatui::widgets::*;
 
 use crate::app::{
-    App, HostMappingField, QuickSettingsField, SettingsSection, ThrottleField,
+    App, HostMappingField, QuickSettingsField, SettingsSection, SslProxyingAddForm, ThrottleField,
     ThrottlePresetChoice, UpstreamProxyField,
 };
 
@@ -53,6 +53,7 @@ pub fn draw(f: &mut Frame, app: &App, area: Rect) {
         SettingsSection::Throttle => draw_throttle(f, app, chunks[4]),
         SettingsSection::HostMapping => draw_host_mapping(f, app, chunks[4]),
         SettingsSection::QuickSettings => draw_quick_settings(f, app, chunks[4]),
+        SettingsSection::SslProxying => draw_ssl_proxying(f, app, chunks[4]),
     }
     draw_keybindings(f, app, chunks[5]);
 }
@@ -102,6 +103,17 @@ fn draw_section_tabs(f: &mut Frame, app: &App, area: Rect) {
                 )
             } else {
                 Span::styled(" ○ Quick Settings ", Style::default().fg(Color::DarkGray))
+            },
+            Span::raw("  "),
+            if app.settings_section == SettingsSection::SslProxying {
+                Span::styled(
+                    " ● SSL Proxying ",
+                    Style::default()
+                        .fg(Color::Cyan)
+                        .add_modifier(Modifier::BOLD),
+                )
+            } else {
+                Span::styled(" ○ SSL Proxying ", Style::default().fg(Color::DarkGray))
             },
         ]),
         Line::from(Span::styled(
@@ -831,11 +843,179 @@ fn draw_quick_settings(f: &mut Frame, app: &App, area: Rect) {
     f.render_widget(paragraph, area);
 }
 
+fn draw_ssl_proxying(f: &mut Frame, app: &App, area: Rect) {
+    // If add form is open, draw form instead
+    if let Some(form) = &app.ssl_proxying_add_form {
+        draw_ssl_proxying_add_form(f, form, area);
+        return;
+    }
+
+    let entries = &app.ssl_proxying_entries;
+
+    if entries.is_empty() {
+        let lines = vec![
+            Line::from(""),
+            Line::from(Span::styled(
+                "  No SSL Proxying patterns configured",
+                Style::default().fg(Color::DarkGray),
+            )),
+            Line::from(Span::styled(
+                "  All HTTPS traffic will be intercepted (MITM)",
+                Style::default().fg(Color::DarkGray),
+            )),
+            Line::from(""),
+            Line::from(Span::styled(
+                "  Press 'a' to add a domain pattern",
+                Style::default().fg(Color::DarkGray),
+            )),
+            Line::from(Span::styled(
+                "  Examples: *.example.com, api.io:8443",
+                Style::default().fg(Color::DarkGray),
+            )),
+        ];
+
+        let block = Block::default()
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(Color::Gray))
+            .title(format!(
+                " SSL Proxying Whitelist [{} entries] ",
+                entries.len()
+            ));
+
+        let paragraph = Paragraph::new(lines).block(block);
+        f.render_widget(paragraph, area);
+        return;
+    }
+
+    let rows: Vec<Row> = entries
+        .iter()
+        .enumerate()
+        .map(|(i, entry)| {
+            let is_selected = app.selected_ssl_proxying == Some(i);
+            let style = if !entry.enabled {
+                Style::default().fg(Color::DarkGray)
+            } else if is_selected {
+                Style::default()
+                    .fg(Color::Cyan)
+                    .add_modifier(Modifier::BOLD)
+            } else {
+                Style::default().fg(Color::White)
+            };
+
+            let status = if entry.enabled { "ON" } else { "OFF" };
+            Row::new(vec![entry.pattern.clone(), status.to_string()]).style(style)
+        })
+        .collect();
+
+    let widths = [Constraint::Percentage(80), Constraint::Length(5)];
+
+    let header = Row::new(vec!["Pattern", "State"])
+        .style(
+            Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD),
+        )
+        .bottom_margin(0);
+
+    let enabled_count = entries.iter().filter(|e| e.enabled).count();
+    let title = if enabled_count > 0 {
+        format!(
+            " SSL Proxying Whitelist [{}/{} active] ",
+            enabled_count,
+            entries.len()
+        )
+    } else {
+        format!(
+            " SSL Proxying Whitelist [{} entries, all disabled] ",
+            entries.len()
+        )
+    };
+
+    let table = Table::new(rows, widths)
+        .header(header)
+        .row_highlight_style(
+            Style::default()
+                .bg(Color::Rgb(40, 40, 60))
+                .add_modifier(Modifier::BOLD),
+        )
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .border_style(Style::default().fg(Color::Blue))
+                .title(title),
+        );
+
+    let mut table_state = app.ssl_proxying_table_state.clone();
+    f.render_stateful_widget(table, area, &mut table_state);
+}
+
+fn draw_ssl_proxying_add_form(f: &mut Frame, form: &SslProxyingAddForm, area: Rect) {
+    let lines = vec![
+        Line::from(""),
+        Line::from(vec![
+            Span::styled("▶ ", Style::default().fg(Color::Cyan)),
+            Span::styled(
+                "  Pattern        ",
+                Style::default()
+                    .fg(Color::Cyan)
+                    .add_modifier(Modifier::BOLD),
+            ),
+            Span::styled(
+                format!("{}█", form.pattern),
+                Style::default().fg(Color::White).bg(Color::Rgb(50, 50, 50)),
+            ),
+        ]),
+        Line::from(""),
+        Line::from(Span::styled(
+            "  Supported formats:",
+            Style::default().fg(Color::DarkGray),
+        )),
+        Line::from(Span::styled(
+            "    example.com          Exact domain (any port)",
+            Style::default().fg(Color::DarkGray),
+        )),
+        Line::from(Span::styled(
+            "    *.example.com        Wildcard subdomains",
+            Style::default().fg(Color::DarkGray),
+        )),
+        Line::from(Span::styled(
+            "    example.com:8443     Domain with specific port",
+            Style::default().fg(Color::DarkGray),
+        )),
+        Line::from(Span::styled(
+            "    *.example.com:443    Wildcard with port",
+            Style::default().fg(Color::DarkGray),
+        )),
+    ];
+
+    let block = Block::default()
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(Color::Cyan))
+        .title(" Add SSL Proxying Pattern (Enter: save, Esc: cancel) ");
+
+    let paragraph = Paragraph::new(lines).block(block);
+    f.render_widget(paragraph, area);
+}
+
 fn draw_keybindings(f: &mut Frame, app: &App, area: Rect) {
     let editing = app.upstream_form.editing || app.throttle_form.editing;
     let in_host_mapping_form = app.host_mapping_form.is_some();
+    let in_ssl_proxying_form = app.ssl_proxying_add_form.is_some();
 
-    let help_lines = if in_host_mapping_form {
+    let help_lines = if in_ssl_proxying_form {
+        vec![
+            Line::from(Span::styled(
+                "Add SSL Proxying Pattern",
+                Style::default()
+                    .fg(Color::Yellow)
+                    .add_modifier(Modifier::BOLD),
+            )),
+            Line::from(""),
+            Line::from("  Enter              Save entry"),
+            Line::from("  Esc                Cancel"),
+            Line::from("  Type               Input pattern (e.g. *.example.com)"),
+        ]
+    } else if in_host_mapping_form {
         vec![
             Line::from(Span::styled(
                 "Add Host Mapping",
@@ -848,6 +1028,21 @@ fn draw_keybindings(f: &mut Frame, app: &App, area: Rect) {
             Line::from("  Enter              Save mapping"),
             Line::from("  Esc                Cancel"),
             Line::from("  Type               Input text"),
+        ]
+    } else if app.settings_section == SettingsSection::SslProxying && !editing {
+        vec![
+            Line::from(Span::styled(
+                "SSL Proxying Whitelist",
+                Style::default()
+                    .fg(Color::Yellow)
+                    .add_modifier(Modifier::BOLD),
+            )),
+            Line::from(""),
+            Line::from("  j / k / ↑ / ↓      Navigate entries"),
+            Line::from("  a                  Add pattern"),
+            Line::from("  d / Delete         Delete pattern"),
+            Line::from("  t                  Toggle enabled/disabled"),
+            Line::from("  h / l              Switch section"),
         ]
     } else if app.settings_section == SettingsSection::HostMapping && !editing {
         vec![
