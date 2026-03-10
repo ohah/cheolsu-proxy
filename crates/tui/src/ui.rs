@@ -1,4 +1,5 @@
 mod breakpoint;
+mod logs;
 mod network;
 mod rules;
 mod script;
@@ -78,6 +79,7 @@ fn draw_content(f: &mut Frame, app: &mut App, area: Rect) {
         Tab::Script => script::draw(f, app, area),
         Tab::Breakpoint => breakpoint::draw(f, app, area),
         Tab::Settings => settings::draw(f, app, area),
+        Tab::Logs => logs::draw(f, app, area),
     }
 }
 
@@ -100,6 +102,7 @@ fn draw_status_bar(f: &mut Frame, app: &App, area: Rect) {
         Tab::Script => "  l: load | u: unload | r: reload | c: clear | j/k: scroll",
         Tab::Breakpoint => "  a: add | t: toggle | d: del | f: fwd | x: drop | b: abort",
         Tab::Settings => "  j/k: nav | Enter/Space: toggle/edit | Esc: cancel",
+        Tab::Logs => "  j/k: scroll | h/l: file | /: filter | r: refresh | C: clear",
     };
     let help = Span::styled(
         format!("  Tab: switch | q: quit{}", tab_help),
