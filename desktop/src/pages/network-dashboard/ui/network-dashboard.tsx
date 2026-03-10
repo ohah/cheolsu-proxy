@@ -4,7 +4,11 @@ import { invoke } from "@tauri-apps/api/core";
 import { toast } from "sonner";
 import { useLingui } from "@lingui/react/macro";
 
-import { TransactionDetails, SequenceReplayDialog, ReplayDialog } from "@/features/transaction-details";
+import {
+  TransactionDetails,
+  SequenceReplayDialog,
+  ReplayDialog,
+} from "@/features/transaction-details";
 import { buildHarLog } from "@/features/har-export";
 import { QueryFilterEditor } from "@/features/query-filter-editor";
 import { RuleFormDialog } from "@/features/intercept-rule-form";
