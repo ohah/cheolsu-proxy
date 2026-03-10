@@ -96,7 +96,7 @@ msgstr "Add from Traffic"
 msgid "Add Headers"
 msgstr "Add Headers"
 
-#: src/widgets/network-table/ui/table-row.tsx:135
+#: src/widgets/network-table/ui/table-row.tsx:164
 msgid "Add Intercept Rule"
 msgstr "Add Intercept Rule"
 
@@ -148,7 +148,7 @@ msgid "Added to server replay"
 msgstr "Added to server replay"
 
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:149
-#: src/widgets/network-table/ui/table-row.tsx:126
+#: src/widgets/network-table/ui/table-row.tsx:155
 msgid "Advanced Repeat"
 msgstr "Advanced Repeat"
 
@@ -352,9 +352,9 @@ msgstr "Console"
 msgid "Copied!"
 msgstr "Copied!"
 
-#: src/widgets/network-table/ui/table-row.tsx:122
-msgid "Copy Curl Command"
-msgstr "Copy Curl Command"
+#: src/widgets/network-table/ui/table-row.tsx:134
+msgid "Copy as..."
+msgstr "Copy as..."
 
 #: src/shared/app-sidebar/ui/sidebar-mcp.tsx:112
 #: src/shared/app-sidebar/ui/sidebar-mcp.tsx:138
@@ -364,6 +364,10 @@ msgstr "Copy to clipboard"
 #: src/pages/settings/ui/settings-page.tsx:666
 msgid "Copy URL"
 msgstr "Copy URL"
+
+#: src/widgets/network-table/ui/table-row.tsx:138
+msgid "cURL"
+msgstr "cURL"
 
 #: src/features/transaction-details/ui/transaction-header.tsx:31
 msgid "Curl command copied to clipboard"
@@ -395,7 +399,7 @@ msgstr "Delete mapping"
 msgid "Delete rule"
 msgstr "Delete rule"
 
-#: src/widgets/network-table/ui/table-row.tsx:130
+#: src/widgets/network-table/ui/table-row.tsx:159
 msgid "Delete Transaction"
 msgstr "Delete Transaction"
 
@@ -605,6 +609,10 @@ msgstr "Host Tree"
 msgid "HTTP requests and responses"
 msgstr "HTTP requests and responses"
 
+#: src/widgets/network-table/ui/table-row.tsx:144
+msgid "HTTPie"
+msgstr "HTTPie"
+
 #: src/widgets/network-header/ui/network-controls.tsx:87
 msgid "Import HAR"
 msgstr "Import HAR"
@@ -656,6 +664,10 @@ msgstr "Intercept Rules"
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:166
 msgid "Iterations"
 msgstr "Iterations"
+
+#: src/widgets/network-table/ui/table-row.tsx:141
+msgid "JavaScript Fetch"
+msgstr "JavaScript Fetch"
 
 #: src/shared/app-sidebar/ui/sidebar-mcp.tsx:125
 msgid "JSON Configuration"
@@ -976,7 +988,7 @@ msgstr "pending"
 msgid "Pending Breakpoints"
 msgstr "Pending Breakpoints"
 
-#: src/widgets/network-table/ui/table-row.tsx:118
+#: src/widgets/network-table/ui/table-row.tsx:129
 msgid "Pin to Top"
 msgstr "Pin to Top"
 
@@ -1023,6 +1035,10 @@ msgstr "Proxy settings and configuration"
 #: src/pages/settings/ui/settings-page.tsx:1100
 msgid "proxy.company.com"
 msgstr "proxy.company.com"
+
+#: src/widgets/network-table/ui/table-row.tsx:149
+msgid "Python Requests"
+msgstr "Python Requests"
 
 #: src/features/query-filter-editor/ui/filter-help-tooltip.tsx:28
 msgid "Query Syntax Guide"
@@ -1546,7 +1562,7 @@ msgstr "Unlimited"
 msgid "Unload"
 msgstr "Unload"
 
-#: src/widgets/network-table/ui/table-row.tsx:118
+#: src/widgets/network-table/ui/table-row.tsx:129
 msgid "Unpin from Top"
 msgstr "Unpin from Top"
 
