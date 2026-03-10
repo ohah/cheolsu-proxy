@@ -55,6 +55,79 @@ pub fn run() {
         //     builder = builder.plugin(devtools);
         // }
 
+        // macOS: WKURLSchemeHandler의 내부 mutex 데드락을 방지하기 위해
+        // custom protocol(ipc://) 대신 postMessage(WKScriptMessageHandler)만 사용하도록 강제.
+        // WRY의 url_scheme_handler가 WebKit API(didReceiveData 등)를 호출할 때
+        // callOnMainRunLoopAndWait로 메인 스레드에 동기 디스패치하는데,
+        // 메인 스레드가 다른 URL scheme task를 처리 중이면 순환 대기가 발생한다.
+        // postMessage 경로는 이 mutex를 전혀 거치지 않으므로 데드락이 발생하지 않는다.
+        #[cfg(target_os = "macos")]
+        {
+            builder = builder.invoke_system(
+                r#"
+;(function () {
+  const __TAURI_INVOKE_KEY__ = __INVOKE_KEY__
+
+  const processIpcMessage = (function (message) {
+    if (
+      message instanceof ArrayBuffer
+      || ArrayBuffer.isView(message)
+      || Array.isArray(message)
+    ) {
+      return {
+        contentType: 'application/octet-stream',
+        data: message
+      }
+    } else {
+      const data = JSON.stringify(message, (_k, val) => {
+        const SERIALIZE_TO_IPC_FN = '__TAURI_TO_IPC_KEY__'
+        if (val instanceof Map) {
+          return Object.fromEntries(val.entries())
+        } else if (val instanceof Uint8Array) {
+          return Array.from(val)
+        } else if (val instanceof ArrayBuffer) {
+          return Array.from(new Uint8Array(val))
+        } else if (
+          typeof val === 'object'
+          && val !== null
+          && SERIALIZE_TO_IPC_FN in val
+        ) {
+          return val[SERIALIZE_TO_IPC_FN]()
+        } else {
+          return val
+        }
+      })
+      return {
+        contentType: 'application/json',
+        data
+      }
+    }
+  })
+
+  function sendIpcMessage(message) {
+    const { cmd, callback, error, payload, options } = message
+    const { data } = processIpcMessage({
+      cmd,
+      callback,
+      error,
+      options: {
+        ...options,
+        customProtocolIpcBlocked: true
+      },
+      payload,
+      __TAURI_INVOKE_KEY__
+    })
+    window.ipc.postMessage(data)
+  }
+
+  Object.defineProperty(window.__TAURI_INTERNALS__, 'postMessage', {
+    value: sendIpcMessage
+  })
+})()
+"#,
+            );
+        }
+
         builder
             .setup(|app_handle| {
                 // proxyapi_v2 프록시 상태
