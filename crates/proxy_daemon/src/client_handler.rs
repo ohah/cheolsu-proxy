@@ -247,15 +247,17 @@ pub async fn handle_client(
                     Ok(ClientCommand::UpdateQuickSettings {
                         no_caching,
                         block_cookies,
+                        no_gzip,
                     }) => {
                         info!(
-                            "Quick settings updated: no_caching={}, block_cookies={}",
-                            no_caching, block_cookies
+                            "Quick settings updated: no_caching={}, block_cookies={}, no_gzip={}",
+                            no_caching, block_cookies, no_gzip
                         );
                         {
                             let mut settings = quick_settings.write().await;
                             settings.no_caching = no_caching;
                             settings.block_cookies = block_cookies;
+                            settings.no_gzip = no_gzip;
                         }
                     }
                     Ok(ClientCommand::UpdateServerReplay { entries }) => {

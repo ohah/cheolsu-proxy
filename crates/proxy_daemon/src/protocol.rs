@@ -121,11 +121,13 @@ pub enum ClientCommand {
     LoadSession { path: String },
     #[serde(rename = "update_host_mappings")]
     UpdateHostMappings { mappings: Vec<HostMapping> },
-    /// 빠른 설정 업데이트 (No Caching, Block Cookies)
+    /// 빠른 설정 업데이트 (No Caching, Block Cookies, No Gzip)
     #[serde(rename = "update_quick_settings")]
     UpdateQuickSettings {
         no_caching: bool,
         block_cookies: bool,
+        #[serde(default)]
+        no_gzip: bool,
     },
     /// SSL Proxying 화이트리스트 업데이트
     #[serde(rename = "update_ssl_proxying_list")]
