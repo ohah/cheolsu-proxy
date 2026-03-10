@@ -32,11 +32,7 @@ export const NetworkControls = ({
     <div className="flex items-center gap-2">
       <Tooltip>
         <TooltipTrigger render={<div />}>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={onTogglePause}
-          >
+          <Button size="sm" variant="outline" onClick={onTogglePause}>
             {paused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
           </Button>
         </TooltipTrigger>
@@ -47,11 +43,7 @@ export const NetworkControls = ({
 
       <Tooltip>
         <TooltipTrigger render={<div />}>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={onClearTransactions}
-          >
+          <Button size="sm" variant="outline" onClick={onClearTransactions}>
             <Trash2 className="w-4 h-4" />
           </Button>
         </TooltipTrigger>

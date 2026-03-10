@@ -3,7 +3,15 @@ import { Trans } from "@lingui/react/macro";
 
 import type { HttpTransaction } from "@/entities/proxy";
 
-import { Button, Card, CardContent, CardHeader, Tooltip, TooltipTrigger, TooltipContent } from "@/shared/ui";
+import {
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/shared/ui";
 import { toast } from "sonner";
 
 interface TransactionHeadersProps {

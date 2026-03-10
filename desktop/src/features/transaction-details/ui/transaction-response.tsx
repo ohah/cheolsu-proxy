@@ -4,7 +4,15 @@ import { useTheme } from "next-themes";
 
 import type { HttpTransaction } from "@/entities/proxy";
 
-import { Button, Card, CardContent, CardHeader, Tooltip, TooltipTrigger, TooltipContent } from "@/shared/ui";
+import {
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/shared/ui";
 import { Editor } from "@monaco-editor/react";
 
 import { getBodyForDisplay, createImageDataUrl, extractBinaryFileInfo } from "../lib/utils";
