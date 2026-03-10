@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { LazyStore } from "@tauri-apps/plugin-store";
+import { listen, emit } from "@tauri-apps/api/event";
 import {
   Circle,
   Power,
@@ -18,7 +18,10 @@ interface TrayInfo {
   port: number;
 }
 
-const trayStore = new LazyStore("tray-sync.json");
+interface TraySyncPayload {
+  transactionCount?: number;
+  proxyConnected?: boolean;
+}
 
 export function TrayPanel() {
   const [info, setInfo] = useState<TrayInfo | null>(null);
@@ -36,48 +39,32 @@ export function TrayPanel() {
     }
   }, []);
 
-  // Tauri Store에서 메인 윈도우 상태 읽기
-  const syncFromStore = useCallback(async () => {
-    try {
-      const count = await trayStore.get<number>("transactionCount");
-      if (count !== null && count !== undefined) setTransactionCount(count);
-    } catch {
-      // 스토어가 아직 초기화 안 된 경우 무시
-    }
-  }, []);
-
   useEffect(() => {
+    // 초기 로드 시 한 번만 조회
     fetchInfo();
-    syncFromStore();
 
-    const interval = setInterval(() => {
-      fetchInfo();
-      syncFromStore();
-    }, 1500);
-
-    // Store 변경 감지 (메인 윈도우에서 값 변경 시 즉시 반영)
-    const unlistenPromise = trayStore.onChange<boolean | number>((key, value) => {
-      if (key === "transactionCount" && typeof value === "number") setTransactionCount(value);
+    // 메인 윈도우에서 보내는 상태 변경 이벤트 수신
+    const unlistenSync = listen<TraySyncPayload>("tray_sync", (event) => {
+      const { transactionCount: count, proxyConnected } = event.payload;
+      if (count !== undefined) setTransactionCount(count);
+      if (proxyConnected !== undefined) setProxyOn(proxyConnected);
     });
 
     return () => {
-      clearInterval(interval);
-      unlistenPromise.then((f) => f());
+      unlistenSync.then((f) => f());
     };
-  }, [fetchInfo, syncFromStore]);
+  }, [fetchInfo]);
 
   const handleToggleProxy = async () => {
     try {
       if (proxyOn) {
         await invoke("stop_proxy_v2");
         setProxyOn(false);
-        await trayStore.set("proxyConnected", false);
-        await trayStore.save();
+        await emit("tray_action", { type: "proxyConnected", value: false });
       } else {
         await invoke("start_proxy_v2", { addr: `127.0.0.1:${info?.port ?? 8100}` });
         setProxyOn(true);
-        await trayStore.set("proxyConnected", true);
-        await trayStore.save();
+        await emit("tray_action", { type: "proxyConnected", value: true });
       }
       fetchInfo();
     } catch (e) {
@@ -87,8 +74,7 @@ export function TrayPanel() {
 
   const handleClearSession = async () => {
     setTransactionCount(0);
-    await trayStore.set("clearSession", Date.now());
-    await trayStore.save();
+    await emit("tray_action", { type: "clearSession" });
   };
 
   const handleCleanCache = async () => {
