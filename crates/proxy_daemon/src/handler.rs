@@ -1378,14 +1378,16 @@ mod tests {
             resp.headers().get("Content-Type").unwrap(),
             "application/x-x509-ca-cert"
         );
-        assert_eq!(resp.headers().get("Content-Length").unwrap(), "4");
+        // /ssl without User-Agent returns PEM (.crt) format, not raw DER
+        // 4 DER bytes → PEM base64 wrapping = 63 bytes
+        assert_eq!(resp.headers().get("Content-Length").unwrap(), "63");
         assert!(resp
             .headers()
             .get("Content-Disposition")
             .unwrap()
             .to_str()
             .unwrap()
-            .contains("cheolsu-proxy-ca.cer"));
+            .contains("cheolsu-proxy-ca.crt"));
     }
 
     #[test]
