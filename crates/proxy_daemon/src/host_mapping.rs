@@ -9,7 +9,7 @@ impl LoggingHandler {
         host: &str,
         port: Option<u16>,
     ) -> Option<(String, Option<u16>)> {
-        let mappings = self.intercept.host_mappings.lock().await;
+        let mappings = self.intercept.host_mappings.read().await;
         for mapping in mappings.iter() {
             if !mapping.enabled {
                 continue;
@@ -381,7 +381,7 @@ mod tests {
     async fn test_resolve_disabled_mapping_ignored() {
         let handler = create_test_handler().await;
         {
-            let mut mappings = handler.intercept.host_mappings.lock().await;
+            let mut mappings = handler.intercept.host_mappings.write().await;
             mappings.push(make_mapping(
                 "hm_1",
                 "api.example.com",
@@ -399,7 +399,7 @@ mod tests {
     async fn test_resolve_source_port_matching() {
         let handler = create_test_handler().await;
         {
-            let mut mappings = handler.intercept.host_mappings.lock().await;
+            let mut mappings = handler.intercept.host_mappings.write().await;
             mappings.push(make_mapping(
                 "hm_1",
                 "api.example.com",
@@ -431,7 +431,7 @@ mod tests {
     async fn test_resolve_no_source_port_matches_any() {
         let handler = create_test_handler().await;
         {
-            let mut mappings = handler.intercept.host_mappings.lock().await;
+            let mut mappings = handler.intercept.host_mappings.write().await;
             mappings.push(make_mapping(
                 "hm_1",
                 "api.example.com",
@@ -458,7 +458,7 @@ mod tests {
     async fn test_resolve_first_matching_rule_wins() {
         let handler = create_test_handler().await;
         {
-            let mut mappings = handler.intercept.host_mappings.lock().await;
+            let mut mappings = handler.intercept.host_mappings.write().await;
             mappings.push(make_mapping(
                 "hm_1",
                 "*.example.com",
@@ -547,7 +547,7 @@ mod tests {
     async fn create_test_handler() -> LoggingHandler {
         use crate::handler::{InterceptEngine, WebSocketState};
         use std::sync::Arc;
-        use tokio::sync::Mutex;
+        use tokio::sync::RwLock;
 
         let (sender, _rx) = tokio::sync::mpsc::channel(1);
         LoggingHandler {
@@ -565,11 +565,11 @@ mod tests {
                 proxy_auth: Arc::new(parking_lot::RwLock::new(None)),
             },
             intercept: InterceptEngine {
-                intercept_rules: Arc::new(Mutex::new(Vec::new())),
-                server_replay_entries: Arc::new(Mutex::new(Vec::new())),
-                host_mappings: Arc::new(Mutex::new(Vec::new())),
+                intercept_rules: Arc::new(RwLock::new(Vec::new())),
+                server_replay_entries: Arc::new(RwLock::new(Vec::new())),
+                host_mappings: Arc::new(RwLock::new(Vec::new())),
                 script_handle: scripting::ScriptHandle::new(),
-                ssl_proxying_entries: Arc::new(Mutex::new(Vec::new())),
+                ssl_proxying_entries: Arc::new(RwLock::new(Vec::new())),
             },
             ws: WebSocketState {
                 ws_sender: None,
