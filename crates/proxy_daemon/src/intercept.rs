@@ -59,7 +59,7 @@ impl LoggingHandler {
         url: &str,
         method: &str,
     ) -> Option<ServerReplayEntry> {
-        let entries = self.intercept.server_replay_entries.lock().await;
+        let entries = self.intercept.server_replay_entries.read().await;
         entries
             .iter()
             .find(|entry| entry.method.eq_ignore_ascii_case(method) && entry.url == url)
@@ -111,7 +111,7 @@ impl LoggingHandler {
         url: &str,
         method: &str,
     ) -> Vec<InterceptRule> {
-        let rules_guard = self.intercept.intercept_rules.lock().await;
+        let rules_guard = self.intercept.intercept_rules.read().await;
         rules_guard
             .iter()
             .filter(|rule| Self::rule_matches(rule, url, method))
