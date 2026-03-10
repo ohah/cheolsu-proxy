@@ -1110,7 +1110,7 @@ msgstr "Reload"
 msgid "Remote Device Certificate"
 msgstr "Remote Device Certificate"
 
-#: src/pages/settings/ui/settings-page.tsx:1303
+#: src/pages/settings/ui/settings-page.tsx:1306
 msgid "Remove"
 msgstr "Remove"
 
