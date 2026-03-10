@@ -5,7 +5,7 @@ import {
 } from "@/entities/proxy/model/data-type";
 import type { DataType } from "@/entities/proxy/model/data-type";
 import { readFile, BaseDirectory } from "@tauri-apps/plugin-fs";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 
 interface MediaPreviewProps {
   data?: Uint8Array; // 파일 경로가 있으면 선택적
@@ -224,6 +224,17 @@ function getMimeTypeFromExtension(extension: string): string {
   }
 }
 
+// Uint8Array를 base64 문자열로 변환
+function uint8ArrayToBase64(bytes: Uint8Array): string {
+  let binary = "";
+  const chunkSize = 8192;
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    const chunk = bytes.subarray(i, Math.min(i + chunkSize, bytes.length));
+    binary += String.fromCharCode(...chunk);
+  }
+  return btoa(binary);
+}
+
 export const MediaPreview = ({
   data,
   dataType,
@@ -234,7 +245,6 @@ export const MediaPreview = ({
   const [mediaUrl, setMediaUrl] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const mediaUrlRef = useRef<string>("");
 
   useEffect(() => {
     let cancelled = false;
@@ -248,48 +258,37 @@ export const MediaPreview = ({
         let detectedMimeType: string;
 
         if (filePath) {
-          // Tauri File System API로 파일 직접 읽기 (상대 경로 + baseDir 방식)
-          // Rust에서 이미 상대 경로로 전달되므로 그대로 사용
           const rawData = await readFile(filePath, { baseDir: BaseDirectory.Cache });
-
           fileData = new Uint8Array(rawData);
-
-          // MIME 타입 결정
-          detectedMimeType = mimeType && mimeType !== "application/octet-stream" ? mimeType : "";
-
-          if (!detectedMimeType) {
-            const detectedExtension = detectFileExtensionFromHeader(fileData);
-            detectedMimeType = detectedExtension
-              ? getMimeTypeFromExtension(detectedExtension)
-              : "application/octet-stream";
-          }
         } else if (data) {
-          // 기존 방식 (메모리 데이터)
           fileData = data;
-          detectedMimeType = mimeType && mimeType !== "application/octet-stream" ? mimeType : "";
-
-          if (!detectedMimeType) {
-            const detectedExtension = detectFileExtensionFromHeader(data);
-            detectedMimeType = detectedExtension
-              ? getMimeTypeFromExtension(detectedExtension)
-              : "application/octet-stream";
-          }
         } else {
           throw new Error("파일 데이터가 없습니다");
         }
 
-        if (cancelled) return;
-
-        // 이전 URL 해제
-        if (mediaUrlRef.current) {
-          URL.revokeObjectURL(mediaUrlRef.current);
+        // MIME 타입 결정
+        detectedMimeType = mimeType && mimeType !== "application/octet-stream" ? mimeType : "";
+        if (!detectedMimeType) {
+          const detectedExtension = detectFileExtensionFromHeader(fileData);
+          detectedMimeType = detectedExtension
+            ? getMimeTypeFromExtension(detectedExtension)
+            : "application/octet-stream";
         }
 
-        // Blob 생성
-        const blob = new Blob([fileData as BlobPart], { type: detectedMimeType });
-        const url = URL.createObjectURL(blob);
-        mediaUrlRef.current = url;
-        setMediaUrl(url);
+        // MIME 타입에서 파라미터 제거 (예: "image/gif; charset=binary" → "image/gif")
+        const cleanMimeType = detectedMimeType.split(";")[0].trim();
+
+        if (cancelled) return;
+
+        // 이미지는 data URL 사용 (WKWebView Blob URL 호환성 문제 회피)
+        if (isImageDataType(dataType)) {
+          const base64 = uint8ArrayToBase64(fileData);
+          setMediaUrl(`data:${cleanMimeType};base64,${base64}`);
+        } else {
+          // 비디오/오디오는 Blob URL 사용 (data URL은 스트리밍 미지원)
+          const blob = new Blob([fileData as BlobPart], { type: cleanMimeType });
+          setMediaUrl(URL.createObjectURL(blob));
+        }
       } catch (err) {
         if (cancelled) return;
         console.error("미디어 로드 실패:", err);
@@ -303,15 +302,17 @@ export const MediaPreview = ({
 
     loadMedia();
 
-    // Cleanup: ref를 사용하여 항상 최신 URL을 해제
     return () => {
       cancelled = true;
-      if (mediaUrlRef.current) {
-        URL.revokeObjectURL(mediaUrlRef.current);
-        mediaUrlRef.current = "";
-      }
+      // Blob URL인 경우에만 해제 (data URL은 해제 불필요)
+      setMediaUrl((prev) => {
+        if (prev.startsWith("blob:")) {
+          URL.revokeObjectURL(prev);
+        }
+        return "";
+      });
     };
-  }, [filePath, data, mimeType]);
+  }, [filePath, data, mimeType, dataType]);
 
   if (loading) {
     return (

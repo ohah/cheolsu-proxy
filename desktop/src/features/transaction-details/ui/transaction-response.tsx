@@ -173,11 +173,10 @@ export const TransactionResponse = ({ transaction }: TransactionResponseProps) =
         !fileError ? (
           <div className="h-[calc(100vh-300px)] border rounded-md overflow-auto p-4">
             <MediaPreview
-              data={response.file_path ? undefined : actualBody}
+              data={actualBody}
               dataType={response.data_type}
               className="h-full"
               mimeType={getMimeType()}
-              filePath={response.file_path}
             />
           </div>
         ) : isProtobufDataType(response.data_type) && !fileLoading && !fileError ? (
