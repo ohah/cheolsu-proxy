@@ -55,6 +55,8 @@ pub struct OpensslAuthority {
     ca_cert: X509,
     hash: MessageDigest,
     cache: Cache<Authority, Arc<ServerConfig>>,
+    #[cfg(feature = "openssl-ca")]
+    openssl_ctx_cache: Cache<Authority, Arc<openssl::ssl::SslContext>>,
     provider: Arc<CryptoProvider>,
 }
 
@@ -78,6 +80,11 @@ impl OpensslAuthority {
             ca_cert,
             hash,
             cache: Cache::builder()
+                .max_capacity(cache_size)
+                .time_to_live(Duration::from_secs(CACHE_TTL))
+                .build(),
+            #[cfg(feature = "openssl-ca")]
+            openssl_ctx_cache: Cache::builder()
                 .max_capacity(cache_size)
                 .time_to_live(Duration::from_secs(CACHE_TTL))
                 .build(),
@@ -174,48 +181,60 @@ impl CertificateAuthority for OpensslAuthority {
         &self,
         authority: &Authority,
     ) -> Result<openssl::ssl::SslContext, Box<dyn std::error::Error + Send + Sync>> {
+        // 캐시에서 조회
+        if let Some(ctx) = self.openssl_ctx_cache.get(authority).await {
+            debug!("[OPENSSL-CONTEXT] 캐시된 컨텍스트 사용: {}", authority);
+            return Ok((*ctx).clone());
+        }
+
         info!(
-            "🔧 [OPENSSL-CONTEXT] OpenSSL 컨텍스트 생성 시작: {}",
+            "[OPENSSL-CONTEXT] OpenSSL 컨텍스트 생성 시작: {}",
             authority
         );
 
-        // OpenSSL 컨텍스트 생성
-        let mut ctx = openssl::ssl::SslContext::builder(openssl::ssl::SslMethod::tls_server())?;
-
-        // TLS 버전 설정: 모든 TLS 버전 지원 (프록시 목적)
-        ctx.set_min_proto_version(Some(openssl::ssl::SslVersion::TLS1))?;
-        ctx.set_max_proto_version(Some(openssl::ssl::SslVersion::TLS1_3))?;
-
-        // OpenSSL 3.0+에서 레거시 TLS 1.0/1.1 지원을 위해 SECLEVEL=0 설정
-        ctx.set_cipher_list("@SECLEVEL=0:ALL:!aNULL:!eNULL")?;
-
-        // 프록시를 위한 인증서 검증 비활성화
-        ctx.set_verify(openssl::ssl::SslVerifyMode::NONE);
-        ctx.set_verify_depth(10);
-
-        // 클라이언트 호환성을 위한 추가 설정
-        ctx.set_options(openssl::ssl::SslOptions::NO_COMPRESSION);
-        ctx.set_options(openssl::ssl::SslOptions::SINGLE_DH_USE);
-        ctx.set_options(openssl::ssl::SslOptions::SINGLE_ECDH_USE);
-
-        // 서버 인증서 생성 (CertificateDer -> X509 변환)
+        // 동기 작업에 필요한 데이터를 미리 준비
         let server_cert_der = self.gen_cert(authority)?;
-        let server_cert = openssl::x509::X509::from_der(&server_cert_der)?;
+        let ca_cert_der = self.ca_cert.to_der()?;
+        let pkey_der = self.pkey.private_key_to_der()?;
 
-        // 인증서 체인 설정 (서버 인증서 + CA 인증서)
-        ctx.set_certificate(&server_cert)?;
+        // OpenSSL 컨텍스트 빌드를 spawn_blocking으로 오프로드
+        let ctx = tokio::task::spawn_blocking(move || -> Result<openssl::ssl::SslContext, Box<dyn std::error::Error + Send + Sync>> {
+            let mut ctx = openssl::ssl::SslContext::builder(openssl::ssl::SslMethod::tls_server())?;
 
-        // CA 인증서를 중간 인증서로 추가
-        ctx.add_extra_chain_cert(self.ca_cert.clone())?;
+            ctx.set_min_proto_version(Some(openssl::ssl::SslVersion::TLS1))?;
+            ctx.set_max_proto_version(Some(openssl::ssl::SslVersion::TLS1_3))?;
+            ctx.set_cipher_list("@SECLEVEL=0:ALL:!aNULL:!eNULL")?;
 
-        // 개인키 설정
-        ctx.set_private_key(&self.pkey)?;
+            ctx.set_verify(openssl::ssl::SslVerifyMode::NONE);
+            ctx.set_verify_depth(10);
 
-        // 컨텍스트 빌드
-        let ctx = ctx.build();
+            ctx.set_options(openssl::ssl::SslOptions::NO_COMPRESSION);
+            ctx.set_options(openssl::ssl::SslOptions::SINGLE_DH_USE);
+            ctx.set_options(openssl::ssl::SslOptions::SINGLE_ECDH_USE);
+
+            let server_cert = openssl::x509::X509::from_der(&server_cert_der)?;
+            ctx.set_certificate(&server_cert)?;
+
+            let ca_cert = openssl::x509::X509::from_der(&ca_cert_der)?;
+            ctx.add_extra_chain_cert(ca_cert)?;
+
+            let pkey = openssl::pkey::PKey::private_key_from_der(&pkey_der)?;
+            ctx.set_private_key(&pkey)?;
+
+            Ok(ctx.build())
+        })
+        .await
+        .map_err(|e| -> Box<dyn std::error::Error + Send + Sync> {
+            format!("spawn_blocking failed: {}", e).into()
+        })??;
+
+        // 캐시에 저장
+        self.openssl_ctx_cache
+            .insert(authority.clone(), Arc::new(ctx.clone()))
+            .await;
 
         info!(
-            "✅ [OPENSSL-CONTEXT] OpenSSL 컨텍스트 생성 완료: {}",
+            "[OPENSSL-CONTEXT] OpenSSL 컨텍스트 생성 완료: {}",
             authority
         );
         Ok(ctx)
@@ -241,6 +260,126 @@ mod tests {
             cache_size,
             aws_lc_rs::default_provider(),
         )
+    }
+
+    #[tokio::test]
+    async fn gen_openssl_context_returns_valid_context() {
+        let ca = build_ca(1_000);
+        let authority = Authority::from_static("example.com");
+
+        let ctx = ca.gen_openssl_context(&authority).await;
+        assert!(ctx.is_ok(), "OpenSSL 컨텍스트 생성 실패: {:?}", ctx.err());
+    }
+
+    #[tokio::test]
+    async fn gen_openssl_context_cache_returns_same_result() {
+        let ca = build_ca(1_000);
+        let authority = Authority::from_static("cache-test.com");
+
+        // 첫 번째 호출 - 캐시 미스
+        let ctx1 = ca.gen_openssl_context(&authority).await.unwrap();
+        // 두 번째 호출 - 캐시 히트
+        let ctx2 = ca.gen_openssl_context(&authority).await.unwrap();
+
+        // 같은 SslContext가 반환되는지 확인 (내부 포인터 비교)
+        assert_eq!(
+            format!("{:?}", ctx1.cert_store()),
+            format!("{:?}", ctx2.cert_store()),
+        );
+    }
+
+    #[tokio::test]
+    async fn gen_openssl_context_different_authorities_have_different_certs() {
+        let ca = build_ca(1_000);
+        let auth1 = Authority::from_static("example1.com");
+        let auth2 = Authority::from_static("example2.com");
+
+        let ctx1 = ca.gen_openssl_context(&auth1).await.unwrap();
+        let ctx2 = ca.gen_openssl_context(&auth2).await.unwrap();
+
+        // 다른 authority에 대해 다른 인증서가 설정되어야 함
+        let cert1 = ctx1.certificate().expect("cert1 없음");
+        let cert2 = ctx2.certificate().expect("cert2 없음");
+
+        // CN이 다른 도메인이어야 함
+        let cn1 = cert1
+            .subject_name()
+            .entries_by_nid(openssl::nid::Nid::COMMONNAME)
+            .next()
+            .unwrap()
+            .data()
+            .as_utf8()
+            .unwrap()
+            .to_string();
+        let cn2 = cert2
+            .subject_name()
+            .entries_by_nid(openssl::nid::Nid::COMMONNAME)
+            .next()
+            .unwrap()
+            .data()
+            .as_utf8()
+            .unwrap()
+            .to_string();
+
+        assert_eq!(cn1, "example1.com");
+        assert_eq!(cn2, "example2.com");
+    }
+
+    #[tokio::test]
+    async fn gen_openssl_context_concurrent_no_deadlock() {
+        let ca = Arc::new(build_ca(1_000));
+        let mut handles = Vec::new();
+
+        for i in 0..20 {
+            let ca_clone = ca.clone();
+            handles.push(tokio::spawn(async move {
+                let authority =
+                    Authority::try_from(format!("concurrent-{}.example.com", i)).unwrap();
+                ca_clone
+                    .gen_openssl_context(&authority)
+                    .await
+                    .expect("컨텍스트 생성 실패");
+            }));
+        }
+
+        let result = tokio::time::timeout(std::time::Duration::from_secs(10), async {
+            for handle in handles {
+                handle.await.unwrap();
+            }
+        })
+        .await;
+
+        assert!(result.is_ok(), "데드락 감지: 10초 타임아웃 초과");
+    }
+
+    #[tokio::test]
+    async fn gen_openssl_context_concurrent_same_authority_uses_cache() {
+        let ca = Arc::new(build_ca(1_000));
+        let authority = Authority::from_static("shared.example.com");
+        let mut handles = Vec::new();
+
+        for _ in 0..10 {
+            let ca_clone = ca.clone();
+            let auth_clone = authority.clone();
+            handles.push(tokio::spawn(async move {
+                ca_clone
+                    .gen_openssl_context(&auth_clone)
+                    .await
+                    .expect("컨텍스트 생성 실패");
+            }));
+        }
+
+        let result = tokio::time::timeout(std::time::Duration::from_secs(10), async {
+            for handle in handles {
+                handle.await.unwrap();
+            }
+        })
+        .await;
+
+        assert!(result.is_ok(), "데드락 감지: 10초 타임아웃 초과");
+        for r in result.unwrap() {
+            r.unwrap();
+        }
     }
 
     #[test]
