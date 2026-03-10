@@ -1610,4 +1610,165 @@ mod tests {
             }
         }
     }
+
+    // --- Quick Settings (No Caching / Block Cookies) 테스트 ---
+
+    /// quick_settings를 지정하여 테스트용 핸들러를 생성하는 헬퍼
+    fn make_handler_with_quick_settings(settings: QuickSettings) -> LoggingHandler {
+        let qs = Arc::new(parking_lot::RwLock::new(settings));
+        let handler = make_test_handler(None).with_quick_settings(qs);
+        handler
+    }
+
+    #[test]
+    fn no_caching_adds_cache_control_headers() {
+        let handler = make_handler_with_quick_settings(QuickSettings {
+            no_caching: true,
+            block_cookies: false,
+        });
+
+        let req = Request::builder()
+            .uri("http://example.com/")
+            .body(Body::from(""))
+            .unwrap();
+
+        let req = handler.apply_quick_settings_on_request(req);
+
+        assert_eq!(
+            req.headers().get("cache-control").unwrap(),
+            "no-cache, no-store, must-revalidate"
+        );
+        assert_eq!(req.headers().get("pragma").unwrap(), "no-cache");
+    }
+
+    #[test]
+    fn no_caching_removes_conditional_headers() {
+        let handler = make_handler_with_quick_settings(QuickSettings {
+            no_caching: true,
+            block_cookies: false,
+        });
+
+        let req = Request::builder()
+            .uri("http://example.com/")
+            .header("If-Modified-Since", "Thu, 01 Jan 2026 00:00:00 GMT")
+            .header("If-None-Match", "\"etag123\"")
+            .body(Body::from(""))
+            .unwrap();
+
+        let req = handler.apply_quick_settings_on_request(req);
+
+        assert!(req.headers().get("if-modified-since").is_none());
+        assert!(req.headers().get("if-none-match").is_none());
+    }
+
+    #[test]
+    fn block_cookies_removes_cookie_from_request() {
+        let handler = make_handler_with_quick_settings(QuickSettings {
+            no_caching: false,
+            block_cookies: true,
+        });
+
+        let req = Request::builder()
+            .uri("http://example.com/")
+            .header("Cookie", "session=abc123; user=test")
+            .body(Body::from(""))
+            .unwrap();
+
+        let req = handler.apply_quick_settings_on_request(req);
+
+        assert!(req.headers().get("cookie").is_none());
+    }
+
+    #[test]
+    fn block_cookies_removes_set_cookie_from_response() {
+        let handler = make_handler_with_quick_settings(QuickSettings {
+            no_caching: false,
+            block_cookies: true,
+        });
+
+        let res = Response::builder()
+            .status(200)
+            .header("Set-Cookie", "session=abc123; Path=/")
+            .header("Content-Type", "text/html")
+            .body(Body::from(""))
+            .unwrap();
+
+        let res = handler.apply_quick_settings_on_response(res);
+
+        assert!(res.headers().get("set-cookie").is_none());
+        // 다른 헤더는 영향받지 않아야 함
+        assert!(res.headers().get("content-type").is_some());
+    }
+
+    #[test]
+    fn disabled_quick_settings_preserves_all_headers() {
+        let handler = make_handler_with_quick_settings(QuickSettings {
+            no_caching: false,
+            block_cookies: false,
+        });
+
+        let req = Request::builder()
+            .uri("http://example.com/")
+            .header("If-Modified-Since", "Thu, 01 Jan 2026 00:00:00 GMT")
+            .header("If-None-Match", "\"etag123\"")
+            .header("Cookie", "session=abc123")
+            .body(Body::from(""))
+            .unwrap();
+
+        let req = handler.apply_quick_settings_on_request(req);
+
+        assert!(req.headers().get("if-modified-since").is_some());
+        assert!(req.headers().get("if-none-match").is_some());
+        assert!(req.headers().get("cookie").is_some());
+        assert!(req.headers().get("cache-control").is_none());
+
+        let res = Response::builder()
+            .status(200)
+            .header("Set-Cookie", "session=abc123; Path=/")
+            .body(Body::from(""))
+            .unwrap();
+
+        let res = handler.apply_quick_settings_on_response(res);
+
+        assert!(res.headers().get("set-cookie").is_some());
+    }
+
+    #[test]
+    fn both_settings_enabled_applies_all_modifications() {
+        let handler = make_handler_with_quick_settings(QuickSettings {
+            no_caching: true,
+            block_cookies: true,
+        });
+
+        let req = Request::builder()
+            .uri("http://example.com/")
+            .header("If-Modified-Since", "Thu, 01 Jan 2026 00:00:00 GMT")
+            .header("If-None-Match", "\"etag123\"")
+            .header("Cookie", "session=abc123")
+            .body(Body::from(""))
+            .unwrap();
+
+        let req = handler.apply_quick_settings_on_request(req);
+
+        // No Caching 적용 확인
+        assert!(req.headers().get("if-modified-since").is_none());
+        assert!(req.headers().get("if-none-match").is_none());
+        assert_eq!(
+            req.headers().get("cache-control").unwrap(),
+            "no-cache, no-store, must-revalidate"
+        );
+        assert_eq!(req.headers().get("pragma").unwrap(), "no-cache");
+        // Block Cookies 적용 확인
+        assert!(req.headers().get("cookie").is_none());
+
+        let res = Response::builder()
+            .status(200)
+            .header("Set-Cookie", "session=abc123; Path=/")
+            .body(Body::from(""))
+            .unwrap();
+
+        let res = handler.apply_quick_settings_on_response(res);
+
+        assert!(res.headers().get("set-cookie").is_none());
+    }
 }
