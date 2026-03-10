@@ -47,21 +47,11 @@ function parseTransactionsJson(json: string): HttpTransaction[] {
 }
 
 export const NetworkDashboard = () => {
-  const {
-    transactions,
-    selectedTransaction,
-    pinnedTransactionIds,
-    checkedTransactionIds,
-    paused,
-  } = useTransactionData();
+  const { transactions, selectedTransaction, pinnedTransactionIds, checkedTransactionIds, paused } =
+    useTransactionData();
 
-  const {
-    clearTransactions,
-    deleteTransaction,
-    setTransactions,
-    appendTransactions,
-    togglePause,
-  } = useTransactionActions();
+  const { clearTransactions, deleteTransaction, setTransactions, appendTransactions, togglePause } =
+    useTransactionActions();
 
   const {
     toggleSelectedTransaction,

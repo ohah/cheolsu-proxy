@@ -20,7 +20,11 @@ import {
 import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useInterceptRuleStore } from "@/shared/stores";
-import { useHeaderEditor, headersToEntries, entriesToHeaders } from "@/shared/hooks/use-header-editor";
+import {
+  useHeaderEditor,
+  headersToEntries,
+  entriesToHeaders,
+} from "@/shared/hooks/use-header-editor";
 import type {
   InterceptRule,
   InterceptAction,
@@ -54,13 +58,7 @@ export const RuleFormDialog = ({
   const [statusCode, setStatusCode] = useState("403");
   const [body, setBody] = useState("");
   const [responseStatus, setResponseStatus] = useState("");
-  const {
-    headers,
-    addHeader,
-    removeHeader,
-    updateHeader,
-    resetHeaders,
-  } = useHeaderEditor();
+  const { headers, addHeader, removeHeader, updateHeader, resetHeaders } = useHeaderEditor();
   const [removeHeaders, setRemoveHeaders] = useState<string[]>([]);
   const [rewriteTarget, setRewriteTarget] = useState<RewriteTarget>("request_header");
   const [matchPattern, setMatchPattern] = useState("");
