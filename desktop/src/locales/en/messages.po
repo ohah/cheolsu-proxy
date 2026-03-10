@@ -313,7 +313,7 @@ msgstr "Cheolsu Proxy Logo"
 msgid "Claude Code (CLI)"
 msgstr "Claude Code (CLI)"
 
-#: src/pages/logs/ui/logs-page.tsx:164
+#: src/pages/log-viewer/ui/logs-page.tsx:160
 #: src/pages/script/ui/script-page.tsx:298
 msgid "Clear"
 msgstr "Clear"
@@ -590,7 +590,7 @@ msgstr "Failed to send"
 msgid "File"
 msgstr "File"
 
-#: src/pages/logs/ui/logs-page.tsx:216
+#: src/pages/log-viewer/ui/logs-page.tsx:212
 msgid "Filter log lines..."
 msgstr "Filter log lines..."
 
@@ -773,7 +773,7 @@ msgstr "Latency (ms)"
 msgid "Light"
 msgstr "Light"
 
-#: src/pages/logs/ui/logs-page.tsx:223
+#: src/pages/log-viewer/ui/logs-page.tsx:219
 msgid "lines"
 msgstr "lines"
 
@@ -811,7 +811,7 @@ msgstr "Local File Path"
 msgid "localhost, 127.0.0.1, *.internal.com"
 msgstr "localhost, 127.0.0.1, *.internal.com"
 
-#: src/pages/logs/ui/logs-page.tsx:179
+#: src/pages/log-viewer/ui/logs-page.tsx:175
 msgid "Log Files"
 msgstr "Log Files"
 
@@ -819,7 +819,7 @@ msgstr "Log Files"
 msgid "Logical OR:"
 msgstr "Logical OR:"
 
-#: src/pages/logs/ui/logs-page.tsx:146
+#: src/pages/log-viewer/ui/logs-page.tsx:147
 #: src/shared/app-sidebar/model/consts.ts:86
 msgid "Logs"
 msgstr "Logs"
@@ -987,7 +987,7 @@ msgstr "No host mappings"
 msgid "No intercept rules"
 msgstr "No intercept rules"
 
-#: src/pages/logs/ui/logs-page.tsx:184
+#: src/pages/log-viewer/ui/logs-page.tsx:180
 msgid "No log files found"
 msgstr "No log files found"
 
@@ -1051,7 +1051,7 @@ msgstr "Open <0>{CERT_DOWNLOAD_URL}</0> in Safari"
 msgid "Open <0>{CERT_DOWNLOAD_URL}</0> in your device browser"
 msgstr "Open <0>{CERT_DOWNLOAD_URL}</0> in your device browser"
 
-#: src/pages/logs/ui/logs-page.tsx:168
+#: src/pages/log-viewer/ui/logs-page.tsx:164
 msgid "Open Directory"
 msgstr "Open Directory"
 
@@ -1195,7 +1195,7 @@ msgstr "Received"
 msgid "Received (Server → Client)"
 msgstr "Received (Server → Client)"
 
-#: src/pages/logs/ui/logs-page.tsx:155
+#: src/pages/log-viewer/ui/logs-page.tsx:156
 #: src/pages/settings/ui/components/certificate-settings.tsx:393
 msgid "Refresh"
 msgstr "Refresh"
@@ -1474,7 +1474,7 @@ msgstr "Script reloaded"
 msgid "Script unloaded"
 msgstr "Script unloaded"
 
-#: src/pages/logs/ui/logs-page.tsx:239
+#: src/pages/log-viewer/ui/logs-page.tsx:235
 msgid "Select a log file to view its contents"
 msgstr "Select a log file to view its contents"
 
@@ -1828,7 +1828,7 @@ msgstr "Value"
 msgid "Version"
 msgstr "Version"
 
-#: src/pages/logs/ui/logs-page.tsx:149
+#: src/pages/log-viewer/ui/logs-page.tsx:150
 msgid "View and manage application log files"
 msgstr "View and manage application log files"
 

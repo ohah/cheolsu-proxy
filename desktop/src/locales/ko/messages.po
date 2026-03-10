@@ -313,7 +313,7 @@ msgstr "Cheolsu Proxy 로고"
 msgid "Claude Code (CLI)"
 msgstr "Claude Code (CLI)"
 
-#: src/pages/logs/ui/logs-page.tsx:164
+#: src/pages/log-viewer/ui/logs-page.tsx:160
 #: src/pages/script/ui/script-page.tsx:298
 msgid "Clear"
 msgstr "지우기"
@@ -590,7 +590,7 @@ msgstr "전송 실패"
 msgid "File"
 msgstr "파일"
 
-#: src/pages/logs/ui/logs-page.tsx:216
+#: src/pages/log-viewer/ui/logs-page.tsx:212
 msgid "Filter log lines..."
 msgstr "로그 라인 필터..."
 
@@ -773,9 +773,9 @@ msgstr "지연 (ms)"
 msgid "Light"
 msgstr "라이트"
 
-#: src/pages/logs/ui/logs-page.tsx:223
+#: src/pages/log-viewer/ui/logs-page.tsx:219
 msgid "lines"
-msgstr ""
+msgstr "줄"
 
 #: src/pages/script/ui/script-page.tsx:266
 msgid "Load"
@@ -811,7 +811,7 @@ msgstr "로컬 파일 경로"
 msgid "localhost, 127.0.0.1, *.internal.com"
 msgstr "localhost, 127.0.0.1, *.internal.com"
 
-#: src/pages/logs/ui/logs-page.tsx:179
+#: src/pages/log-viewer/ui/logs-page.tsx:175
 msgid "Log Files"
 msgstr "로그 파일"
 
@@ -819,7 +819,7 @@ msgstr "로그 파일"
 msgid "Logical OR:"
 msgstr "논리 OR:"
 
-#: src/pages/logs/ui/logs-page.tsx:146
+#: src/pages/log-viewer/ui/logs-page.tsx:147
 #: src/shared/app-sidebar/model/consts.ts:86
 msgid "Logs"
 msgstr "로그"
@@ -890,7 +890,7 @@ msgstr "매칭 패턴"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:181
 msgid "Match pattern is required"
-msgstr ""
+msgstr "매치 패턴은 필수입니다"
 
 #: src/shared/app-sidebar/ui/sidebar-mcp.tsx:54
 msgid "MCP configuration copied to clipboard"
@@ -987,7 +987,7 @@ msgstr "호스트 매핑 없음"
 msgid "No intercept rules"
 msgstr "인터셉트 규칙 없음"
 
-#: src/pages/logs/ui/logs-page.tsx:184
+#: src/pages/log-viewer/ui/logs-page.tsx:180
 msgid "No log files found"
 msgstr "로그 파일을 찾을 수 없습니다"
 
@@ -1051,7 +1051,7 @@ msgstr "Safari에서 <0>{CERT_DOWNLOAD_URL}</0>을 여세요"
 msgid "Open <0>{CERT_DOWNLOAD_URL}</0> in your device browser"
 msgstr "기기 브라우저에서 <0>{CERT_DOWNLOAD_URL}</0>을 여세요"
 
-#: src/pages/logs/ui/logs-page.tsx:168
+#: src/pages/log-viewer/ui/logs-page.tsx:164
 msgid "Open Directory"
 msgstr "디렉토리 열기"
 
@@ -1195,7 +1195,7 @@ msgstr "수신"
 msgid "Received (Server → Client)"
 msgstr "수신 (서버 → 클라이언트)"
 
-#: src/pages/logs/ui/logs-page.tsx:155
+#: src/pages/log-viewer/ui/logs-page.tsx:156
 #: src/pages/settings/ui/components/certificate-settings.tsx:393
 msgid "Refresh"
 msgstr "새로고침"
@@ -1474,7 +1474,7 @@ msgstr "스크립트가 리로드되었습니다"
 msgid "Script unloaded"
 msgstr "스크립트가 언로드되었습니다"
 
-#: src/pages/logs/ui/logs-page.tsx:239
+#: src/pages/log-viewer/ui/logs-page.tsx:235
 msgid "Select a log file to view its contents"
 msgstr "로그 파일을 선택하여 내용을 확인하세요"
 
@@ -1828,7 +1828,7 @@ msgstr "값"
 msgid "Version"
 msgstr "버전"
 
-#: src/pages/logs/ui/logs-page.tsx:149
+#: src/pages/log-viewer/ui/logs-page.tsx:150
 msgid "View and manage application log files"
 msgstr "애플리케이션 로그 파일 조회 및 관리"
 
