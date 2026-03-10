@@ -563,6 +563,7 @@ mod tests {
                     crate::handler::QuickSettings::default(),
                 )),
                 proxy_auth: Arc::new(parking_lot::RwLock::new(None)),
+                max_body_size: None,
             },
             intercept: InterceptEngine {
                 intercept_rules: Arc::new(RwLock::new(Vec::new())),
