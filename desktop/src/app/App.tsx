@@ -11,7 +11,7 @@ import {
   useBreakpointStore,
   useHostMappingStore,
 } from "@/shared/stores";
-import { listen, emitTo } from "@tauri-apps/api/event";
+import { emit, listen, emitTo } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import type { ProxyEventTuple, HttpTransaction } from "@/entities/proxy";
 import { autosaveSession, autoloadSession } from "@/shared/api/proxy";
@@ -255,6 +255,8 @@ const App: React.FC = () => {
   useEffect(() => {
     const unlisten = listen("app_quit_requested", async () => {
       await performAutosave();
+      // 저장 완료를 백엔드에 알려 즉시 종료할 수 있도록 함
+      await emit("autosave_completed");
     });
 
     return () => {
