@@ -20,13 +20,8 @@ export function useBodyFile(
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  console.log("[useBodyFile] hook called:", { filePath, enabled });
-
   useEffect(() => {
-    console.log("[useBodyFile] effect running:", { filePath, enabled });
-
     if (!enabled || !filePath) {
-      console.log("[useBodyFile] skipped: not enabled or no filePath");
       setBody(null);
       setError(null);
       return;
@@ -41,16 +36,9 @@ export function useBodyFile(
         const appCachePath = filePath.startsWith("com.cheolsu-proxy/")
           ? filePath.slice("com.cheolsu-proxy/".length)
           : filePath;
-        console.log("[useBodyFile] reading file:", appCachePath, "baseDir: AppCache");
         const rawData = await readFile(appCachePath, { baseDir: BaseDirectory.AppCache });
-        console.log("[useBodyFile] file read success:", {
-          type: typeof rawData,
-          isUint8Array: rawData instanceof Uint8Array,
-          length: rawData?.length,
-        });
         setBody(rawData);
       } catch (err) {
-        console.error("[useBodyFile] 파일 읽기 실패:", filePath, err);
         setError(err instanceof Error ? err.message : "파일 읽기 실패");
         setBody(null);
       } finally {
