@@ -43,9 +43,16 @@ export const SidebarHeader = ({ collapsed, toggleCollapse }: SidebarHeaderProps)
           <h1 className="font-semibold text-sidebar-foreground">Cheolsu Proxy</h1>
         </div>
       </div>
-      <Button variant="ghost" onClick={toggleCollapse}>
-        <Menu className="w-4 h-4" />
-      </Button>
+      <Tooltip>
+        <TooltipTrigger render={<div />}>
+          <Button variant="ghost" onClick={toggleCollapse}>
+            <Menu className="w-4 h-4" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent sideOffset={4}>
+          <Trans>Collapse sidebar</Trans>
+        </TooltipContent>
+      </Tooltip>
     </div>
   );
 };

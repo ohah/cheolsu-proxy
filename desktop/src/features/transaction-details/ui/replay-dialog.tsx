@@ -27,6 +27,9 @@ import {
   SelectTrigger,
   SelectValue,
   Separator,
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
 } from "@/shared/ui";
 import { getStatusColor } from "@/entities/transaction";
 import { uint8ArrayToString } from "../lib";
@@ -352,9 +355,16 @@ export function ReplayDialog({
   return (
     <>
       {!hideTrigger && (
-        <Button variant="ghost" size="sm" title={t`Replay request`} onClick={() => setOpen(true)}>
-          <Play className="w-4 h-4" />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger render={<div />}>
+            <Button variant="ghost" size="sm" onClick={() => setOpen(true)}>
+              <Play className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent sideOffset={4}>
+            <Trans>Replay request</Trans>
+          </TooltipContent>
+        </Tooltip>
       )}
 
       <Dialog open={open} onOpenChange={setOpen}>

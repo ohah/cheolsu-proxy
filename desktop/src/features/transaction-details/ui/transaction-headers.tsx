@@ -1,8 +1,9 @@
 import { Copy } from "lucide-react";
+import { Trans } from "@lingui/react/macro";
 
 import type { HttpTransaction } from "@/entities/proxy";
 
-import { Button, Card, CardContent, CardHeader } from "@/shared/ui";
+import { Button, Card, CardContent, CardHeader, Tooltip, TooltipTrigger, TooltipContent } from "@/shared/ui";
 import { toast } from "sonner";
 
 interface TransactionHeadersProps {
@@ -26,9 +27,16 @@ export const TransactionHeaders = ({ transaction }: TransactionHeadersProps) => 
     <Card className="gap-0">
       <CardHeader>
         <div className="flex items-center justify-end gap-2">
-          <Button variant="ghost" size="sm" onClick={handleCopy}>
-            <Copy className="w-4 h-4" />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger render={<div />}>
+              <Button variant="ghost" size="sm" onClick={handleCopy}>
+                <Copy className="w-4 h-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent sideOffset={4}>
+              <Trans>Copy Headers</Trans>
+            </TooltipContent>
+          </Tooltip>
         </div>
       </CardHeader>
       <CardContent>

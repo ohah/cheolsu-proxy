@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Download, Maximize2, Minimize2 } from "lucide-react";
+import { Trans } from "@lingui/react/macro";
 
-import { Button } from "@/shared/ui";
+import { Button, Tooltip, TooltipTrigger, TooltipContent } from "@/shared/ui";
 import { createImageDataUrl } from "../lib/utils";
 import { useBase64Worker } from "@/hooks/use-base64-worker";
 import type { DataType } from "@/entities/proxy/model/types";
@@ -134,17 +135,31 @@ export const ImagePreview = ({ data, dataType, className = "" }: ImagePreviewPro
       {/* 호버 시 컨트롤 버튼들 */}
       <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
         <div className="flex gap-1">
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => setIsFullscreen(!isFullscreen)}
-            className="h-8 w-8 p-0"
-          >
-            {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-          </Button>
-          <Button variant="secondary" size="sm" onClick={handleDownload} className="h-8 w-8 p-0">
-            <Download className="w-4 h-4" />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger render={<div />}>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setIsFullscreen(!isFullscreen)}
+                className="h-8 w-8 p-0"
+              >
+                {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent sideOffset={4}>
+              {isFullscreen ? <Trans>Exit fullscreen</Trans> : <Trans>Fullscreen</Trans>}
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger render={<div />}>
+              <Button variant="secondary" size="sm" onClick={handleDownload} className="h-8 w-8 p-0">
+                <Download className="w-4 h-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent sideOffset={4}>
+              <Trans>Download</Trans>
+            </TooltipContent>
+          </Tooltip>
         </div>
       </div>
     </div>
