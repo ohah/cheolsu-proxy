@@ -313,7 +313,7 @@ msgstr "Cheolsu Proxy 로고"
 msgid "Claude Code (CLI)"
 msgstr "Claude Code (CLI)"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:215
+#: src/pages/log-viewer/ui/logs-page.tsx:229
 #: src/pages/script/ui/script-page.tsx:298
 msgid "Clear"
 msgstr "지우기"
@@ -325,7 +325,7 @@ msgstr "전체 삭제"
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:108
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:98
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:91
-#: src/pages/log-viewer/ui/logs-page.tsx:236
+#: src/pages/log-viewer/ui/logs-page.tsx:250
 #: src/pages/map-rules/ui/map-rules-page.tsx:80
 #: src/pages/server-replay/ui/server-replay-page.tsx:105
 msgid "Clear All"
@@ -484,11 +484,11 @@ msgstr "비활성"
 msgid "Disconnected"
 msgstr "연결 끊김"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:369
+#: src/pages/log-viewer/ui/logs-page.tsx:383
 msgid "Domain"
 msgstr "도메인"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:353
+#: src/pages/log-viewer/ui/logs-page.tsx:367
 msgid "Domains that failed TLS handshake are automatically tunneled without MITM decryption. You can remove entries to retry MITM for specific domains."
 msgstr "TLS 핸드셰이크에 실패한 도메인은 MITM 복호화 없이 자동으로 터널링됩니다. 항목을 삭제하면 해당 도메인에 대해 MITM을 다시 시도합니다."
 
@@ -595,7 +595,7 @@ msgstr "단축키 등록 실패"
 msgid "Failed to send"
 msgstr "전송 실패"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:372
+#: src/pages/log-viewer/ui/logs-page.tsx:386
 msgid "Failures"
 msgstr "실패 횟수"
 
@@ -603,7 +603,7 @@ msgstr "실패 횟수"
 msgid "File"
 msgstr "파일"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:317
+#: src/pages/log-viewer/ui/logs-page.tsx:331
 msgid "Filter log lines..."
 msgstr "로그 라인 필터..."
 
@@ -786,7 +786,7 @@ msgstr "지연 (ms)"
 msgid "Light"
 msgstr "라이트"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:324
+#: src/pages/log-viewer/ui/logs-page.tsx:338
 msgid "lines"
 msgstr "줄"
 
@@ -824,8 +824,8 @@ msgstr "로컬 파일 경로"
 msgid "localhost, 127.0.0.1, *.internal.com"
 msgstr "localhost, 127.0.0.1, *.internal.com"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:253
-#: src/pages/log-viewer/ui/logs-page.tsx:280
+#: src/pages/log-viewer/ui/logs-page.tsx:267
+#: src/pages/log-viewer/ui/logs-page.tsx:294
 msgid "Log Files"
 msgstr "로그 파일"
 
@@ -833,7 +833,7 @@ msgstr "로그 파일"
 msgid "Logical OR:"
 msgstr "논리 OR:"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:200
+#: src/pages/log-viewer/ui/logs-page.tsx:214
 #: src/shared/app-sidebar/model/consts.ts:86
 msgid "Logs"
 msgstr "로그"
@@ -1001,7 +1001,7 @@ msgstr "호스트 매핑 없음"
 msgid "No intercept rules"
 msgstr "인터셉트 규칙 없음"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:285
+#: src/pages/log-viewer/ui/logs-page.tsx:299
 msgid "No log files found"
 msgstr "로그 파일을 찾을 수 없습니다"
 
@@ -1021,7 +1021,7 @@ msgstr "단계가 선택되지 않음"
 msgid "No replay entries"
 msgstr "리플레이 엔트리 없음"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:361
+#: src/pages/log-viewer/ui/logs-page.tsx:375
 msgid "No TLS passthrough entries"
 msgstr "TLS Passthrough 항목이 없습니다"
 
@@ -1069,7 +1069,7 @@ msgstr "Safari에서 <0>{CERT_DOWNLOAD_URL}</0>을 여세요"
 msgid "Open <0>{CERT_DOWNLOAD_URL}</0> in your device browser"
 msgstr "기기 브라우저에서 <0>{CERT_DOWNLOAD_URL}</0>을 여세요"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:219
+#: src/pages/log-viewer/ui/logs-page.tsx:233
 msgid "Open Directory"
 msgstr "디렉토리 열기"
 
@@ -1213,8 +1213,8 @@ msgstr "수신"
 msgid "Received (Server → Client)"
 msgstr "수신 (서버 → 클라이언트)"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:211
-#: src/pages/log-viewer/ui/logs-page.tsx:227
+#: src/pages/log-viewer/ui/logs-page.tsx:225
+#: src/pages/log-viewer/ui/logs-page.tsx:241
 #: src/pages/settings/ui/components/certificate-settings.tsx:393
 msgid "Refresh"
 msgstr "새로고침"
@@ -1493,7 +1493,7 @@ msgstr "스크립트가 리로드되었습니다"
 msgid "Script unloaded"
 msgstr "스크립트가 언로드되었습니다"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:340
+#: src/pages/log-viewer/ui/logs-page.tsx:354
 msgid "Select a log file to view its contents"
 msgstr "로그 파일을 선택하여 내용을 확인하세요"
 
@@ -1726,7 +1726,7 @@ msgstr "처리량"
 msgid "Time"
 msgstr "시간"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:264
+#: src/pages/log-viewer/ui/logs-page.tsx:278
 msgid "TLS Passthrough"
 msgstr "TLS Passthrough"
 
@@ -1851,7 +1851,7 @@ msgstr "값"
 msgid "Version"
 msgstr "버전"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:203
+#: src/pages/log-viewer/ui/logs-page.tsx:217
 msgid "View and manage application log files"
 msgstr "애플리케이션 로그 파일 조회 및 관리"
 
