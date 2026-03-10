@@ -1,4 +1,5 @@
 use crate::Body;
+use http::header::HeaderValue;
 use hyper::{Request, Response, body::Incoming};
 use std::{convert::Infallible, pin::Pin, task::Poll};
 use tower_service::Service as TowerService;
@@ -77,21 +78,22 @@ pub(crate) fn optimize_streaming_response(
 
         parts.headers.insert(
             "Cache-Control",
-            "no-cache, no-store, must-revalidate".parse().unwrap(),
+            HeaderValue::from_static("no-cache, no-store, must-revalidate"),
         );
         parts
             .headers
-            .insert("Connection", "keep-alive".parse().unwrap());
+            .insert("Connection", HeaderValue::from_static("keep-alive"));
         parts
             .headers
-            .insert("Transfer-Encoding", "chunked".parse().unwrap());
+            .insert("Transfer-Encoding", HeaderValue::from_static("chunked"));
         parts.headers.remove("content-length");
         parts
             .headers
-            .insert("X-Accel-Buffering", "no".parse().unwrap());
-        parts
-            .headers
-            .insert("X-Content-Type-Options", "nosniff".parse().unwrap());
+            .insert("X-Accel-Buffering", HeaderValue::from_static("no"));
+        parts.headers.insert(
+            "X-Content-Type-Options",
+            HeaderValue::from_static("nosniff"),
+        );
 
         Response::from_parts(parts, body)
     } else {

@@ -176,11 +176,17 @@ where
                         "[TLS-PASSTHROUGH] 자동 바이패스 적용 (이전 실패 기록): {}",
                         authority
                     );
-                    let response = Response::builder()
+                    let response = match Response::builder()
                         .status(200)
                         .header("Connection", "keep-alive")
                         .body(Body::empty())
-                        .unwrap();
+                    {
+                        Ok(resp) => resp,
+                        Err(e) => {
+                            error!("바이패스 응답 생성 실패: {}", e);
+                            return bad_request();
+                        }
+                    };
 
                     let authority_clone = authority.clone();
                     let _tunnel_sender = self.ctx.tunnel_event_sender.clone();
@@ -617,10 +623,22 @@ where
                     let (mut parts, body) = req.into_parts();
 
                     parts.uri = {
-                        let mut parts = parts.uri.into_parts();
-                        parts.scheme = Some(scheme.clone());
-                        parts.authority = Some(authority.clone());
-                        Uri::from_parts(parts).expect("Failed to build URI")
+                        let mut uri_parts = parts.uri.into_parts();
+                        uri_parts.scheme = Some(scheme.clone());
+                        uri_parts.authority = Some(authority.clone());
+                        match Uri::from_parts(uri_parts) {
+                            Ok(uri) => uri,
+                            Err(e) => {
+                                warn!("URI 재구성 실패: {}", e);
+                                let fallback = Uri::builder()
+                                    .scheme(scheme.clone())
+                                    .authority(authority.clone())
+                                    .path_and_query("/")
+                                    .build()
+                                    .unwrap_or_default();
+                                fallback
+                            }
+                        }
                     };
 
                     req = Request::from_parts(parts, body);
@@ -685,7 +703,14 @@ pub(crate) fn normalize_request<T>(mut req: Request<T>) -> Request<T> {
     // HTTP/2 supports multiple cookie headers, but HTTP/1.x only supports one.
     if let Entry::Occupied(mut cookies) = req.headers_mut().entry(hyper::header::COOKIE) {
         let joined_cookies = bstr::join(b"; ", cookies.iter());
-        cookies.insert(joined_cookies.try_into().expect("Failed to join cookies"));
+        match joined_cookies.try_into() {
+            Ok(value) => {
+                cookies.insert(value);
+            }
+            Err(e) => {
+                warn!("쿠키 결합 실패: {}", e);
+            }
+        }
     }
 
     *req.version_mut() = hyper::Version::HTTP_11;
