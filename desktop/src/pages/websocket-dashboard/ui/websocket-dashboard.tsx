@@ -7,7 +7,15 @@ import { WsReplayDialog } from "@/features/websocket-replay";
 
 import { useWebSocketStore } from "@/shared/stores";
 import { WsMessageTable, WsMessageDetail, WsConnectionList } from "@/widgets/websocket-messages";
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup, Button, Tooltip, TooltipTrigger, TooltipContent } from "@/shared/ui";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+  Button,
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/shared/ui";
 import type { WsMessageInfo, WsConnection } from "@/entities/websocket";
 
 export const WebSocketDashboard = () => {

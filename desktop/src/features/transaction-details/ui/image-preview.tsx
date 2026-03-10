@@ -143,7 +143,11 @@ export const ImagePreview = ({ data, dataType, className = "" }: ImagePreviewPro
                 onClick={() => setIsFullscreen(!isFullscreen)}
                 className="h-8 w-8 p-0"
               >
-                {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                {isFullscreen ? (
+                  <Minimize2 className="w-4 h-4" />
+                ) : (
+                  <Maximize2 className="w-4 h-4" />
+                )}
               </Button>
             </TooltipTrigger>
             <TooltipContent sideOffset={4}>
@@ -152,7 +156,12 @@ export const ImagePreview = ({ data, dataType, className = "" }: ImagePreviewPro
           </Tooltip>
           <Tooltip>
             <TooltipTrigger render={<div />}>
-              <Button variant="secondary" size="sm" onClick={handleDownload} className="h-8 w-8 p-0">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleDownload}
+                className="h-8 w-8 p-0"
+              >
                 <Download className="w-4 h-4" />
               </Button>
             </TooltipTrigger>
