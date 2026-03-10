@@ -98,8 +98,7 @@ function migrateFromLegacyLocalStorage(): Partial<AppSettingsState> {
     if (shortcut) migrated.proxyToggleShortcut = shortcut;
 
     const shortcutEnabled = localStorage.getItem("proxy_toggle_shortcut_enabled");
-    if (shortcutEnabled !== null)
-      migrated.proxyToggleShortcutEnabled = shortcutEnabled === "true";
+    if (shortcutEnabled !== null) migrated.proxyToggleShortcutEnabled = shortcutEnabled === "true";
 
     const noCaching = localStorage.getItem("quick_settings_no_caching");
     if (noCaching !== null) {
@@ -217,8 +216,7 @@ export const useAppSettingsStore = create<AppSettingsState>()(
       proxyToggleShortcut: "CommandOrControl+Shift+P",
       setProxyToggleShortcut: (shortcut) => set({ proxyToggleShortcut: shortcut }),
       proxyToggleShortcutEnabled: true,
-      setProxyToggleShortcutEnabled: (enabled) =>
-        set({ proxyToggleShortcutEnabled: enabled }),
+      setProxyToggleShortcutEnabled: (enabled) => set({ proxyToggleShortcutEnabled: enabled }),
 
       quickSettingsNoCaching: false,
       setQuickSettingsNoCaching: (enabled) => set({ quickSettingsNoCaching: enabled }),
