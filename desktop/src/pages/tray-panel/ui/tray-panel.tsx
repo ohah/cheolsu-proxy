@@ -1,6 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { listen, emitTo } from "@tauri-apps/api/event";
 import {
   Circle,
   Power,
@@ -18,15 +17,9 @@ interface TrayInfo {
   port: number;
 }
 
-interface TraySyncPayload {
-  transactionCount?: number;
-  proxyConnected?: boolean;
-}
-
 export function TrayPanel() {
   const [info, setInfo] = useState<TrayInfo | null>(null);
   const [proxyOn, setProxyOn] = useState(false);
-  const [transactionCount, setTransactionCount] = useState(0);
 
   // Rust 백엔드에서 프록시 상태 조회
   const fetchInfo = useCallback(async () => {
@@ -40,20 +33,7 @@ export function TrayPanel() {
   }, []);
 
   useEffect(() => {
-    // 초기 로드 시 프록시 상태 조회 + 메인 윈도우에 최신 상태 요청
     fetchInfo();
-    emitTo("main", "tray_request_sync");
-
-    // 메인 윈도우에서 보내는 상태 변경 이벤트 수신
-    const unlistenSync = listen<TraySyncPayload>("tray_sync", (event) => {
-      const { transactionCount: count, proxyConnected } = event.payload;
-      if (count !== undefined) setTransactionCount(count);
-      if (proxyConnected !== undefined) setProxyOn(proxyConnected);
-    });
-
-    return () => {
-      unlistenSync.then((f) => f());
-    };
   }, [fetchInfo]);
 
   const handleToggleProxy = async () => {
@@ -61,21 +41,14 @@ export function TrayPanel() {
       if (proxyOn) {
         await invoke("stop_proxy_v2");
         setProxyOn(false);
-        await emitTo("main", "tray_action", { type: "proxyConnected", value: false });
       } else {
         await invoke("start_proxy_v2", { addr: `127.0.0.1:${info?.port ?? 8100}` });
         setProxyOn(true);
-        await emitTo("main", "tray_action", { type: "proxyConnected", value: true });
       }
       fetchInfo();
     } catch (e) {
       console.error("Proxy toggle failed:", e);
     }
-  };
-
-  const handleClearSession = async () => {
-    setTransactionCount(0);
-    await emitTo("main", "tray_action", { type: "clearSession" });
   };
 
   const handleCleanCache = async () => {
@@ -142,10 +115,6 @@ export function TrayPanel() {
               {caInstalled ? "설치됨" : "미설치"}
             </span>
           </div>
-          <div className="tray-status-row">
-            <span className="tray-status-label">요청 수</span>
-            <span className="tray-status-count">{transactionCount}</span>
-          </div>
         </div>
 
         {/* 액션 */}
@@ -154,11 +123,6 @@ export function TrayPanel() {
             icon={<ExternalLink size={13} />}
             label="메인 창 열기"
             onClick={handleShowMainWindow}
-          />
-          <TrayActionButton
-            icon={<Trash2 size={13} />}
-            label="세션 초기화"
-            onClick={handleClearSession}
           />
           <TrayActionButton
             icon={<FolderOpen size={13} />}
