@@ -11,8 +11,7 @@ import {
   useBreakpointStore,
   useHostMappingStore,
 } from "@/shared/stores";
-import { trayStore } from "@/shared/stores/tray-sync-store";
-import { listen } from "@tauri-apps/api/event";
+import { listen, emit } from "@tauri-apps/api/event";
 import type { ProxyEventTuple } from "@/entities/proxy";
 import type { WsMessageInfo, WsConnectionEvent } from "@/entities/websocket";
 import type { InterceptRule } from "@/entities/intercept-rule";
@@ -141,37 +140,35 @@ const App: React.FC = () => {
     };
   }, [setHostMappings]);
 
-  // 트레이 ↔ 메인 윈도우 양방향 동기화 (Tauri Store)
+  // 트레이 ↔ 메인 윈도우 양방향 동기화 (Tauri 이벤트)
   const clearTransactions = useTransactionStore((s) => s.clearTransactions);
   const setConnected = useProxyStore((s) => s.setConnected);
+  const isConnected = useProxyStore((s) => s.isConnected);
   const transactionCount = useTransactionStore((s) => s.transactions.length);
 
-  // 메인 → 트레이: 상태를 Store에 쓰기 (2초 디바운스)
+  // 메인 → 트레이: 상태 변경 시 이벤트로 전달
   useEffect(() => {
-    const timer = setTimeout(async () => {
-      try {
-        await trayStore.set("transactionCount", transactionCount);
-        await trayStore.save();
-      } catch {
-        // 스토어 초기화 전이면 무시
-      }
-    }, 2000);
-    return () => clearTimeout(timer);
+    emit("tray_sync", { transactionCount });
   }, [transactionCount]);
 
-  // 트레이 → 메인: Store 변경 감지로 상태 반영
   useEffect(() => {
-    const unlistenPromise = trayStore.onChange((key, value) => {
-      if (key === "proxyConnected" && typeof value === "boolean") {
+    emit("tray_sync", { proxyConnected: isConnected });
+  }, [isConnected]);
+
+  // 트레이 → 메인: 트레이 패널에서 보낸 액션 이벤트 수신
+  useEffect(() => {
+    const unlisten = listen<{ type: string; value?: boolean }>("tray_action", (event) => {
+      const { type, value } = event.payload;
+      if (type === "proxyConnected" && typeof value === "boolean") {
         setConnected(value);
       }
-      if (key === "clearSession" && typeof value === "number") {
+      if (type === "clearSession") {
         clearTransactions();
       }
     });
 
     return () => {
-      unlistenPromise.then((f) => f());
+      unlisten.then((f) => f());
     };
   }, [setConnected, clearTransactions]);
 
