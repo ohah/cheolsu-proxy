@@ -41,6 +41,9 @@ const HostMappingPage = lazy(() =>
     default: m.HostMappingPage,
   })),
 );
+const LogsPage = lazy(() =>
+  import("@/pages/log-viewer").then((m) => ({ default: m.LogsPage })),
+);
 
 function RootLayout() {
   return (
@@ -96,6 +99,10 @@ export const router = createBrowserRouter([
       {
         path: "/settings",
         element: <SettingsPage />,
+      },
+      {
+        path: "/logs",
+        element: <LogsPage />,
       },
     ],
   },

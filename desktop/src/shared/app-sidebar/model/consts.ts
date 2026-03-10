@@ -8,6 +8,7 @@ import {
   FileCode,
   PauseCircle,
   Globe,
+  ScrollText,
 } from "lucide-react";
 import { msg } from "@lingui/core/macro";
 
@@ -78,5 +79,12 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
     label: msg`Settings`,
     icon: Settings,
     description: msg`Proxy settings and configuration`,
+  },
+  {
+    id: "logs",
+    path: "/logs",
+    label: msg`Logs`,
+    icon: ScrollText,
+    description: msg`View application log files`,
   },
 ];
