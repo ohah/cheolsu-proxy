@@ -8,7 +8,7 @@ export const generateCurlCommand = (transaction: HttpTransaction): string => {
   const { request } = transaction;
 
   if (!request) {
-    return 'curl -X GET "http://localhost"';
+    return "curl -X GET 'http://localhost'";
   }
 
   const { method, uri, headers = {}, body, data_type } = request;
@@ -17,7 +17,7 @@ export const generateCurlCommand = (transaction: HttpTransaction): string => {
 
   // 헤더 추가
   Object.entries(headers).forEach(([key, value]) => {
-    curlCommand += ` \\\n  -H "${key}: ${value}"`;
+    curlCommand += ` \\\n  -H '${escapeSingleQuote(key)}: ${escapeSingleQuote(value)}'`;
   });
 
   // 바디 추가 (텍스트 기반 데이터인 경우)
@@ -31,7 +31,11 @@ export const generateCurlCommand = (transaction: HttpTransaction): string => {
   }
 
   // URL 추가
-  curlCommand += ` \\\n  "${uri}"`;
+  curlCommand += ` \\\n  '${escapeSingleQuote(uri)}'`;
 
   return curlCommand;
+};
+
+const escapeSingleQuote = (str: string): string => {
+  return str.replace(/'/g, "'\\''");
 };

@@ -40,6 +40,10 @@ msgstr "{failCount}개 실패"
 msgid "{filteredCount} of {totalCount} transactions"
 msgstr "{totalCount}개 중 {filteredCount}개 트랜잭션"
 
+#: src/widgets/network-table/ui/table-row.tsx:74
+msgid "{label} copied to clipboard"
+msgstr "{label}이(가) 클립보드에 복사되었습니다"
+
 #: src/features/transaction-details/ui/sequence-replay-dialog.tsx:170
 msgid "{successCount} succeeded"
 msgstr "{successCount}개 성공"
@@ -96,7 +100,7 @@ msgstr "트래픽에서 추가"
 msgid "Add Headers"
 msgstr "헤더 추가"
 
-#: src/widgets/network-table/ui/table-row.tsx:164
+#: src/widgets/network-table/ui/table-row.tsx:165
 msgid "Add Intercept Rule"
 msgstr "인터셉트 규칙 추가"
 
@@ -148,7 +152,7 @@ msgid "Added to server replay"
 msgstr "서버 리플레이에 추가되었습니다"
 
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:149
-#: src/widgets/network-table/ui/table-row.tsx:155
+#: src/widgets/network-table/ui/table-row.tsx:156
 msgid "Advanced Repeat"
 msgstr "고급 반복"
 
@@ -352,7 +356,7 @@ msgstr "콘솔"
 msgid "Copied!"
 msgstr "복사됨!"
 
-#: src/widgets/network-table/ui/table-row.tsx:134
+#: src/widgets/network-table/ui/table-row.tsx:135
 msgid "Copy as..."
 msgstr "다른 형식으로 복사..."
 
@@ -365,7 +369,7 @@ msgstr "클립보드에 복사"
 msgid "Copy URL"
 msgstr "URL 복사"
 
-#: src/widgets/network-table/ui/table-row.tsx:138
+#: src/widgets/network-table/ui/table-row.tsx:139
 msgid "cURL"
 msgstr "cURL"
 
@@ -399,7 +403,7 @@ msgstr "매핑 삭제"
 msgid "Delete rule"
 msgstr "규칙 삭제"
 
-#: src/widgets/network-table/ui/table-row.tsx:159
+#: src/widgets/network-table/ui/table-row.tsx:160
 msgid "Delete Transaction"
 msgstr "트랜잭션 삭제"
 
@@ -609,7 +613,7 @@ msgstr "호스트 트리"
 msgid "HTTP requests and responses"
 msgstr "HTTP 요청 및 응답"
 
-#: src/widgets/network-table/ui/table-row.tsx:144
+#: src/widgets/network-table/ui/table-row.tsx:145
 msgid "HTTPie"
 msgstr "HTTPie"
 
@@ -665,7 +669,7 @@ msgstr "인터셉트 규칙"
 msgid "Iterations"
 msgstr "반복 횟수"
 
-#: src/widgets/network-table/ui/table-row.tsx:141
+#: src/widgets/network-table/ui/table-row.tsx:142
 msgid "JavaScript Fetch"
 msgstr "JavaScript Fetch"
 
@@ -988,7 +992,7 @@ msgstr "대기 중"
 msgid "Pending Breakpoints"
 msgstr "대기 중인 Breakpoints"
 
-#: src/widgets/network-table/ui/table-row.tsx:129
+#: src/widgets/network-table/ui/table-row.tsx:130
 msgid "Pin to Top"
 msgstr "상단에 고정"
 
@@ -1036,7 +1040,7 @@ msgstr "프록시 설정 및 구성"
 msgid "proxy.company.com"
 msgstr "proxy.company.com"
 
-#: src/widgets/network-table/ui/table-row.tsx:149
+#: src/widgets/network-table/ui/table-row.tsx:150
 msgid "Python Requests"
 msgstr "Python Requests"
 
@@ -1534,6 +1538,18 @@ msgstr "총 시간"
 msgid "Traffic Replay"
 msgstr "트래픽 리플레이"
 
+#: src/widgets/network-table/ui/table-row.tsx:81
+msgid "Transaction deleted"
+msgstr "트랜잭션이 삭제되었습니다"
+
+#: src/widgets/network-table/ui/table-row.tsx:97
+msgid "Transaction pinned to top"
+msgstr "트랜잭션이 상단에 고정되었습니다"
+
+#: src/widgets/network-table/ui/table-row.tsx:97
+msgid "Transaction unpinned"
+msgstr "트랜잭션 고정이 해제되었습니다"
+
 #: src/pages/settings/ui/settings-page.tsx:561
 msgid "Trusted"
 msgstr "신뢰됨"
@@ -1562,7 +1578,7 @@ msgstr "무제한"
 msgid "Unload"
 msgstr "언로드"
 
-#: src/widgets/network-table/ui/table-row.tsx:129
+#: src/widgets/network-table/ui/table-row.tsx:130
 msgid "Unpin from Top"
 msgstr "상단 고정 해제"
 

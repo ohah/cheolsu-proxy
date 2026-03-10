@@ -40,6 +40,10 @@ msgstr "{failCount} failed"
 msgid "{filteredCount} of {totalCount} transactions"
 msgstr "{filteredCount} of {totalCount} transactions"
 
+#: src/widgets/network-table/ui/table-row.tsx:74
+msgid "{label} copied to clipboard"
+msgstr "{label} copied to clipboard"
+
 #: src/features/transaction-details/ui/sequence-replay-dialog.tsx:170
 msgid "{successCount} succeeded"
 msgstr "{successCount} succeeded"
@@ -96,7 +100,7 @@ msgstr "Add from Traffic"
 msgid "Add Headers"
 msgstr "Add Headers"
 
-#: src/widgets/network-table/ui/table-row.tsx:164
+#: src/widgets/network-table/ui/table-row.tsx:165
 msgid "Add Intercept Rule"
 msgstr "Add Intercept Rule"
 
@@ -148,7 +152,7 @@ msgid "Added to server replay"
 msgstr "Added to server replay"
 
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:149
-#: src/widgets/network-table/ui/table-row.tsx:155
+#: src/widgets/network-table/ui/table-row.tsx:156
 msgid "Advanced Repeat"
 msgstr "Advanced Repeat"
 
@@ -352,7 +356,7 @@ msgstr "Console"
 msgid "Copied!"
 msgstr "Copied!"
 
-#: src/widgets/network-table/ui/table-row.tsx:134
+#: src/widgets/network-table/ui/table-row.tsx:135
 msgid "Copy as..."
 msgstr "Copy as..."
 
@@ -365,7 +369,7 @@ msgstr "Copy to clipboard"
 msgid "Copy URL"
 msgstr "Copy URL"
 
-#: src/widgets/network-table/ui/table-row.tsx:138
+#: src/widgets/network-table/ui/table-row.tsx:139
 msgid "cURL"
 msgstr "cURL"
 
@@ -399,7 +403,7 @@ msgstr "Delete mapping"
 msgid "Delete rule"
 msgstr "Delete rule"
 
-#: src/widgets/network-table/ui/table-row.tsx:159
+#: src/widgets/network-table/ui/table-row.tsx:160
 msgid "Delete Transaction"
 msgstr "Delete Transaction"
 
@@ -609,7 +613,7 @@ msgstr "Host Tree"
 msgid "HTTP requests and responses"
 msgstr "HTTP requests and responses"
 
-#: src/widgets/network-table/ui/table-row.tsx:144
+#: src/widgets/network-table/ui/table-row.tsx:145
 msgid "HTTPie"
 msgstr "HTTPie"
 
@@ -665,7 +669,7 @@ msgstr "Intercept Rules"
 msgid "Iterations"
 msgstr "Iterations"
 
-#: src/widgets/network-table/ui/table-row.tsx:141
+#: src/widgets/network-table/ui/table-row.tsx:142
 msgid "JavaScript Fetch"
 msgstr "JavaScript Fetch"
 
@@ -988,7 +992,7 @@ msgstr "pending"
 msgid "Pending Breakpoints"
 msgstr "Pending Breakpoints"
 
-#: src/widgets/network-table/ui/table-row.tsx:129
+#: src/widgets/network-table/ui/table-row.tsx:130
 msgid "Pin to Top"
 msgstr "Pin to Top"
 
@@ -1036,7 +1040,7 @@ msgstr "Proxy settings and configuration"
 msgid "proxy.company.com"
 msgstr "proxy.company.com"
 
-#: src/widgets/network-table/ui/table-row.tsx:149
+#: src/widgets/network-table/ui/table-row.tsx:150
 msgid "Python Requests"
 msgstr "Python Requests"
 
@@ -1534,6 +1538,18 @@ msgstr "Total Time"
 msgid "Traffic Replay"
 msgstr "Traffic Replay"
 
+#: src/widgets/network-table/ui/table-row.tsx:81
+msgid "Transaction deleted"
+msgstr "Transaction deleted"
+
+#: src/widgets/network-table/ui/table-row.tsx:97
+msgid "Transaction pinned to top"
+msgstr "Transaction pinned to top"
+
+#: src/widgets/network-table/ui/table-row.tsx:97
+msgid "Transaction unpinned"
+msgstr "Transaction unpinned"
+
 #: src/pages/settings/ui/settings-page.tsx:561
 msgid "Trusted"
 msgstr "Trusted"
@@ -1562,7 +1578,7 @@ msgstr "Unlimited"
 msgid "Unload"
 msgstr "Unload"
 
-#: src/widgets/network-table/ui/table-row.tsx:129
+#: src/widgets/network-table/ui/table-row.tsx:130
 msgid "Unpin from Top"
 msgstr "Unpin from Top"
 
