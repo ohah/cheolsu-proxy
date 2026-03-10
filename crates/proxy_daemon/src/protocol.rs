@@ -85,6 +85,9 @@ pub enum DaemonMessage {
         active_connections: u32,
         total_transactions: u64,
     },
+    /// TLS Passthrough 바이패스 목록 업데이트됨
+    #[serde(rename = "tls_passthrough_updated")]
+    TlsPassthroughUpdated { entries: Vec<TlsPassthroughEntry> },
     /// 데몬 연결이 끊어졌음을 알리는 메시지
     #[serde(rename = "disconnected")]
     Disconnected { reason: String },
@@ -165,6 +168,15 @@ pub enum ClientCommand {
     /// 클라이언트 인증서 설정 업데이트 (mTLS)
     #[serde(rename = "update_client_certificate")]
     UpdateClientCertificate { config: Option<ClientCertConfig> },
+    /// TLS Passthrough 목록 조회
+    #[serde(rename = "get_tls_passthrough_list")]
+    GetTlsPassthroughList,
+    /// TLS Passthrough 특정 도메인 바이패스 해제
+    #[serde(rename = "remove_tls_passthrough")]
+    RemoveTlsPassthrough { host: String },
+    /// TLS Passthrough 전체 초기화
+    #[serde(rename = "clear_tls_passthrough")]
+    ClearTlsPassthrough,
     /// 헬스체크 요청
     #[serde(rename = "health_check")]
     HealthCheck,
@@ -374,6 +386,13 @@ pub struct BreakpointData {
     pub body: Option<String>,
     #[serde(default)]
     pub status: Option<u16>,
+}
+
+/// TLS Passthrough 바이패스 항목
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct TlsPassthroughEntry {
+    pub host: String,
+    pub failure_count: u32,
 }
 
 /// SSL Proxying 화이트리스트 엔트리

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
 import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 import { openPath } from "@tauri-apps/plugin-opener";
 import { Button, Badge, Input } from "@/shared/ui";
 import { RefreshCw, Trash2, FolderOpen, Search, X, Shield } from "lucide-react";
@@ -183,6 +184,19 @@ export function LogsPage() {
       fetchTlsEntries();
     }
   }, [activeTab, fetchTlsEntries]);
+
+  // TLS Passthrough 실시간 업데이트 수신
+  useEffect(() => {
+    const unlisten = listen<TlsPassthroughEntry[]>("tls_passthrough_updated", (event) => {
+      const entries = [...event.payload];
+      entries.sort((a, b) => a.host.localeCompare(b.host));
+      setTlsEntries(entries);
+    });
+
+    return () => {
+      unlisten.then((f) => f());
+    };
+  }, []);
 
   const filteredLines = useMemo(() => {
     const lines = logContent.split("\n");
