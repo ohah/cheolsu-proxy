@@ -1,6 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { LazyStore } from "@tauri-apps/plugin-store";
 import {
   Circle,
   Power,
@@ -18,12 +17,9 @@ interface TrayInfo {
   port: number;
 }
 
-const trayStore = new LazyStore("tray-sync.json");
-
 export function TrayPanel() {
   const [info, setInfo] = useState<TrayInfo | null>(null);
   const [proxyOn, setProxyOn] = useState(false);
-  const [transactionCount, setTransactionCount] = useState(0);
 
   // Rust 백엔드에서 프록시 상태 조회
   const fetchInfo = useCallback(async () => {
@@ -36,59 +32,23 @@ export function TrayPanel() {
     }
   }, []);
 
-  // Tauri Store에서 메인 윈도우 상태 읽기
-  const syncFromStore = useCallback(async () => {
-    try {
-      const count = await trayStore.get<number>("transactionCount");
-      if (count !== null && count !== undefined) setTransactionCount(count);
-    } catch {
-      // 스토어가 아직 초기화 안 된 경우 무시
-    }
-  }, []);
-
   useEffect(() => {
     fetchInfo();
-    syncFromStore();
-
-    const interval = setInterval(() => {
-      fetchInfo();
-      syncFromStore();
-    }, 1500);
-
-    // Store 변경 감지 (메인 윈도우에서 값 변경 시 즉시 반영)
-    const unlistenPromise = trayStore.onChange<boolean | number>((key, value) => {
-      if (key === "transactionCount" && typeof value === "number") setTransactionCount(value);
-    });
-
-    return () => {
-      clearInterval(interval);
-      unlistenPromise.then((f) => f());
-    };
-  }, [fetchInfo, syncFromStore]);
+  }, [fetchInfo]);
 
   const handleToggleProxy = async () => {
     try {
       if (proxyOn) {
         await invoke("stop_proxy_v2");
         setProxyOn(false);
-        await trayStore.set("proxyConnected", false);
-        await trayStore.save();
       } else {
         await invoke("start_proxy_v2", { addr: `127.0.0.1:${info?.port ?? 8100}` });
         setProxyOn(true);
-        await trayStore.set("proxyConnected", true);
-        await trayStore.save();
       }
       fetchInfo();
     } catch (e) {
       console.error("Proxy toggle failed:", e);
     }
-  };
-
-  const handleClearSession = async () => {
-    setTransactionCount(0);
-    await trayStore.set("clearSession", Date.now());
-    await trayStore.save();
   };
 
   const handleCleanCache = async () => {
@@ -155,10 +115,6 @@ export function TrayPanel() {
               {caInstalled ? "설치됨" : "미설치"}
             </span>
           </div>
-          <div className="tray-status-row">
-            <span className="tray-status-label">요청 수</span>
-            <span className="tray-status-count">{transactionCount}</span>
-          </div>
         </div>
 
         {/* 액션 */}
@@ -167,11 +123,6 @@ export function TrayPanel() {
             icon={<ExternalLink size={13} />}
             label="메인 창 열기"
             onClick={handleShowMainWindow}
-          />
-          <TrayActionButton
-            icon={<Trash2 size={13} />}
-            label="세션 초기화"
-            onClick={handleClearSession}
           />
           <TrayActionButton
             icon={<FolderOpen size={13} />}

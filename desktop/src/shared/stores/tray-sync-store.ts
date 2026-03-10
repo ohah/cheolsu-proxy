@@ -1,3 +1,1 @@
-import { LazyStore } from "@tauri-apps/plugin-store";
-
-export const trayStore = new LazyStore("tray-sync.json");
+// tray-sync store 제거됨 — macOS 데드락 원인

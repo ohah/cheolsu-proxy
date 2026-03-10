@@ -11,7 +11,6 @@ import {
   useBreakpointStore,
   useHostMappingStore,
 } from "@/shared/stores";
-import { trayStore } from "@/shared/stores/tray-sync-store";
 import { listen } from "@tauri-apps/api/event";
 import type { ProxyEventTuple } from "@/entities/proxy";
 import type { WsMessageInfo, WsConnectionEvent } from "@/entities/websocket";
@@ -140,40 +139,6 @@ const App: React.FC = () => {
       unlisten.then((f) => f());
     };
   }, [setHostMappings]);
-
-  // 트레이 ↔ 메인 윈도우 양방향 동기화 (Tauri Store)
-  const clearTransactions = useTransactionStore((s) => s.clearTransactions);
-  const setConnected = useProxyStore((s) => s.setConnected);
-  const transactionCount = useTransactionStore((s) => s.transactions.length);
-
-  // 메인 → 트레이: 상태를 Store에 쓰기 (2초 디바운스)
-  useEffect(() => {
-    const timer = setTimeout(async () => {
-      try {
-        await trayStore.set("transactionCount", transactionCount);
-        await trayStore.save();
-      } catch {
-        // 스토어 초기화 전이면 무시
-      }
-    }, 2000);
-    return () => clearTimeout(timer);
-  }, [transactionCount]);
-
-  // 트레이 → 메인: Store 변경 감지로 상태 반영
-  useEffect(() => {
-    const unlistenPromise = trayStore.onChange((key, value) => {
-      if (key === "proxyConnected" && typeof value === "boolean") {
-        setConnected(value);
-      }
-      if (key === "clearSession" && typeof value === "number") {
-        clearTransactions();
-      }
-    });
-
-    return () => {
-      unlistenPromise.then((f) => f());
-    };
-  }, [setConnected, clearTransactions]);
 
   return (
     <ThemeProvider attribute={["class", "data-theme"]} defaultTheme="system" enableSystem>
