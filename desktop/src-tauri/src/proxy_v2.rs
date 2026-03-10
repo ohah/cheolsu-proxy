@@ -1,8 +1,8 @@
 use proxy_daemon::{
     clean_old_cache, diff_headers, diff_json, diff_text, get_local_ips, is_text_data_type,
-    BodyDiff, BreakpointAction, BreakpointRule, ClientCommand, DaemonConnection, DaemonMessage,
-    HostMapping, InterceptRule, ProxyAuthConfig, ServerReplayEntry, SslProxyingEntry,
-    ThrottleConfig, TrafficDiff, TransactionPartDiff, UpstreamProxyConfig,
+    BodyDiff, BreakpointAction, BreakpointRule, ClientCommand, CommandSender, DaemonConnection,
+    DaemonMessage, HostMapping, InterceptRule, ProxyAuthConfig, ServerReplayEntry,
+    SslProxyingEntry, ThrottleConfig, TrafficDiff, TransactionPartDiff, UpstreamProxyConfig,
 };
 use std::collections::HashMap;
 use std::net::SocketAddr;
@@ -28,6 +28,16 @@ fn is_hop_by_hop_header(name: &str) -> bool {
 
 /// 프록시 상태: daemon과의 연결을 관리
 pub type ProxyV2State = Arc<Mutex<Option<DaemonConnection>>>;
+
+/// ProxyV2State에서 CommandSender를 추출하는 헬퍼.
+/// mutex 잠금을 최소 범위로 유지하여 macOS WebKit 메인 스레드 데드락을 방지합니다.
+async fn get_command_sender(proxy: &ProxyV2State) -> Result<CommandSender, String> {
+    let guard = proxy.lock().await;
+    guard
+        .as_ref()
+        .ok_or_else(|| "프록시가 실행 중이 아닙니다".to_string())
+        .map(|conn| conn.command_sender())
+}
 
 /// 프록시 시작 결과를 나타내는 구조체
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -208,9 +218,11 @@ pub async fn start_proxy_v2<R: Runtime>(
 /// 프록시 중지: daemon과의 연결 해제
 #[tauri::command]
 pub async fn stop_proxy_v2(proxy: tauri::State<'_, ProxyV2State>) -> Result<(), String> {
-    let mut proxy_guard = proxy.lock().await;
-
-    if let Some(conn) = proxy_guard.take() {
+    let conn = {
+        let mut guard = proxy.lock().await;
+        guard.take()
+    };
+    if let Some(conn) = conn {
         conn.disconnect().await;
         println!("Daemon 연결 해제 완료");
     } else {
@@ -256,16 +268,10 @@ pub async fn update_intercept_rules_v2(
     proxy: tauri::State<'_, ProxyV2State>,
     rules: Vec<InterceptRule>,
 ) -> Result<(), String> {
-    let proxy_guard = proxy.lock().await;
-
-    if let Some(conn) = proxy_guard.as_ref() {
-        let cmd = ClientCommand::UpdateInterceptRules { rules };
-        conn.send_command(&cmd).await?;
-        println!("Daemon에 인터셉트 규칙 업데이트 완료");
-    } else {
-        return Err("프록시가 실행 중이 아닙니다".to_string());
-    }
-
+    let sender = get_command_sender(&proxy).await?;
+    let cmd = ClientCommand::UpdateInterceptRules { rules };
+    sender.send_command(&cmd).await?;
+    println!("Daemon에 인터셉트 규칙 업데이트 완료");
     Ok(())
 }
 
@@ -284,20 +290,15 @@ pub async fn ws_inject_message(
     proxy: State<'_, ProxyV2State>,
     params: WsInjectParams,
 ) -> Result<(), String> {
-    let proxy_guard = proxy.lock().await;
-
-    if let Some(conn) = proxy_guard.as_ref() {
-        let cmd = ClientCommand::WsInject {
-            connection_id: params.connection_id,
-            direction: params.direction,
-            payload: params.payload,
-            is_binary: params.is_binary,
-        };
-        conn.send_command(&cmd).await?;
-        Ok(())
-    } else {
-        Err("프록시가 실행 중이 아닙니다".to_string())
-    }
+    let sender = get_command_sender(&proxy).await?;
+    let cmd = ClientCommand::WsInject {
+        connection_id: params.connection_id,
+        direction: params.direction,
+        payload: params.payload,
+        is_binary: params.is_binary,
+    };
+    sender.send_command(&cmd).await?;
+    Ok(())
 }
 
 /// 리플레이 요청 파라미터
@@ -646,16 +647,10 @@ pub async fn update_breakpoint_rules(
     proxy: tauri::State<'_, ProxyV2State>,
     rules: Vec<BreakpointRule>,
 ) -> Result<(), String> {
-    let proxy_guard = proxy.lock().await;
-
-    if let Some(conn) = proxy_guard.as_ref() {
-        let cmd = ClientCommand::UpdateBreakpointRules { rules };
-        conn.send_command(&cmd).await?;
-        println!("Daemon에 breakpoint 규칙 업데이트 완료");
-    } else {
-        return Err("프록시가 실행 중이 아닙니다".to_string());
-    }
-
+    let sender = get_command_sender(&proxy).await?;
+    let cmd = ClientCommand::UpdateBreakpointRules { rules };
+    sender.send_command(&cmd).await?;
+    println!("Daemon에 breakpoint 규칙 업데이트 완료");
     Ok(())
 }
 
@@ -666,16 +661,10 @@ pub async fn resolve_breakpoint(
     id: String,
     action: BreakpointAction,
 ) -> Result<(), String> {
-    let proxy_guard = proxy.lock().await;
-
-    if let Some(conn) = proxy_guard.as_ref() {
-        let cmd = ClientCommand::ResolveBreakpoint { id, action };
-        conn.send_command(&cmd).await?;
-        println!("Daemon에 breakpoint 해제 완료");
-    } else {
-        return Err("프록시가 실행 중이 아닙니다".to_string());
-    }
-
+    let sender = get_command_sender(&proxy).await?;
+    let cmd = ClientCommand::ResolveBreakpoint { id, action };
+    sender.send_command(&cmd).await?;
+    println!("Daemon에 breakpoint 해제 완료");
     Ok(())
 }
 
@@ -769,16 +758,10 @@ pub async fn update_upstream_proxy(
     proxy: State<'_, ProxyV2State>,
     config: Option<UpstreamProxyConfig>,
 ) -> Result<(), String> {
-    let proxy_guard = proxy.lock().await;
-
-    if let Some(conn) = proxy_guard.as_ref() {
-        let cmd = ClientCommand::UpdateUpstreamProxy { config };
-        conn.send_command(&cmd).await?;
-        tracing::info!("Daemon에 upstream proxy 설정 업데이트 완료");
-    } else {
-        return Err("프록시가 실행 중이 아닙니다".to_string());
-    }
-
+    let sender = get_command_sender(&proxy).await?;
+    let cmd = ClientCommand::UpdateUpstreamProxy { config };
+    sender.send_command(&cmd).await?;
+    tracing::info!("Daemon에 upstream proxy 설정 업데이트 완료");
     Ok(())
 }
 
@@ -788,16 +771,10 @@ pub async fn update_proxy_auth(
     proxy: State<'_, ProxyV2State>,
     config: ProxyAuthConfig,
 ) -> Result<(), String> {
-    let proxy_guard = proxy.lock().await;
-
-    if let Some(conn) = proxy_guard.as_ref() {
-        let cmd = ClientCommand::UpdateProxyAuth { config };
-        conn.send_command(&cmd).await?;
-        tracing::info!("Daemon에 프록시 인증 설정 업데이트 완료");
-    } else {
-        return Err("프록시가 실행 중이 아닙니다".to_string());
-    }
-
+    let sender = get_command_sender(&proxy).await?;
+    let cmd = ClientCommand::UpdateProxyAuth { config };
+    sender.send_command(&cmd).await?;
+    tracing::info!("Daemon에 프록시 인증 설정 업데이트 완료");
     Ok(())
 }
 
@@ -807,16 +784,10 @@ pub async fn update_throttle(
     proxy: State<'_, ProxyV2State>,
     config: Option<ThrottleConfig>,
 ) -> Result<(), String> {
-    let proxy_guard = proxy.lock().await;
-
-    if let Some(conn) = proxy_guard.as_ref() {
-        let cmd = ClientCommand::UpdateThrottle { config };
-        conn.send_command(&cmd).await?;
-        tracing::info!("Daemon에 스로틀링 설정 업데이트 완료");
-    } else {
-        return Err("프록시가 실행 중이 아닙니다".to_string());
-    }
-
+    let sender = get_command_sender(&proxy).await?;
+    let cmd = ClientCommand::UpdateThrottle { config };
+    sender.send_command(&cmd).await?;
+    tracing::info!("Daemon에 스로틀링 설정 업데이트 완료");
     Ok(())
 }
 
@@ -826,16 +797,10 @@ pub async fn update_server_replay(
     proxy: State<'_, ProxyV2State>,
     entries: Vec<ServerReplayEntry>,
 ) -> Result<(), String> {
-    let proxy_guard = proxy.lock().await;
-
-    if let Some(conn) = proxy_guard.as_ref() {
-        let cmd = ClientCommand::UpdateServerReplay { entries };
-        conn.send_command(&cmd).await?;
-        tracing::info!("Daemon에 서버 리플레이 엔트리 업데이트 완료");
-    } else {
-        return Err("프록시가 실행 중이 아닙니다".to_string());
-    }
-
+    let sender = get_command_sender(&proxy).await?;
+    let cmd = ClientCommand::UpdateServerReplay { entries };
+    sender.send_command(&cmd).await?;
+    tracing::info!("Daemon에 서버 리플레이 엔트리 업데이트 완료");
     Ok(())
 }
 
@@ -845,16 +810,10 @@ pub async fn update_host_mappings(
     proxy: State<'_, ProxyV2State>,
     mappings: Vec<HostMapping>,
 ) -> Result<(), String> {
-    let proxy_guard = proxy.lock().await;
-
-    if let Some(conn) = proxy_guard.as_ref() {
-        let cmd = ClientCommand::UpdateHostMappings { mappings };
-        conn.send_command(&cmd).await?;
-        tracing::info!("Daemon에 호스트 매핑 업데이트 완료");
-    } else {
-        return Err("프록시가 실행 중이 아닙니다".to_string());
-    }
-
+    let sender = get_command_sender(&proxy).await?;
+    let cmd = ClientCommand::UpdateHostMappings { mappings };
+    sender.send_command(&cmd).await?;
+    tracing::info!("Daemon에 호스트 매핑 업데이트 완료");
     Ok(())
 }
 
@@ -864,16 +823,10 @@ pub async fn update_ssl_proxying_list(
     proxy: State<'_, ProxyV2State>,
     entries: Vec<SslProxyingEntry>,
 ) -> Result<(), String> {
-    let proxy_guard = proxy.lock().await;
-
-    if let Some(conn) = proxy_guard.as_ref() {
-        let cmd = ClientCommand::UpdateSslProxyingList { entries };
-        conn.send_command(&cmd).await?;
-        tracing::info!("Daemon에 SSL Proxying 화이트리스트 업데이트 완료");
-    } else {
-        return Err("프록시가 실행 중이 아닙니다".to_string());
-    }
-
+    let sender = get_command_sender(&proxy).await?;
+    let cmd = ClientCommand::UpdateSslProxyingList { entries };
+    sender.send_command(&cmd).await?;
+    tracing::info!("Daemon에 SSL Proxying 화이트리스트 업데이트 완료");
     Ok(())
 }
 
@@ -896,16 +849,10 @@ pub async fn update_client_certificate(
         }
     }
 
-    let proxy_guard = proxy.lock().await;
-
-    if let Some(conn) = proxy_guard.as_ref() {
-        let cmd = ClientCommand::UpdateClientCertificate { config };
-        conn.send_command(&cmd).await?;
-        tracing::info!("Daemon에 클라이언트 인증서 설정 업데이트 완료");
-    } else {
-        return Err("프록시가 실행 중이 아닙니다".to_string());
-    }
-
+    let sender = get_command_sender(&proxy).await?;
+    let cmd = ClientCommand::UpdateClientCertificate { config };
+    sender.send_command(&cmd).await?;
+    tracing::info!("Daemon에 클라이언트 인증서 설정 업데이트 완료");
     Ok(())
 }
 
@@ -917,25 +864,19 @@ pub async fn update_quick_settings(
     block_cookies: bool,
     no_gzip: bool,
 ) -> Result<(), String> {
-    let proxy_guard = proxy.lock().await;
-
-    if let Some(conn) = proxy_guard.as_ref() {
-        let cmd = ClientCommand::UpdateQuickSettings {
-            no_caching,
-            block_cookies,
-            no_gzip,
-        };
-        conn.send_command(&cmd).await?;
-        tracing::info!(
-            "Daemon에 빠른 설정 업데이트 완료: no_caching={}, block_cookies={}, no_gzip={}",
-            no_caching,
-            block_cookies,
-            no_gzip
-        );
-    } else {
-        return Err("프록시가 실행 중이 아닙니다".to_string());
-    }
-
+    let sender = get_command_sender(&proxy).await?;
+    let cmd = ClientCommand::UpdateQuickSettings {
+        no_caching,
+        block_cookies,
+        no_gzip,
+    };
+    sender.send_command(&cmd).await?;
+    tracing::info!(
+        "Daemon에 빠른 설정 업데이트 완료: no_caching={}, block_cookies={}, no_gzip={}",
+        no_caching,
+        block_cookies,
+        no_gzip
+    );
     Ok(())
 }
 
@@ -946,32 +887,20 @@ pub async fn load_script(
     path: Option<String>,
     code: Option<String>,
 ) -> Result<(), String> {
-    let proxy_guard = proxy.lock().await;
-
-    if let Some(conn) = proxy_guard.as_ref() {
-        let cmd = ClientCommand::LoadScript { path, code };
-        conn.send_command(&cmd).await?;
-        tracing::info!("Daemon에 스크립트 로드 요청 완료");
-    } else {
-        return Err("프록시가 실행 중이 아닙니다".to_string());
-    }
-
+    let sender = get_command_sender(&proxy).await?;
+    let cmd = ClientCommand::LoadScript { path, code };
+    sender.send_command(&cmd).await?;
+    tracing::info!("Daemon에 스크립트 로드 요청 완료");
     Ok(())
 }
 
 /// 스크립트 언로드
 #[tauri::command]
 pub async fn unload_script(proxy: State<'_, ProxyV2State>) -> Result<(), String> {
-    let proxy_guard = proxy.lock().await;
-
-    if let Some(conn) = proxy_guard.as_ref() {
-        let cmd = ClientCommand::UnloadScript;
-        conn.send_command(&cmd).await?;
-        tracing::info!("Daemon에 스크립트 언로드 요청 완료");
-    } else {
-        return Err("프록시가 실행 중이 아닙니다".to_string());
-    }
-
+    let sender = get_command_sender(&proxy).await?;
+    let cmd = ClientCommand::UnloadScript;
+    sender.send_command(&cmd).await?;
+    tracing::info!("Daemon에 스크립트 언로드 요청 완료");
     Ok(())
 }
 
