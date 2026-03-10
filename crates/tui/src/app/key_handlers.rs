@@ -645,8 +645,8 @@ impl App {
 
     async fn handle_settings_key(&mut self, key: KeyEvent) {
         use super::forms::{
-            ProxyAuthField, QuickSettingsField, SettingsSection, SslProxyingAddForm, ThrottleField,
-            UpstreamProxyField,
+            ClientCertField, ProxyAuthField, QuickSettingsField, SettingsSection,
+            SslProxyingAddForm, ThrottleField, UpstreamProxyField,
         };
 
         // SSL Proxying add form is open: handle it
@@ -661,11 +661,12 @@ impl App {
             return;
         }
 
-        // Text editing mode (upstream or throttle)
+        // Text editing mode (upstream, throttle, or client cert)
         let is_editing = match self.settings_section {
             SettingsSection::UpstreamProxy => self.upstream_form.editing,
             SettingsSection::ProxyAuth => self.proxy_auth_form.editing,
             SettingsSection::Throttle => self.throttle_form.editing,
+            SettingsSection::ClientCertificate => self.client_cert_form.editing,
             SettingsSection::HostMapping
             | SettingsSection::QuickSettings
             | SettingsSection::SslProxying => false,
@@ -764,6 +765,32 @@ impl App {
                     }
                     _ => {}
                 },
+                SettingsSection::ClientCertificate => match key.code {
+                    KeyCode::Esc => {
+                        self.client_cert_form.editing = false;
+                    }
+                    KeyCode::Enter => {
+                        self.client_cert_form.editing = false;
+                        self.send_client_cert_update().await;
+                    }
+                    KeyCode::Char(c) => {
+                        let field = match self.client_cert_form.field {
+                            ClientCertField::CertPath => &mut self.client_cert_form.cert_path,
+                            ClientCertField::KeyPath => &mut self.client_cert_form.key_path,
+                            _ => return,
+                        };
+                        field.push(c);
+                    }
+                    KeyCode::Backspace => {
+                        let field = match self.client_cert_form.field {
+                            ClientCertField::CertPath => &mut self.client_cert_form.cert_path,
+                            ClientCertField::KeyPath => &mut self.client_cert_form.key_path,
+                            _ => return,
+                        };
+                        field.pop();
+                    }
+                    _ => {}
+                },
                 SettingsSection::HostMapping
                 | SettingsSection::QuickSettings
                 | SettingsSection::SslProxying => {
@@ -816,6 +843,9 @@ impl App {
                         }
                     }
                 }
+                SettingsSection::ClientCertificate => {
+                    self.client_cert_form.field = self.client_cert_form.field.prev();
+                }
             },
             KeyCode::Down | KeyCode::Char('j') => match self.settings_section {
                 SettingsSection::UpstreamProxy => {
@@ -854,6 +884,9 @@ impl App {
                         }
                     }
                 }
+                SettingsSection::ClientCertificate => {
+                    self.client_cert_form.field = self.client_cert_form.field.next();
+                }
             },
             KeyCode::Enter | KeyCode::Char(' ') => match self.settings_section {
                 SettingsSection::UpstreamProxy => {
@@ -887,6 +920,14 @@ impl App {
                 },
                 SettingsSection::HostMapping => {}
                 SettingsSection::SslProxying => {}
+                SettingsSection::ClientCertificate => {
+                    if self.client_cert_form.field == ClientCertField::Enabled {
+                        self.client_cert_form.enabled = !self.client_cert_form.enabled;
+                        self.send_client_cert_update().await;
+                    } else {
+                        self.client_cert_form.editing = true;
+                    }
+                }
                 SettingsSection::QuickSettings => match self.quick_settings_form.field {
                     QuickSettingsField::NoCaching => {
                         self.quick_settings_form.no_caching = !self.quick_settings_form.no_caching;
