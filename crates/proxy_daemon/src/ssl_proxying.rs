@@ -8,6 +8,11 @@ use crate::protocol::SslProxyingEntry;
 /// - 포트 지정: `example.com:443`
 /// - 와일드카드 + 포트: `*.example.com:8443`
 pub fn matches_ssl_pattern(pattern: &str, host: &str, port: Option<u16>) -> bool {
+    // 빈 패턴이나 공백만 있는 패턴은 매칭에서 제외
+    if pattern.trim().is_empty() {
+        return false;
+    }
+
     let (pattern_host, pattern_port) = parse_host_port(pattern);
     let (target_host, _) = parse_host_port(host);
 
@@ -296,5 +301,53 @@ mod tests {
     fn test_host_with_port_in_host_string() {
         // 호스트 문자열에 포트가 포함된 경우 (authority 형식)
         assert!(matches_ssl_pattern("example.com", "example.com:443", None));
+    }
+
+    // --- 빈 패턴 방어 테스트 ---
+
+    #[test]
+    fn test_empty_pattern_does_not_match() {
+        assert!(!matches_ssl_pattern("", "example.com", None));
+        assert!(!matches_ssl_pattern("", "example.com", Some(443)));
+    }
+
+    #[test]
+    fn test_whitespace_only_pattern_does_not_match() {
+        assert!(!matches_ssl_pattern("   ", "example.com", None));
+        assert!(!matches_ssl_pattern("\t", "example.com", Some(443)));
+        assert!(!matches_ssl_pattern(" \t\n ", "example.com", None));
+    }
+
+    #[test]
+    fn test_empty_pattern_entry_in_whitelist_ignored() {
+        let entries = vec![
+            SslProxyingEntry {
+                pattern: "".to_string(),
+                enabled: true,
+            },
+            SslProxyingEntry {
+                pattern: "   ".to_string(),
+                enabled: true,
+            },
+        ];
+        // 빈 패턴만 있는 경우 어떤 도메인도 매칭되지 않아야 함
+        assert!(!should_intercept_ssl(&entries, "example.com", Some(443)));
+    }
+
+    #[test]
+    fn test_empty_pattern_mixed_with_valid_entry() {
+        let entries = vec![
+            SslProxyingEntry {
+                pattern: "".to_string(),
+                enabled: true,
+            },
+            SslProxyingEntry {
+                pattern: "example.com".to_string(),
+                enabled: true,
+            },
+        ];
+        // 유효한 패턴은 정상 매칭되어야 함
+        assert!(should_intercept_ssl(&entries, "example.com", Some(443)));
+        assert!(!should_intercept_ssl(&entries, "other.com", Some(443)));
     }
 }
