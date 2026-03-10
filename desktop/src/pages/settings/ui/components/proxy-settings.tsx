@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useAppSettingsStore } from "@/shared/stores/app-settings-store";
 import { invoke } from "@tauri-apps/api/core";
 import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
@@ -23,23 +24,16 @@ export function ProxySettings() {
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<"idle" | "saved" | "error">("idle");
 
-  // 로컬 스토리지에서 설정 불러오기
+  // store에서 설정 불러오기
   useEffect(() => {
-    const saved = localStorage.getItem("upstream_proxy_config");
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        setEnabled(parsed.enabled ?? false);
-        setHost(parsed.host ?? "");
-        setPort(String(parsed.port ?? "8080"));
-        setUseAuth(!!parsed.auth);
-        setUsername(parsed.auth?.username ?? "");
-        setPassword(parsed.auth?.password ?? "");
-        setBypass((parsed.bypass ?? []).join(", "));
-      } catch {
-        // 파싱 실패 시 무시
-      }
-    }
+    const config = useAppSettingsStore.getState().upstreamProxyConfig;
+    setEnabled(config.enabled);
+    setHost(config.host);
+    setPort(String(config.port));
+    setUseAuth(!!config.auth);
+    setUsername(config.auth?.username ?? "");
+    setPassword(config.auth?.password ?? "");
+    setBypass(config.bypass.join(", "));
   }, []);
 
   const handleSave = useCallback(async () => {
@@ -61,8 +55,14 @@ export function ProxySettings() {
 
       await invoke("update_upstream_proxy", { config });
 
-      // 로컬 스토리지에 저장
-      localStorage.setItem("upstream_proxy_config", JSON.stringify({ enabled, ...config }));
+      // store에 저장 (persist가 자동으로 localStorage에 반영)
+      useAppSettingsStore.getState().setUpstreamProxyConfig({
+        enabled,
+        host,
+        port: Number.parseInt(port, 10) || 8080,
+        auth: useAuth ? { username, password } : null,
+        bypass: bypass.split(",").map((s) => s.trim()).filter(Boolean),
+      });
 
       setStatus("saved");
       setTimeout(() => setStatus("idle"), 2000);

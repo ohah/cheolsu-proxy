@@ -3,6 +3,7 @@ import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
 import { open as openFileDialog } from "@tauri-apps/plugin-dialog";
 import { useProxyStore } from "@/shared/stores/proxy-store";
+import { useAppSettingsStore } from "@/shared/stores/app-settings-store";
 import { useSslProxyingStore } from "@/shared/stores/ssl-proxying-store";
 import {
   updateProxyAuth,
@@ -286,19 +287,12 @@ function ProxyAuthSection() {
   const [proxyAuthSaving, setProxyAuthSaving] = useState(false);
   const [proxyAuthStatus, setProxyAuthStatus] = useState<"idle" | "saved" | "error">("idle");
 
-  // 로컬 스토리지에서 설정 불러오기
+  // store에서 설정 불러오기
   useEffect(() => {
-    const saved = localStorage.getItem("proxy_auth_config");
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        setProxyAuthEnabled(parsed.enabled ?? false);
-        setProxyAuthUsername(parsed.username ?? "");
-        setProxyAuthPassword(parsed.password ?? "");
-      } catch {
-        // 파싱 실패 시 무시
-      }
-    }
+    const config = useAppSettingsStore.getState().proxyAuthConfig;
+    setProxyAuthEnabled(config.enabled);
+    setProxyAuthUsername(config.username);
+    setProxyAuthPassword(config.password);
   }, []);
 
   // 프록시 연결 시 설정 동기화
@@ -325,7 +319,7 @@ function ProxyAuthSection() {
 
       await updateProxyAuth(config);
 
-      localStorage.setItem("proxy_auth_config", JSON.stringify(config));
+      useAppSettingsStore.getState().setProxyAuthConfig(config);
 
       setProxyAuthStatus("saved");
       setTimeout(() => setProxyAuthStatus("idle"), 2000);

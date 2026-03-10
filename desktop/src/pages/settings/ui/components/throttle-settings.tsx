@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
-import { useSettingsStore } from "@/shared/stores/use-settings-store";
+import { useAppSettingsStore } from "@/shared/stores/app-settings-store";
 import { updateThrottle, type ThrottleConfig } from "@/shared/api/proxy";
 import { Button, Input, Switch, Badge, Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/shared/ui";
 
@@ -57,8 +57,8 @@ const THROTTLE_PRESETS = [
 
 export function ThrottleSettings() {
   const { t } = useLingui();
-  const throttleConfig = useSettingsStore((s) => s.throttleConfig);
-  const setThrottleConfig = useSettingsStore((s) => s.setThrottleConfig);
+  const throttleConfig = useAppSettingsStore((s) => s.throttleConfig);
+  const setThrottleConfig = useAppSettingsStore((s) => s.setThrottleConfig);
 
   const [throttleEnabled, setThrottleEnabled] = useState(throttleConfig.enabled);
   const [throttlePreset, setThrottlePreset] = useState(throttleConfig.preset);
@@ -102,7 +102,6 @@ export function ThrottleSettings() {
         upload: throttleUpload,
         latency: throttleLatency,
       };
-      localStorage.setItem("throttle_config", JSON.stringify(localConfig));
       setThrottleConfig(localConfig);
 
       setThrottleStatus("saved");

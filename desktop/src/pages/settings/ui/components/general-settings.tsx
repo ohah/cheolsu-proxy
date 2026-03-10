@@ -3,7 +3,7 @@ import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
 import { useTheme } from "next-themes";
 import { loadCatalog, locales, type Locale } from "@/shared/lib/i18n";
-import { useSettingsStore } from "@/shared/stores/use-settings-store";
+import { useAppSettingsStore } from "@/shared/stores/app-settings-store";
 import { updateQuickSettings } from "@/shared/api/proxy";
 import { useProxyStore } from "@/shared/stores/proxy-store";
 import { useEffect } from "react";
@@ -27,23 +27,22 @@ export function GeneralSettings() {
   const { theme, setTheme } = useTheme();
   const isProxyConnected = useProxyStore((s) => s.isConnected);
 
-  const locale = useSettingsStore((s) => s.locale);
-  const setLocale = useSettingsStore((s) => s.setLocale);
-  const autosaveEnabled = useSettingsStore((s) => s.autosaveEnabled);
-  const setAutosaveEnabled = useSettingsStore((s) => s.setAutosaveEnabled);
-  const noCaching = useSettingsStore((s) => s.noCaching);
-  const setNoCaching = useSettingsStore((s) => s.setNoCaching);
-  const blockCookies = useSettingsStore((s) => s.blockCookies);
-  const setBlockCookies = useSettingsStore((s) => s.setBlockCookies);
-  const noGzip = useSettingsStore((s) => s.noGzip);
-  const setNoGzip = useSettingsStore((s) => s.setNoGzip);
+  const locale = useAppSettingsStore((s) => s.locale);
+  const setLocale = useAppSettingsStore((s) => s.setLocale);
+  const autosaveEnabled = useAppSettingsStore((s) => s.autosaveSession);
+  const setAutosaveEnabled = useAppSettingsStore((s) => s.setAutosaveSession);
+  const noCaching = useAppSettingsStore((s) => s.quickSettingsNoCaching);
+  const setNoCaching = useAppSettingsStore((s) => s.setQuickSettingsNoCaching);
+  const blockCookies = useAppSettingsStore((s) => s.quickSettingsBlockCookies);
+  const setBlockCookies = useAppSettingsStore((s) => s.setQuickSettingsBlockCookies);
+  const noGzip = useAppSettingsStore((s) => s.quickSettingsNoGzip);
+  const setNoGzip = useAppSettingsStore((s) => s.setQuickSettingsNoGzip);
 
   const handleLocaleChange = useCallback(
     async (newLocale: string | null) => {
       if (!newLocale) return;
       const loc = newLocale as Locale;
       setLocale(loc);
-      localStorage.setItem("locale", loc);
       await loadCatalog(loc);
     },
     [setLocale],
@@ -52,7 +51,6 @@ export function GeneralSettings() {
   const handleAutosaveChange = useCallback(
     (checked: boolean) => {
       setAutosaveEnabled(checked);
-      localStorage.setItem("autosave_session", JSON.stringify(checked));
     },
     [setAutosaveEnabled],
   );
@@ -60,10 +58,10 @@ export function GeneralSettings() {
   const handleNoCachingChange = useCallback(
     async (checked: boolean) => {
       setNoCaching(checked);
-      localStorage.setItem("quick_settings_no_caching", JSON.stringify(checked));
-      const currentBlockCookies = useSettingsStore.getState().blockCookies;
-      const currentNoGzip = useSettingsStore.getState().noGzip;
-      updateQuickSettings(checked, currentBlockCookies, currentNoGzip).catch((e) => {
+      
+      
+      const { quickSettingsBlockCookies, quickSettingsNoGzip } = useAppSettingsStore.getState();
+      updateQuickSettings(checked, quickSettingsBlockCookies, quickSettingsNoGzip).catch((e) => {
         console.error("No Caching 설정 실패:", e);
       });
     },
@@ -73,10 +71,10 @@ export function GeneralSettings() {
   const handleBlockCookiesChange = useCallback(
     async (checked: boolean) => {
       setBlockCookies(checked);
-      localStorage.setItem("quick_settings_block_cookies", JSON.stringify(checked));
-      const currentNoCaching = useSettingsStore.getState().noCaching;
-      const currentNoGzip = useSettingsStore.getState().noGzip;
-      updateQuickSettings(currentNoCaching, checked, currentNoGzip).catch((e) => {
+      
+      
+      const { quickSettingsNoCaching, quickSettingsNoGzip } = useAppSettingsStore.getState();
+      updateQuickSettings(quickSettingsNoCaching, checked, quickSettingsNoGzip).catch((e) => {
         console.error("Block Cookies 설정 실패:", e);
       });
     },
@@ -86,10 +84,10 @@ export function GeneralSettings() {
   const handleNoGzipChange = useCallback(
     async (checked: boolean) => {
       setNoGzip(checked);
-      localStorage.setItem("quick_settings_no_gzip", JSON.stringify(checked));
-      const currentNoCaching = useSettingsStore.getState().noCaching;
-      const currentBlockCookies = useSettingsStore.getState().blockCookies;
-      updateQuickSettings(currentNoCaching, currentBlockCookies, checked).catch((e) => {
+      
+      
+      const { quickSettingsNoCaching, quickSettingsBlockCookies } = useAppSettingsStore.getState();
+      updateQuickSettings(quickSettingsNoCaching, quickSettingsBlockCookies, checked).catch((e) => {
         console.error("No Gzip 설정 실패:", e);
       });
     },
@@ -99,8 +97,8 @@ export function GeneralSettings() {
   // 프록시 연결 시 Quick Settings 동기화
   useEffect(() => {
     if (isProxyConnected) {
-      const { noCaching, blockCookies, noGzip } = useSettingsStore.getState();
-      updateQuickSettings(noCaching, blockCookies, noGzip).catch(() => {});
+      const { quickSettingsNoCaching, quickSettingsBlockCookies, quickSettingsNoGzip } = useAppSettingsStore.getState();
+      updateQuickSettings(quickSettingsNoCaching, quickSettingsBlockCookies, quickSettingsNoGzip).catch(() => {});
     }
   }, [isProxyConnected]); // eslint-disable-line react-hooks/exhaustive-deps
 
