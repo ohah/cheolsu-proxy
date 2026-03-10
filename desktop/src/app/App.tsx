@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { ThemeProvider, RouterProvider } from "./providers";
 import { Toaster } from "@/shared/ui";
 import {
@@ -12,7 +12,9 @@ import {
   useHostMappingStore,
 } from "@/shared/stores";
 import { listen } from "@tauri-apps/api/event";
-import type { ProxyEventTuple } from "@/entities/proxy";
+import { getCurrentWindow } from "@tauri-apps/api/window";
+import type { ProxyEventTuple, HttpTransaction } from "@/entities/proxy";
+import { autosaveSession, autoloadSession } from "@/shared/api/proxy";
 import type { WsMessageInfo, WsConnectionEvent } from "@/entities/websocket";
 import type { InterceptRule } from "@/entities/intercept-rule";
 import type { BreakpointRule, PendingBreakpoint } from "@/entities/breakpoint";
@@ -139,6 +141,78 @@ const App: React.FC = () => {
       unlisten.then((f) => f());
     };
   }, [setHostMappings]);
+
+  const setTransactions = useTransactionStore((s) => s.setTransactions);
+
+  // 앱 시작 시 자동 저장된 세션 복원
+  useEffect(() => {
+    const autoSessionEnabled = localStorage.getItem("autosave_session") !== "false";
+    if (!autoSessionEnabled) return;
+
+    autoloadSession()
+      .then((result) => {
+        if (result && result.transactions_json) {
+          try {
+            const tuples = JSON.parse(result.transactions_json) as [unknown, unknown][];
+            const loaded: HttpTransaction[] = tuples.map(([request, response]) => ({
+              request,
+              response,
+            })) as HttpTransaction[];
+            if (loaded.length > 0) {
+              setTransactions(loaded);
+              console.info(
+                `자동 세션 복원 완료: ${loaded.length}개 트랜잭션`,
+              );
+            }
+          } catch (e) {
+            console.error("자동 세션 복원 파싱 실패:", e);
+          }
+        }
+      })
+      .catch((e) => {
+        console.error("자동 세션 복원 실패:", e);
+      });
+  }, [setTransactions]);
+
+  // 자동 세션 저장 로직
+  const performAutosave = useCallback(async () => {
+    const autoSessionEnabled = localStorage.getItem("autosave_session") !== "false";
+    if (!autoSessionEnabled) return;
+
+    try {
+      const currentTransactions = useTransactionStore.getState().transactions;
+      if (currentTransactions.length === 0) return;
+
+      const tuples = currentTransactions.map((tx) => [tx.request, tx.response]);
+      const transactionsJson = JSON.stringify(tuples);
+      await autosaveSession(transactionsJson);
+      console.info(`자동 세션 저장 완료: ${currentTransactions.length}개 트랜잭션`);
+    } catch (e) {
+      console.error("자동 세션 저장 실패:", e);
+    }
+  }, []);
+
+  // 윈도우 닫기(숨김) 시 자동 세션 저장
+  useEffect(() => {
+    const unlisten = getCurrentWindow().onCloseRequested(async () => {
+      await performAutosave();
+    });
+
+    return () => {
+      unlisten.then((f) => f());
+    };
+  }, [performAutosave]);
+
+  // 앱 완전 종료 시 자동 세션 저장 (트레이 메뉴 종료)
+  useEffect(() => {
+    const unlisten = listen("app_quit_requested", async () => {
+      await performAutosave();
+    });
+
+    return () => {
+      unlisten.then((f) => f());
+    };
+  }, [performAutosave]);
 
   return (
     <ThemeProvider attribute={["class", "data-theme"]} defaultTheme="system" enableSystem>
