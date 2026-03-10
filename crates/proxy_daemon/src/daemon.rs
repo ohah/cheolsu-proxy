@@ -17,6 +17,11 @@ use proxyapi_v2::throttle::ThrottleConfig;
 use proxyapi_v2::upstream_proxy::UpstreamProxyConfig;
 use proxyapi_v2::websocket_registry::WebSocketRegistry;
 
+/// 동시 연결 수 기본 제한값
+const DEFAULT_MAX_CONCURRENT_CONNECTIONS: usize = 1024;
+/// 요청 바디 크기 기본 제한값 (100MB)
+const DEFAULT_MAX_BODY_SIZE: usize = 100 * 1024 * 1024;
+
 pub fn app_support_dir() -> Result<PathBuf, DaemonError> {
     dirs::data_dir()
         .ok_or(DaemonError::DataDirNotFound)
@@ -444,10 +449,8 @@ async fn daemon_main(port: u16, host: String) -> i32 {
         None::<crate::protocol::ProxyAuthConfig>,
     ));
 
-    // 동시 연결 수 제한 (기본값: 1024)
-    let max_concurrent_connections: Option<usize> = Some(1024);
-    // 요청 바디 크기 제한 (기본값: 100MB)
-    let max_body_size: Option<usize> = Some(100 * 1024 * 1024);
+    let max_concurrent_connections: Option<usize> = Some(DEFAULT_MAX_CONCURRENT_CONNECTIONS);
+    let max_body_size: Option<usize> = Some(DEFAULT_MAX_BODY_SIZE);
 
     let (proxy_handle, proxy_shutdown_tx) = spawn_proxy_task(
         addr,

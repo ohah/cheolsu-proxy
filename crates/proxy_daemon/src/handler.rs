@@ -1110,6 +1110,9 @@ impl HttpHandler for LoggingHandler {
         req.headers_mut().remove("proxy-authorization");
 
         // 요청 바디 크기 제한 확인 (Content-Length 기반)
+        // NOTE: Content-Length 헤더 기반 검사만 수행하므로, chunked transfer-encoding을 사용하는
+        // 요청은 Content-Length가 없어 이 검사를 우회할 수 있습니다.
+        // 완전한 제한이 필요하면 바디 스트림을 소비하며 누적 크기를 체크하는 방식이 필요합니다.
         if let Some(max_size) = self.config.max_body_size {
             if let Some(content_length) = req
                 .headers()
@@ -1130,7 +1133,7 @@ impl HttpHandler for LoggingHandler {
                             "Request body too large: {} bytes (max: {} bytes)",
                             content_length, max_size
                         )))
-                        .unwrap();
+                        .unwrap_or_else(|_| Response::new(Body::empty()));
                     return response.into();
                 }
             }
