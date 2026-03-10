@@ -226,6 +226,15 @@ export function SettingsPage() {
     }
   });
 
+  const [autosaveEnabled, setAutosaveEnabled] = useState(() => {
+    return localStorage.getItem("autosave_session") !== "false";
+  });
+
+  const handleAutosaveChange = useCallback((checked: boolean) => {
+    setAutosaveEnabled(checked);
+    localStorage.setItem("autosave_session", JSON.stringify(checked));
+  }, []);
+
   const handleLocaleChange = useCallback(async (newLocale: string | null) => {
     if (!newLocale) return;
     const loc = newLocale as Locale;
@@ -1070,6 +1079,21 @@ export function SettingsPage() {
                 </p>
               </div>
               <Switch checked={blockCookies} onCheckedChange={handleBlockCookiesChange} />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <label className="text-sm font-medium">
+                  <Trans>Auto Save Session</Trans>
+                </label>
+                <p className="text-xs text-muted-foreground">
+                  <Trans>
+                    Automatically save the current session when the app closes and restore it on
+                    next launch
+                  </Trans>
+                </p>
+              </div>
+              <Switch checked={autosaveEnabled} onCheckedChange={handleAutosaveChange} />
             </div>
           </div>
         </div>
