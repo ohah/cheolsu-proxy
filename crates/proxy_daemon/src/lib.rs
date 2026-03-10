@@ -36,8 +36,7 @@ pub use net_utils::get_local_ips;
 pub use protocol::{
     BreakpointAction, BreakpointData, BreakpointPhase, BreakpointRule, ClientCertConfig,
     ClientCommand, DaemonMessage, HostMapping, InterceptAction, InterceptRule, ProxyAuthConfig,
-    ProxyLockInfo,
-    ServerReplayEntry, SslProxyingEntry,
+    ProxyLockInfo, ServerReplayEntry, SslProxyingEntry,
 };
 pub use proxy_v2_models::RequestInfo;
 pub use proxyapi_v2::certificate_authority::{clean_all_cache, clean_old_cache};
