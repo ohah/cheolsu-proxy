@@ -31,6 +31,9 @@ pub async fn handle_client(
     script_handle: scripting::ScriptHandle,
     quick_settings: std::sync::Arc<tokio::sync::RwLock<crate::handler::QuickSettings>>,
     proxy_auth: std::sync::Arc<parking_lot::RwLock<Option<ProxyAuthConfig>>>,
+    started_at: std::time::Instant,
+    total_transactions: std::sync::Arc<std::sync::atomic::AtomicU64>,
+    client_count: std::sync::Arc<std::sync::atomic::AtomicUsize>,
 ) {
     let (reader, writer) = stream.into_split();
     let mut reader = BufReader::new(reader);
@@ -476,6 +479,22 @@ pub async fn handle_client(
                             transaction_count: 0,
                         };
                         let mut line = serde_json::to_string(&msg).unwrap_or_default();
+                        line.push('\n');
+                        let mut w = writer.lock().await;
+                        let _ = w.write_all(line.as_bytes()).await;
+                        let _ = w.flush().await;
+                    }
+                    Ok(ClientCommand::HealthCheck) => {
+                        let uptime_secs = started_at.elapsed().as_secs();
+                        let active_conns = client_count.load(std::sync::atomic::Ordering::Relaxed);
+                        let total_txns =
+                            total_transactions.load(std::sync::atomic::Ordering::Relaxed);
+                        let response = DaemonMessage::HealthCheckResult {
+                            uptime_secs,
+                            active_connections: active_conns,
+                            total_transactions: total_txns,
+                        };
+                        let mut line = serde_json::to_string(&response).unwrap_or_default();
                         line.push('\n');
                         let mut w = writer.lock().await;
                         let _ = w.write_all(line.as_bytes()).await;

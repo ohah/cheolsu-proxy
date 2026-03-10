@@ -94,6 +94,12 @@ impl DaemonConnection {
     pub async fn send_command(&self, cmd: &ClientCommand) -> Result<(), DaemonError> {
         send_command_inner(&self.writer, &self.is_connected, cmd).await
     }
+
+    /// 데몬에 헬스체크 요청을 전송합니다.
+    /// 결과는 on_message 콜백으로 DaemonMessage::HealthCheckResult가 전달됩니다.
+    pub async fn health_check(&self) -> Result<(), DaemonError> {
+        self.send_command(&ClientCommand::HealthCheck).await
+    }
 }
 
 /// Check if a daemon is running by reading the lock file and verifying the PID.
