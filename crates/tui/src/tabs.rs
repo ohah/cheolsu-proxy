@@ -7,16 +7,18 @@ pub enum Tab {
     Script,
     Settings,
     Breakpoint,
+    Logs,
 }
 
 impl Tab {
-    pub const ALL: [Tab; 6] = [
+    pub const ALL: [Tab; 7] = [
         Tab::Network,
         Tab::WebSocket,
         Tab::InterceptRules,
         Tab::Script,
         Tab::Breakpoint,
         Tab::Settings,
+        Tab::Logs,
     ];
 
     pub fn title(&self) -> &'static str {
@@ -27,6 +29,7 @@ impl Tab {
             Tab::Script => "Script",
             Tab::Breakpoint => "Breakpoint",
             Tab::Settings => "Settings",
+            Tab::Logs => "Logs",
         }
     }
 }

@@ -69,6 +69,14 @@ impl BreakpointAddForm {
     }
 }
 
+/// 로그 파일 엔트리 (TUI 표시용)
+#[derive(Debug, Clone)]
+pub struct LogFileEntry {
+    pub name: String,
+    pub path: String,
+    pub size: u64,
+}
+
 /// TUI app state
 pub struct App {
     pub port: u16,
@@ -168,6 +176,15 @@ pub struct App {
     pub session_load_editing: bool,
     pub session_load_path_input: String,
 
+    // Logs viewer
+    pub log_files: Vec<LogFileEntry>,
+    pub selected_log_file: Option<usize>,
+    pub log_content_lines: Vec<String>,
+    pub log_scroll: usize,
+    pub log_filter: String,
+    pub log_filter_editing: bool,
+    pub log_last_refresh: Option<std::time::Instant>,
+
     // Status message
     pub status_message: Option<(String, std::time::Instant)>,
 
@@ -237,9 +254,95 @@ impl App {
             session_save_path_input: String::new(),
             session_load_editing: false,
             session_load_path_input: String::new(),
+            log_files: Vec::new(),
+            selected_log_file: None,
+            log_content_lines: Vec::new(),
+            log_scroll: 0,
+            log_filter: String::new(),
+            log_filter_editing: false,
+            log_last_refresh: None,
             status_message: None,
             conn: None,
             event_tx: None,
+        }
+    }
+
+    /// 로그 파일 목록을 새로고침
+    pub fn refresh_log_files(&mut self) {
+        let mut files = Vec::new();
+
+        if let Ok(support_dir) = proxy_daemon::daemon::app_support_dir() {
+            // daemon.log
+            let daemon_log = support_dir.join("daemon.log");
+            if daemon_log.exists() {
+                if let Ok(meta) = std::fs::metadata(&daemon_log) {
+                    files.push(LogFileEntry {
+                        name: "daemon.log".to_string(),
+                        path: daemon_log.display().to_string(),
+                        size: meta.len(),
+                    });
+                }
+            }
+
+            // logs/ 디렉토리 내 로그 파일들
+            let log_dir = support_dir.join("logs");
+            if log_dir.exists() {
+                if let Ok(entries) = std::fs::read_dir(&log_dir) {
+                    for entry in entries.flatten() {
+                        let path = entry.path();
+                        if path.extension().map(|e| e == "log").unwrap_or(false) {
+                            if let Ok(meta) = entry.metadata() {
+                                files.push(LogFileEntry {
+                                    name: entry.file_name().to_string_lossy().to_string(),
+                                    path: path.display().to_string(),
+                                    size: meta.len(),
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // 이름 역순 정렬 (최신 파일 먼저)
+        files.sort_by(|a, b| b.name.cmp(&a.name));
+        self.log_files = files;
+
+        // 선택된 파일이 없으면 첫 번째 선택
+        if self.selected_log_file.is_none() && !self.log_files.is_empty() {
+            self.selected_log_file = Some(0);
+        }
+
+        self.log_last_refresh = Some(std::time::Instant::now());
+    }
+
+    /// 선택된 로그 파일 내용 읽기
+    pub fn refresh_log_content(&mut self) {
+        if let Some(idx) = self.selected_log_file {
+            if let Some(file) = self.log_files.get(idx) {
+                if let Ok(content) = std::fs::read_to_string(&file.path) {
+                    let lines: Vec<String> = content.lines().map(String::from).collect();
+                    // 마지막 1000줄만 유지
+                    let start = lines.len().saturating_sub(1000);
+                    self.log_content_lines = lines[start..].to_vec();
+                    // 자동 스크롤
+                    self.log_scroll = self.log_content_lines.len().saturating_sub(1);
+                } else {
+                    self.log_content_lines = Vec::new();
+                    self.log_scroll = 0;
+                }
+            }
+        }
+    }
+
+    /// 선택된 로그 파일 초기화
+    pub fn clear_selected_log(&mut self) {
+        if let Some(idx) = self.selected_log_file {
+            if let Some(file) = self.log_files.get(idx) {
+                let _ = std::fs::write(&file.path, "");
+                self.log_content_lines.clear();
+                self.log_scroll = 0;
+            }
         }
     }
 
@@ -286,6 +389,17 @@ impl App {
                         if let Some((_, time)) = &self.status_message {
                             if time.elapsed() > Duration::from_secs(3) {
                                 self.status_message = None;
+                            }
+                        }
+                        // Logs 탭: 5초마다 자동 새로고침
+                        if self.tab == Tab::Logs {
+                            let should_refresh = self
+                                .log_last_refresh
+                                .map(|t| t.elapsed() > Duration::from_secs(5))
+                                .unwrap_or(true);
+                            if should_refresh {
+                                self.refresh_log_files();
+                                self.refresh_log_content();
                             }
                         }
                     }
