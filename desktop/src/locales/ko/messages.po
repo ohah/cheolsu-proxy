@@ -182,6 +182,8 @@ msgid "All HTTPS traffic is being intercepted (no whitelist configured)"
 msgstr "모든 HTTPS 트래픽이 인터셉트됩니다 (화이트리스트 미설정)"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:264
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:264
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:215
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:215
 msgid "All Methods"
 msgstr "모든 메서드"
@@ -220,6 +222,7 @@ msgstr "앱 종료 시 현재 세션을 자동으로 저장하고 다음 실행 
 msgid "available"
 msgstr "개 사용 가능"
 
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:286
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:286
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:43
 msgid "Block"
@@ -820,6 +823,7 @@ msgid "Map DNS hostnames to different targets"
 msgstr "DNS 호스트명을 다른 대상으로 매핑"
 
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:239
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:239
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:46
 #: src/pages/map-rules/ui/map-rules-page.tsx:34
 msgid "Map Local"
@@ -837,6 +841,7 @@ msgstr "로컬 매핑: 로컬 파일로 응답. 원격 매핑: 다른 URL로 리
 msgid "Map Local: respond with local files. Map Remote: redirect requests to another URL."
 msgstr "로컬 매핑: 로컬 파일로 응답. 원격 매핑: 요청을 다른 URL로 리다이렉트."
 
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:240
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:240
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:47
 #: src/pages/map-rules/ui/map-rules-page.tsx:35
@@ -900,10 +905,12 @@ msgid "Mobile Certificate Install"
 msgstr "모바일 인증서 설치"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:287
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:287
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:44
 msgid "Modify Request"
 msgstr "요청 수정"
 
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:288
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:288
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:45
 msgid "Modify Response"
@@ -1244,6 +1251,8 @@ msgid "Request aborted"
 msgstr "요청이 중단되었습니다"
 
 #: src/features/intercept-rule-form/ui/rewrite-action-fields.tsx:28
+#: src/features/intercept-rule-form/ui/rewrite-action-fields.tsx:28
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:403
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:403
 msgid "Request Body"
 msgstr "요청 바디"
@@ -1261,6 +1270,8 @@ msgid "Request failed"
 msgstr "요청 실패"
 
 #: src/features/intercept-rule-form/ui/rewrite-action-fields.tsx:26
+#: src/features/intercept-rule-form/ui/rewrite-action-fields.tsx:26
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:401
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:401
 msgid "Request Header"
 msgstr "요청 헤더"
@@ -1283,6 +1294,8 @@ msgid "Response"
 msgstr "응답"
 
 #: src/features/intercept-rule-form/ui/rewrite-action-fields.tsx:29
+#: src/features/intercept-rule-form/ui/rewrite-action-fields.tsx:29
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:404
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:404
 msgid "Response Body"
 msgstr "응답 바디"
@@ -1293,6 +1306,8 @@ msgid "Response body (optional)"
 msgstr "응답 본문 (선택사항)"
 
 #: src/features/intercept-rule-form/ui/rewrite-action-fields.tsx:27
+#: src/features/intercept-rule-form/ui/rewrite-action-fields.tsx:27
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:402
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:402
 msgid "Response Header"
 msgstr "응답 헤더"
@@ -1327,6 +1342,7 @@ msgstr "매칭되는 요청에 캐시된 응답 반환"
 msgid "Return cached responses for matching requests instead of forwarding to the server"
 msgstr "서버로 전달하지 않고 매칭되는 요청에 캐시된 응답을 반환합니다"
 
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:289
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:289
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:48
 msgid "Rewrite"
@@ -1661,9 +1677,11 @@ msgid "Time"
 msgstr "시간"
 
 #: src/features/websocket-replay/ui/ws-replay-dialog.tsx:134
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:134
 msgid "To Client (Server → Client)"
 msgstr "클라이언트로 (서버 → 클라이언트)"
 
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:133
 #: src/features/websocket-replay/ui/ws-replay-dialog.tsx:133
 msgid "To Server (Client → Server)"
 msgstr "서버로 (클라이언트 → 서버)"

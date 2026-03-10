@@ -212,7 +212,7 @@ export const MapRuleFormDialog = ({
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="*">{t`All Methods`}</SelectItem>
+                        <SelectItem value="*" label={t`All Methods`}>{t`All Methods`}</SelectItem>
                         {HTTP_METHODS.map((m) => (
                           <SelectItem key={m} value={m}>
                             {m}
@@ -236,8 +236,8 @@ export const MapRuleFormDialog = ({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="map_local">{t`Map Local`}</SelectItem>
-                    <SelectItem value="map_remote">{t`Map Remote`}</SelectItem>
+                    <SelectItem value="map_local" label={t`Map Local`}>{t`Map Local`}</SelectItem>
+                    <SelectItem value="map_remote" label={t`Map Remote`}>{t`Map Remote`}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

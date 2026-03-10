@@ -130,8 +130,8 @@ export function WsReplayDialog({ message, open, onOpenChange }: WsReplayDialogPr
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="to_server">{t`To Server (Client → Server)`}</SelectItem>
-                <SelectItem value="to_client">{t`To Client (Server → Client)`}</SelectItem>
+                <SelectItem value="to_server" label={t`To Server (Client → Server)`}>{t`To Server (Client → Server)`}</SelectItem>
+                <SelectItem value="to_client" label={t`To Client (Server → Client)`}>{t`To Client (Server → Client)`}</SelectItem>
               </SelectContent>
             </Select>
           </div>
