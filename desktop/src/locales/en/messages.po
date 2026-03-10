@@ -115,7 +115,7 @@ msgstr "Add mappings to redirect DNS hostnames to different target hosts for tes
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:230
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:470
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:348
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:114
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:113
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:96
 #: src/pages/map-rules/ui/map-rules-page.tsx:85
 msgid "Add Rule"
@@ -133,7 +133,7 @@ msgstr "Add rules to map URLs to local files or redirect to other servers."
 msgid "Add your first mapping"
 msgstr "Add your first mapping"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:236
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:172
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:115
 #: src/pages/map-rules/ui/map-rules-page.tsx:104
 msgid "Add your first rule"
@@ -389,7 +389,7 @@ msgstr "Delay between requests (ms)"
 msgid "Delete mapping"
 msgstr "Delete mapping"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:279
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:210
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:202
 #: src/pages/map-rules/ui/map-rules-page.tsx:176
 msgid "Delete rule"
@@ -1109,7 +1109,7 @@ msgid "Replay request"
 msgstr "Replay request"
 
 #: src/features/transaction-details/ui/replay-dialog.tsx:377
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:259
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:191
 msgid "Request"
 msgstr "Request"
 
@@ -1142,7 +1142,7 @@ msgid "Requests/sec"
 msgstr "Requests/sec"
 
 #: src/features/transaction-details/ui/replay-dialog.tsx:391
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:264
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:196
 msgid "Response"
 msgstr "Response"
 
@@ -1216,7 +1216,7 @@ msgstr "Rule name (optional)"
 msgid "Rule updated"
 msgstr "Rule updated"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:104
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:103
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:86
 #: src/pages/map-rules/ui/map-rules-page.tsx:75
 msgid "rules"
