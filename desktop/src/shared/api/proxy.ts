@@ -323,6 +323,18 @@ export async function updateSslProxyingList(entries: SslProxyingEntry[]): Promis
   return invoke("update_ssl_proxying_list", { entries });
 }
 
+// ─── Proxy Authentication ────────────────────────────────
+
+export interface ProxyAuthConfig {
+  enabled: boolean;
+  username: string;
+  password: string;
+}
+
+export async function updateProxyAuth(config: ProxyAuthConfig): Promise<void> {
+  return invoke("update_proxy_auth", { config });
+}
+
 // ─── Quick Settings ──────────────────────────────────────
 
 export async function updateQuickSettings(

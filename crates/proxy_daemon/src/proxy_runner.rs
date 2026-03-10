@@ -30,6 +30,7 @@ pub async fn run_proxy(
     ws_registry: WebSocketRegistry,
     script_handle: scripting::ScriptHandle,
     quick_settings: std::sync::Arc<tokio::sync::RwLock<QuickSettings>>,
+    proxy_auth: std::sync::Arc<parking_lot::RwLock<Option<crate::protocol::ProxyAuthConfig>>>,
 ) -> Result<(), DaemonError> {
     use proxyapi_v2::builder::ProxyBuilder;
     use proxyapi_v2::certificate_authority::{
@@ -56,7 +57,8 @@ pub async fn run_proxy(
         .with_script_handle(script_handle)
         .with_ca_cert_der(ca_cert_der)
         .with_breakpoint_manager(breakpoint_manager.clone())
-        .with_quick_settings(quick_settings);
+        .with_quick_settings(quick_settings)
+        .with_proxy_auth(proxy_auth);
 
     // 인터셉트 규칙 초기값 로드
     {

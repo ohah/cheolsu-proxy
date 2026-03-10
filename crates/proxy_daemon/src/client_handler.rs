@@ -6,8 +6,8 @@ use tracing::{error, info, warn};
 
 use crate::breakpoint::BreakpointManager;
 use crate::protocol::{
-    BreakpointRule, ClientCommand, DaemonMessage, HostMapping, InterceptRule, ServerReplayEntry,
-    SslProxyingEntry,
+    BreakpointRule, ClientCommand, DaemonMessage, HostMapping, InterceptRule, ProxyAuthConfig,
+    ServerReplayEntry, SslProxyingEntry,
 };
 use proxyapi_v2::throttle::ThrottleConfig;
 use proxyapi_v2::upstream_proxy::UpstreamProxyConfig;
@@ -29,6 +29,7 @@ pub async fn handle_client(
     ws_registry: WebSocketRegistry,
     script_handle: scripting::ScriptHandle,
     quick_settings: std::sync::Arc<tokio::sync::RwLock<crate::handler::QuickSettings>>,
+    proxy_auth: std::sync::Arc<parking_lot::RwLock<Option<ProxyAuthConfig>>>,
 ) {
     let (reader, writer) = stream.into_split();
     let mut reader = BufReader::new(reader);
@@ -258,6 +259,16 @@ pub async fn handle_client(
                             settings.no_caching = no_caching;
                             settings.block_cookies = block_cookies;
                             settings.no_gzip = no_gzip;
+                        }
+                    }
+                    Ok(ClientCommand::UpdateProxyAuth { config }) => {
+                        info!(
+                            "Proxy auth config updated: enabled={}, username={}",
+                            config.enabled, config.username
+                        );
+                        {
+                            let mut auth = proxy_auth.write();
+                            *auth = Some(config);
                         }
                     }
                     Ok(ClientCommand::UpdateServerReplay { entries }) => {

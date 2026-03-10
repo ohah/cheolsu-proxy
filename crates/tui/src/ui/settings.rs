@@ -3,8 +3,8 @@ use ratatui::prelude::*;
 use ratatui::widgets::*;
 
 use crate::app::{
-    App, HostMappingField, QuickSettingsField, SettingsSection, SslProxyingAddForm, ThrottleField,
-    ThrottlePresetChoice, UpstreamProxyField,
+    App, HostMappingField, ProxyAuthField, QuickSettingsField, SettingsSection, SslProxyingAddForm,
+    ThrottleField, ThrottlePresetChoice, UpstreamProxyField,
 };
 
 pub fn draw(f: &mut Frame, app: &App, area: Rect) {
@@ -50,6 +50,7 @@ pub fn draw(f: &mut Frame, app: &App, area: Rect) {
     draw_section_tabs(f, app, chunks[3]);
     match app.settings_section {
         SettingsSection::UpstreamProxy => draw_upstream_proxy(f, app, chunks[4]),
+        SettingsSection::ProxyAuth => draw_proxy_auth(f, app, chunks[4]),
         SettingsSection::Throttle => draw_throttle(f, app, chunks[4]),
         SettingsSection::HostMapping => draw_host_mapping(f, app, chunks[4]),
         SettingsSection::QuickSettings => draw_quick_settings(f, app, chunks[4]),
@@ -59,62 +60,35 @@ pub fn draw(f: &mut Frame, app: &App, area: Rect) {
 }
 
 fn draw_section_tabs(f: &mut Frame, app: &App, area: Rect) {
+    let tab_item = |section: SettingsSection, label: &str| -> Span {
+        if app.settings_section == section {
+            Span::styled(
+                format!(" \u{25cf} {} ", label),
+                Style::default()
+                    .fg(Color::Cyan)
+                    .add_modifier(Modifier::BOLD),
+            )
+        } else {
+            Span::styled(
+                format!(" \u{25cb} {} ", label),
+                Style::default().fg(Color::DarkGray),
+            )
+        }
+    };
+
     let titles: Vec<Line> = vec![
         Line::from(vec![
-            if app.settings_section == SettingsSection::UpstreamProxy {
-                Span::styled(
-                    " ● Upstream Proxy ",
-                    Style::default()
-                        .fg(Color::Cyan)
-                        .add_modifier(Modifier::BOLD),
-                )
-            } else {
-                Span::styled(" ○ Upstream Proxy ", Style::default().fg(Color::DarkGray))
-            },
-            Span::raw("  "),
-            if app.settings_section == SettingsSection::Throttle {
-                Span::styled(
-                    " ● Throttle ",
-                    Style::default()
-                        .fg(Color::Cyan)
-                        .add_modifier(Modifier::BOLD),
-                )
-            } else {
-                Span::styled(" ○ Throttle ", Style::default().fg(Color::DarkGray))
-            },
-            Span::raw("  "),
-            if app.settings_section == SettingsSection::HostMapping {
-                Span::styled(
-                    " ● Host Mapping ",
-                    Style::default()
-                        .fg(Color::Cyan)
-                        .add_modifier(Modifier::BOLD),
-                )
-            } else {
-                Span::styled(" ○ Host Mapping ", Style::default().fg(Color::DarkGray))
-            },
-            Span::raw("  "),
-            if app.settings_section == SettingsSection::QuickSettings {
-                Span::styled(
-                    " ● Quick Settings ",
-                    Style::default()
-                        .fg(Color::Cyan)
-                        .add_modifier(Modifier::BOLD),
-                )
-            } else {
-                Span::styled(" ○ Quick Settings ", Style::default().fg(Color::DarkGray))
-            },
-            Span::raw("  "),
-            if app.settings_section == SettingsSection::SslProxying {
-                Span::styled(
-                    " ● SSL Proxying ",
-                    Style::default()
-                        .fg(Color::Cyan)
-                        .add_modifier(Modifier::BOLD),
-                )
-            } else {
-                Span::styled(" ○ SSL Proxying ", Style::default().fg(Color::DarkGray))
-            },
+            tab_item(SettingsSection::UpstreamProxy, "Upstream"),
+            Span::raw(" "),
+            tab_item(SettingsSection::ProxyAuth, "Auth"),
+            Span::raw(" "),
+            tab_item(SettingsSection::Throttle, "Throttle"),
+            Span::raw(" "),
+            tab_item(SettingsSection::HostMapping, "Mapping"),
+            Span::raw(" "),
+            tab_item(SettingsSection::QuickSettings, "Quick"),
+            Span::raw(" "),
+            tab_item(SettingsSection::SslProxying, "SSL"),
         ]),
         Line::from(Span::styled(
             "  h/l: switch section",
@@ -494,6 +468,84 @@ fn draw_upstream_proxy(f: &mut Frame, app: &App, area: Rect) {
 
     let border_color = if form.enabled {
         Color::Green
+    } else {
+        Color::Gray
+    };
+
+    let block = Block::default()
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(border_color))
+        .title(title);
+
+    let paragraph = Paragraph::new(fields).block(block);
+    f.render_widget(paragraph, area);
+}
+
+fn draw_proxy_auth(f: &mut Frame, app: &App, area: Rect) {
+    let form = &app.proxy_auth_form;
+
+    let fields: Vec<Line> = ProxyAuthField::ALL
+        .iter()
+        .map(|field| {
+            let is_selected = *field == form.field;
+            let is_editing = is_selected && form.editing;
+
+            let label = Span::styled(
+                format!("  {:<10} ", field.label()),
+                if is_selected {
+                    Style::default()
+                        .fg(Color::Cyan)
+                        .add_modifier(Modifier::BOLD)
+                } else {
+                    Style::default().fg(Color::Yellow)
+                },
+            );
+
+            let value = match field {
+                ProxyAuthField::Enabled => {
+                    let (text, color) = if form.enabled {
+                        ("ON", Color::Green)
+                    } else {
+                        ("OFF", Color::Red)
+                    };
+                    Span::styled(
+                        text,
+                        Style::default().fg(color).add_modifier(Modifier::BOLD),
+                    )
+                }
+                ProxyAuthField::Username => render_text_field(&form.username, is_editing),
+                ProxyAuthField::Password => {
+                    if form.password.is_empty() {
+                        render_text_field("", is_editing)
+                    } else if is_editing {
+                        render_text_field(&form.password, true)
+                    } else {
+                        Span::styled(
+                            "*".repeat(form.password.len()),
+                            Style::default().fg(Color::White),
+                        )
+                    }
+                }
+            };
+
+            let cursor = if is_selected {
+                Span::styled("\u{25b6} ", Style::default().fg(Color::Cyan))
+            } else {
+                Span::raw("  ")
+            };
+
+            Line::from(vec![cursor, label, value])
+        })
+        .collect();
+
+    let title = if form.enabled {
+        " Proxy Auth [ON] "
+    } else {
+        " Proxy Auth [OFF] "
+    };
+
+    let border_color = if form.enabled {
+        Color::Yellow
     } else {
         Color::Gray
     };
@@ -1009,7 +1061,8 @@ fn draw_ssl_proxying_add_form(f: &mut Frame, form: &SslProxyingAddForm, area: Re
 }
 
 fn draw_keybindings(f: &mut Frame, app: &App, area: Rect) {
-    let editing = app.upstream_form.editing || app.throttle_form.editing;
+    let editing =
+        app.upstream_form.editing || app.throttle_form.editing || app.proxy_auth_form.editing;
     let in_host_mapping_form = app.host_mapping_form.is_some();
     let in_ssl_proxying_form = app.ssl_proxying_add_form.is_some();
 

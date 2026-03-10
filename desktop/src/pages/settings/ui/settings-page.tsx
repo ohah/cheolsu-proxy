@@ -14,9 +14,11 @@ import {
   getCaCertPath,
   updateThrottle,
   updateQuickSettings,
+  updateProxyAuth,
   getCertDownloadInfo,
   type ThrottleConfig,
   type CertDownloadInfo,
+  type ProxyAuthConfig,
 } from "@/shared/api/proxy";
 import { useProxyStore } from "@/shared/stores/proxy-store";
 import { useSslProxyingStore } from "@/shared/stores/ssl-proxying-store";
@@ -1143,6 +1145,9 @@ export function SettingsPage() {
           </div>
         </div>
 
+        {/* Proxy Authentication Section */}
+        <ProxyAuthSection />
+
         {/* Upstream Proxy Section */}
         <div className="border rounded-lg p-5 space-y-5">
           <div className="flex items-center justify-between">
@@ -1350,6 +1355,134 @@ function SslProxyingSection() {
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+function ProxyAuthSection() {
+  const { t } = useLingui();
+  const isProxyConnected = useProxyStore((s) => s.isConnected);
+  const [proxyAuthEnabled, setProxyAuthEnabled] = useState(false);
+  const [proxyAuthUsername, setProxyAuthUsername] = useState("");
+  const [proxyAuthPassword, setProxyAuthPassword] = useState("");
+  const [proxyAuthSaving, setProxyAuthSaving] = useState(false);
+  const [proxyAuthStatus, setProxyAuthStatus] = useState<"idle" | "saved" | "error">("idle");
+
+  // 로컬 스토리지에서 설정 불러오기
+  useEffect(() => {
+    const saved = localStorage.getItem("proxy_auth_config");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setProxyAuthEnabled(parsed.enabled ?? false);
+        setProxyAuthUsername(parsed.username ?? "");
+        setProxyAuthPassword(parsed.password ?? "");
+      } catch {
+        // 파싱 실패 시 무시
+      }
+    }
+  }, []);
+
+  // 프록시 연결 시 설정 동기화
+  useEffect(() => {
+    if (isProxyConnected && proxyAuthEnabled) {
+      updateProxyAuth({
+        enabled: proxyAuthEnabled,
+        username: proxyAuthUsername,
+        password: proxyAuthPassword,
+      }).catch(() => {});
+    }
+  }, [isProxyConnected]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleProxyAuthSave = useCallback(async () => {
+    setProxyAuthSaving(true);
+    setProxyAuthStatus("idle");
+
+    try {
+      const config: ProxyAuthConfig = {
+        enabled: proxyAuthEnabled,
+        username: proxyAuthUsername,
+        password: proxyAuthPassword,
+      };
+
+      await updateProxyAuth(config);
+
+      localStorage.setItem("proxy_auth_config", JSON.stringify(config));
+
+      setProxyAuthStatus("saved");
+      setTimeout(() => setProxyAuthStatus("idle"), 2000);
+    } catch (e) {
+      console.error("Proxy auth 설정 저장 실패:", e);
+      setProxyAuthStatus("error");
+    } finally {
+      setProxyAuthSaving(false);
+    }
+  }, [proxyAuthEnabled, proxyAuthUsername, proxyAuthPassword]);
+
+  return (
+    <div className="border rounded-lg p-5 space-y-5">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-semibold">
+            <Trans>Proxy Authentication</Trans>
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            <Trans>Require authentication to use this proxy server</Trans>
+          </p>
+        </div>
+        <Switch checked={proxyAuthEnabled} onCheckedChange={setProxyAuthEnabled} />
+      </div>
+
+      {proxyAuthEnabled && (
+        <div className="space-y-4 pt-2">
+          <div className="flex gap-3">
+            <div className="flex-1">
+              <label className="text-sm font-medium mb-1.5 block">
+                <Trans>Username</Trans>
+              </label>
+              <Input
+                placeholder={t`Username`}
+                value={proxyAuthUsername}
+                onChange={(e) => setProxyAuthUsername(e.target.value)}
+              />
+            </div>
+            <div className="flex-1">
+              <label className="text-sm font-medium mb-1.5 block">
+                <Trans>Password</Trans>
+              </label>
+              <Input
+                type="password"
+                placeholder={t`Password`}
+                value={proxyAuthPassword}
+                onChange={(e) => setProxyAuthPassword(e.target.value)}
+              />
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            <Trans>
+              Clients must provide these credentials via Proxy-Authorization header (HTTP Basic) to
+              use this proxy
+            </Trans>
+          </p>
+        </div>
+      )}
+
+      {/* Save Button */}
+      <div className="flex items-center gap-3 pt-2">
+        <Button onClick={handleProxyAuthSave} disabled={proxyAuthSaving}>
+          {proxyAuthSaving ? t`Saving...` : t`Save`}
+        </Button>
+        {proxyAuthStatus === "saved" && (
+          <Badge variant="outline" className="text-green-600 border-green-600">
+            <Trans>Saved</Trans>
+          </Badge>
+        )}
+        {proxyAuthStatus === "error" && (
+          <Badge variant="outline" className="text-red-600 border-red-600">
+            <Trans>Failed — is the proxy running?</Trans>
+          </Badge>
+        )}
+      </div>
     </div>
   );
 }
