@@ -20,6 +20,7 @@ import {
 import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useInterceptRuleStore } from "@/shared/stores";
+import { useHeaderEditor, headersToEntries, entriesToHeaders } from "@/hooks/use-header-editor";
 import type {
   InterceptRule,
   InterceptAction,
@@ -53,7 +54,13 @@ export const RuleFormDialog = ({
   const [statusCode, setStatusCode] = useState("403");
   const [body, setBody] = useState("");
   const [responseStatus, setResponseStatus] = useState("");
-  const [headers, setHeaders] = useState<Array<{ key: string; value: string }>>([]);
+  const {
+    headers,
+    addHeader,
+    removeHeader,
+    updateHeader,
+    resetHeaders,
+  } = useHeaderEditor();
   const [removeHeaders, setRemoveHeaders] = useState<string[]>([]);
   const [rewriteTarget, setRewriteTarget] = useState<RewriteTarget>("request_header");
   const [matchPattern, setMatchPattern] = useState("");
@@ -71,14 +78,12 @@ export const RuleFormDialog = ({
       if (editingRule.action.type === "block") {
         setStatusCode(String(editingRule.action.status_code));
         setBody(editingRule.action.body);
-        setHeaders([]);
+        resetHeaders([]);
         setRemoveHeaders([]);
         setResponseStatus("");
       } else if (editingRule.action.type === "modify_request") {
         setBody(editingRule.action.set_body ?? "");
-        setHeaders(
-          Object.entries(editingRule.action.add_headers).map(([key, value]) => ({ key, value })),
-        );
+        resetHeaders(headersToEntries(editingRule.action.add_headers));
         setRemoveHeaders(editingRule.action.remove_headers);
         setStatusCode("403");
         setResponseStatus("");
@@ -87,9 +92,7 @@ export const RuleFormDialog = ({
           editingRule.action.set_status ? String(editingRule.action.set_status) : "",
         );
         setBody(editingRule.action.set_body ?? "");
-        setHeaders(
-          Object.entries(editingRule.action.add_headers).map(([key, value]) => ({ key, value })),
-        );
+        resetHeaders(headersToEntries(editingRule.action.add_headers));
         setRemoveHeaders(editingRule.action.remove_headers);
         setStatusCode("403");
       } else if (editingRule.action.type === "rewrite") {
@@ -99,7 +102,7 @@ export const RuleFormDialog = ({
         setStatusCode("403");
         setBody("");
         setResponseStatus("");
-        setHeaders([]);
+        resetHeaders([]);
         setRemoveHeaders([]);
       }
     } else if (initialValues) {
@@ -110,7 +113,7 @@ export const RuleFormDialog = ({
       setStatusCode("403");
       setBody("");
       setResponseStatus("");
-      setHeaders([]);
+      resetHeaders([]);
       setRemoveHeaders([]);
       setRewriteTarget("request_header");
       setMatchPattern("");
@@ -123,7 +126,7 @@ export const RuleFormDialog = ({
       setStatusCode("403");
       setBody("");
       setResponseStatus("");
-      setHeaders([]);
+      resetHeaders([]);
       setRemoveHeaders([]);
       setRewriteTarget("request_header");
       setMatchPattern("");
@@ -142,9 +145,7 @@ export const RuleFormDialog = ({
       case "modify_request":
         return {
           type: "modify_request",
-          add_headers: Object.fromEntries(
-            headers.filter((h) => h.key.trim()).map((h) => [h.key.trim(), h.value]),
-          ),
+          add_headers: entriesToHeaders(headers),
           remove_headers: removeHeaders.filter((h) => h.trim()),
           set_body: body.trim() || null,
         };
@@ -152,9 +153,7 @@ export const RuleFormDialog = ({
         return {
           type: "modify_response",
           set_status: responseStatus ? parseInt(responseStatus) || null : null,
-          add_headers: Object.fromEntries(
-            headers.filter((h) => h.key.trim()).map((h) => [h.key.trim(), h.value]),
-          ),
+          add_headers: entriesToHeaders(headers),
           remove_headers: removeHeaders.filter((h) => h.trim()),
           set_body: body.trim() || null,
         };
@@ -203,14 +202,6 @@ export const RuleFormDialog = ({
     }
 
     onOpenChange(false);
-  };
-
-  const addHeader = () => setHeaders([...headers, { key: "", value: "" }]);
-  const removeHeader = (index: number) => setHeaders(headers.filter((_, i) => i !== index));
-  const updateHeader = (index: number, field: "key" | "value", value: string) => {
-    const updated = [...headers];
-    updated[index] = { ...updated[index], [field]: value };
-    setHeaders(updated);
   };
 
   const addRemoveHeader = () => setRemoveHeaders([...removeHeaders, ""]);
