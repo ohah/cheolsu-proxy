@@ -25,6 +25,7 @@ import {
 import { open as openFileDialog } from "@tauri-apps/plugin-dialog";
 import { useProxyStore } from "@/shared/stores/proxy-store";
 import { useSslProxyingStore } from "@/shared/stores/ssl-proxying-store";
+import { useAppSettingsStore } from "@/shared/stores/app-settings-store";
 import {
   getStoredShortcut,
   setStoredShortcut,
@@ -130,7 +131,7 @@ export function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<"idle" | "saved" | "error">("idle");
   const [locale, setLocale] = useState<Locale>(
-    () => (localStorage.getItem("locale") as Locale) || "en",
+    () => useAppSettingsStore.getState().locale || "en",
   );
   const [cliInstalled, setCliInstalled] = useState(false);
   const [cliInstalling, setCliInstalling] = useState(false);
@@ -217,42 +218,30 @@ export function SettingsPage() {
   const [throttleStatus, setThrottleStatus] = useState<"idle" | "saved" | "error">("idle");
 
   // Quick Settings state
-  const [noCaching, setNoCaching] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem("quick_settings_no_caching") ?? "false");
-    } catch {
-      return false;
-    }
-  });
-  const [blockCookies, setBlockCookies] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem("quick_settings_block_cookies") ?? "false");
-    } catch {
-      return false;
-    }
-  });
-  const [noGzip, setNoGzip] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem("quick_settings_no_gzip") ?? "false");
-    } catch {
-      return false;
-    }
-  });
+  const [noCaching, setNoCaching] = useState(
+    () => useAppSettingsStore.getState().quickSettingsNoCaching,
+  );
+  const [blockCookies, setBlockCookies] = useState(
+    () => useAppSettingsStore.getState().quickSettingsBlockCookies,
+  );
+  const [noGzip, setNoGzip] = useState(
+    () => useAppSettingsStore.getState().quickSettingsNoGzip,
+  );
 
-  const [autosaveEnabled, setAutosaveEnabled] = useState(() => {
-    return localStorage.getItem("autosave_session") !== "false";
-  });
+  const [autosaveEnabled, setAutosaveEnabled] = useState(
+    () => useAppSettingsStore.getState().autosaveSession,
+  );
 
   const handleAutosaveChange = useCallback((checked: boolean) => {
     setAutosaveEnabled(checked);
-    localStorage.setItem("autosave_session", JSON.stringify(checked));
+    useAppSettingsStore.getState().setAutosaveSession(checked);
   }, []);
 
   const handleLocaleChange = useCallback(async (newLocale: string | null) => {
     if (!newLocale) return;
     const loc = newLocale as Locale;
     setLocale(loc);
-    localStorage.setItem("locale", loc);
+    useAppSettingsStore.getState().setLocale(loc);
     await loadCatalog(loc);
   }, []);
 
@@ -351,19 +340,12 @@ export function SettingsPage() {
 
   // 스로틀링 설정 불러오기
   useEffect(() => {
-    const saved = localStorage.getItem("throttle_config");
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        setThrottleEnabled(parsed.enabled ?? false);
-        setThrottlePreset(parsed.preset ?? "none");
-        setThrottleDownload(parsed.download ?? "");
-        setThrottleUpload(parsed.upload ?? "");
-        setThrottleLatency(String(parsed.latency ?? "0"));
-      } catch {
-        // 파싱 실패 시 무시
-      }
-    }
+    const saved = useAppSettingsStore.getState().throttleConfig;
+    setThrottleEnabled(saved.enabled);
+    setThrottlePreset(saved.preset);
+    setThrottleDownload(saved.download);
+    setThrottleUpload(saved.upload);
+    setThrottleLatency(saved.latency);
   }, []);
 
   const handleThrottleSave = useCallback(async () => {
@@ -393,16 +375,13 @@ export function SettingsPage() {
 
       await updateThrottle(config);
 
-      localStorage.setItem(
-        "throttle_config",
-        JSON.stringify({
-          enabled: throttleEnabled,
-          preset: throttlePreset,
-          download: throttleDownload,
-          upload: throttleUpload,
-          latency: throttleLatency,
-        }),
-      );
+      useAppSettingsStore.getState().setThrottleConfig({
+        enabled: throttleEnabled,
+        preset: throttlePreset,
+        download: throttleDownload,
+        upload: throttleUpload,
+        latency: throttleLatency,
+      });
 
       setThrottleStatus("saved");
       setTimeout(() => setThrottleStatus("idle"), 2000);
@@ -417,7 +396,7 @@ export function SettingsPage() {
   // Quick Settings 변경 시 즉시 적용
   const handleNoCachingChange = useCallback(async (checked: boolean) => {
     setNoCaching(checked);
-    localStorage.setItem("quick_settings_no_caching", JSON.stringify(checked));
+    useAppSettingsStore.getState().setQuickSettingsNoCaching(checked);
     setBlockCookies((currentBlockCookies) => {
       setNoGzip((currentNoGzip) => {
         updateQuickSettings(checked, currentBlockCookies, currentNoGzip).catch((e) => {
@@ -431,7 +410,7 @@ export function SettingsPage() {
 
   const handleBlockCookiesChange = useCallback(async (checked: boolean) => {
     setBlockCookies(checked);
-    localStorage.setItem("quick_settings_block_cookies", JSON.stringify(checked));
+    useAppSettingsStore.getState().setQuickSettingsBlockCookies(checked);
     setNoCaching((currentNoCaching) => {
       setNoGzip((currentNoGzip) => {
         updateQuickSettings(currentNoCaching, checked, currentNoGzip).catch((e) => {
@@ -445,7 +424,7 @@ export function SettingsPage() {
 
   const handleNoGzipChange = useCallback(async (checked: boolean) => {
     setNoGzip(checked);
-    localStorage.setItem("quick_settings_no_gzip", JSON.stringify(checked));
+    useAppSettingsStore.getState().setQuickSettingsNoGzip(checked);
     setNoCaching((currentNoCaching) => {
       setBlockCookies((currentBlockCookies) => {
         updateQuickSettings(currentNoCaching, currentBlockCookies, checked).catch((e) => {
@@ -464,23 +443,16 @@ export function SettingsPage() {
     }
   }, [isProxyConnected]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // 로컬 스토리지에서 설정 불러오기
+  // store에서 설정 불러오기
   useEffect(() => {
-    const saved = localStorage.getItem("upstream_proxy_config");
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        setEnabled(parsed.enabled ?? false);
-        setHost(parsed.host ?? "");
-        setPort(String(parsed.port ?? "8080"));
-        setUseAuth(!!parsed.auth);
-        setUsername(parsed.auth?.username ?? "");
-        setPassword(parsed.auth?.password ?? "");
-        setBypass((parsed.bypass ?? []).join(", "));
-      } catch {
-        // 파싱 실패 시 무시
-      }
-    }
+    const saved = useAppSettingsStore.getState().upstreamProxyConfig;
+    setEnabled(saved.enabled);
+    setHost(saved.host);
+    setPort(String(saved.port));
+    setUseAuth(!!saved.auth);
+    setUsername(saved.auth?.username ?? "");
+    setPassword(saved.auth?.password ?? "");
+    setBypass(saved.bypass.join(", "));
   }, []);
 
   const handleSave = useCallback(async () => {
@@ -502,8 +474,14 @@ export function SettingsPage() {
 
       await invoke("update_upstream_proxy", { config });
 
-      // 로컬 스토리지에 저장
-      localStorage.setItem("upstream_proxy_config", JSON.stringify({ enabled, ...config }));
+      // store에 저장
+      useAppSettingsStore.getState().setUpstreamProxyConfig({
+        enabled,
+        host: config?.host ?? "",
+        port: config?.port ?? 8080,
+        auth: config?.auth ?? null,
+        bypass: config?.bypass ?? [],
+      });
 
       setStatus("saved");
       setTimeout(() => setStatus("idle"), 2000);
@@ -1505,19 +1483,12 @@ function ProxyAuthSection() {
   const [proxyAuthSaving, setProxyAuthSaving] = useState(false);
   const [proxyAuthStatus, setProxyAuthStatus] = useState<"idle" | "saved" | "error">("idle");
 
-  // 로컬 스토리지에서 설정 불러오기
+  // store에서 설정 불러오기
   useEffect(() => {
-    const saved = localStorage.getItem("proxy_auth_config");
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        setProxyAuthEnabled(parsed.enabled ?? false);
-        setProxyAuthUsername(parsed.username ?? "");
-        setProxyAuthPassword(parsed.password ?? "");
-      } catch {
-        // 파싱 실패 시 무시
-      }
-    }
+    const saved = useAppSettingsStore.getState().proxyAuthConfig;
+    setProxyAuthEnabled(saved.enabled);
+    setProxyAuthUsername(saved.username);
+    setProxyAuthPassword(saved.password);
   }, []);
 
   // 프록시 연결 시 설정 동기화
@@ -1544,7 +1515,7 @@ function ProxyAuthSection() {
 
       await updateProxyAuth(config);
 
-      localStorage.setItem("proxy_auth_config", JSON.stringify(config));
+      useAppSettingsStore.getState().setProxyAuthConfig(config);
 
       setProxyAuthStatus("saved");
       setTimeout(() => setProxyAuthStatus("idle"), 2000);
