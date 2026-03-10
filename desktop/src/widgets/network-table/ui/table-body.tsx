@@ -16,6 +16,7 @@ interface TableBodyProps {
   createTransactionDeleteHandler: (id: string) => () => void;
   createTransactionPinHandler: (id: string) => () => void;
   createTransactionCheckHandler: (id: string) => () => void;
+  onAdvancedRepeat?: (transaction: HttpTransaction) => void;
   isPinnedSection: boolean;
 }
 
@@ -27,6 +28,7 @@ export const TableBody = ({
   createTransactionDeleteHandler,
   createTransactionPinHandler,
   createTransactionCheckHandler,
+  onAdvancedRepeat,
   isPinnedSection,
 }: TableBodyProps) => {
   const rowHandlers = useMemo(() => {
@@ -65,6 +67,7 @@ export const TableBody = ({
           isPinned={handlers.isPinned}
           isChecked={handlers.isChecked}
           onCheck={handlers.onCheck}
+          onAdvancedRepeat={onAdvancedRepeat}
         />
       );
     },
