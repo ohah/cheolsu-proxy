@@ -74,8 +74,8 @@ msgstr "동작"
 msgid "Active"
 msgstr "활성"
 
-#: src/features/intercept-rule-form/ui/headers-fields.tsx:59
-#: src/features/intercept-rule-form/ui/headers-fields.tsx:98
+#: src/features/intercept-rule-form/ui/headers-fields.tsx:60
+#: src/features/intercept-rule-form/ui/headers-fields.tsx:99
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:335
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:366
 #: src/features/map-rule-form/ui/map-local-fields.tsx:83
@@ -100,7 +100,7 @@ msgstr "캡처된 트래픽을 추가하여 매칭되는 요청에 저장된 응
 msgid "Add from Traffic"
 msgstr "트래픽에서 추가"
 
-#: src/features/intercept-rule-form/ui/headers-fields.tsx:50
+#: src/features/intercept-rule-form/ui/headers-fields.tsx:51
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:331
 msgid "Add Headers"
 msgstr "헤더 추가"
@@ -636,14 +636,14 @@ msgstr "HAR 가져오기 실패"
 msgid "HAR imported successfully"
 msgstr "HAR 가져오기 성공"
 
-#: src/features/intercept-rule-form/ui/headers-fields.tsx:65
+#: src/features/intercept-rule-form/ui/headers-fields.tsx:66
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:341
 #: src/features/map-rule-form/ui/map-local-fields.tsx:89
 #: src/features/transaction-details/ui/replay-dialog.tsx:439
 msgid "Header name"
 msgstr "헤더 이름"
 
-#: src/features/intercept-rule-form/ui/headers-fields.tsx:104
+#: src/features/intercept-rule-form/ui/headers-fields.tsx:105
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:372
 msgid "Header name to remove"
 msgstr "삭제할 헤더 이름"
@@ -1200,7 +1200,7 @@ msgstr "요청에서 Cookie 헤더를 제거하고 응답에서 Set-Cookie 헤�
 msgid "Remove entry"
 msgstr "엔트리 삭제"
 
-#: src/features/intercept-rule-form/ui/headers-fields.tsx:89
+#: src/features/intercept-rule-form/ui/headers-fields.tsx:90
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:362
 msgid "Remove Headers"
 msgstr "헤더 삭제"
@@ -1763,7 +1763,7 @@ msgstr "와일드카드 패턴 사용: *는 모든 문자열, ?는 단일 문자
 msgid "Username"
 msgstr "사용자 이름"
 
-#: src/features/intercept-rule-form/ui/headers-fields.tsx:70
+#: src/features/intercept-rule-form/ui/headers-fields.tsx:71
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:347
 #: src/features/map-rule-form/ui/map-local-fields.tsx:94
 #: src/features/transaction-details/ui/replay-dialog.tsx:447

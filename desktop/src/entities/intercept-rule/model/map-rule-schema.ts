@@ -1,9 +1,5 @@
 import { z } from "zod";
-
-const headerPairSchema = z.object({
-  key: z.string(),
-  value: z.string(),
-});
+import { headerPairSchema } from "./common-schemas";
 
 const mapLocalActionSchema = z.object({
   type: z.literal("map_local"),
@@ -31,6 +27,17 @@ export const mapRuleFormSchema = z.object({
 });
 
 export type MapRuleFormValues = z.infer<typeof mapRuleFormSchema>;
+
+/** 각 액션 타입별로 좁힌 폼 값 타입 */
+type BaseMapFormFields = { name: string; pattern: string; method: string };
+
+export type MapLocalFormValues = BaseMapFormFields & {
+  action: z.infer<typeof mapLocalActionSchema>;
+};
+
+export type MapRemoteFormValues = BaseMapFormFields & {
+  action: z.infer<typeof mapRemoteActionSchema>;
+};
 
 export const defaultMapRuleFormValues: MapRuleFormValues = {
   name: "",

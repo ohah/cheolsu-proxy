@@ -1,14 +1,10 @@
 import { z } from "zod";
+import { headerPairSchema } from "./common-schemas";
 
 const blockActionSchema = z.object({
   type: z.literal("block"),
   status_code: z.string(),
   body: z.string(),
-});
-
-const headerPairSchema = z.object({
-  key: z.string(),
-  value: z.string(),
 });
 
 const modifyRequestActionSchema = z.object({
@@ -53,6 +49,21 @@ export const interceptRuleFormSchema = z.object({
 });
 
 export type InterceptRuleFormValues = z.infer<typeof interceptRuleFormSchema>;
+
+/** 각 액션 타입별로 좁힌 폼 값 타입 */
+type BaseFormFields = { name: string; pattern: string; method: string };
+
+export type ModifyRequestFormValues = BaseFormFields & {
+  action: z.infer<typeof modifyRequestActionSchema>;
+};
+
+export type ModifyResponseFormValues = BaseFormFields & {
+  action: z.infer<typeof modifyResponseActionSchema>;
+};
+
+export type RewriteFormValues = BaseFormFields & {
+  action: z.infer<typeof rewriteActionSchema>;
+};
 
 export const defaultInterceptRuleFormValues: InterceptRuleFormValues = {
   name: "",

@@ -4,12 +4,12 @@ import { useFormContext, useFieldArray } from "react-hook-form";
 import { Input, Button } from "@/shared/ui";
 import { Plus, Trash2, FolderOpen } from "lucide-react";
 import { open as openFileDialog } from "@tauri-apps/plugin-dialog";
-import type { MapRuleFormValues } from "@/entities/intercept-rule";
+import type { MapLocalFormValues } from "@/entities/intercept-rule";
 
 export const MapLocalFields = () => {
   const { t } = useLingui();
   const { register, control, setValue } =
-    useFormContext<MapRuleFormValues>();
+    useFormContext<MapLocalFormValues>();
 
   const {
     fields: headerFields,
@@ -17,7 +17,7 @@ export const MapLocalFields = () => {
     remove: removeHeader,
   } = useFieldArray({
     control,
-    name: "action.headers" as never,
+    name: "action.headers",
   });
 
   const handleSelectFile = async () => {
@@ -27,7 +27,7 @@ export const MapLocalFields = () => {
         title: t`Select local file`,
       });
       if (selected) {
-        setValue("action.file_path" as never, selected as never);
+        setValue("action.file_path", selected);
       }
     } catch {
       // user cancelled
@@ -43,7 +43,7 @@ export const MapLocalFields = () => {
         <div className="flex gap-2">
           <Input
             placeholder="/path/to/response.json"
-            {...register("action.file_path" as never)}
+            {...register("action.file_path")}
             className="flex-1"
           />
           <Button
@@ -64,7 +64,7 @@ export const MapLocalFields = () => {
         <Input
           type="number"
           placeholder="200"
-          {...register("action.status_code" as never)}
+          {...register("action.status_code")}
         />
       </div>
 
@@ -77,7 +77,7 @@ export const MapLocalFields = () => {
             variant="ghost"
             size="sm"
             type="button"
-            onClick={() => appendHeader({ key: "", value: "" } as never)}
+            onClick={() => appendHeader({ key: "", value: "" })}
           >
             <Plus className="w-3.5 h-3.5 mr-1" />
             <Trans>Add</Trans>
@@ -87,12 +87,12 @@ export const MapLocalFields = () => {
           <div key={field.id} className="flex items-center gap-2">
             <Input
               placeholder={t`Header name`}
-              {...register(`action.headers.${i}.key` as never)}
+              {...register(`action.headers.${i}.key`)}
               className="flex-1"
             />
             <Input
               placeholder={t`Value`}
-              {...register(`action.headers.${i}.value` as never)}
+              {...register(`action.headers.${i}.value`)}
               className="flex-1"
             />
             <Button

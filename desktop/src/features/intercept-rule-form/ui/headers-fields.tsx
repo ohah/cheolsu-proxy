@@ -3,12 +3,17 @@ import { useLingui } from "@lingui/react/macro";
 import { useFormContext, useFieldArray } from "react-hook-form";
 import { Input, Button } from "@/shared/ui";
 import { Plus, Trash2 } from "lucide-react";
-import type { InterceptRuleFormValues } from "@/entities/intercept-rule";
+import type { ModifyRequestFormValues } from "@/entities/intercept-rule";
 
+/**
+ * HeadersFields는 modify_request / modify_response 액션에서 사용됩니다.
+ * 두 액션 모두 action.headers, action.remove_headers 필드를 공유하므로
+ * ModifyRequestFormValues 타입을 대표로 사용합니다.
+ */
 export const HeadersFields = () => {
   const { t } = useLingui();
   const { register, control, watch, setValue } =
-    useFormContext<InterceptRuleFormValues>();
+    useFormContext<ModifyRequestFormValues>();
 
   const {
     fields: headerFields,
@@ -16,30 +21,26 @@ export const HeadersFields = () => {
     remove: removeHeaderAt,
   } = useFieldArray({
     control,
-    name: "action.headers" as never,
+    name: "action.headers",
   });
 
-  const removeHeaders: string[] =
-    (watch("action.remove_headers" as never) as string[] | undefined) ?? [];
+  const removeHeaders: string[] = watch("action.remove_headers") ?? [];
 
   const addRemoveHeader = () => {
-    setValue("action.remove_headers" as never, [
-      ...removeHeaders,
-      "",
-    ] as never);
+    setValue("action.remove_headers", [...removeHeaders, ""]);
   };
 
   const deleteRemoveHeader = (index: number) => {
     setValue(
-      "action.remove_headers" as never,
-      removeHeaders.filter((_, i) => i !== index) as never,
+      "action.remove_headers",
+      removeHeaders.filter((_, i) => i !== index),
     );
   };
 
   const updateRemoveHeader = (index: number, value: string) => {
     const updated = [...removeHeaders];
     updated[index] = value;
-    setValue("action.remove_headers" as never, updated as never);
+    setValue("action.remove_headers", updated);
   };
 
   return (
@@ -53,7 +54,7 @@ export const HeadersFields = () => {
             variant="ghost"
             size="sm"
             type="button"
-            onClick={() => appendHeader({ key: "", value: "" } as never)}
+            onClick={() => appendHeader({ key: "", value: "" })}
           >
             <Plus className="w-3.5 h-3.5 mr-1" />
             <Trans>Add</Trans>
@@ -63,12 +64,12 @@ export const HeadersFields = () => {
           <div key={field.id} className="flex items-center gap-2">
             <Input
               placeholder={t`Header name`}
-              {...register(`action.headers.${i}.key` as never)}
+              {...register(`action.headers.${i}.key`)}
               className="flex-1"
             />
             <Input
               placeholder={t`Value`}
-              {...register(`action.headers.${i}.value` as never)}
+              {...register(`action.headers.${i}.value`)}
               className="flex-1"
             />
             <Button
