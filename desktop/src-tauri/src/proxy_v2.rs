@@ -60,63 +60,78 @@ pub async fn start_proxy_v2<R: Runtime>(
     let port = addr.port();
     let host = addr.ip().to_string();
 
-    let app_clone = app.clone();
-    let conn = match proxy_daemon::ensure_daemon(port, &host, move |msg| match msg {
-        DaemonMessage::Event { data } => {
-            let _ = app_clone.emit("proxy_event", data);
-        }
-        DaemonMessage::WsMessage { data } => {
-            let _ = app_clone.emit("ws_message", data);
-        }
-        DaemonMessage::WsConnection { data } => {
-            let _ = app_clone.emit("ws_connection", data);
-        }
-        DaemonMessage::InterceptRulesUpdated { rules } => {
-            let _ = app_clone.emit("intercept_rules_updated", rules);
-        }
-        DaemonMessage::ScriptLog { level, message } => {
-            let _ = app_clone.emit(
-                "script_log",
-                serde_json::json!({ "level": level, "message": message }),
-            );
-        }
-        DaemonMessage::ScriptStatus {
-            active,
-            path,
-            message,
-        } => {
-            let _ = app_clone.emit(
-                "script_status",
-                serde_json::json!({ "active": active, "path": path, "message": message }),
-            );
-        }
-        DaemonMessage::ScriptResult { success, error } => {
-            let _ = app_clone.emit(
-                "script_result",
-                serde_json::json!({ "success": success, "error": error }),
-            );
-        }
-        DaemonMessage::BreakpointRulesUpdated { rules } => {
-            let _ = app_clone.emit("breakpoint_rules_updated", rules);
-        }
-        DaemonMessage::BreakpointHit {
-            id,
-            transaction_id,
-            phase,
-            data,
-        } => {
-            let _ = app_clone.emit(
-                "breakpoint_hit",
-                serde_json::json!({ "id": id, "transaction_id": transaction_id, "phase": phase, "data": data }),
-            );
-        }
-        DaemonMessage::HostMappingsUpdated { mappings } => {
-            let _ = app_clone.emit("host_mappings_updated", mappings);
-        }
-        DaemonMessage::SslProxyingListUpdated { entries } => {
-            let _ = app_clone.emit("ssl_proxying_list_updated", entries);
-        }
-        _ => {}
+    // app.emit()을 tokio worker가 아닌 전용 OS 스레드에서 호출하여
+    // macOS WebKit의 메인 스레드 dispatch로 인한 데드락을 방지
+    let (event_tx, mut event_rx) = tokio::sync::mpsc::unbounded_channel::<DaemonMessage>();
+
+    let app_emitter = app.clone();
+    std::thread::Builder::new()
+        .name("event-emitter".into())
+        .spawn(move || {
+            while let Some(msg) = event_rx.blocking_recv() {
+                match msg {
+                    DaemonMessage::Event { data } => {
+                        let _ = app_emitter.emit("proxy_event", data);
+                    }
+                    DaemonMessage::WsMessage { data } => {
+                        let _ = app_emitter.emit("ws_message", data);
+                    }
+                    DaemonMessage::WsConnection { data } => {
+                        let _ = app_emitter.emit("ws_connection", data);
+                    }
+                    DaemonMessage::InterceptRulesUpdated { rules } => {
+                        let _ = app_emitter.emit("intercept_rules_updated", rules);
+                    }
+                    DaemonMessage::ScriptLog { level, message } => {
+                        let _ = app_emitter.emit(
+                            "script_log",
+                            serde_json::json!({ "level": level, "message": message }),
+                        );
+                    }
+                    DaemonMessage::ScriptStatus {
+                        active,
+                        path,
+                        message,
+                    } => {
+                        let _ = app_emitter.emit(
+                            "script_status",
+                            serde_json::json!({ "active": active, "path": path, "message": message }),
+                        );
+                    }
+                    DaemonMessage::ScriptResult { success, error } => {
+                        let _ = app_emitter.emit(
+                            "script_result",
+                            serde_json::json!({ "success": success, "error": error }),
+                        );
+                    }
+                    DaemonMessage::BreakpointRulesUpdated { rules } => {
+                        let _ = app_emitter.emit("breakpoint_rules_updated", rules);
+                    }
+                    DaemonMessage::BreakpointHit {
+                        id,
+                        transaction_id,
+                        phase,
+                        data,
+                    } => {
+                        let _ = app_emitter.emit(
+                            "breakpoint_hit",
+                            serde_json::json!({ "id": id, "transaction_id": transaction_id, "phase": phase, "data": data }),
+                        );
+                    }
+                    DaemonMessage::HostMappingsUpdated { mappings } => {
+                        let _ = app_emitter.emit("host_mappings_updated", mappings);
+                    }
+                    DaemonMessage::SslProxyingListUpdated { entries } => {
+                        let _ = app_emitter.emit("ssl_proxying_list_updated", entries);
+                    }
+                    _ => {}
+                }
+            }
+        })
+        .expect("event-emitter 스레드 생성 실패");
+
+    let conn = match proxy_daemon::ensure_daemon(port, &host, move |msg| {
+        let _ = event_tx.send(msg);
     })
     .await
     {
