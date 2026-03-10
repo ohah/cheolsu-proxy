@@ -105,6 +105,74 @@ pub async fn get_log_dir() -> Result<String, String> {
         .map_err(|e| format!("로그 디렉토리를 찾을 수 없습니다: {}", e))
 }
 
+// ─── TLS Passthrough ──────────────────────────────────────
+
+/// TLS Passthrough 바이패스 항목
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct TlsPassthroughEntry {
+    pub host: String,
+    pub failure_count: u32,
+}
+
+/// TLS passthrough JSON 파일 경로
+fn tls_passthrough_path() -> Result<std::path::PathBuf, String> {
+    proxy_daemon::daemon::app_support_dir()
+        .map(|d| d.join("tls_passthrough.json"))
+        .map_err(|e| format!("데이터 디렉토리를 찾을 수 없습니다: {}", e))
+}
+
+/// TLS Passthrough 바이패스 목록 조회
+#[tauri::command]
+pub async fn get_tls_passthrough_list() -> Result<Vec<TlsPassthroughEntry>, String> {
+    let path = tls_passthrough_path()?;
+    if !path.exists() {
+        return Ok(Vec::new());
+    }
+    let data = std::fs::read_to_string(&path)
+        .map_err(|e| format!("TLS passthrough 파일 읽기 실패: {}", e))?;
+    let map: std::collections::HashMap<String, u32> =
+        serde_json::from_str(&data).map_err(|e| format!("JSON 파싱 실패: {}", e))?;
+    let mut entries: Vec<TlsPassthroughEntry> = map
+        .into_iter()
+        .map(|(host, failure_count)| TlsPassthroughEntry {
+            host,
+            failure_count,
+        })
+        .collect();
+    entries.sort_by(|a, b| a.host.cmp(&b.host));
+    Ok(entries)
+}
+
+/// TLS Passthrough 특정 도메인 바이패스 해제
+#[tauri::command]
+pub async fn remove_tls_passthrough(host: String) -> Result<(), String> {
+    let path = tls_passthrough_path()?;
+    if !path.exists() {
+        return Ok(());
+    }
+    let data = std::fs::read_to_string(&path)
+        .map_err(|e| format!("TLS passthrough 파일 읽기 실패: {}", e))?;
+    let mut map: std::collections::HashMap<String, u32> =
+        serde_json::from_str(&data).map_err(|e| format!("JSON 파싱 실패: {}", e))?;
+    map.remove(&host);
+    let json =
+        serde_json::to_string_pretty(&map).map_err(|e| format!("JSON 직렬화 실패: {}", e))?;
+    std::fs::write(&path, json).map_err(|e| format!("TLS passthrough 파일 저장 실패: {}", e))
+}
+
+/// TLS Passthrough 전체 바이패스 기록 초기화
+#[tauri::command]
+pub async fn clear_tls_passthrough() -> Result<(), String> {
+    let path = tls_passthrough_path()?;
+    if !path.exists() {
+        return Ok(());
+    }
+    let empty: std::collections::HashMap<String, u32> = std::collections::HashMap::new();
+    let json =
+        serde_json::to_string_pretty(&empty).map_err(|e| format!("JSON 직렬화 실패: {}", e))?;
+    std::fs::write(&path, json).map_err(|e| format!("TLS passthrough 파일 저장 실패: {}", e))
+}
+
 /// hop-by-hop 헤더인지 대소문자 무시하고 확인
 fn is_hop_by_hop_header(name: &str) -> bool {
     const HOP_BY_HOP: &[&str] = &[
