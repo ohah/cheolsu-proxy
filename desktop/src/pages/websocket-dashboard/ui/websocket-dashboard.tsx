@@ -7,7 +7,7 @@ import { WsReplayDialog } from "@/features/websocket-replay";
 
 import { useWebSocketStore } from "@/shared/stores";
 import { WsMessageTable, WsMessageDetail, WsConnectionList } from "@/widgets/websocket-messages";
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup, Button } from "@/shared/ui";
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup, Button, Tooltip, TooltipTrigger, TooltipContent } from "@/shared/ui";
 import type { WsMessageInfo, WsConnection } from "@/entities/websocket";
 
 export const WebSocketDashboard = () => {
@@ -77,9 +77,16 @@ export const WebSocketDashboard = () => {
             <Trans>messages</Trans>
           </span>
         </div>
-        <Button variant="ghost" size="sm" onClick={clearAll} title={t`Clear all`}>
-          <Trash2 className="w-4 h-4" />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger render={<div />}>
+            <Button variant="ghost" size="sm" onClick={clearAll}>
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent sideOffset={4}>
+            <Trans>Clear all</Trans>
+          </TooltipContent>
+        </Tooltip>
       </div>
 
       {/* Main content */}

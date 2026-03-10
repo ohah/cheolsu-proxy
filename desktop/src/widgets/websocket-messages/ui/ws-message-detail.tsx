@@ -4,7 +4,7 @@ import { useLingui } from "@lingui/react/macro";
 import { ArrowUp, ArrowDown, X, Play } from "lucide-react";
 import { Editor } from "@monaco-editor/react";
 import { useTheme } from "next-themes";
-import { Button } from "@/shared/ui";
+import { Button, Tooltip, TooltipTrigger, TooltipContent } from "@/shared/ui";
 import { cn } from "@/shared/lib";
 import { getWsContentView, parseMqtt } from "@/shared/lib/ws-content-view";
 import type { WsMessageInfo } from "@/entities/websocket";
@@ -121,9 +121,16 @@ export const WsMessageDetail = memo(
               <Play className="w-3 h-3" />
               <Trans>Replay</Trans>
             </Button>
-            <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={onClose}>
-              <X className="w-3.5 h-3.5" />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger render={<div />}>
+                <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={onClose}>
+                  <X className="w-3.5 h-3.5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent sideOffset={4}>
+                <Trans>Close</Trans>
+              </TooltipContent>
+            </Tooltip>
           </div>
         </div>
 

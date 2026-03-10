@@ -4,7 +4,7 @@ import { useTheme } from "next-themes";
 
 import type { HttpTransaction } from "@/entities/proxy";
 
-import { Button, Card, CardContent, CardHeader } from "@/shared/ui";
+import { Button, Card, CardContent, CardHeader, Tooltip, TooltipTrigger, TooltipContent } from "@/shared/ui";
 import { Editor } from "@monaco-editor/react";
 
 import { getBodyForDisplay, createImageDataUrl, extractBinaryFileInfo } from "../lib/utils";
@@ -16,6 +16,7 @@ import {
   isBinaryDataType,
   isProtobufDataType,
 } from "@/entities/proxy/model/data-type";
+import { Trans } from "@lingui/react/macro";
 import { toast } from "sonner";
 import { MediaPreview } from "./media-preview";
 import { BinaryPreview } from "./binary-preview";
@@ -144,9 +145,16 @@ export const TransactionResponse = ({ transaction }: TransactionResponseProps) =
               </div>
             )}
           </div>
-          <Button variant="ghost" size="sm" onClick={handleCopy}>
-            <Copy className="w-4 h-4" />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger render={<div />}>
+              <Button variant="ghost" size="sm" onClick={handleCopy}>
+                <Copy className="w-4 h-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent sideOffset={4}>
+              <Trans>Copy</Trans>
+            </TooltipContent>
+          </Tooltip>
         </div>
       </CardHeader>
       <CardContent className="flex-1 p-0 min-h-0">

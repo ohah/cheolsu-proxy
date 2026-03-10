@@ -6,7 +6,7 @@ import type { HttpTransaction } from "@/entities/proxy";
 
 import { getStatusColor } from "@/entities/transaction";
 
-import { Badge, Button } from "@/shared/ui";
+import { Badge, Button, Tooltip, TooltipTrigger, TooltipContent } from "@/shared/ui";
 import { generateCurlCommand } from "../lib";
 import { toast } from "sonner";
 import { ReplayDialog } from "./replay-dialog";
@@ -43,12 +43,26 @@ export const TransactionHeader = ({
       </div>
       <div className="flex items-center gap-2">
         <ReplayDialog transaction={transaction} />
-        <Button variant="ghost" size="sm" onClick={handleCopyCurl}>
-          <Code className="w-4 h-4" />
-        </Button>
-        <Button variant="ghost" size="sm" onClick={clearSelectedTransaction}>
-          <X className="w-4 h-4" />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger render={<div />}>
+            <Button variant="ghost" size="sm" onClick={handleCopyCurl}>
+              <Code className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent sideOffset={4}>
+            <Trans>Copy as cURL</Trans>
+          </TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger render={<div />}>
+            <Button variant="ghost" size="sm" onClick={clearSelectedTransaction}>
+              <X className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent sideOffset={4}>
+            <Trans>Close</Trans>
+          </TooltipContent>
+        </Tooltip>
       </div>
     </div>
   );
