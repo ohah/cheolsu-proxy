@@ -139,7 +139,10 @@ export const ProtobufPreview = ({
 
     setLoading(true);
     try {
-      const rawData = await readFile(filePath, { baseDir: BaseDirectory.Cache });
+      const appCachePath = filePath.startsWith("com.cheolsu-proxy/")
+        ? filePath.slice("com.cheolsu-proxy/".length)
+        : filePath;
+      const rawData = await readFile(appCachePath, { baseDir: BaseDirectory.AppCache });
       setFileData(new Uint8Array(rawData));
     } finally {
       setLoading(false);
