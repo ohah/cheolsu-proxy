@@ -43,6 +43,10 @@ pub trait CertificateAuthority: Send + Sync + 'static {
     /// Returns None if the CA certificate is not available in DER format.
     fn get_ca_cert_der(&self) -> Option<Vec<u8>>;
 
+    /// 주어진 authority에 대한 인증서가 캐시에 있는지 확인합니다.
+    /// 캐시 히트 시 불필요한 upstream cert sniffing을 건너뛸 수 있습니다.
+    fn is_config_cached(&self, authority: &Authority) -> impl Future<Output = bool> + Send;
+
     #[cfg(feature = "openssl-ca")]
     /// Generate OpenSSL SslContext for use with openssl.
     ///
