@@ -133,7 +133,10 @@ async function readBodyContent(
   if (!filePath) return null;
 
   try {
-    return await readFile(filePath, { baseDir: BaseDirectory.Cache });
+    const appCachePath = filePath.startsWith("com.cheolsu-proxy/")
+      ? filePath.slice("com.cheolsu-proxy/".length)
+      : filePath;
+    return await readFile(appCachePath, { baseDir: BaseDirectory.AppCache });
   } catch {
     return null;
   }

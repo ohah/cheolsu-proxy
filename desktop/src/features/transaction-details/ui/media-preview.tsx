@@ -258,7 +258,11 @@ export const MediaPreview = ({
         let detectedMimeType: string;
 
         if (filePath) {
-          const rawData = await readFile(filePath, { baseDir: BaseDirectory.Cache });
+          // com.cheolsu-proxy/ 접두사가 있으면 제거하고 AppCache 기준으로 읽기
+          const appCachePath = filePath.startsWith("com.cheolsu-proxy/")
+            ? filePath.slice("com.cheolsu-proxy/".length)
+            : filePath;
+          const rawData = await readFile(appCachePath, { baseDir: BaseDirectory.AppCache });
           fileData = new Uint8Array(rawData);
         } else if (data) {
           fileData = data;
