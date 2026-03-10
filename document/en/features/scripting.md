@@ -139,12 +139,12 @@ Called before an HTTP request is forwarded to the server. The handler receives a
 
 **Request object:**
 
-| Property | Type | Description |
-| --- | --- | --- |
-| `method` | string | HTTP method (GET, POST, etc.) |
-| `url` | string | Full request URL |
+| Property  | Type   | Description                        |
+| --------- | ------ | ---------------------------------- |
+| `method`  | string | HTTP method (GET, POST, etc.)      |
+| `url`     | string | Full request URL                   |
 | `headers` | object | Request headers as key-value pairs |
-| `body` | string | Request body |
+| `body`    | string | Request body                       |
 
 **Return values:**
 
@@ -153,7 +153,10 @@ Called before an HTTP request is forwarded to the server. The handler receives a
 return { action: "forward" };
 
 // Forward with modifications
-return { action: "modify", request: { ...request, headers: { ...request.headers, "X-Custom": "value" } } };
+return {
+  action: "modify",
+  request: { ...request, headers: { ...request.headers, "X-Custom": "value" } },
+};
 
 // Respond directly without contacting the server
 return {
@@ -172,11 +175,11 @@ Called before a server response is delivered to the client. The handler receives
 
 **Response object:**
 
-| Property | Type | Description |
-| --- | --- | --- |
-| `status` | number | HTTP status code |
+| Property  | Type   | Description                         |
+| --------- | ------ | ----------------------------------- |
+| `status`  | number | HTTP status code                    |
 | `headers` | object | Response headers as key-value pairs |
-| `body` | string | Response body |
+| `body`    | string | Response body                       |
 
 **Return values:**
 
@@ -197,11 +200,11 @@ Called before a WebSocket message is forwarded. The handler receives a message o
 
 **Message object:**
 
-| Property | Type | Description |
-| --- | --- | --- |
-| `direction` | string | `"to_server"` or `"to_client"` |
-| `payload` | string | Message content |
-| `is_binary` | boolean | Whether the message is binary |
+| Property    | Type    | Description                    |
+| ----------- | ------- | ------------------------------ |
+| `direction` | string  | `"to_server"` or `"to_client"` |
+| `payload`   | string  | Message content                |
+| `is_binary` | boolean | Whether the message is binary  |
 
 **Return values:**
 
@@ -231,11 +234,11 @@ TypeScript is automatically transpiled using oxc. No build step is required.
 ## Timer API
 
 ```javascript
-const id = setTimeout(callback, delay);   // Execute after delay (ms)
-clearTimeout(id);                          // Cancel a timeout
+const id = setTimeout(callback, delay); // Execute after delay (ms)
+clearTimeout(id); // Cancel a timeout
 
-const id = setInterval(callback, delay);   // Execute repeatedly at interval (ms)
-clearInterval(id);                         // Cancel an interval
+const id = setInterval(callback, delay); // Execute repeatedly at interval (ms)
+clearInterval(id); // Cancel an interval
 ```
 
 **Note:** Timers only fire during hook execution while the event loop is active. They cannot be used as background timers between hook invocations.
@@ -260,46 +263,46 @@ Logs appear in real time, making it easy to trace script behavior as traffic flo
 
 ### Available APIs
 
-| API | Description |
-| --- | --- |
-| `cheolsu.onRequest(handler)` | Register HTTP request hook (sync/async) |
-| `cheolsu.onResponse(handler)` | Register HTTP response hook (sync/async) |
-| `cheolsu.onWebSocketMessage(handler)` | Register WebSocket message hook (sync/async) |
-| `console.log/warn/error/info/debug()` | Console logging |
-| `setTimeout(callback, delay)` | Delayed execution |
-| `clearTimeout(id)` | Cancel timeout |
-| `setInterval(callback, delay)` | Repeated execution |
-| `clearInterval(id)` | Cancel interval |
-| `async` / `await` | Asynchronous processing |
-| `Promise` | Promise API |
-| `JSON.parse()` / `JSON.stringify()` | JSON processing |
-| `Math.*` | Math functions |
-| `Date` | Date/time |
-| `RegExp` | Regular expressions |
-| `Array` / `Object` / `String` / `Map` / `Set` | Standard built-in objects |
-| `Symbol` / `WeakMap` / `WeakSet` / `Proxy` / `Reflect` | ECMAScript standard |
-| `TextEncoder` / `TextDecoder` | Text encoding (V8 built-in) |
-| `structuredClone()` | Deep clone (V8 built-in) |
-| TypeScript | Automatic transpilation |
+| API                                                    | Description                                  |
+| ------------------------------------------------------ | -------------------------------------------- |
+| `cheolsu.onRequest(handler)`                           | Register HTTP request hook (sync/async)      |
+| `cheolsu.onResponse(handler)`                          | Register HTTP response hook (sync/async)     |
+| `cheolsu.onWebSocketMessage(handler)`                  | Register WebSocket message hook (sync/async) |
+| `console.log/warn/error/info/debug()`                  | Console logging                              |
+| `setTimeout(callback, delay)`                          | Delayed execution                            |
+| `clearTimeout(id)`                                     | Cancel timeout                               |
+| `setInterval(callback, delay)`                         | Repeated execution                           |
+| `clearInterval(id)`                                    | Cancel interval                              |
+| `async` / `await`                                      | Asynchronous processing                      |
+| `Promise`                                              | Promise API                                  |
+| `JSON.parse()` / `JSON.stringify()`                    | JSON processing                              |
+| `Math.*`                                               | Math functions                               |
+| `Date`                                                 | Date/time                                    |
+| `RegExp`                                               | Regular expressions                          |
+| `Array` / `Object` / `String` / `Map` / `Set`          | Standard built-in objects                    |
+| `Symbol` / `WeakMap` / `WeakSet` / `Proxy` / `Reflect` | ECMAScript standard                          |
+| `TextEncoder` / `TextDecoder`                          | Text encoding (V8 built-in)                  |
+| `structuredClone()`                                    | Deep clone (V8 built-in)                     |
+| TypeScript                                             | Automatic transpilation                      |
 
 ### Unavailable APIs
 
-| API | Reason |
-| --- | --- |
-| `fetch()` | Network I/O not registered |
-| `XMLHttpRequest` | Browser-only API |
-| `require()` | CommonJS module system not supported |
-| `import` / `export` (ESM) | ES module system not supported |
-| `fs` / `path` / `os` | Node.js built-in modules not supported |
-| `process` | Node.js-only global object |
-| `Buffer` | Node.js-only (use `Uint8Array` instead) |
-| `crypto` | Web Crypto API not registered |
-| `WebSocket` (client) | Network I/O not supported |
-| `Worker` / `SharedWorker` | Worker threads not supported |
-| `localStorage` / `sessionStorage` | Browser-only API |
-| `DOM API` (`document`, `window`) | Browser-only |
-| `alert()` / `confirm()` / `prompt()` | Browser-only |
-| Top-level `await` | Not supported in script mode (only inside hooks) |
+| API                                  | Reason                                           |
+| ------------------------------------ | ------------------------------------------------ |
+| `fetch()`                            | Network I/O not registered                       |
+| `XMLHttpRequest`                     | Browser-only API                                 |
+| `require()`                          | CommonJS module system not supported             |
+| `import` / `export` (ESM)            | ES module system not supported                   |
+| `fs` / `path` / `os`                 | Node.js built-in modules not supported           |
+| `process`                            | Node.js-only global object                       |
+| `Buffer`                             | Node.js-only (use `Uint8Array` instead)          |
+| `crypto`                             | Web Crypto API not registered                    |
+| `WebSocket` (client)                 | Network I/O not supported                        |
+| `Worker` / `SharedWorker`            | Worker threads not supported                     |
+| `localStorage` / `sessionStorage`    | Browser-only API                                 |
+| `DOM API` (`document`, `window`)     | Browser-only                                     |
+| `alert()` / `confirm()` / `prompt()` | Browser-only                                     |
+| Top-level `await`                    | Not supported in script mode (only inside hooks) |
 
 ---
 

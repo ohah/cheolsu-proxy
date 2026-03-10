@@ -72,32 +72,32 @@ With Cheolsu Proxy running, ask your AI assistant a simple question like "What i
 
 ### Traffic Inspection
 
-| Tool | Description |
-| --- | --- |
-| `search_traffic` | Search captured traffic by host, HTTP method, status code, or URL path |
-| `get_transaction` | Get the full request and response (headers and body) for a specific transaction |
-| `get_websocket_messages` | Get captured WebSocket messages, optionally filtered by connection URI |
+| Tool                     | Description                                                                     |
+| ------------------------ | ------------------------------------------------------------------------------- |
+| `search_traffic`         | Search captured traffic by host, HTTP method, status code, or URL path          |
+| `get_transaction`        | Get the full request and response (headers and body) for a specific transaction |
+| `get_websocket_messages` | Get captured WebSocket messages, optionally filtered by connection URI          |
 
 ### Request Sending
 
-| Tool | Description |
-| --- | --- |
+| Tool             | Description                                                                                                    |
+| ---------------- | -------------------------------------------------------------------------------------------------------------- |
 | `replay_request` | Send an HTTP request directly, bypassing the proxy. Useful for testing APIs without triggering intercept rules |
 
 ### Intercept Rule Management
 
-| Tool | Description |
-| --- | --- |
-| `list_rules` | List all currently configured intercept rules |
-| `add_rule` | Add a new intercept rule (block, modify_request, modify_response, map_local, map_remote) |
-| `remove_rule` | Remove an intercept rule by its ID |
+| Tool          | Description                                                                              |
+| ------------- | ---------------------------------------------------------------------------------------- |
+| `list_rules`  | List all currently configured intercept rules                                            |
+| `add_rule`    | Add a new intercept rule (block, modify_request, modify_response, map_local, map_remote) |
+| `remove_rule` | Remove an intercept rule by its ID                                                       |
 
 ### Proxy Status
 
-| Tool | Description |
-| --- | --- |
-| `proxy_status` | Check whether the proxy daemon is running and view traffic statistics |
-| `clear_traffic` | Clear all captured traffic data from memory |
+| Tool            | Description                                                           |
+| --------------- | --------------------------------------------------------------------- |
+| `proxy_status`  | Check whether the proxy daemon is running and view traffic statistics |
+| `clear_traffic` | Clear all captured traffic data from memory                           |
 
 ---
 

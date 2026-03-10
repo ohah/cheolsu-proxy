@@ -52,15 +52,15 @@ flowchart TD
 
 Each Server Replay entry contains the complete response that will be returned:
 
-| Field | Description |
-| --- | --- |
-| HTTP method | The method of the original request (GET, POST, etc.) |
-| URL | The full URL of the original request |
-| Status code | The HTTP status code of the saved response |
-| Response headers | All response headers, including content type |
-| Response body | The complete response body |
-| Header count | Number of headers in the stored response |
-| Body size | Size of the stored response body |
+| Field            | Description                                          |
+| ---------------- | ---------------------------------------------------- |
+| HTTP method      | The method of the original request (GET, POST, etc.) |
+| URL              | The full URL of the original request                 |
+| Status code      | The HTTP status code of the saved response           |
+| Response headers | All response headers, including content type         |
+| Response body    | The complete response body                           |
+| Header count     | Number of headers in the stored response             |
+| Body size        | Size of the stored response body                     |
 
 ---
 

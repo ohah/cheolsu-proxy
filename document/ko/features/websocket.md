@@ -36,15 +36,15 @@ Engine.IO 위에 구축된 Socket.IO 프로토콜을 자동으로 감지합니�
 
 감지되는 패킷 타입:
 
-| 패킷 타입 | 설명 |
-| --- | --- |
-| connect | 네임스페이스 연결 |
-| disconnect | 네임스페이스 연결 해제 |
-| event | 이벤트 전송 (가장 빈번한 메시지 타입) |
-| ack | 이벤트에 대한 응답 확인 |
-| connect_error | 연결 오류 |
-| binary event | 바이너리 데이터를 포함한 이벤트 |
-| binary ack | 바이너리 데이터를 포함한 응답 확인 |
+| 패킷 타입     | 설명                                  |
+| ------------- | ------------------------------------- |
+| connect       | 네임스페이스 연결                     |
+| disconnect    | 네임스페이스 연결 해제                |
+| event         | 이벤트 전송 (가장 빈번한 메시지 타입) |
+| ack           | 이벤트에 대한 응답 확인               |
+| connect_error | 연결 오류                             |
+| binary event  | 바이너리 데이터를 포함한 이벤트       |
+| binary ack    | 바이너리 데이터를 포함한 응답 확인    |
 
 Engine.IO의 ping/pong 패킷도 별도로 표시되어 연결 유지 상태를 확인할 수 있습니다.
 
@@ -54,16 +54,16 @@ IoT(사물인터넷) 환경에서 널리 사용되는 MQTT 프로토콜을 감�
 
 감지되는 패킷 타입:
 
-| 패킷 타입 | 설명 |
-| --- | --- |
-| CONNECT | 클라이언트 연결 요청 |
-| CONNACK | 연결 응답 |
-| PUBLISH | 메시지 발행 (토픽, QoS, 페이로드 표시) |
-| SUBSCRIBE | 토픽 구독 요청 |
-| SUBACK | 구독 응답 |
-| UNSUBSCRIBE | 토픽 구독 해제 |
-| PINGREQ / PINGRESP | 연결 유지 확인 |
-| DISCONNECT | 연결 종료 |
+| 패킷 타입          | 설명                                   |
+| ------------------ | -------------------------------------- |
+| CONNECT            | 클라이언트 연결 요청                   |
+| CONNACK            | 연결 응답                              |
+| PUBLISH            | 메시지 발행 (토픽, QoS, 페이로드 표시) |
+| SUBSCRIBE          | 토픽 구독 요청                         |
+| SUBACK             | 구독 응답                              |
+| UNSUBSCRIBE        | 토픽 구독 해제                         |
+| PINGREQ / PINGRESP | 연결 유지 확인                         |
+| DISCONNECT         | 연결 종료                              |
 
 ---
 
@@ -125,10 +125,7 @@ cheolsu.onWebSocketMessage((message) => {
   }
 
   // 특정 조건의 메시지를 차단
-  if (
-    message.direction === "to_client" &&
-    message.payload.includes("heartbeat")
-  ) {
+  if (message.direction === "to_client" && message.payload.includes("heartbeat")) {
     return { action: "drop" };
   }
 
