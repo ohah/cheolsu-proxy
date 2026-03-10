@@ -815,19 +815,30 @@ fn draw_quick_settings(f: &mut Frame, app: &App, area: Rect) {
                     };
                     Span::styled(text, Style::default().fg(color))
                 }
+                QuickSettingsField::NoGzip => {
+                    let (text, color) = if form.no_gzip {
+                        ("[ON]", Color::Green)
+                    } else {
+                        ("[OFF]", Color::Red)
+                    };
+                    Span::styled(text, Style::default().fg(color))
+                }
             };
 
             Line::from(vec![cursor, label, value])
         })
         .collect();
 
-    let title = if form.no_caching || form.block_cookies {
+    let title = if form.no_caching || form.block_cookies || form.no_gzip {
         let mut active = Vec::new();
         if form.no_caching {
             active.push("No Caching");
         }
         if form.block_cookies {
             active.push("Block Cookies");
+        }
+        if form.no_gzip {
+            active.push("No Gzip");
         }
         format!(" Quick Settings [{}] ", active.join(", "))
     } else {

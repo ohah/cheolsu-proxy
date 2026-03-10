@@ -42,11 +42,12 @@ pub(crate) struct RequestState {
     pub(crate) res: Option<ProxiedResponse>,
 }
 
-/// 빠른 설정 (No Caching, Block Cookies)
+/// 빠른 설정 (No Caching, Block Cookies, No Gzip)
 #[derive(Clone, Copy, Debug, Default)]
 pub struct QuickSettings {
     pub no_caching: bool,
     pub block_cookies: bool,
+    pub no_gzip: bool,
 }
 
 /// 프록시 전역 설정 (세션 수명 동안 유지)
@@ -194,10 +195,10 @@ impl LoggingHandler {
         cert_distribution::handle_cert_request(req, self.config.ca_cert_der.as_ref())
     }
 
-    /// No Caching / Block Cookies 설정을 요청에 적용
+    /// No Caching / Block Cookies / No Gzip 설정을 요청에 적용
     async fn apply_quick_settings_on_request(&self, mut req: Request<Body>) -> Request<Body> {
         use proxyapi_v2::hyper::header::{
-            CACHE_CONTROL, COOKIE, IF_MODIFIED_SINCE, IF_NONE_MATCH, PRAGMA,
+            ACCEPT_ENCODING, CACHE_CONTROL, COOKIE, IF_MODIFIED_SINCE, IF_NONE_MATCH, PRAGMA,
         };
 
         let settings = { *self.config.quick_settings.read().await };
@@ -215,6 +216,10 @@ impl LoggingHandler {
 
         if settings.block_cookies {
             req.headers_mut().remove(COOKIE);
+        }
+
+        if settings.no_gzip {
+            req.headers_mut().remove(ACCEPT_ENCODING);
         }
 
         req
@@ -1659,6 +1664,7 @@ mod tests {
         let handler = make_handler_with_quick_settings(QuickSettings {
             no_caching: true,
             block_cookies: false,
+            no_gzip: false,
         });
 
         let req = Request::builder()
@@ -1680,6 +1686,7 @@ mod tests {
         let handler = make_handler_with_quick_settings(QuickSettings {
             no_caching: true,
             block_cookies: false,
+            no_gzip: false,
         });
 
         let req = Request::builder()
@@ -1700,6 +1707,7 @@ mod tests {
         let handler = make_handler_with_quick_settings(QuickSettings {
             no_caching: false,
             block_cookies: true,
+            no_gzip: false,
         });
 
         let req = Request::builder()
@@ -1718,6 +1726,7 @@ mod tests {
         let handler = make_handler_with_quick_settings(QuickSettings {
             no_caching: false,
             block_cookies: true,
+            no_gzip: false,
         });
 
         let res = Response::builder()
@@ -1739,6 +1748,7 @@ mod tests {
         let handler = make_handler_with_quick_settings(QuickSettings {
             no_caching: false,
             block_cookies: false,
+            no_gzip: false,
         });
 
         let req = Request::builder()
@@ -1772,6 +1782,7 @@ mod tests {
         let handler = make_handler_with_quick_settings(QuickSettings {
             no_caching: true,
             block_cookies: true,
+            no_gzip: false,
         });
 
         let req = Request::builder()
@@ -1812,6 +1823,7 @@ mod tests {
         let qs = Arc::new(tokio::sync::RwLock::new(QuickSettings {
             no_caching: false,
             block_cookies: false,
+            no_gzip: false,
         }));
 
         let mut handles = Vec::new();
@@ -1863,6 +1875,7 @@ mod tests {
         let handler = make_handler_with_quick_settings(QuickSettings {
             no_caching: true,
             block_cookies: true,
+            no_gzip: false,
         });
 
         let mut handles = Vec::new();
@@ -1903,5 +1916,73 @@ mod tests {
         for r in result.unwrap() {
             r.unwrap();
         }
+    }
+
+    #[tokio::test]
+    async fn no_gzip_removes_accept_encoding_header() {
+        let handler = make_handler_with_quick_settings(QuickSettings {
+            no_caching: false,
+            block_cookies: false,
+            no_gzip: true,
+        });
+
+        let req = Request::builder()
+            .uri("http://example.com/")
+            .header("Accept-Encoding", "gzip, deflate, br")
+            .body(Body::from(""))
+            .unwrap();
+
+        let req = handler.apply_quick_settings_on_request(req).await;
+
+        assert!(req.headers().get("accept-encoding").is_none());
+    }
+
+    #[tokio::test]
+    async fn no_gzip_disabled_preserves_accept_encoding() {
+        let handler = make_handler_with_quick_settings(QuickSettings {
+            no_caching: false,
+            block_cookies: false,
+            no_gzip: false,
+        });
+
+        let req = Request::builder()
+            .uri("http://example.com/")
+            .header("Accept-Encoding", "gzip, deflate, br")
+            .body(Body::from(""))
+            .unwrap();
+
+        let req = handler.apply_quick_settings_on_request(req).await;
+
+        assert!(req.headers().get("accept-encoding").is_some());
+    }
+
+    #[tokio::test]
+    async fn all_quick_settings_enabled_applies_all() {
+        let handler = make_handler_with_quick_settings(QuickSettings {
+            no_caching: true,
+            block_cookies: true,
+            no_gzip: true,
+        });
+
+        let req = Request::builder()
+            .uri("http://example.com/")
+            .header("If-Modified-Since", "Thu, 01 Jan 2026 00:00:00 GMT")
+            .header("Cookie", "session=abc123")
+            .header("Accept-Encoding", "gzip, deflate, br")
+            .body(Body::from(""))
+            .unwrap();
+
+        let req = handler.apply_quick_settings_on_request(req).await;
+
+        // No Caching
+        assert!(req.headers().get("if-modified-since").is_none());
+        assert_eq!(
+            req.headers().get("cache-control").unwrap(),
+            "no-cache, no-store, must-revalidate"
+        );
+        // Block Cookies
+        assert!(req.headers().get("cookie").is_none());
+        // No Gzip
+        assert!(req.headers().get("accept-encoding").is_none());
     }
 }
