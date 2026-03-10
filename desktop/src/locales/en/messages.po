@@ -408,7 +408,7 @@ msgstr "Copy as cURL"
 msgid "Copy as..."
 msgstr "Copy as..."
 
-#: src/features/transaction-details/ui/transaction-headers.tsx:45
+#: src/features/transaction-details/ui/transaction-headers.tsx:49
 msgid "Copy Headers"
 msgstr "Copy Headers"
 
@@ -1265,6 +1265,10 @@ msgstr "Request failed"
 msgid "Request Header"
 msgstr "Request Header"
 
+#: src/features/transaction-details/ui/transaction-headers.tsx:77
+msgid "Request Headers"
+msgstr "Request Headers"
+
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:317
 msgid "Requests/sec"
 msgstr "Requests/sec"
@@ -1294,6 +1298,7 @@ msgid "Response Header"
 msgstr "Response Header"
 
 #: src/features/map-rule-form/ui/map-local-fields.tsx:64
+#: src/features/transaction-details/ui/transaction-headers.tsx:84
 msgid "Response Headers"
 msgstr "Response Headers"
 
