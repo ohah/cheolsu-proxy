@@ -11,7 +11,7 @@ import {
   useBreakpointStore,
   useHostMappingStore,
 } from "@/shared/stores";
-import { emit, listen, emitTo } from "@tauri-apps/api/event";
+import { emit, listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import type { ProxyEventTuple, HttpTransaction } from "@/entities/proxy";
 import { autosaveSession, autoloadSession } from "@/shared/api/proxy";
@@ -141,56 +141,6 @@ const App: React.FC = () => {
       unlisten.then((f) => f());
     };
   }, [setHostMappings]);
-
-  // 트레이 ↔ 메인 윈도우 양방향 동기화 (Tauri 이벤트)
-  const clearTransactions = useTransactionStore((s) => s.clearTransactions);
-  const setConnected = useProxyStore((s) => s.setConnected);
-  const isConnected = useProxyStore((s) => s.isConnected);
-  const transactionCount = useTransactionStore((s) => s.transactions.length);
-
-  // 메인 → 트레이: 상태 변경 시 이벤트로 전달 (디바운스 적용)
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      emitTo("tray-panel", "tray_sync", { transactionCount });
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [transactionCount]);
-
-  useEffect(() => {
-    emitTo("tray-panel", "tray_sync", { proxyConnected: isConnected });
-  }, [isConnected]);
-
-  // 트레이 패널이 열릴 때 최신 상태 요청에 응답
-  useEffect(() => {
-    const unlisten = listen("tray_request_sync", () => {
-      const { isConnected: connected } = useProxyStore.getState();
-      const count = useTransactionStore.getState().transactions.length;
-      emitTo("tray-panel", "tray_sync", {
-        transactionCount: count,
-        proxyConnected: connected,
-      });
-    });
-    return () => {
-      unlisten.then((f) => f());
-    };
-  }, []);
-
-  // 트레이 → 메인: 트레이 패널에서 보낸 액션 이벤트 수신
-  useEffect(() => {
-    const unlisten = listen<{ type: string; value?: boolean }>("tray_action", (event) => {
-      const { type, value } = event.payload;
-      if (type === "proxyConnected" && typeof value === "boolean") {
-        setConnected(value);
-      }
-      if (type === "clearSession") {
-        clearTransactions();
-      }
-    });
-
-    return () => {
-      unlisten.then((f) => f());
-    };
-  }, [setConnected, clearTransactions]);
 
   const setTransactions = useTransactionStore((s) => s.setTransactions);
 
