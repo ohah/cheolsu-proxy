@@ -66,6 +66,8 @@ pub(crate) struct InterceptEngine {
     pub(crate) server_replay_entries: Arc<Mutex<Vec<ServerReplayEntry>>>,
     pub(crate) host_mappings: Arc<Mutex<Vec<HostMapping>>>,
     pub(crate) script_handle: scripting::ScriptHandle,
+    /// SSL Proxying 화이트리스트
+    pub(crate) ssl_proxying_entries: Arc<Mutex<Vec<crate::protocol::SslProxyingEntry>>>,
 }
 
 /// WebSocket 상태 관리
@@ -108,6 +110,7 @@ impl LoggingHandler {
                 server_replay_entries: Arc::new(Mutex::new(Vec::new())),
                 host_mappings: Arc::new(Mutex::new(Vec::new())),
                 script_handle: scripting::ScriptHandle::new(),
+                ssl_proxying_entries: Arc::new(Mutex::new(Vec::new())),
             },
             ws: WebSocketState {
                 ws_sender: None,
@@ -170,6 +173,16 @@ impl LoggingHandler {
         let mut mappings_guard = self.intercept.host_mappings.lock().await;
         info!("[HostMapping] mappings updated: {} entries", mappings.len());
         *mappings_guard = mappings;
+    }
+
+    /// SSL Proxying 화이트리스트 업데이트
+    pub async fn update_ssl_proxying_entries(
+        &self,
+        entries: Vec<crate::protocol::SslProxyingEntry>,
+    ) {
+        let mut entries_guard = self.intercept.ssl_proxying_entries.lock().await;
+        info!("[SSLProxying] 화이트리스트 업데이트: {} 개", entries.len());
+        *entries_guard = entries;
     }
 
     /// 스크립트 핸들 반환
@@ -960,6 +973,25 @@ impl LoggingHandler {
 }
 
 impl HttpHandler for LoggingHandler {
+    async fn should_intercept(&mut self, _ctx: &HttpContext, req: &Request<Body>) -> bool {
+        // CONNECT 요청의 URI에서 authority(host:port)를 추출
+        if let Some(authority) = req.uri().authority() {
+            let host = authority.host();
+            let port = authority.port_u16();
+
+            let entries = self.intercept.ssl_proxying_entries.lock().await;
+            let result = crate::ssl_proxying::should_intercept_ssl(&entries, host, port);
+
+            if !result {
+                debug!("[SSLProxying] TLS Passthrough 적용: {}", authority);
+            }
+
+            result
+        } else {
+            true
+        }
+    }
+
     async fn handle_request(
         &mut self,
         _ctx: &HttpContext,
@@ -1533,6 +1565,7 @@ mod tests {
                 server_replay_entries: Arc::new(Mutex::new(Vec::new())),
                 host_mappings: Arc::new(Mutex::new(Vec::new())),
                 script_handle: scripting::ScriptHandle::new(),
+                ssl_proxying_entries: Arc::new(Mutex::new(Vec::new())),
             },
             ws: WebSocketState {
                 ws_sender: Some(ws_sender),
@@ -1586,6 +1619,7 @@ mod tests {
                 server_replay_entries: Arc::new(Mutex::new(Vec::new())),
                 host_mappings: Arc::new(Mutex::new(Vec::new())),
                 script_handle: scripting::ScriptHandle::new(),
+                ssl_proxying_entries: Arc::new(Mutex::new(Vec::new())),
             },
             ws: WebSocketState {
                 ws_sender: Some(ws_sender),

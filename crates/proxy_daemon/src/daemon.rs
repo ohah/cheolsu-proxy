@@ -167,6 +167,7 @@ struct DaemonContext {
     breakpoint_tx: watch::Sender<Vec<crate::protocol::BreakpointRule>>,
     breakpoint_manager: BreakpointManager,
     host_mapping_tx: watch::Sender<Vec<crate::protocol::HostMapping>>,
+    ssl_proxying_tx: watch::Sender<Vec<crate::protocol::SslProxyingEntry>>,
     ws_registry: WebSocketRegistry,
     script_handle: scripting::ScriptHandle,
     quick_settings: Arc<parking_lot::RwLock<QuickSettings>>,
@@ -183,6 +184,7 @@ fn spawn_proxy_task(
     breakpoint_rx: watch::Receiver<Vec<crate::protocol::BreakpointRule>>,
     breakpoint_manager: BreakpointManager,
     host_mapping_rx: watch::Receiver<Vec<crate::protocol::HostMapping>>,
+    ssl_proxying_rx: watch::Receiver<Vec<crate::protocol::SslProxyingEntry>>,
     ws_registry: WebSocketRegistry,
     script_handle: scripting::ScriptHandle,
     quick_settings: Arc<parking_lot::RwLock<QuickSettings>>,
@@ -198,6 +200,7 @@ fn spawn_proxy_task(
             breakpoint_rx,
             breakpoint_manager,
             host_mapping_rx,
+            ssl_proxying_rx,
             ws_registry,
             script_handle,
             quick_settings,
@@ -259,12 +262,13 @@ async fn run_accept_loop(
                         let breakpoint_tx_clone = ctx.breakpoint_tx.clone();
                         let breakpoint_mgr_clone = ctx.breakpoint_manager.clone();
                         let host_mapping_tx_clone = ctx.host_mapping_tx.clone();
+                        let ssl_proxying_tx_clone = ctx.ssl_proxying_tx.clone();
                         let registry_clone = ctx.ws_registry.clone();
                         let script_handle_clone = ctx.script_handle.clone();
                         let quick_settings_clone = ctx.quick_settings.clone();
 
                         tokio::spawn(async move {
-                            handle_client(stream, event_rx, intercept_tx_clone, upstream_tx_clone, server_replay_tx_clone, throttle_tx_clone, breakpoint_tx_clone, breakpoint_mgr_clone, host_mapping_tx_clone, event_tx_clone, port, registry_clone, script_handle_clone, quick_settings_clone)
+                            handle_client(stream, event_rx, intercept_tx_clone, upstream_tx_clone, server_replay_tx_clone, throttle_tx_clone, breakpoint_tx_clone, breakpoint_mgr_clone, host_mapping_tx_clone, ssl_proxying_tx_clone, event_tx_clone, port, registry_clone, script_handle_clone, quick_settings_clone)
                                 .await;
 
                             let remaining = client_count_clone.fetch_sub(1, Ordering::SeqCst) - 1;
@@ -308,6 +312,8 @@ async fn daemon_main(port: u16, host: String) -> i32 {
     let breakpoint_manager = BreakpointManager::new(event_tx.clone());
     let (host_mapping_tx, host_mapping_rx) =
         watch::channel::<Vec<crate::protocol::HostMapping>>(Vec::new());
+    let (ssl_proxying_tx, ssl_proxying_rx) =
+        watch::channel::<Vec<crate::protocol::SslProxyingEntry>>(Vec::new());
 
     let addr: std::net::SocketAddr = match format!("{}:{}", host, port).parse() {
         Ok(addr) => addr,
@@ -336,6 +342,7 @@ async fn daemon_main(port: u16, host: String) -> i32 {
         breakpoint_rx,
         breakpoint_manager.clone(),
         host_mapping_rx,
+        ssl_proxying_rx,
         ws_registry.clone(),
         script_handle.clone(),
         quick_settings.clone(),
@@ -375,6 +382,7 @@ async fn daemon_main(port: u16, host: String) -> i32 {
         breakpoint_tx,
         breakpoint_manager,
         host_mapping_tx,
+        ssl_proxying_tx,
         ws_registry,
         script_handle,
         quick_settings,
