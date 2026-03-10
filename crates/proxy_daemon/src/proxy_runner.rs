@@ -6,9 +6,10 @@ use crate::breakpoint::BreakpointManager;
 use crate::error::DaemonError;
 use crate::handler::{LoggingHandler, QuickSettings, WsEvent};
 use crate::protocol::{
-    BreakpointRule, DaemonMessage, HostMapping, InterceptRule, ServerReplayEntry, SslProxyingEntry,
+    BreakpointRule, ClientCertConfig, DaemonMessage, HostMapping, InterceptRule, ServerReplayEntry,
+    SslProxyingEntry,
 };
-use crate::tls_client::create_hybrid_client;
+use crate::tls_client::create_hybrid_client_with_cert;
 use proxyapi_v2::certificate_authority::CertificateAuthority;
 use proxyapi_v2::throttle::ThrottleConfig;
 use proxyapi_v2::upstream_proxy::UpstreamProxyConfig;
@@ -27,6 +28,7 @@ pub async fn run_proxy(
     breakpoint_manager: BreakpointManager,
     mut host_mapping_rx: watch::Receiver<Vec<HostMapping>>,
     mut ssl_proxying_rx: watch::Receiver<Vec<SslProxyingEntry>>,
+    client_cert_rx: watch::Receiver<Option<ClientCertConfig>>,
     ws_registry: WebSocketRegistry,
     script_handle: scripting::ScriptHandle,
     quick_settings: std::sync::Arc<tokio::sync::RwLock<QuickSettings>>,
@@ -138,9 +140,11 @@ pub async fn run_proxy(
     });
 
     let initial_upstream = upstream_rx.borrow().clone();
+    let initial_client_cert = client_cert_rx.borrow().clone();
 
-    let hybrid_client = create_hybrid_client(upstream_rx)
-        .map_err(|e| DaemonError::Proxy(format!("Client creation failed: {}", e)))?;
+    let hybrid_client =
+        create_hybrid_client_with_cert(upstream_rx, initial_client_cert.as_ref())
+            .map_err(|e| DaemonError::Proxy(format!("Client creation failed: {}", e)))?;
 
     let listener = TcpListener::bind(addr)
         .await

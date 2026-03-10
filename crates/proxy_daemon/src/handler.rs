@@ -25,6 +25,7 @@ use tracing::{debug, error, info};
 
 // Re-export for lib.rs and daemon.rs
 pub use crate::tls_client::create_hybrid_client;
+pub use crate::tls_client::{create_hybrid_client_with_cert, validate_client_cert_config};
 
 /// WebSocket 이벤트 (메시지 또는 연결 상태)
 #[derive(Clone, Debug)]

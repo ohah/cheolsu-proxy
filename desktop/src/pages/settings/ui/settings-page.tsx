@@ -15,11 +15,14 @@ import {
   updateThrottle,
   updateQuickSettings,
   updateProxyAuth,
+  updateClientCertificate,
   getCertDownloadInfo,
   type ThrottleConfig,
   type CertDownloadInfo,
   type ProxyAuthConfig,
+  type ClientCertConfig,
 } from "@/shared/api/proxy";
+import { open as openFileDialog } from "@tauri-apps/plugin-dialog";
 import { useProxyStore } from "@/shared/stores/proxy-store";
 import { useSslProxyingStore } from "@/shared/stores/ssl-proxying-store";
 import {
@@ -1255,6 +1258,140 @@ export function SettingsPage() {
             )}
           </div>
         </div>
+
+        {/* Client Certificate (mTLS) Section */}
+        <ClientCertificateSection />
+      </div>
+    </div>
+  );
+}
+
+function ClientCertificateSection() {
+  const { t } = useLingui();
+  const [certEnabled, setCertEnabled] = useState(false);
+  const [certPath, setCertPath] = useState("");
+  const [keyPath, setKeyPath] = useState("");
+  const [certSaving, setCertSaving] = useState(false);
+  const [certStatus, setCertStatus] = useState<"idle" | "saved" | "error">("idle");
+
+  const handleSelectCert = useCallback(async () => {
+    const selected = await openFileDialog({
+      multiple: false,
+      filters: [{ name: "Certificate", extensions: ["pem", "crt", "cer"] }],
+    });
+    if (selected) {
+      setCertPath(selected as string);
+      setCertStatus("idle");
+    }
+  }, []);
+
+  const handleSelectKey = useCallback(async () => {
+    const selected = await openFileDialog({
+      multiple: false,
+      filters: [{ name: "Key", extensions: ["pem", "key"] }],
+    });
+    if (selected) {
+      setKeyPath(selected as string);
+      setCertStatus("idle");
+    }
+  }, []);
+
+  const handleCertSave = useCallback(async () => {
+    setCertSaving(true);
+    setCertStatus("idle");
+    try {
+      if (certEnabled && certPath && keyPath) {
+        await updateClientCertificate({
+          cert_path: certPath,
+          key_path: keyPath,
+          enabled: true,
+        });
+      } else {
+        await updateClientCertificate(
+          certEnabled ? { cert_path: certPath, key_path: keyPath, enabled: false } : null,
+        );
+      }
+      setCertStatus("saved");
+    } catch {
+      setCertStatus("error");
+    } finally {
+      setCertSaving(false);
+    }
+  }, [certEnabled, certPath, keyPath]);
+
+  return (
+    <div className="border rounded-lg p-5 space-y-5">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-semibold">
+            <Trans>Client Certificate</Trans>
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            <Trans>
+              Present a client certificate when connecting to servers that require mTLS
+              authentication
+            </Trans>
+          </p>
+        </div>
+        <Switch checked={certEnabled} onCheckedChange={setCertEnabled} />
+      </div>
+
+      {certEnabled && (
+        <div className="space-y-4 pt-2">
+          <div>
+            <label className="text-sm font-medium mb-1.5 block">
+              <Trans>Certificate File</Trans>
+            </label>
+            <div className="flex gap-2">
+              <Input
+                readOnly
+                placeholder={t`Select certificate file (.pem, .crt)`}
+                value={certPath}
+                className="flex-1"
+              />
+              <Button variant="outline" onClick={handleSelectCert}>
+                {t`Browse`}
+              </Button>
+            </div>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium mb-1.5 block">
+              <Trans>Key File</Trans>
+            </label>
+            <div className="flex gap-2">
+              <Input
+                readOnly
+                placeholder={t`Select key file (.pem, .key)`}
+                value={keyPath}
+                className="flex-1"
+              />
+              <Button variant="outline" onClick={handleSelectKey}>
+                {t`Browse`}
+              </Button>
+            </div>
+          </div>
+
+          <p className="text-xs text-muted-foreground">
+            <Trans>Supports PEM-encoded certificates and keys (RSA, ECDSA, PKCS#8)</Trans>
+          </p>
+        </div>
+      )}
+
+      <div className="flex items-center gap-3 pt-2">
+        <Button onClick={handleCertSave} disabled={certSaving}>
+          {certSaving ? t`Saving...` : t`Save`}
+        </Button>
+        {certStatus === "saved" && (
+          <Badge variant="outline" className="text-green-600 border-green-600">
+            <Trans>Saved</Trans>
+          </Badge>
+        )}
+        {certStatus === "error" && (
+          <Badge variant="outline" className="text-red-600 border-red-600">
+            <Trans>Failed — check file paths and proxy status</Trans>
+          </Badge>
+        )}
       </div>
     </div>
   );

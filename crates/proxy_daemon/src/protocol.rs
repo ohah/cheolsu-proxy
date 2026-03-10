@@ -4,6 +4,17 @@ use proxyapi_v2::upstream_proxy::UpstreamProxyConfig;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
+/// 클라이언트 인증서 설정 (mTLS)
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct ClientCertConfig {
+    /// 클라이언트 인증서 파일 경로 (.pem, .crt)
+    pub cert_path: String,
+    /// 클라이언트 키 파일 경로 (.pem, .key)
+    pub key_path: String,
+    /// 활성화 여부
+    pub enabled: bool,
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(tag = "type")]
 pub enum DaemonMessage {
@@ -64,6 +75,9 @@ pub enum DaemonMessage {
     /// SSL Proxying 화이트리스트 업데이트됨
     #[serde(rename = "ssl_proxying_list_updated")]
     SslProxyingListUpdated { entries: Vec<SslProxyingEntry> },
+    /// 클라이언트 인증서 설정 업데이트됨
+    #[serde(rename = "client_certificate_updated")]
+    ClientCertificateUpdated { config: Option<ClientCertConfig> },
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -135,6 +149,9 @@ pub enum ClientCommand {
     /// 프록시 인증 설정 업데이트
     #[serde(rename = "update_proxy_auth")]
     UpdateProxyAuth { config: ProxyAuthConfig },
+    /// 클라이언트 인증서 설정 업데이트 (mTLS)
+    #[serde(rename = "update_client_certificate")]
+    UpdateClientCertificate { config: Option<ClientCertConfig> },
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -779,6 +796,82 @@ mod tests {
                 assert_eq!(config.password, "pass");
             }
             _ => panic!("Expected UpdateProxyAuth"),
+        }
+    }
+
+    #[test]
+    fn test_client_cert_config_serde_roundtrip() {
+        let config = ClientCertConfig {
+            cert_path: "/path/to/cert.pem".to_string(),
+            key_path: "/path/to/key.pem".to_string(),
+            enabled: true,
+        };
+        let json = serde_json::to_string(&config).unwrap();
+        let deserialized: ClientCertConfig = serde_json::from_str(&json).unwrap();
+        assert_eq!(deserialized.cert_path, "/path/to/cert.pem");
+        assert_eq!(deserialized.key_path, "/path/to/key.pem");
+        assert!(deserialized.enabled);
+    }
+
+    #[test]
+    fn test_update_client_certificate_command_serialize() {
+        let cmd = ClientCommand::UpdateClientCertificate {
+            config: Some(ClientCertConfig {
+                cert_path: "/tmp/client.crt".to_string(),
+                key_path: "/tmp/client.key".to_string(),
+                enabled: true,
+            }),
+        };
+        let json = serde_json::to_string(&cmd).unwrap();
+        assert!(json.contains("update_client_certificate"));
+        assert!(json.contains("/tmp/client.crt"));
+
+        let deserialized: ClientCommand = serde_json::from_str(&json).unwrap();
+        match deserialized {
+            ClientCommand::UpdateClientCertificate { config } => {
+                let config = config.unwrap();
+                assert_eq!(config.cert_path, "/tmp/client.crt");
+                assert_eq!(config.key_path, "/tmp/client.key");
+                assert!(config.enabled);
+            }
+            _ => panic!("Expected UpdateClientCertificate"),
+        }
+    }
+
+    #[test]
+    fn test_update_client_certificate_command_none() {
+        let cmd = ClientCommand::UpdateClientCertificate { config: None };
+        let json = serde_json::to_string(&cmd).unwrap();
+        assert!(json.contains("update_client_certificate"));
+
+        let deserialized: ClientCommand = serde_json::from_str(&json).unwrap();
+        match deserialized {
+            ClientCommand::UpdateClientCertificate { config } => {
+                assert!(config.is_none());
+            }
+            _ => panic!("Expected UpdateClientCertificate"),
+        }
+    }
+
+    #[test]
+    fn test_client_certificate_updated_message_serialize() {
+        let msg = DaemonMessage::ClientCertificateUpdated {
+            config: Some(ClientCertConfig {
+                cert_path: "/path/cert.pem".to_string(),
+                key_path: "/path/key.pem".to_string(),
+                enabled: true,
+            }),
+        };
+        let json = serde_json::to_string(&msg).unwrap();
+        assert!(json.contains("client_certificate_updated"));
+
+        let deserialized: DaemonMessage = serde_json::from_str(&json).unwrap();
+        match deserialized {
+            DaemonMessage::ClientCertificateUpdated { config } => {
+                let config = config.unwrap();
+                assert_eq!(config.cert_path, "/path/cert.pem");
+            }
+            _ => panic!("Expected ClientCertificateUpdated"),
         }
     }
 

@@ -815,6 +815,33 @@ pub async fn update_ssl_proxying_list(
     Ok(())
 }
 
+/// 클라이언트 인증서 설정 업데이트 (mTLS)
+#[tauri::command]
+pub async fn update_client_certificate(
+    proxy: State<'_, ProxyV2State>,
+    config: Option<proxy_daemon::ClientCertConfig>,
+) -> Result<(), String> {
+    // 설정이 활성화된 경우 유효성 검증
+    if let Some(ref cert_config) = config {
+        if cert_config.enabled {
+            proxy_daemon::validate_client_cert_config(cert_config)
+                .map_err(|e| format!("인증서 검증 실패: {}", e))?;
+        }
+    }
+
+    let proxy_guard = proxy.lock().await;
+
+    if let Some(conn) = proxy_guard.as_ref() {
+        let cmd = ClientCommand::UpdateClientCertificate { config };
+        conn.send_command(&cmd).await?;
+        tracing::info!("Daemon에 클라이언트 인증서 설정 업데이트 완료");
+    } else {
+        return Err("프록시가 실행 중이 아닙니다".to_string());
+    }
+
+    Ok(())
+}
+
 /// 빠른 설정 업데이트 (No Caching, Block Cookies, No Gzip)
 #[tauri::command]
 pub async fn update_quick_settings(
