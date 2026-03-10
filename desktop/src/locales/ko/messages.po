@@ -52,10 +52,11 @@ msgstr "{successCount}개 성공"
 msgid "{totalCount} transactions"
 msgstr "{totalCount}개 트랜잭션"
 
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:208
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:202
 msgid "* = any string, ? = single character"
 msgstr "* = 모든 문자열, ? = 단일 문자"
 
+#: src/features/intercept-rule-form/ui/modify-response-fields.tsx:20
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:318
 msgid "200 (optional)"
 msgstr "200 (선택사항)"
@@ -73,9 +74,11 @@ msgstr "동작"
 msgid "Active"
 msgstr "활성"
 
+#: src/features/intercept-rule-form/ui/headers-fields.tsx:59
+#: src/features/intercept-rule-form/ui/headers-fields.tsx:98
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:335
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:366
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:288
+#: src/features/map-rule-form/ui/map-local-fields.tsx:83
 #: src/features/transaction-details/ui/replay-dialog.tsx:427
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:134
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:169
@@ -97,6 +100,7 @@ msgstr "캡처된 트래픽을 추가하여 매칭되는 요청에 저장된 응
 msgid "Add from Traffic"
 msgstr "트래픽에서 추가"
 
+#: src/features/intercept-rule-form/ui/headers-fields.tsx:50
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:331
 msgid "Add Headers"
 msgstr "헤더 추가"
@@ -105,7 +109,7 @@ msgstr "헤더 추가"
 msgid "Add Intercept Rule"
 msgstr "인터셉트 규칙 추가"
 
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:175
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:170
 msgid "Add Map Rule"
 msgstr "맵 규칙 추가"
 
@@ -119,7 +123,7 @@ msgstr "테스트를 위해 DNS 호스트명을 다른 대상 호스트로 리�
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:219
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:459
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:348
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:273
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:113
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:96
 #: src/pages/map-rules/ui/map-rules-page.tsx:85
@@ -178,7 +182,7 @@ msgid "All HTTPS traffic is being intercepted (no whitelist configured)"
 msgstr "모든 HTTPS 트래픽이 인터셉트됩니다 (화이트리스트 미설정)"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:264
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:223
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:229
 msgid "All Methods"
 msgstr "모든 메서드"
 
@@ -192,7 +196,7 @@ msgstr "모든 규칙이 삭제되었습니다"
 msgid "API Reference"
 msgstr "API 레퍼런스"
 
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:335
+#: src/features/map-rule-form/ui/map-remote-fields.tsx:35
 msgid "Append the original request path to the target URL"
 msgstr "원본 요청 경로를 대상 URL에 추가"
 
@@ -225,6 +229,9 @@ msgstr "차단"
 msgid "Block Cookies"
 msgstr "쿠키 차단"
 
+#: src/features/intercept-rule-form/ui/block-action-fields.tsx:26
+#: src/features/intercept-rule-form/ui/modify-request-fields.tsx:18
+#: src/features/intercept-rule-form/ui/modify-response-fields.tsx:29
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:439
 #: src/features/transaction-details/ui/replay-dialog.tsx:129
 #: src/features/transaction-details/ui/replay-dialog.tsx:200
@@ -272,7 +279,7 @@ msgid "CA Certificate"
 msgstr "CA 인증서"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:456
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:345
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:270
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:137
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:166
 #: src/pages/settings/ui/settings-page.tsx:931
@@ -485,7 +492,7 @@ msgstr "다운로드 (KB/s)"
 msgid "Drop"
 msgstr "드롭"
 
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:175
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:170
 msgid "Edit Map Rule"
 msgstr "맵 규칙 수정"
 
@@ -579,10 +586,6 @@ msgstr "전송 실패"
 msgid "File"
 msgstr "파일"
 
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:117
-msgid "File path is required"
-msgstr "파일 경로를 입력해주세요"
-
 #: src/shared/app-sidebar/ui/sidebar-mcp.tsx:128
 msgid "For Cursor, Claude Desktop, and other MCP-compatible clients:"
 msgstr "Cursor, Claude Desktop 및 기타 MCP 호환 클라이언트용:"
@@ -633,12 +636,14 @@ msgstr "HAR 가져오기 실패"
 msgid "HAR imported successfully"
 msgstr "HAR 가져오기 성공"
 
+#: src/features/intercept-rule-form/ui/headers-fields.tsx:65
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:341
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:294
+#: src/features/map-rule-form/ui/map-local-fields.tsx:89
 #: src/features/transaction-details/ui/replay-dialog.tsx:439
 msgid "Header name"
 msgstr "헤더 이름"
 
+#: src/features/intercept-rule-form/ui/headers-fields.tsx:104
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:372
 msgid "Header name to remove"
 msgstr "삭제할 헤더 이름"
@@ -786,7 +791,7 @@ msgstr "트랜잭션 불러오기"
 msgid "Loading..."
 msgstr "로딩 중..."
 
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:254
+#: src/features/map-rule-form/ui/map-local-fields.tsx:41
 msgid "Local File Path"
 msgstr "로컬 파일 경로"
 
@@ -814,7 +819,7 @@ msgstr "테스트 및 개발을 위해 DNS 호스트명을 다른 대상 호스�
 msgid "Map DNS hostnames to different targets"
 msgstr "DNS 호스트명을 다른 대상으로 매핑"
 
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:242
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:253
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:46
 #: src/pages/map-rules/ui/map-rules-page.tsx:34
 msgid "Map Local"
@@ -824,7 +829,7 @@ msgstr "로컬 매핑"
 msgid "Map Local / Map Remote rules"
 msgstr "로컬 매핑 / 원격 매핑 규칙"
 
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:178
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:173
 msgid "Map Local: respond with a local file. Map Remote: redirect to another URL."
 msgstr "로컬 매핑: 로컬 파일로 응답. 원격 매핑: 다른 URL로 리다이렉트."
 
@@ -832,7 +837,7 @@ msgstr "로컬 매핑: 로컬 파일로 응답. 원격 매핑: 다른 URL로 리
 msgid "Map Local: respond with local files. Map Remote: redirect requests to another URL."
 msgstr "로컬 매핑: 로컬 파일로 응답. 원격 매핑: 요청을 다른 URL로 리다이렉트."
 
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:243
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:254
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:47
 #: src/pages/map-rules/ui/map-rules-page.tsx:35
 msgid "Map Remote"
@@ -855,13 +860,14 @@ msgstr "2xx 성공 또는 404 에러 매칭"
 msgid "Match GET or POST methods"
 msgstr "GET 또는 POST 메서드 매칭"
 
+#: src/features/intercept-rule-form/ui/rewrite-action-fields.tsx:48
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:411
 msgid "Match Pattern"
 msgstr "매칭 패턴"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:181
 msgid "Match pattern is required"
-msgstr "매칭 패턴은 필수입니다"
+msgstr ""
 
 #: src/shared/app-sidebar/ui/sidebar-mcp.tsx:54
 msgid "MCP configuration copied to clipboard"
@@ -885,7 +891,7 @@ msgid "messages"
 msgstr "메시지"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:257
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:216
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:215
 msgid "Method"
 msgstr "메서드"
 
@@ -912,7 +918,7 @@ msgid "Multiple conditions:"
 msgstr "복합 조건:"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:232
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:188
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:184
 msgid "Name"
 msgstr "이름"
 
@@ -1044,7 +1050,6 @@ msgid "Pattern"
 msgstr "패턴"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:176
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:112
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:29
 msgid "Pattern is required"
 msgstr "패턴은 필수입니다"
@@ -1089,7 +1094,7 @@ msgstr "포트는 1에서 65535 사이여야 합니다"
 msgid "Present a client certificate when connecting to servers that require mTLS authentication"
 msgstr "mTLS 인증이 필요한 서버에 연결할 때 클라이언트 인증서를 제시합니다"
 
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:332
+#: src/features/map-rule-form/ui/map-remote-fields.tsx:32
 msgid "Preserve Path"
 msgstr "경로 유지"
 
@@ -1161,6 +1166,7 @@ msgstr "수신 (서버 → 클라이언트)"
 msgid "Refresh"
 msgstr "새로고침"
 
+#: src/features/intercept-rule-form/ui/rewrite-action-fields.tsx:51
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:414
 msgid "Regex pattern (e.g. old-domain\\.com)"
 msgstr "정규식 패턴 (예: old-domain\\.com)"
@@ -1194,6 +1200,7 @@ msgstr "요청에서 Cookie 헤더를 제거하고 응답에서 Set-Cookie 헤�
 msgid "Remove entry"
 msgstr "엔트리 삭제"
 
+#: src/features/intercept-rule-form/ui/headers-fields.tsx:89
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:362
 msgid "Remove Headers"
 msgstr "헤더 삭제"
@@ -1204,10 +1211,12 @@ msgstr "헤더 삭제"
 msgid "Replace {0} existing transactions with {1} new ones? Cancel to append instead."
 msgstr "기존 {0}개 트랜잭션을 새로운 {1}개로 교체하시겠습니까? 취소하면 추가됩니다."
 
+#: src/features/intercept-rule-form/ui/rewrite-action-fields.tsx:59
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:423
 msgid "Replace With"
 msgstr "치환 문자열"
 
+#: src/features/intercept-rule-form/ui/rewrite-action-fields.tsx:62
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:426
 msgid "Replacement string (supports $1, $2 capture groups)"
 msgstr "치환 문자열 ($1, $2 캡처 그룹 지원)"
@@ -1234,6 +1243,7 @@ msgstr "요청"
 msgid "Request aborted"
 msgstr "요청이 중단되었습니다"
 
+#: src/features/intercept-rule-form/ui/rewrite-action-fields.tsx:38
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:403
 msgid "Request Body"
 msgstr "요청 바디"
@@ -1250,6 +1260,7 @@ msgstr "요청이 드롭되었습니다"
 msgid "Request failed"
 msgstr "요청 실패"
 
+#: src/features/intercept-rule-form/ui/rewrite-action-fields.tsx:36
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:401
 msgid "Request Header"
 msgstr "요청 헤더"
@@ -1267,22 +1278,26 @@ msgstr "이 프록시 서버 사용 시 인증 필요"
 msgid "Response"
 msgstr "응답"
 
+#: src/features/intercept-rule-form/ui/rewrite-action-fields.tsx:39
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:404
 msgid "Response Body"
 msgstr "응답 바디"
 
+#: src/features/intercept-rule-form/ui/block-action-fields.tsx:29
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:443
 msgid "Response body (optional)"
 msgstr "응답 본문 (선택사항)"
 
+#: src/features/intercept-rule-form/ui/rewrite-action-fields.tsx:37
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:402
 msgid "Response Header"
 msgstr "응답 헤더"
 
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:284
+#: src/features/map-rule-form/ui/map-local-fields.tsx:74
 msgid "Response Headers"
 msgstr "응답 헤더"
 
+#: src/features/intercept-rule-form/ui/modify-response-fields.tsx:16
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:314
 msgid "Response Status Code"
 msgstr "응답 상태 코드"
@@ -1317,7 +1332,7 @@ msgid "Route traffic through an external proxy server"
 msgstr "외부 프록시 서버를 통해 트래픽 라우팅"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:199
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:156
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:159
 msgid "Rule added"
 msgstr "규칙이 추가되었습니다"
 
@@ -1328,12 +1343,12 @@ msgid "Rule deleted"
 msgstr "규칙이 삭제되었습니다"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:235
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:191
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:187
 msgid "Rule name (optional)"
 msgstr "규칙 이름 (선택사항)"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:196
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:153
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:156
 msgid "Rule updated"
 msgstr "규칙이 수정되었습니다"
 
@@ -1423,7 +1438,7 @@ msgstr "캡처된 트래픽에서 선택"
 msgid "Select key file (.pem, .key)"
 msgstr "키 파일 선택 (.pem, .key)"
 
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:100
+#: src/features/map-rule-form/ui/map-local-fields.tsx:27
 msgid "Select local file"
 msgstr "로컬 파일 선택"
 
@@ -1503,6 +1518,8 @@ msgstr "세션 저장 실패"
 msgid "Session saved successfully"
 msgstr "세션이 성공적으로 저장되었습니다"
 
+#: src/features/intercept-rule-form/ui/modify-request-fields.tsx:21
+#: src/features/intercept-rule-form/ui/modify-response-fields.tsx:32
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:443
 msgid "Set body (optional)"
 msgstr "본문 설정 (선택사항)"
@@ -1570,8 +1587,9 @@ msgstr "리플레이 시작"
 msgid "Status"
 msgstr "상태"
 
+#: src/features/intercept-rule-form/ui/block-action-fields.tsx:15
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:299
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:271
+#: src/features/map-rule-form/ui/map-local-fields.tsx:62
 msgid "Status Code"
 msgstr "상태 코드"
 
@@ -1599,6 +1617,7 @@ msgstr "구성 프로필 다운로드 프롬프트에서 \"Allow\"를 탭하세�
 msgid "Tap \"Install a certificate\" → \"CA certificate\""
 msgstr "\"Install a certificate\" → \"CA certificate\"를 탭하세요"
 
+#: src/features/intercept-rule-form/ui/rewrite-action-fields.tsx:22
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:391
 msgid "Target"
 msgstr "대상"
@@ -1611,13 +1630,9 @@ msgstr "대상 호스트"
 msgid "Target Port"
 msgstr "대상 포트"
 
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:319
+#: src/features/map-rule-form/ui/map-remote-fields.tsx:13
 msgid "Target URL"
 msgstr "대상 URL"
-
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:122
-msgid "Target URL is required"
-msgstr "대상 URL을 입력해주세요"
 
 #: src/pages/settings/ui/settings-page.tsx:857
 msgid "Terminal Command"
@@ -1681,7 +1696,7 @@ msgstr "트랜잭션 고정이 해제되었습니다"
 msgid "Trusted"
 msgstr "신뢰됨"
 
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:235
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:243
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:59
 #: src/widgets/websocket-messages/ui/ws-message-table.tsx:164
 msgid "Type"
@@ -1710,7 +1725,7 @@ msgid "Unpin from Top"
 msgstr "상단 고정 해제"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:459
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:348
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:273
 msgid "Update"
 msgstr "수정"
 
@@ -1730,7 +1745,7 @@ msgstr "URL"
 msgid "URL contains \"api\""
 msgstr "URL에 \" 포함"
 
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:200
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:195
 msgid "URL Pattern"
 msgstr "URL 패턴"
 
@@ -1748,8 +1763,9 @@ msgstr "와일드카드 패턴 사용: *는 모든 문자열, ?는 단일 문자
 msgid "Username"
 msgstr "사용자 이름"
 
+#: src/features/intercept-rule-form/ui/headers-fields.tsx:70
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:347
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:300
+#: src/features/map-rule-form/ui/map-local-fields.tsx:94
 #: src/features/transaction-details/ui/replay-dialog.tsx:447
 msgid "Value"
 msgstr "값"

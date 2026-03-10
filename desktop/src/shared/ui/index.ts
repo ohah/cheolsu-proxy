@@ -18,3 +18,5 @@ export * from "./switch";
 export * from "./dialog";
 export * from "./popover";
 export * from "./separator";
+export * from "./label";
+export * from "./form";
