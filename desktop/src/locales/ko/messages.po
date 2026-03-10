@@ -208,11 +208,11 @@ msgstr "적용:"
 msgid "Authentication"
 msgstr "인증"
 
-#: src/pages/settings/ui/components/general-settings.tsx:206
+#: src/pages/settings/ui/components/general-settings.tsx:210
 msgid "Auto Save Session"
 msgstr "자동 세션 저장"
 
-#: src/pages/settings/ui/components/general-settings.tsx:209
+#: src/pages/settings/ui/components/general-settings.tsx:213
 msgid "Automatically save the current session when the app closes and restore it on next launch"
 msgstr "앱 종료 시 현재 세션을 자동으로 저장하고 다음 실행 시 복원합니다"
 
@@ -225,7 +225,7 @@ msgstr "개 사용 가능"
 msgid "Block"
 msgstr "차단"
 
-#: src/pages/settings/ui/components/general-settings.tsx:178
+#: src/pages/settings/ui/components/general-settings.tsx:182
 msgid "Block Cookies"
 msgstr "쿠키 차단"
 
@@ -938,7 +938,7 @@ msgstr "활성 WebSocket 연결 없음"
 msgid "No breakpoint rules"
 msgstr "Breakpoint 규칙 없음"
 
-#: src/pages/settings/ui/components/general-settings.tsx:164
+#: src/pages/settings/ui/components/general-settings.tsx:168
 msgid "No Caching"
 msgstr "캐시 비활성화"
 
@@ -950,7 +950,7 @@ msgstr "응답이 있는 캡처된 트래픽이 없습니다. 먼저 트래픽�
 msgid "No console output yet"
 msgstr "콘솔 출력이 아직 없습니다"
 
-#: src/pages/settings/ui/components/general-settings.tsx:192
+#: src/pages/settings/ui/components/general-settings.tsx:196
 msgid "No Gzip"
 msgstr "Gzip 비활성화"
 
@@ -1102,7 +1102,7 @@ msgstr "경로 유지"
 msgid "Press a key combination..."
 msgstr "키 조합을 눌러주세요..."
 
-#: src/pages/settings/ui/components/general-settings.tsx:167
+#: src/pages/settings/ui/components/general-settings.tsx:171
 msgid "Prevent caching by removing conditional headers and adding no-cache directives"
 msgstr "조건부 헤더를 제거하고 no-cache 지시어를 추가하여 캐싱을 방지합니다"
 
@@ -1146,11 +1146,11 @@ msgstr "쿼리 문법 가이드"
 msgid "Query syntax help"
 msgstr "쿼리 문법 도움말"
 
-#: src/pages/settings/ui/components/general-settings.tsx:153
+#: src/pages/settings/ui/components/general-settings.tsx:157
 msgid "Quick Settings"
 msgstr "빠른 설정"
 
-#: src/pages/settings/ui/components/general-settings.tsx:156
+#: src/pages/settings/ui/components/general-settings.tsx:160
 msgid "Quick toggles for common proxy behaviors"
 msgstr "자주 사용하는 프록시 동작을 빠르게 전환합니다"
 
@@ -1188,11 +1188,11 @@ msgstr "외부 기기 인증서"
 msgid "Remove"
 msgstr "삭제"
 
-#: src/pages/settings/ui/components/general-settings.tsx:195
+#: src/pages/settings/ui/components/general-settings.tsx:199
 msgid "Remove Accept-Encoding header from requests to prevent compressed responses"
 msgstr "압축된 응답을 방지하기 위해 요청에서 Accept-Encoding 헤더를 제거합니다"
 
-#: src/pages/settings/ui/components/general-settings.tsx:181
+#: src/pages/settings/ui/components/general-settings.tsx:185
 msgid "Remove Cookie headers from requests and Set-Cookie headers from responses"
 msgstr "요청에서 Cookie 헤더를 제거하고 응답에서 Set-Cookie 헤더를 제거합니다"
 
