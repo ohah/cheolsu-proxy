@@ -15,6 +15,25 @@ When you visit an HTTPS site through Cheolsu Proxy, the proxy needs to decrypt t
 
 Without trusting the CA certificate, your browser will show security warnings on every HTTPS site, and many applications will refuse to connect entirely.
 
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant P as Cheolsu Proxy
+    participant S as Target Server
+
+    C->>P: CONNECT example.com:443
+    P->>C: 200 Connection Established
+    Note over P: Generate dynamic cert<br/>for example.com
+    C->>P: TLS Handshake (proxy cert)
+    P->>S: TLS Handshake (real server cert)
+    C->>P: HTTPS Request (encrypted)
+    Note over P: Decrypt → Capture/Modify
+    P->>S: HTTPS Request (re-encrypted)
+    S->>P: HTTPS Response
+    Note over P: Decrypt → Capture/Modify
+    P->>C: HTTPS Response
+```
+
 ## macOS Certificate Installation
 
 ### Automatic Installation (Recommended)

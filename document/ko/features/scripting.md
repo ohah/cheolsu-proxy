@@ -158,6 +158,30 @@ cheolsu.onResponse(async (request, response) => {
 });
 ```
 
+```mermaid
+sequenceDiagram
+    participant C as 클라이언트
+    participant P as Cheolsu Proxy
+    participant S as 서버
+
+    C->>P: HTTP 요청
+    Note over P: cheolsu.onRequest() 실행
+    alt action: forward
+        P->>S: 요청 전달
+    else action: modify
+        P->>S: 수정된 요청 전달
+    else action: respond
+        P->>C: 직접 응답 반환
+    end
+    S->>P: 서버 응답
+    Note over P: cheolsu.onResponse() 실행
+    alt action: forward
+        P->>C: 응답 전달
+    else action: modify
+        P->>C: 수정된 응답 전달
+    end
+```
+
 ---
 
 ## 훅 API

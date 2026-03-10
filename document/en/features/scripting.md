@@ -12,6 +12,30 @@ Intercept rules handle straightforward cases like blocking URLs, adding headers,
 - **Dynamic responses** -- Generate mock responses with timestamps, random data, or values computed from the request.
 - **Complex matching** -- Use regular expressions, inspect nested JSON fields, or match against multiple conditions.
 
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant P as Cheolsu Proxy
+    participant S as Server
+
+    C->>P: HTTP Request
+    Note over P: cheolsu.onRequest() executes
+    alt action: forward
+        P->>S: Forward request
+    else action: modify
+        P->>S: Forward modified request
+    else action: respond
+        P->>C: Return direct response
+    end
+    S->>P: Server Response
+    Note over P: cheolsu.onResponse() executes
+    alt action: forward
+        P->>C: Forward response
+    else action: modify
+        P->>C: Forward modified response
+    end
+```
+
 ---
 
 ## Practical Recipes

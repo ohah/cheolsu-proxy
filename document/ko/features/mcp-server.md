@@ -159,20 +159,14 @@ AI 어시스턴트가 `get_websocket_messages`로 메시지를 조회하고, 에
 
 ## 아키텍처
 
-```
-AI Assistant (Claude Code / Cursor)
-        |
-        | MCP Protocol (stdio)
-        v
-+---------------------+
-|  cheolsu-proxy-mcp  |  MCP 서버 바이너리
-|  (트래픽 수집/노출)  |
-+---------+-----------+
-          | Unix Domain Socket
-          v
-+---------------------+
-|   Proxy Daemon      |  프록시 데몬
-+---------------------+
+```mermaid
+graph TB
+    A[AI 어시스턴트<br/>Claude Code / Cursor] -->|MCP Protocol<br/>stdio| B[cheolsu-proxy-mcp<br/>MCP 서버 바이너리]
+    B -->|Unix Domain Socket| C[프록시 데몬<br/>Proxy Daemon]
+    C -->|트래픽 캡처| D[HTTP/HTTPS<br/>트래픽]
+
+    style B fill:#e1f5fe
+    style C fill:#f3e5f5
 ```
 
 MCP 서버는 프록시 데몬의 또 다른 클라이언트로 동작합니다. 실시간으로 트래픽을 수집하며, 최근 1,000개의 HTTP 트랜잭션과 5,000개의 WebSocket 메시지를 메모리에 유지합니다.

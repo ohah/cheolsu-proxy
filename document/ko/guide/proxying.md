@@ -18,6 +18,16 @@ Cheolsu Proxy (프록시 서버)  ← 요청/응답 캡처
 대상 서버 (example.com)
 ```
 
+```mermaid
+graph LR
+    A[클라이언트<br/>브라우저/앱] -->|HTTP/HTTPS 요청| B[Cheolsu Proxy<br/>:8100]
+    B -->|복호화된 요청| C[대상 서버]
+    C -->|응답| B
+    B -->|복호화된 응답| A
+
+    style B fill:#f9f,stroke:#333,stroke-width:2px
+```
+
 ### HTTP 프록시
 
 일반 HTTP 요청은 프록시가 직접 요청 내용을 읽고 대상 서버로 전달합니다.
@@ -104,6 +114,16 @@ curl -x http://127.0.0.1:<포트> https://example.com
 클라이언트 → Cheolsu Proxy → Upstream Proxy (회사 프록시) → 인터넷
 ```
 
+```mermaid
+graph LR
+    A[클라이언트] --> B[Cheolsu Proxy]
+    B --> C[Upstream Proxy<br/>회사 프록시 등]
+    C --> D[인터넷]
+
+    style B fill:#f9f,stroke:#333,stroke-width:2px
+    style C fill:#bbf,stroke:#333,stroke-width:2px
+```
+
 이 설정을 사용하면 기존 네트워크 환경을 유지하면서도 Cheolsu Proxy로 트래픽을 분석할 수 있습니다.
 
 Upstream Proxy 설정은 앱의 **설정** 메뉴에서 프록시 관련 옵션을 확인하세요.
@@ -126,6 +146,16 @@ Cheolsu Proxy는 **데몬(daemon) 기반 아키텍처**를 사용합니다. 프�
 ┌─────────────────────┐  │
 │   MCP Server        │──┘
 └─────────────────────┘
+```
+
+```mermaid
+graph TB
+    A[Desktop GUI] -->|Unix Domain Socket| D[프록시 데몬<br/>Proxy Daemon]
+    B[TUI] -->|Unix Domain Socket| D
+    C[MCP Server] -->|Unix Domain Socket| D
+    D -->|HTTP/HTTPS| E[인터넷]
+
+    style D fill:#f9f,stroke:#333,stroke-width:2px
 ```
 
 이 구조의 장점:

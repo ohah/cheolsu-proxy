@@ -33,6 +33,22 @@ The proxy automatically detects the TLS version from the client's initial handsh
 
 This hybrid approach means you can inspect traffic from both modern browsers and legacy clients without any configuration changes.
 
+```mermaid
+flowchart TD
+    A[CONNECT Request Received] --> B{Tunnel Mode<br/>Target Host?}
+    B -->|Yes| C[Direct TCP Tunnel<br/>Traffic Not Captured]
+    B -->|No| D[Detect TLS Version<br/>from ClientHello]
+    D --> E{TLS Version}
+    E -->|TLS 1.2 / 1.3| F[rustls<br/>Pure Rust]
+    E -->|TLS 1.0 / 1.1| G[native-tls<br/>OpenSSL-based]
+    F --> H[Capture HTTPS Traffic]
+    G --> H
+
+    style C fill:#fff3e0
+    style F fill:#e8f5e9
+    style G fill:#e8f5e9
+```
+
 ---
 
 ## Tunnel Mode

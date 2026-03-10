@@ -12,6 +12,20 @@ WebSocket은 채팅 애플리케이션, 실시간 알림, 게임, 주식 시세 
 
 Cheolsu Proxy는 WebSocket 메시지의 콘텐츠를 분석하여 사용 중인 프로토콜을 자동으로 감지합니다. 감지된 프로토콜에 따라 메시지를 파싱하여 가독성 높은 형태로 표시합니다.
 
+```mermaid
+flowchart TD
+    A[WebSocket 메시지 수신] --> B{메시지 분석}
+    B --> C{Socket.IO<br/>패턴 감지?}
+    C -->|Yes| D[Socket.IO 디코딩<br/>패킷 타입 표시]
+    C -->|No| E{MQTT<br/>패턴 감지?}
+    E -->|Yes| F[MQTT 디코딩<br/>패킷 타입 표시]
+    E -->|No| G[Plain Text / JSON<br/>원본 표시]
+
+    style D fill:#e8f5e9
+    style F fill:#e1f5fe
+    style G fill:#fff3e0
+```
+
 ### Plain Text / JSON
 
 일반 텍스트 또는 JSON 형식의 메시지입니다. JSON 메시지의 경우 자동으로 포맷팅하여 표시합니다. 커스텀 프로토콜을 사용하는 애플리케이션의 메시지도 이 타입으로 표시됩니다.

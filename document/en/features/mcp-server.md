@@ -154,6 +154,16 @@ AI Assistant (Claude Code / Cursor)
 +---------------------+
 ```
 
+```mermaid
+graph TB
+    A[AI Assistant<br/>Claude Code / Cursor] -->|MCP Protocol<br/>stdio| B[cheolsu-proxy-mcp<br/>MCP Server Binary]
+    B -->|Unix Domain Socket| C[Proxy Daemon]
+    C -->|Traffic Capture| D[HTTP/HTTPS<br/>Traffic]
+
+    style B fill:#e1f5fe
+    style C fill:#f3e5f5
+```
+
 The MCP server binary is a standalone process that acts as a client of the proxy daemon. It communicates with the AI assistant over standard input/output using the MCP protocol, and connects to the proxy daemon over a Unix Domain Socket.
 
 The MCP server keeps the most recent 1,000 HTTP transactions and 5,000 WebSocket messages in memory for fast querying. Older data is discarded automatically. Use `clear_traffic` to reset the data manually if needed.

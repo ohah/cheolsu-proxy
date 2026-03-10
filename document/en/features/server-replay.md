@@ -33,6 +33,19 @@ If no match is found, the request proceeds normally through the proxy to the ser
 
 Duplicate entries for the same method and URL combination are not allowed. If you save a new response for an endpoint that already has an entry, the existing entry must be removed first.
 
+```mermaid
+flowchart TD
+    A[HTTP Request Received] --> B{Server Replay<br/>Enabled?}
+    B -->|Disabled| E[Forward to Server]
+    B -->|Enabled| C{Method + URL<br/>Match?}
+    C -->|Matched| D[Return Cached Response<br/>Skip Server Request]
+    C -->|No Match| E
+    E --> F[Receive Server Response]
+
+    style D fill:#c8e6c9
+    style E fill:#e1f5fe
+```
+
 ---
 
 ## What Gets Stored
