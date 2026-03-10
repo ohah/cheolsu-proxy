@@ -16,6 +16,7 @@ interface NetworkTableProps {
   createTransactionDeleteHandler: (id: string) => () => void;
   createTransactionPinHandler: (id: string) => () => void;
   createTransactionCheckHandler: (id: string) => () => void;
+  onAdvancedRepeat?: (transaction: HttpTransaction) => void;
   onToggleCheckAll: () => void;
 }
 
@@ -28,6 +29,7 @@ export const NetworkTable = ({
   createTransactionDeleteHandler,
   createTransactionPinHandler,
   createTransactionCheckHandler,
+  onAdvancedRepeat,
   onToggleCheckAll,
 }: NetworkTableProps) => {
   const { pinnedTransactions, unpinnedTransactions } = useMemo(() => {
@@ -86,6 +88,7 @@ export const NetworkTable = ({
               createTransactionDeleteHandler={createTransactionDeleteHandler}
               createTransactionPinHandler={createTransactionPinHandler}
               createTransactionCheckHandler={createTransactionCheckHandler}
+              onAdvancedRepeat={onAdvancedRepeat}
               isPinnedSection
             />
           </div>
@@ -98,6 +101,7 @@ export const NetworkTable = ({
           createTransactionDeleteHandler={createTransactionDeleteHandler}
           createTransactionPinHandler={createTransactionPinHandler}
           createTransactionCheckHandler={createTransactionCheckHandler}
+          onAdvancedRepeat={onAdvancedRepeat}
           isPinnedSection={false}
         />
       </div>

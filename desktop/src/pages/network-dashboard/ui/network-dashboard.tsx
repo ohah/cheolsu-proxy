@@ -8,6 +8,7 @@ import {
   TransactionDetails,
   SequenceReplayDialog,
   ReplayDialog,
+  AdvancedRepeatDialog,
 } from "@/features/transaction-details";
 import { buildHarLog } from "@/features/har-export";
 import { QueryFilterEditor } from "@/features/query-filter-editor";
@@ -81,6 +82,7 @@ export const NetworkDashboard = () => {
 
   const [sequenceReplayOpen, setSequenceReplayOpen] = useState(false);
   const [composeOpen, setComposeOpen] = useState(false);
+  const [advancedRepeatTarget, setAdvancedRepeatTarget] = useState<HttpTransaction | null>(null);
   const [exporting, setExporting] = useState(false);
   const [diffResult, setDiffResult] = useState<TrafficDiff | null>(null);
   const [diffLoading, setDiffLoading] = useState(false);
@@ -367,6 +369,7 @@ export const NetworkDashboard = () => {
                 createTransactionDeleteHandler={createTransactionDeleteHandler}
                 createTransactionPinHandler={createTransactionPinHandler}
                 createTransactionCheckHandler={createTransactionCheckHandler}
+                onAdvancedRepeat={setAdvancedRepeatTarget}
                 onToggleCheckAll={handleToggleCheckAll}
               />
             </ResizablePanel>
@@ -435,6 +438,16 @@ export const NetworkDashboard = () => {
         transactions={checkedTransactions}
         onComplete={clearCheckedTransactions}
       />
+
+      {advancedRepeatTarget && (
+        <AdvancedRepeatDialog
+          open={!!advancedRepeatTarget}
+          onOpenChange={(open) => {
+            if (!open) setAdvancedRepeatTarget(null);
+          }}
+          transaction={advancedRepeatTarget}
+        />
+      )}
 
       <RuleFormDialog
         open={interceptRuleDialogOpen}

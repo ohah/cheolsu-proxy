@@ -877,7 +877,7 @@ msgstr ""
 msgid "No replay entries"
 msgstr "리플레이 엔트리 없음"
 
-#: src/widgets/network-table/ui/table-body.tsx:78
+#: src/widgets/network-table/ui/table-body.tsx:81
 msgid "No transactions to display"
 msgstr "표시할 트랜잭션이 없습니다"
 
