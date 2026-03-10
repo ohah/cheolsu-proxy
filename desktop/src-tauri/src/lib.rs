@@ -17,8 +17,8 @@ use proxy_v2::{
     update_upstream_proxy, ws_inject_message, ProxyV2State,
 };
 use system_proxy::get_proxy_status_command;
-use tauri::menu::SubmenuBuilder;
-use tauri::Manager;
+use tauri::menu::{MenuItemBuilder, SubmenuBuilder};
+use tauri::{Emitter, Manager};
 use tray::setup_tray;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -87,6 +87,49 @@ pub fn run() {
                     .fullscreen()
                     .build()?;
 
+                // Proxy 메뉴 (찰스 프록시 스타일)
+                let proxy_menu = SubmenuBuilder::new(app_handle, "Proxy")
+                    .item(
+                        &MenuItemBuilder::with_id("nav_settings", "Proxy Settings...")
+                            .build(app_handle)?,
+                    )
+                    .item(
+                        &MenuItemBuilder::with_id("nav_ssl_proxying", "SSL Proxying Settings...")
+                            .build(app_handle)?,
+                    )
+                    .separator()
+                    .item(
+                        &MenuItemBuilder::with_id("nav_breakpoint", "Breakpoint Settings...")
+                            .build(app_handle)?,
+                    )
+                    .separator()
+                    .item(
+                        &MenuItemBuilder::with_id("nav_intercept_rules", "Intercept Rules...")
+                            .build(app_handle)?,
+                    )
+                    .build()?;
+
+                // Tools 메뉴 (찰스 프록시 스타일)
+                let tools_menu = SubmenuBuilder::new(app_handle, "Tools")
+                    .item(
+                        &MenuItemBuilder::with_id("nav_map_rules", "Map Remote / Map Local...")
+                            .build(app_handle)?,
+                    )
+                    .item(
+                        &MenuItemBuilder::with_id("nav_host_mapping", "DNS Spoofing...")
+                            .build(app_handle)?,
+                    )
+                    .separator()
+                    .item(
+                        &MenuItemBuilder::with_id("nav_server_replay", "Server Replay...")
+                            .build(app_handle)?,
+                    )
+                    .item(
+                        &MenuItemBuilder::with_id("nav_script", "Scripting...")
+                            .build(app_handle)?,
+                    )
+                    .build()?;
+
                 let window_menu = SubmenuBuilder::new(app_handle, "Window")
                     .minimize()
                     .maximize()
@@ -94,7 +137,14 @@ pub fn run() {
                     .build()?;
 
                 let menu = tauri::menu::MenuBuilder::new(app_handle)
-                    .items(&[&app_menu, &edit_menu, &view_menu, &window_menu])
+                    .items(&[
+                        &app_menu,
+                        &edit_menu,
+                        &view_menu,
+                        &proxy_menu,
+                        &tools_menu,
+                        &window_menu,
+                    ])
                     .build()?;
 
                 app_handle.set_menu(menu)?;
@@ -108,6 +158,23 @@ pub fn run() {
                 });
 
                 Ok(())
+            })
+            .on_menu_event(|app_handle, event| {
+                let id = event.id().as_ref();
+                if id.starts_with("nav_") {
+                    let path = match id {
+                        "nav_settings" => "/settings",
+                        "nav_ssl_proxying" => "/settings?section=ssl-proxying",
+                        "nav_breakpoint" => "/breakpoint",
+                        "nav_intercept_rules" => "/intercept-rules",
+                        "nav_map_rules" => "/map-rules",
+                        "nav_host_mapping" => "/host-mapping",
+                        "nav_server_replay" => "/server-replay",
+                        "nav_script" => "/script",
+                        _ => return,
+                    };
+                    let _ = app_handle.emit("menu_navigate", path);
+                }
             })
             .on_window_event(|window, event| {
                 // 메인 윈도우 닫기 시 트레이로 최소화 (완전 종료 대신)
