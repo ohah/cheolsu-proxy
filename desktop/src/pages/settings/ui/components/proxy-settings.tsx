@@ -61,7 +61,10 @@ export function ProxySettings() {
         host,
         port: Number.parseInt(port, 10) || 8080,
         auth: useAuth ? { username, password } : null,
-        bypass: bypass.split(",").map((s) => s.trim()).filter(Boolean),
+        bypass: bypass
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean),
       });
 
       setStatus("saved");
