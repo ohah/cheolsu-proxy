@@ -1,214 +1,202 @@
 # Cheolsu-Query Language
 
-A dedicated query language for filtering network requests in Cheolsu Proxy.
+Cheolsu-Query is a filtering language for narrowing down network traffic displayed in Cheolsu Proxy. When you are capturing hundreds or thousands of requests, the query bar lets you quickly isolate the traffic you care about by filtering on HTTP method, status code, and URL.
 
-## 🎯 Overview
+The query language is built into the Monaco Editor (the same editor engine used by VS Code), which provides syntax highlighting, auto-completion, and real-time validation as you type.
 
-Cheolsu-Query is a powerful query language based on Monaco Editor, designed to efficiently filter and analyze network traffic.
+---
 
-### Key Features
+## Filter Keywords
 
-- **Monaco Editor based**: Uses the same editor engine as VS Code
-- **Syntax highlighting**: Color-coded keywords, operators, and strings
-- **Auto-completion**: Automatic suggestions for keywords, HTTP methods, and status codes
-- **Real-time validation**: Live query syntax validation
-- **Theme support**: Automatic light/dark theme switching
+| Keyword | Description | Example |
+| --- | --- | --- |
+| `method` | Filter by a single HTTP method | `method="GET"` |
+| `methods` | Filter by multiple HTTP methods | `methods="GET,POST"` |
+| `status` | Filter by HTTP status code or category | `status="2xx,404"` |
+| `url` | Filter by URL content | `url\|="api"` |
 
-## 🔧 Filter Keywords
+---
 
-| Keyword   | Description                     | Example              |
-| --------- | ------------------------------- | -------------------- |
-| `method`  | HTTP method filtering           | `method="GET"`       |
-| `methods` | Multiple HTTP methods filtering | `methods="GET,POST"` |
-| `status`  | HTTP status code filtering      | `status="2xx,404"`   |
-| `url`     | URL pattern filtering           | `url \|= "api"`      |
-
-## ⚙️ Operators
+## Operators
 
 ### Comparison Operators
 
-| Operator | Description                 | Example             |
-| -------- | --------------------------- | ------------------- |
-| `=`      | Exact match                 | `method="GET"`      |
-| `\|=`    | Contains (case-sensitive)   | `url \|= "api"`     |
-| `\|~`    | Contains (case-insensitive) | `url \|~ "API"`     |
-| `!=`     | Not equal                   | `method!="OPTIONS"` |
-| `!~`     | Does not contain            | `url!~="static"`    |
+| Operator | Meaning | Example |
+| --- | --- | --- |
+| `=` | Exact match | `method="GET"` |
+| `\|=` | Contains (case-sensitive) | `url\|="api"` |
+| `\|~` | Contains (case-insensitive) | `url\|~="API"` |
+| `!=` | Not equal | `method!="OPTIONS"` |
+| `!~` | Does not contain | `url!~="static"` |
 
 ### Logical Operators
 
-| Operator | Description             | Example                         |
-| -------- | ----------------------- | ------------------------------- |
-| `and`    | AND condition (default) | `method="GET" and status="2xx"` |
-| `or`     | OR condition            | `method="GET" or status="5xx"`  |
+| Operator | Meaning | Example |
+| --- | --- | --- |
+| `and` | Both conditions must be true (default) | `method="GET" and status="2xx"` |
+| `or` | Either condition must be true | `method="GET" or status="5xx"` |
 
-## 📋 Usage Examples
-
-### Basic Filtering
+Parentheses can be used to group conditions:
 
 ```text
-# Filter only GET requests
-method="GET"
-
-# Filter only successful responses
-status="2xx"
-
-# Filter API-related requests
-url|="api"
-
-# Exclude error responses
-status!="4xx,5xx"
-```
-
-### Complex Conditions
-
-```text
-# Multiple HTTP methods
-method="GET,POST"
-
-# Complex AND conditions
-method="GET" and status="2xx" and url|="api"
-
-# OR conditions
-method="POST" or status="5xx"
-
-# Complex conditions
-(method="GET" or method="POST") and status="2xx" and url!~="static"
-```
-
-### Real-world Scenarios
-
-```text
-# Monitor only API requests
-url|="api" and method!="OPTIONS"
-
-# Analyze error responses
-status="4xx,5xx"
-
-# Exclude specific domains
-url!~="google-analytics" and url!~="ads"
-
-# Development environment APIs only
-url|="localhost" or url|="127.0.0.1"
-```
-
-## 🎨 Theme Support
-
-- **Light theme**: `cheolsu-light`
-- **Dark theme**: `cheolsu-dark`
-- **Auto theme switching**: Automatically changes based on system theme
-
-## ⌨️ Keyboard Shortcuts
-
-- **⌘ + Enter**: Apply query
-- **Auto-completion**: Triggered by typing `"`, `,`, ` `, `|`, `!`, `=`
-
-## 🔍 Auto-completion Features
-
-### Keyword Suggestions
-
-- `method`, `methods`, `status`, `url`
-
-### HTTP Method Suggestions
-
-- `GET`, `POST`, `PUT`, `DELETE`, `PATCH`, `HEAD`, `OPTIONS`, `CONNECT`, `TRACE`
-
-### Status Code Suggestions
-
-- `1xx` (Informational)
-- `2xx` (Success)
-- `3xx` (Redirection)
-- `4xx` (Client Error)
-- `5xx` (Server Error)
-- Specific codes: `200`, `201`, `204`, `400`, `401`, `403`, `404`, `500`, `502`, `503`
-
-### Operator Suggestions
-
-- `=`, `|=`, `|~`, `!=`, `!~`
-
-## 💡 Usage Tips
-
-### 1. Efficient Filtering
-
-```text
-# Use exact conditions
-method="GET"  # ✅ Good
-method|="GET" # ❌ Unnecessary pattern matching
-```
-
-### 2. Performance Optimization
-
-```text
-# Place specific conditions first
-url|="api" and method="GET"  # ✅ Good
-method="GET" and url|="api"  # ❌ URL pattern is more selective
-```
-
-### 3. Improved Readability
-
-```text
-# Use parentheses for complex conditions
 (method="GET" or method="POST") and status="2xx"
 ```
 
-## 🚀 Advanced Usage
+---
 
-### Regex Patterns (Future Support)
+## Usage Examples
 
-```text
-# URL pattern matching
-url~="^/api/v[0-9]+/"
-
-# Complex status code patterns
-status~="^[45][0-9][0-9]$"
-```
-
-### Time-based Filtering (Future Support)
+### Filter by HTTP Method
 
 ```text
-# Requests within the last hour
-time>="1h"
-
-# Specific time range
-time>="09:00" and time<="18:00"
+method="GET"
 ```
 
-## 🔧 Troubleshooting
+Show only GET requests.
 
-### Common Errors
+```text
+methods="GET,POST"
+```
 
-1. **Syntax Errors**
+Show GET and POST requests.
 
-   ```text
-   # ❌ Incorrect
-   method=GET
+```text
+method!="OPTIONS"
+```
 
-   # ✅ Correct
-   method="GET"
-   ```
+Hide preflight OPTIONS requests that clutter the traffic list during CORS development.
 
-2. **Operator Errors**
+### Filter by Status Code
 
-   ```text
-   # ❌ Incorrect
-   method=="GET"
+```text
+status="2xx"
+```
 
-   # ✅ Correct
-   method="GET"
-   ```
+Show only successful responses (200-299).
 
-3. **Logical Operator Errors**
+```text
+status="4xx,5xx"
+```
 
-   ```text
-   # ❌ Incorrect
-   method="GET" && status="2xx"
+Show only error responses. Useful for identifying failing requests.
 
-   # ✅ Correct
-   method="GET" and status="2xx"
-   ```
+```text
+status="404"
+```
 
-## 📚 Related Documentation
+Show only 404 Not Found responses.
 
-- [Basic Usage](../guide/basic-usage.md)
-- [Troubleshooting](../guide/troubleshooting.md)
-- [TLS Support](./tls-support.md)
+### Filter by URL
+
+```text
+url|="api"
+```
+
+Show requests whose URL contains "api" (case-sensitive).
+
+```text
+url|~="graphql"
+```
+
+Show requests whose URL contains "graphql" (case-insensitive).
+
+```text
+url!~="analytics"
+```
+
+Hide analytics requests.
+
+### Combined Filters
+
+```text
+method="GET" and status="2xx" and url|="api"
+```
+
+Show only successful GET requests to API endpoints.
+
+```text
+url|="api" and method!="OPTIONS"
+```
+
+Show API requests while hiding CORS preflight requests.
+
+```text
+url!~="google-analytics" and url!~="ads"
+```
+
+Hide analytics and advertising traffic.
+
+```text
+(method="POST" or method="PUT") and status="5xx"
+```
+
+Find write operations that resulted in server errors.
+
+```text
+url|="localhost" or url|="127.0.0.1"
+```
+
+Show only requests to local development servers.
+
+---
+
+## Editor Features
+
+### Auto-completion
+
+Auto-completion is triggered when typing `"`, `,`, ` `, `|`, `!`, or `=`. The editor suggests:
+
+- **Keywords** -- `method`, `methods`, `status`, `url`
+- **HTTP methods** -- `GET`, `POST`, `PUT`, `DELETE`, `PATCH`, `HEAD`, `OPTIONS`, `CONNECT`, `TRACE`
+- **Status codes** -- Categories like `2xx`, `4xx`, `5xx` as well as specific codes like `200`, `401`, `404`, `500`
+- **Operators** -- `=`, `|=`, `|~`, `!=`, `!~`
+
+### Keyboard Shortcuts
+
+- **Cmd/Ctrl + Enter** -- Apply the current query.
+
+### Theme Support
+
+The editor supports both light and dark themes and switches automatically based on the system theme.
+
+---
+
+## Common Mistakes
+
+**Missing quotes around values.** Values must always be quoted with double quotes.
+
+```text
+method="GET"       # Correct
+method=GET         # Incorrect
+```
+
+**Using the wrong equality operator.** Use single `=`, not double `==`.
+
+```text
+method="GET"       # Correct
+method=="GET"      # Incorrect
+```
+
+**Using programming-style logical operators.** Use `and` and `or`, not `&&` and `||`.
+
+```text
+method="GET" and status="2xx"    # Correct
+method="GET" && status="2xx"     # Incorrect
+```
+
+---
+
+## Quick Reference
+
+```text
+method="GET"                          # Exact method match
+methods="GET,POST"                    # Multiple methods
+status="2xx"                          # Status code category
+status="200,404"                      # Specific status codes
+url|="api"                            # URL contains (case-sensitive)
+url|~="api"                           # URL contains (case-insensitive)
+url!~="ads"                           # URL does not contain
+method="GET" and status="2xx"         # AND condition
+method="GET" or method="POST"         # OR condition
+(method="GET" or method="POST") and status="2xx"  # Grouped conditions
+```

@@ -1,59 +1,65 @@
 # Cheolsu-Query
 
-Cheolsu Proxy에서 네트워크 요청을 필터링하기 위한 전용 쿼리 언어입니다.
+## 개요
 
-## 🎯 개요
+Cheolsu-Query는 Cheolsu Proxy에서 캡처된 네트워크 트래픽을 필터링하기 위한 전용 쿼리 언어입니다. 수백, 수천 개의 요청이 쌓인 트래픽 목록에서 원하는 요청만 빠르게 찾을 수 있습니다.
 
-Cheolsu-Query는 Monaco Editor 기반의 강력한 쿼리 언어로, 네트워크 트래픽을 효율적으로 필터링하고 분석할 수 있도록 설계되었습니다.
+트래픽 목록을 스크롤하며 눈으로 찾는 대신 Cheolsu-Query를 사용하면, HTTP 메서드, 상태 코드, URL 패턴 등의 조건을 조합하여 정확히 원하는 요청만 표시할 수 있습니다. 예를 들어 "POST 요청 중 500 에러가 발생한 API 호출"을 찾으려면 다음과 같이 입력합니다:
 
-### 주요 특징
+```text
+method="POST" and status="5xx" and url|="api"
+```
 
-- **Monaco Editor 기반**: VS Code와 동일한 에디터 엔진 사용
-- **구문 강조**: 키워드, 연산자, 문자열 등에 색상 구분
-- **자동완성**: 키워드, HTTP 메서드, 상태 코드 자동 제안
-- **실시간 검증**: 쿼리 문법 실시간 검증
-- **테마 지원**: 라이트/다크 테마 자동 전환
+Monaco Editor 기반으로 구현되어 있어 VS Code와 동일한 편집 경험을 제공하며, 구문 강조, 자동완성, 실시간 문법 검증을 지원합니다.
 
-## 🔧 필터 키워드
+---
 
-| 키워드    | 설명                    | 예시                 |
-| --------- | ----------------------- | -------------------- |
-| `method`  | HTTP 메서드 필터링      | `method="GET"`       |
-| `methods` | 여러 HTTP 메서드 필터링 | `methods="GET,POST"` |
-| `status`  | HTTP 상태 코드 필터링   | `status="2xx,404"`   |
-| `url`     | URL 패턴 필터링         | `url \|= "api"`      |
+## 필터 키워드
 
-## ⚙️ 연산자
+| 키워드 | 설명 | 예시 |
+| --- | --- | --- |
+| `method` | HTTP 메서드 필터링 | `method="GET"` |
+| `methods` | 여러 HTTP 메서드 필터링 (쉼표 구분) | `methods="GET,POST"` |
+| `status` | HTTP 상태 코드 필터링 | `status="2xx,404"` |
+| `url` | URL 패턴 필터링 | `url\|="api"` |
+
+---
+
+## 연산자
 
 ### 비교 연산자
 
-| 연산자 | 설명                 | 예시                |
-| ------ | -------------------- | ------------------- |
-| `=`    | 정확히 일치          | `method="GET"`      |
-| `\|=`  | 포함 (대소문자 구분) | `url \|= "api"`     |
-| `\|~`  | 포함 (대소문자 무시) | `url \|~ "API"`     |
-| `!=`   | 일치하지 않음        | `method!="OPTIONS"` |
-| `!~`   | 포함하지 않음        | `url!~="static"`    |
+| 연산자 | 설명 | 예시 |
+| --- | --- | --- |
+| `=` | 정확히 일치 | `method="GET"` |
+| `\|=` | 포함 (대소문자 구분) | `url\|="api"` |
+| `\|~` | 포함 (대소문자 무시) | `url\|~="API"` |
+| `!=` | 일치하지 않음 | `method!="OPTIONS"` |
+| `!~` | 포함하지 않음 | `url!~="static"` |
 
 ### 논리 연산자
 
-| 연산자 | 설명              | 예시                            |
-| ------ | ----------------- | ------------------------------- |
-| `and`  | AND 조건 (기본값) | `method="GET" and status="2xx"` |
-| `or`   | OR 조건           | `method="GET" or status="5xx"`  |
+| 연산자 | 설명 | 예시 |
+| --- | --- | --- |
+| `and` | AND 조건 (기본값) | `method="GET" and status="2xx"` |
+| `or` | OR 조건 | `method="GET" or status="5xx"` |
 
-## 📋 사용 예시
+괄호 `()`를 사용하여 논리 연산의 우선순위를 지정할 수 있습니다.
+
+---
+
+## 사용 예시
 
 ### 기본 필터링
 
 ```text
-# GET 요청만 필터링
+# GET 요청만 표시
 method="GET"
 
-# 성공 응답만 필터링
+# 성공 응답만 표시
 status="2xx"
 
-# API 관련 요청만 필터링
+# URL에 "api"가 포함된 요청만 표시
 url|="api"
 
 # 에러 응답 제외
@@ -63,152 +69,139 @@ status!="4xx,5xx"
 ### 복합 조건
 
 ```text
-# 여러 HTTP 메서드
-method="GET,POST"
+# GET 또는 POST 요청만 표시
+methods="GET,POST"
 
-# 복합 AND 조건
+# API 요청 중 성공한 GET 요청만 표시
 method="GET" and status="2xx" and url|="api"
 
-# OR 조건
+# POST 요청이거나 서버 에러인 것 표시
 method="POST" or status="5xx"
 
-# 복잡한 조건
+# 괄호를 사용한 조건 그룹화
 (method="GET" or method="POST") and status="2xx" and url!~="static"
 ```
 
 ### 실제 사용 시나리오
 
 ```text
-# API 요청만 모니터링
+# CORS preflight(OPTIONS)를 제외한 API 요청만 모니터링
 url|="api" and method!="OPTIONS"
 
-# 에러 응답 분석
+# 클라이언트/서버 에러 응답만 분석
 status="4xx,5xx"
 
-# 특정 도메인 제외
+# 광고/분석 관련 요청을 제외하고 보기
 url!~="google-analytics" and url!~="ads"
 
-# 개발 환경 API만
+# 로컬 개발 서버 요청만 표시
 url|="localhost" or url|="127.0.0.1"
+
+# 특정 API 엔드포인트의 실패한 요청 찾기
+url|="/api/v1/users" and status!="2xx"
 ```
 
-## 🎨 테마 지원
+---
+
+## 테마 지원
 
 - **라이트 테마**: `cheolsu-light`
 - **다크 테마**: `cheolsu-dark`
-- **자동 테마 전환**: 시스템 테마에 따라 자동 변경
+- 시스템 테마에 따라 자동 전환
 
-## ⌨️ 키보드 단축키
+---
 
-- **⌘ + Enter**: 쿼리 적용
-- **자동완성**: `"`, `,`, ` `, `|`, `!`, `=` 입력 시 트리거
+## 키보드 단축키
 
-## 🔍 자동완성 기능
+| 단축키 | 동작 |
+| --- | --- |
+| `Cmd/Ctrl + Enter` | 쿼리 적용 |
+
+자동완성은 `"`, `,`, ` `, `|`, `!`, `=` 입력 시 자동으로 트리거됩니다.
+
+---
+
+## 자동완성 기능
 
 ### 키워드 제안
 
-- `method`, `methods`, `status`, `url`
+`method`, `methods`, `status`, `url`
 
 ### HTTP 메서드 제안
 
-- `GET`, `POST`, `PUT`, `DELETE`, `PATCH`, `HEAD`, `OPTIONS`, `CONNECT`, `TRACE`
+`GET`, `POST`, `PUT`, `DELETE`, `PATCH`, `HEAD`, `OPTIONS`, `CONNECT`, `TRACE`
 
 ### 상태 코드 제안
 
-- `1xx` (Informational)
-- `2xx` (Success)
-- `3xx` (Redirection)
-- `4xx` (Client Error)
-- `5xx` (Server Error)
-- 구체적인 코드: `200`, `201`, `204`, `400`, `401`, `403`, `404`, `500`, `502`, `503`
+- 범위 코드: `1xx` (Informational), `2xx` (Success), `3xx` (Redirection), `4xx` (Client Error), `5xx` (Server Error)
+- 구체적 코드: `200`, `201`, `204`, `400`, `401`, `403`, `404`, `500`, `502`, `503`
 
 ### 연산자 제안
 
-- `=`, `|=`, `|~`, `!=`, `!~`
+`=`, `|=`, `|~`, `!=`, `!~`
 
-## 💡 사용 팁
+---
 
-### 1. 효율적인 필터링
+## 문법 주의 사항
 
-```text
-# 정확한 조건 사용
-method="GET"  # ✅ 좋음
-method|="GET" # ❌ 불필요한 패턴 매칭
-```
-
-### 2. 성능 최적화
+### 값은 반드시 따옴표로 감싸야 합니다
 
 ```text
-# 구체적인 조건을 먼저 배치
-url|="api" and method="GET"  # ✅ 좋음
-method="GET" and url|="api"  # ❌ URL 패턴이 더 선택적
+# 올바름
+method="GET"
+
+# 오류
+method=GET
 ```
 
-### 3. 가독성 향상
+### 등호는 하나만 사용합니다
 
 ```text
-# 복잡한 조건은 괄호 사용
-(method="GET" or method="POST") and status="2xx"
+# 올바름
+method="GET"
+
+# 오류
+method=="GET"
 ```
 
-## 🚀 고급 사용법
-
-### 정규식 패턴 (향후 지원 예정)
+### 논리 연산자는 `and` / `or`를 사용합니다
 
 ```text
-# URL 패턴 매칭
-url~="^/api/v[0-9]+/"
+# 올바름
+method="GET" and status="2xx"
 
-# 복잡한 상태 코드 패턴
-status~="^[45][0-9][0-9]$"
+# 오류
+method="GET" && status="2xx"
 ```
 
-### 시간 기반 필터링 (향후 지원 예정)
+---
+
+## 빠른 참조
 
 ```text
-# 최근 1시간 내 요청
-time>="1h"
+# 메서드 필터
+method="GET"                    # 정확히 일치
+methods="GET,POST"              # 여러 메서드
 
-# 특정 시간대
-time>="09:00" and time<="18:00"
+# URL 필터
+url|="api"                      # 포함 (대소문자 구분)
+url|~="API"                     # 포함 (대소문자 무시)
+url!~="static"                  # 포함하지 않음
+
+# 상태 코드 필터
+status="2xx"                    # 2xx 범위 전체
+status="200,201"                # 특정 코드
+status!="4xx,5xx"               # 에러 제외
+
+# 조합
+method="POST" and status="5xx"  # AND 조건
+method="GET" or status="5xx"    # OR 조건
+(A or B) and C                  # 괄호로 그룹화
 ```
 
-## 🔧 문제 해결
+---
 
-### 자주 발생하는 오류
-
-1. **문법 오류**
-
-   ```text
-   # ❌ 잘못된 예시
-   method=GET
-
-   # ✅ 올바른 예시
-   method="GET"
-   ```
-
-2. **연산자 오류**
-
-   ```text
-   # ❌ 잘못된 예시
-   method=="GET"
-
-   # ✅ 올바른 예시
-   method="GET"
-   ```
-
-3. **논리 연산자 오류**
-
-   ```text
-   # ❌ 잘못된 예시
-   method="GET" && status="2xx"
-
-   # ✅ 올바른 예시
-   method="GET" and status="2xx"
-   ```
-
-## 📚 관련 문서
+## 관련 문서
 
 - [기본 사용법](../guide/basic-usage.md)
 - [문제 해결](../guide/troubleshooting.md)
-- [TLS 지원](./tls-support.md)

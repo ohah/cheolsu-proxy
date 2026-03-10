@@ -1,319 +1,87 @@
+# TLS Support
+
+Cheolsu Proxy handles TLS (HTTPS) traffic transparently. When you configure your device to use the proxy, HTTPS requests are intercepted, decrypted for inspection, and re-encrypted before being forwarded. This all happens automatically -- you do not need to configure TLS settings in most cases.
+
+This page explains what Cheolsu Proxy does behind the scenes, what situations might require your attention, and how to resolve common TLS-related issues.
+
 ---
-title: TLS 1.0/1.1 Support
-description: Legacy TLS client support and hybrid TLS handler
+
+## How It Works
+
+When your browser or app sends an HTTPS request through the proxy, the following happens:
+
+1. The client sends a CONNECT request to the proxy for the target host.
+2. The proxy generates a certificate for that host on the fly, signed by its own Certificate Authority (CA).
+3. The client completes a TLS handshake with the proxy using that generated certificate.
+4. The proxy establishes a separate TLS connection to the real server.
+5. Traffic flows through the proxy, which can inspect and display the decrypted content.
+
+For this to work without certificate warnings, the proxy's CA certificate must be trusted by your device. Cheolsu Proxy handles CA certificate installation as part of its initial setup.
+
 ---
 
-# TLS 1.0/1.1 Legacy Support
+## TLS Version Compatibility
 
-Cheolsu Proxy supports not only modern TLS versions but also legacy TLS 1.0/1.1 clients. To achieve this, we've implemented a hybrid approach that automatically detects TLS versions and selects the appropriate TLS library.
+Most modern clients use TLS 1.2 or 1.3. However, some older applications, embedded devices, or legacy systems still use TLS 1.0 or 1.1. Cheolsu Proxy supports all of these.
 
-## 🎯 Key Features
+The proxy automatically detects the TLS version from the client's initial handshake and selects the appropriate handler:
 
-- **Automatic TLS Version Detection**: Automatically detects TLS version from ClientHello
-- **Hybrid TLS Processing**: Uses native-tls for TLS 1.0/1.1, rustls for TLS 1.2+
-- **Cross-platform Compatibility**: Works on macOS and Windows
-- **PKCS12 Certificate Support**: Automatic generation of PKCS12 certificates for native-tls
-- **Tunnel Mode**: Direct tunneling for specific hosts with TLS compatibility issues
+| Client TLS Version | Handler |
+| --- | --- |
+| TLS 1.2 / 1.3 | rustls (modern, pure-Rust library) |
+| TLS 1.0 / 1.1 | native-tls (OS-level TLS library) |
 
-## 🔧 Implementation Approach
+This hybrid approach means you can inspect traffic from both modern browsers and legacy clients without any configuration changes.
 
-### TLS Version-Specific Library Selection
+---
 
-```
-TLS 1.0/1.1 → native-tls (OpenSSL-based)
-TLS 1.2/1.3 → rustls (Pure Rust)
-Specific hosts → Tunnel mode (Direct connection)
-```
+## Tunnel Mode
 
-### Tunnel Mode
+Some hosts enforce strict TLS requirements that are incompatible with proxy interception. Apple services are a common example -- they use certificate pinning and other mechanisms that cause TLS handshakes to fail when a proxy-generated certificate is presented.
 
-Some hosts (especially Apple services) may fail TLS handshakes through a proxy due to strict TLS requirements. In such cases, tunnel mode is used to bypass proxy TLS processing and create a direct TCP tunnel between client and server.
+For these hosts, Cheolsu Proxy uses tunnel mode: it creates a direct TCP tunnel between the client and server without attempting to intercept the TLS traffic. The connection passes through the proxy at the TCP level, but the encrypted content is not inspected.
 
-#### Tunnel Mode Target Hosts
+Tunnel mode is applied automatically for known hosts, including various Apple service domains such as:
 
 - `gateway.icloud.com`
 - `p112-contacts.icloud.com`
 - `p112-caldav.icloud.com`
 - `wps.apple.com`
-- Other Apple service domains
-
-#### Tunnel Mode Operation
-
-1. **CONNECT Request Reception**: Client sends CONNECT request to specific host
-2. **Tunnel Mode Detection**: Check if host is in tunnel mode target list
-3. **200 Connection Established Response**: Immediately send tunnel setup completion response
-4. **Direct TCP Connection**: Create direct TCP stream between client and target server
-5. **Bidirectional Data Transfer**: Relay data using `tokio::io::copy_bidirectional`
-6. **Event Logging**: Send tunnel start/complete/error events to Tauri UI
-
-### Core Flow
-
-1. **CONNECT Request Reception** → Host verification
-2. **Tunnel Mode Check**: Verify if target host requires tunnel mode
-3. **Processing Method Selection**:
-   - Tunnel mode: Create direct TCP tunnel
-   - Normal mode: TLS version detection and appropriate handler selection
-4. **TLS Processing** (Normal mode):
-   - TLS 1.0/1.1: `HybridTlsHandler::handle_with_native_tls_upgraded()`
-   - TLS 1.2+: `HybridTlsHandler::handle_with_rustls_upgraded()`
-5. **Certificate Generation**: Generate PKCS12 format certificates for native-tls
-6. **TLS Handshake**: Perform handshake with selected library
-
-## 📊 Architecture
-
-### TLS Handshake Flow
-
-```mermaid
-sequenceDiagram
-    participant Client as TLS Client
-    participant Proxy as Cheolsu Proxy
-    participant Detector as TLS Version Detector
-    participant Hybrid as HybridTlsHandler
-    participant Rustls as rustls
-    participant Native as native-tls
-    participant Server as Target Server
-
-    Client->>Proxy: CONNECT request
-    Proxy->>Proxy: Check if tunnel mode required
-
-    alt Tunnel Mode (Apple services)
-        Proxy->>Client: 200 Connection Established
-        Proxy->>Server: Direct TCP connection
-        Proxy->>Proxy: Spawn tunnel task
-        Note over Proxy: copy_bidirectional()
-        Note over Client,Server: Direct data flow through tunnel
-    else Normal TLS Mode
-        Proxy->>Client: 200 Connection Established
-        Client->>Proxy: ClientHello (TLS handshake)
-
-        Proxy->>Detector: detect_tls_version(buffer)
-        Detector-->>Proxy: TLS version (1.0/1.1/1.2/1.3)
-
-        alt TLS 1.0 or 1.1
-            Proxy->>Hybrid: handle_with_native_tls_upgraded()
-            Hybrid->>Native: Generate PKCS12 certificate
-            Native-->>Hybrid: PKCS12 identity
-            Hybrid->>Native: TlsAcceptor.accept()
-            Native-->>Hybrid: TLS stream
-            Hybrid-->>Proxy: NativeTls stream
-        else TLS 1.2 or 1.3
-            Proxy->>Hybrid: handle_with_rustls_upgraded()
-            Hybrid->>Rustls: Generate rustls certificate
-            Rustls-->>Hybrid: ServerConfig
-            Hybrid->>Rustls: TlsAcceptor.accept()
-            Rustls-->>Hybrid: TLS stream
-            Hybrid-->>Proxy: Rustls stream
-        end
-
-        Proxy->>Client: TLS handshake complete
-        Note over Client,Proxy: Secure communication established
-    end
-```
-
-### PKCS12 Certificate Generation Flow
-
-```mermaid
-flowchart TD
-    A[rcgen Certificate] --> B[DER format]
-    B --> C[OpenSSL X509]
-    C --> D[OpenSSL PKey]
-    D --> E[PKCS12 Builder]
-    E --> F[PKCS12 DER]
-    F --> G[native-tls Identity]
-    G --> H[TlsAcceptor]
-
-    style A fill:#e1f5fe
-    style G fill:#c8e6c9
-    style H fill:#c8e6c9
-```
-
-### Hybrid TLS Handler Structure
-
-```mermaid
-graph TB
-    subgraph "HybridTlsHandler"
-        A[handle_tls_connection_upgraded]
-        B[TlsVersionDetector]
-        C{Version Check}
-        D[handle_with_rustls_upgraded]
-        E[handle_with_native_tls_upgraded]
-    end
-
-    subgraph "Certificate Authority"
-        F[RcgenAuthority]
-        G[OpensslAuthority]
-    end
 
-    subgraph "TLS Libraries"
-        H[rustls]
-        I[native-tls]
-    end
-
-    A --> B
-    B --> C
-    C -->|TLS 1.2/1.3| D
-    C -->|TLS 1.0/1.1| E
-    D --> F
-    D --> H
-    E --> G
-    E --> I
+Traffic that passes through tunnel mode appears in the traffic list as CONNECT requests, but the request and response bodies are not available for inspection.
 
-    style A fill:#ffecb3
-    style C fill:#f3e5f5
-    style H fill:#e8f5e8
-    style I fill:#e8f5e8
-```
+---
 
-## 📁 Key Implementation Files
+## Troubleshooting
 
-### 1. CertificateAuthority Trait Extension
+### Certificate Not Trusted
 
-- `proxyapi_v2/src/certificate_authority/mod.rs`
-- Added `gen_pkcs12_identity()` method
+**Symptom:** Your browser shows a certificate warning or your app refuses to connect with "certificate verify failed."
 
-### 2. PKCS12 Certificate Generation
+**Solution:** The proxy's CA certificate is not installed or not trusted on your device. Open Cheolsu Proxy's settings and follow the CA certificate installation instructions for your platform. On macOS, the certificate needs to be added to the Keychain and marked as trusted. On Windows, it needs to be added to the Trusted Root Certification Authorities store.
 
-- `proxyapi_v2/src/certificate_authority/rcgen_authority.rs`
-- `proxyapi_v2/src/certificate_authority/openssl_authority.rs`
-- Convert rcgen/OpenSSL certificates to PKCS12
+### Connection Fails for Specific Hosts
 
-### 3. Hybrid TLS Handler
+**Symptom:** Requests to certain hosts (often Apple services) fail with a TLS handshake error.
 
-- `proxyapi_v2/src/hybrid_tls_handler.rs`
-- TLS version detection and appropriate handler selection
-- Perfect support for Upgraded streams
+**Solution:** These hosts likely use certificate pinning. Check whether the host is already in the tunnel mode list. If not, it may need to be added. In most cases, Cheolsu Proxy's default tunnel list covers the common cases.
 
-### 4. Proxy Integration
+### Legacy Client Cannot Connect
 
-- `proxyapi_v2/src/proxy/internal.rs`
-- Integration of existing rustls logic with hybrid handler
+**Symptom:** An older application or device using TLS 1.0/1.1 cannot establish a connection through the proxy.
 
-## 🚀 Usage
+**Solution:** Verify that the proxy was built with legacy TLS support enabled (the `native-tls-client` feature). This is included in the standard distribution. If the client still fails, check that the system's OpenSSL library supports the required TLS version.
 
-### Build
+### Slow TLS Handshakes
 
-```bash
-cargo build --package proxyapi_v2 \
-  --features "native-tls-client,rcgen-ca,openssl-ca"
-```
+**Symptom:** HTTPS requests take noticeably longer than expected to start.
 
-### Test
+**Solution:** Certificate generation happens on the fly for each new host. The first request to a host may be slightly slower. Subsequent requests to the same host reuse the cached certificate and should be fast.
 
-```bash
-cargo run --example tls_hybrid_test \
-  --features "native-tls-client,rcgen-ca,openssl-ca" \
-  --package proxyapi_v2
-```
+---
 
-## 📊 Test Results
+## Security Notes
 
-```
-📋 TLS Version Detection Test:
---------------------------
-  TLS 1.0 → "TLS 1.0" (native-tls) ✅
-  TLS 1.1 → "TLS 1.1" (native-tls) ✅
-  TLS 1.2 → "TLS 1.2" (rustls) ✅
-  TLS 1.3 → "TLS 1.3" (rustls) ✅
-```
+TLS 1.0 and 1.1 are considered deprecated and have known vulnerabilities. Cheolsu Proxy supports them to enable inspection of legacy traffic during development and debugging, not for production use. If you are inspecting traffic from a legacy client, be aware that the connection between the client and the proxy uses weaker cryptography than TLS 1.2+.
 
-## 🔍 Technical Details
-
-### PKCS12 Conversion Flow
-
-```
-rcgen Certificate (DER)
-→ openssl::x509::X509
-→ openssl::pkcs12::Pkcs12
-→ native_tls::Identity
-```
-
-### TLS Version Detection
-
-```rust
-// Extract version from TLS record header
-let version_bytes = [buffer[3], buffer[4]];
-match version_bytes {
-    [0x03, 0x01] => Some(TlsVersion::Tls10),
-    [0x03, 0x02] => Some(TlsVersion::Tls11),
-    [0x03, 0x03] => Some(TlsVersion::Tls12),
-    [0x03, 0x04] => Some(TlsVersion::Tls13),
-    _ => None,
-}
-```
-
-## 🛡️ Security Considerations
-
-### Risks of Legacy TLS Support
-
-- **TLS 1.0/1.1 have security vulnerabilities**
-- Use of vulnerable encryption algorithms like RC4, MD5, SHA-1
-- Vulnerable to attacks like BEAST, POODLE
-
-### Recommendations
-
-1. **Use Latest TLS Versions**: Use TLS 1.2 or higher whenever possible
-2. **Upgrade Legacy Clients**: Recommend updating old clients
-3. **Establish Security Policies**: Clear policies for legacy TLS usage
-
-## 🔧 Troubleshooting
-
-### Tunnel Mode Related Issues
-
-**Symptoms**: Connection failures to Apple services or specific hosts
-
-**Solutions**:
-
-1. Check tunnel mode target host list
-2. Verify tunnel event logs (`🚇 [TUNNEL-EVENT]` logs)
-3. Ensure `tunnel_event_sender` is properly configured
-4. Check tunnel mode timeout settings (default 5 minutes)
-
-### TLS Handshake Failure
-
-**Symptoms**: TLS 1.0/1.1 clients cannot connect
-
-**Solutions**:
-
-1. Verify native-tls feature is enabled
-2. Check if OpenSSL library is installed
-3. Verify PKCS12 certificate generation succeeded
-
-### Certificate Errors
-
-**Symptoms**: "certificate verify failed" error
-
-**Solutions**:
-
-1. Verify CA certificate is properly installed
-2. Check certificate chain validation logic
-3. Verify system time is correct
-
-### Performance Issues
-
-**Symptoms**: Slow TLS handshake
-
-**Solutions**:
-
-1. Implement certificate generation caching
-2. Optimize connection pooling
-3. Monitor memory usage
-
-## 📈 Future Improvements
-
-### Performance Optimization
-
-- [ ] Certificate generation caching
-- [ ] Connection pooling implementation
-- [ ] Memory usage optimization
-
-### Security Enhancement
-
-- [ ] TLS 1.0/1.1 usage warnings
-- [ ] Vulnerable encryption algorithm detection
-- [ ] Security policy enforcement
-
-### Monitoring
-
-- [ ] TLS version-specific statistics
-- [ ] Security event logging
-- [ ] Performance metrics collection
+For best security, upgrade legacy clients to support TLS 1.2 or higher whenever possible.
