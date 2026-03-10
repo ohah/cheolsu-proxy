@@ -64,6 +64,7 @@ fn draw_rules_list(f: &mut Frame, app: &mut App, area: Rect) {
                 InterceptAction::MapRemote { target_url, .. } => {
                     format!("MapRemote({})", truncate(target_url, 20))
                 }
+                InterceptAction::Rewrite { .. } => "Rewrite".to_string(),
             };
 
             let method = rule.method.as_deref().unwrap_or("*");
