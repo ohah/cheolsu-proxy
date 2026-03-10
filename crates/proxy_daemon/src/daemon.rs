@@ -1,5 +1,5 @@
 use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
 use std::sync::Arc;
 use tokio::net::UnixListener;
 use tokio::sync::{broadcast, watch};
@@ -159,6 +159,10 @@ fn init_filesystem(port: u16) -> Result<(PathBuf, String), i32> {
 struct DaemonContext {
     event_tx: broadcast::Sender<String>,
     client_count: Arc<AtomicUsize>,
+    /// 데몬 시작 시각 (헬스체크용 uptime 계산)
+    started_at: std::time::Instant,
+    /// 총 트랜잭션 수 (헬스체크용)
+    total_transactions: Arc<AtomicU64>,
     shutdown_tx: tokio::sync::mpsc::Sender<()>,
     intercept_tx: watch::Sender<Vec<crate::protocol::InterceptRule>>,
     upstream_tx: watch::Sender<Option<UpstreamProxyConfig>>,
@@ -322,12 +326,15 @@ async fn run_accept_loop(
                         let script_handle_clone = ctx.script_handle.clone();
                         let quick_settings_clone = ctx.quick_settings.clone();
                         let proxy_auth_clone = ctx.proxy_auth.clone();
+                        let started_at = ctx.started_at;
+                        let total_transactions_clone = ctx.total_transactions.clone();
+                        let client_count_for_health = ctx.client_count.clone();
 
                         tokio::spawn(async move {
                             // guard가 이 태스크 스코프에 소유되므로, 태스크가 어떤 방식으로
                             // 종료되든 (정상, 패닉, abort) Drop이 호출되어 카운트가 감소됩니다.
                             let _guard = _guard;
-                            handle_client(stream, event_rx, intercept_tx_clone, upstream_tx_clone, server_replay_tx_clone, throttle_tx_clone, breakpoint_tx_clone, breakpoint_mgr_clone, host_mapping_tx_clone, ssl_proxying_tx_clone, client_cert_tx_clone, event_tx_clone, port, registry_clone, script_handle_clone, quick_settings_clone, proxy_auth_clone)
+                            handle_client(stream, event_rx, intercept_tx_clone, upstream_tx_clone, server_replay_tx_clone, throttle_tx_clone, breakpoint_tx_clone, breakpoint_mgr_clone, host_mapping_tx_clone, ssl_proxying_tx_clone, client_cert_tx_clone, event_tx_clone, port, registry_clone, script_handle_clone, quick_settings_clone, proxy_auth_clone, started_at, total_transactions_clone, client_count_for_health)
                                 .await;
                         });
                     }
@@ -432,9 +439,34 @@ async fn daemon_main(port: u16, host: String) -> i32 {
 
     let signal_handles = spawn_signal_handlers(shutdown_tx.clone());
 
+    let started_at = std::time::Instant::now();
+    let total_transactions = Arc::new(AtomicU64::new(0));
+
+    // 트랜잭션 카운터: broadcast 채널을 구독하여 Event 메시지를 카운트
+    {
+        let mut counter_rx = event_tx.subscribe();
+        let total_tx_clone = total_transactions.clone();
+        tokio::spawn(async move {
+            loop {
+                match counter_rx.recv().await {
+                    Ok(msg) => {
+                        // Event 메시지(트랜잭션)만 카운트
+                        if msg.contains(r#""type":"event""#) {
+                            total_tx_clone.fetch_add(1, Ordering::Relaxed);
+                        }
+                    }
+                    Err(broadcast::error::RecvError::Lagged(_)) => continue,
+                    Err(broadcast::error::RecvError::Closed) => break,
+                }
+            }
+        });
+    }
+
     let ctx = DaemonContext {
         event_tx,
         client_count: Arc::new(AtomicUsize::new(0)),
+        started_at,
+        total_transactions,
         shutdown_tx,
         intercept_tx,
         upstream_tx,

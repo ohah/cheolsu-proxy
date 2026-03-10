@@ -78,6 +78,13 @@ pub enum DaemonMessage {
     /// 클라이언트 인증서 설정 업데이트됨
     #[serde(rename = "client_certificate_updated")]
     ClientCertificateUpdated { config: Option<ClientCertConfig> },
+    /// 헬스체크 결과
+    #[serde(rename = "health_check_result")]
+    HealthCheckResult {
+        uptime_secs: u64,
+        active_connections: usize,
+        total_transactions: u64,
+    },
     /// 데몬 연결이 끊어졌음을 알리는 메시지
     #[serde(rename = "disconnected")]
     Disconnected { reason: String },
@@ -158,6 +165,9 @@ pub enum ClientCommand {
     /// 클라이언트 인증서 설정 업데이트 (mTLS)
     #[serde(rename = "update_client_certificate")]
     UpdateClientCertificate { config: Option<ClientCertConfig> },
+    /// 헬스체크 요청
+    #[serde(rename = "health_check")]
+    HealthCheck,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -971,6 +981,58 @@ mod tests {
             _ => panic!("Expected Disconnected"),
         }
         assert!(matches!(parsed[1], DaemonMessage::Reconnected));
+    }
+
+    #[test]
+    fn test_health_check_command_serialize() {
+        let cmd = ClientCommand::HealthCheck;
+        let json = serde_json::to_string(&cmd).unwrap();
+        assert!(json.contains("health_check"));
+        let deserialized: ClientCommand = serde_json::from_str(&json).unwrap();
+        assert!(matches!(deserialized, ClientCommand::HealthCheck));
+    }
+
+    #[test]
+    fn test_health_check_result_message_serialize() {
+        let msg = DaemonMessage::HealthCheckResult {
+            uptime_secs: 3600,
+            active_connections: 5,
+            total_transactions: 1234,
+        };
+        let json = serde_json::to_string(&msg).unwrap();
+        assert!(json.contains("health_check_result"));
+
+        let deserialized: DaemonMessage = serde_json::from_str(&json).unwrap();
+        match deserialized {
+            DaemonMessage::HealthCheckResult {
+                uptime_secs,
+                active_connections,
+                total_transactions,
+            } => {
+                assert_eq!(uptime_secs, 3600);
+                assert_eq!(active_connections, 5);
+                assert_eq!(total_transactions, 1234);
+            }
+            _ => panic!("Expected HealthCheckResult"),
+        }
+    }
+
+    #[test]
+    fn test_health_check_result_roundtrip() {
+        let json = r#"{"type":"health_check_result","uptime_secs":120,"active_connections":0,"total_transactions":42}"#;
+        let msg: DaemonMessage = serde_json::from_str(json).unwrap();
+        match msg {
+            DaemonMessage::HealthCheckResult {
+                uptime_secs,
+                active_connections,
+                total_transactions,
+            } => {
+                assert_eq!(uptime_secs, 120);
+                assert_eq!(active_connections, 0);
+                assert_eq!(total_transactions, 42);
+            }
+            _ => panic!("Expected HealthCheckResult"),
+        }
     }
 
     #[test]
