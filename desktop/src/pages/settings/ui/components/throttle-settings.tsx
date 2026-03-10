@@ -3,7 +3,17 @@ import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
 import { useAppSettingsStore } from "@/shared/stores/app-settings-store";
 import { updateThrottle, type ThrottleConfig } from "@/shared/api/proxy";
-import { Button, Input, Switch, Badge, Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/shared/ui";
+import {
+  Button,
+  Input,
+  Switch,
+  Badge,
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@/shared/ui";
 
 const THROTTLE_PRESETS = [
   { value: "none", label: "None", config: null },
@@ -112,7 +122,14 @@ export function ThrottleSettings() {
     } finally {
       setThrottleSaving(false);
     }
-  }, [throttleEnabled, throttlePreset, throttleDownload, throttleUpload, throttleLatency, setThrottleConfig]);
+  }, [
+    throttleEnabled,
+    throttlePreset,
+    throttleDownload,
+    throttleUpload,
+    throttleLatency,
+    setThrottleConfig,
+  ]);
 
   return (
     <div className="border rounded-lg p-5 space-y-5">

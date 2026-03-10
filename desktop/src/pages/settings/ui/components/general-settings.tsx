@@ -7,14 +7,7 @@ import { useAppSettingsStore } from "@/shared/stores/app-settings-store";
 import { updateQuickSettings } from "@/shared/api/proxy";
 import { useProxyStore } from "@/shared/stores/proxy-store";
 import { useEffect } from "react";
-import {
-  Switch,
-  Select,
-  SelectTrigger,
-  SelectContent,
-  SelectItem,
-  SelectValue,
-} from "@/shared/ui";
+import { Switch, Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/shared/ui";
 
 const THEME_OPTIONS = [
   { value: "system", label: "System" },
@@ -58,8 +51,7 @@ export function GeneralSettings() {
   const handleNoCachingChange = useCallback(
     async (checked: boolean) => {
       setNoCaching(checked);
-      
-      
+
       const { quickSettingsBlockCookies, quickSettingsNoGzip } = useAppSettingsStore.getState();
       updateQuickSettings(checked, quickSettingsBlockCookies, quickSettingsNoGzip).catch((e) => {
         console.error("No Caching 설정 실패:", e);
@@ -71,8 +63,7 @@ export function GeneralSettings() {
   const handleBlockCookiesChange = useCallback(
     async (checked: boolean) => {
       setBlockCookies(checked);
-      
-      
+
       const { quickSettingsNoCaching, quickSettingsNoGzip } = useAppSettingsStore.getState();
       updateQuickSettings(quickSettingsNoCaching, checked, quickSettingsNoGzip).catch((e) => {
         console.error("Block Cookies 설정 실패:", e);
@@ -84,8 +75,7 @@ export function GeneralSettings() {
   const handleNoGzipChange = useCallback(
     async (checked: boolean) => {
       setNoGzip(checked);
-      
-      
+
       const { quickSettingsNoCaching, quickSettingsBlockCookies } = useAppSettingsStore.getState();
       updateQuickSettings(quickSettingsNoCaching, quickSettingsBlockCookies, checked).catch((e) => {
         console.error("No Gzip 설정 실패:", e);
@@ -97,8 +87,13 @@ export function GeneralSettings() {
   // 프록시 연결 시 Quick Settings 동기화
   useEffect(() => {
     if (isProxyConnected) {
-      const { quickSettingsNoCaching, quickSettingsBlockCookies, quickSettingsNoGzip } = useAppSettingsStore.getState();
-      updateQuickSettings(quickSettingsNoCaching, quickSettingsBlockCookies, quickSettingsNoGzip).catch(() => {});
+      const { quickSettingsNoCaching, quickSettingsBlockCookies, quickSettingsNoGzip } =
+        useAppSettingsStore.getState();
+      updateQuickSettings(
+        quickSettingsNoCaching,
+        quickSettingsBlockCookies,
+        quickSettingsNoGzip,
+      ).catch(() => {});
     }
   }, [isProxyConnected]); // eslint-disable-line react-hooks/exhaustive-deps
 

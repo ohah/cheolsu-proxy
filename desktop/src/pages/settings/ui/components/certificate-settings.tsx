@@ -244,12 +244,12 @@ export function CertificateSettings() {
 
               <div className="text-xs text-muted-foreground space-y-1">
                 <p>
-                  <code className="bg-muted px-1 py-0.5 rounded">{CERT_DOWNLOAD_PATHS.pem}</code>{" "}
-                  — PEM {t`format`} (iOS)
+                  <code className="bg-muted px-1 py-0.5 rounded">{CERT_DOWNLOAD_PATHS.pem}</code> —
+                  PEM {t`format`} (iOS)
                 </p>
                 <p>
-                  <code className="bg-muted px-1 py-0.5 rounded">{CERT_DOWNLOAD_PATHS.der}</code>{" "}
-                  — DER {t`format`} (Android)
+                  <code className="bg-muted px-1 py-0.5 rounded">{CERT_DOWNLOAD_PATHS.der}</code> —
+                  DER {t`format`} (Android)
                 </p>
                 <p>
                   <code className="bg-muted px-1 py-0.5 rounded">
@@ -319,9 +319,7 @@ export function CertificateSettings() {
                   onClick={() => setShowAndroidGuide(!showAndroidGuide)}
                 >
                   <span>Android {t`Install Guide`}</span>
-                  <span className="text-muted-foreground">
-                    {showAndroidGuide ? "▲" : "▼"}
-                  </span>
+                  <span className="text-muted-foreground">{showAndroidGuide ? "▲" : "▼"}</span>
                 </button>
                 {showAndroidGuide && (
                   <div
@@ -339,8 +337,7 @@ export function CertificateSettings() {
                       </li>
                       <li>
                         <Trans>
-                          Go to{" "}
-                          <strong>Settings → Security → Encryption & credentials</strong>
+                          Go to <strong>Settings → Security → Encryption & credentials</strong>
                         </Trans>
                       </li>
                       <li>
