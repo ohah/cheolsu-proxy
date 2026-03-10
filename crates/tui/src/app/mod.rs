@@ -131,6 +131,9 @@ pub struct App {
     // Upstream Proxy
     pub upstream_form: UpstreamProxyForm,
 
+    // Proxy Authentication
+    pub proxy_auth_form: ProxyAuthForm,
+
     // Throttle
     pub throttle_form: ThrottleForm,
 
@@ -212,6 +215,7 @@ impl App {
             script_log_scroll: 0,
             settings_section: SettingsSection::UpstreamProxy,
             upstream_form: UpstreamProxyForm::new(),
+            proxy_auth_form: ProxyAuthForm::new(),
             throttle_form: ThrottleForm::new(),
             quick_settings_form: QuickSettingsForm::new(),
             host_mappings: Vec::new(),
@@ -516,6 +520,19 @@ impl App {
             let config = self.upstream_form.to_config();
             let cmd = ClientCommand::UpdateUpstreamProxy { config };
             let _ = conn.send_command(&cmd).await;
+        }
+    }
+
+    pub(crate) async fn send_proxy_auth_update(&mut self) {
+        if let Some(conn) = &self.conn {
+            let config = self.proxy_auth_form.to_config();
+            let cmd = ClientCommand::UpdateProxyAuth { config };
+            let _ = conn.send_command(&cmd).await;
+            if self.proxy_auth_form.enabled {
+                self.set_status("Proxy Auth: ON");
+            } else {
+                self.set_status("Proxy Auth: OFF");
+            }
         }
     }
 

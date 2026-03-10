@@ -645,7 +645,7 @@ impl App {
 
     async fn handle_settings_key(&mut self, key: KeyEvent) {
         use super::forms::{
-            QuickSettingsField, SettingsSection, SslProxyingAddForm, ThrottleField,
+            ProxyAuthField, QuickSettingsField, SettingsSection, SslProxyingAddForm, ThrottleField,
             UpstreamProxyField,
         };
 
@@ -664,6 +664,7 @@ impl App {
         // Text editing mode (upstream or throttle)
         let is_editing = match self.settings_section {
             SettingsSection::UpstreamProxy => self.upstream_form.editing,
+            SettingsSection::ProxyAuth => self.proxy_auth_form.editing,
             SettingsSection::Throttle => self.throttle_form.editing,
             SettingsSection::HostMapping
             | SettingsSection::QuickSettings
@@ -737,6 +738,32 @@ impl App {
                         _ => {}
                     }
                 }
+                SettingsSection::ProxyAuth => match key.code {
+                    KeyCode::Esc => {
+                        self.proxy_auth_form.editing = false;
+                    }
+                    KeyCode::Enter => {
+                        self.proxy_auth_form.editing = false;
+                        self.send_proxy_auth_update().await;
+                    }
+                    KeyCode::Char(c) => {
+                        let field = match self.proxy_auth_form.field {
+                            ProxyAuthField::Username => &mut self.proxy_auth_form.username,
+                            ProxyAuthField::Password => &mut self.proxy_auth_form.password,
+                            _ => return,
+                        };
+                        field.push(c);
+                    }
+                    KeyCode::Backspace => {
+                        let field = match self.proxy_auth_form.field {
+                            ProxyAuthField::Username => &mut self.proxy_auth_form.username,
+                            ProxyAuthField::Password => &mut self.proxy_auth_form.password,
+                            _ => return,
+                        };
+                        field.pop();
+                    }
+                    _ => {}
+                },
                 SettingsSection::HostMapping
                 | SettingsSection::QuickSettings
                 | SettingsSection::SslProxying => {
@@ -759,6 +786,9 @@ impl App {
             KeyCode::Up | KeyCode::Char('k') => match self.settings_section {
                 SettingsSection::UpstreamProxy => {
                     self.upstream_form.field = self.upstream_form.field.prev();
+                }
+                SettingsSection::ProxyAuth => {
+                    self.proxy_auth_form.field = self.proxy_auth_form.field.prev();
                 }
                 SettingsSection::Throttle => {
                     self.throttle_form.field = self.throttle_form.field.prev();
@@ -790,6 +820,9 @@ impl App {
             KeyCode::Down | KeyCode::Char('j') => match self.settings_section {
                 SettingsSection::UpstreamProxy => {
                     self.upstream_form.field = self.upstream_form.field.next();
+                }
+                SettingsSection::ProxyAuth => {
+                    self.proxy_auth_form.field = self.proxy_auth_form.field.next();
                 }
                 SettingsSection::Throttle => {
                     self.throttle_form.field = self.throttle_form.field.next();
@@ -829,6 +862,14 @@ impl App {
                         self.send_upstream_update().await;
                     } else {
                         self.upstream_form.editing = true;
+                    }
+                }
+                SettingsSection::ProxyAuth => {
+                    if self.proxy_auth_form.field == ProxyAuthField::Enabled {
+                        self.proxy_auth_form.enabled = !self.proxy_auth_form.enabled;
+                        self.send_proxy_auth_update().await;
+                    } else {
+                        self.proxy_auth_form.editing = true;
                     }
                 }
                 SettingsSection::Throttle => match self.throttle_form.field {

@@ -101,10 +101,62 @@ impl UpstreamProxyForm {
     }
 }
 
+/// Proxy Authentication 폼
+#[derive(Debug, Clone)]
+pub struct ProxyAuthForm {
+    pub enabled: bool,
+    pub field: ProxyAuthField,
+    pub editing: bool,
+    pub username: String,
+    pub password: String,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ProxyAuthField {
+    Enabled,
+    Username,
+    Password,
+}
+
+impl ProxyAuthField {
+    pub const ALL: [ProxyAuthField; 3] = [Self::Enabled, Self::Username, Self::Password];
+
+    pub fn label(&self) -> &'static str {
+        match self {
+            Self::Enabled => "Enabled",
+            Self::Username => "Username",
+            Self::Password => "Password",
+        }
+    }
+}
+
+cycle_enum!(ProxyAuthField);
+
+impl ProxyAuthForm {
+    pub fn new() -> Self {
+        Self {
+            enabled: false,
+            field: ProxyAuthField::Enabled,
+            editing: false,
+            username: String::new(),
+            password: String::new(),
+        }
+    }
+
+    pub fn to_config(&self) -> proxy_daemon::ProxyAuthConfig {
+        proxy_daemon::ProxyAuthConfig {
+            enabled: self.enabled,
+            username: self.username.clone(),
+            password: self.password.clone(),
+        }
+    }
+}
+
 /// Settings 탭 섹션 선택
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SettingsSection {
     UpstreamProxy,
+    ProxyAuth,
     Throttle,
     HostMapping,
     QuickSettings,
@@ -112,8 +164,9 @@ pub enum SettingsSection {
 }
 
 impl SettingsSection {
-    pub const ALL: [SettingsSection; 5] = [
+    pub const ALL: [SettingsSection; 6] = [
         Self::UpstreamProxy,
+        Self::ProxyAuth,
         Self::Throttle,
         Self::HostMapping,
         Self::QuickSettings,
@@ -740,6 +793,8 @@ mod tests {
     fn settings_section_next_prev_cycle() {
         let mut section = SettingsSection::UpstreamProxy;
         section = section.next();
+        assert_eq!(section, SettingsSection::ProxyAuth);
+        section = section.next();
         assert_eq!(section, SettingsSection::Throttle);
         section = section.next();
         assert_eq!(section, SettingsSection::HostMapping);
@@ -751,6 +806,62 @@ mod tests {
         assert_eq!(section, SettingsSection::UpstreamProxy);
         section = section.prev();
         assert_eq!(section, SettingsSection::SslProxying);
+    }
+
+    // -- ProxyAuthField --
+
+    #[test]
+    fn proxy_auth_field_next_prev_cycle() {
+        let mut field = ProxyAuthField::Enabled;
+        for _ in 0..ProxyAuthField::ALL.len() {
+            field = field.next();
+        }
+        assert_eq!(field, ProxyAuthField::Enabled);
+
+        for _ in 0..ProxyAuthField::ALL.len() {
+            field = field.prev();
+        }
+        assert_eq!(field, ProxyAuthField::Enabled);
+    }
+
+    #[test]
+    fn proxy_auth_field_labels_not_empty() {
+        for field in ProxyAuthField::ALL {
+            assert!(!field.label().is_empty());
+        }
+    }
+
+    // -- ProxyAuthForm --
+
+    #[test]
+    fn proxy_auth_form_new_defaults() {
+        let form = ProxyAuthForm::new();
+        assert!(!form.enabled);
+        assert_eq!(form.field, ProxyAuthField::Enabled);
+        assert!(!form.editing);
+        assert!(form.username.is_empty());
+        assert!(form.password.is_empty());
+    }
+
+    #[test]
+    fn proxy_auth_form_to_config() {
+        let mut form = ProxyAuthForm::new();
+        form.enabled = true;
+        form.username = "admin".to_string();
+        form.password = "secret".to_string();
+        let config = form.to_config();
+        assert!(config.enabled);
+        assert_eq!(config.username, "admin");
+        assert_eq!(config.password, "secret");
+    }
+
+    #[test]
+    fn proxy_auth_form_to_config_disabled() {
+        let form = ProxyAuthForm::new();
+        let config = form.to_config();
+        assert!(!config.enabled);
+        assert!(config.username.is_empty());
+        assert!(config.password.is_empty());
     }
 
     // -- ThrottlePresetChoice --
