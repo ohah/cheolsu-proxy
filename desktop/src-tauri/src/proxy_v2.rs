@@ -25,7 +25,7 @@ const DIAG_ENABLE_ADVANCED_REPEAT: bool = false;
 /// Group E: 이벤트 포워딩 (false = app.emit 호출 자체를 하지 않음)
 const DIAG_ENABLE_EVENT_FORWARDING: bool = false;
 /// Group F: 프록시 daemon 연결 (false = start_proxy_v2가 연결 없이 성공 반환)
-const DIAG_ENABLE_PROXY_CONNECTION: bool = false;
+const DIAG_ENABLE_PROXY_CONNECTION: bool = true;
 
 /// DaemonMessage를 app.emit()으로 전달하는 헬퍼
 fn emit_daemon_message<R: Runtime>(app: &AppHandle<R>, msg: DaemonMessage) {
