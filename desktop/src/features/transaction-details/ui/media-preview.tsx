@@ -5,7 +5,7 @@ import {
 } from "@/entities/proxy/model/data-type";
 import type { DataType } from "@/entities/proxy/model/data-type";
 import { readFile, BaseDirectory } from "@tauri-apps/plugin-fs";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 interface MediaPreviewProps {
   data?: Uint8Array; // 파일 경로가 있으면 선택적
@@ -234,6 +234,7 @@ export const MediaPreview = ({
   const [mediaUrl, setMediaUrl] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const mediaUrlRef = useRef<string>("");
 
   useEffect(() => {
     const loadMedia = async () => {
@@ -275,9 +276,15 @@ export const MediaPreview = ({
           throw new Error("파일 데이터가 없습니다");
         }
 
+        // 이전 URL 해제
+        if (mediaUrlRef.current) {
+          URL.revokeObjectURL(mediaUrlRef.current);
+        }
+
         // Blob 생성
         const blob = new Blob([fileData as BlobPart], { type: detectedMimeType });
         const url = URL.createObjectURL(blob);
+        mediaUrlRef.current = url;
         setMediaUrl(url);
       } catch (err) {
         console.error("미디어 로드 실패:", err);
@@ -289,10 +296,11 @@ export const MediaPreview = ({
 
     loadMedia();
 
-    // Cleanup
+    // Cleanup: ref를 사용하여 항상 최신 URL을 해제
     return () => {
-      if (mediaUrl) {
-        URL.revokeObjectURL(mediaUrl);
+      if (mediaUrlRef.current) {
+        URL.revokeObjectURL(mediaUrlRef.current);
+        mediaUrlRef.current = "";
       }
     };
   }, [filePath, data, mimeType]);
@@ -330,13 +338,7 @@ export const MediaPreview = ({
   if (isImageDataType(dataType)) {
     return (
       <div className={className}>
-        <img
-          src={mediaUrl}
-          alt="Image preview"
-          className="max-w-full max-h-full object-contain"
-          onLoad={() => URL.revokeObjectURL(mediaUrl)}
-          onError={() => URL.revokeObjectURL(mediaUrl)}
-        />
+        <img src={mediaUrl} alt="Image preview" className="max-w-full max-h-full object-contain" />
       </div>
     );
   }
@@ -344,13 +346,7 @@ export const MediaPreview = ({
   if (isVideoDataType(dataType)) {
     return (
       <div className={className}>
-        <video
-          src={mediaUrl}
-          controls
-          className="max-w-full max-h-full"
-          onLoadedData={() => URL.revokeObjectURL(mediaUrl)}
-          onError={() => URL.revokeObjectURL(mediaUrl)}
-        >
+        <video src={mediaUrl} controls className="max-w-full max-h-full">
           Your browser does not support the video tag.
         </video>
       </div>
@@ -360,13 +356,7 @@ export const MediaPreview = ({
   if (isAudioDataType(dataType)) {
     return (
       <div className={className}>
-        <audio
-          src={mediaUrl}
-          controls
-          className="w-full"
-          onLoadedData={() => URL.revokeObjectURL(mediaUrl)}
-          onError={() => URL.revokeObjectURL(mediaUrl)}
-        >
+        <audio src={mediaUrl} controls className="w-full">
           Your browser does not support the audio tag.
         </audio>
       </div>
