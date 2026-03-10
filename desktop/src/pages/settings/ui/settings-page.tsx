@@ -130,9 +130,7 @@ export function SettingsPage() {
   const [bypass, setBypass] = useState("localhost, 127.0.0.1");
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<"idle" | "saved" | "error">("idle");
-  const [locale, setLocale] = useState<Locale>(
-    () => useAppSettingsStore.getState().locale || "en",
-  );
+  const [locale, setLocale] = useState<Locale>(() => useAppSettingsStore.getState().locale || "en");
   const [cliInstalled, setCliInstalled] = useState(false);
   const [cliInstalling, setCliInstalling] = useState(false);
   const [cliMessage, setCliMessage] = useState("");
@@ -224,9 +222,7 @@ export function SettingsPage() {
   const [blockCookies, setBlockCookies] = useState(
     () => useAppSettingsStore.getState().quickSettingsBlockCookies,
   );
-  const [noGzip, setNoGzip] = useState(
-    () => useAppSettingsStore.getState().quickSettingsNoGzip,
-  );
+  const [noGzip, setNoGzip] = useState(() => useAppSettingsStore.getState().quickSettingsNoGzip);
 
   const [autosaveEnabled, setAutosaveEnabled] = useState(
     () => useAppSettingsStore.getState().autosaveSession,
