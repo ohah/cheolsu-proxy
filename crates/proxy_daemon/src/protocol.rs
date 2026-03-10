@@ -663,6 +663,25 @@ mod tests {
     }
 
     #[test]
+    fn test_proxy_auth_config_debug_masks_password() {
+        let config = ProxyAuthConfig {
+            enabled: true,
+            username: "admin".to_string(),
+            password: "super_secret_password".to_string(),
+        };
+        let debug_output = format!("{:?}", config);
+        assert!(
+            !debug_output.contains("super_secret_password"),
+            "Debug output must not contain the actual password"
+        );
+        assert!(
+            debug_output.contains("****"),
+            "Debug output must mask the password with ****"
+        );
+        assert!(debug_output.contains("admin"));
+    }
+
+    #[test]
     fn test_proxy_auth_config_serde_roundtrip() {
         let config = ProxyAuthConfig {
             enabled: true,
