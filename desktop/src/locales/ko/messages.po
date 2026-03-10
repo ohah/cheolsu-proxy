@@ -115,7 +115,7 @@ msgstr "테스트를 위해 DNS 호스트명을 다른 대상 호스트로 리�
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:230
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:470
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:348
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:114
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:113
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:96
 #: src/pages/map-rules/ui/map-rules-page.tsx:85
 msgid "Add Rule"
@@ -133,7 +133,7 @@ msgstr "URL을 로컬 파일에 매핑하거나 다른 서버로 리다이렉트
 msgid "Add your first mapping"
 msgstr "첫 번째 매핑 추가"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:236
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:172
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:115
 #: src/pages/map-rules/ui/map-rules-page.tsx:104
 msgid "Add your first rule"
@@ -389,7 +389,7 @@ msgstr "요청 간 딜레이 (ms)"
 msgid "Delete mapping"
 msgstr "매핑 삭제"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:279
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:210
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:202
 #: src/pages/map-rules/ui/map-rules-page.tsx:176
 msgid "Delete rule"
@@ -1109,7 +1109,7 @@ msgid "Replay request"
 msgstr "요청 리플레이"
 
 #: src/features/transaction-details/ui/replay-dialog.tsx:377
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:259
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:191
 msgid "Request"
 msgstr "요청"
 
@@ -1142,7 +1142,7 @@ msgid "Requests/sec"
 msgstr "초당 요청 수"
 
 #: src/features/transaction-details/ui/replay-dialog.tsx:391
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:264
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:196
 msgid "Response"
 msgstr "응답"
 
@@ -1216,7 +1216,7 @@ msgstr "규칙 이름 (선택사항)"
 msgid "Rule updated"
 msgstr "규칙이 수정되었습니다"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:104
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:103
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:86
 #: src/pages/map-rules/ui/map-rules-page.tsx:75
 msgid "rules"
