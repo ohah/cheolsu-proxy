@@ -120,8 +120,8 @@ impl CheolsuMcpServer {
                 true
             })
             .take(limit)
-            .map(|info| {
-                let req = info.0.as_ref().unwrap();
+            .filter_map(|info| {
+                let req = info.0.as_ref()?;
                 let status = info
                     .1
                     .as_ref()
@@ -137,7 +137,7 @@ impl CheolsuMcpServer {
                     .as_ref()
                     .map(|r| format!("{:?}", r.data_type()))
                     .unwrap_or_default();
-                format!(
+                Some(format!(
                     "[{}] {} {} → {} ({}) {}",
                     req.id(),
                     req.method(),
@@ -145,7 +145,7 @@ impl CheolsuMcpServer {
                     status,
                     size,
                     dtype,
-                )
+                ))
             })
             .collect();
 

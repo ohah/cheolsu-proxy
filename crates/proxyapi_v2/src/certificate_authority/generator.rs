@@ -115,7 +115,7 @@ pub fn generate_and_save_ca(storage_dir: &std::path::Path) -> Result<RcgenAuthor
     {
         info!(
             cert_path = %cer_path.display(),
-            folder_path = %cer_path.parent().unwrap().display(),
+            folder_path = %cer_path.parent().unwrap_or(&cer_path).display(),
             "키체인에 수동으로 설치해주세요: \
             1) Keychain Access 앱 실행 \
             2) 'login' 키체인 선택 \

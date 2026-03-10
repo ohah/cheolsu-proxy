@@ -237,8 +237,7 @@ impl Service<Uri> for ProxyHttpConnector {
                 None => false,
             };
 
-            let stream = if should_proxy {
-                let config = upstream.as_ref().unwrap();
+            let stream = if let (true, Some(config)) = (should_proxy, upstream.as_ref()) {
                 if is_https {
                     // HTTPS: CONNECT 터널을 통해 연결
                     let target = format!("{}:{}", host, port);
