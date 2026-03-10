@@ -132,6 +132,9 @@ pub enum ClientCommand {
     /// SSL Proxying 화이트리스트 업데이트
     #[serde(rename = "update_ssl_proxying_list")]
     UpdateSslProxyingList { entries: Vec<SslProxyingEntry> },
+    /// 프록시 인증 설정 업데이트
+    #[serde(rename = "update_proxy_auth")]
+    UpdateProxyAuth { config: ProxyAuthConfig },
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -347,6 +350,49 @@ pub struct SslProxyingEntry {
     /// 도메인 패턴 (예: "example.com", "*.example.com", "example.com:443")
     pub pattern: String,
     pub enabled: bool,
+}
+
+/// 프록시 서버 자체의 인증 설정
+/// 활성화 시, 클라이언트가 Proxy-Authorization 헤더로 Basic 인증을 해야만 프록시를 사용할 수 있음
+#[derive(Serialize, Deserialize, Clone)]
+pub struct ProxyAuthConfig {
+    pub enabled: bool,
+    pub username: String,
+    pub password: String,
+}
+
+impl std::fmt::Debug for ProxyAuthConfig {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ProxyAuthConfig")
+            .field("enabled", &self.enabled)
+            .field("username", &self.username)
+            .field("password", &"****")
+            .finish()
+    }
+}
+
+impl ProxyAuthConfig {
+    /// Basic 인증 헤더 값을 생성합니다.
+    pub fn expected_basic_header(&self) -> String {
+        use base64::Engine;
+        let credentials = format!("{}:{}", self.username, self.password);
+        let encoded = base64::engine::general_purpose::STANDARD.encode(credentials.as_bytes());
+        format!("Basic {}", encoded)
+    }
+
+    /// Proxy-Authorization 헤더 값을 검증합니다.
+    pub fn validate_proxy_auth(&self, auth_header: Option<&str>) -> bool {
+        if !self.enabled {
+            return true;
+        }
+        if self.username.is_empty() {
+            return true;
+        }
+        match auth_header {
+            Some(header) => header == self.expected_basic_header(),
+            None => false,
+        }
+    }
 }
 
 fn default_block_status() -> u16 {
@@ -613,6 +659,107 @@ mod tests {
                 assert_eq!(entries[0].pattern, "*.example.com");
             }
             _ => panic!("Expected SslProxyingListUpdated"),
+        }
+    }
+
+    #[test]
+    fn test_proxy_auth_config_serde_roundtrip() {
+        let config = ProxyAuthConfig {
+            enabled: true,
+            username: "admin".to_string(),
+            password: "secret123".to_string(),
+        };
+        let json = serde_json::to_string(&config).unwrap();
+        let deserialized: ProxyAuthConfig = serde_json::from_str(&json).unwrap();
+        assert!(deserialized.enabled);
+        assert_eq!(deserialized.username, "admin");
+        assert_eq!(deserialized.password, "secret123");
+    }
+
+    #[test]
+    fn test_proxy_auth_expected_basic_header() {
+        let config = ProxyAuthConfig {
+            enabled: true,
+            username: "admin".to_string(),
+            password: "secret".to_string(),
+        };
+        let header = config.expected_basic_header();
+        // base64("admin:secret") = "YWRtaW46c2VjcmV0"
+        assert_eq!(header, "Basic YWRtaW46c2VjcmV0");
+    }
+
+    #[test]
+    fn test_proxy_auth_validate_success() {
+        let config = ProxyAuthConfig {
+            enabled: true,
+            username: "admin".to_string(),
+            password: "secret".to_string(),
+        };
+        assert!(config.validate_proxy_auth(Some("Basic YWRtaW46c2VjcmV0")));
+    }
+
+    #[test]
+    fn test_proxy_auth_validate_failure_wrong_credentials() {
+        let config = ProxyAuthConfig {
+            enabled: true,
+            username: "admin".to_string(),
+            password: "secret".to_string(),
+        };
+        assert!(!config.validate_proxy_auth(Some("Basic d3Jvbmc6Y3JlZHM=")));
+    }
+
+    #[test]
+    fn test_proxy_auth_validate_failure_no_header() {
+        let config = ProxyAuthConfig {
+            enabled: true,
+            username: "admin".to_string(),
+            password: "secret".to_string(),
+        };
+        assert!(!config.validate_proxy_auth(None));
+    }
+
+    #[test]
+    fn test_proxy_auth_validate_disabled_always_passes() {
+        let config = ProxyAuthConfig {
+            enabled: false,
+            username: "admin".to_string(),
+            password: "secret".to_string(),
+        };
+        assert!(config.validate_proxy_auth(None));
+        assert!(config.validate_proxy_auth(Some("garbage")));
+    }
+
+    #[test]
+    fn test_proxy_auth_validate_empty_username_always_passes() {
+        let config = ProxyAuthConfig {
+            enabled: true,
+            username: String::new(),
+            password: "secret".to_string(),
+        };
+        assert!(config.validate_proxy_auth(None));
+    }
+
+    #[test]
+    fn test_update_proxy_auth_command_serialize() {
+        let cmd = ClientCommand::UpdateProxyAuth {
+            config: ProxyAuthConfig {
+                enabled: true,
+                username: "user".to_string(),
+                password: "pass".to_string(),
+            },
+        };
+        let json = serde_json::to_string(&cmd).unwrap();
+        assert!(json.contains("update_proxy_auth"));
+        assert!(json.contains("user"));
+
+        let deserialized: ClientCommand = serde_json::from_str(&json).unwrap();
+        match deserialized {
+            ClientCommand::UpdateProxyAuth { config } => {
+                assert!(config.enabled);
+                assert_eq!(config.username, "user");
+                assert_eq!(config.password, "pass");
+            }
+            _ => panic!("Expected UpdateProxyAuth"),
         }
     }
 

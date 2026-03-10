@@ -1,8 +1,8 @@
 use proxy_daemon::{
     clean_old_cache, diff_headers, diff_json, diff_text, get_local_ips, is_text_data_type,
     BodyDiff, BreakpointAction, BreakpointRule, ClientCommand, DaemonConnection, DaemonMessage,
-    HostMapping, InterceptRule, ServerReplayEntry, SslProxyingEntry, ThrottleConfig, TrafficDiff,
-    TransactionPartDiff, UpstreamProxyConfig,
+    HostMapping, InterceptRule, ProxyAuthConfig, ServerReplayEntry, SslProxyingEntry,
+    ThrottleConfig, TrafficDiff, TransactionPartDiff, UpstreamProxyConfig,
 };
 use std::collections::HashMap;
 use std::net::SocketAddr;
@@ -713,6 +713,25 @@ pub async fn update_upstream_proxy(
         let cmd = ClientCommand::UpdateUpstreamProxy { config };
         conn.send_command(&cmd).await?;
         tracing::info!("Daemon에 upstream proxy 설정 업데이트 완료");
+    } else {
+        return Err("프록시가 실행 중이 아닙니다".to_string());
+    }
+
+    Ok(())
+}
+
+/// 프록시 인증 설정 업데이트
+#[tauri::command]
+pub async fn update_proxy_auth(
+    proxy: State<'_, ProxyV2State>,
+    config: ProxyAuthConfig,
+) -> Result<(), String> {
+    let proxy_guard = proxy.lock().await;
+
+    if let Some(conn) = proxy_guard.as_ref() {
+        let cmd = ClientCommand::UpdateProxyAuth { config };
+        conn.send_command(&cmd).await?;
+        tracing::info!("Daemon에 프록시 인증 설정 업데이트 완료");
     } else {
         return Err("프록시가 실행 중이 아닙니다".to_string());
     }

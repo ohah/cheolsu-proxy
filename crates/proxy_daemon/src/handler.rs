@@ -58,6 +58,8 @@ pub(crate) struct ProxyConfig {
     pub(crate) ca_cert_der: Option<Bytes>,
     /// 빠른 설정 (No Caching, Block Cookies)
     pub(crate) quick_settings: Arc<tokio::sync::RwLock<QuickSettings>>,
+    /// 프록시 인증 설정
+    pub(crate) proxy_auth: Arc<parking_lot::RwLock<Option<crate::protocol::ProxyAuthConfig>>>,
 }
 
 /// 인터셉트 규칙 및 스크립트 엔진
@@ -105,6 +107,7 @@ impl LoggingHandler {
                 cache_dir: Some(cache_dir),
                 ca_cert_der: None,
                 quick_settings: Arc::new(tokio::sync::RwLock::new(QuickSettings::default())),
+                proxy_auth: Arc::new(parking_lot::RwLock::new(None)),
             },
             intercept: InterceptEngine {
                 intercept_rules: Arc::new(Mutex::new(Vec::new())),
@@ -184,6 +187,54 @@ impl LoggingHandler {
         let mut entries_guard = self.intercept.ssl_proxying_entries.lock().await;
         info!("[SSLProxying] 화이트리스트 업데이트: {} 개", entries.len());
         *entries_guard = entries;
+    }
+
+    /// 프록시 인증 설정 업데이트
+    pub fn update_proxy_auth(&self, config: crate::protocol::ProxyAuthConfig) {
+        let mut auth = self.config.proxy_auth.write();
+        info!(
+            "[ProxyAuth] 설정 업데이트: enabled={}, username={}",
+            config.enabled, config.username
+        );
+        *auth = Some(config);
+    }
+
+    pub fn with_proxy_auth(
+        mut self,
+        proxy_auth: Arc<parking_lot::RwLock<Option<crate::protocol::ProxyAuthConfig>>>,
+    ) -> Self {
+        self.config.proxy_auth = proxy_auth;
+        self
+    }
+
+    /// 프록시 인증을 확인합니다. 인증 실패 시 407 응답을 반환합니다.
+    fn check_proxy_auth(&self, req: &Request<Body>) -> Option<Response<Body>> {
+        let auth_config = self.config.proxy_auth.read();
+        let config = match auth_config.as_ref() {
+            Some(c) if c.enabled && !c.username.is_empty() => c,
+            _ => return None,
+        };
+
+        let auth_header = req
+            .headers()
+            .get("proxy-authorization")
+            .and_then(|v| v.to_str().ok());
+
+        if config.validate_proxy_auth(auth_header) {
+            None
+        } else {
+            info!(
+                "[ProxyAuth] 인증 실패: {:?}",
+                req.uri().authority().map(|a| a.to_string())
+            );
+            Some(
+                Response::builder()
+                    .status(StatusCode::PROXY_AUTHENTICATION_REQUIRED)
+                    .header("Proxy-Authenticate", "Basic realm=\"Cheolsu Proxy\"")
+                    .body(Body::from("Proxy Authentication Required"))
+                    .unwrap_or_else(|_| Response::new(Body::empty())),
+            )
+        }
     }
 
     /// 스크립트 핸들 반환
@@ -979,6 +1030,22 @@ impl LoggingHandler {
 
 impl HttpHandler for LoggingHandler {
     async fn should_intercept(&mut self, _ctx: &HttpContext, req: &Request<Body>) -> bool {
+        // 프록시 인증이 활성화된 경우, 인증 실패 시 인터셉트하여 handle_request에서 407 응답
+        {
+            let auth_config = self.config.proxy_auth.read();
+            if let Some(config) = auth_config.as_ref() {
+                if config.enabled && !config.username.is_empty() {
+                    let auth_header = req
+                        .headers()
+                        .get("proxy-authorization")
+                        .and_then(|v| v.to_str().ok());
+                    if !config.validate_proxy_auth(auth_header) {
+                        return true;
+                    }
+                }
+            }
+        }
+
         // CONNECT 요청의 URI에서 authority(host:port)를 추출
         if let Some(authority) = req.uri().authority() {
             let host = authority.host();
@@ -1002,6 +1069,13 @@ impl HttpHandler for LoggingHandler {
         _ctx: &HttpContext,
         mut req: Request<Body>,
     ) -> RequestOrResponse {
+        // 프록시 인증 확인
+        if let Some(auth_response) = self.check_proxy_auth(&req) {
+            return auth_response.into();
+        }
+        // 인증 통과 후 Proxy-Authorization 헤더 제거 (upstream에 전달 방지)
+        req.headers_mut().remove("proxy-authorization");
+
         if let Some(cert_response) = self.check_cert_download_intercept(&req) {
             return cert_response.into();
         }
@@ -1564,6 +1638,7 @@ mod tests {
                 cache_dir: None,
                 ca_cert_der: None,
                 quick_settings: Arc::new(tokio::sync::RwLock::new(QuickSettings::default())),
+                proxy_auth: Arc::new(parking_lot::RwLock::new(None)),
             },
             intercept: InterceptEngine {
                 intercept_rules: Arc::new(Mutex::new(Vec::new())),
@@ -1618,6 +1693,7 @@ mod tests {
                 cache_dir: None,
                 ca_cert_der: None,
                 quick_settings: Arc::new(tokio::sync::RwLock::new(QuickSettings::default())),
+                proxy_auth: Arc::new(parking_lot::RwLock::new(None)),
             },
             intercept: InterceptEngine {
                 intercept_rules: Arc::new(Mutex::new(Vec::new())),
