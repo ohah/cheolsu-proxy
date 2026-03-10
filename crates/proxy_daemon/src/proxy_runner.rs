@@ -29,7 +29,7 @@ pub async fn run_proxy(
     mut ssl_proxying_rx: watch::Receiver<Vec<SslProxyingEntry>>,
     ws_registry: WebSocketRegistry,
     script_handle: scripting::ScriptHandle,
-    quick_settings: std::sync::Arc<parking_lot::RwLock<QuickSettings>>,
+    quick_settings: std::sync::Arc<tokio::sync::RwLock<QuickSettings>>,
 ) -> Result<(), DaemonError> {
     use proxyapi_v2::builder::ProxyBuilder;
     use proxyapi_v2::certificate_authority::{
