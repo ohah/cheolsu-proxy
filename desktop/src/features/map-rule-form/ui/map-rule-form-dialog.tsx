@@ -20,11 +20,7 @@ import {
 } from "@/shared/ui";
 import { toast } from "sonner";
 import { useMapRuleStore } from "@/shared/stores";
-import type {
-  InterceptRule,
-  MapLocalAction,
-  MapRemoteAction,
-} from "@/entities/intercept-rule";
+import type { InterceptRule, MapLocalAction, MapRemoteAction } from "@/entities/intercept-rule";
 import {
   mapRuleFormSchema,
   defaultMapRuleFormValues,
@@ -131,9 +127,7 @@ export const MapRuleFormDialog = ({
             file_path: formAction.file_path.trim(),
             status_code: parseInt(formAction.status_code) || 200,
             headers: Object.fromEntries(
-              formAction.headers
-                .filter((h) => h.key.trim())
-                .map((h) => [h.key.trim(), h.value]),
+              formAction.headers.filter((h) => h.key.trim()).map((h) => [h.key.trim(), h.value]),
             ),
           }
         : {
@@ -183,10 +177,7 @@ export const MapRuleFormDialog = ({
               <label className="text-sm font-medium">
                 <Trans>Name</Trans>
               </label>
-              <Input
-                placeholder={t`Rule name (optional)`}
-                {...form.register("name")}
-              />
+              <Input placeholder={t`Rule name (optional)`} {...form.register("name")} />
             </div>
 
             {/* Pattern */}
@@ -202,9 +193,7 @@ export const MapRuleFormDialog = ({
                 <Trans>* = any string, ? = single character</Trans>
               </p>
               {form.formState.errors.pattern && (
-                <p className="text-destructive text-xs">
-                  {form.formState.errors.pattern.message}
-                </p>
+                <p className="text-destructive text-xs">{form.formState.errors.pattern.message}</p>
               )}
             </div>
 
@@ -218,10 +207,7 @@ export const MapRuleFormDialog = ({
                   control={form.control}
                   name="method"
                   render={({ field }) => (
-                    <Select
-                      value={field.value}
-                      onValueChange={(v) => v && field.onChange(v)}
-                    >
+                    <Select value={field.value} onValueChange={(v) => v && field.onChange(v)}>
                       <SelectTrigger className="w-full">
                         <SelectValue />
                       </SelectTrigger>
@@ -262,11 +248,7 @@ export const MapRuleFormDialog = ({
             {mapType === "map_remote" && <MapRemoteFields />}
 
             <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-              >
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 <Trans>Cancel</Trans>
               </Button>
               <Button type="submit">

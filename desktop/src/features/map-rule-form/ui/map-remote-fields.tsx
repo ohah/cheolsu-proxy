@@ -23,10 +23,7 @@ export const MapRemoteFields = () => {
         name="action.preserve_path"
         render={({ field }) => (
           <div className="flex items-center gap-3">
-            <Switch
-              checked={field.value as boolean}
-              onCheckedChange={field.onChange}
-            />
+            <Switch checked={field.value as boolean} onCheckedChange={field.onChange} />
             <div>
               <label className="text-sm font-medium">
                 <Trans>Preserve Path</Trans>

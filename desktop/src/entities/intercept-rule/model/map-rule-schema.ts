@@ -14,10 +14,7 @@ const mapRemoteActionSchema = z.object({
   preserve_path: z.boolean(),
 });
 
-const mapActionSchema = z.discriminatedUnion("type", [
-  mapLocalActionSchema,
-  mapRemoteActionSchema,
-]);
+const mapActionSchema = z.discriminatedUnion("type", [mapLocalActionSchema, mapRemoteActionSchema]);
 
 export const mapRuleFormSchema = z.object({
   name: z.string(),

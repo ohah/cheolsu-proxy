@@ -8,8 +8,7 @@ import type { MapLocalFormValues } from "@/entities/intercept-rule";
 
 export const MapLocalFields = () => {
   const { t } = useLingui();
-  const { register, control, setValue } =
-    useFormContext<MapLocalFormValues>();
+  const { register, control, setValue } = useFormContext<MapLocalFormValues>();
 
   const {
     fields: headerFields,
@@ -46,12 +45,7 @@ export const MapLocalFields = () => {
             {...register("action.file_path")}
             className="flex-1"
           />
-          <Button
-            variant="outline"
-            size="sm"
-            type="button"
-            onClick={handleSelectFile}
-          >
+          <Button variant="outline" size="sm" type="button" onClick={handleSelectFile}>
             <FolderOpen className="w-4 h-4" />
           </Button>
         </div>
@@ -61,11 +55,7 @@ export const MapLocalFields = () => {
         <label className="text-sm font-medium">
           <Trans>Status Code</Trans>
         </label>
-        <Input
-          type="number"
-          placeholder="200"
-          {...register("action.status_code")}
-        />
+        <Input type="number" placeholder="200" {...register("action.status_code")} />
       </div>
 
       <div className="space-y-1.5">
@@ -95,12 +85,7 @@ export const MapLocalFields = () => {
               {...register(`action.headers.${i}.value`)}
               className="flex-1"
             />
-            <Button
-              variant="ghost"
-              size="sm"
-              type="button"
-              onClick={() => removeHeader(i)}
-            >
+            <Button variant="ghost" size="sm" type="button" onClick={() => removeHeader(i)}>
               <Trash2 className="w-3.5 h-3.5 text-destructive" />
             </Button>
           </div>

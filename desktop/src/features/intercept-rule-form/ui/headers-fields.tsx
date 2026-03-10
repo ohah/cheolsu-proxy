@@ -12,8 +12,7 @@ import type { ModifyRequestFormValues } from "@/entities/intercept-rule";
  */
 export const HeadersFields = () => {
   const { t } = useLingui();
-  const { register, control, watch, setValue } =
-    useFormContext<ModifyRequestFormValues>();
+  const { register, control, watch, setValue } = useFormContext<ModifyRequestFormValues>();
 
   const {
     fields: headerFields,
@@ -72,12 +71,7 @@ export const HeadersFields = () => {
               {...register(`action.headers.${i}.value`)}
               className="flex-1"
             />
-            <Button
-              variant="ghost"
-              size="sm"
-              type="button"
-              onClick={() => removeHeaderAt(i)}
-            >
+            <Button variant="ghost" size="sm" type="button" onClick={() => removeHeaderAt(i)}>
               <Trash2 className="w-3.5 h-3.5 text-destructive" />
             </Button>
           </div>
@@ -89,12 +83,7 @@ export const HeadersFields = () => {
           <label className="text-sm font-medium">
             <Trans>Remove Headers</Trans>
           </label>
-          <Button
-            variant="ghost"
-            size="sm"
-            type="button"
-            onClick={addRemoveHeader}
-          >
+          <Button variant="ghost" size="sm" type="button" onClick={addRemoveHeader}>
             <Plus className="w-3.5 h-3.5 mr-1" />
             <Trans>Add</Trans>
           </Button>
@@ -107,12 +96,7 @@ export const HeadersFields = () => {
               onChange={(e) => updateRemoveHeader(i, e.target.value)}
               className="flex-1"
             />
-            <Button
-              variant="ghost"
-              size="sm"
-              type="button"
-              onClick={() => deleteRemoveHeader(i)}
-            >
+            <Button variant="ghost" size="sm" type="button" onClick={() => deleteRemoveHeader(i)}>
               <Trash2 className="w-3.5 h-3.5 text-destructive" />
             </Button>
           </div>

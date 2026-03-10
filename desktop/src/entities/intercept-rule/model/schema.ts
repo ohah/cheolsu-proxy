@@ -24,12 +24,7 @@ const modifyResponseActionSchema = z.object({
 
 const rewriteActionSchema = z.object({
   type: z.literal("rewrite"),
-  rewrite_target: z.enum([
-    "request_header",
-    "response_header",
-    "request_body",
-    "response_body",
-  ]),
+  rewrite_target: z.enum(["request_header", "response_header", "request_body", "response_body"]),
   match_pattern: z.string().min(1, "Match pattern is required"),
   replace_with: z.string(),
 });
