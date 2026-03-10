@@ -259,7 +259,7 @@ msgid "Breakpoint rule added"
 msgstr "Breakpoint rule added"
 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:90
-#: src/shared/app-sidebar/model/consts.ts:57
+#: src/shared/app-sidebar/model/consts.ts:58
 msgid "Breakpoints"
 msgstr "Breakpoints"
 
@@ -313,6 +313,7 @@ msgstr "Cheolsu Proxy Logo"
 msgid "Claude Code (CLI)"
 msgstr "Claude Code (CLI)"
 
+#: src/pages/logs/ui/logs-page.tsx:164
 #: src/pages/script/ui/script-page.tsx:298
 msgid "Clear"
 msgstr "Clear"
@@ -589,6 +590,10 @@ msgstr "Failed to send"
 msgid "File"
 msgstr "File"
 
+#: src/pages/logs/ui/logs-page.tsx:216
+msgid "Filter log lines..."
+msgstr "Filter log lines..."
+
 #: src/shared/app-sidebar/ui/sidebar-mcp.tsx:128
 msgid "For Cursor, Claude Desktop, and other MCP-compatible clients:"
 msgstr "For Cursor, Claude Desktop, and other MCP-compatible clients:"
@@ -668,7 +673,7 @@ msgid "Host"
 msgstr "Host"
 
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:85
-#: src/shared/app-sidebar/model/consts.ts:64
+#: src/shared/app-sidebar/model/consts.ts:65
 msgid "Host Mapping"
 msgstr "Host Mapping"
 
@@ -684,7 +689,7 @@ msgstr "Host mapping deleted"
 msgid "Host Tree"
 msgstr "Host Tree"
 
-#: src/shared/app-sidebar/model/consts.ts:24
+#: src/shared/app-sidebar/model/consts.ts:25
 msgid "HTTP requests and responses"
 msgstr "HTTP requests and responses"
 
@@ -736,7 +741,7 @@ msgid "Installing..."
 msgstr "Installing..."
 
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:78
-#: src/shared/app-sidebar/model/consts.ts:36
+#: src/shared/app-sidebar/model/consts.ts:37
 msgid "Intercept Rules"
 msgstr "Intercept Rules"
 
@@ -768,6 +773,10 @@ msgstr "Latency (ms)"
 msgid "Light"
 msgstr "Light"
 
+#: src/pages/logs/ui/logs-page.tsx:223
+msgid "lines"
+msgstr "lines"
+
 #: src/pages/script/ui/script-page.tsx:266
 msgid "Load"
 msgstr "Load"
@@ -776,7 +785,7 @@ msgstr "Load"
 msgid "Load a script file from disk. The file will be watched for changes and auto-reloaded."
 msgstr "Load a script file from disk. The file will be watched for changes and auto-reloaded."
 
-#: src/shared/app-sidebar/model/consts.ts:73
+#: src/shared/app-sidebar/model/consts.ts:74
 msgid "Load and manage proxy scripts"
 msgstr "Load and manage proxy scripts"
 
@@ -802,11 +811,20 @@ msgstr "Local File Path"
 msgid "localhost, 127.0.0.1, *.internal.com"
 msgstr "localhost, 127.0.0.1, *.internal.com"
 
+#: src/pages/logs/ui/logs-page.tsx:179
+msgid "Log Files"
+msgstr "Log Files"
+
 #: src/features/query-filter-editor/ui/filter-help-tooltip.tsx:77
 msgid "Logical OR:"
 msgstr "Logical OR:"
 
-#: src/shared/app-sidebar/model/consts.ts:38
+#: src/pages/logs/ui/logs-page.tsx:146
+#: src/shared/app-sidebar/model/consts.ts:86
+msgid "Logs"
+msgstr "Logs"
+
+#: src/shared/app-sidebar/model/consts.ts:39
 msgid "Manage request/response intercept rules"
 msgstr "Manage request/response intercept rules"
 
@@ -818,7 +836,7 @@ msgstr "Manage wildcard-based request/response intercept rules"
 msgid "Map DNS hostnames to different target hosts for testing and development"
 msgstr "Map DNS hostnames to different target hosts for testing and development"
 
-#: src/shared/app-sidebar/model/consts.ts:66
+#: src/shared/app-sidebar/model/consts.ts:67
 msgid "Map DNS hostnames to different targets"
 msgstr "Map DNS hostnames to different targets"
 
@@ -829,7 +847,7 @@ msgstr "Map DNS hostnames to different targets"
 msgid "Map Local"
 msgstr "Map Local"
 
-#: src/shared/app-sidebar/model/consts.ts:45
+#: src/shared/app-sidebar/model/consts.ts:46
 msgid "Map Local / Map Remote rules"
 msgstr "Map Local / Map Remote rules"
 
@@ -849,7 +867,7 @@ msgid "Map Remote"
 msgstr "Map Remote"
 
 #: src/pages/map-rules/ui/map-rules-page.tsx:65
-#: src/shared/app-sidebar/model/consts.ts:43
+#: src/shared/app-sidebar/model/consts.ts:44
 msgid "Map Rules"
 msgstr "Map Rules"
 
@@ -929,7 +947,7 @@ msgstr "Multiple conditions:"
 msgid "Name"
 msgstr "Name"
 
-#: src/shared/app-sidebar/model/consts.ts:22
+#: src/shared/app-sidebar/model/consts.ts:23
 msgid "Network"
 msgstr "Network"
 
@@ -968,6 +986,10 @@ msgstr "No host mappings"
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:106
 msgid "No intercept rules"
 msgstr "No intercept rules"
+
+#: src/pages/logs/ui/logs-page.tsx:184
+msgid "No log files found"
+msgstr "No log files found"
 
 #: src/pages/map-rules/ui/map-rules-page.tsx:95
 msgid "No map rules"
@@ -1029,6 +1051,10 @@ msgstr "Open <0>{CERT_DOWNLOAD_URL}</0> in Safari"
 msgid "Open <0>{CERT_DOWNLOAD_URL}</0> in your device browser"
 msgstr "Open <0>{CERT_DOWNLOAD_URL}</0> in your device browser"
 
+#: src/pages/logs/ui/logs-page.tsx:168
+msgid "Open Directory"
+msgstr "Open Directory"
+
 #: src/pages/script/ui/script-page.tsx:211
 msgid "Open File"
 msgstr "Open File"
@@ -1065,7 +1091,7 @@ msgstr "Pattern is required"
 msgid "Pause and inspect HTTP requests/responses in real-time"
 msgstr "Pause and inspect HTTP requests/responses in real-time"
 
-#: src/shared/app-sidebar/model/consts.ts:59
+#: src/shared/app-sidebar/model/consts.ts:60
 msgid "Pause and inspect requests/responses"
 msgstr "Pause and inspect requests/responses"
 
@@ -1133,7 +1159,7 @@ msgstr "Proxy Authentication"
 msgid "Proxy configuration and preferences"
 msgstr "Proxy configuration and preferences"
 
-#: src/shared/app-sidebar/model/consts.ts:80
+#: src/shared/app-sidebar/model/consts.ts:81
 msgid "Proxy settings and configuration"
 msgstr "Proxy settings and configuration"
 
@@ -1169,6 +1195,7 @@ msgstr "Received"
 msgid "Received (Server → Client)"
 msgstr "Received (Server → Client)"
 
+#: src/pages/logs/ui/logs-page.tsx:155
 #: src/pages/settings/ui/components/certificate-settings.tsx:393
 msgid "Refresh"
 msgstr "Refresh"
@@ -1334,7 +1361,7 @@ msgstr "Resume recording"
 msgid "Retry"
 msgstr "Retry"
 
-#: src/shared/app-sidebar/model/consts.ts:52
+#: src/shared/app-sidebar/model/consts.ts:53
 msgid "Return cached responses for matching requests"
 msgstr "Return cached responses for matching requests"
 
@@ -1423,7 +1450,7 @@ msgid "Scan for proxy info"
 msgstr "Scan for proxy info"
 
 #: src/pages/script/ui/script-page.tsx:162
-#: src/shared/app-sidebar/model/consts.ts:71
+#: src/shared/app-sidebar/model/consts.ts:72
 msgid "Script"
 msgstr "Script"
 
@@ -1446,6 +1473,10 @@ msgstr "Script reloaded"
 #: src/pages/script/ui/script-page.tsx:110
 msgid "Script unloaded"
 msgstr "Script unloaded"
+
+#: src/pages/logs/ui/logs-page.tsx:239
+msgid "Select a log file to view its contents"
+msgstr "Select a log file to view its contents"
 
 #: src/pages/settings/ui/settings-page.tsx:130
 msgid "Select certificate file (.pem, .crt)"
@@ -1519,7 +1550,7 @@ msgid "Sequence replay failed"
 msgstr "Sequence replay failed"
 
 #: src/pages/server-replay/ui/server-replay-page.tsx:84
-#: src/shared/app-sidebar/model/consts.ts:50
+#: src/shared/app-sidebar/model/consts.ts:51
 msgid "Server Replay"
 msgstr "Server Replay"
 
@@ -1552,7 +1583,7 @@ msgid "Set Wi-Fi proxy on your device to <0>{0}:{1}</0>"
 msgstr "Set Wi-Fi proxy on your device to <0>{0}:{1}</0>"
 
 #: src/pages/settings/ui/settings-page.tsx:30
-#: src/shared/app-sidebar/model/consts.ts:78
+#: src/shared/app-sidebar/model/consts.ts:79
 msgid "Settings"
 msgstr "Settings"
 
@@ -1797,16 +1828,24 @@ msgstr "Value"
 msgid "Version"
 msgstr "Version"
 
+#: src/pages/logs/ui/logs-page.tsx:149
+msgid "View and manage application log files"
+msgstr "View and manage application log files"
+
+#: src/shared/app-sidebar/model/consts.ts:88
+msgid "View application log files"
+msgstr "View application log files"
+
 #: src/widgets/websocket-messages/ui/ws-message-table.tsx:152
 msgid "Waiting for WebSocket messages..."
 msgstr "Waiting for WebSocket messages..."
 
 #: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:85
-#: src/shared/app-sidebar/model/consts.ts:29
+#: src/shared/app-sidebar/model/consts.ts:30
 msgid "WebSocket"
 msgstr "WebSocket"
 
-#: src/shared/app-sidebar/model/consts.ts:31
+#: src/shared/app-sidebar/model/consts.ts:32
 msgid "WebSocket connections and messages"
 msgstr "WebSocket connections and messages"
 
