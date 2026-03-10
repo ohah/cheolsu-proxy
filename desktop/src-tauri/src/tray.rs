@@ -17,8 +17,10 @@ fn do_exit<R: Runtime>(app: &AppHandle<R>) {
 }
 
 /// 자동 세션 저장 이벤트를 전송하고, 완료 이벤트 수신 시 즉시 종료하는 공통 함수
-/// 타임아웃(3초) 내에 완료 이벤트를 받지 못하면 강제 종료
+/// 타임아웃(10초) 내에 완료 이벤트를 받지 못하면 강제 종료
 fn graceful_quit<R: Runtime>(app: AppHandle<R>) {
+    const AUTOSAVE_TIMEOUT_SECS: u64 = 10;
+
     // 메인 윈도우에 종료 이벤트 전송하여 자동 세션 저장 트리거
     let _ = app.emit_to("main", "app_quit_requested", ());
 
@@ -31,10 +33,13 @@ fn graceful_quit<R: Runtime>(app: AppHandle<R>) {
         do_exit(&app_for_listen);
     });
 
-    // 타임아웃(3초): 이벤트를 받지 못하면 강제 종료
+    // 타임아웃: 이벤트를 받지 못하면 강제 종료
     std::thread::spawn(move || {
-        std::thread::sleep(std::time::Duration::from_secs(3));
-        tracing::warn!("autosave 완료 타임아웃(3초), 강제 종료");
+        std::thread::sleep(std::time::Duration::from_secs(AUTOSAVE_TIMEOUT_SECS));
+        tracing::warn!(
+            timeout_secs = AUTOSAVE_TIMEOUT_SECS,
+            "autosave 완료 타임아웃, 데이터 유실 가능성 있음 — 강제 종료"
+        );
         app_for_timeout.unlisten(handler_id);
         do_exit(&app_for_timeout);
     });

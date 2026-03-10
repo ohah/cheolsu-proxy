@@ -226,16 +226,21 @@ fn spawn_proxy_task(
 }
 
 /// Ctrl+C 및 SIGTERM 시그널 핸들러를 등록합니다.
-fn spawn_signal_handlers(shutdown_tx: tokio::sync::mpsc::Sender<()>) {
+/// 반환된 JoinHandle을 보관하여 패닉 시 감지할 수 있도록 합니다.
+fn spawn_signal_handlers(
+    shutdown_tx: tokio::sync::mpsc::Sender<()>,
+) -> Vec<tokio::task::JoinHandle<()>> {
+    let mut handles = Vec::with_capacity(2);
+
     let shutdown_tx_ctrlc = shutdown_tx.clone();
-    tokio::spawn(async move {
+    handles.push(tokio::spawn(async move {
         let _ = tokio::signal::ctrl_c().await;
         warn!("Ctrl+C received, shutting down daemon...");
         let _ = shutdown_tx_ctrlc.send(()).await;
-    });
+    }));
 
     let shutdown_tx_term = shutdown_tx;
-    tokio::spawn(async move {
+    handles.push(tokio::spawn(async move {
         match tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate()) {
             Ok(mut sigterm) => {
                 sigterm.recv().await;
@@ -246,7 +251,9 @@ fn spawn_signal_handlers(shutdown_tx: tokio::sync::mpsc::Sender<()>) {
                 error!("Failed to register SIGTERM handler: {}", e);
             }
         }
-    });
+    }));
+
+    handles
 }
 
 /// 클라이언트 연결 카운트를 자동으로 감소시키는 Drop guard.
@@ -337,7 +344,7 @@ async fn daemon_main(port: u16, host: String) -> i32 {
         Err(code) => return code,
     };
 
-    let (event_tx, _) = broadcast::channel::<String>(256);
+    let (event_tx, _) = broadcast::channel::<String>(1024);
     let (shutdown_tx, mut shutdown_rx) = tokio::sync::mpsc::channel::<()>(1);
     let (intercept_tx, intercept_rx) =
         watch::channel::<Vec<crate::protocol::InterceptRule>>(Vec::new());
@@ -414,7 +421,7 @@ async fn daemon_main(port: u16, host: String) -> i32 {
         log_path.display()
     );
 
-    spawn_signal_handlers(shutdown_tx.clone());
+    let signal_handles = spawn_signal_handlers(shutdown_tx.clone());
 
     let ctx = DaemonContext {
         event_tx,
@@ -453,6 +460,11 @@ async fn daemon_main(port: u16, host: String) -> i32 {
             warn!("Proxy task did not shut down within 5 seconds");
             // select! 분기에서 다른 future(proxy_handle)는 자동으로 drop되어 abort됨
         }
+    }
+
+    // 시그널 핸들러 태스크 정리
+    for handle in signal_handles {
+        handle.abort();
     }
 
     cleanup(port, &uds_path);

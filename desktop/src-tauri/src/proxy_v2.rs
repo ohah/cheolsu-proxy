@@ -975,71 +975,81 @@ fn run_with_admin_privileges(shell_cmd: &str) -> Result<(), String> {
 
 /// 터미널 명령어(cheolsu) 설치: ~/.cheolsu/bin/에 복사 후 /usr/local/bin/cheolsu에 심볼릭 링크 생성
 #[tauri::command]
-pub fn install_cli(app: AppHandle<impl Runtime>) -> Result<String, String> {
-    // 앱 번들에서 ~/.cheolsu/bin/cheolsu로 복사 (격리 속성 제거 포함)
-    let tui_path = install_sidecar_binary(&app, "cheolsu", "cheolsu")?;
-    let link_path = "/usr/local/bin/cheolsu";
-    let link = std::path::Path::new(link_path);
+pub async fn install_cli(app: AppHandle<impl Runtime>) -> Result<String, String> {
+    // blocking I/O(파일 복사, 심볼릭 링크, osascript)를 별도 스레드에서 실행
+    tokio::task::spawn_blocking(move || {
+        // 앱 번들에서 ~/.cheolsu/bin/cheolsu로 복사 (격리 속성 제거 포함)
+        let tui_path = install_sidecar_binary(&app, "cheolsu", "cheolsu")?;
+        let link_path = "/usr/local/bin/cheolsu";
+        let link = std::path::Path::new(link_path);
 
-    // 기존 링크/파일 제거
-    let needs_admin = if link.exists() || link.is_symlink() {
-        std::fs::remove_file(link).is_err()
-    } else {
-        false
-    };
+        // 기존 링크/파일 제거
+        let needs_admin = if link.exists() || link.is_symlink() {
+            std::fs::remove_file(link).is_err()
+        } else {
+            false
+        };
 
-    #[cfg(unix)]
-    {
-        if needs_admin || std::os::unix::fs::symlink(&tui_path, link).is_err() {
+        #[cfg(unix)]
+        {
+            if needs_admin || std::os::unix::fs::symlink(&tui_path, link).is_err() {
+                #[cfg(target_os = "macos")]
+                {
+                    let cmd = format!("rm -f {} && ln -sf {} {}", link_path, tui_path, link_path);
+                    run_with_admin_privileges(&cmd)?;
+                }
+
+                #[cfg(not(target_os = "macos"))]
+                {
+                    return Err("심볼릭 링크 생성 실패: sudo 권한이 필요합니다".to_string());
+                }
+            }
+        }
+
+        #[cfg(windows)]
+        {
+            std::os::windows::fs::symlink_file(&tui_path, link)
+                .map_err(|e| format!("심볼릭 링크 생성 실패: {}", e))?;
+        }
+
+        Ok(format!(
+            "터미널 명령어가 설치되었습니다: {} -> {}",
+            link_path, tui_path
+        ))
+    })
+    .await
+    .map_err(|e| format!("작업 실행 실패: {}", e))?
+}
+
+/// 터미널 명령어(cheolsu) 제거: /usr/local/bin/cheolsu 심볼릭 링크 삭제
+#[tauri::command]
+pub async fn uninstall_cli() -> Result<String, String> {
+    // blocking I/O(파일 삭제, osascript)를 별도 스레드에서 실행
+    tokio::task::spawn_blocking(move || {
+        let link_path = "/usr/local/bin/cheolsu";
+        let link = std::path::Path::new(link_path);
+
+        if !link.exists() && !link.is_symlink() {
+            return Err("터미널 명령어가 설치되어 있지 않습니다".to_string());
+        }
+
+        if std::fs::remove_file(link).is_err() {
             #[cfg(target_os = "macos")]
             {
-                let cmd = format!("rm -f {} && ln -sf {} {}", link_path, tui_path, link_path);
+                let cmd = format!("rm -f {}", link_path);
                 run_with_admin_privileges(&cmd)?;
             }
 
             #[cfg(not(target_os = "macos"))]
             {
-                return Err("심볼릭 링크 생성 실패: sudo 권한이 필요합니다".to_string());
+                return Err("제거 실패: sudo 권한이 필요합니다".to_string());
             }
         }
-    }
 
-    #[cfg(windows)]
-    {
-        std::os::windows::fs::symlink_file(&tui_path, link)
-            .map_err(|e| format!("심볼릭 링크 생성 실패: {}", e))?;
-    }
-
-    Ok(format!(
-        "터미널 명령어가 설치되었습니다: {} -> {}",
-        link_path, tui_path
-    ))
-}
-
-/// 터미널 명령어(cheolsu) 제거: /usr/local/bin/cheolsu 심볼릭 링크 삭제
-#[tauri::command]
-pub fn uninstall_cli() -> Result<String, String> {
-    let link_path = "/usr/local/bin/cheolsu";
-    let link = std::path::Path::new(link_path);
-
-    if !link.exists() && !link.is_symlink() {
-        return Err("터미널 명령어가 설치되어 있지 않습니다".to_string());
-    }
-
-    if std::fs::remove_file(link).is_err() {
-        #[cfg(target_os = "macos")]
-        {
-            let cmd = format!("rm -f {}", link_path);
-            run_with_admin_privileges(&cmd)?;
-        }
-
-        #[cfg(not(target_os = "macos"))]
-        {
-            return Err("제거 실패: sudo 권한이 필요합니다".to_string());
-        }
-    }
-
-    Ok("터미널 명령어가 제거되었습니다".to_string())
+        Ok("터미널 명령어가 제거되었습니다".to_string())
+    })
+    .await
+    .map_err(|e| format!("작업 실행 실패: {}", e))?
 }
 
 /// 터미널 명령어 설치 상태 확인
