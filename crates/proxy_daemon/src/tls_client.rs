@@ -77,8 +77,8 @@ impl tokio_rustls::rustls::client::danger::ServerCertVerifier for DangerousCerti
     }
 }
 
-/// PEM 파일에서 인증서 체인을 로드합니다.
-pub fn load_certs_from_pem(
+/// 인증서 체인을 로드합니다. PEM 형식을 먼저 시도하고, 실패 시 DER 형식으로 시도합니다.
+pub fn load_certs(
     cert_path: &str,
 ) -> Result<Vec<CertificateDer<'static>>, Box<dyn std::error::Error>> {
     let cert_data = std::fs::read(cert_path)?;
@@ -88,15 +88,27 @@ pub fn load_certs_from_pem(
         rustls_pemfile::certs(&mut cert_data.as_slice()).collect::<Result<Vec<_>, _>>()?;
 
     if certs.is_empty() {
-        // DER 형식으로 시도
+        // DER 형식으로 시도 - 최소한 ASN.1 시퀀스 태그(0x30)인지 확인
+        if cert_data.first().copied() != Some(0x30) {
+            return Err("인증서 파일이 유효한 PEM 또는 DER 형식이 아닙니다".into());
+        }
         return Ok(vec![CertificateDer::from(cert_data)]);
     }
 
     Ok(certs)
 }
 
-/// PEM 파일에서 개인 키를 로드합니다. RSA, PKCS8, EC 키를 지원합니다.
-pub fn load_private_key_from_pem(
+/// PEM 파일에서 인증서 체인을 로드합니다 (하위 호환성).
+#[deprecated(note = "load_certs를 사용하세요")]
+pub fn load_certs_from_pem(
+    cert_path: &str,
+) -> Result<Vec<CertificateDer<'static>>, Box<dyn std::error::Error>> {
+    load_certs(cert_path)
+}
+
+/// PEM 파일에서 개인 키를 로드합니다. RSA (PKCS#1), PKCS#8, EC (SEC1) 키를 지원합니다.
+/// 현재 DER 형식 키는 지원하지 않습니다.
+pub fn load_private_key(
     key_path: &str,
 ) -> Result<PrivateKeyDer<'static>, Box<dyn std::error::Error>> {
     let key_data = std::fs::read(key_path)?;
@@ -122,6 +134,14 @@ pub fn load_private_key_from_pem(
     Err("키 파일에서 유효한 개인 키를 찾을 수 없습니다".into())
 }
 
+/// PEM 파일에서 개인 키를 로드합니다 (하위 호환성).
+#[deprecated(note = "load_private_key를 사용하세요")]
+pub fn load_private_key_from_pem(
+    key_path: &str,
+) -> Result<PrivateKeyDer<'static>, Box<dyn std::error::Error>> {
+    load_private_key(key_path)
+}
+
 /// 클라이언트 인증서 설정을 검증합니다.
 pub fn validate_client_cert_config(
     config: &ClientCertConfig,
@@ -141,8 +161,8 @@ pub fn validate_client_cert_config(
     }
 
     // 실제 로드 테스트
-    load_certs_from_pem(&config.cert_path)?;
-    load_private_key_from_pem(&config.key_path)?;
+    load_certs(&config.cert_path)?;
+    load_private_key(&config.key_path)?;
 
     Ok(())
 }
@@ -176,8 +196,8 @@ pub fn create_hybrid_client_with_cert(
     let rustls_config = if let Some(cert_config) = client_cert_config {
         if cert_config.enabled {
             match (
-                load_certs_from_pem(&cert_config.cert_path),
-                load_private_key_from_pem(&cert_config.key_path),
+                load_certs(&cert_config.cert_path),
+                load_private_key(&cert_config.key_path),
             ) {
                 (Ok(certs), Ok(key)) => {
                     info!(
@@ -250,30 +270,37 @@ mod tests {
     }
 
     #[test]
-    fn test_load_certs_from_pem() {
+    fn test_load_certs() {
         let (cert_file, _key_file) = create_test_cert_files();
-        let certs =
-            load_certs_from_pem(cert_file.path().to_str().unwrap()).expect("Failed to load certs");
+        let certs = load_certs(cert_file.path().to_str().unwrap()).expect("Failed to load certs");
         assert!(!certs.is_empty(), "Should load at least one certificate");
     }
 
     #[test]
-    fn test_load_private_key_from_pem() {
+    fn test_load_private_key() {
         let (_cert_file, key_file) = create_test_cert_files();
-        let key = load_private_key_from_pem(key_file.path().to_str().unwrap());
+        let key = load_private_key(key_file.path().to_str().unwrap());
         assert!(key.is_ok(), "Should successfully load private key");
     }
 
     #[test]
     fn test_load_certs_nonexistent_file() {
-        let result = load_certs_from_pem("/nonexistent/path/cert.pem");
+        let result = load_certs("/nonexistent/path/cert.pem");
         assert!(result.is_err());
     }
 
     #[test]
     fn test_load_private_key_nonexistent_file() {
-        let result = load_private_key_from_pem("/nonexistent/path/key.pem");
+        let result = load_private_key("/nonexistent/path/key.pem");
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_load_certs_invalid_content() {
+        let mut file = NamedTempFile::new().unwrap();
+        file.write_all(b"not a valid cert").unwrap();
+        let result = load_certs(file.path().to_str().unwrap());
+        assert!(result.is_err(), "Should reject non-PEM non-DER content");
     }
 
     #[test]
@@ -313,7 +340,7 @@ mod tests {
     fn test_load_private_key_invalid_content() {
         let mut file = NamedTempFile::new().unwrap();
         file.write_all(b"not a valid key").unwrap();
-        let result = load_private_key_from_pem(file.path().to_str().unwrap());
+        let result = load_private_key(file.path().to_str().unwrap());
         assert!(result.is_err());
     }
 }

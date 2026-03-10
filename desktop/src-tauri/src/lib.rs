@@ -12,9 +12,9 @@ use proxy_v2::{
     install_ca_cert, install_cli, load_script, load_session, proxy_v2_status, read_body_file,
     replay_request, replay_sequence, resolve_breakpoint, save_session, start_proxy_v2,
     stop_proxy_v2, uninstall_ca_cert, uninstall_cli, unload_script, update_breakpoint_rules,
-    update_client_certificate, update_host_mappings, update_intercept_rules_v2,
-    update_proxy_auth, update_quick_settings, update_server_replay, update_ssl_proxying_list,
-    update_throttle, update_upstream_proxy, ws_inject_message, ProxyV2State,
+    update_client_certificate, update_host_mappings, update_intercept_rules_v2, update_proxy_auth,
+    update_quick_settings, update_server_replay, update_ssl_proxying_list, update_throttle,
+    update_upstream_proxy, ws_inject_message, ProxyV2State,
 };
 use system_proxy::get_proxy_status_command;
 use tauri::menu::SubmenuBuilder;

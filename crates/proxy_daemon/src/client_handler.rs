@@ -7,8 +7,7 @@ use tracing::{error, info, warn};
 use crate::breakpoint::BreakpointManager;
 use crate::protocol::{
     BreakpointRule, ClientCertConfig, ClientCommand, DaemonMessage, HostMapping, InterceptRule,
-    ProxyAuthConfig,
-    ServerReplayEntry, SslProxyingEntry,
+    ProxyAuthConfig, ServerReplayEntry, SslProxyingEntry,
 };
 use proxyapi_v2::throttle::ThrottleConfig;
 use proxyapi_v2::upstream_proxy::UpstreamProxyConfig;
