@@ -49,7 +49,7 @@ enum ScriptCommand {
 /// 스크립트 엔진에 대한 Send + Sync 핸들 (채널 기반)
 #[derive(Clone)]
 pub struct ScriptHandle {
-    tx: mpsc::Sender<ScriptCommand>,
+    tx: Option<mpsc::Sender<ScriptCommand>>,
     active: Arc<std::sync::atomic::AtomicBool>,
     log_tx: broadcast::Sender<ScriptLogEntry>,
     thread_handle: Arc<Mutex<Option<JoinHandle<()>>>>,
@@ -79,7 +79,7 @@ impl ScriptHandle {
         });
 
         Self {
-            tx,
+            tx: Some(tx),
             active,
             log_tx,
             thread_handle: Arc::new(Mutex::new(Some(handle))),
@@ -88,12 +88,19 @@ impl ScriptHandle {
 
     /// 엔진 스레드를 종료하고 join하여 리소스 회수
     pub async fn shutdown(&self) {
-        let _ = self.tx.send(ScriptCommand::Shutdown).await;
+        if let Some(tx) = &self.tx {
+            let _ = tx.send(ScriptCommand::Shutdown).await;
+        }
         // 엔진 스레드가 종료될 때까지 대기하여 리소스 leak 방지
         let handle = self.thread_handle.lock().ok().and_then(|mut g| g.take());
         if let Some(h) = handle {
             let _ = tokio::task::spawn_blocking(move || h.join()).await;
         }
+    }
+
+    /// 내부 전송 채널 참조 반환
+    fn sender(&self) -> Result<&mpsc::Sender<ScriptCommand>, ScriptError> {
+        self.tx.as_ref().ok_or(ScriptError::EngineShutdown)
     }
 
     /// 스크립트가 활성화되어 있는지 확인
@@ -109,7 +116,7 @@ impl ScriptHandle {
     /// 스크립트 파일 로드
     pub async fn load_file(&self, path: &str) -> Result<(), ScriptError> {
         let (reply_tx, reply_rx) = oneshot::channel();
-        self.tx
+        self.sender()?
             .send(ScriptCommand::LoadFile {
                 path: path.to_string(),
                 reply: reply_tx,
@@ -125,7 +132,7 @@ impl ScriptHandle {
     /// 스크립트 코드 로드 (JS)
     pub async fn load_code(&self, code: &str) -> Result<(), ScriptError> {
         let (reply_tx, reply_rx) = oneshot::channel();
-        self.tx
+        self.sender()?
             .send(ScriptCommand::LoadCode {
                 code: code.to_string(),
                 reply: reply_tx,
@@ -141,7 +148,7 @@ impl ScriptHandle {
     /// TypeScript 코드 로드
     pub async fn load_ts_code(&self, code: &str) -> Result<(), ScriptError> {
         let (reply_tx, reply_rx) = oneshot::channel();
-        self.tx
+        self.sender()?
             .send(ScriptCommand::LoadTsCode {
                 code: code.to_string(),
                 reply: reply_tx,
@@ -157,10 +164,9 @@ impl ScriptHandle {
     /// 스크립트 언로드
     pub async fn unload(&self) {
         let (reply_tx, reply_rx) = oneshot::channel();
-        let _ = self
-            .tx
-            .send(ScriptCommand::Unload { reply: reply_tx })
-            .await;
+        if let Some(tx) = &self.tx {
+            let _ = tx.send(ScriptCommand::Unload { reply: reply_tx }).await;
+        }
         let _ = tokio::time::timeout(SCRIPT_TIMEOUT, reply_rx).await;
     }
 
@@ -173,7 +179,7 @@ impl ScriptHandle {
             return Ok(RequestAction::Forward);
         }
         let (reply_tx, reply_rx) = oneshot::channel();
-        self.tx
+        self.sender()?
             .send(ScriptCommand::InvokeOnRequest {
                 request: request.clone(),
                 reply: reply_tx,
@@ -196,7 +202,7 @@ impl ScriptHandle {
             return Ok(ResponseAction::Forward);
         }
         let (reply_tx, reply_rx) = oneshot::channel();
-        self.tx
+        self.sender()?
             .send(ScriptCommand::InvokeOnResponse {
                 request: request.clone(),
                 response: response.clone(),
@@ -219,7 +225,7 @@ impl ScriptHandle {
             return Ok(WsAction::Forward);
         }
         let (reply_tx, reply_rx) = oneshot::channel();
-        self.tx
+        self.sender()?
             .send(ScriptCommand::InvokeOnWsMessage {
                 message: message.clone(),
                 reply: reply_tx,
@@ -237,11 +243,17 @@ impl Drop for ScriptHandle {
     fn drop(&mut self) {
         // Arc의 마지막 소유자인 경우에만 스레드를 정리
         if Arc::strong_count(&self.thread_handle) == 1 {
-            let handle = self.thread_handle.lock().ok().and_then(|mut g| g.take());
-            if let Some(h) = handle {
-                // blocking_send로 Shutdown 커맨드를 전송하여 엔진 루프 종료
-                let _ = self.tx.blocking_send(ScriptCommand::Shutdown);
-                let _ = h.join();
+            if let Some(tx) = self.tx.take() {
+                let handle = self.thread_handle.clone();
+                // 별도 스레드에서 정리하여 tokio 런타임 스레드에서의 데드락 방지
+                std::thread::spawn(move || {
+                    let _ = tx.blocking_send(ScriptCommand::Shutdown);
+                    if let Ok(mut guard) = handle.lock() {
+                        if let Some(h) = guard.take() {
+                            let _ = h.join();
+                        }
+                    }
+                });
             }
         }
     }

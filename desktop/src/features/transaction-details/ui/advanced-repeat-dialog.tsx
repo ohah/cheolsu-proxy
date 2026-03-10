@@ -110,7 +110,7 @@ export function AdvancedRepeatDialog({
     };
 
     // 리스너를 먼저 등록한 후 명령을 실행하여 초기 progress 이벤트 누락 방지
-    const unlisten = await listen<AdvancedRepeatProgress>(
+    let unlisten: (() => void) | null = await listen<AdvancedRepeatProgress>(
       "advanced_repeat_progress",
       (event) => {
         setProgress(event.payload);
@@ -123,7 +123,8 @@ export function AdvancedRepeatDialog({
     } catch (e: any) {
       setError(typeof e === "string" ? e : e.message || t`Advanced repeat failed`);
     } finally {
-      unlisten();
+      unlisten?.();
+      unlisten = null;
       setLoading(false);
     }
   }, [transaction, iterations, concurrency, delayMs, t]);

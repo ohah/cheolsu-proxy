@@ -156,13 +156,13 @@ pub async fn run_proxy(
             tracing::warn!(
                 "클라이언트 인증서 설정이 변경되었습니다. 변경 사항을 적용하려면 프록시를 재시작해야 합니다."
             );
-            let msg = serde_json::to_string(&DaemonMessage::ScriptLog {
+            if let Ok(msg) = serde_json::to_string(&DaemonMessage::ScriptLog {
                 level: "warn".to_string(),
                 message: "클라이언트 인증서 설정이 변경되었습니다. 프록시를 재시작해야 적용됩니다."
                     .to_string(),
-            })
-            .unwrap_or_default();
-            let _ = event_tx_cert.send(msg);
+            }) {
+                let _ = event_tx_cert.send(msg);
+            }
         }
     });
 
@@ -205,18 +205,18 @@ pub async fn run_proxy(
     let event_tx_http = event_tx.clone();
     tokio::spawn(async move {
         while let Some(event) = rx.recv().await {
-            let json = serde_json::to_string(&event).unwrap_or_default();
-            let msg = serde_json::to_string(&DaemonMessage::Event { data: event }).unwrap_or(json);
-            let _ = event_tx_http.send(msg);
+            if let Ok(msg) = serde_json::to_string(&DaemonMessage::Event { data: event }) {
+                let _ = event_tx_http.send(msg);
+            }
         }
     });
 
     let event_tx_tunnel = event_tx.clone();
     tokio::spawn(async move {
         while let Some(tunnel_event) = tunnel_rx.recv().await {
-            let msg = serde_json::to_string(&DaemonMessage::Event { data: tunnel_event })
-                .unwrap_or_default();
-            let _ = event_tx_tunnel.send(msg);
+            if let Ok(msg) = serde_json::to_string(&DaemonMessage::Event { data: tunnel_event }) {
+                let _ = event_tx_tunnel.send(msg);
+            }
         }
     });
 
