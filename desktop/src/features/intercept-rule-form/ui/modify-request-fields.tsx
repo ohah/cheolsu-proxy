@@ -2,12 +2,12 @@ import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
 import { useFormContext } from "react-hook-form";
 import { Textarea } from "@/shared/ui";
-import type { InterceptRuleFormValues } from "@/entities/intercept-rule";
+import type { ModifyRequestFormValues } from "@/entities/intercept-rule";
 import { HeadersFields } from "./headers-fields";
 
 export const ModifyRequestFields = () => {
   const { t } = useLingui();
-  const { register } = useFormContext<InterceptRuleFormValues>();
+  const { register } = useFormContext<ModifyRequestFormValues>();
 
   return (
     <>
@@ -19,7 +19,7 @@ export const ModifyRequestFields = () => {
         </label>
         <Textarea
           placeholder={t`Set body (optional)`}
-          {...register("action.body" as never)}
+          {...register("action.body")}
           rows={4}
           className="font-mono text-xs"
         />

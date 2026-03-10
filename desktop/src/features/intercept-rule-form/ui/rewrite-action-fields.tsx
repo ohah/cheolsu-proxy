@@ -9,11 +9,11 @@ import {
   SelectContent,
   SelectItem,
 } from "@/shared/ui";
-import type { InterceptRuleFormValues } from "@/entities/intercept-rule";
+import type { RewriteFormValues } from "@/entities/intercept-rule";
 
 export const RewriteActionFields = () => {
   const { t } = useLingui();
-  const { register, control } = useFormContext<InterceptRuleFormValues>();
+  const { register, control } = useFormContext<RewriteFormValues>();
 
   return (
     <>
@@ -23,7 +23,7 @@ export const RewriteActionFields = () => {
         </label>
         <Controller
           control={control}
-          name={"action.rewrite_target" as never}
+          name="action.rewrite_target"
           render={({ field }) => (
             <Select
               value={field.value as string}
@@ -49,7 +49,7 @@ export const RewriteActionFields = () => {
         </label>
         <Input
           placeholder={t`Regex pattern (e.g. old-domain\\.com)`}
-          {...register("action.match_pattern" as never)}
+          {...register("action.match_pattern")}
           className="font-mono text-xs"
         />
       </div>
@@ -60,7 +60,7 @@ export const RewriteActionFields = () => {
         </label>
         <Input
           placeholder={t`Replacement string (supports $1, $2 capture groups)`}
-          {...register("action.replace_with" as never)}
+          {...register("action.replace_with")}
           className="font-mono text-xs"
         />
       </div>

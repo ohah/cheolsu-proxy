@@ -74,8 +74,8 @@ msgstr "Action"
 msgid "Active"
 msgstr "Active"
 
-#: src/features/intercept-rule-form/ui/headers-fields.tsx:59
-#: src/features/intercept-rule-form/ui/headers-fields.tsx:98
+#: src/features/intercept-rule-form/ui/headers-fields.tsx:60
+#: src/features/intercept-rule-form/ui/headers-fields.tsx:99
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:335
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:366
 #: src/features/map-rule-form/ui/map-local-fields.tsx:83
@@ -100,7 +100,7 @@ msgstr "Add captured traffic to replay stored responses for matching requests."
 msgid "Add from Traffic"
 msgstr "Add from Traffic"
 
-#: src/features/intercept-rule-form/ui/headers-fields.tsx:50
+#: src/features/intercept-rule-form/ui/headers-fields.tsx:51
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:331
 msgid "Add Headers"
 msgstr "Add Headers"
@@ -636,14 +636,14 @@ msgstr "HAR import failed"
 msgid "HAR imported successfully"
 msgstr "HAR imported successfully"
 
-#: src/features/intercept-rule-form/ui/headers-fields.tsx:65
+#: src/features/intercept-rule-form/ui/headers-fields.tsx:66
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:341
 #: src/features/map-rule-form/ui/map-local-fields.tsx:89
 #: src/features/transaction-details/ui/replay-dialog.tsx:439
 msgid "Header name"
 msgstr "Header name"
 
-#: src/features/intercept-rule-form/ui/headers-fields.tsx:104
+#: src/features/intercept-rule-form/ui/headers-fields.tsx:105
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:372
 msgid "Header name to remove"
 msgstr "Header name to remove"
@@ -1200,7 +1200,7 @@ msgstr "Remove Cookie headers from requests and Set-Cookie headers from response
 msgid "Remove entry"
 msgstr "Remove entry"
 
-#: src/features/intercept-rule-form/ui/headers-fields.tsx:89
+#: src/features/intercept-rule-form/ui/headers-fields.tsx:90
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:362
 msgid "Remove Headers"
 msgstr "Remove Headers"
@@ -1763,7 +1763,7 @@ msgstr "Use wildcard patterns: * matches any string, ? matches a single characte
 msgid "Username"
 msgstr "Username"
 
-#: src/features/intercept-rule-form/ui/headers-fields.tsx:70
+#: src/features/intercept-rule-form/ui/headers-fields.tsx:71
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:347
 #: src/features/map-rule-form/ui/map-local-fields.tsx:94
 #: src/features/transaction-details/ui/replay-dialog.tsx:447

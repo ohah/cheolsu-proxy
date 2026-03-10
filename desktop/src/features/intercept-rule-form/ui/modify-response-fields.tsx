@@ -2,12 +2,12 @@ import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
 import { useFormContext } from "react-hook-form";
 import { Input, Textarea } from "@/shared/ui";
-import type { InterceptRuleFormValues } from "@/entities/intercept-rule";
+import type { ModifyResponseFormValues } from "@/entities/intercept-rule";
 import { HeadersFields } from "./headers-fields";
 
 export const ModifyResponseFields = () => {
   const { t } = useLingui();
-  const { register } = useFormContext<InterceptRuleFormValues>();
+  const { register } = useFormContext<ModifyResponseFormValues>();
 
   return (
     <>
@@ -18,7 +18,7 @@ export const ModifyResponseFields = () => {
         <Input
           type="number"
           placeholder={t`200 (optional)`}
-          {...register("action.response_status" as never)}
+          {...register("action.response_status")}
         />
       </div>
 
@@ -30,7 +30,7 @@ export const ModifyResponseFields = () => {
         </label>
         <Textarea
           placeholder={t`Set body (optional)`}
-          {...register("action.body" as never)}
+          {...register("action.body")}
           rows={4}
           className="font-mono text-xs"
         />

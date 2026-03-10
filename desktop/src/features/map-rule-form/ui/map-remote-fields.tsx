@@ -1,10 +1,10 @@
 import { Trans } from "@lingui/react/macro";
 import { useFormContext, Controller } from "react-hook-form";
 import { Input, Switch } from "@/shared/ui";
-import type { MapRuleFormValues } from "@/entities/intercept-rule";
+import type { MapRemoteFormValues } from "@/entities/intercept-rule";
 
 export const MapRemoteFields = () => {
-  const { register, control } = useFormContext<MapRuleFormValues>();
+  const { register, control } = useFormContext<MapRemoteFormValues>();
 
   return (
     <>
@@ -14,13 +14,13 @@ export const MapRemoteFields = () => {
         </label>
         <Input
           placeholder="http://localhost:3000 or https://staging.example.com"
-          {...register("action.target_url" as never)}
+          {...register("action.target_url")}
         />
       </div>
 
       <Controller
         control={control}
-        name={"action.preserve_path" as never}
+        name="action.preserve_path"
         render={({ field }) => (
           <div className="flex items-center gap-3">
             <Switch
