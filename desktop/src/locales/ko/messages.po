@@ -56,7 +56,7 @@ msgstr "{totalCount}개 트랜잭션"
 msgid "* = any string, ? = single character"
 msgstr "* = 모든 문자열, ? = 단일 문자"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:329
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:320
 msgid "200 (optional)"
 msgstr "200 (선택사항)"
 
@@ -65,7 +65,7 @@ msgstr "200 (선택사항)"
 msgid "Abort"
 msgstr "중단"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:287
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:278
 msgid "Action"
 msgstr "동작"
 
@@ -73,10 +73,10 @@ msgstr "동작"
 msgid "Active"
 msgstr "활성"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:346
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:377
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:337
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:368
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:288
-#: src/features/transaction-details/ui/replay-dialog.tsx:448
+#: src/features/transaction-details/ui/replay-dialog.tsx:427
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:134
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:169
 #: src/pages/server-replay/ui/server-replay-page.tsx:170
@@ -97,7 +97,7 @@ msgstr "캡처된 트래픽을 추가하여 매칭되는 요청에 저장된 응
 msgid "Add from Traffic"
 msgstr "트래픽에서 추가"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:342
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:333
 msgid "Add Headers"
 msgstr "헤더 추가"
 
@@ -117,8 +117,8 @@ msgstr "매핑 추가"
 msgid "Add mappings to redirect DNS hostnames to different target hosts for testing."
 msgstr "테스트를 위해 DNS 호스트명을 다른 대상 호스트로 리디렉션하는 매핑을 추가하세요."
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:230
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:470
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:221
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:461
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:348
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:113
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:96
@@ -177,7 +177,7 @@ msgstr "모든 호스트 매핑이 삭제되었습니다"
 msgid "All HTTPS traffic is being intercepted (no whitelist configured)"
 msgstr "모든 HTTPS 트래픽이 인터셉트됩니다 (화이트리스트 미설정)"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:275
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:266
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:223
 msgid "All Methods"
 msgstr "모든 메서드"
@@ -216,7 +216,7 @@ msgstr "앱 종료 시 현재 세션을 자동으로 저장하고 다음 실행 
 msgid "available"
 msgstr "개 사용 가능"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:297
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:288
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:43
 msgid "Block"
 msgstr "차단"
@@ -225,10 +225,10 @@ msgstr "차단"
 msgid "Block Cookies"
 msgstr "쿠키 차단"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:450
-#: src/features/transaction-details/ui/replay-dialog.tsx:142
-#: src/features/transaction-details/ui/replay-dialog.tsx:213
-#: src/features/transaction-details/ui/replay-dialog.tsx:497
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:441
+#: src/features/transaction-details/ui/replay-dialog.tsx:129
+#: src/features/transaction-details/ui/replay-dialog.tsx:200
+#: src/features/transaction-details/ui/replay-dialog.tsx:476
 msgid "Body"
 msgstr "본문"
 
@@ -271,7 +271,7 @@ msgstr "바이트 본문"
 msgid "CA Certificate"
 msgstr "CA 인증서"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:467
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:458
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:345
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:137
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:166
@@ -338,8 +338,8 @@ msgstr "클라이언트는 이 프록시를 사용하기 위해 Proxy-Authorizat
 msgid "Close"
 msgstr "닫기"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:146
-#: src/features/transaction-details/ui/replay-dialog.tsx:507
+#: src/features/transaction-details/ui/replay-dialog.tsx:133
+#: src/features/transaction-details/ui/replay-dialog.tsx:486
 msgid "Collapse"
 msgstr "접기"
 
@@ -359,7 +359,7 @@ msgstr "명령어가 클립보드에 복사되었습니다"
 msgid "Compose request"
 msgstr "요청 작성"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:374
+#: src/features/transaction-details/ui/replay-dialog.tsx:353
 msgid "Compose Request"
 msgstr "요청 작성"
 
@@ -494,7 +494,7 @@ msgstr "맵 규칙 수정"
 msgid "Edit rule"
 msgstr "규칙 수정"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:230
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:221
 msgid "Edit Rule"
 msgstr "규칙 수정"
 
@@ -527,8 +527,8 @@ msgstr "OPTIONS 메서드 제외"
 msgid "Exit fullscreen"
 msgstr "전체 화면 종료"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:217
-#: src/features/transaction-details/ui/replay-dialog.tsx:512
+#: src/features/transaction-details/ui/replay-dialog.tsx:204
+#: src/features/transaction-details/ui/replay-dialog.tsx:491
 msgid "Expand"
 msgstr "펼치기"
 
@@ -617,29 +617,29 @@ msgstr "<0>설정 → 일반 → VPN 및 기기 관리</0>로 이동하세요"
 msgid "Go to <0>Settings → Security → Encryption & credentials</0>"
 msgstr "<0>설정 → 보안 → 암호화 및 자격증명</0>으로 이동하세요"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:112
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:114
 msgid "HAR export failed"
 msgstr "HAR 내보내기 실패"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:109
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:111
 msgid "HAR exported successfully"
 msgstr "HAR 내보내기 성공"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:201
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:203
 msgid "HAR import failed"
 msgstr "HAR 가져오기 실패"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:198
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:200
 msgid "HAR imported successfully"
 msgstr "HAR 가져오기 성공"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:352
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:343
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:294
-#: src/features/transaction-details/ui/replay-dialog.tsx:460
+#: src/features/transaction-details/ui/replay-dialog.tsx:439
 msgid "Header name"
 msgstr "헤더 이름"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:383
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:374
 msgid "Header name to remove"
 msgstr "삭제할 헤더 이름"
 
@@ -650,8 +650,8 @@ msgstr "헤더"
 
 #. placeholder {0}: headerEntries.length
 #. placeholder {0}: headers.length
-#: src/features/transaction-details/ui/replay-dialog.tsx:189
-#: src/features/transaction-details/ui/replay-dialog.tsx:445
+#: src/features/transaction-details/ui/replay-dialog.tsx:176
+#: src/features/transaction-details/ui/replay-dialog.tsx:424
 msgid "Headers ({0})"
 msgstr "헤더 ({0})"
 
@@ -776,7 +776,7 @@ msgstr "프록시 스크립트 로드 및 관리"
 msgid "Load Session"
 msgstr "세션 불러오기"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:147
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:149
 msgid "Load transactions"
 msgstr "트랜잭션 불러오기"
 
@@ -855,11 +855,11 @@ msgstr "2xx 성공 또는 404 에러 매칭"
 msgid "Match GET or POST methods"
 msgstr "GET 또는 POST 메서드 매칭"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:422
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:413
 msgid "Match Pattern"
 msgstr "매칭 패턴"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:184
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:183
 msgid "Match pattern is required"
 msgstr "매칭 패턴은 필수입니다"
 
@@ -884,7 +884,7 @@ msgstr "메시지가 전송되었습니다"
 msgid "messages"
 msgstr "메시지"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:268
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:259
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:216
 msgid "Method"
 msgstr "메서드"
@@ -893,12 +893,12 @@ msgstr "메서드"
 msgid "Mobile Certificate Install"
 msgstr "모바일 인증서 설치"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:298
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:289
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:44
 msgid "Modify Request"
 msgstr "요청 수정"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:299
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:290
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:45
 msgid "Modify Response"
 msgstr "응답 수정"
@@ -911,7 +911,7 @@ msgstr "메시지"
 msgid "Multiple conditions:"
 msgstr "복합 조건:"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:243
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:234
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:188
 msgid "Name"
 msgstr "이름"
@@ -996,7 +996,7 @@ msgstr "동시에 전송할 요청 수 (1-100)"
 msgid "Number of times to send the request (1-10000)"
 msgstr "요청을 전송할 횟수 (1-10000)"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:314
+#: src/features/transaction-details/ui/replay-dialog.tsx:301
 msgid "Only http:// and https:// URLs are allowed"
 msgstr "http:// 및 https:// URL만 허용됩니다"
 
@@ -1029,7 +1029,7 @@ msgstr "Wi-Fi 프록시를 설정한 후 모바일 브라우저에서 이 URL을
 msgid "optional"
 msgstr "선택사항"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:391
+#: src/features/transaction-details/ui/replay-dialog.tsx:370
 msgid "Original"
 msgstr "원본"
 
@@ -1039,11 +1039,11 @@ msgstr "원본"
 msgid "Password"
 msgstr "비밀번호"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:255
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:246
 msgid "Pattern"
 msgstr "패턴"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:179
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:178
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:112
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:29
 msgid "Pattern is required"
@@ -1161,7 +1161,7 @@ msgstr "수신 (서버 → 클라이언트)"
 msgid "Refresh"
 msgstr "새로고침"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:425
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:416
 msgid "Regex pattern (e.g. old-domain\\.com)"
 msgstr "정규식 패턴 (예: old-domain\\.com)"
 
@@ -1194,25 +1194,25 @@ msgstr "요청에서 Cookie 헤더를 제거하고 응답에서 Set-Cookie 헤�
 msgid "Remove entry"
 msgstr "엔트리 삭제"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:373
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:364
 msgid "Remove Headers"
 msgstr "헤더 삭제"
 
 #. placeholder {0}: transactions.length
 #. placeholder {1}: loaded.length
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:146
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:148
 msgid "Replace {0} existing transactions with {1} new ones? Cancel to append instead."
 msgstr "기존 {0}개 트랜잭션을 새로운 {1}개로 교체하시겠습니까? 취소하면 추가됩니다."
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:434
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:425
 msgid "Replace With"
 msgstr "치환 문자열"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:437
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:428
 msgid "Replacement string (supports $1, $2 capture groups)"
 msgstr "치환 문자열 ($1, $2 캡처 그룹 지원)"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:401
+#: src/features/transaction-details/ui/replay-dialog.tsx:380
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:122
 msgid "Replay"
 msgstr "리플레이"
@@ -1221,11 +1221,11 @@ msgstr "리플레이"
 msgid "Replay message"
 msgstr "메시지 리플레이"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:365
+#: src/features/transaction-details/ui/replay-dialog.tsx:344
 msgid "Replay request"
 msgstr "요청 리플레이"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:387
+#: src/features/transaction-details/ui/replay-dialog.tsx:366
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:191
 msgid "Request"
 msgstr "요청"
@@ -1234,7 +1234,7 @@ msgstr "요청"
 msgid "Request aborted"
 msgstr "요청이 중단되었습니다"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:414
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:405
 msgid "Request Body"
 msgstr "요청 바디"
 
@@ -1246,11 +1246,11 @@ msgstr "요청 상세"
 msgid "Request dropped"
 msgstr "요청이 드롭되었습니다"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:334
+#: src/features/transaction-details/ui/replay-dialog.tsx:321
 msgid "Request failed"
 msgstr "요청 실패"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:412
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:403
 msgid "Request Header"
 msgstr "요청 헤더"
 
@@ -1262,20 +1262,20 @@ msgstr "초당 요청 수"
 msgid "Require authentication to use this proxy server"
 msgstr "이 프록시 서버 사용 시 인증 필요"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:401
+#: src/features/transaction-details/ui/replay-dialog.tsx:380
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:196
 msgid "Response"
 msgstr "응답"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:415
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:406
 msgid "Response Body"
 msgstr "응답 바디"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:454
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:445
 msgid "Response body (optional)"
 msgstr "응답 본문 (선택사항)"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:413
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:404
 msgid "Response Header"
 msgstr "응답 헤더"
 
@@ -1283,7 +1283,7 @@ msgstr "응답 헤더"
 msgid "Response Headers"
 msgstr "응답 헤더"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:325
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:316
 msgid "Response Status Code"
 msgstr "응답 상태 코드"
 
@@ -1307,7 +1307,7 @@ msgstr "매칭되는 요청에 캐시된 응답 반환"
 msgid "Return cached responses for matching requests instead of forwarding to the server"
 msgstr "서버로 전달하지 않고 매칭되는 요청에 캐시된 응답을 반환합니다"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:300
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:291
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:48
 msgid "Rewrite"
 msgstr "재작성"
@@ -1316,7 +1316,7 @@ msgstr "재작성"
 msgid "Route traffic through an external proxy server"
 msgstr "외부 프록시 서버를 통해 트래픽 라우팅"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:202
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:201
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:156
 msgid "Rule added"
 msgstr "규칙이 추가되었습니다"
@@ -1327,12 +1327,12 @@ msgstr "규칙이 추가되었습니다"
 msgid "Rule deleted"
 msgstr "규칙이 삭제되었습니다"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:246
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:237
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:191
 msgid "Rule name (optional)"
 msgstr "규칙 이름 (선택사항)"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:199
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:198
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:153
 msgid "Rule updated"
 msgstr "규칙이 수정되었습니다"
@@ -1435,11 +1435,11 @@ msgstr "다운로드된 인증서 파일을 선택하고 확인하세요"
 msgid "Select the downloaded profile and tap \"Install\""
 msgstr "다운로드된 프로필을 선택하고 \"Install\"을 탭하세요"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:589
+#: src/features/transaction-details/ui/replay-dialog.tsx:568
 msgid "Send a request to see the replay response"
 msgstr "리플레이 응답을 보려면 요청을 전송하세요"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:587
+#: src/features/transaction-details/ui/replay-dialog.tsx:566
 msgid "Send a request to see the response"
 msgstr "응답을 보려면 요청을 전송하세요"
 
@@ -1447,7 +1447,7 @@ msgstr "응답을 보려면 요청을 전송하세요"
 msgid "Send Message"
 msgstr "메시지 전송"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:557
+#: src/features/transaction-details/ui/replay-dialog.tsx:536
 msgid "Send Request"
 msgstr "요청 전송"
 
@@ -1455,7 +1455,7 @@ msgstr "요청 전송"
 msgid "Sending requests sequentially..."
 msgstr "요청을 순서대로 전송 중..."
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:552
+#: src/features/transaction-details/ui/replay-dialog.tsx:531
 #: src/features/transaction-details/ui/sequence-replay-dialog.tsx:241
 #: src/features/websocket-replay/ui/ws-replay-dialog.tsx:184
 msgid "Sending..."
@@ -1487,23 +1487,23 @@ msgstr "시퀀스 리플레이 실패"
 msgid "Server Replay"
 msgstr "서버 리플레이"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:178
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:180
 msgid "Session load failed"
 msgstr "세션 불러오기 실패"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:175
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:177
 msgid "Session loaded successfully"
 msgstr "세션을 성공적으로 불러왔습니다"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:136
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:138
 msgid "Session save failed"
 msgstr "세션 저장 실패"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:133
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:135
 msgid "Session saved successfully"
 msgstr "세션이 성공적으로 저장되었습니다"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:454
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:445
 msgid "Set body (optional)"
 msgstr "본문 설정 (선택사항)"
 
@@ -1570,7 +1570,7 @@ msgstr "리플레이 시작"
 msgid "Status"
 msgstr "상태"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:310
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:301
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:271
 msgid "Status Code"
 msgstr "상태 코드"
@@ -1599,7 +1599,7 @@ msgstr "구성 프로필 다운로드 프롬프트에서 \"Allow\"를 탭하세�
 msgid "Tap \"Install a certificate\" → \"CA certificate\""
 msgstr "\"Install a certificate\" → \"CA certificate\"를 탭하세요"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:402
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:393
 msgid "Target"
 msgstr "대상"
 
@@ -1661,7 +1661,7 @@ msgstr "총 {0}ms"
 msgid "Total Time"
 msgstr "총 시간"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:374
+#: src/features/transaction-details/ui/replay-dialog.tsx:353
 msgid "Traffic Replay"
 msgstr "트래픽 리플레이"
 
@@ -1709,7 +1709,7 @@ msgstr "언로드"
 msgid "Unpin from Top"
 msgstr "상단 고정 해제"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:470
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:461
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:348
 msgid "Update"
 msgstr "수정"
@@ -1722,7 +1722,7 @@ msgstr "업로드 (KB/s)"
 msgid "Upstream Proxy"
 msgstr "업스트림 프록시"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:438
+#: src/features/transaction-details/ui/replay-dialog.tsx:417
 msgid "URL"
 msgstr "URL"
 
@@ -1738,7 +1738,7 @@ msgstr "URL 패턴"
 msgid "URL pattern (e.g., *api.example.com*)"
 msgstr "URL 패턴 (예: *api.example.com*)"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:233
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:224
 msgid "Use wildcard patterns: * matches any string, ? matches a single character."
 msgstr "와일드카드 패턴 사용: *는 모든 문자열, ?는 단일 문자를 매칭합니다."
 
@@ -1748,9 +1748,9 @@ msgstr "와일드카드 패턴 사용: *는 모든 문자열, ?는 단일 문자
 msgid "Username"
 msgstr "사용자 이름"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:358
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:349
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:300
-#: src/features/transaction-details/ui/replay-dialog.tsx:468
+#: src/features/transaction-details/ui/replay-dialog.tsx:447
 msgid "Value"
 msgstr "값"
 

@@ -56,7 +56,7 @@ msgstr "{totalCount} transactions"
 msgid "* = any string, ? = single character"
 msgstr "* = any string, ? = single character"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:329
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:320
 msgid "200 (optional)"
 msgstr "200 (optional)"
 
@@ -65,7 +65,7 @@ msgstr "200 (optional)"
 msgid "Abort"
 msgstr "Abort"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:287
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:278
 msgid "Action"
 msgstr "Action"
 
@@ -73,10 +73,10 @@ msgstr "Action"
 msgid "Active"
 msgstr "Active"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:346
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:377
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:337
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:368
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:288
-#: src/features/transaction-details/ui/replay-dialog.tsx:448
+#: src/features/transaction-details/ui/replay-dialog.tsx:427
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:134
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:169
 #: src/pages/server-replay/ui/server-replay-page.tsx:170
@@ -97,7 +97,7 @@ msgstr "Add captured traffic to replay stored responses for matching requests."
 msgid "Add from Traffic"
 msgstr "Add from Traffic"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:342
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:333
 msgid "Add Headers"
 msgstr "Add Headers"
 
@@ -117,8 +117,8 @@ msgstr "Add Mapping"
 msgid "Add mappings to redirect DNS hostnames to different target hosts for testing."
 msgstr "Add mappings to redirect DNS hostnames to different target hosts for testing."
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:230
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:470
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:221
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:461
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:348
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:113
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:96
@@ -177,7 +177,7 @@ msgstr "All host mappings cleared"
 msgid "All HTTPS traffic is being intercepted (no whitelist configured)"
 msgstr "All HTTPS traffic is being intercepted (no whitelist configured)"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:275
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:266
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:223
 msgid "All Methods"
 msgstr "All Methods"
@@ -216,7 +216,7 @@ msgstr "Automatically save the current session when the app closes and restore i
 msgid "available"
 msgstr "available"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:297
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:288
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:43
 msgid "Block"
 msgstr "Block"
@@ -225,10 +225,10 @@ msgstr "Block"
 msgid "Block Cookies"
 msgstr "Block Cookies"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:450
-#: src/features/transaction-details/ui/replay-dialog.tsx:142
-#: src/features/transaction-details/ui/replay-dialog.tsx:213
-#: src/features/transaction-details/ui/replay-dialog.tsx:497
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:441
+#: src/features/transaction-details/ui/replay-dialog.tsx:129
+#: src/features/transaction-details/ui/replay-dialog.tsx:200
+#: src/features/transaction-details/ui/replay-dialog.tsx:476
 msgid "Body"
 msgstr "Body"
 
@@ -271,7 +271,7 @@ msgstr "bytes body"
 msgid "CA Certificate"
 msgstr "CA Certificate"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:467
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:458
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:345
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:137
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:166
@@ -338,8 +338,8 @@ msgstr "Clients must provide these credentials via Proxy-Authorization header (H
 msgid "Close"
 msgstr "Close"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:146
-#: src/features/transaction-details/ui/replay-dialog.tsx:507
+#: src/features/transaction-details/ui/replay-dialog.tsx:133
+#: src/features/transaction-details/ui/replay-dialog.tsx:486
 msgid "Collapse"
 msgstr "Collapse"
 
@@ -359,7 +359,7 @@ msgstr "Command copied to clipboard"
 msgid "Compose request"
 msgstr "Compose request"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:374
+#: src/features/transaction-details/ui/replay-dialog.tsx:353
 msgid "Compose Request"
 msgstr "Compose Request"
 
@@ -494,7 +494,7 @@ msgstr "Edit Map Rule"
 msgid "Edit rule"
 msgstr "Edit rule"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:230
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:221
 msgid "Edit Rule"
 msgstr "Edit Rule"
 
@@ -527,8 +527,8 @@ msgstr "Exclude OPTIONS method"
 msgid "Exit fullscreen"
 msgstr "Exit fullscreen"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:217
-#: src/features/transaction-details/ui/replay-dialog.tsx:512
+#: src/features/transaction-details/ui/replay-dialog.tsx:204
+#: src/features/transaction-details/ui/replay-dialog.tsx:491
 msgid "Expand"
 msgstr "Expand"
 
@@ -617,29 +617,29 @@ msgstr "Go to <0>Settings → General → VPN & Device Management</0>"
 msgid "Go to <0>Settings → Security → Encryption & credentials</0>"
 msgstr "Go to <0>Settings → Security → Encryption & credentials</0>"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:112
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:114
 msgid "HAR export failed"
 msgstr "HAR export failed"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:109
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:111
 msgid "HAR exported successfully"
 msgstr "HAR exported successfully"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:201
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:203
 msgid "HAR import failed"
 msgstr "HAR import failed"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:198
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:200
 msgid "HAR imported successfully"
 msgstr "HAR imported successfully"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:352
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:343
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:294
-#: src/features/transaction-details/ui/replay-dialog.tsx:460
+#: src/features/transaction-details/ui/replay-dialog.tsx:439
 msgid "Header name"
 msgstr "Header name"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:383
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:374
 msgid "Header name to remove"
 msgstr "Header name to remove"
 
@@ -650,8 +650,8 @@ msgstr "headers"
 
 #. placeholder {0}: headerEntries.length
 #. placeholder {0}: headers.length
-#: src/features/transaction-details/ui/replay-dialog.tsx:189
-#: src/features/transaction-details/ui/replay-dialog.tsx:445
+#: src/features/transaction-details/ui/replay-dialog.tsx:176
+#: src/features/transaction-details/ui/replay-dialog.tsx:424
 msgid "Headers ({0})"
 msgstr "Headers ({0})"
 
@@ -776,7 +776,7 @@ msgstr "Load and manage proxy scripts"
 msgid "Load Session"
 msgstr "Load Session"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:147
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:149
 msgid "Load transactions"
 msgstr "Load transactions"
 
@@ -855,11 +855,11 @@ msgstr "Match 2xx success or 404 error"
 msgid "Match GET or POST methods"
 msgstr "Match GET or POST methods"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:422
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:413
 msgid "Match Pattern"
 msgstr "Match Pattern"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:184
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:183
 msgid "Match pattern is required"
 msgstr "Match pattern is required"
 
@@ -884,7 +884,7 @@ msgstr "Message sent successfully"
 msgid "messages"
 msgstr "messages"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:268
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:259
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:216
 msgid "Method"
 msgstr "Method"
@@ -893,12 +893,12 @@ msgstr "Method"
 msgid "Mobile Certificate Install"
 msgstr "Mobile Certificate Install"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:298
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:289
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:44
 msgid "Modify Request"
 msgstr "Modify Request"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:299
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:290
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:45
 msgid "Modify Response"
 msgstr "Modify Response"
@@ -911,7 +911,7 @@ msgstr "msgs"
 msgid "Multiple conditions:"
 msgstr "Multiple conditions:"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:243
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:234
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:188
 msgid "Name"
 msgstr "Name"
@@ -996,7 +996,7 @@ msgstr "Number of simultaneous requests (1-100)"
 msgid "Number of times to send the request (1-10000)"
 msgstr "Number of times to send the request (1-10000)"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:314
+#: src/features/transaction-details/ui/replay-dialog.tsx:301
 msgid "Only http:// and https:// URLs are allowed"
 msgstr "Only http:// and https:// URLs are allowed"
 
@@ -1029,7 +1029,7 @@ msgstr "Open this URL in your mobile browser after setting the Wi-Fi proxy. The 
 msgid "optional"
 msgstr "optional"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:391
+#: src/features/transaction-details/ui/replay-dialog.tsx:370
 msgid "Original"
 msgstr "Original"
 
@@ -1039,11 +1039,11 @@ msgstr "Original"
 msgid "Password"
 msgstr "Password"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:255
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:246
 msgid "Pattern"
 msgstr "Pattern"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:179
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:178
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:112
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:29
 msgid "Pattern is required"
@@ -1161,7 +1161,7 @@ msgstr "Received (Server → Client)"
 msgid "Refresh"
 msgstr "Refresh"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:425
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:416
 msgid "Regex pattern (e.g. old-domain\\.com)"
 msgstr "Regex pattern (e.g. old-domain\\.com)"
 
@@ -1194,25 +1194,25 @@ msgstr "Remove Cookie headers from requests and Set-Cookie headers from response
 msgid "Remove entry"
 msgstr "Remove entry"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:373
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:364
 msgid "Remove Headers"
 msgstr "Remove Headers"
 
 #. placeholder {0}: transactions.length
 #. placeholder {1}: loaded.length
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:146
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:148
 msgid "Replace {0} existing transactions with {1} new ones? Cancel to append instead."
 msgstr "Replace {0} existing transactions with {1} new ones? Cancel to append instead."
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:434
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:425
 msgid "Replace With"
 msgstr "Replace With"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:437
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:428
 msgid "Replacement string (supports $1, $2 capture groups)"
 msgstr "Replacement string (supports $1, $2 capture groups)"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:401
+#: src/features/transaction-details/ui/replay-dialog.tsx:380
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:122
 msgid "Replay"
 msgstr "Replay"
@@ -1221,11 +1221,11 @@ msgstr "Replay"
 msgid "Replay message"
 msgstr "Replay message"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:365
+#: src/features/transaction-details/ui/replay-dialog.tsx:344
 msgid "Replay request"
 msgstr "Replay request"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:387
+#: src/features/transaction-details/ui/replay-dialog.tsx:366
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:191
 msgid "Request"
 msgstr "Request"
@@ -1234,7 +1234,7 @@ msgstr "Request"
 msgid "Request aborted"
 msgstr "Request aborted"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:414
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:405
 msgid "Request Body"
 msgstr "Request Body"
 
@@ -1246,11 +1246,11 @@ msgstr "Request Details"
 msgid "Request dropped"
 msgstr "Request dropped"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:334
+#: src/features/transaction-details/ui/replay-dialog.tsx:321
 msgid "Request failed"
 msgstr "Request failed"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:412
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:403
 msgid "Request Header"
 msgstr "Request Header"
 
@@ -1262,20 +1262,20 @@ msgstr "Requests/sec"
 msgid "Require authentication to use this proxy server"
 msgstr "Require authentication to use this proxy server"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:401
+#: src/features/transaction-details/ui/replay-dialog.tsx:380
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:196
 msgid "Response"
 msgstr "Response"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:415
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:406
 msgid "Response Body"
 msgstr "Response Body"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:454
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:445
 msgid "Response body (optional)"
 msgstr "Response body (optional)"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:413
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:404
 msgid "Response Header"
 msgstr "Response Header"
 
@@ -1283,7 +1283,7 @@ msgstr "Response Header"
 msgid "Response Headers"
 msgstr "Response Headers"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:325
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:316
 msgid "Response Status Code"
 msgstr "Response Status Code"
 
@@ -1307,7 +1307,7 @@ msgstr "Return cached responses for matching requests"
 msgid "Return cached responses for matching requests instead of forwarding to the server"
 msgstr "Return cached responses for matching requests instead of forwarding to the server"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:300
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:291
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:48
 msgid "Rewrite"
 msgstr "Rewrite"
@@ -1316,7 +1316,7 @@ msgstr "Rewrite"
 msgid "Route traffic through an external proxy server"
 msgstr "Route traffic through an external proxy server"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:202
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:201
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:156
 msgid "Rule added"
 msgstr "Rule added"
@@ -1327,12 +1327,12 @@ msgstr "Rule added"
 msgid "Rule deleted"
 msgstr "Rule deleted"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:246
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:237
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:191
 msgid "Rule name (optional)"
 msgstr "Rule name (optional)"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:199
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:198
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:153
 msgid "Rule updated"
 msgstr "Rule updated"
@@ -1435,11 +1435,11 @@ msgstr "Select the downloaded certificate file and confirm"
 msgid "Select the downloaded profile and tap \"Install\""
 msgstr "Select the downloaded profile and tap \"Install\""
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:589
+#: src/features/transaction-details/ui/replay-dialog.tsx:568
 msgid "Send a request to see the replay response"
 msgstr "Send a request to see the replay response"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:587
+#: src/features/transaction-details/ui/replay-dialog.tsx:566
 msgid "Send a request to see the response"
 msgstr "Send a request to see the response"
 
@@ -1447,7 +1447,7 @@ msgstr "Send a request to see the response"
 msgid "Send Message"
 msgstr "Send Message"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:557
+#: src/features/transaction-details/ui/replay-dialog.tsx:536
 msgid "Send Request"
 msgstr "Send Request"
 
@@ -1455,7 +1455,7 @@ msgstr "Send Request"
 msgid "Sending requests sequentially..."
 msgstr "Sending requests sequentially..."
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:552
+#: src/features/transaction-details/ui/replay-dialog.tsx:531
 #: src/features/transaction-details/ui/sequence-replay-dialog.tsx:241
 #: src/features/websocket-replay/ui/ws-replay-dialog.tsx:184
 msgid "Sending..."
@@ -1487,23 +1487,23 @@ msgstr "Sequence replay failed"
 msgid "Server Replay"
 msgstr "Server Replay"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:178
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:180
 msgid "Session load failed"
 msgstr "Session load failed"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:175
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:177
 msgid "Session loaded successfully"
 msgstr "Session loaded successfully"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:136
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:138
 msgid "Session save failed"
 msgstr "Session save failed"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:133
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:135
 msgid "Session saved successfully"
 msgstr "Session saved successfully"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:454
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:445
 msgid "Set body (optional)"
 msgstr "Set body (optional)"
 
@@ -1570,7 +1570,7 @@ msgstr "Start Replay"
 msgid "Status"
 msgstr "Status"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:310
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:301
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:271
 msgid "Status Code"
 msgstr "Status Code"
@@ -1599,7 +1599,7 @@ msgstr "Tap \"Allow\" when prompted to download the configuration profile"
 msgid "Tap \"Install a certificate\" → \"CA certificate\""
 msgstr "Tap \"Install a certificate\" → \"CA certificate\""
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:402
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:393
 msgid "Target"
 msgstr "Target"
 
@@ -1661,7 +1661,7 @@ msgstr "Total {0}ms"
 msgid "Total Time"
 msgstr "Total Time"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:374
+#: src/features/transaction-details/ui/replay-dialog.tsx:353
 msgid "Traffic Replay"
 msgstr "Traffic Replay"
 
@@ -1709,7 +1709,7 @@ msgstr "Unload"
 msgid "Unpin from Top"
 msgstr "Unpin from Top"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:470
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:461
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:348
 msgid "Update"
 msgstr "Update"
@@ -1722,7 +1722,7 @@ msgstr "Upload (KB/s)"
 msgid "Upstream Proxy"
 msgstr "Upstream Proxy"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:438
+#: src/features/transaction-details/ui/replay-dialog.tsx:417
 msgid "URL"
 msgstr "URL"
 
@@ -1738,7 +1738,7 @@ msgstr "URL Pattern"
 msgid "URL pattern (e.g., *api.example.com*)"
 msgstr "URL pattern (e.g., *api.example.com*)"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:233
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:224
 msgid "Use wildcard patterns: * matches any string, ? matches a single character."
 msgstr "Use wildcard patterns: * matches any string, ? matches a single character."
 
@@ -1748,9 +1748,9 @@ msgstr "Use wildcard patterns: * matches any string, ? matches a single characte
 msgid "Username"
 msgstr "Username"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:358
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:349
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:300
-#: src/features/transaction-details/ui/replay-dialog.tsx:468
+#: src/features/transaction-details/ui/replay-dialog.tsx:447
 msgid "Value"
 msgstr "Value"
 

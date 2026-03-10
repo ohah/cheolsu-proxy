@@ -10,6 +10,11 @@ import type { HttpTransaction } from "@/entities/proxy";
 import { isTextBasedDataType } from "@/entities/proxy/model/data-type";
 import { replayRequest, type ReplayRequestParams, type ReplayResponse } from "@/shared/api/proxy";
 import {
+  useHeaderEditor,
+  headersToEntries,
+  entriesToHeaders,
+} from "@/hooks/use-header-editor";
+import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -43,24 +48,6 @@ interface ReplayDialogProps {
   onOpenChange?: (open: boolean) => void;
   /** 트리거 버튼을 숨길 때 사용 (Compose 모드) */
   hideTrigger?: boolean;
-}
-
-interface HeaderEntry {
-  key: string;
-  value: string;
-}
-
-function headersToEntries(headers: Record<string, string>): HeaderEntry[] {
-  return Object.entries(headers).map(([key, value]) => ({ key, value }));
-}
-
-function entriesToHeaders(entries: HeaderEntry[]): Record<string, string> {
-  const headers: Record<string, string> = {};
-  for (const { key, value } of entries) {
-    const k = key.trim();
-    if (k) headers[k] = value;
-  }
-  return headers;
 }
 
 function isAllowedUrl(url: string): boolean {
@@ -266,7 +253,7 @@ export function ReplayDialog({
   );
   const [method, setMethod] = useState(request?.method || "GET");
   const [url, setUrl] = useState(request?.uri || "");
-  const [headers, setHeaders] = useState<HeaderEntry[]>([]);
+  const { headers, addHeader, removeHeader, updateHeader, resetHeaders } = useHeaderEditor();
   const [body, setBody] = useState("");
   const [loading, setLoading] = useState(false);
   const [replayResponse, setReplayResponse] = useState<ReplayResponse | null>(null);
@@ -284,7 +271,7 @@ export function ReplayDialog({
       if (req) {
         setMethod(req.method);
         setUrl(req.uri);
-        setHeaders(headersToEntries(req.headers || {}));
+        resetHeaders(headersToEntries(req.headers || {}));
         if (req.body && req.data_type && isTextBasedDataType(req.data_type)) {
           setBody(uint8ArrayToString(req.body, req.data_type));
         } else if (req.body_json) {
@@ -299,7 +286,7 @@ export function ReplayDialog({
       } else {
         setMethod("GET");
         setUrl("");
-        setHeaders([]);
+        resetHeaders([]);
         setBody("");
       }
       setReplayResponse(null);
@@ -336,14 +323,6 @@ export function ReplayDialog({
       setLoading(false);
     }
   }, [method, url, headers, body]);
-
-  const addHeader = () => setHeaders([...headers, { key: "", value: "" }]);
-  const removeHeader = (index: number) => setHeaders(headers.filter((_, i) => i !== index));
-  const updateHeader = (index: number, field: "key" | "value", value: string) => {
-    const updated = [...headers];
-    updated[index] = { ...updated[index], [field]: value };
-    setHeaders(updated);
-  };
 
   const bodyLanguage = detectLanguage(body);
   const originalResponseBody = getResponseBody(originalResponse);

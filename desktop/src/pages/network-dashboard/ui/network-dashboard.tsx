@@ -34,7 +34,8 @@ import {
 } from "@/shared/api/proxy";
 
 import { useTransactionFilters, useResizablePanelController } from "../hooks";
-import { useTransactionStore, useInterceptRuleDialogStore } from "@/shared/stores";
+import { useInterceptRuleDialogStore } from "@/shared/stores";
+import { useTransactionSelectors } from "@/hooks/use-transaction-selectors";
 
 function parseTransactionsJson(json: string): HttpTransaction[] {
   const tuples: ProxyEventTuple[] = JSON.parse(json);
@@ -42,21 +43,25 @@ function parseTransactionsJson(json: string): HttpTransaction[] {
 }
 
 export const NetworkDashboard = () => {
-  const transactions = useTransactionStore((s) => s.transactions);
-  const selectedTransaction = useTransactionStore((s) => s.selectedTransaction);
-  const pinnedTransactionIds = useTransactionStore((s) => s.pinnedTransactionIds);
-  const checkedTransactionIds = useTransactionStore((s) => s.checkedTransactionIds);
-  const clearTransactions = useTransactionStore((s) => s.clearTransactions);
-  const deleteTransaction = useTransactionStore((s) => s.deleteTransaction);
-  const toggleSelectedTransaction = useTransactionStore((s) => s.toggleSelectedTransaction);
-  const setSelectedTransaction = useTransactionStore((s) => s.setSelectedTransaction);
-  const clearSelectedTransaction = useTransactionStore((s) => s.clearSelectedTransaction);
-  const togglePinTransaction = useTransactionStore((s) => s.togglePinTransaction);
-  const toggleCheckTransaction = useTransactionStore((s) => s.toggleCheckTransaction);
-  const checkAllTransactions = useTransactionStore((s) => s.checkAllTransactions);
-  const clearCheckedTransactions = useTransactionStore((s) => s.clearCheckedTransactions);
-  const paused = useTransactionStore((s) => s.paused);
-  const togglePause = useTransactionStore((s) => s.togglePause);
+  const {
+    transactions,
+    selectedTransaction,
+    pinnedTransactionIds,
+    checkedTransactionIds,
+    clearTransactions,
+    deleteTransaction,
+    toggleSelectedTransaction,
+    setSelectedTransaction,
+    clearSelectedTransaction,
+    togglePinTransaction,
+    toggleCheckTransaction,
+    checkAllTransactions,
+    clearCheckedTransactions,
+    paused,
+    togglePause,
+    setTransactions,
+    appendTransactions,
+  } = useTransactionSelectors();
 
   const {
     filterQueryString,
@@ -74,9 +79,6 @@ export const NetworkDashboard = () => {
     id: "network-dashboard-layout",
     storage: localStorage,
   });
-
-  const setTransactions = useTransactionStore((s) => s.setTransactions);
-  const appendTransactions = useTransactionStore((s) => s.appendTransactions);
 
   const { t } = useLingui();
 
