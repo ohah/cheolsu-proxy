@@ -1,6 +1,8 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
+import { useForm, FormProvider, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Dialog,
   DialogContent,
@@ -15,13 +17,21 @@ import {
   SelectValue,
   SelectContent,
   SelectItem,
-  Switch,
 } from "@/shared/ui";
-import { Plus, Trash2, FolderOpen } from "lucide-react";
 import { toast } from "sonner";
 import { useMapRuleStore } from "@/shared/stores";
-import type { InterceptRule, MapLocalAction, MapRemoteAction } from "@/entities/intercept-rule";
-import { open as openFileDialog } from "@tauri-apps/plugin-dialog";
+import type {
+  InterceptRule,
+  MapLocalAction,
+  MapRemoteAction,
+} from "@/entities/intercept-rule";
+import {
+  mapRuleFormSchema,
+  defaultMapRuleFormValues,
+  type MapRuleFormValues,
+} from "@/entities/intercept-rule";
+import { MapLocalFields } from "./map-local-fields";
+import { MapRemoteFields } from "./map-remote-fields";
 
 type MapType = "map_local" | "map_remote";
 
@@ -33,6 +43,42 @@ interface MapRuleFormDialogProps {
 
 const HTTP_METHODS = ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"];
 
+const editingRuleToFormValues = (rule: InterceptRule): MapRuleFormValues => {
+  const base = {
+    name: rule.name,
+    pattern: rule.pattern,
+    method: rule.method ?? "*",
+  };
+
+  if (rule.action.type === "map_local") {
+    const action = rule.action as MapLocalAction;
+    return {
+      ...base,
+      action: {
+        type: "map_local",
+        file_path: action.file_path,
+        status_code: String(action.status_code),
+        headers: Object.entries(action.headers).map(([key, value]) => ({
+          key,
+          value,
+        })),
+      },
+    };
+  } else if (rule.action.type === "map_remote") {
+    const action = rule.action as MapRemoteAction;
+    return {
+      ...base,
+      action: {
+        type: "map_remote",
+        target_url: action.target_url,
+        preserve_path: action.preserve_path,
+      },
+    };
+  }
+
+  return { ...base, action: defaultMapRuleFormValues.action };
+};
+
 export const MapRuleFormDialog = ({
   open: isOpen,
   onOpenChange,
@@ -41,110 +87,67 @@ export const MapRuleFormDialog = ({
   const { t } = useLingui();
   const { addRule, updateRule } = useMapRuleStore();
 
-  const [name, setName] = useState("");
-  const [pattern, setPattern] = useState("");
-  const [method, setMethod] = useState<string>("*");
-  const [mapType, setMapType] = useState<MapType>("map_local");
+  const form = useForm<MapRuleFormValues>({
+    resolver: zodResolver(mapRuleFormSchema),
+    defaultValues: defaultMapRuleFormValues,
+  });
 
-  // Map Local fields
-  const [filePath, setFilePath] = useState("");
-  const [statusCode, setStatusCode] = useState("200");
-  const [headers, setHeaders] = useState<Array<{ key: string; value: string }>>([]);
-
-  // Map Remote fields
-  const [targetUrl, setTargetUrl] = useState("");
-  const [preservePath, setPreservePath] = useState(true);
+  const mapType = form.watch("action.type") as MapType;
 
   useEffect(() => {
     if (!isOpen) return;
 
     if (editingRule) {
-      setName(editingRule.name);
-      setPattern(editingRule.pattern);
-      setMethod(editingRule.method ?? "*");
-
-      if (editingRule.action.type === "map_local") {
-        const action = editingRule.action as MapLocalAction;
-        setMapType("map_local");
-        setFilePath(action.file_path);
-        setStatusCode(String(action.status_code));
-        setHeaders(Object.entries(action.headers).map(([key, value]) => ({ key, value })));
-        setTargetUrl("");
-        setPreservePath(true);
-      } else if (editingRule.action.type === "map_remote") {
-        const action = editingRule.action as MapRemoteAction;
-        setMapType("map_remote");
-        setTargetUrl(action.target_url);
-        setPreservePath(action.preserve_path);
-        setFilePath("");
-        setStatusCode("200");
-        setHeaders([]);
-      }
+      form.reset(editingRuleToFormValues(editingRule));
     } else {
-      setName("");
-      setPattern("");
-      setMethod("*");
-      setMapType("map_local");
-      setFilePath("");
-      setStatusCode("200");
-      setHeaders([]);
-      setTargetUrl("");
-      setPreservePath(true);
+      form.reset(defaultMapRuleFormValues);
     }
-  }, [isOpen, editingRule]);
+  }, [isOpen, editingRule, form]);
 
-  const handleSelectFile = async () => {
-    try {
-      const selected = await openFileDialog({
-        multiple: false,
-        title: t`Select local file`,
+  const handleMapTypeChange = (newType: MapType) => {
+    if (newType === "map_local") {
+      form.setValue("action", {
+        type: "map_local",
+        file_path: "",
+        status_code: "200",
+        headers: [],
       });
-      if (selected) {
-        setFilePath(selected as string);
-      }
-    } catch {
-      // user cancelled
+    } else {
+      form.setValue("action", {
+        type: "map_remote",
+        target_url: "",
+        preserve_path: true,
+      });
     }
   };
 
-  const handleSubmit = () => {
-    if (!pattern.trim()) {
-      toast.error(t`Pattern is required`);
-      return;
-    }
-
-    if (mapType === "map_local" && !filePath.trim()) {
-      toast.error(t`File path is required`);
-      return;
-    }
-
-    if (mapType === "map_remote" && !targetUrl.trim()) {
-      toast.error(t`Target URL is required`);
-      return;
-    }
+  const onSubmit = (values: MapRuleFormValues) => {
+    const { action: formAction } = values;
 
     const action =
-      mapType === "map_local"
+      formAction.type === "map_local"
         ? {
             type: "map_local" as const,
-            file_path: filePath.trim(),
-            status_code: parseInt(statusCode) || 200,
+            file_path: formAction.file_path.trim(),
+            status_code: parseInt(formAction.status_code) || 200,
             headers: Object.fromEntries(
-              headers.filter((h) => h.key.trim()).map((h) => [h.key.trim(), h.value]),
+              formAction.headers
+                .filter((h) => h.key.trim())
+                .map((h) => [h.key.trim(), h.value]),
             ),
           }
         : {
             type: "map_remote" as const,
-            target_url: targetUrl.trim(),
-            preserve_path: preservePath,
+            target_url: formAction.target_url.trim(),
+            preserve_path: formAction.preserve_path,
           };
 
     const rule: InterceptRule = {
       id: editingRule?.id ?? crypto.randomUUID(),
-      name: name.trim() || pattern.trim(),
+      name: values.name.trim() || values.pattern.trim(),
       enabled: editingRule?.enabled ?? true,
-      pattern: pattern.trim(),
-      method: method === "*" ? null : method,
+      pattern: values.pattern.trim(),
+      method: values.method === "*" ? null : values.method,
       action,
     };
 
@@ -157,14 +160,6 @@ export const MapRuleFormDialog = ({
     }
 
     onOpenChange(false);
-  };
-
-  const addHeader = () => setHeaders([...headers, { key: "", value: "" }]);
-  const removeHeader = (index: number) => setHeaders(headers.filter((_, i) => i !== index));
-  const updateHeader = (index: number, field: "key" | "value", value: string) => {
-    const updated = [...headers];
-    updated[index] = { ...updated[index], [field]: value };
-    setHeaders(updated);
   };
 
   return (
@@ -181,173 +176,105 @@ export const MapRuleFormDialog = ({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
-          {/* Name */}
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium">
-              <Trans>Name</Trans>
-            </label>
-            <Input
-              placeholder={t`Rule name (optional)`}
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-          </div>
-
-          {/* Pattern */}
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium">
-              <Trans>URL Pattern</Trans> <span className="text-destructive">*</span>
-            </label>
-            <Input
-              placeholder="*.example.com/api/* or https://api.example.com/data"
-              value={pattern}
-              onChange={(e) => setPattern(e.target.value)}
-            />
-            <p className="text-xs text-muted-foreground">
-              <Trans>* = any string, ? = single character</Trans>
-            </p>
-          </div>
-
-          {/* Method & Map Type */}
-          <div className="grid grid-cols-2 gap-3">
+        <FormProvider {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {/* Name */}
             <div className="space-y-1.5">
               <label className="text-sm font-medium">
-                <Trans>Method</Trans>
+                <Trans>Name</Trans>
               </label>
-              <Select value={method} onValueChange={(v) => v && setMethod(v)}>
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="*">{t`All Methods`}</SelectItem>
-                  {HTTP_METHODS.map((m) => (
-                    <SelectItem key={m} value={m}>
-                      {m}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Input
+                placeholder={t`Rule name (optional)`}
+                {...form.register("name")}
+              />
             </div>
 
+            {/* Pattern */}
             <div className="space-y-1.5">
               <label className="text-sm font-medium">
-                <Trans>Type</Trans>
+                <Trans>URL Pattern</Trans> <span className="text-destructive">*</span>
               </label>
-              <Select value={mapType} onValueChange={(v) => v && setMapType(v as MapType)}>
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="map_local">{t`Map Local`}</SelectItem>
-                  <SelectItem value="map_remote">{t`Map Remote`}</SelectItem>
-                </SelectContent>
-              </Select>
+              <Input
+                placeholder="*.example.com/api/* or https://api.example.com/data"
+                {...form.register("pattern")}
+              />
+              <p className="text-xs text-muted-foreground">
+                <Trans>* = any string, ? = single character</Trans>
+              </p>
+              {form.formState.errors.pattern && (
+                <p className="text-destructive text-xs">
+                  {form.formState.errors.pattern.message}
+                </p>
+              )}
             </div>
-          </div>
 
-          {/* Map Local fields */}
-          {mapType === "map_local" && (
-            <>
+            {/* Method & Map Type */}
+            <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <label className="text-sm font-medium">
-                  <Trans>Local File Path</Trans> <span className="text-destructive">*</span>
+                  <Trans>Method</Trans>
                 </label>
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="/path/to/response.json"
-                    value={filePath}
-                    onChange={(e) => setFilePath(e.target.value)}
-                    className="flex-1"
-                  />
-                  <Button variant="outline" size="sm" onClick={handleSelectFile}>
-                    <FolderOpen className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium">
-                  <Trans>Status Code</Trans>
-                </label>
-                <Input
-                  type="number"
-                  placeholder="200"
-                  value={statusCode}
-                  onChange={(e) => setStatusCode(e.target.value)}
+                <Controller
+                  control={form.control}
+                  name="method"
+                  render={({ field }) => (
+                    <Select
+                      value={field.value}
+                      onValueChange={(v) => v && field.onChange(v)}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="*">{t`All Methods`}</SelectItem>
+                        {HTTP_METHODS.map((m) => (
+                          <SelectItem key={m} value={m}>
+                            {m}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 />
               </div>
 
               <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium">
-                    <Trans>Response Headers</Trans>
-                  </label>
-                  <Button variant="ghost" size="sm" onClick={addHeader}>
-                    <Plus className="w-3.5 h-3.5 mr-1" />
-                    <Trans>Add</Trans>
-                  </Button>
-                </div>
-                {headers.map((header, i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    <Input
-                      placeholder={t`Header name`}
-                      value={header.key}
-                      onChange={(e) => updateHeader(i, "key", e.target.value)}
-                      className="flex-1"
-                    />
-                    <Input
-                      placeholder={t`Value`}
-                      value={header.value}
-                      onChange={(e) => updateHeader(i, "value", e.target.value)}
-                      className="flex-1"
-                    />
-                    <Button variant="ghost" size="sm" onClick={() => removeHeader(i)}>
-                      <Trash2 className="w-3.5 h-3.5 text-destructive" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
-
-          {/* Map Remote fields */}
-          {mapType === "map_remote" && (
-            <>
-              <div className="space-y-1.5">
                 <label className="text-sm font-medium">
-                  <Trans>Target URL</Trans> <span className="text-destructive">*</span>
+                  <Trans>Type</Trans>
                 </label>
-                <Input
-                  placeholder="http://localhost:3000 or https://staging.example.com"
-                  value={targetUrl}
-                  onChange={(e) => setTargetUrl(e.target.value)}
-                />
+                <Select
+                  value={mapType}
+                  onValueChange={(v) => v && handleMapTypeChange(v as MapType)}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="map_local">{t`Map Local`}</SelectItem>
+                    <SelectItem value="map_remote">{t`Map Remote`}</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
+            </div>
 
-              <div className="flex items-center gap-3">
-                <Switch checked={preservePath} onCheckedChange={setPreservePath} />
-                <div>
-                  <label className="text-sm font-medium">
-                    <Trans>Preserve Path</Trans>
-                  </label>
-                  <p className="text-xs text-muted-foreground">
-                    <Trans>Append the original request path to the target URL</Trans>
-                  </p>
-                </div>
-              </div>
-            </>
-          )}
-        </div>
+            {/* Type-specific fields */}
+            {mapType === "map_local" && <MapLocalFields />}
+            {mapType === "map_remote" && <MapRemoteFields />}
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            <Trans>Cancel</Trans>
-          </Button>
-          <Button onClick={handleSubmit}>
-            {editingRule ? <Trans>Update</Trans> : <Trans>Add Rule</Trans>}
-          </Button>
-        </DialogFooter>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
+                <Trans>Cancel</Trans>
+              </Button>
+              <Button type="submit">
+                {editingRule ? <Trans>Update</Trans> : <Trans>Add Rule</Trans>}
+              </Button>
+            </DialogFooter>
+          </form>
+        </FormProvider>
       </DialogContent>
     </Dialog>
   );
