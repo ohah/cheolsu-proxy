@@ -312,6 +312,17 @@ export async function updateHostMappings(mappings: HostMapping[]): Promise<void>
   return invoke("update_host_mappings", { mappings });
 }
 
+// ─── SSL Proxying ────────────────────────────────────────
+
+export interface SslProxyingEntry {
+  pattern: string;
+  enabled: boolean;
+}
+
+export async function updateSslProxyingList(entries: SslProxyingEntry[]): Promise<void> {
+  return invoke("update_ssl_proxying_list", { entries });
+}
+
 // ─── Quick Settings ──────────────────────────────────────
 
 export async function updateQuickSettings(

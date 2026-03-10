@@ -1,7 +1,7 @@
 use proxy_daemon::{
     clean_old_cache, diff_headers, diff_json, diff_text, get_local_ips, is_text_data_type,
     BodyDiff, BreakpointAction, BreakpointRule, ClientCommand, DaemonConnection, DaemonMessage,
-    HostMapping, InterceptRule, ServerReplayEntry, ThrottleConfig, TrafficDiff,
+    HostMapping, InterceptRule, ServerReplayEntry, SslProxyingEntry, ThrottleConfig, TrafficDiff,
     TransactionPartDiff, UpstreamProxyConfig,
 };
 use std::collections::HashMap;
@@ -112,6 +112,9 @@ pub async fn start_proxy_v2<R: Runtime>(
         }
         DaemonMessage::HostMappingsUpdated { mappings } => {
             let _ = app_clone.emit("host_mappings_updated", mappings);
+        }
+        DaemonMessage::SslProxyingListUpdated { entries } => {
+            let _ = app_clone.emit("ssl_proxying_list_updated", entries);
         }
         _ => {}
     })
@@ -767,6 +770,25 @@ pub async fn update_host_mappings(
         let cmd = ClientCommand::UpdateHostMappings { mappings };
         conn.send_command(&cmd).await?;
         tracing::info!("Daemon에 호스트 매핑 업데이트 완료");
+    } else {
+        return Err("프록시가 실행 중이 아닙니다".to_string());
+    }
+
+    Ok(())
+}
+
+/// SSL Proxying 화이트리스트 업데이트
+#[tauri::command]
+pub async fn update_ssl_proxying_list(
+    proxy: State<'_, ProxyV2State>,
+    entries: Vec<SslProxyingEntry>,
+) -> Result<(), String> {
+    let proxy_guard = proxy.lock().await;
+
+    if let Some(conn) = proxy_guard.as_ref() {
+        let cmd = ClientCommand::UpdateSslProxyingList { entries };
+        conn.send_command(&cmd).await?;
+        tracing::info!("Daemon에 SSL Proxying 화이트리스트 업데이트 완료");
     } else {
         return Err("프록시가 실행 중이 아닙니다".to_string());
     }
