@@ -1,11 +1,8 @@
 import { useShallow } from "zustand/react/shallow";
 import { useTransactionStore } from "@/shared/stores";
 
-/**
- * useTransactionStore에서 자주 사용되는 선택자들을 하나로 묶어
- * useShallow를 통해 불필요한 리렌더링을 방지하는 훅
- */
-export function useTransactionSelectors() {
+/** 트랜잭션 데이터 관련 선택자 */
+export function useTransactionData() {
   return useTransactionStore(
     useShallow((s) => ({
       transactions: s.transactions,
@@ -13,8 +10,27 @@ export function useTransactionSelectors() {
       pinnedTransactionIds: s.pinnedTransactionIds,
       checkedTransactionIds: s.checkedTransactionIds,
       paused: s.paused,
+    })),
+  );
+}
+
+/** 트랜잭션 액션 관련 선택자 */
+export function useTransactionActions() {
+  return useTransactionStore(
+    useShallow((s) => ({
       clearTransactions: s.clearTransactions,
       deleteTransaction: s.deleteTransaction,
+      setTransactions: s.setTransactions,
+      appendTransactions: s.appendTransactions,
+      togglePause: s.togglePause,
+    })),
+  );
+}
+
+/** 트랜잭션 선택/핀/체크 관련 선택자 */
+export function useTransactionSelection() {
+  return useTransactionStore(
+    useShallow((s) => ({
       toggleSelectedTransaction: s.toggleSelectedTransaction,
       setSelectedTransaction: s.setSelectedTransaction,
       clearSelectedTransaction: s.clearSelectedTransaction,
@@ -22,9 +38,6 @@ export function useTransactionSelectors() {
       toggleCheckTransaction: s.toggleCheckTransaction,
       checkAllTransactions: s.checkAllTransactions,
       clearCheckedTransactions: s.clearCheckedTransactions,
-      setTransactions: s.setTransactions,
-      appendTransactions: s.appendTransactions,
-      togglePause: s.togglePause,
     })),
   );
 }

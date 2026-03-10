@@ -20,7 +20,7 @@ import {
 import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useInterceptRuleStore } from "@/shared/stores";
-import { useHeaderEditor, headersToEntries, entriesToHeaders } from "@/hooks/use-header-editor";
+import { useHeaderEditor, headersToEntries, entriesToHeaders } from "@/shared/hooks/use-header-editor";
 import type {
   InterceptRule,
   InterceptAction,

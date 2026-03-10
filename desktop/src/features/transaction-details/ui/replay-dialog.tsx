@@ -13,7 +13,7 @@ import {
   useHeaderEditor,
   headersToEntries,
   entriesToHeaders,
-} from "@/hooks/use-header-editor";
+} from "@/shared/hooks/use-header-editor";
 import {
   Dialog,
   DialogContent,
