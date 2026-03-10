@@ -14,9 +14,17 @@ import {
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuSeparator,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from "@/shared/ui";
-import { generateCurlCommand } from "@/shared/lib";
+import {
+  generateCurlCommand,
+  generateFetchCommand,
+  generateHttpieCommand,
+  generatePythonRequestsCommand,
+} from "@/shared/lib";
 import { useInterceptRuleDialogStore } from "@/shared/stores";
 import { toast } from "sonner";
 import { Code, Pin, PinOff, Repeat, Shield, Trash2 } from "lucide-react";
@@ -58,11 +66,14 @@ export const TableRow = memo(function TableRow({
     return classes;
   }, [isSelected, isPinned]);
 
-  const handleClickCopyCurlCommand = useCallback(() => {
-    const curlCommand = generateCurlCommand(data.transaction);
-    navigator.clipboard.writeText(curlCommand);
-    toast.success("Curl command copied to clipboard");
-  }, [data]);
+  const handleCopyAs = useCallback(
+    (generator: (t: HttpTransaction) => string, label: string) => {
+      const code = generator(data.transaction);
+      navigator.clipboard.writeText(code);
+      toast.success(`${label} copied to clipboard`);
+    },
+    [data],
+  );
 
   const handleClickDeleteTransaction = useCallback(() => {
     onDelete();
@@ -117,10 +128,28 @@ export const TableRow = memo(function TableRow({
           {isPinned ? <PinOff /> : <Pin />}
           {isPinned ? <Trans>Unpin from Top</Trans> : <Trans>Pin to Top</Trans>}
         </ContextMenuItem>
-        <ContextMenuItem onClick={handleClickCopyCurlCommand}>
-          <Code />
-          <Trans>Copy Curl Command</Trans>
-        </ContextMenuItem>
+        <ContextMenuSub>
+          <ContextMenuSubTrigger>
+            <Code />
+            <Trans>Copy as...</Trans>
+          </ContextMenuSubTrigger>
+          <ContextMenuSubContent>
+            <ContextMenuItem onClick={() => handleCopyAs(generateCurlCommand, "cURL")}>
+              <Trans>cURL</Trans>
+            </ContextMenuItem>
+            <ContextMenuItem onClick={() => handleCopyAs(generateFetchCommand, "fetch")}>
+              <Trans>JavaScript Fetch</Trans>
+            </ContextMenuItem>
+            <ContextMenuItem onClick={() => handleCopyAs(generateHttpieCommand, "HTTPie")}>
+              <Trans>HTTPie</Trans>
+            </ContextMenuItem>
+            <ContextMenuItem
+              onClick={() => handleCopyAs(generatePythonRequestsCommand, "Python requests")}
+            >
+              <Trans>Python Requests</Trans>
+            </ContextMenuItem>
+          </ContextMenuSubContent>
+        </ContextMenuSub>
         <ContextMenuItem onClick={() => onAdvancedRepeat?.(data.transaction)}>
           <Repeat />
           <Trans>Advanced Repeat</Trans>
