@@ -38,7 +38,7 @@ const FieldRow = ({ field }: { field: MultipartField }) => (
         <span className="text-foreground">
           {(field.value?.length ?? 0) > 500
             ? field.value!.slice(0, 500) + "..."
-            : field.value ?? ""}
+            : (field.value ?? "")}
         </span>
       )}
     </td>
@@ -70,9 +70,7 @@ export const MultipartPreview = ({ data, contentType }: MultipartPreviewProps) =
       <div className="flex items-center gap-3 p-3 border-b bg-muted/30 text-xs text-muted-foreground">
         <span className="font-medium text-foreground">multipart/form-data</span>
         <span>{fields.length} fields</span>
-        <span>
-          {fields.filter((f) => f.isFile).length} files
-        </span>
+        <span>{fields.filter((f) => f.isFile).length} files</span>
       </div>
 
       {/* 테이블 */}

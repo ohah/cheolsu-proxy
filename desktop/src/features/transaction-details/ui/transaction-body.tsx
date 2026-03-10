@@ -179,7 +179,11 @@ export const TransactionBody = ({ transaction }: TransactionBodyProps) => {
           />
         ) : isMultipart && actualBody && actualBody.length > 0 && !fileLoading && !fileError ? (
           <MultipartPreview data={actualBody} contentType={contentTypeHeader} />
-        ) : isUrlencodedBody && actualBody && actualBody.length > 0 && !fileLoading && !fileError ? (
+        ) : isUrlencodedBody &&
+          actualBody &&
+          actualBody.length > 0 &&
+          !fileLoading &&
+          !fileError ? (
           <UrlencodedPreview data={actualBody} />
         ) : isNonMediaBinary && binaryFileInfo && !fileLoading && !fileError ? (
           <BinaryPreview
