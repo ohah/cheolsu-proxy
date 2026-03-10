@@ -1805,4 +1805,103 @@ mod tests {
 
         assert!(res.headers().get("set-cookie").is_none());
     }
+
+    /// 동시 읽기/쓰기 시 데드락이 발생하지 않는지 검증
+    #[tokio::test]
+    async fn concurrent_quick_settings_read_write_no_deadlock() {
+        let qs = Arc::new(tokio::sync::RwLock::new(QuickSettings {
+            no_caching: false,
+            block_cookies: false,
+        }));
+
+        let mut handles = Vec::new();
+
+        // 여러 읽기 태스크 동시 실행 (요청 처리 시뮬레이션)
+        for _ in 0..10 {
+            let qs_clone = qs.clone();
+            handles.push(tokio::spawn(async move {
+                for _ in 0..100 {
+                    let settings = { *qs_clone.read().await };
+                    // 읽은 값이 유효한지 확인 (bool이므로 항상 유효)
+                    let _ = settings.no_caching;
+                    let _ = settings.block_cookies;
+                    tokio::task::yield_now().await;
+                }
+            }));
+        }
+
+        // 동시에 쓰기 태스크 실행 (설정 변경 시뮬레이션)
+        for i in 0..5 {
+            let qs_clone = qs.clone();
+            handles.push(tokio::spawn(async move {
+                for _ in 0..100 {
+                    let mut settings = qs_clone.write().await;
+                    settings.no_caching = i % 2 == 0;
+                    settings.block_cookies = i % 2 == 1;
+                    drop(settings);
+                    tokio::task::yield_now().await;
+                }
+            }));
+        }
+
+        // 3초 타임아웃 - 데드락 시 실패
+        let result = tokio::time::timeout(
+            std::time::Duration::from_secs(3),
+            futures_util::future::join_all(handles),
+        )
+        .await;
+
+        assert!(result.is_ok(), "데드락 감지: 3초 타임아웃 초과");
+        for r in result.unwrap() {
+            r.unwrap();
+        }
+    }
+
+    /// apply_quick_settings 메서드의 동시 호출이 데드락 없이 완료되는지 검증
+    #[tokio::test]
+    async fn concurrent_apply_quick_settings_no_deadlock() {
+        let handler = make_handler_with_quick_settings(QuickSettings {
+            no_caching: true,
+            block_cookies: true,
+        });
+
+        let mut handles = Vec::new();
+
+        for _ in 0..10 {
+            let h = handler.clone();
+            handles.push(tokio::spawn(async move {
+                for _ in 0..50 {
+                    let req = Request::builder()
+                        .uri("http://example.com/")
+                        .header("Cookie", "session=abc")
+                        .header("If-None-Match", "\"etag\"")
+                        .body(Body::from(""))
+                        .unwrap();
+                    let req = h.apply_quick_settings_on_request(req).await;
+                    assert!(req.headers().get("cookie").is_none());
+
+                    let res = Response::builder()
+                        .status(200)
+                        .header("Set-Cookie", "session=abc; Path=/")
+                        .body(Body::from(""))
+                        .unwrap();
+                    let res = h.apply_quick_settings_on_response(res).await;
+                    assert!(res.headers().get("set-cookie").is_none());
+
+                    tokio::task::yield_now().await;
+                }
+            }));
+        }
+
+        let result = tokio::time::timeout(
+            std::time::Duration::from_secs(3),
+            futures_util::future::join_all(handles),
+        )
+        .await;
+
+        assert!(result.is_ok(), "데드락 감지: 3초 타임아웃 초과");
+        for r in result.unwrap() {
+            r.unwrap();
+        }
+    }
 }
