@@ -5,7 +5,6 @@ import {
   Power,
   ShieldCheck,
   ShieldX,
-  Trash2,
   FolderOpen,
   ExternalLink,
   X,

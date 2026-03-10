@@ -36,13 +36,13 @@
 
 ## mitmproxy에만 있는 기능
 
-| 기능                 | 설명                     |
-| -------------------- | ------------------------ |
-| HTTP/3 (QUIC)        | 다중 프로토콜 지원       |
-| Transparent Proxy    | OS 레벨 투명 프록시 모드 |
-| Sticky Auth/Cookie   | 인증/쿠키 자동 재전송    |
-| DNS 인터셉트         | DNS 쿼리/응답 조작       |
-| Raw TCP / UDP        | 비 HTTP 프로토콜 지원    |
+| 기능               | 설명                     |
+| ------------------ | ------------------------ |
+| HTTP/3 (QUIC)      | 다중 프로토콜 지원       |
+| Transparent Proxy  | OS 레벨 투명 프록시 모드 |
+| Sticky Auth/Cookie | 인증/쿠키 자동 재전송    |
+| DNS 인터셉트       | DNS 쿼리/응답 조작       |
+| Raw TCP / UDP      | 비 HTTP 프로토콜 지원    |
 
 ## cheolsu-proxy에만 있는 기능
 
