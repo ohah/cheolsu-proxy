@@ -1110,7 +1110,7 @@ msgstr "리로드"
 msgid "Remote Device Certificate"
 msgstr "외부 기기 인증서"
 
-#: src/pages/settings/ui/settings-page.tsx:1303
+#: src/pages/settings/ui/settings-page.tsx:1306
 msgid "Remove"
 msgstr "삭제"
 
