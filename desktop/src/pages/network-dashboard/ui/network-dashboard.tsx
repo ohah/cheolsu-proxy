@@ -4,7 +4,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { toast } from "sonner";
 import { useLingui } from "@lingui/react/macro";
 
-import { TransactionDetails, SequenceReplayDialog } from "@/features/transaction-details";
+import { TransactionDetails, SequenceReplayDialog, ReplayDialog } from "@/features/transaction-details";
 import { buildHarLog } from "@/features/har-export";
 import { QueryFilterEditor } from "@/features/query-filter-editor";
 import { RuleFormDialog } from "@/features/intercept-rule-form";
@@ -76,6 +76,7 @@ export const NetworkDashboard = () => {
   const { t } = useLingui();
 
   const [sequenceReplayOpen, setSequenceReplayOpen] = useState(false);
+  const [composeOpen, setComposeOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [diffResult, setDiffResult] = useState<TrafficDiff | null>(null);
   const [diffLoading, setDiffLoading] = useState(false);
@@ -310,6 +311,7 @@ export const NetworkDashboard = () => {
           onSaveSession={handleSaveSession}
           onLoadSession={handleLoadSession}
           onImportHar={handleImportHar}
+          onCompose={() => setComposeOpen(true)}
           filterSlot={
             <QueryFilterEditor
               totalCount={totalCount}
@@ -420,6 +422,8 @@ export const NetworkDashboard = () => {
           )}
         </div>
       </div>
+
+      <ReplayDialog open={composeOpen} onOpenChange={setComposeOpen} hideTrigger />
 
       <SequenceReplayDialog
         open={sequenceReplayOpen}
