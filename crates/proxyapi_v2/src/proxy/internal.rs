@@ -630,13 +630,21 @@ where
                             Ok(uri) => uri,
                             Err(e) => {
                                 warn!("URI 재구성 실패: {}", e);
-                                let fallback = Uri::builder()
+                                match Uri::builder()
                                     .scheme(scheme.clone())
                                     .authority(authority.clone())
                                     .path_and_query("/")
                                     .build()
-                                    .unwrap_or_default();
-                                fallback
+                                {
+                                    Ok(fallback) => fallback,
+                                    Err(e2) => {
+                                        error!("URI fallback 생성도 실패: {}", e2);
+                                        Uri::builder()
+                                            .path_and_query("/")
+                                            .build()
+                                            .unwrap_or_default()
+                                    }
+                                }
                             }
                         }
                     };

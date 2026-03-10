@@ -264,11 +264,14 @@ where
 }
 
 /// HTTP/HTTPS 스킴을 WS/WSS로 변환합니다.
+///
+/// "ws", "wss"는 항상 유효한 Scheme이므로 실패할 수 없지만,
+/// expect() 대신 안전한 폴백을 사용합니다.
 fn to_websocket_scheme(scheme: Scheme) -> Scheme {
     if scheme == Scheme::HTTP {
-        "ws".try_into().expect("Failed to convert scheme")
+        "ws".try_into().unwrap_or(Scheme::HTTP)
     } else {
-        "wss".try_into().expect("Failed to convert scheme")
+        "wss".try_into().unwrap_or(Scheme::HTTPS)
     }
 }
 
