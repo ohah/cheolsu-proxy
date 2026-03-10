@@ -46,6 +46,14 @@ interface AppSettingsState {
   setQuickSettingsBlockCookies: (enabled: boolean) => void;
   quickSettingsNoGzip: boolean;
   setQuickSettingsNoGzip: (enabled: boolean) => void;
+  setQuickSettings: (
+    settings: Partial<
+      Pick<
+        AppSettingsState,
+        "quickSettingsNoCaching" | "quickSettingsBlockCookies" | "quickSettingsNoGzip"
+      >
+    >,
+  ) => void;
 
   // Throttle config
   throttleConfig: ThrottleConfigState;
@@ -66,6 +74,18 @@ interface AppSettingsState {
  */
 function migrateFromLegacyLocalStorage(): Partial<AppSettingsState> {
   const migrated: Partial<AppSettingsState> = {};
+  const LEGACY_KEYS = [
+    "locale",
+    "autosave_session",
+    "proxy_toggle_shortcut",
+    "proxy_toggle_shortcut_enabled",
+    "quick_settings_no_caching",
+    "quick_settings_block_cookies",
+    "quick_settings_no_gzip",
+    "throttle_config",
+    "upstream_proxy_config",
+    "proxy_auth_config",
+  ];
 
   try {
     const locale = localStorage.getItem("locale");
@@ -153,6 +173,9 @@ function migrateFromLegacyLocalStorage(): Partial<AppSettingsState> {
         /* ignore */
       }
     }
+
+    // 마이그레이션 완료 후 레거시 키 정리
+    LEGACY_KEYS.forEach((key) => localStorage.removeItem(key));
   } catch {
     /* localStorage 접근 실패 시 무시 */
   }
@@ -203,6 +226,8 @@ export const useAppSettingsStore = create<AppSettingsState>()(
       setQuickSettingsBlockCookies: (enabled) => set({ quickSettingsBlockCookies: enabled }),
       quickSettingsNoGzip: false,
       setQuickSettingsNoGzip: (enabled) => set({ quickSettingsNoGzip: enabled }),
+      // 그룹 setter
+      setQuickSettings: (settings) => set(settings),
 
       throttleConfig: DEFAULT_THROTTLE_CONFIG,
       setThrottleConfig: (config) => set({ throttleConfig: config }),
@@ -218,7 +243,8 @@ export const useAppSettingsStore = create<AppSettingsState>()(
       version: 1,
       migrate: (_persistedState, version) => {
         if (version === 0) {
-          // 첫 마이그레이션: 기존 개별 localStorage 키에서 데이터 이전
+          // 신규 사용자: persistedState가 없으므로 version === 0으로 진입
+          // → 기존 localStorage 개별 키에서 데이터를 자동 마이그레이션
           const legacy = migrateFromLegacyLocalStorage();
           return {
             ...(_persistedState as AppSettingsState),
