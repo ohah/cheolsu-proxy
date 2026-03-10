@@ -160,9 +160,7 @@ const App: React.FC = () => {
             })) as HttpTransaction[];
             if (loaded.length > 0) {
               setTransactions(loaded);
-              console.info(
-                `자동 세션 복원 완료: ${loaded.length}개 트랜잭션`,
-              );
+              console.info(`자동 세션 복원 완료: ${loaded.length}개 트랜잭션`);
             }
           } catch (e) {
             console.error("자동 세션 복원 파싱 실패:", e);
