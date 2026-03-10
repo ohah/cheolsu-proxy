@@ -237,6 +237,8 @@ export const MediaPreview = ({
   const mediaUrlRef = useRef<string>("");
 
   useEffect(() => {
+    let cancelled = false;
+
     const loadMedia = async () => {
       setLoading(true);
       setError(null);
@@ -276,6 +278,8 @@ export const MediaPreview = ({
           throw new Error("파일 데이터가 없습니다");
         }
 
+        if (cancelled) return;
+
         // 이전 URL 해제
         if (mediaUrlRef.current) {
           URL.revokeObjectURL(mediaUrlRef.current);
@@ -287,10 +291,13 @@ export const MediaPreview = ({
         mediaUrlRef.current = url;
         setMediaUrl(url);
       } catch (err) {
+        if (cancelled) return;
         console.error("미디어 로드 실패:", err);
         setError(err instanceof Error ? err.message : "미디어 로드 실패");
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     };
 
@@ -298,6 +305,7 @@ export const MediaPreview = ({
 
     // Cleanup: ref를 사용하여 항상 최신 URL을 해제
     return () => {
+      cancelled = true;
       if (mediaUrlRef.current) {
         URL.revokeObjectURL(mediaUrlRef.current);
         mediaUrlRef.current = "";
