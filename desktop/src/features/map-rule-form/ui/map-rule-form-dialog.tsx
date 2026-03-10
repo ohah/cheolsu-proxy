@@ -237,7 +237,10 @@ export const MapRuleFormDialog = ({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="map_local" label={t`Map Local`}>{t`Map Local`}</SelectItem>
-                    <SelectItem value="map_remote" label={t`Map Remote`}>{t`Map Remote`}</SelectItem>
+                    <SelectItem
+                      value="map_remote"
+                      label={t`Map Remote`}
+                    >{t`Map Remote`}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

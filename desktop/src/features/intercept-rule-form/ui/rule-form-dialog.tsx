@@ -284,8 +284,14 @@ export const RuleFormDialog = ({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="block" label={t`Block`}>{t`Block`}</SelectItem>
-                  <SelectItem value="modify_request" label={t`Modify Request`}>{t`Modify Request`}</SelectItem>
-                  <SelectItem value="modify_response" label={t`Modify Response`}>{t`Modify Response`}</SelectItem>
+                  <SelectItem
+                    value="modify_request"
+                    label={t`Modify Request`}
+                  >{t`Modify Request`}</SelectItem>
+                  <SelectItem
+                    value="modify_response"
+                    label={t`Modify Response`}
+                  >{t`Modify Response`}</SelectItem>
                   <SelectItem value="rewrite" label={t`Rewrite`}>{t`Rewrite`}</SelectItem>
                 </SelectContent>
               </Select>
@@ -398,10 +404,22 @@ export const RuleFormDialog = ({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="request_header" label={t`Request Header`}>{t`Request Header`}</SelectItem>
-                    <SelectItem value="response_header" label={t`Response Header`}>{t`Response Header`}</SelectItem>
-                    <SelectItem value="request_body" label={t`Request Body`}>{t`Request Body`}</SelectItem>
-                    <SelectItem value="response_body" label={t`Response Body`}>{t`Response Body`}</SelectItem>
+                    <SelectItem
+                      value="request_header"
+                      label={t`Request Header`}
+                    >{t`Request Header`}</SelectItem>
+                    <SelectItem
+                      value="response_header"
+                      label={t`Response Header`}
+                    >{t`Response Header`}</SelectItem>
+                    <SelectItem
+                      value="request_body"
+                      label={t`Request Body`}
+                    >{t`Request Body`}</SelectItem>
+                    <SelectItem
+                      value="response_body"
+                      label={t`Response Body`}
+                    >{t`Response Body`}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
