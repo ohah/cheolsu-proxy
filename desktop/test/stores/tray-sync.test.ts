@@ -36,9 +36,7 @@ describe("트레이 ↔ 메인 윈도우 이벤트 동기화", () => {
 
   describe("toggleProxy (메인 윈도우)", () => {
     test("toggleProxy는 trayStore를 사용하지 않음", async () => {
-      const { toggleProxy } = await import(
-        "../../src/features/proxy-toggle/lib/toggle-proxy"
-      );
+      const { toggleProxy } = await import("../../src/features/proxy-toggle/lib/toggle-proxy");
       // toggleProxy 소스 코드에 trayStore 참조가 없어야 함
       const source = toggleProxy.toString();
       expect(source).not.toContain("trayStore");
@@ -122,9 +120,7 @@ describe("트레이 ↔ 메인 윈도우 이벤트 동기화", () => {
         value: true,
       });
 
-      const actionCall = emitToCalls.find(
-        (c) => c.target === "main" && c.event === "tray_action",
-      );
+      const actionCall = emitToCalls.find((c) => c.target === "main" && c.event === "tray_action");
       expect(actionCall).toBeDefined();
       expect(actionCall!.payload).toEqual({
         type: "proxyConnected",
@@ -179,19 +175,13 @@ describe("트레이 ↔ 메인 윈도우 이벤트 동기화", () => {
   describe("store 폴링 제거 검증", () => {
     test("tray-panel.tsx에 setInterval이 없음", async () => {
       const fs = await import("fs");
-      const source = fs.readFileSync(
-        "src/pages/tray-panel/ui/tray-panel.tsx",
-        "utf-8",
-      );
+      const source = fs.readFileSync("src/pages/tray-panel/ui/tray-panel.tsx", "utf-8");
       expect(source).not.toContain("setInterval");
     });
 
     test("tray-panel.tsx에 LazyStore import가 없음", async () => {
       const fs = await import("fs");
-      const source = fs.readFileSync(
-        "src/pages/tray-panel/ui/tray-panel.tsx",
-        "utf-8",
-      );
+      const source = fs.readFileSync("src/pages/tray-panel/ui/tray-panel.tsx", "utf-8");
       expect(source).not.toContain("LazyStore");
       expect(source).not.toContain("@tauri-apps/plugin-store");
     });
@@ -205,10 +195,7 @@ describe("트레이 ↔ 메인 윈도우 이벤트 동기화", () => {
 
     test("toggle-proxy.ts에 trayStore import가 없음", async () => {
       const fs = await import("fs");
-      const source = fs.readFileSync(
-        "src/features/proxy-toggle/lib/toggle-proxy.ts",
-        "utf-8",
-      );
+      const source = fs.readFileSync("src/features/proxy-toggle/lib/toggle-proxy.ts", "utf-8");
       expect(source).not.toContain("trayStore");
       expect(source).not.toContain("tray-sync-store");
     });
