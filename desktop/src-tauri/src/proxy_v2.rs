@@ -141,41 +141,14 @@ pub async fn start_proxy_v2<R: Runtime>(
     let port = addr.port();
     let host = addr.ip().to_string();
 
-    // Group F: daemon 연결 자체를 건너뜀
-    if !DIAG_ENABLE_PROXY_CONNECTION {
-        tracing::warn!("[DIAG] 프록시 daemon 연결 비활성화됨 — 가짜 성공 반환");
-        return Ok(ProxyStartResult {
-            status: true,
-            message: format!("[DIAG] 프록시 포트 {} (연결 없음, 진단 모드)", port),
-        });
-    }
-
-    // [DIAG-F2] ensure_daemon 호출 없이 채널만 셋업하고 성공 반환
-    // 이 상태에서 멀쩡하면 → ensure_daemon(spawn/connect) 자체가 원인
-    // 이 상태에서도 터지면 → 채널/tokio task 셋업이 원인 (가능성 낮음)
-    let (_event_tx, mut event_rx) = tokio::sync::mpsc::unbounded_channel::<DaemonMessage>();
-
-    // 수신자 task는 셋업하되, 아무 메시지도 안 옴 (sender가 아무데도 안 넘어감)
-    let app_emitter = app.clone();
-    tokio::spawn(async move {
-        while let Some(msg) = event_rx.recv().await {
-            emit_daemon_message(&app_emitter, msg);
-        }
-    });
-
-    let log_path = proxy_daemon::daemon::app_support_dir()
-        .map(|d| d.join("daemon.log").display().to_string())
-        .unwrap_or_else(|_| "unknown".to_string());
-    let success_message = format!(
-        "프록시가 포트 {}에서 성공적으로 시작되었습니다. 시스템 프록시 설정을 127.0.0.1:{}로 변경하세요 (로그: {})",
-        port, port, log_path
-    );
-
-    println!("{}", success_message);
-    Ok(ProxyStartResult {
+    // [DIAG] Group F=true이지만 F=false와 동일하게 즉시 반환 (대조 실험)
+    // 이게 멀쩡하면 → start_proxy_v2와 무관한 문제 (프론트엔드 or 타이밍)
+    // 이게 터지면 → 재현이 비결정적이거나 다른 원인
+    tracing::warn!("[DIAG-F-CONTROL] Group F=true이지만 즉시 반환");
+    return Ok(ProxyStartResult {
         status: true,
-        message: success_message,
-    })
+        message: format!("[DIAG] 프록시 포트 {} (대조 실험, 연결 없음)", port),
+    });
 }
 
 /// 프록시 중지: daemon과의 연결 해제
