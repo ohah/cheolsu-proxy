@@ -10,6 +10,80 @@ use std::sync::Arc;
 use tauri::{AppHandle, Emitter, Runtime, State};
 use tokio::sync::Mutex;
 
+// ============================================================
+// 데드락 진단용 플래그 — 하나씩 false로 바꿔가며 테스트
+// 모두 true인 상태가 현재(문제 있는) 상태
+// ============================================================
+/// Group A: event-emitter 전용 스레드 사용 (false = tokio task에서 직접 emit)
+const DIAG_USE_EVENT_EMITTER_THREAD: bool = false;
+/// Group B: 빠른 설정/새 설정 커맨드 (false = 즉시 Ok 반환)
+const DIAG_ENABLE_NEW_SETTINGS: bool = false;
+/// Group C: 세션 자동저장/복원 (false = 즉시 Ok/None 반환)
+const DIAG_ENABLE_AUTO_SESSION: bool = false;
+/// Group D: advanced_repeat (false = 즉시 빈 결과 반환)
+const DIAG_ENABLE_ADVANCED_REPEAT: bool = false;
+
+/// DaemonMessage를 app.emit()으로 전달하는 헬퍼
+fn emit_daemon_message<R: Runtime>(app: &AppHandle<R>, msg: DaemonMessage) {
+    match msg {
+        DaemonMessage::Event { data } => {
+            let _ = app.emit("proxy_event", data);
+        }
+        DaemonMessage::WsMessage { data } => {
+            let _ = app.emit("ws_message", data);
+        }
+        DaemonMessage::WsConnection { data } => {
+            let _ = app.emit("ws_connection", data);
+        }
+        DaemonMessage::InterceptRulesUpdated { rules } => {
+            let _ = app.emit("intercept_rules_updated", rules);
+        }
+        DaemonMessage::ScriptLog { level, message } => {
+            let _ = app.emit(
+                "script_log",
+                serde_json::json!({ "level": level, "message": message }),
+            );
+        }
+        DaemonMessage::ScriptStatus {
+            active,
+            path,
+            message,
+        } => {
+            let _ = app.emit(
+                "script_status",
+                serde_json::json!({ "active": active, "path": path, "message": message }),
+            );
+        }
+        DaemonMessage::ScriptResult { success, error } => {
+            let _ = app.emit(
+                "script_result",
+                serde_json::json!({ "success": success, "error": error }),
+            );
+        }
+        DaemonMessage::BreakpointRulesUpdated { rules } => {
+            let _ = app.emit("breakpoint_rules_updated", rules);
+        }
+        DaemonMessage::BreakpointHit {
+            id,
+            transaction_id,
+            phase,
+            data,
+        } => {
+            let _ = app.emit(
+                "breakpoint_hit",
+                serde_json::json!({ "id": id, "transaction_id": transaction_id, "phase": phase, "data": data }),
+            );
+        }
+        DaemonMessage::HostMappingsUpdated { mappings } => {
+            let _ = app.emit("host_mappings_updated", mappings);
+        }
+        DaemonMessage::SslProxyingListUpdated { entries } => {
+            let _ = app.emit("ssl_proxying_list_updated", entries);
+        }
+        _ => {}
+    }
+}
+
 /// hop-by-hop 헤더인지 대소문자 무시하고 확인
 fn is_hop_by_hop_header(name: &str) -> bool {
     const HOP_BY_HOP: &[&str] = &[
@@ -60,75 +134,29 @@ pub async fn start_proxy_v2<R: Runtime>(
     let port = addr.port();
     let host = addr.ip().to_string();
 
-    // app.emit()을 tokio worker가 아닌 전용 OS 스레드에서 호출하여
-    // macOS WebKit의 메인 스레드 dispatch로 인한 데드락을 방지
+    // ── 이벤트 전달 방식: 진단 플래그에 따라 분기 ──
     let (event_tx, mut event_rx) = tokio::sync::mpsc::unbounded_channel::<DaemonMessage>();
 
-    let app_emitter = app.clone();
-    std::thread::Builder::new()
-        .name("event-emitter".into())
-        .spawn(move || {
-            while let Some(msg) = event_rx.blocking_recv() {
-                match msg {
-                    DaemonMessage::Event { data } => {
-                        let _ = app_emitter.emit("proxy_event", data);
-                    }
-                    DaemonMessage::WsMessage { data } => {
-                        let _ = app_emitter.emit("ws_message", data);
-                    }
-                    DaemonMessage::WsConnection { data } => {
-                        let _ = app_emitter.emit("ws_connection", data);
-                    }
-                    DaemonMessage::InterceptRulesUpdated { rules } => {
-                        let _ = app_emitter.emit("intercept_rules_updated", rules);
-                    }
-                    DaemonMessage::ScriptLog { level, message } => {
-                        let _ = app_emitter.emit(
-                            "script_log",
-                            serde_json::json!({ "level": level, "message": message }),
-                        );
-                    }
-                    DaemonMessage::ScriptStatus {
-                        active,
-                        path,
-                        message,
-                    } => {
-                        let _ = app_emitter.emit(
-                            "script_status",
-                            serde_json::json!({ "active": active, "path": path, "message": message }),
-                        );
-                    }
-                    DaemonMessage::ScriptResult { success, error } => {
-                        let _ = app_emitter.emit(
-                            "script_result",
-                            serde_json::json!({ "success": success, "error": error }),
-                        );
-                    }
-                    DaemonMessage::BreakpointRulesUpdated { rules } => {
-                        let _ = app_emitter.emit("breakpoint_rules_updated", rules);
-                    }
-                    DaemonMessage::BreakpointHit {
-                        id,
-                        transaction_id,
-                        phase,
-                        data,
-                    } => {
-                        let _ = app_emitter.emit(
-                            "breakpoint_hit",
-                            serde_json::json!({ "id": id, "transaction_id": transaction_id, "phase": phase, "data": data }),
-                        );
-                    }
-                    DaemonMessage::HostMappingsUpdated { mappings } => {
-                        let _ = app_emitter.emit("host_mappings_updated", mappings);
-                    }
-                    DaemonMessage::SslProxyingListUpdated { entries } => {
-                        let _ = app_emitter.emit("ssl_proxying_list_updated", entries);
-                    }
-                    _ => {}
+    if DIAG_USE_EVENT_EMITTER_THREAD {
+        // Group A ON: 전용 OS 스레드에서 emit (PR #146)
+        let app_emitter = app.clone();
+        std::thread::Builder::new()
+            .name("event-emitter".into())
+            .spawn(move || {
+                while let Some(msg) = event_rx.blocking_recv() {
+                    emit_daemon_message(&app_emitter, msg);
                 }
+            })
+            .expect("event-emitter 스레드 생성 실패");
+    } else {
+        // Group A OFF: tokio task에서 직접 emit (PR #146 이전 방식)
+        let app_emitter = app.clone();
+        tokio::spawn(async move {
+            while let Some(msg) = event_rx.recv().await {
+                emit_daemon_message(&app_emitter, msg);
             }
-        })
-        .expect("event-emitter 스레드 생성 실패");
+        });
+    }
 
     let conn = match proxy_daemon::ensure_daemon(port, &host, move |msg| {
         let _ = event_tx.send(msg);
@@ -434,6 +462,20 @@ pub async fn advanced_repeat<R: Runtime>(
     app: AppHandle<R>,
     params: AdvancedRepeatParams,
 ) -> Result<AdvancedRepeatResult, String> {
+    if !DIAG_ENABLE_ADVANCED_REPEAT {
+        tracing::warn!("[DIAG] advanced_repeat 비활성화됨");
+        return Ok(AdvancedRepeatResult {
+            total: 0,
+            success_count: 0,
+            failure_count: 0,
+            min_time_ms: 0,
+            max_time_ms: 0,
+            avg_time_ms: 0.0,
+            total_time_ms: 0,
+            requests_per_second: 0.0,
+            status_codes: HashMap::new(),
+        });
+    }
     use std::sync::atomic::{AtomicUsize, Ordering};
     use tokio::sync::Semaphore;
 
@@ -605,6 +647,10 @@ pub async fn update_breakpoint_rules(
     proxy: tauri::State<'_, ProxyV2State>,
     rules: Vec<BreakpointRule>,
 ) -> Result<(), String> {
+    if !DIAG_ENABLE_NEW_SETTINGS {
+        tracing::warn!("[DIAG] update_breakpoint_rules 비활성화됨");
+        return Ok(());
+    }
     let proxy_guard = proxy.lock().await;
 
     if let Some(conn) = proxy_guard.as_ref() {
@@ -625,6 +671,10 @@ pub async fn resolve_breakpoint(
     id: String,
     action: BreakpointAction,
 ) -> Result<(), String> {
+    if !DIAG_ENABLE_NEW_SETTINGS {
+        tracing::warn!("[DIAG] resolve_breakpoint 비활성화됨");
+        return Ok(());
+    }
     let proxy_guard = proxy.lock().await;
 
     if let Some(conn) = proxy_guard.as_ref() {
@@ -747,6 +797,10 @@ pub async fn update_proxy_auth(
     proxy: State<'_, ProxyV2State>,
     config: ProxyAuthConfig,
 ) -> Result<(), String> {
+    if !DIAG_ENABLE_NEW_SETTINGS {
+        tracing::warn!("[DIAG] update_proxy_auth 비활성화됨");
+        return Ok(());
+    }
     let proxy_guard = proxy.lock().await;
 
     if let Some(conn) = proxy_guard.as_ref() {
@@ -823,6 +877,10 @@ pub async fn update_ssl_proxying_list(
     proxy: State<'_, ProxyV2State>,
     entries: Vec<SslProxyingEntry>,
 ) -> Result<(), String> {
+    if !DIAG_ENABLE_NEW_SETTINGS {
+        tracing::warn!("[DIAG] update_ssl_proxying_list 비활성화됨");
+        return Ok(());
+    }
     let proxy_guard = proxy.lock().await;
 
     if let Some(conn) = proxy_guard.as_ref() {
@@ -842,6 +900,10 @@ pub async fn update_client_certificate(
     proxy: State<'_, ProxyV2State>,
     config: Option<proxy_daemon::ClientCertConfig>,
 ) -> Result<(), String> {
+    if !DIAG_ENABLE_NEW_SETTINGS {
+        tracing::warn!("[DIAG] update_client_certificate 비활성화됨");
+        return Ok(());
+    }
     // 설정이 활성화된 경우 유효성 검증 (blocking I/O를 spawn_blocking으로 처리)
     if let Some(ref cert_config) = config {
         if cert_config.enabled {
@@ -876,6 +938,10 @@ pub async fn update_quick_settings(
     block_cookies: bool,
     no_gzip: bool,
 ) -> Result<(), String> {
+    if !DIAG_ENABLE_NEW_SETTINGS {
+        tracing::warn!("[DIAG] update_quick_settings 비활성화됨");
+        return Ok(());
+    }
     let proxy_guard = proxy.lock().await;
 
     if let Some(conn) = proxy_guard.as_ref() {
@@ -1566,6 +1632,10 @@ pub async fn autosave_session(
     app: AppHandle<impl Runtime>,
     transactions_json: String,
 ) -> Result<(), String> {
+    if !DIAG_ENABLE_AUTO_SESSION {
+        tracing::warn!("[DIAG] autosave_session 비활성화됨");
+        return Ok(());
+    }
     let file_path = get_autosave_path(&app)?;
 
     tokio::task::spawn_blocking(move || {
@@ -1592,6 +1662,10 @@ pub async fn autosave_session(
 pub async fn autoload_session(
     app: AppHandle<impl Runtime>,
 ) -> Result<Option<LoadSessionResult>, String> {
+    if !DIAG_ENABLE_AUTO_SESSION {
+        tracing::warn!("[DIAG] autoload_session 비활성화됨");
+        return Ok(None);
+    }
     let file_path = get_autosave_path(&app)?;
 
     tokio::task::spawn_blocking(move || {
