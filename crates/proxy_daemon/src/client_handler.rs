@@ -135,13 +135,21 @@ pub async fn handle_client(
                 }
                 Err(broadcast::error::RecvError::Lagged(n)) => {
                     lagged_count += 1;
-                    if lagged_count >= 10 {
+                    if lagged_count >= 10
+                        && (lagged_count == 10
+                            || lagged_count == 100
+                            || lagged_count == 1000
+                            || lagged_count % 10000 == 0)
+                    {
                         warn!(
-                            "Client lagged by {} messages (consecutive lagged count: {})",
-                            n, lagged_count
+                            "broadcast 채널 Lagged (연속 {}회, 스킵 {}건)",
+                            lagged_count, n
                         );
                     } else {
-                        debug!("Client lagged by {} messages", n);
+                        debug!(
+                            "broadcast 채널 Lagged (연속 {}회, 스킵 {}건)",
+                            lagged_count, n
+                        );
                     }
                     continue;
                 }
@@ -166,14 +174,16 @@ pub async fn handle_client(
                     }
                     Ok(ClientCommand::UpdateInterceptRules { rules }) => {
                         info!("Intercept rules updated from client: {} rules", rules.len());
-                        // watch 채널(프록시 적용)을 먼저 전송하고, 성공 시에만 broadcast(클라이언트 알림)
-                        if intercept_tx.send(rules.clone()).is_ok() {
-                            let broadcast_msg = DaemonMessage::InterceptRulesUpdated { rules };
-                            if let Ok(json) = serde_json::to_string(&broadcast_msg) {
-                                let _ = event_tx.send(json);
+                        if let Err(e) = intercept_tx.send(rules.clone()) {
+                            warn!("인터셉트 규칙 watch 채널 전송 실패: {}", e);
+                        }
+                        let broadcast_msg = DaemonMessage::InterceptRulesUpdated { rules };
+                        if let Ok(json) = serde_json::to_string(&broadcast_msg) {
+                            if event_tx.receiver_count() > 0 {
+                                if let Err(e) = event_tx.send(json) {
+                                    warn!("인터셉트 규칙 broadcast 전송 실패: {}", e);
+                                }
                             }
-                        } else {
-                            warn!("인터셉트 규칙 watch 채널 전송 실패");
                         }
                     }
                     Ok(ClientCommand::WsInject {
@@ -233,28 +243,34 @@ pub async fn handle_client(
                             "Upstream proxy config updated: {:?}",
                             config.as_ref().map(|c| c.address())
                         );
-                        let _ = upstream_tx.send(config);
+                        if let Err(e) = upstream_tx.send(config) {
+                            warn!("업스트림 프록시 watch 채널 전송 실패: {}", e);
+                        }
                     }
                     Ok(ClientCommand::UpdateThrottle { config }) => {
                         info!(
                             "Throttle config updated: enabled={:?}",
                             config.as_ref().map(|c| c.enabled)
                         );
-                        let _ = throttle_tx.send(config);
+                        if let Err(e) = throttle_tx.send(config) {
+                            warn!("스로틀 설정 watch 채널 전송 실패: {}", e);
+                        }
                     }
                     Ok(ClientCommand::UpdateHostMappings { mappings }) => {
                         info!(
                             "Host mappings updated from client: {} mappings",
                             mappings.len()
                         );
-                        // watch 채널(프록시 적용)을 먼저 전송하고, 성공 시에만 broadcast(클라이언트 알림)
-                        if host_mapping_tx.send(mappings.clone()).is_ok() {
-                            let broadcast_msg = DaemonMessage::HostMappingsUpdated { mappings };
-                            if let Ok(json) = serde_json::to_string(&broadcast_msg) {
-                                let _ = event_tx.send(json);
+                        if let Err(e) = host_mapping_tx.send(mappings.clone()) {
+                            warn!("호스트 매핑 watch 채널 전송 실패: {}", e);
+                        }
+                        let broadcast_msg = DaemonMessage::HostMappingsUpdated { mappings };
+                        if let Ok(json) = serde_json::to_string(&broadcast_msg) {
+                            if event_tx.receiver_count() > 0 {
+                                if let Err(e) = event_tx.send(json) {
+                                    warn!("호스트 매핑 broadcast 전송 실패: {}", e);
+                                }
                             }
-                        } else {
-                            warn!("호스트 매핑 watch 채널 전송 실패");
                         }
                     }
                     Ok(ClientCommand::UpdateSslProxyingList { entries }) => {
@@ -262,14 +278,16 @@ pub async fn handle_client(
                             "SSL Proxying list updated from client: {} entries",
                             entries.len()
                         );
-                        // watch 채널(프록시 적용)을 먼저 전송하고, 성공 시에만 broadcast(클라이언트 알림)
-                        if ssl_proxying_tx.send(entries.clone()).is_ok() {
-                            let broadcast_msg = DaemonMessage::SslProxyingListUpdated { entries };
-                            if let Ok(json) = serde_json::to_string(&broadcast_msg) {
-                                let _ = event_tx.send(json);
+                        if let Err(e) = ssl_proxying_tx.send(entries.clone()) {
+                            warn!("SSL 프록싱 목록 watch 채널 전송 실패: {}", e);
+                        }
+                        let broadcast_msg = DaemonMessage::SslProxyingListUpdated { entries };
+                        if let Ok(json) = serde_json::to_string(&broadcast_msg) {
+                            if event_tx.receiver_count() > 0 {
+                                if let Err(e) = event_tx.send(json) {
+                                    warn!("SSL 프록싱 목록 broadcast 전송 실패: {}", e);
+                                }
                             }
-                        } else {
-                            warn!("SSL 프록싱 목록 watch 채널 전송 실패");
                         }
                     }
                     Ok(ClientCommand::UpdateClientCertificate { config }) => {
@@ -277,14 +295,16 @@ pub async fn handle_client(
                             "Client certificate config updated: enabled={:?}",
                             config.as_ref().map(|c| c.enabled)
                         );
-                        // watch 채널(프록시 적용)을 먼저 전송하고, 성공 시에만 broadcast(클라이언트 알림)
-                        if client_cert_tx.send(config.clone()).is_ok() {
-                            let broadcast_msg = DaemonMessage::ClientCertificateUpdated { config };
-                            if let Ok(json) = serde_json::to_string(&broadcast_msg) {
-                                let _ = event_tx.send(json);
+                        if let Err(e) = client_cert_tx.send(config.clone()) {
+                            warn!("클라이언트 인증서 설정 watch 채널 전송 실패: {}", e);
+                        }
+                        let broadcast_msg = DaemonMessage::ClientCertificateUpdated { config };
+                        if let Ok(json) = serde_json::to_string(&broadcast_msg) {
+                            if event_tx.receiver_count() > 0 {
+                                if let Err(e) = event_tx.send(json) {
+                                    warn!("클라이언트 인증서 설정 broadcast 전송 실패: {}", e);
+                                }
                             }
-                        } else {
-                            warn!("클라이언트 인증서 설정 watch 채널 전송 실패");
                         }
                     }
                     Ok(ClientCommand::UpdateQuickSettings {
@@ -315,7 +335,9 @@ pub async fn handle_client(
                     }
                     Ok(ClientCommand::UpdateServerReplay { entries }) => {
                         info!("Server replay entries updated: {} entries", entries.len());
-                        let _ = server_replay_tx.send(entries);
+                        if let Err(e) = server_replay_tx.send(entries) {
+                            warn!("서버 리플레이 watch 채널 전송 실패: {}", e);
+                        }
                     }
                     Ok(ClientCommand::LoadScript { path, code }) => {
                         let result: Result<(), String> = if let Some(file_path) = &path {
@@ -410,14 +432,16 @@ pub async fn handle_client(
                             "Breakpoint rules updated from client: {} rules",
                             rules.len()
                         );
-                        // watch 채널(프록시 적용)을 먼저 전송하고, 성공 시에만 broadcast(클라이언트 알림)
-                        if breakpoint_tx.send(rules.clone()).is_ok() {
-                            let broadcast_msg = DaemonMessage::BreakpointRulesUpdated { rules };
-                            if let Ok(json) = serde_json::to_string(&broadcast_msg) {
-                                let _ = event_tx.send(json);
+                        if let Err(e) = breakpoint_tx.send(rules.clone()) {
+                            warn!("브레이크포인트 규칙 watch 채널 전송 실패: {}", e);
+                        }
+                        let broadcast_msg = DaemonMessage::BreakpointRulesUpdated { rules };
+                        if let Ok(json) = serde_json::to_string(&broadcast_msg) {
+                            if event_tx.receiver_count() > 0 {
+                                if let Err(e) = event_tx.send(json) {
+                                    warn!("브레이크포인트 규칙 broadcast 전송 실패: {}", e);
+                                }
                             }
-                        } else {
-                            warn!("브레이크포인트 규칙 watch 채널 전송 실패");
                         }
                     }
                     Ok(ClientCommand::ResolveBreakpoint { id, action }) => {
