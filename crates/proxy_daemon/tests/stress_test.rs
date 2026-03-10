@@ -9,15 +9,18 @@ use proxy_daemon::{
     DaemonMessage, InterceptAction, InterceptRule, LoggingHandler, ServerReplayEntry,
 };
 use std::collections::HashMap;
-use std::path::PathBuf;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use tokio::sync::broadcast;
 
 /// 테스트용 LoggingHandler 생성 헬퍼
-fn make_handler() -> LoggingHandler {
+///
+/// 각 호출마다 고유한 임시 디렉토리를 생성하여 테스트 간 캐시 경로 충돌을 방지합니다.
+fn make_handler() -> (LoggingHandler, tempfile::TempDir) {
+    let tmp_dir = tempfile::tempdir().expect("임시 디렉토리 생성 실패");
     let (sender, _rx) = tokio::sync::mpsc::channel(16);
-    LoggingHandler::new(sender, PathBuf::from("/tmp/stress-test-cache"))
+    let handler = LoggingHandler::new(sender, tmp_dir.path().to_path_buf());
+    (handler, tmp_dir)
 }
 
 /// 테스트용 InterceptRule 생성 헬퍼
@@ -41,7 +44,7 @@ fn make_block_rule(id: &str, pattern: &str) -> InterceptRule {
 #[tokio::test]
 #[ignore]
 async fn stress_concurrent_intercept_rule_updates() {
-    let handler = make_handler();
+    let (handler, _tmp_dir) = make_handler();
     let handler = Arc::new(handler);
     let mut handles = Vec::new();
 
@@ -69,7 +72,7 @@ async fn stress_concurrent_intercept_rule_updates() {
 #[tokio::test]
 #[ignore]
 async fn stress_concurrent_server_replay_updates() {
-    let handler = make_handler();
+    let (handler, _tmp_dir) = make_handler();
     let handler = Arc::new(handler);
     let mut handles = Vec::new();
 
@@ -102,7 +105,7 @@ async fn stress_concurrent_server_replay_updates() {
 #[tokio::test]
 #[ignore]
 async fn stress_mixed_concurrent_updates() {
-    let handler = make_handler();
+    let (handler, _tmp_dir) = make_handler();
     let handler = Arc::new(handler);
     let mut handles = Vec::new();
 
@@ -175,7 +178,7 @@ async fn stress_large_body_serialization() {
 #[tokio::test]
 #[ignore]
 async fn stress_large_body_server_replay_update() {
-    let handler = make_handler();
+    let (handler, _tmp_dir) = make_handler();
 
     // 15MB 바디
     let large_body = "B".repeat(15 * 1024 * 1024);
@@ -196,7 +199,7 @@ async fn stress_large_body_server_replay_update() {
 #[tokio::test]
 #[ignore]
 async fn stress_multiple_large_bodies_concurrent() {
-    let handler = make_handler();
+    let (handler, _tmp_dir) = make_handler();
     let handler = Arc::new(handler);
     let mut handles = Vec::new();
 
@@ -228,7 +231,7 @@ async fn stress_multiple_large_bodies_concurrent() {
 #[tokio::test]
 #[ignore]
 async fn stress_large_headers_intercept_rule() {
-    let handler = make_handler();
+    let (handler, _tmp_dir) = make_handler();
 
     // 1000개의 커스텀 헤더를 포함하는 ModifyRequest 규칙
     let mut headers = HashMap::new();
@@ -260,16 +263,14 @@ async fn stress_large_headers_intercept_rule() {
 #[ignore]
 async fn stress_rapid_handler_create_destroy() {
     for i in 0..500 {
+        let tmp_dir = tempfile::tempdir().expect("임시 디렉토리 생성 실패");
         let (sender, _rx) = tokio::sync::mpsc::channel(16);
-        let handler = LoggingHandler::new(
-            sender,
-            PathBuf::from(format!("/tmp/stress-test-cache-{}", i)),
-        );
+        let handler = LoggingHandler::new(sender, tmp_dir.path().to_path_buf());
 
         // 규칙 업데이트 후 즉시 Drop
         let rules = vec![make_block_rule(&format!("rapid-{}", i), "*rapid*")];
         handler.update_intercept_rules(rules).await;
-        // handler는 여기서 Drop됨
+        // handler와 tmp_dir는 여기서 Drop됨
     }
 }
 
@@ -298,11 +299,9 @@ async fn stress_concurrent_rapid_handler_lifecycle() {
     for batch in 0..50 {
         handles.push(tokio::spawn(async move {
             for i in 0..20 {
+                let tmp_dir = tempfile::tempdir().expect("임시 디렉토리 생성 실패");
                 let (sender, _rx) = tokio::sync::mpsc::channel(16);
-                let handler = LoggingHandler::new(
-                    sender,
-                    PathBuf::from(format!("/tmp/stress-test-{}-{}", batch, i)),
-                );
+                let handler = LoggingHandler::new(sender, tmp_dir.path().to_path_buf());
                 let rules = vec![make_block_rule(&format!("rapid-{}-{}", batch, i), "*test*")];
                 handler.update_intercept_rules(rules).await;
             }
@@ -552,7 +551,7 @@ async fn stress_broadcast_daemon_messages_serialization() {
 #[tokio::test]
 #[ignore]
 async fn stress_bulk_intercept_rules() {
-    let handler = make_handler();
+    let (handler, _tmp_dir) = make_handler();
 
     // 10000개의 인터셉트 규칙을 한 번에 등록
     let rules: Vec<InterceptRule> = (0..10000)
