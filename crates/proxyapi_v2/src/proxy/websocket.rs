@@ -268,9 +268,12 @@ where
 /// "ws", "wss"는 항상 유효한 Scheme이므로 실패할 수 없습니다.
 fn to_websocket_scheme(scheme: Scheme) -> Scheme {
     if scheme == Scheme::HTTP {
-        "ws".try_into().expect("정적 문자열 'ws'는 항상 유효한 Scheme")
+        "ws".try_into()
+            .expect("정적 문자열 'ws'는 항상 유효한 Scheme")
     } else {
-        "wss".try_into().expect("정적 문자열 'wss'는 항상 유효한 Scheme")
+        "wss"
+            .try_into()
+            .expect("정적 문자열 'wss'는 항상 유효한 Scheme")
     }
 }
 
