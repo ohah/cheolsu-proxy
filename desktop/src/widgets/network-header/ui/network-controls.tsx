@@ -52,12 +52,7 @@ export const NetworkControls = ({
 
       <div className="w-px h-5 bg-border" />
 
-      <Button
-        size="sm"
-        variant="outline"
-        onClick={() => onCompose?.()}
-        title={t`Compose request`}
-      >
+      <Button size="sm" variant="outline" onClick={() => onCompose?.()} title={t`Compose request`}>
         <PenLine className="w-4 h-4" />
       </Button>
 
