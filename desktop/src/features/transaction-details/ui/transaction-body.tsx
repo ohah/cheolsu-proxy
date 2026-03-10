@@ -8,6 +8,7 @@ import { Button, Card, CardContent, CardHeader } from "@/shared/ui";
 import { Editor } from "@monaco-editor/react";
 
 import { getBodyForDisplay, createImageDataUrl, extractBinaryFileInfo } from "../lib/utils";
+import { isMultipartFormData, isUrlencoded } from "../lib/form-data-parser";
 import {
   dataTypeToMonacoLanguage,
   isImageDataType,
@@ -19,6 +20,8 @@ import { toast } from "sonner";
 import { MediaPreview } from "./media-preview";
 import { BinaryPreview } from "./binary-preview";
 import { ProtobufPreview } from "./protobuf-preview";
+import { MultipartPreview } from "./multipart-preview";
+import { UrlencodedPreview } from "./urlencoded-preview";
 import { useBodyFile } from "@/hooks/use-body-file";
 
 interface TransactionBodyProps {
@@ -55,9 +58,14 @@ export const TransactionBody = ({ transaction }: TransactionBodyProps) => {
   const actualBody = request.file_path ? fileBody : request.body || null;
 
   // Content-Type 헤더에서 MIME 타입 추출
+  const contentTypeHeader = request.headers["content-type"] || "";
   const getMimeType = () => {
-    return request.headers["content-type"] || "";
+    return contentTypeHeader;
   };
+
+  // form-data 타입 판별
+  const isMultipart = isMultipartFormData(contentTypeHeader);
+  const isUrlencodedBody = isUrlencoded(contentTypeHeader);
 
   const getRequestText = () => {
     // 파일이 있고 로딩 중이면 로딩 메시지 표시
@@ -169,6 +177,10 @@ export const TransactionBody = ({ transaction }: TransactionBodyProps) => {
             contentType={request.headers["content-type"] || ""}
             filePath={request.file_path}
           />
+        ) : isMultipart && actualBody && actualBody.length > 0 && !fileLoading && !fileError ? (
+          <MultipartPreview data={actualBody} contentType={contentTypeHeader} />
+        ) : isUrlencodedBody && actualBody && actualBody.length > 0 && !fileLoading && !fileError ? (
+          <UrlencodedPreview data={actualBody} />
         ) : isNonMediaBinary && binaryFileInfo && !fileLoading && !fileError ? (
           <BinaryPreview
             data={actualBody}
