@@ -192,13 +192,52 @@ impl CertificateAuthority for OpensslAuthority {
             authority
         );
 
-        // 동기 작업에 필요한 데이터를 미리 준비
-        let server_cert_der = self.gen_cert(authority)?;
+        // spawn_blocking에 전달할 데이터 준비 (Send 가능한 바이트 형태)
         let ca_cert_der = self.ca_cert.to_der()?;
         let pkey_der = self.pkey.private_key_to_der()?;
+        let host = authority.host().to_string();
+        let hash = self.hash;
 
-        // OpenSSL 컨텍스트 빌드를 spawn_blocking으로 오프로드
+        // 인증서 생성 + OpenSSL 컨텍스트 빌드를 모두 spawn_blocking으로 오프로드
         let ctx = tokio::task::spawn_blocking(move || -> Result<openssl::ssl::SslContext, Box<dyn std::error::Error + Send + Sync>> {
+            // 인증서 생성
+            let pkey = openssl::pkey::PKey::private_key_from_der(&pkey_der)?;
+            let ca_cert = openssl::x509::X509::from_der(&ca_cert_der)?;
+
+            let mut name_builder = X509NameBuilder::new()?;
+            name_builder.append_entry_by_text("CN", &host)?;
+            let name = name_builder.build();
+
+            let mut x509_builder = X509Builder::new()?;
+            x509_builder.set_subject_name(&name)?;
+            x509_builder.set_version(2)?;
+
+            let not_before = SystemTime::now()
+                .duration_since(SystemTime::UNIX_EPOCH)
+                .expect("Failed to determine current UNIX time")
+                .as_secs() as i64
+                - NOT_BEFORE_OFFSET;
+            x509_builder.set_not_before(Asn1Time::from_unix(not_before)?.as_ref())?;
+            x509_builder.set_not_after(Asn1Time::from_unix(not_before + TTL_SECS)?.as_ref())?;
+
+            x509_builder.set_pubkey(&pkey)?;
+            x509_builder.set_issuer_name(ca_cert.subject_name())?;
+
+            let alternative_name = SubjectAlternativeName::new()
+                .dns(&host)
+                .build(&x509_builder.x509v3_context(Some(&ca_cert), None))?;
+            x509_builder.append_extension(alternative_name)?;
+
+            let mut serial_bytes = [0u8; 16];
+            rand::rand_bytes(&mut serial_bytes)?;
+            let serial_bn = BigNum::from_slice(&serial_bytes)?;
+            let serial_number = Asn1Integer::from_bn(&serial_bn)?;
+            x509_builder.set_serial_number(&serial_number)?;
+
+            x509_builder.sign(&pkey, hash)?;
+            let server_cert = x509_builder.build();
+
+            // OpenSSL 컨텍스트 빌드
             let mut ctx = openssl::ssl::SslContext::builder(openssl::ssl::SslMethod::tls_server())?;
 
             ctx.set_min_proto_version(Some(openssl::ssl::SslVersion::TLS1))?;
@@ -212,13 +251,8 @@ impl CertificateAuthority for OpensslAuthority {
             ctx.set_options(openssl::ssl::SslOptions::SINGLE_DH_USE);
             ctx.set_options(openssl::ssl::SslOptions::SINGLE_ECDH_USE);
 
-            let server_cert = openssl::x509::X509::from_der(&server_cert_der)?;
             ctx.set_certificate(&server_cert)?;
-
-            let ca_cert = openssl::x509::X509::from_der(&ca_cert_der)?;
             ctx.add_extra_chain_cert(ca_cert)?;
-
-            let pkey = openssl::pkey::PKey::private_key_from_der(&pkey_der)?;
             ctx.set_private_key(&pkey)?;
 
             Ok(ctx.build())
@@ -377,9 +411,6 @@ mod tests {
         .await;
 
         assert!(result.is_ok(), "데드락 감지: 10초 타임아웃 초과");
-        for r in result.unwrap() {
-            r.unwrap();
-        }
     }
 
     #[test]

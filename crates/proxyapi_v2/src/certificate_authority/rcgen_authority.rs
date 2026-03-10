@@ -312,6 +312,56 @@ mod tests {
         RcgenAuthority::new(key_pair, ca_cert, cache_size, aws_lc_rs::default_provider())
     }
 
+    #[tokio::test]
+    async fn gen_openssl_context_returns_valid_context() {
+        let ca = build_ca(1_000);
+        let authority = Authority::from_static("example.com");
+
+        let ctx = ca.gen_openssl_context(&authority).await;
+        assert!(ctx.is_ok(), "OpenSSL 컨텍스트 생성 실패: {:?}", ctx.err());
+    }
+
+    #[tokio::test]
+    async fn gen_openssl_context_cache_hit() {
+        let ca = build_ca(1_000);
+        let authority = Authority::from_static("cache-test.com");
+
+        let ctx1 = ca.gen_openssl_context(&authority).await.unwrap();
+        let ctx2 = ca.gen_openssl_context(&authority).await.unwrap();
+
+        assert_eq!(
+            format!("{:?}", ctx1.cert_store()),
+            format!("{:?}", ctx2.cert_store()),
+        );
+    }
+
+    #[tokio::test]
+    async fn gen_openssl_context_concurrent_no_deadlock() {
+        let ca = Arc::new(build_ca(1_000));
+        let mut handles = Vec::new();
+
+        for i in 0..20 {
+            let ca_clone = ca.clone();
+            handles.push(tokio::spawn(async move {
+                let authority =
+                    Authority::try_from(format!("rcgen-concurrent-{}.example.com", i)).unwrap();
+                ca_clone
+                    .gen_openssl_context(&authority)
+                    .await
+                    .expect("컨텍스트 생성 실패");
+            }));
+        }
+
+        let result = tokio::time::timeout(std::time::Duration::from_secs(10), async {
+            for handle in handles {
+                handle.await.unwrap();
+            }
+        })
+        .await;
+
+        assert!(result.is_ok(), "데드락 감지: 10초 타임아웃 초과");
+    }
+
     #[test]
     fn unique_serial_numbers() {
         let ca = build_ca(0);
