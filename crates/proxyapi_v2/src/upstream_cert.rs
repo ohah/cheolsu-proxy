@@ -22,6 +22,8 @@ pub struct UpstreamCertInfo {
     pub sans_dns: Vec<String>,
     /// IP SAN 목록
     pub sans_ip: Vec<IpAddr>,
+    /// 상류 서버가 지원하는 ALPN 프로토콜 (협상 결과)
+    pub negotiated_alpn: Option<Vec<u8>>,
 }
 
 /// 인증서를 캡처하는 TLS 검증기
@@ -140,7 +142,7 @@ async fn sniff_upstream_cert_inner(
         captured: Arc::clone(&captured),
     };
 
-    let config = ClientConfig::builder_with_provider(Arc::new(
+    let mut config = ClientConfig::builder_with_provider(Arc::new(
         tokio_rustls::rustls::crypto::aws_lc_rs::default_provider(),
     ))
     .with_safe_default_protocol_versions()
@@ -149,26 +151,39 @@ async fn sniff_upstream_cert_inner(
     .with_custom_certificate_verifier(Arc::new(verifier))
     .with_no_client_auth();
 
+    // ALPN 프로토콜 설정 - 서버가 어떤 프로토콜을 지원하는지 확인
+    config.alpn_protocols = vec![b"h2".to_vec(), b"http/1.1".to_vec()];
+
     let connector = tokio_rustls::TlsConnector::from(Arc::new(config));
 
     let server_name = ServerName::try_from(authority.host().to_string()).ok()?;
 
-    // 3. TLS 핸드셰이크 (인증서 캡처)
-    match connector.connect(server_name, tcp_stream).await {
-        Ok(_tls_stream) => {
-            // 정상 핸드셰이크 완료 - 연결은 drop됨
+    // 3. TLS 핸드셰이크 (인증서 + ALPN 캡처)
+    let negotiated_alpn = match connector.connect(server_name, tcp_stream).await {
+        Ok(tls_stream) => {
+            // 협상된 ALPN 프로토콜 캡처
+            let alpn = tls_stream.get_ref().1.alpn_protocol().map(|p| p.to_vec());
+            debug!(
+                "[UPSTREAM-CERT] ALPN 협상 결과: {:?}",
+                alpn.as_ref()
+                    .map(|p| String::from_utf8_lossy(p).to_string())
+            );
+            alpn
         }
         Err(e) => {
             debug!(
                 "[UPSTREAM-CERT] TLS 핸드셰이크 실패 (인증서는 캡처되었을 수 있음): {} - {}",
                 target_addr, e
             );
+            None
         }
-    }
+    };
 
     // 4. 캡처된 인증서 파싱
     let cert_der = captured.lock().unwrap().take()?;
-    parse_cert_info(&cert_der)
+    let mut info = parse_cert_info(&cert_der)?;
+    info.negotiated_alpn = negotiated_alpn;
+    Some(info)
 }
 
 /// DER 인코딩된 인증서에서 정보를 추출합니다
@@ -239,6 +254,7 @@ mod tests {
             organization: Some("Example Inc.".to_string()),
             sans_dns: vec!["example.com".to_string(), "*.example.com".to_string()],
             sans_ip: vec!["127.0.0.1".parse().unwrap()],
+            negotiated_alpn: Some(b"h2".to_vec()),
         };
         let cloned = info.clone();
         assert_eq!(cloned.common_name, info.common_name);

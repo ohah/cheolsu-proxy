@@ -362,12 +362,24 @@ where
                                                 "TLS 버전 감지 - 하이브리드 핸들러 사용"
                                             );
 
-                                            // 상류 인증서 스니핑 (캐시 미스 시에만 실제 연결)
-                                            let upstream_cert = sniff_upstream_cert(
-                                                &authority,
-                                                self.ctx.upstream_proxy.as_ref(),
-                                            )
-                                            .await;
+                                            // 캐시 히트 시 스니핑 스킵 (불필요한 upstream 연결 방지)
+                                            let upstream_cert = if self
+                                                .ca
+                                                .is_config_cached(&authority)
+                                                .await
+                                            {
+                                                debug!(
+                                                    "[UPSTREAM-CERT] 캐시 히트 - 스니핑 스킵: {}",
+                                                    authority
+                                                );
+                                                None
+                                            } else {
+                                                sniff_upstream_cert(
+                                                    &authority,
+                                                    self.ctx.upstream_proxy.as_ref(),
+                                                )
+                                                .await
+                                            };
 
                                             // HybridTlsHandler 생성
                                             let hybrid_handler =
@@ -753,6 +765,10 @@ mod tests {
 
         fn get_ca_cert_der(&self) -> Option<Vec<u8>> {
             None
+        }
+
+        async fn is_config_cached(&self, _authority: &Authority) -> bool {
+            false
         }
 
         #[cfg(feature = "openssl-ca")]

@@ -208,11 +208,39 @@ impl CertificateAuthority for OpensslAuthority {
             .with_single_cert(certs, self.private_key.clone_key())
             .expect("Failed to build ServerConfig");
 
-        server_cfg.alpn_protocols = vec![
-            #[cfg(feature = "http2")]
-            b"h2".to_vec(),
-            b"http/1.1".to_vec(),
-        ];
+        // ALPN 미러링: 상류 서버의 ALPN 협상 결과를 반영
+        server_cfg.alpn_protocols = if let Some(ref upstream) = upstream_cert {
+            if let Some(ref negotiated) = upstream.negotiated_alpn {
+                let mut protocols = vec![negotiated.clone()];
+                #[cfg(feature = "http2")]
+                if negotiated != b"h2" {
+                    protocols.push(b"h2".to_vec());
+                }
+                if negotiated != b"http/1.1" {
+                    protocols.push(b"http/1.1".to_vec());
+                }
+                info!(
+                    "[SERVER-CONFIG] ALPN 미러링 적용: {:?}",
+                    protocols
+                        .iter()
+                        .map(|p| String::from_utf8_lossy(p).to_string())
+                        .collect::<Vec<_>>()
+                );
+                protocols
+            } else {
+                vec![
+                    #[cfg(feature = "http2")]
+                    b"h2".to_vec(),
+                    b"http/1.1".to_vec(),
+                ]
+            }
+        } else {
+            vec![
+                #[cfg(feature = "http2")]
+                b"h2".to_vec(),
+                b"http/1.1".to_vec(),
+            ]
+        };
 
         let server_cfg = Arc::new(server_cfg);
 
@@ -226,6 +254,10 @@ impl CertificateAuthority for OpensslAuthority {
     fn get_ca_cert_der(&self) -> Option<Vec<u8>> {
         // OpenSSL X509 인증서를 DER 형식으로 변환
         self.ca_cert.to_der().ok()
+    }
+
+    async fn is_config_cached(&self, authority: &Authority) -> bool {
+        self.cache.get(authority).await.is_some()
     }
 
     #[cfg(feature = "openssl-ca")]
@@ -530,6 +562,7 @@ mod tests {
             organization: Some("Real Org".to_string()),
             sans_dns: vec!["example.com".to_string(), "www.example.com".to_string()],
             sans_ip: vec![],
+            negotiated_alpn: Some(b"h2".to_vec()),
         };
 
         let cert_der = ca.gen_cert(&authority, Some(&upstream)).unwrap();
