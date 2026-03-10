@@ -39,6 +39,12 @@ impl App {
             return;
         }
 
+        // If SSL Proxying add form is open, handle it
+        if self.tab == Tab::Settings && self.ssl_proxying_add_form.is_some() {
+            self.handle_settings_key(key).await;
+            return;
+        }
+
         // If host mapping form is open, handle it
         if self.tab == Tab::Settings && self.host_mapping_form.is_some() {
             self.handle_settings_key(key).await;
@@ -639,8 +645,15 @@ impl App {
 
     async fn handle_settings_key(&mut self, key: KeyEvent) {
         use super::forms::{
-            QuickSettingsField, SettingsSection, ThrottleField, UpstreamProxyField,
+            QuickSettingsField, SettingsSection, SslProxyingAddForm, ThrottleField,
+            UpstreamProxyField,
         };
+
+        // SSL Proxying add form is open: handle it
+        if self.ssl_proxying_add_form.is_some() {
+            self.handle_ssl_proxying_add_form_key(key).await;
+            return;
+        }
 
         // Host Mapping form is open: handle it
         if self.host_mapping_form.is_some() {
@@ -652,7 +665,9 @@ impl App {
         let is_editing = match self.settings_section {
             SettingsSection::UpstreamProxy => self.upstream_form.editing,
             SettingsSection::Throttle => self.throttle_form.editing,
-            SettingsSection::HostMapping | SettingsSection::QuickSettings => false,
+            SettingsSection::HostMapping
+            | SettingsSection::QuickSettings
+            | SettingsSection::SslProxying => false,
         };
 
         if is_editing {
@@ -722,8 +737,10 @@ impl App {
                         _ => {}
                     }
                 }
-                SettingsSection::HostMapping | SettingsSection::QuickSettings => {
-                    // HostMapping과 QuickSettings는 editing 모드가 없음
+                SettingsSection::HostMapping
+                | SettingsSection::QuickSettings
+                | SettingsSection::SslProxying => {
+                    // HostMapping, QuickSettings, SslProxying은 editing 모드가 없음
                 }
             }
             return;
@@ -759,6 +776,16 @@ impl App {
                 SettingsSection::QuickSettings => {
                     self.quick_settings_form.field = self.quick_settings_form.field.prev();
                 }
+                SettingsSection::SslProxying => {
+                    let len = self.ssl_proxying_entries.len();
+                    if len > 0 {
+                        if let Some(ref mut idx) = self.selected_ssl_proxying {
+                            *idx = idx.saturating_sub(1);
+                        } else {
+                            self.selected_ssl_proxying = Some(len.saturating_sub(1));
+                        }
+                    }
+                }
             },
             KeyCode::Down | KeyCode::Char('j') => match self.settings_section {
                 SettingsSection::UpstreamProxy => {
@@ -781,6 +808,18 @@ impl App {
                 }
                 SettingsSection::QuickSettings => {
                     self.quick_settings_form.field = self.quick_settings_form.field.next();
+                }
+                SettingsSection::SslProxying => {
+                    let len = self.ssl_proxying_entries.len();
+                    if len > 0 {
+                        if let Some(ref mut idx) = self.selected_ssl_proxying {
+                            if *idx + 1 < len {
+                                *idx += 1;
+                            }
+                        } else {
+                            self.selected_ssl_proxying = Some(0);
+                        }
+                    }
                 }
             },
             KeyCode::Enter | KeyCode::Char(' ') => match self.settings_section {
@@ -806,6 +845,7 @@ impl App {
                     }
                 },
                 SettingsSection::HostMapping => {}
+                SettingsSection::SslProxying => {}
                 SettingsSection::QuickSettings => match self.quick_settings_form.field {
                     QuickSettingsField::NoCaching => {
                         self.quick_settings_form.no_caching = !self.quick_settings_form.no_caching;
@@ -842,6 +882,34 @@ impl App {
                     if idx < self.host_mappings.len() {
                         self.host_mappings[idx].enabled = !self.host_mappings[idx].enabled;
                         self.send_host_mappings_update().await;
+                    }
+                }
+            }
+            // SSL Proxying: a=add, d=delete, t=toggle
+            KeyCode::Char('a') if self.settings_section == SettingsSection::SslProxying => {
+                self.ssl_proxying_add_form = Some(SslProxyingAddForm::new());
+            }
+            KeyCode::Char('d') | KeyCode::Delete
+                if self.settings_section == SettingsSection::SslProxying =>
+            {
+                if let Some(idx) = self.selected_ssl_proxying {
+                    if idx < self.ssl_proxying_entries.len() {
+                        self.ssl_proxying_entries.remove(idx);
+                        if self.ssl_proxying_entries.is_empty() {
+                            self.selected_ssl_proxying = None;
+                        } else if idx >= self.ssl_proxying_entries.len() {
+                            self.selected_ssl_proxying = Some(self.ssl_proxying_entries.len() - 1);
+                        }
+                        self.send_ssl_proxying_update().await;
+                    }
+                }
+            }
+            KeyCode::Char('t') if self.settings_section == SettingsSection::SslProxying => {
+                if let Some(idx) = self.selected_ssl_proxying {
+                    if idx < self.ssl_proxying_entries.len() {
+                        self.ssl_proxying_entries[idx].enabled =
+                            !self.ssl_proxying_entries[idx].enabled;
+                        self.send_ssl_proxying_update().await;
                     }
                 }
             }
@@ -967,6 +1035,35 @@ impl App {
                     HostMappingField::TargetPort => &mut form.target_port,
                 };
                 field.pop();
+            }
+            _ => {}
+        }
+    }
+
+    async fn handle_ssl_proxying_add_form_key(&mut self, key: KeyEvent) {
+        let Some(form) = self.ssl_proxying_add_form.as_mut() else {
+            return;
+        };
+
+        match key.code {
+            KeyCode::Esc => {
+                self.ssl_proxying_add_form = None;
+            }
+            KeyCode::Enter => {
+                if let Some(entry) = form.to_entry() {
+                    self.ssl_proxying_entries.push(entry);
+                    self.send_ssl_proxying_update().await;
+                    self.set_status("SSL Proxying entry added");
+                    self.ssl_proxying_add_form = None;
+                } else {
+                    self.set_status("Pattern is required");
+                }
+            }
+            KeyCode::Char(c) => {
+                form.pattern.push(c);
+            }
+            KeyCode::Backspace => {
+                form.pattern.pop();
             }
             _ => {}
         }
