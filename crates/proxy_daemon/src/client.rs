@@ -30,7 +30,7 @@ impl Drop for DaemonConnection {
 impl DaemonConnection {
     /// 현재 데몬에 연결되어 있는지 확인합니다.
     pub fn is_connected(&self) -> bool {
-        self.is_connected.load(Ordering::Relaxed)
+        self.is_connected.load(Ordering::SeqCst)
     }
 
     /// Disconnect from the daemon (does NOT send stop command).
@@ -303,7 +303,7 @@ async fn run_event_loop<F>(
         };
 
         // 연결 끊김 감지
-        is_connected.store(false, Ordering::Relaxed);
+        is_connected.store(false, Ordering::SeqCst);
         {
             let mut w = writer.lock().await;
             *w = None;
@@ -313,11 +313,22 @@ async fn run_event_loop<F>(
         });
         eprintln!("Daemon 연결 끊김: {}", disconnect_reason);
 
-        // 지수 백오프로 재연결 시도
+        // 지수 백오프로 재연결 시도 (최대 60회, 약 5분)
         let mut backoff_ms: u64 = 100;
         const MAX_BACKOFF_MS: u64 = 5000;
+        const MAX_RETRIES: u32 = 60;
+        let mut retries: u32 = 0;
 
-        loop {
+        let reconnected = loop {
+            if retries >= MAX_RETRIES {
+                eprintln!(
+                    "Daemon 재연결 최대 시도 횟수({}) 초과, 이벤트 루프 종료",
+                    MAX_RETRIES
+                );
+                break false;
+            }
+            retries += 1;
+
             tokio::time::sleep(std::time::Duration::from_millis(backoff_ms)).await;
 
             match establish_connection().await {
@@ -328,20 +339,27 @@ async fn run_event_loop<F>(
                         let mut w = writer.lock().await;
                         *w = Some(new_writer);
                     }
-                    is_connected.store(true, Ordering::Relaxed);
+                    is_connected.store(true, Ordering::SeqCst);
                     on_message(DaemonMessage::Reconnected);
                     eprintln!("Daemon 재연결 성공");
-                    break;
+                    break true;
                 }
                 Err(e) => {
                     eprintln!(
-                        "Daemon 재연결 실패 ({}ms 후 재시도): {}",
+                        "Daemon 재연결 실패 ({}/{}회, {}ms 후 재시도): {}",
+                        retries,
+                        MAX_RETRIES,
                         backoff_ms.min(MAX_BACKOFF_MS),
                         e
                     );
                     backoff_ms = (backoff_ms * 2).min(MAX_BACKOFF_MS);
                 }
             }
+        };
+
+        if !reconnected {
+            // 재연결 실패 시 이벤트 루프 종료
+            return;
         }
     }
 }
