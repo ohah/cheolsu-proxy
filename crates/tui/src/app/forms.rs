@@ -1,7 +1,7 @@
 use proxy_daemon::ThrottlePreset;
 use proxy_daemon::{
-    HostMapping, InterceptAction, InterceptRule, ThrottleConfig, UpstreamProxyAuth,
-    UpstreamProxyConfig,
+    HostMapping, InterceptAction, InterceptRule, SslProxyingEntry, ThrottleConfig,
+    UpstreamProxyAuth, UpstreamProxyConfig,
 };
 
 /// 스크립트 로그 엔트리 (TUI 표시용)
@@ -108,14 +108,16 @@ pub enum SettingsSection {
     Throttle,
     HostMapping,
     QuickSettings,
+    SslProxying,
 }
 
 impl SettingsSection {
-    pub const ALL: [SettingsSection; 4] = [
+    pub const ALL: [SettingsSection; 5] = [
         Self::UpstreamProxy,
         Self::Throttle,
         Self::HostMapping,
         Self::QuickSettings,
+        Self::SslProxying,
     ];
 }
 
@@ -531,6 +533,30 @@ impl RuleForm {
     }
 }
 
+/// SSL Proxying 화이트리스트 추가 폼
+#[derive(Debug, Clone)]
+pub struct SslProxyingAddForm {
+    pub pattern: String,
+}
+
+impl SslProxyingAddForm {
+    pub fn new() -> Self {
+        Self {
+            pattern: String::new(),
+        }
+    }
+
+    pub fn to_entry(&self) -> Option<SslProxyingEntry> {
+        if self.pattern.is_empty() {
+            return None;
+        }
+        Some(SslProxyingEntry {
+            pattern: self.pattern.clone(),
+            enabled: true,
+        })
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -716,9 +742,11 @@ mod tests {
         section = section.next();
         assert_eq!(section, SettingsSection::QuickSettings);
         section = section.next();
+        assert_eq!(section, SettingsSection::SslProxying);
+        section = section.next();
         assert_eq!(section, SettingsSection::UpstreamProxy);
         section = section.prev();
-        assert_eq!(section, SettingsSection::QuickSettings);
+        assert_eq!(section, SettingsSection::SslProxying);
     }
 
     // -- ThrottlePresetChoice --
