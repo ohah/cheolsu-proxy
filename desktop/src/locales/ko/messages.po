@@ -259,7 +259,7 @@ msgid "Breakpoint rule added"
 msgstr "Breakpoint 규칙이 추가되었습니다"
 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:90
-#: src/shared/app-sidebar/model/consts.ts:57
+#: src/shared/app-sidebar/model/consts.ts:58
 msgid "Breakpoints"
 msgstr "Breakpoints"
 
@@ -313,6 +313,7 @@ msgstr "Cheolsu Proxy 로고"
 msgid "Claude Code (CLI)"
 msgstr "Claude Code (CLI)"
 
+#: src/pages/logs/ui/logs-page.tsx:164
 #: src/pages/script/ui/script-page.tsx:298
 msgid "Clear"
 msgstr "지우기"
@@ -589,6 +590,10 @@ msgstr "전송 실패"
 msgid "File"
 msgstr "파일"
 
+#: src/pages/logs/ui/logs-page.tsx:216
+msgid "Filter log lines..."
+msgstr "로그 라인 필터..."
+
 #: src/shared/app-sidebar/ui/sidebar-mcp.tsx:128
 msgid "For Cursor, Claude Desktop, and other MCP-compatible clients:"
 msgstr "Cursor, Claude Desktop 및 기타 MCP 호환 클라이언트용:"
@@ -668,7 +673,7 @@ msgid "Host"
 msgstr "호스트"
 
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:85
-#: src/shared/app-sidebar/model/consts.ts:64
+#: src/shared/app-sidebar/model/consts.ts:65
 msgid "Host Mapping"
 msgstr "호스트 매핑"
 
@@ -684,7 +689,7 @@ msgstr "호스트 매핑이 삭제되었습니다"
 msgid "Host Tree"
 msgstr "호스트 트리"
 
-#: src/shared/app-sidebar/model/consts.ts:24
+#: src/shared/app-sidebar/model/consts.ts:25
 msgid "HTTP requests and responses"
 msgstr "HTTP 요청 및 응답"
 
@@ -736,7 +741,7 @@ msgid "Installing..."
 msgstr "설치 중..."
 
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:78
-#: src/shared/app-sidebar/model/consts.ts:36
+#: src/shared/app-sidebar/model/consts.ts:37
 msgid "Intercept Rules"
 msgstr "인터셉트 규칙"
 
@@ -768,6 +773,10 @@ msgstr "지연 (ms)"
 msgid "Light"
 msgstr "라이트"
 
+#: src/pages/logs/ui/logs-page.tsx:223
+msgid "lines"
+msgstr ""
+
 #: src/pages/script/ui/script-page.tsx:266
 msgid "Load"
 msgstr "로드"
@@ -776,7 +785,7 @@ msgstr "로드"
 msgid "Load a script file from disk. The file will be watched for changes and auto-reloaded."
 msgstr "디스크에서 스크립트 파일을 로드합니다. 파일 변경 시 자동으로 리로드됩니다."
 
-#: src/shared/app-sidebar/model/consts.ts:73
+#: src/shared/app-sidebar/model/consts.ts:74
 msgid "Load and manage proxy scripts"
 msgstr "프록시 스크립트 로드 및 관리"
 
@@ -802,11 +811,20 @@ msgstr "로컬 파일 경로"
 msgid "localhost, 127.0.0.1, *.internal.com"
 msgstr "localhost, 127.0.0.1, *.internal.com"
 
+#: src/pages/logs/ui/logs-page.tsx:179
+msgid "Log Files"
+msgstr "로그 파일"
+
 #: src/features/query-filter-editor/ui/filter-help-tooltip.tsx:77
 msgid "Logical OR:"
 msgstr "논리 OR:"
 
-#: src/shared/app-sidebar/model/consts.ts:38
+#: src/pages/logs/ui/logs-page.tsx:146
+#: src/shared/app-sidebar/model/consts.ts:86
+msgid "Logs"
+msgstr "로그"
+
+#: src/shared/app-sidebar/model/consts.ts:39
 msgid "Manage request/response intercept rules"
 msgstr "요청/응답 인터셉트 규칙 관리"
 
@@ -818,7 +836,7 @@ msgstr "와일드카드 기반 요청/응답 인터셉트 규칙 관리"
 msgid "Map DNS hostnames to different target hosts for testing and development"
 msgstr "테스트 및 개발을 위해 DNS 호스트명을 다른 대상 호스트로 매핑"
 
-#: src/shared/app-sidebar/model/consts.ts:66
+#: src/shared/app-sidebar/model/consts.ts:67
 msgid "Map DNS hostnames to different targets"
 msgstr "DNS 호스트명을 다른 대상으로 매핑"
 
@@ -829,7 +847,7 @@ msgstr "DNS 호스트명을 다른 대상으로 매핑"
 msgid "Map Local"
 msgstr "로컬 매핑"
 
-#: src/shared/app-sidebar/model/consts.ts:45
+#: src/shared/app-sidebar/model/consts.ts:46
 msgid "Map Local / Map Remote rules"
 msgstr "로컬 매핑 / 원격 매핑 규칙"
 
@@ -849,7 +867,7 @@ msgid "Map Remote"
 msgstr "원격 매핑"
 
 #: src/pages/map-rules/ui/map-rules-page.tsx:65
-#: src/shared/app-sidebar/model/consts.ts:43
+#: src/shared/app-sidebar/model/consts.ts:44
 msgid "Map Rules"
 msgstr "맵 규칙"
 
@@ -929,7 +947,7 @@ msgstr "복합 조건:"
 msgid "Name"
 msgstr "이름"
 
-#: src/shared/app-sidebar/model/consts.ts:22
+#: src/shared/app-sidebar/model/consts.ts:23
 msgid "Network"
 msgstr "네트워크"
 
@@ -968,6 +986,10 @@ msgstr "호스트 매핑 없음"
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:106
 msgid "No intercept rules"
 msgstr "인터셉트 규칙 없음"
+
+#: src/pages/logs/ui/logs-page.tsx:184
+msgid "No log files found"
+msgstr "로그 파일을 찾을 수 없습니다"
 
 #: src/pages/map-rules/ui/map-rules-page.tsx:95
 msgid "No map rules"
@@ -1029,6 +1051,10 @@ msgstr "Safari에서 <0>{CERT_DOWNLOAD_URL}</0>을 여세요"
 msgid "Open <0>{CERT_DOWNLOAD_URL}</0> in your device browser"
 msgstr "기기 브라우저에서 <0>{CERT_DOWNLOAD_URL}</0>을 여세요"
 
+#: src/pages/logs/ui/logs-page.tsx:168
+msgid "Open Directory"
+msgstr "디렉토리 열기"
+
 #: src/pages/script/ui/script-page.tsx:211
 msgid "Open File"
 msgstr "파일 열기"
@@ -1065,7 +1091,7 @@ msgstr "패턴은 필수입니다"
 msgid "Pause and inspect HTTP requests/responses in real-time"
 msgstr "실시간으로 HTTP 요청/응답을 일시 정지하고 검사"
 
-#: src/shared/app-sidebar/model/consts.ts:59
+#: src/shared/app-sidebar/model/consts.ts:60
 msgid "Pause and inspect requests/responses"
 msgstr "요청/응답 일시 정지 및 검사"
 
@@ -1133,7 +1159,7 @@ msgstr "프록시 인증"
 msgid "Proxy configuration and preferences"
 msgstr "프록시 설정 및 환경설정"
 
-#: src/shared/app-sidebar/model/consts.ts:80
+#: src/shared/app-sidebar/model/consts.ts:81
 msgid "Proxy settings and configuration"
 msgstr "프록시 설정 및 구성"
 
@@ -1169,6 +1195,7 @@ msgstr "수신"
 msgid "Received (Server → Client)"
 msgstr "수신 (서버 → 클라이언트)"
 
+#: src/pages/logs/ui/logs-page.tsx:155
 #: src/pages/settings/ui/components/certificate-settings.tsx:393
 msgid "Refresh"
 msgstr "새로고침"
@@ -1334,7 +1361,7 @@ msgstr "기록 재개"
 msgid "Retry"
 msgstr "재시도"
 
-#: src/shared/app-sidebar/model/consts.ts:52
+#: src/shared/app-sidebar/model/consts.ts:53
 msgid "Return cached responses for matching requests"
 msgstr "매칭되는 요청에 캐시된 응답 반환"
 
@@ -1423,7 +1450,7 @@ msgid "Scan for proxy info"
 msgstr "프록시 정보 스캔"
 
 #: src/pages/script/ui/script-page.tsx:162
-#: src/shared/app-sidebar/model/consts.ts:71
+#: src/shared/app-sidebar/model/consts.ts:72
 msgid "Script"
 msgstr "스크립트"
 
@@ -1446,6 +1473,10 @@ msgstr "스크립트가 리로드되었습니다"
 #: src/pages/script/ui/script-page.tsx:110
 msgid "Script unloaded"
 msgstr "스크립트가 언로드되었습니다"
+
+#: src/pages/logs/ui/logs-page.tsx:239
+msgid "Select a log file to view its contents"
+msgstr "로그 파일을 선택하여 내용을 확인하세요"
 
 #: src/pages/settings/ui/settings-page.tsx:130
 msgid "Select certificate file (.pem, .crt)"
@@ -1519,7 +1550,7 @@ msgid "Sequence replay failed"
 msgstr "시퀀스 리플레이 실패"
 
 #: src/pages/server-replay/ui/server-replay-page.tsx:84
-#: src/shared/app-sidebar/model/consts.ts:50
+#: src/shared/app-sidebar/model/consts.ts:51
 msgid "Server Replay"
 msgstr "서버 리플레이"
 
@@ -1552,7 +1583,7 @@ msgid "Set Wi-Fi proxy on your device to <0>{0}:{1}</0>"
 msgstr "기기의 Wi-Fi 프록시를 <0>{0}:{1}</0>로 설정"
 
 #: src/pages/settings/ui/settings-page.tsx:30
-#: src/shared/app-sidebar/model/consts.ts:78
+#: src/shared/app-sidebar/model/consts.ts:79
 msgid "Settings"
 msgstr "설정"
 
@@ -1797,16 +1828,24 @@ msgstr "값"
 msgid "Version"
 msgstr "버전"
 
+#: src/pages/logs/ui/logs-page.tsx:149
+msgid "View and manage application log files"
+msgstr "애플리케이션 로그 파일 조회 및 관리"
+
+#: src/shared/app-sidebar/model/consts.ts:88
+msgid "View application log files"
+msgstr "애플리케이션 로그 파일 조회"
+
 #: src/widgets/websocket-messages/ui/ws-message-table.tsx:152
 msgid "Waiting for WebSocket messages..."
 msgstr "WebSocket 메시지 대기 중..."
 
 #: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:85
-#: src/shared/app-sidebar/model/consts.ts:29
+#: src/shared/app-sidebar/model/consts.ts:30
 msgid "WebSocket"
 msgstr "WebSocket"
 
-#: src/shared/app-sidebar/model/consts.ts:31
+#: src/shared/app-sidebar/model/consts.ts:32
 msgid "WebSocket connections and messages"
 msgstr "WebSocket 연결 및 메시지"
 
