@@ -173,19 +173,25 @@ pub async fn proxy_v2_status(proxy: tauri::State<'_, ProxyV2State>) -> Result<bo
 /// 파일에서 body 데이터 읽기
 #[tauri::command]
 pub async fn read_body_file(file_path: String) -> Result<Vec<u8>, String> {
-    std::fs::read(&file_path).map_err(|e| format!("파일 읽기 실패: {} - {}", file_path, e))
+    tokio::task::spawn_blocking(move || {
+        std::fs::read(&file_path).map_err(|e| format!("파일 읽기 실패: {} - {}", file_path, e))
+    })
+    .await
+    .map_err(|e| format!("파일 읽기 태스크 실패: {}", e))?
 }
 
 /// 오래된 캐시 정리 명령어
 #[tauri::command]
 pub async fn clean_old_proxy_cache(days: u64) -> Result<String, String> {
-    match clean_old_cache(days) {
+    tokio::task::spawn_blocking(move || match clean_old_cache(days) {
         Ok(_) => Ok(format!(
             "{}일 이상 된 캐시가 성공적으로 정리되었습니다",
             days
         )),
         Err(e) => Err(format!("오래된 캐시 정리 실패: {}", e)),
-    }
+    })
+    .await
+    .map_err(|e| format!("캐시 정리 태스크 실패: {}", e))?
 }
 
 /// 인터셉트 규칙 업데이트
@@ -1446,7 +1452,11 @@ fn compute_body_diff_from_strings(
 /// HAR 파일 내보내기 (지정된 경로에 JSON 문자열 저장)
 #[tauri::command]
 pub async fn export_har_file(path: String, content: String) -> Result<(), String> {
-    std::fs::write(&path, content).map_err(|e| format!("HAR 파일 저장 실패: {} - {}", path, e))
+    tokio::task::spawn_blocking(move || {
+        std::fs::write(&path, content).map_err(|e| format!("HAR 파일 저장 실패: {} - {}", path, e))
+    })
+    .await
+    .map_err(|e| format!("HAR 저장 태스크 실패: {}", e))?
 }
 
 /// 세션 저장: 프론트엔드에서 전달받은 트랜잭션 데이터를 .cheolsu 파일로 직접 저장
@@ -1484,30 +1494,38 @@ pub struct LoadSessionResult {
 /// 세션 불러오기: .cheolsu 파일에서 트래픽 로드하여 트랜잭션 데이터 반환
 #[tauri::command]
 pub async fn load_session(path: String) -> Result<LoadSessionResult, String> {
-    use proxy_daemon::SessionFile;
+    tokio::task::spawn_blocking(move || {
+        use proxy_daemon::SessionFile;
 
-    let session = SessionFile::load(std::path::Path::new(&path))
-        .map_err(|e| format!("세션 로드 실패: {}", e))?;
+        let session = SessionFile::load(std::path::Path::new(&path))
+            .map_err(|e| format!("세션 로드 실패: {}", e))?;
 
-    let transactions = session.extract_transactions();
-    let transactions_json =
-        serde_json::to_string(&transactions).map_err(|e| format!("트랜잭션 직렬화 실패: {}", e))?;
+        let transactions = session.extract_transactions();
+        let transactions_json = serde_json::to_string(&transactions)
+            .map_err(|e| format!("트랜잭션 직렬화 실패: {}", e))?;
 
-    Ok(LoadSessionResult {
-        name: session.metadata.name,
-        description: session.metadata.description,
-        transaction_count: session.transactions.len(),
-        transactions_json,
+        Ok(LoadSessionResult {
+            name: session.metadata.name,
+            description: session.metadata.description,
+            transaction_count: session.transactions.len(),
+            transactions_json,
+        })
     })
+    .await
+    .map_err(|e| format!("세션 로드 태스크 실패: {}", e))?
 }
 
 /// HAR 파일 가져오기: HAR 파일에서 트래픽을 읽어서 트랜잭션 데이터 반환
 #[tauri::command]
 pub async fn import_har_file_cmd(path: String) -> Result<String, String> {
-    let transactions = proxy_daemon::import_har_file(std::path::Path::new(&path))
-        .map_err(|e| format!("HAR 가져오기 실패: {}", e))?;
+    tokio::task::spawn_blocking(move || {
+        let transactions = proxy_daemon::import_har_file(std::path::Path::new(&path))
+            .map_err(|e| format!("HAR 가져오기 실패: {}", e))?;
 
-    serde_json::to_string(&transactions).map_err(|e| format!("트랜잭션 직렬화 실패: {}", e))
+        serde_json::to_string(&transactions).map_err(|e| format!("트랜잭션 직렬화 실패: {}", e))
+    })
+    .await
+    .map_err(|e| format!("HAR 가져오기 태스크 실패: {}", e))?
 }
 
 /// app_data_dir 기반 자동 저장 파일 경로 생성 (테스트 가능한 순수 함수)
@@ -1559,37 +1577,41 @@ pub async fn autosave_session(
 pub async fn autoload_session(
     app: AppHandle<impl Runtime>,
 ) -> Result<Option<LoadSessionResult>, String> {
-    use proxy_daemon::SessionFile;
-
     let file_path = get_autosave_path(&app)?;
 
-    if !file_path.exists() {
-        return Ok(None);
-    }
+    tokio::task::spawn_blocking(move || {
+        use proxy_daemon::SessionFile;
 
-    match SessionFile::load(&file_path) {
-        Ok(session) => {
-            let transactions = session.extract_transactions();
-            let transactions_json = serde_json::to_string(&transactions)
-                .map_err(|e| format!("트랜잭션 직렬화 실패: {}", e))?;
-
-            tracing::info!(
-                "자동 세션 복원 완료: {} 트랜잭션",
-                session.transactions.len()
-            );
-
-            Ok(Some(LoadSessionResult {
-                name: session.metadata.name,
-                description: session.metadata.description,
-                transaction_count: session.transactions.len(),
-                transactions_json,
-            }))
+        if !file_path.exists() {
+            return Ok(None);
         }
-        Err(e) => {
-            tracing::warn!("자동 세션 복원 실패 (무시): {}", e);
-            Ok(None)
+
+        match SessionFile::load(&file_path) {
+            Ok(session) => {
+                let transactions = session.extract_transactions();
+                let transactions_json = serde_json::to_string(&transactions)
+                    .map_err(|e| format!("트랜잭션 직렬화 실패: {}", e))?;
+
+                tracing::info!(
+                    "자동 세션 복원 완료: {} 트랜잭션",
+                    session.transactions.len()
+                );
+
+                Ok(Some(LoadSessionResult {
+                    name: session.metadata.name,
+                    description: session.metadata.description,
+                    transaction_count: session.transactions.len(),
+                    transactions_json,
+                }))
+            }
+            Err(e) => {
+                tracing::warn!("자동 세션 복원 실패 (무시): {}", e);
+                Ok(None)
+            }
         }
-    }
+    })
+    .await
+    .map_err(|e| format!("세션 복원 태스크 실패: {}", e))?
 }
 
 fn base64_engine() -> base64::engine::GeneralPurpose {
