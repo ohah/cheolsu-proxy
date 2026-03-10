@@ -10,3 +10,4 @@ export * from "./script-store";
 
 export * from "./breakpoint-store";
 export * from "./host-mapping-store";
+export * from "./app-settings-store";

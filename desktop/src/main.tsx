@@ -6,6 +6,7 @@ import App from "./app/App";
 import { i18n, defaultLocale, loadCatalog } from "@/shared/lib/i18n";
 import { registerContentViewLanguages } from "@/shared/lib/monaco-languages";
 import { setupMonacoLanguage } from "@/features/query-filter-editor/lib/monaco-setup";
+import { useAppSettingsStore } from "@/shared/stores/app-settings-store";
 import "./main.css";
 import "../styles.css";
 
@@ -19,7 +20,7 @@ const container = document.getElementById("root");
 if (container) {
   const root = createRoot(container);
 
-  const savedLocale = (localStorage.getItem("locale") as "en" | "ko") || defaultLocale;
+  const savedLocale = useAppSettingsStore.getState().locale || defaultLocale;
 
   loadCatalog(savedLocale).then(() => {
     root.render(

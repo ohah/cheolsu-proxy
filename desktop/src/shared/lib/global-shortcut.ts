@@ -1,26 +1,23 @@
 import { register, unregister, isRegistered } from "@tauri-apps/plugin-global-shortcut";
-
-const STORAGE_KEY = "proxy_toggle_shortcut";
-const DEFAULT_SHORTCUT = "CommandOrControl+Shift+P";
+import { useAppSettingsStore } from "@/shared/stores/app-settings-store";
 
 // 현재 등록된 단축키 추적 (모듈 레벨 — 싱글톤)
 let currentRegisteredShortcut: string | null = null;
 
 export function getStoredShortcut(): string {
-  return localStorage.getItem(STORAGE_KEY) || DEFAULT_SHORTCUT;
+  return useAppSettingsStore.getState().proxyToggleShortcut;
 }
 
 export function setStoredShortcut(shortcut: string) {
-  localStorage.setItem(STORAGE_KEY, shortcut);
+  useAppSettingsStore.getState().setProxyToggleShortcut(shortcut);
 }
 
 export function getShortcutEnabled(): boolean {
-  const val = localStorage.getItem(STORAGE_KEY + "_enabled");
-  return val === null ? true : val === "true";
+  return useAppSettingsStore.getState().proxyToggleShortcutEnabled;
 }
 
 export function setShortcutEnabled(enabled: boolean) {
-  localStorage.setItem(STORAGE_KEY + "_enabled", String(enabled));
+  useAppSettingsStore.getState().setProxyToggleShortcutEnabled(enabled);
 }
 
 export async function registerShortcut(shortcut: string, onPressed: () => void) {

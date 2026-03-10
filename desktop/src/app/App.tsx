@@ -15,6 +15,7 @@ import { emit, listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import type { ProxyEventTuple, HttpTransaction } from "@/entities/proxy";
 import { autosaveSession, autoloadSession } from "@/shared/api/proxy";
+import { useAppSettingsStore } from "@/shared/stores/app-settings-store";
 import type { WsMessageInfo, WsConnectionEvent } from "@/entities/websocket";
 import type { InterceptRule } from "@/entities/intercept-rule";
 import type { BreakpointRule, PendingBreakpoint } from "@/entities/breakpoint";
@@ -146,7 +147,7 @@ const App: React.FC = () => {
 
   // 앱 시작 시 자동 저장된 세션 복원
   useEffect(() => {
-    const autoSessionEnabled = localStorage.getItem("autosave_session") !== "false";
+    const autoSessionEnabled = useAppSettingsStore.getState().autosaveSession;
     if (!autoSessionEnabled) return;
 
     autoloadSession()
@@ -174,7 +175,7 @@ const App: React.FC = () => {
 
   // 자동 세션 저장 로직
   const performAutosave = useCallback(async () => {
-    const autoSessionEnabled = localStorage.getItem("autosave_session") !== "false";
+    const autoSessionEnabled = useAppSettingsStore.getState().autosaveSession;
     if (!autoSessionEnabled) return;
 
     try {
