@@ -172,6 +172,9 @@ struct DaemonContext {
     ws_registry: WebSocketRegistry,
     script_handle: scripting::ScriptHandle,
     quick_settings: Arc<tokio::sync::RwLock<QuickSettings>>,
+    // SAFETY: parking_lot::RwLock - async 컨텍스트에서 사용 중이나,
+    // .await를 넘어서 lock을 유지하지 않으므로 안전함.
+    // 리팩토링 시 tokio::sync::RwLock으로 교체 검토 필요.
     proxy_auth: Arc<parking_lot::RwLock<Option<crate::protocol::ProxyAuthConfig>>>,
 }
 
@@ -192,6 +195,9 @@ fn spawn_proxy_task(
     ws_registry: WebSocketRegistry,
     script_handle: scripting::ScriptHandle,
     quick_settings: Arc<tokio::sync::RwLock<QuickSettings>>,
+    // SAFETY: parking_lot::RwLock - async 컨텍스트에서 사용 중이나,
+    // .await를 넘어서 lock을 유지하지 않으므로 안전함.
+    // 리팩토링 시 tokio::sync::RwLock으로 교체 검토 필요.
     proxy_auth: Arc<parking_lot::RwLock<Option<crate::protocol::ProxyAuthConfig>>>,
 ) -> (
     tokio::task::JoinHandle<()>,
@@ -378,6 +384,9 @@ async fn daemon_main(port: u16, host: String) -> i32 {
     let ws_registry = WebSocketRegistry::new();
     let script_handle = scripting::ScriptHandle::new();
     let quick_settings = Arc::new(tokio::sync::RwLock::new(QuickSettings::default()));
+    // SAFETY: parking_lot::RwLock - async 컨텍스트에서 사용 중이나,
+    // .await를 넘어서 lock을 유지하지 않으므로 안전함.
+    // 리팩토링 시 tokio::sync::RwLock으로 교체 검토 필요.
     let proxy_auth = Arc::new(parking_lot::RwLock::new(
         None::<crate::protocol::ProxyAuthConfig>,
     ));

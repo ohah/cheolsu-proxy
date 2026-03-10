@@ -49,7 +49,7 @@ pub async fn run_proxy(
 
     let (tx, mut rx) = tokio::sync::mpsc::channel::<proxy_v2_models::RequestInfo>(256);
     let (tunnel_tx, mut tunnel_rx) =
-        tokio::sync::mpsc::channel::<proxy_v2_models::RequestInfo>(100);
+        tokio::sync::mpsc::channel::<proxy_v2_models::RequestInfo>(256);
 
     let (ws_tx, mut ws_rx) = tokio::sync::mpsc::channel::<WsEvent>(256);
 
@@ -147,14 +147,22 @@ pub async fn run_proxy(
         create_hybrid_client_with_cert(upstream_rx, initial_client_cert.as_ref())
             .map_err(|e| DaemonError::Proxy(format!("Client creation failed: {}", e)))?;
 
-    // 클라이언트 인증서 변경 감시 - 현재는 런타임 변경 시 경고만 출력
+    // 클라이언트 인증서 변경 감시 - 변경 시 클라이언트에 알림 전송
     // rustls ClientConfig는 빌드 시 고정되므로 인증서 변경 시 프록시 재시작 필요
+    let event_tx_cert = event_tx.clone();
     tokio::spawn(async move {
         let mut cert_rx = client_cert_rx;
         while cert_rx.changed().await.is_ok() {
             tracing::warn!(
                 "클라이언트 인증서 설정이 변경되었습니다. 변경 사항을 적용하려면 프록시를 재시작해야 합니다."
             );
+            let msg = serde_json::to_string(&DaemonMessage::ScriptLog {
+                level: "warn".to_string(),
+                message: "클라이언트 인증서 설정이 변경되었습니다. 프록시를 재시작해야 적용됩니다."
+                    .to_string(),
+            })
+            .unwrap_or_default();
+            let _ = event_tx_cert.send(msg);
         }
     });
 

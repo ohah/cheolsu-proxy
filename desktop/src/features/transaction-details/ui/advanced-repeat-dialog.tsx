@@ -81,19 +81,6 @@ export function AdvancedRepeatDialog({
   const [result, setResult] = useState<AdvancedRepeatResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // 진행 이벤트 리스너
-  useEffect(() => {
-    if (!open || !loading) return;
-
-    const unlisten = listen<AdvancedRepeatProgress>("advanced_repeat_progress", (event) => {
-      setProgress(event.payload);
-    });
-
-    return () => {
-      unlisten.then((fn) => fn());
-    };
-  }, [open, loading]);
-
   // 다이얼로그 열릴 때 초기화
   useEffect(() => {
     if (open) {
@@ -122,12 +109,21 @@ export function AdvancedRepeatDialog({
       delay_ms: delayMs,
     };
 
+    // 리스너를 먼저 등록한 후 명령을 실행하여 초기 progress 이벤트 누락 방지
+    const unlisten = await listen<AdvancedRepeatProgress>(
+      "advanced_repeat_progress",
+      (event) => {
+        setProgress(event.payload);
+      },
+    );
+
     try {
       const res = await advancedRepeat(params);
       setResult(res);
     } catch (e: any) {
       setError(typeof e === "string" ? e : e.message || t`Advanced repeat failed`);
     } finally {
+      unlisten();
       setLoading(false);
     }
   }, [transaction, iterations, concurrency, delayMs, t]);

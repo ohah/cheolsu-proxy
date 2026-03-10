@@ -181,8 +181,24 @@ const App: React.FC = () => {
       const currentTransactions = useTransactionStore.getState().transactions;
       if (currentTransactions.length === 0) return;
 
+      if (currentTransactions.length >= 5000) {
+        console.warn(
+          `[autosave] 트랜잭션 수가 ${currentTransactions.length}개로 많습니다. JSON 직렬화 시 UI 블로킹이 발생할 수 있습니다.`,
+        );
+      }
+
       const tuples = currentTransactions.map((tx) => [tx.request, tx.response]);
+
+      const t0 = performance.now();
       const transactionsJson = JSON.stringify(tuples);
+      const t1 = performance.now();
+
+      if (t1 - t0 > 100) {
+        console.warn(
+          `[autosave] JSON.stringify에 ${(t1 - t0).toFixed(1)}ms 소요 (트랜잭션 ${currentTransactions.length}개)`,
+        );
+      }
+
       await autosaveSession(transactionsJson);
       console.info(`자동 세션 저장 완료: ${currentTransactions.length}개 트랜잭션`);
     } catch (e) {
