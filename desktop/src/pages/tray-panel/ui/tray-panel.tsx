@@ -1,14 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import {
-  Circle,
-  Power,
-  ShieldCheck,
-  ShieldX,
-  FolderOpen,
-  ExternalLink,
-  X,
-} from "lucide-react";
+import { Circle, Power, ShieldCheck, ShieldX, FolderOpen, ExternalLink, X } from "lucide-react";
 
 interface TrayInfo {
   is_connected: boolean;
