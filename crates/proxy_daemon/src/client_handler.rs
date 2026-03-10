@@ -28,7 +28,7 @@ pub async fn handle_client(
     port: u16,
     ws_registry: WebSocketRegistry,
     script_handle: scripting::ScriptHandle,
-    quick_settings: std::sync::Arc<parking_lot::RwLock<crate::handler::QuickSettings>>,
+    quick_settings: std::sync::Arc<tokio::sync::RwLock<crate::handler::QuickSettings>>,
 ) {
     let (reader, writer) = stream.into_split();
     let mut reader = BufReader::new(reader);
@@ -253,7 +253,7 @@ pub async fn handle_client(
                             no_caching, block_cookies
                         );
                         {
-                            let mut settings = quick_settings.write();
+                            let mut settings = quick_settings.write().await;
                             settings.no_caching = no_caching;
                             settings.block_cookies = block_cookies;
                         }

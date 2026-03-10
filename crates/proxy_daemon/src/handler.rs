@@ -56,7 +56,7 @@ pub(crate) struct ProxyConfig {
     /// CA 인증서 DER 바이트 (외부 기기 인증서 다운로드용, zero-copy)
     pub(crate) ca_cert_der: Option<Bytes>,
     /// 빠른 설정 (No Caching, Block Cookies)
-    pub(crate) quick_settings: Arc<parking_lot::RwLock<QuickSettings>>,
+    pub(crate) quick_settings: Arc<tokio::sync::RwLock<QuickSettings>>,
 }
 
 /// 인터셉트 규칙 및 스크립트 엔진
@@ -103,7 +103,7 @@ impl LoggingHandler {
             config: ProxyConfig {
                 cache_dir: Some(cache_dir),
                 ca_cert_der: None,
-                quick_settings: Arc::new(parking_lot::RwLock::new(QuickSettings::default())),
+                quick_settings: Arc::new(tokio::sync::RwLock::new(QuickSettings::default())),
             },
             intercept: InterceptEngine {
                 intercept_rules: Arc::new(Mutex::new(Vec::new())),
@@ -144,7 +144,7 @@ impl LoggingHandler {
 
     pub fn with_quick_settings(
         mut self,
-        quick_settings: Arc<parking_lot::RwLock<QuickSettings>>,
+        quick_settings: Arc<tokio::sync::RwLock<QuickSettings>>,
     ) -> Self {
         self.config.quick_settings = quick_settings;
         self
@@ -195,12 +195,12 @@ impl LoggingHandler {
     }
 
     /// No Caching / Block Cookies 설정을 요청에 적용
-    fn apply_quick_settings_on_request(&self, mut req: Request<Body>) -> Request<Body> {
+    async fn apply_quick_settings_on_request(&self, mut req: Request<Body>) -> Request<Body> {
         use proxyapi_v2::hyper::header::{
             CACHE_CONTROL, COOKIE, IF_MODIFIED_SINCE, IF_NONE_MATCH, PRAGMA,
         };
 
-        let settings = { *self.config.quick_settings.read() };
+        let settings = { *self.config.quick_settings.read().await };
 
         if settings.no_caching {
             req.headers_mut().remove(IF_MODIFIED_SINCE);
@@ -221,10 +221,10 @@ impl LoggingHandler {
     }
 
     /// Block Cookies 설정을 응답에 적용 (Set-Cookie 제거)
-    fn apply_quick_settings_on_response(&self, mut res: Response<Body>) -> Response<Body> {
+    async fn apply_quick_settings_on_response(&self, mut res: Response<Body>) -> Response<Body> {
         use proxyapi_v2::hyper::header::SET_COOKIE;
 
-        let settings = { *self.config.quick_settings.read() };
+        let settings = { *self.config.quick_settings.read().await };
 
         if settings.block_cookies {
             res.headers_mut().remove(SET_COOKIE);
@@ -1058,7 +1058,7 @@ impl HttpHandler for LoggingHandler {
 
         let restored_req = self.apply_host_mapping_if_needed(restored_req).await;
 
-        let restored_req = self.apply_quick_settings_on_request(restored_req);
+        let restored_req = self.apply_quick_settings_on_request(restored_req).await;
 
         let result = self
             .apply_request_intercept(restored_req, &url, &method)
@@ -1077,7 +1077,7 @@ impl HttpHandler for LoggingHandler {
         }
 
         let res = self.apply_response_intercept_if_needed(res).await;
-        let res = self.apply_quick_settings_on_response(res);
+        let res = self.apply_quick_settings_on_response(res).await;
         let res = self.apply_script_on_response(res).await;
 
         let res = if let Some(req) = &self.request.req {
@@ -1558,7 +1558,7 @@ mod tests {
             config: ProxyConfig {
                 cache_dir: None,
                 ca_cert_der: None,
-                quick_settings: Arc::new(parking_lot::RwLock::new(QuickSettings::default())),
+                quick_settings: Arc::new(tokio::sync::RwLock::new(QuickSettings::default())),
             },
             intercept: InterceptEngine {
                 intercept_rules: Arc::new(Mutex::new(Vec::new())),
@@ -1612,7 +1612,7 @@ mod tests {
             config: ProxyConfig {
                 cache_dir: None,
                 ca_cert_der: None,
-                quick_settings: Arc::new(parking_lot::RwLock::new(QuickSettings::default())),
+                quick_settings: Arc::new(tokio::sync::RwLock::new(QuickSettings::default())),
             },
             intercept: InterceptEngine {
                 intercept_rules: Arc::new(Mutex::new(Vec::new())),
@@ -1649,13 +1649,13 @@ mod tests {
 
     /// quick_settings를 지정하여 테스트용 핸들러를 생성하는 헬퍼
     fn make_handler_with_quick_settings(settings: QuickSettings) -> LoggingHandler {
-        let qs = Arc::new(parking_lot::RwLock::new(settings));
+        let qs = Arc::new(tokio::sync::RwLock::new(settings));
         let handler = make_test_handler(None).with_quick_settings(qs);
         handler
     }
 
-    #[test]
-    fn no_caching_adds_cache_control_headers() {
+    #[tokio::test]
+    async fn no_caching_adds_cache_control_headers() {
         let handler = make_handler_with_quick_settings(QuickSettings {
             no_caching: true,
             block_cookies: false,
@@ -1666,7 +1666,7 @@ mod tests {
             .body(Body::from(""))
             .unwrap();
 
-        let req = handler.apply_quick_settings_on_request(req);
+        let req = handler.apply_quick_settings_on_request(req).await;
 
         assert_eq!(
             req.headers().get("cache-control").unwrap(),
@@ -1675,8 +1675,8 @@ mod tests {
         assert_eq!(req.headers().get("pragma").unwrap(), "no-cache");
     }
 
-    #[test]
-    fn no_caching_removes_conditional_headers() {
+    #[tokio::test]
+    async fn no_caching_removes_conditional_headers() {
         let handler = make_handler_with_quick_settings(QuickSettings {
             no_caching: true,
             block_cookies: false,
@@ -1689,14 +1689,14 @@ mod tests {
             .body(Body::from(""))
             .unwrap();
 
-        let req = handler.apply_quick_settings_on_request(req);
+        let req = handler.apply_quick_settings_on_request(req).await;
 
         assert!(req.headers().get("if-modified-since").is_none());
         assert!(req.headers().get("if-none-match").is_none());
     }
 
-    #[test]
-    fn block_cookies_removes_cookie_from_request() {
+    #[tokio::test]
+    async fn block_cookies_removes_cookie_from_request() {
         let handler = make_handler_with_quick_settings(QuickSettings {
             no_caching: false,
             block_cookies: true,
@@ -1708,13 +1708,13 @@ mod tests {
             .body(Body::from(""))
             .unwrap();
 
-        let req = handler.apply_quick_settings_on_request(req);
+        let req = handler.apply_quick_settings_on_request(req).await;
 
         assert!(req.headers().get("cookie").is_none());
     }
 
-    #[test]
-    fn block_cookies_removes_set_cookie_from_response() {
+    #[tokio::test]
+    async fn block_cookies_removes_set_cookie_from_response() {
         let handler = make_handler_with_quick_settings(QuickSettings {
             no_caching: false,
             block_cookies: true,
@@ -1727,15 +1727,15 @@ mod tests {
             .body(Body::from(""))
             .unwrap();
 
-        let res = handler.apply_quick_settings_on_response(res);
+        let res = handler.apply_quick_settings_on_response(res).await;
 
         assert!(res.headers().get("set-cookie").is_none());
         // 다른 헤더는 영향받지 않아야 함
         assert!(res.headers().get("content-type").is_some());
     }
 
-    #[test]
-    fn disabled_quick_settings_preserves_all_headers() {
+    #[tokio::test]
+    async fn disabled_quick_settings_preserves_all_headers() {
         let handler = make_handler_with_quick_settings(QuickSettings {
             no_caching: false,
             block_cookies: false,
@@ -1749,7 +1749,7 @@ mod tests {
             .body(Body::from(""))
             .unwrap();
 
-        let req = handler.apply_quick_settings_on_request(req);
+        let req = handler.apply_quick_settings_on_request(req).await;
 
         assert!(req.headers().get("if-modified-since").is_some());
         assert!(req.headers().get("if-none-match").is_some());
@@ -1762,13 +1762,13 @@ mod tests {
             .body(Body::from(""))
             .unwrap();
 
-        let res = handler.apply_quick_settings_on_response(res);
+        let res = handler.apply_quick_settings_on_response(res).await;
 
         assert!(res.headers().get("set-cookie").is_some());
     }
 
-    #[test]
-    fn both_settings_enabled_applies_all_modifications() {
+    #[tokio::test]
+    async fn both_settings_enabled_applies_all_modifications() {
         let handler = make_handler_with_quick_settings(QuickSettings {
             no_caching: true,
             block_cookies: true,
@@ -1782,7 +1782,7 @@ mod tests {
             .body(Body::from(""))
             .unwrap();
 
-        let req = handler.apply_quick_settings_on_request(req);
+        let req = handler.apply_quick_settings_on_request(req).await;
 
         // No Caching 적용 확인
         assert!(req.headers().get("if-modified-since").is_none());
@@ -1801,7 +1801,7 @@ mod tests {
             .body(Body::from(""))
             .unwrap();
 
-        let res = handler.apply_quick_settings_on_response(res);
+        let res = handler.apply_quick_settings_on_response(res).await;
 
         assert!(res.headers().get("set-cookie").is_none());
     }
