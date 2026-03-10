@@ -5,6 +5,7 @@ mod openssl_authority;
 mod rcgen_authority;
 mod storage;
 
+use crate::upstream_cert::UpstreamCertInfo;
 use http::uri::Authority;
 use std::sync::Arc;
 use tokio_rustls::rustls::ServerConfig;
@@ -30,9 +31,12 @@ pub(crate) const NOT_BEFORE_OFFSET: i64 = 60;
 /// certificate errors.
 pub trait CertificateAuthority: Send + Sync + 'static {
     /// Generate ServerConfig for use with rustls.
+    ///
+    /// `upstream_cert`가 Some이면 상류 서버 인증서의 CN, SAN, Organization을 복제합니다.
     fn gen_server_config(
         &self,
         authority: &Authority,
+        upstream_cert: Option<&UpstreamCertInfo>,
     ) -> impl Future<Output = Arc<ServerConfig>> + Send;
 
     /// Get the CA certificate in DER format for adding to client trust store.
@@ -41,8 +45,11 @@ pub trait CertificateAuthority: Send + Sync + 'static {
 
     #[cfg(feature = "openssl-ca")]
     /// Generate OpenSSL SslContext for use with openssl.
+    ///
+    /// `upstream_cert`가 Some이면 상류 서버 인증서의 CN, SAN, Organization을 복제합니다.
     fn gen_openssl_context(
         &self,
         authority: &Authority,
+        upstream_cert: Option<&UpstreamCertInfo>,
     ) -> impl Future<Output = Result<SslContext, Box<dyn std::error::Error + Send + Sync>>> + Send;
 }

@@ -1,6 +1,7 @@
 use crate::certificate_authority::CertificateAuthority;
 use crate::rewind::Rewind;
 use crate::tls_version_detector::TlsVersion;
+use crate::upstream_cert::UpstreamCertInfo;
 use http::uri::Authority;
 use hyper::upgrade::Upgraded;
 use hyper_util::rt::TokioIo;
@@ -85,6 +86,7 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
         authority: &Authority,
         upgraded: Rewind<TokioIo<Upgraded>>,
         initial_buffer: &[u8],
+        upstream_cert: Option<&UpstreamCertInfo>,
     ) -> Result<HybridTlsStream, Box<dyn std::error::Error + Send + Sync>> {
         info!("🔍 [TLS-NEGOTIATION] 새로운 TLS 협상 시작: {}", authority);
 
@@ -102,8 +104,13 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
                 info!("🔧 [OPENSSL-ONLY] OpenSSL 전용 처리: {}", authority);
                 #[cfg(feature = "openssl-ca")]
                 {
-                    self.handle_with_openssl_upgraded(authority, upgraded, initial_buffer)
-                        .await
+                    self.handle_with_openssl_upgraded(
+                        authority,
+                        upgraded,
+                        initial_buffer,
+                        upstream_cert,
+                    )
+                    .await
                 }
                 #[cfg(not(feature = "openssl-ca"))]
                 {
@@ -117,7 +124,7 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
             TlsStrategy::RustlsOnly => {
                 info!("🔧 [RUSTLS-ONLY] Rustls 전용 처리: {}", authority);
                 match self
-                    .handle_with_rustls_upgraded(authority, upgraded, initial_buffer)
+                    .handle_with_rustls_upgraded(authority, upgraded, initial_buffer, upstream_cert)
                     .await
                 {
                     Ok(stream) => {
@@ -195,7 +202,7 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
             Rewind::new(client_read, hyper::body::Bytes::from(initial_data.to_vec()));
 
         // 서버 설정 생성
-        let server_config = self.ca.gen_server_config(authority).await;
+        let server_config = self.ca.gen_server_config(authority, None).await;
         let acceptor = TlsAcceptor::from(server_config);
 
         // TLS 핸드셰이크 수행
@@ -219,9 +226,10 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
         authority: &Authority,
         upgraded: Rewind<TokioIo<Upgraded>>,
         _initial_buffer: &[u8],
+        upstream_cert: Option<&UpstreamCertInfo>,
     ) -> Result<HybridTlsStream, Box<dyn std::error::Error + Send + Sync>> {
         info!("🔧 [RUSTLS] 서버 설정 생성 시작: {}", authority);
-        let server_config = self.ca.gen_server_config(authority).await;
+        let server_config = self.ca.gen_server_config(authority, upstream_cert).await;
         let acceptor = TlsAcceptor::from(server_config);
         info!("🔧 [RUSTLS] TlsAcceptor 생성 완료: {}", authority);
 
@@ -280,6 +288,7 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
         authority: &Authority,
         upgraded: Rewind<TokioIo<Upgraded>>,
         initial_buffer: &[u8],
+        upstream_cert: Option<&UpstreamCertInfo>,
     ) -> Result<HybridTlsStream, Box<dyn std::error::Error + Send + Sync>> {
         info!(
             "🔧 [OPENSSL-IMPROVED] 개선된 OpenSSL 처리 시작: {}",
@@ -291,7 +300,10 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
         info!("📊 [OPENSSL-IMPROVED] TLS 정보: {:?}", tls_info);
 
         // CA에서 OpenSSL 컨텍스트 생성
-        let ctx = self.ca.gen_openssl_context(authority).await?;
+        let ctx = self
+            .ca
+            .gen_openssl_context(authority, upstream_cert)
+            .await?;
 
         info!("🔧 [OPENSSL-IMPROVED] TLS 핸드셰이크 시작: {}", authority);
         let start_time = std::time::Instant::now();

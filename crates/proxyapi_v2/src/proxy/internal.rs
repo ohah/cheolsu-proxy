@@ -5,7 +5,7 @@ use crate::{
     HttpContext, HttpHandler, RequestOrResponse, WebSocketHandler, body::Body,
     certificate_authority::CertificateAuthority, hybrid_tls_handler::HybridTlsHandler,
     rewind::Rewind, throttle, tls_version_detector::TlsVersionDetector,
-    upstream_proxy::connect_to_target,
+    upstream_cert::sniff_upstream_cert, upstream_proxy::connect_to_target,
 };
 use http::uri::{Authority, Scheme};
 use hyper::{
@@ -362,6 +362,13 @@ where
                                                 "TLS 버전 감지 - 하이브리드 핸들러 사용"
                                             );
 
+                                            // 상류 인증서 스니핑 (캐시 미스 시에만 실제 연결)
+                                            let upstream_cert = sniff_upstream_cert(
+                                                &authority,
+                                                self.ctx.upstream_proxy.as_ref(),
+                                            )
+                                            .await;
+
                                             // HybridTlsHandler 생성
                                             let hybrid_handler =
                                                 match HybridTlsHandler::new(Arc::clone(&self.ca))
@@ -383,6 +390,7 @@ where
                                                     &authority,
                                                     upgraded,
                                                     &full_buffer,
+                                                    upstream_cert.as_ref(),
                                                 )
                                                 .await
                                             {
@@ -461,7 +469,7 @@ where
                                             // 기존 rustls 로직 사용
                                             let server_config = self
                                                 .ca
-                                                .gen_server_config(&authority)
+                                                .gen_server_config(&authority, None)
                                                 .instrument(info_span!("gen_server_config"))
                                                 .await;
 
@@ -735,7 +743,11 @@ mod tests {
     struct CA;
 
     impl CertificateAuthority for CA {
-        async fn gen_server_config(&self, _authority: &Authority) -> Arc<ServerConfig> {
+        async fn gen_server_config(
+            &self,
+            _authority: &Authority,
+            _upstream_cert: Option<&crate::upstream_cert::UpstreamCertInfo>,
+        ) -> Arc<ServerConfig> {
             unimplemented!();
         }
 
@@ -747,6 +759,7 @@ mod tests {
         async fn gen_openssl_context(
             &self,
             _authority: &Authority,
+            _upstream_cert: Option<&crate::upstream_cert::UpstreamCertInfo>,
         ) -> Result<openssl::ssl::SslContext, Box<dyn std::error::Error + Send + Sync>> {
             unimplemented!();
         }

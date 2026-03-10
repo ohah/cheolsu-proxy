@@ -86,7 +86,7 @@ pub async fn start_https_server(
     let listener = TcpListener::bind(SocketAddr::from(([127, 0, 0, 1], 0))).await?;
     let addr = listener.local_addr()?;
     let acceptor: tokio_rustls::TlsAcceptor = ca
-        .gen_server_config(&"localhost".parse().unwrap())
+        .gen_server_config(&"localhost".parse().unwrap(), None)
         .await
         .into();
     let (tx, rx) = tokio::sync::oneshot::channel();
