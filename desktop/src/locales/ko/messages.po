@@ -294,7 +294,7 @@ msgstr "직접 연결할 호스트 목록 (쉼표로 구분, *.domain.com 와일
 msgid "Command copied to clipboard"
 msgstr "명령어가 클립보드에 복사되었습니다"
 
-#: src/widgets/network-header/ui/network-controls.tsx:59
+#: src/widgets/network-header/ui/network-controls.tsx:55
 msgid "Compose request"
 msgstr "요청 작성"
 
@@ -430,7 +430,7 @@ msgstr "펼치기"
 msgid "Expand sidebar"
 msgstr "사이드바 펼치기"
 
-#: src/widgets/network-header/ui/network-controls.tsx:87
+#: src/widgets/network-header/ui/network-controls.tsx:82
 msgid "Export HAR"
 msgstr "HAR 내보내기"
 
@@ -502,19 +502,19 @@ msgstr ""
 msgid "Go to <0>Settings → Security → Encryption & credentials</0>"
 msgstr ""
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:106
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:110
 msgid "HAR export failed"
 msgstr ""
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:103
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:107
 msgid "HAR exported successfully"
 msgstr ""
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:195
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:199
 msgid "HAR import failed"
 msgstr ""
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:192
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:196
 msgid "HAR imported successfully"
 msgstr ""
 
@@ -565,7 +565,7 @@ msgstr "호스트 트리"
 msgid "HTTP requests and responses"
 msgstr "HTTP 요청 및 응답"
 
-#: src/widgets/network-header/ui/network-controls.tsx:92
+#: src/widgets/network-header/ui/network-controls.tsx:87
 msgid "Import HAR"
 msgstr ""
 
@@ -641,11 +641,11 @@ msgstr "디스크에서 스크립트 파일을 로드합니다. 파일 변경 �
 msgid "Load and manage proxy scripts"
 msgstr "프록시 스크립트 로드 및 관리"
 
-#: src/widgets/network-header/ui/network-controls.tsx:76
+#: src/widgets/network-header/ui/network-controls.tsx:71
 msgid "Load Session"
 msgstr ""
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:141
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:145
 msgid "Load transactions"
 msgstr ""
 
@@ -1003,7 +1003,7 @@ msgstr "헤더 삭제"
 
 #. placeholder {0}: transactions.length
 #. placeholder {1}: loaded.length
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:140
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:144
 msgid "Replace {0} existing transactions with {1} new ones? Cancel to append instead."
 msgstr ""
 
@@ -1111,7 +1111,7 @@ msgstr "실행"
 msgid "Save"
 msgstr "저장"
 
-#: src/widgets/network-header/ui/network-controls.tsx:71
+#: src/widgets/network-header/ui/network-controls.tsx:66
 msgid "Save Session"
 msgstr ""
 
@@ -1223,19 +1223,19 @@ msgstr "시퀀스 리플레이 실패"
 msgid "Server Replay"
 msgstr "서버 리플레이"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:172
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:176
 msgid "Session load failed"
 msgstr ""
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:169
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:173
 msgid "Session loaded successfully"
 msgstr ""
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:130
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:134
 msgid "Session save failed"
 msgstr ""
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:127
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:131
 msgid "Session saved successfully"
 msgstr ""
 
