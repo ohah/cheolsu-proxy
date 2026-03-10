@@ -65,6 +65,8 @@ pub async fn start_proxy_v2<R: Runtime>(
     let (event_tx, mut event_rx) = tokio::sync::mpsc::channel::<DaemonMessage>(2048);
 
     let app_emitter = app.clone();
+    // NOTE: 이 스레드는 별도 OS 스레드이므로 tracing subscriber가 설정되지 않을 수 있어
+    // eprintln!을 사용합니다.
     std::thread::Builder::new()
         .name("event-emitter".into())
         .spawn(move || {

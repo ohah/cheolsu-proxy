@@ -144,6 +144,26 @@ fn daemon_log_file() -> Option<std::fs::File> {
         .ok()
 }
 
+/// 지수 백오프로 조건을 대기합니다. 조건 충족 시 true, 타임아웃 시 false 반환.
+async fn wait_with_backoff<F>(condition: F, timeout_secs: u64) -> bool
+where
+    F: Fn() -> bool,
+{
+    let mut delay = std::time::Duration::from_millis(100);
+    let max_delay = std::time::Duration::from_secs(2);
+    let deadline = tokio::time::Instant::now() + std::time::Duration::from_secs(timeout_secs);
+    loop {
+        if condition() {
+            return true;
+        }
+        if tokio::time::Instant::now() >= deadline {
+            return false;
+        }
+        tokio::time::sleep(delay).await;
+        delay = (delay * 2).min(max_delay);
+    }
+}
+
 /// Ensure a daemon is running and connect to it.
 /// If no daemon is running, spawns one and waits for it to be ready.
 /// Returns a `DaemonConnection` with an active event-forwarding task.
@@ -162,22 +182,7 @@ where
 
         spawn_daemon(port, host)?;
 
-        let mut ready = false;
-        let mut delay = std::time::Duration::from_millis(100);
-        let max_delay = std::time::Duration::from_secs(2);
-        let deadline = tokio::time::Instant::now() + std::time::Duration::from_secs(15);
-        loop {
-            tokio::time::sleep(delay).await;
-            if is_daemon_running().is_some() {
-                ready = true;
-                break;
-            }
-            if tokio::time::Instant::now() >= deadline {
-                break;
-            }
-            delay = (delay * 2).min(max_delay);
-        }
-        if !ready {
+        if !wait_with_backoff(|| is_daemon_running().is_some(), 15).await {
             return Err(DaemonError::Daemon(
                 "Daemon did not start within 15 seconds".to_string(),
             ));
@@ -186,22 +191,7 @@ where
 
     // Wait for the UDS socket file to actually exist.
     let uds_path = uds_socket_path()?;
-    let mut socket_ready = false;
-    let mut delay = std::time::Duration::from_millis(100);
-    let max_delay = std::time::Duration::from_secs(2);
-    let deadline = tokio::time::Instant::now() + std::time::Duration::from_secs(15);
-    loop {
-        if uds_path.exists() {
-            socket_ready = true;
-            break;
-        }
-        if tokio::time::Instant::now() >= deadline {
-            break;
-        }
-        tokio::time::sleep(delay).await;
-        delay = (delay * 2).min(max_delay);
-    }
-    if !socket_ready {
+    if !wait_with_backoff(|| uds_path.exists(), 15).await {
         return Err(DaemonError::Daemon(
             "UDS socket was not created within 15 seconds".to_string(),
         ));
