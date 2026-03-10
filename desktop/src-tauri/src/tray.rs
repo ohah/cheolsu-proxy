@@ -4,22 +4,39 @@ use tauri::image::Image;
 use tauri::menu::{MenuBuilder, MenuItemBuilder};
 use tauri::tray::TrayIconBuilder;
 use tauri::{
-    AppHandle, Emitter, Manager, Position, Rect, Runtime, Size, State, WebviewUrl,
+    AppHandle, Emitter, Listener, Manager, Position, Rect, Runtime, Size, State, WebviewUrl,
     WebviewWindowBuilder,
 };
 
-/// 자동 세션 저장 이벤트를 전송하고, 잠시 대기 후 앱을 종료하는 공통 함수
+/// 앱을 실제로 종료하는 내부 함수
+fn do_exit<R: Runtime>(app: &AppHandle<R>) {
+    if let Some(panel) = app.get_webview_window("tray-panel") {
+        let _ = panel.close();
+    }
+    app.exit(0);
+}
+
+/// 자동 세션 저장 이벤트를 전송하고, 완료 이벤트 수신 시 즉시 종료하는 공통 함수
+/// 타임아웃(3초) 내에 완료 이벤트를 받지 못하면 강제 종료
 fn graceful_quit<R: Runtime>(app: AppHandle<R>) {
     // 메인 윈도우에 종료 이벤트 전송하여 자동 세션 저장 트리거
     let _ = app.emit_to("main", "app_quit_requested", ());
-    let app_clone = app.clone();
-    // 자동 저장 완료를 위해 잠시 대기 후 종료
+
+    let app_for_listen = app.clone();
+    let app_for_timeout = app.clone();
+
+    // autosave 완료 이벤트를 수신하면 즉시 종료
+    let handler_id = app.listen("autosave_completed", move |_| {
+        tracing::info!("autosave 완료 이벤트 수신, 앱 종료");
+        do_exit(&app_for_listen);
+    });
+
+    // 타임아웃(3초): 이벤트를 받지 못하면 강제 종료
     std::thread::spawn(move || {
-        std::thread::sleep(std::time::Duration::from_millis(500));
-        if let Some(panel) = app_clone.get_webview_window("tray-panel") {
-            let _ = panel.close();
-        }
-        app_clone.exit(0);
+        std::thread::sleep(std::time::Duration::from_secs(3));
+        tracing::warn!("autosave 완료 타임아웃(3초), 강제 종료");
+        app_for_timeout.unlisten(handler_id);
+        do_exit(&app_for_timeout);
     });
 }
 

@@ -1376,20 +1376,24 @@ pub async fn export_har_file(path: String, content: String) -> Result<(), String
 /// 세션 저장: 프론트엔드에서 전달받은 트랜잭션 데이터를 .cheolsu 파일로 직접 저장
 #[tauri::command]
 pub async fn save_session(path: String, transactions_json: String) -> Result<(), String> {
-    use proxy_daemon::RequestInfo;
-    use proxy_daemon::SessionFile;
+    tokio::task::spawn_blocking(move || {
+        use proxy_daemon::RequestInfo;
+        use proxy_daemon::SessionFile;
 
-    let file_path = proxy_daemon::ensure_extension(&path);
+        let file_path = proxy_daemon::ensure_extension(&path);
 
-    let transactions: Vec<RequestInfo> = serde_json::from_str(&transactions_json)
-        .map_err(|e| format!("트랜잭션 역직렬화 실패: {}", e))?;
+        let transactions: Vec<RequestInfo> = serde_json::from_str(&transactions_json)
+            .map_err(|e| format!("트랜잭션 역직렬화 실패: {}", e))?;
 
-    let session = SessionFile::from_traffic(0, &transactions, &[], &[], &[], None);
-    session
-        .save(std::path::Path::new(&file_path))
-        .map_err(|e| format!("세션 저장 실패: {}", e))?;
+        let session = SessionFile::from_traffic(0, &transactions, &[], &[], &[], None);
+        session
+            .save(std::path::Path::new(&file_path))
+            .map_err(|e| format!("세션 저장 실패: {}", e))?;
 
-    Ok(())
+        Ok(())
+    })
+    .await
+    .map_err(|e| format!("세션 저장 태스크 실패: {}", e))?
 }
 
 /// 세션 로드 결과 (트랜잭션 데이터 포함)
@@ -1453,21 +1457,25 @@ pub async fn autosave_session(
     app: AppHandle<impl Runtime>,
     transactions_json: String,
 ) -> Result<(), String> {
-    use proxy_daemon::RequestInfo;
-    use proxy_daemon::SessionFile;
-
     let file_path = get_autosave_path(&app)?;
 
-    let transactions: Vec<RequestInfo> = serde_json::from_str(&transactions_json)
-        .map_err(|e| format!("트랜잭션 역직렬화 실패: {}", e))?;
+    tokio::task::spawn_blocking(move || {
+        use proxy_daemon::RequestInfo;
+        use proxy_daemon::SessionFile;
 
-    let session = SessionFile::from_traffic(0, &transactions, &[], &[], &[], None);
-    session
-        .save(&file_path)
-        .map_err(|e| format!("자동 세션 저장 실패: {}", e))?;
+        let transactions: Vec<RequestInfo> = serde_json::from_str(&transactions_json)
+            .map_err(|e| format!("트랜잭션 역직렬화 실패: {}", e))?;
 
-    tracing::info!("자동 세션 저장 완료: {:?}", file_path);
-    Ok(())
+        let session = SessionFile::from_traffic(0, &transactions, &[], &[], &[], None);
+        session
+            .save(&file_path)
+            .map_err(|e| format!("자동 세션 저장 실패: {}", e))?;
+
+        tracing::info!("자동 세션 저장 완료: {:?}", file_path);
+        Ok(())
+    })
+    .await
+    .map_err(|e| format!("자동 세션 저장 태스크 실패: {}", e))?
 }
 
 /// 자동 세션 복원: app_data_dir/autosave.cheolsu.gz에서 세션 로드
