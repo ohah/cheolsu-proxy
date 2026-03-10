@@ -54,10 +54,13 @@ impl CheolsuMcpServer {
         let Some(conn) = conn_guard.as_ref() else {
             return Err("Not connected to proxy daemon".to_string());
         };
-        let rules = self.store.rules.lock().clone();
-        conn.send_command(&ClientCommand::UpdateInterceptRules { rules })
-            .await
-            .map_err(|e| e.to_string())
+        let cmd = {
+            let rules = self.store.rules.lock();
+            ClientCommand::UpdateInterceptRules {
+                rules: rules.clone(),
+            }
+        };
+        conn.send_command(&cmd).await.map_err(|e| e.to_string())
     }
 
     async fn send_host_mappings(&self) -> Result<(), String> {
@@ -65,10 +68,13 @@ impl CheolsuMcpServer {
         let Some(conn) = conn_guard.as_ref() else {
             return Err("Not connected to proxy daemon".to_string());
         };
-        let mappings = self.store.host_mappings.lock().clone();
-        conn.send_command(&ClientCommand::UpdateHostMappings { mappings })
-            .await
-            .map_err(|e| e.to_string())
+        let cmd = {
+            let mappings = self.store.host_mappings.lock();
+            ClientCommand::UpdateHostMappings {
+                mappings: mappings.clone(),
+            }
+        };
+        conn.send_command(&cmd).await.map_err(|e| e.to_string())
     }
 
     #[tool(
@@ -649,10 +655,13 @@ impl CheolsuMcpServer {
         let Some(conn) = conn_guard.as_ref() else {
             return Err("Not connected to proxy daemon".to_string());
         };
-        let rules = self.store.breakpoint_rules.lock().clone();
-        conn.send_command(&ClientCommand::UpdateBreakpointRules { rules })
-            .await
-            .map_err(|e| e.to_string())
+        let cmd = {
+            let rules = self.store.breakpoint_rules.lock();
+            ClientCommand::UpdateBreakpointRules {
+                rules: rules.clone(),
+            }
+        };
+        conn.send_command(&cmd).await.map_err(|e| e.to_string())
     }
 
     #[tool(
@@ -870,9 +879,14 @@ impl CheolsuMcpServer {
             }
         };
 
-        let ws_messages: Vec<proxy_v2_models::WsMessageInfo> =
-            self.store.ws_messages.lock().iter().cloned().collect();
-        let rules: Vec<InterceptRule> = self.store.rules.lock().clone();
+        let ws_messages: Vec<proxy_v2_models::WsMessageInfo> = {
+            let guard = self.store.ws_messages.lock();
+            guard.iter().cloned().collect()
+        };
+        let rules: Vec<InterceptRule> = {
+            let guard = self.store.rules.lock();
+            guard.clone()
+        };
 
         let mut session = SessionFile::from_traffic(
             0, // port unknown from MCP server
@@ -1202,11 +1216,11 @@ mod tests {
         let store = Store::new();
         *store.rules.lock() = vec![make_block_rule("uuid-1"), make_block_rule("uuid-2")];
         store.rules.lock().push(make_block_rule("mcp_0"));
-        let rules = store.rules.lock().clone();
-        assert_eq!(rules.len(), 3);
-        assert!(rules.iter().any(|r| r.id == "uuid-1"));
-        assert!(rules.iter().any(|r| r.id == "uuid-2"));
-        assert!(rules.iter().any(|r| r.id == "mcp_0"));
+        let guard = store.rules.lock();
+        assert_eq!(guard.len(), 3);
+        assert!(guard.iter().any(|r| r.id == "uuid-1"));
+        assert!(guard.iter().any(|r| r.id == "uuid-2"));
+        assert!(guard.iter().any(|r| r.id == "mcp_0"));
     }
 
     #[test]
@@ -1218,8 +1232,7 @@ mod tests {
             make_block_rule("uuid-2"),
             make_block_rule("mcp_0"),
         ];
-        let rules = store.rules.lock().clone();
-        assert_eq!(rules.len(), 3);
+        assert_eq!(store.rules.lock().len(), 3);
     }
 
     #[test]
@@ -1231,10 +1244,10 @@ mod tests {
             make_block_rule("mcp_1"),
         ];
         store.rules.lock().retain(|r| r.id != "mcp_1");
-        let rules = store.rules.lock().clone();
-        assert_eq!(rules.len(), 2);
-        assert!(rules.iter().any(|r| r.id == "uuid-1"));
-        assert!(rules.iter().any(|r| r.id == "mcp_0"));
+        let guard = store.rules.lock();
+        assert_eq!(guard.len(), 2);
+        assert!(guard.iter().any(|r| r.id == "uuid-1"));
+        assert!(guard.iter().any(|r| r.id == "mcp_0"));
     }
 
     #[test]
@@ -1243,8 +1256,7 @@ mod tests {
         assert_eq!(store.rules.lock().len(), 0);
         *store.rules.lock() = vec![make_block_rule("uuid-1"), make_block_rule("uuid-2")];
         store.rules.lock().push(make_block_rule("mcp_0"));
-        let rules = store.rules.lock().clone();
-        assert_eq!(rules.len(), 3);
+        assert_eq!(store.rules.lock().len(), 3);
     }
 
     // ─── Helper function tests ──────────────────────────────
