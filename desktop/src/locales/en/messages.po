@@ -877,7 +877,7 @@ msgstr "No phase selected"
 msgid "No replay entries"
 msgstr "No replay entries"
 
-#: src/widgets/network-table/ui/table-body.tsx:78
+#: src/widgets/network-table/ui/table-body.tsx:81
 msgid "No transactions to display"
 msgstr "No transactions to display"
 
