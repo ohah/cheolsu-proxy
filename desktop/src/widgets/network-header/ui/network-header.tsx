@@ -13,6 +13,7 @@ interface NetworkHeaderProps {
   onSaveSession: () => void;
   onLoadSession: () => void;
   onImportHar: () => void;
+  onCompose?: () => void;
   filterSlot: ReactNode;
 }
 
@@ -26,6 +27,7 @@ export function NetworkHeader({
   onSaveSession,
   onLoadSession,
   onImportHar,
+  onCompose,
   filterSlot,
 }: NetworkHeaderProps) {
   return (
@@ -42,6 +44,7 @@ export function NetworkHeader({
             onSaveSession={onSaveSession}
             onLoadSession={onLoadSession}
             onImportHar={onImportHar}
+            onCompose={onCompose}
           />
 
           <NetworkFilters>{filterSlot}</NetworkFilters>
