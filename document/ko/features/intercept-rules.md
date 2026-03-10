@@ -165,13 +165,13 @@ CORS 문제를 해결하거나, 에러 상황을 시뮬레이션할 때 유용�
 
 와일드카드 패턴을 사용하여 URL을 매칭합니다. `*`는 임의의 문자열(0개 이상)과 일치합니다.
 
-| 패턴 | 설명 | 매칭 예시 |
-| --- | --- | --- |
-| `*ads.example.com*` | 호스트명에 ads.example.com이 포함된 모든 URL | `https://ads.example.com/banner` |
-| `*api.example.com/v1/*` | 특정 API 경로 아래의 모든 요청 | `https://api.example.com/v1/users` |
-| `*.json` | JSON 파일 요청 | `https://cdn.example.com/config.json` |
-| `*example.com*/graphql` | 특정 엔드포인트 | `https://api.example.com/graphql` |
-| `*localhost:8080*` | 로컬 개발 서버 | `http://localhost:8080/api/data` |
+| 패턴                    | 설명                                         | 매칭 예시                             |
+| ----------------------- | -------------------------------------------- | ------------------------------------- |
+| `*ads.example.com*`     | 호스트명에 ads.example.com이 포함된 모든 URL | `https://ads.example.com/banner`      |
+| `*api.example.com/v1/*` | 특정 API 경로 아래의 모든 요청               | `https://api.example.com/v1/users`    |
+| `*.json`                | JSON 파일 요청                               | `https://cdn.example.com/config.json` |
+| `*example.com*/graphql` | 특정 엔드포인트                              | `https://api.example.com/graphql`     |
+| `*localhost:8080*`      | 로컬 개발 서버                               | `http://localhost:8080/api/data`      |
 
 ### HTTP 메서드 필터
 

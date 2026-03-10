@@ -18,14 +18,14 @@ Standard text-based WebSocket messages are displayed as-is. JSON payloads are de
 
 Cheolsu Proxy recognizes the Engine.IO transport layer and Socket.IO protocol framing. It decodes the packet type prefixes so you can distinguish between different message types:
 
-| Packet Type | Engine.IO Code | Meaning |
-| --- | --- | --- |
-| open | 0 | Server sends connection parameters (sid, ping interval) |
-| close | 1 | Connection is being closed |
-| ping | 2 | Keep-alive ping from server |
-| pong | 3 | Keep-alive pong response |
-| message | 4 | Application data (Socket.IO events are nested here) |
-| upgrade | 5 | Transport upgrade |
+| Packet Type | Engine.IO Code | Meaning                                                 |
+| ----------- | -------------- | ------------------------------------------------------- |
+| open        | 0              | Server sends connection parameters (sid, ping interval) |
+| close       | 1              | Connection is being closed                              |
+| ping        | 2              | Keep-alive ping from server                             |
+| pong        | 3              | Keep-alive pong response                                |
+| message     | 4              | Application data (Socket.IO events are nested here)     |
+| upgrade     | 5              | Transport upgrade                                       |
 
 Within Engine.IO message packets, Socket.IO event names and arguments are parsed and displayed clearly.
 
@@ -33,15 +33,15 @@ Within Engine.IO message packets, Socket.IO event names and arguments are parsed
 
 MQTT packets transmitted over WebSocket are detected and decoded. Both MQTT v3.1.1 and v5.0 are supported. Common packet types you will see include:
 
-| Packet Type | Description |
-| --- | --- |
-| CONNECT | Client requests connection to broker |
-| CONNACK | Broker acknowledges connection |
-| PUBLISH | Message published to a topic |
-| SUBSCRIBE | Client subscribes to topics |
-| SUBACK | Broker acknowledges subscription |
-| PINGREQ / PINGRESP | Keep-alive mechanism |
-| DISCONNECT | Clean disconnection |
+| Packet Type        | Description                          |
+| ------------------ | ------------------------------------ |
+| CONNECT            | Client requests connection to broker |
+| CONNACK            | Broker acknowledges connection       |
+| PUBLISH            | Message published to a topic         |
+| SUBSCRIBE          | Client subscribes to topics          |
+| SUBACK             | Broker acknowledges subscription     |
+| PINGREQ / PINGRESP | Keep-alive mechanism                 |
+| DISCONNECT         | Clean disconnection                  |
 
 For PUBLISH packets, the topic name and payload are extracted and shown directly in the message viewer.
 

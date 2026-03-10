@@ -6,11 +6,11 @@ Getting Cheolsu Proxy installed and running on your machine.
 
 ## System Requirements
 
-| Platform | Status |
-| -------- | ------ |
-| **macOS** (Apple Silicon & Intel) | Supported |
-| **Windows** | Coming soon |
-| **Linux** | Coming soon |
+| Platform                          | Status      |
+| --------------------------------- | ----------- |
+| **macOS** (Apple Silicon & Intel) | Supported   |
+| **Windows**                       | Coming soon |
+| **Linux**                         | Coming soon |
 
 Cheolsu Proxy is a native desktop application built with Rust and Tauri, so it runs with minimal resource overhead compared to Electron-based alternatives. There are no runtime dependencies like Java or Python to install.
 
@@ -31,7 +31,7 @@ Download the latest release from the [GitHub Releases](https://github.com/ohah/c
 
 ### First Launch and macOS Gatekeeper
 
-Because Cheolsu Proxy is distributed outside the Mac App Store, macOS Gatekeeper may block the first launch with a message like *"Cheolsu Proxy can't be opened because Apple cannot check it for malicious software."*
+Because Cheolsu Proxy is distributed outside the Mac App Store, macOS Gatekeeper may block the first launch with a message like _"Cheolsu Proxy can't be opened because Apple cannot check it for malicious software."_
 
 To open it anyway:
 

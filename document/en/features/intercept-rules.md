@@ -85,13 +85,13 @@ Redirect matching requests to a different URL. The proxy fetches the response fr
 
 Rules match traffic using wildcard patterns applied to the full request URL. The `*` character matches any sequence of characters.
 
-| Pattern | What it matches |
-| --- | --- |
-| `*ads.example.com*` | Any URL containing `ads.example.com` |
+| Pattern                 | What it matches                                 |
+| ----------------------- | ----------------------------------------------- |
+| `*ads.example.com*`     | Any URL containing `ads.example.com`            |
 | `*api.example.com/v1/*` | URLs under the `/v1/` path on `api.example.com` |
-| `*.json` | Any URL ending with `.json` |
-| `*example.com/users*` | Any URL containing `example.com/users` |
-| `*` | All traffic (use with caution) |
+| `*.json`                | Any URL ending with `.json`                     |
+| `*example.com/users*`   | Any URL containing `example.com/users`          |
+| `*`                     | All traffic (use with caution)                  |
 
 Patterns are case-sensitive. If you need to match both `API` and `api`, include both variants or use scripting for more complex logic.
 

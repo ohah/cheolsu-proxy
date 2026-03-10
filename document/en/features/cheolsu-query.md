@@ -8,12 +8,12 @@ The query language is built into the Monaco Editor (the same editor engine used 
 
 ## Filter Keywords
 
-| Keyword | Description | Example |
-| --- | --- | --- |
-| `method` | Filter by a single HTTP method | `method="GET"` |
-| `methods` | Filter by multiple HTTP methods | `methods="GET,POST"` |
-| `status` | Filter by HTTP status code or category | `status="2xx,404"` |
-| `url` | Filter by URL content | `url\|="api"` |
+| Keyword   | Description                            | Example              |
+| --------- | -------------------------------------- | -------------------- |
+| `method`  | Filter by a single HTTP method         | `method="GET"`       |
+| `methods` | Filter by multiple HTTP methods        | `methods="GET,POST"` |
+| `status`  | Filter by HTTP status code or category | `status="2xx,404"`   |
+| `url`     | Filter by URL content                  | `url\|="api"`        |
 
 ---
 
@@ -21,20 +21,20 @@ The query language is built into the Monaco Editor (the same editor engine used 
 
 ### Comparison Operators
 
-| Operator | Meaning | Example |
-| --- | --- | --- |
-| `=` | Exact match | `method="GET"` |
-| `\|=` | Contains (case-sensitive) | `url\|="api"` |
-| `\|~` | Contains (case-insensitive) | `url\|~="API"` |
-| `!=` | Not equal | `method!="OPTIONS"` |
-| `!~` | Does not contain | `url!~="static"` |
+| Operator | Meaning                     | Example             |
+| -------- | --------------------------- | ------------------- |
+| `=`      | Exact match                 | `method="GET"`      |
+| `\|=`    | Contains (case-sensitive)   | `url\|="api"`       |
+| `\|~`    | Contains (case-insensitive) | `url\|~="API"`      |
+| `!=`     | Not equal                   | `method!="OPTIONS"` |
+| `!~`     | Does not contain            | `url!~="static"`    |
 
 ### Logical Operators
 
-| Operator | Meaning | Example |
-| --- | --- | --- |
-| `and` | Both conditions must be true (default) | `method="GET" and status="2xx"` |
-| `or` | Either condition must be true | `method="GET" or status="5xx"` |
+| Operator | Meaning                                | Example                         |
+| -------- | -------------------------------------- | ------------------------------- |
+| `and`    | Both conditions must be true (default) | `method="GET" and status="2xx"` |
+| `or`     | Either condition must be true          | `method="GET" or status="5xx"`  |
 
 Parentheses can be used to group conditions:
 

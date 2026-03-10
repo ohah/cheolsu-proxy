@@ -26,10 +26,10 @@ Most modern clients use TLS 1.2 or 1.3. However, some older applications, embedd
 
 The proxy automatically detects the TLS version from the client's initial handshake and selects the appropriate handler:
 
-| Client TLS Version | Handler |
-| --- | --- |
-| TLS 1.2 / 1.3 | rustls (modern, pure-Rust library) |
-| TLS 1.0 / 1.1 | native-tls (OS-level TLS library) |
+| Client TLS Version | Handler                            |
+| ------------------ | ---------------------------------- |
+| TLS 1.2 / 1.3      | rustls (modern, pure-Rust library) |
+| TLS 1.0 / 1.1      | native-tls (OS-level TLS library)  |
 
 This hybrid approach means you can inspect traffic from both modern browsers and legacy clients without any configuration changes.
 

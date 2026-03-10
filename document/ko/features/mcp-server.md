@@ -77,38 +77,38 @@ claude mcp add cheolsu-proxy -- /path/to/cheolsu-proxy-mcp
 
 ### 트래픽 조회
 
-| Tool | 설명 |
-| --- | --- |
-| `search_traffic` | 호스트, HTTP 메서드, 상태코드, URL 경로로 캡처된 트래픽 검색 |
-| `get_transaction` | 특정 트랜잭션의 요청/응답 헤더 및 바디 상세 조회 |
-| `get_websocket_messages` | 캡처된 WebSocket 메시지 조회 (연결 URI 필터 지원) |
+| Tool                     | 설명                                                         |
+| ------------------------ | ------------------------------------------------------------ |
+| `search_traffic`         | 호스트, HTTP 메서드, 상태코드, URL 경로로 캡처된 트래픽 검색 |
+| `get_transaction`        | 특정 트랜잭션의 요청/응답 헤더 및 바디 상세 조회             |
+| `get_websocket_messages` | 캡처된 WebSocket 메시지 조회 (연결 URI 필터 지원)            |
 
 ### 요청 전송
 
-| Tool | 설명 |
-| --- | --- |
+| Tool             | 설명                                                   |
+| ---------------- | ------------------------------------------------------ |
 | `replay_request` | HTTP 요청을 직접 전송 (프록시 우회). API 테스트에 유용 |
 
 ### 인터셉트 규칙 관리
 
-| Tool | 설명 |
-| --- | --- |
-| `list_rules` | 현재 설정된 인터셉트 규칙 목록 조회 |
-| `add_rule` | 새 인터셉트 규칙 추가 (block, modify_request, modify_response, map_local, map_remote) |
-| `remove_rule` | ID로 인터셉트 규칙 삭제 |
+| Tool          | 설명                                                                                  |
+| ------------- | ------------------------------------------------------------------------------------- |
+| `list_rules`  | 현재 설정된 인터셉트 규칙 목록 조회                                                   |
+| `add_rule`    | 새 인터셉트 규칙 추가 (block, modify_request, modify_response, map_local, map_remote) |
+| `remove_rule` | ID로 인터셉트 규칙 삭제                                                               |
 
 ### 스크립팅
 
-| Tool | 설명 |
-| --- | --- |
-| `load_script` | JavaScript/TypeScript 스크립트 로드 (파일 경로 또는 코드) |
-| `unload_script` | 현재 로드된 스크립트 언로드 |
+| Tool            | 설명                                                      |
+| --------------- | --------------------------------------------------------- |
+| `load_script`   | JavaScript/TypeScript 스크립트 로드 (파일 경로 또는 코드) |
+| `unload_script` | 현재 로드된 스크립트 언로드                               |
 
 ### 상태 관리
 
-| Tool | 설명 |
-| --- | --- |
-| `proxy_status` | 프록시 데몬 상태 및 트래픽 통계 확인 |
+| Tool            | 설명                                 |
+| --------------- | ------------------------------------ |
+| `proxy_status`  | 프록시 데몬 상태 및 트래픽 통계 확인 |
 | `clear_traffic` | 메모리에 캡처된 트래픽 데이터 초기화 |
 
 ---

@@ -50,10 +50,7 @@ cheolsu.onResponse((request, response) => {
 
 // OPTIONS preflight 요청에 직접 응답하여 서버 요청을 생략
 cheolsu.onRequest((request) => {
-  if (
-    request.method === "OPTIONS" &&
-    request.url.includes("api.example.com")
-  ) {
+  if (request.method === "OPTIONS" && request.url.includes("api.example.com")) {
     return {
       action: "respond",
       response: {
@@ -194,20 +191,20 @@ HTTP 요청이 서버로 전달되기 전에 호출됩니다. 요청을 그대�
 
 **handler 파라미터**: `request` 객체
 
-| 필드 | 타입 | 설명 |
-| --- | --- | --- |
-| `method` | string | HTTP 메서드 (GET, POST 등) |
-| `url` | string | 전체 요청 URL |
-| `headers` | object | 요청 헤더 (key-value) |
-| `body` | string | 요청 바디 |
+| 필드      | 타입   | 설명                       |
+| --------- | ------ | -------------------------- |
+| `method`  | string | HTTP 메서드 (GET, POST 등) |
+| `url`     | string | 전체 요청 URL              |
+| `headers` | object | 요청 헤더 (key-value)      |
+| `body`    | string | 요청 바디                  |
 
 **반환값**: 다음 중 하나
 
-| action | 설명 | 추가 필드 |
-| --- | --- | --- |
-| `"forward"` | 요청을 그대로 서버에 전달 | 없음 |
-| `"modify"` | 수정된 요청을 서버에 전달 | `request`: 수정된 요청 객체 |
-| `"respond"` | 서버 요청 없이 직접 응답 | `response`: `{ status, headers, body }` |
+| action      | 설명                      | 추가 필드                               |
+| ----------- | ------------------------- | --------------------------------------- |
+| `"forward"` | 요청을 그대로 서버에 전달 | 없음                                    |
+| `"modify"`  | 수정된 요청을 서버에 전달 | `request`: 수정된 요청 객체             |
+| `"respond"` | 서버 요청 없이 직접 응답  | `response`: `{ status, headers, body }` |
 
 ```javascript
 cheolsu.onRequest((request) => {
@@ -241,18 +238,18 @@ cheolsu.onRequest((request) => {
 
 **handler 파라미터**: `request` 객체, `response` 객체
 
-| 필드 (response) | 타입 | 설명 |
-| --- | --- | --- |
-| `status` | number | HTTP 상태 코드 |
-| `headers` | object | 응답 헤더 (key-value) |
-| `body` | string | 응답 바디 |
+| 필드 (response) | 타입   | 설명                  |
+| --------------- | ------ | --------------------- |
+| `status`        | number | HTTP 상태 코드        |
+| `headers`       | object | 응답 헤더 (key-value) |
+| `body`          | string | 응답 바디             |
 
 **반환값**:
 
-| action | 설명 | 추가 필드 |
-| --- | --- | --- |
-| `"forward"` | 응답을 그대로 클라이언트에 전달 | 없음 |
-| `"modify"` | 수정된 응답을 클라이언트에 전달 | `response`: 수정된 응답 객체 |
+| action      | 설명                            | 추가 필드                    |
+| ----------- | ------------------------------- | ---------------------------- |
+| `"forward"` | 응답을 그대로 클라이언트에 전달 | 없음                         |
+| `"modify"`  | 수정된 응답을 클라이언트에 전달 | `response`: 수정된 응답 객체 |
 
 ```javascript
 cheolsu.onResponse((request, response) => {
@@ -272,19 +269,19 @@ WebSocket 메시지가 전달되기 전에 호출됩니다.
 
 **handler 파라미터**: `message` 객체
 
-| 필드 | 타입 | 설명 |
-| --- | --- | --- |
-| `direction` | string | `"to_server"` 또는 `"to_client"` |
-| `payload` | string | 메시지 내용 |
-| `is_binary` | boolean | 바이너리 메시지 여부 |
+| 필드        | 타입    | 설명                             |
+| ----------- | ------- | -------------------------------- |
+| `direction` | string  | `"to_server"` 또는 `"to_client"` |
+| `payload`   | string  | 메시지 내용                      |
+| `is_binary` | boolean | 바이너리 메시지 여부             |
 
 **반환값**:
 
-| action | 설명 | 추가 필드 |
-| --- | --- | --- |
-| `"forward"` | 메시지를 그대로 전달 | 없음 |
-| `"modify"` | 수정된 메시지 전달 | `payload`, `is_binary` |
-| `"drop"` | 메시지를 버림 (전달하지 않음) | 없음 |
+| action      | 설명                          | 추가 필드              |
+| ----------- | ----------------------------- | ---------------------- |
+| `"forward"` | 메시지를 그대로 전달          | 없음                   |
+| `"modify"`  | 수정된 메시지 전달            | `payload`, `is_binary` |
+| `"drop"`    | 메시지를 버림 (전달하지 않음) | 없음                   |
 
 ```javascript
 cheolsu.onWebSocketMessage((message) => {
@@ -333,46 +330,46 @@ clearInterval(id);
 
 ### 사용 가능한 기능
 
-| API | 설명 |
-| --- | --- |
-| `cheolsu.onRequest(handler)` | HTTP 요청 훅 등록 (sync/async) |
-| `cheolsu.onResponse(handler)` | HTTP 응답 훅 등록 (sync/async) |
-| `cheolsu.onWebSocketMessage(handler)` | WebSocket 메시지 훅 등록 (sync/async) |
-| `console.log/warn/error/info/debug()` | 콘솔 로깅 |
-| `setTimeout(callback, delay)` | 지연 실행 |
-| `clearTimeout(id)` | 타이머 취소 |
-| `setInterval(callback, delay)` | 반복 실행 |
-| `clearInterval(id)` | 반복 타이머 취소 |
-| `async` / `await` | 비동기 처리 |
-| `Promise` | Promise API |
-| `JSON.parse()` / `JSON.stringify()` | JSON 처리 |
-| `Math.*` | 수학 함수 |
-| `Date` | 날짜/시간 |
-| `RegExp` | 정규표현식 |
-| `Array` / `Object` / `String` / `Map` / `Set` | 표준 내장 객체 |
-| `Symbol` / `WeakMap` / `WeakSet` / `Proxy` / `Reflect` | ECMAScript 표준 |
-| `TextEncoder` / `TextDecoder` | 텍스트 인코딩 (V8 내장) |
-| `structuredClone()` | 깊은 복사 (V8 내장) |
-| TypeScript | 자동 트랜스파일 지원 |
+| API                                                    | 설명                                  |
+| ------------------------------------------------------ | ------------------------------------- |
+| `cheolsu.onRequest(handler)`                           | HTTP 요청 훅 등록 (sync/async)        |
+| `cheolsu.onResponse(handler)`                          | HTTP 응답 훅 등록 (sync/async)        |
+| `cheolsu.onWebSocketMessage(handler)`                  | WebSocket 메시지 훅 등록 (sync/async) |
+| `console.log/warn/error/info/debug()`                  | 콘솔 로깅                             |
+| `setTimeout(callback, delay)`                          | 지연 실행                             |
+| `clearTimeout(id)`                                     | 타이머 취소                           |
+| `setInterval(callback, delay)`                         | 반복 실행                             |
+| `clearInterval(id)`                                    | 반복 타이머 취소                      |
+| `async` / `await`                                      | 비동기 처리                           |
+| `Promise`                                              | Promise API                           |
+| `JSON.parse()` / `JSON.stringify()`                    | JSON 처리                             |
+| `Math.*`                                               | 수학 함수                             |
+| `Date`                                                 | 날짜/시간                             |
+| `RegExp`                                               | 정규표현식                            |
+| `Array` / `Object` / `String` / `Map` / `Set`          | 표준 내장 객체                        |
+| `Symbol` / `WeakMap` / `WeakSet` / `Proxy` / `Reflect` | ECMAScript 표준                       |
+| `TextEncoder` / `TextDecoder`                          | 텍스트 인코딩 (V8 내장)               |
+| `structuredClone()`                                    | 깊은 복사 (V8 내장)                   |
+| TypeScript                                             | 자동 트랜스파일 지원                  |
 
 ### 사용 불가능한 기능
 
-| API | 이유 |
-| --- | --- |
-| `fetch()` | 네트워크 I/O op 미등록 |
-| `XMLHttpRequest` | 브라우저 전용 API |
-| `require()` | CommonJS 모듈 시스템 미지원 |
-| `import` / `export` (ESM) | ES 모듈 시스템 미지원 |
-| `fs` / `path` / `os` | Node.js 내장 모듈 미지원 |
-| `process` | Node.js 전용 전역 객체 |
-| `Buffer` | Node.js 전용 (대신 `Uint8Array` 사용) |
-| `crypto` | Web Crypto API 미등록 |
-| `WebSocket` (클라이언트) | 네트워크 I/O 미지원 |
-| `Worker` / `SharedWorker` | 워커 스레드 미지원 |
-| `localStorage` / `sessionStorage` | 브라우저 전용 API |
-| `DOM API` (`document`, `window`) | 브라우저 전용 |
-| `alert()` / `confirm()` / `prompt()` | 브라우저 전용 |
-| Top-level `await` | 스크립트 모드에서 미지원 (훅 내부에서만 가능) |
+| API                                  | 이유                                          |
+| ------------------------------------ | --------------------------------------------- |
+| `fetch()`                            | 네트워크 I/O op 미등록                        |
+| `XMLHttpRequest`                     | 브라우저 전용 API                             |
+| `require()`                          | CommonJS 모듈 시스템 미지원                   |
+| `import` / `export` (ESM)            | ES 모듈 시스템 미지원                         |
+| `fs` / `path` / `os`                 | Node.js 내장 모듈 미지원                      |
+| `process`                            | Node.js 전용 전역 객체                        |
+| `Buffer`                             | Node.js 전용 (대신 `Uint8Array` 사용)         |
+| `crypto`                             | Web Crypto API 미등록                         |
+| `WebSocket` (클라이언트)             | 네트워크 I/O 미지원                           |
+| `Worker` / `SharedWorker`            | 워커 스레드 미지원                            |
+| `localStorage` / `sessionStorage`    | 브라우저 전용 API                             |
+| `DOM API` (`document`, `window`)     | 브라우저 전용                                 |
+| `alert()` / `confirm()` / `prompt()` | 브라우저 전용                                 |
+| Top-level `await`                    | 스크립트 모드에서 미지원 (훅 내부에서만 가능) |
 
 ---
 
