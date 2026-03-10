@@ -313,7 +313,7 @@ msgstr "Cheolsu Proxy Logo"
 msgid "Claude Code (CLI)"
 msgstr "Claude Code (CLI)"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:220
+#: src/pages/log-viewer/ui/logs-page.tsx:215
 #: src/pages/script/ui/script-page.tsx:298
 msgid "Clear"
 msgstr "Clear"
@@ -325,7 +325,7 @@ msgstr "Clear all"
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:108
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:98
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:91
-#: src/pages/log-viewer/ui/logs-page.tsx:246
+#: src/pages/log-viewer/ui/logs-page.tsx:236
 #: src/pages/map-rules/ui/map-rules-page.tsx:80
 #: src/pages/server-replay/ui/server-replay-page.tsx:105
 msgid "Clear All"
@@ -484,11 +484,11 @@ msgstr "Disabled"
 msgid "Disconnected"
 msgstr "Disconnected"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:379
+#: src/pages/log-viewer/ui/logs-page.tsx:369
 msgid "Domain"
 msgstr "Domain"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:363
+#: src/pages/log-viewer/ui/logs-page.tsx:353
 msgid "Domains that failed TLS handshake are automatically tunneled without MITM decryption. You can remove entries to retry MITM for specific domains."
 msgstr "Domains that failed TLS handshake are automatically tunneled without MITM decryption. You can remove entries to retry MITM for specific domains."
 
@@ -595,7 +595,7 @@ msgstr "Failed to register shortcut"
 msgid "Failed to send"
 msgstr "Failed to send"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:382
+#: src/pages/log-viewer/ui/logs-page.tsx:372
 msgid "Failures"
 msgstr "Failures"
 
@@ -603,7 +603,7 @@ msgstr "Failures"
 msgid "File"
 msgstr "File"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:327
+#: src/pages/log-viewer/ui/logs-page.tsx:317
 msgid "Filter log lines..."
 msgstr "Filter log lines..."
 
@@ -786,7 +786,7 @@ msgstr "Latency (ms)"
 msgid "Light"
 msgstr "Light"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:334
+#: src/pages/log-viewer/ui/logs-page.tsx:324
 msgid "lines"
 msgstr "lines"
 
@@ -824,8 +824,8 @@ msgstr "Local File Path"
 msgid "localhost, 127.0.0.1, *.internal.com"
 msgstr "localhost, 127.0.0.1, *.internal.com"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:263
-#: src/pages/log-viewer/ui/logs-page.tsx:290
+#: src/pages/log-viewer/ui/logs-page.tsx:253
+#: src/pages/log-viewer/ui/logs-page.tsx:280
 msgid "Log Files"
 msgstr "Log Files"
 
@@ -1001,7 +1001,7 @@ msgstr "No host mappings"
 msgid "No intercept rules"
 msgstr "No intercept rules"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:295
+#: src/pages/log-viewer/ui/logs-page.tsx:285
 msgid "No log files found"
 msgstr "No log files found"
 
@@ -1021,7 +1021,7 @@ msgstr "No phase selected"
 msgid "No replay entries"
 msgstr "No replay entries"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:371
+#: src/pages/log-viewer/ui/logs-page.tsx:361
 msgid "No TLS passthrough entries"
 msgstr "No TLS passthrough entries"
 
@@ -1069,7 +1069,7 @@ msgstr "Open <0>{CERT_DOWNLOAD_URL}</0> in Safari"
 msgid "Open <0>{CERT_DOWNLOAD_URL}</0> in your device browser"
 msgstr "Open <0>{CERT_DOWNLOAD_URL}</0> in your device browser"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:224
+#: src/pages/log-viewer/ui/logs-page.tsx:219
 msgid "Open Directory"
 msgstr "Open Directory"
 
@@ -1214,7 +1214,7 @@ msgid "Received (Server → Client)"
 msgstr "Received (Server → Client)"
 
 #: src/pages/log-viewer/ui/logs-page.tsx:211
-#: src/pages/log-viewer/ui/logs-page.tsx:237
+#: src/pages/log-viewer/ui/logs-page.tsx:227
 #: src/pages/settings/ui/components/certificate-settings.tsx:393
 msgid "Refresh"
 msgstr "Refresh"
@@ -1493,7 +1493,7 @@ msgstr "Script reloaded"
 msgid "Script unloaded"
 msgstr "Script unloaded"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:350
+#: src/pages/log-viewer/ui/logs-page.tsx:340
 msgid "Select a log file to view its contents"
 msgstr "Select a log file to view its contents"
 
@@ -1726,7 +1726,7 @@ msgstr "Throughput"
 msgid "Time"
 msgstr "Time"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:274
+#: src/pages/log-viewer/ui/logs-page.tsx:264
 msgid "TLS Passthrough"
 msgstr "TLS Passthrough"
 
