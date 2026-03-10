@@ -28,6 +28,9 @@
 | 필터링/검색             |     O     |       O       | mitmproxy: DSL, cheolsu: 쿼리 에디터 |
 | cURL 복사               |     O     |       O       | + fetch, httpie, Python requests     |
 | gzip/brotli 압축 해제   |     O     |       O       |                                      |
+| No Gzip 토글            |     X     |       O       | Accept-Encoding 자동 제거            |
+| Proxy Authentication    |     O     |       O       | Basic 인증, CONNECT 터널 보호        |
+| Client SSL Cert (mTLS)  |     O     |       O       | PEM/DER, RSA/PKCS8/EC 키 지원        |
 | 시스템 프록시 자동 설정 |     X     |       O       | 앱 시작/종료 시 자동 관리            |
 | 대용량 바디 파일 저장   |     X     |       O       | 1MB 이상 자동 파일 저장              |
 
@@ -39,7 +42,6 @@
 | Transparent Proxy    | OS 레벨 투명 프록시 모드 |
 | Sticky Auth/Cookie   | 인증/쿠키 자동 재전송    |
 | DNS 인터셉트         | DNS 쿼리/응답 조작       |
-| Proxy Authentication | 프록시 접속 인증         |
 | Raw TCP / UDP        | 비 HTTP 프로토콜 지원    |
 
 ## cheolsu-proxy에만 있는 기능

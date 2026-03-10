@@ -9,9 +9,9 @@
 | 기능                     | Charles | mitmproxy | 설명                                                                       |
 | ------------------------ | :-----: | :-------: | -------------------------------------------------------------------------- |
 | ~~Breakpoints~~          |  ~~O~~  |   ~~O~~   | ~~✅ 구현 완료: 요청/응답 일시 정지, Forward/Drop/Abort/ModifyAndForward~~ |
-| 정규식 기반 Rewrite      |    O    |     O     | 정규식으로 헤더/바디의 특정 부분만 치환 (현재는 전체 교체만 가능)          |
-| No Caching 토글          |    O    |     X     | Cache-Control 등 캐시 무효화 헤더 자동 삽입                                |
-| No Gzip 토글             |    O    |     X     | Accept-Encoding 헤더 자동 제거                                             |
+| ~~정규식 기반 Rewrite~~  |  ~~O~~  |   ~~O~~   | ~~✅ 구현 완료: 정규식 캡처 그룹($1, $2) 지원, 헤더/바디 대상~~            |
+| ~~No Caching 토글~~      |  ~~O~~  |   ~~X~~   | ~~✅ 구현 완료: Quick Settings에서 No Caching 토글~~                       |
+| ~~No Gzip 토글~~         |  ~~O~~  |   ~~X~~   | ~~✅ 구현 완료: Quick Settings에서 No Gzip 토글, Accept-Encoding 제거~~    |
 | ~~트랜잭션 비교 (Diff)~~ |  ~~O~~  |   ~~X~~   | ~~✅ 구현 완료: 헤더/바디/JSON 구조적 diff 지원~~                          |
 | ~~DNS Spoofing~~         |  ~~O~~  |   ~~O~~   | ~~✅ 구현 완료: Host Mapping으로 구현 (와일드카드 패턴, 포트 지정)~~       |
 
@@ -36,8 +36,8 @@
 
 | 기능                           | Charles | mitmproxy | 설명                                            |
 | ------------------------------ | :-----: | :-------: | ----------------------------------------------- |
-| Client SSL Certificate (mTLS)  |    O    |     O     | 클라이언트 인증서를 프록시에 설정하여 상호 인증 |
-| 사용자 지정 CA 인증서 가져오기 |    O    |     O     | 외부 CA 인증서/키 파일 직접 지정                |
+| ~~Client SSL Certificate (mTLS)~~  |  ~~O~~  |   ~~O~~   | ~~✅ 구현 완료: PEM/DER 인증서, RSA/PKCS8/EC 키, 도메인별 설정, GUI/TUI~~ |
+| 사용자 지정 CA 인증서 가져오기     |    O    |     O     | 외부 CA 인증서/키 파일 직접 지정                                           |
 
 ## 콘텐츠 뷰어
 
@@ -56,10 +56,10 @@
 
 ## 네트워크 시뮬레이션
 
-| 기능              | Charles | mitmproxy | 설명                                                    |
-| ----------------- | :-----: | :-------: | ------------------------------------------------------- |
-| ~~대역폭 프리셋~~ |  ~~O~~  |   ~~X~~   | ~~✅ 구현 완료: GPRS, Slow 3G, Fast 3G, 4G/LTE 프리셋~~ |
-| Repeat Advanced   |    O    |     X     | 요청을 N회 반복 + 동시 요청 수(concurrency) 설정        |
+| 기능                | Charles | mitmproxy | 설명                                                        |
+| ------------------- | :-----: | :-------: | ----------------------------------------------------------- |
+| ~~대역폭 프리셋~~   |  ~~O~~  |   ~~X~~   | ~~✅ 구현 완료: GPRS, Slow 3G, Fast 3G, 4G/LTE 프리셋~~     |
+| ~~Repeat Advanced~~ |  ~~O~~  |   ~~X~~   | ~~✅ 구현 완료: N회 반복 + 동시 요청 수(concurrency) 설정~~ |
 
 ## 기타
 
@@ -68,5 +68,5 @@
 | 웹 UI                |    X    |     O     | 브라우저 기반 인터페이스 (mitmweb)                |
 | 필터 표현식 언어     |    X    |     O     | `~d example.com & ~m POST` 같은 구조화된 필터 DSL |
 | Sticky Auth / Cookie |    X    |     O     | 인증/쿠키 자동 재전송                             |
-| Proxy Authentication |    O    |     O     | 프록시 접속 자체에 대한 인증                      |
+| ~~Proxy Authentication~~ |  ~~O~~  |   ~~O~~   | ~~✅ 구현 완료: Basic 인증, CONNECT 터널 보호, GUI/TUI 설정~~ |
 | 플러그인 생태계      |    X    |     O     | pip 설치 가능한 애드온 시스템                     |
