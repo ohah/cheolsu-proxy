@@ -247,13 +247,49 @@ impl CertificateAuthority for RcgenAuthority {
             authority
         );
 
-        // 동기 작업에 필요한 데이터를 미리 준비
-        let server_cert_der = self.gen_cert(authority).to_vec();
+        // spawn_blocking에 전달할 데이터를 미리 준비 (Send 가능한 형태)
         let ca_cert_pem = self.ca_cert.pem();
         let ca_key_pem = self.key_pair.serialize_pem();
+        let host = authority.host().to_string();
 
-        // OpenSSL 컨텍스트 빌드를 spawn_blocking으로 오프로드
+        // 인증서 생성 + OpenSSL 컨텍스트 빌드를 모두 spawn_blocking으로 오프로드
         let ctx = tokio::task::spawn_blocking(move || -> Result<openssl::ssl::SslContext, Box<dyn std::error::Error + Send + Sync>> {
+            // rcgen 인증서 생성 (CPU 집약적 작업)
+            let key_pair = rcgen::KeyPair::from_pem(&ca_key_pem)?;
+            let ca_cert_params = rcgen::CertificateParams::from_ca_cert_pem(&ca_cert_pem)?;
+            let ca_cert_rcgen = ca_cert_params.self_signed(&key_pair)?;
+
+            let mut params = rcgen::CertificateParams::default();
+            params.serial_number = Some(rng().random::<u64>().into());
+
+            let not_before = OffsetDateTime::now_utc() - Duration::seconds(NOT_BEFORE_OFFSET);
+            params.not_before = not_before;
+            params.not_after = not_before + Duration::seconds(TTL_SECS);
+
+            let mut distinguished_name = DistinguishedName::new();
+            distinguished_name.push(DnType::CommonName, &host);
+            params.distinguished_name = distinguished_name;
+
+            // SAN 엔트리 추가
+            if let Ok(dns_name) = Ia5String::try_from(host.as_str()) {
+                params.subject_alt_names.push(SanType::DnsName(dns_name));
+            }
+            if !host.starts_with("*.") {
+                let wildcard = format!("*.{}", host);
+                if let Ok(wildcard_name) = Ia5String::try_from(wildcard.as_str()) {
+                    params.subject_alt_names.push(SanType::DnsName(wildcard_name));
+                }
+            }
+            if let Ok(ip_addr) = host.parse::<std::net::IpAddr>() {
+                params.subject_alt_names.push(SanType::IpAddress(ip_addr));
+            }
+
+            let server_cert: CertificateDer<'static> = params
+                .signed_by(&key_pair, &ca_cert_rcgen, &key_pair)?
+                .into();
+            let server_cert_der = server_cert.to_vec();
+
+            // OpenSSL 컨텍스트 빌드
             let mut ctx = openssl::ssl::SslContext::builder(openssl::ssl::SslMethod::tls_server())?;
 
             ctx.set_min_proto_version(Some(openssl::ssl::SslVersion::TLS1))?;

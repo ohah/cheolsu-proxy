@@ -53,6 +53,10 @@ pub struct OpensslAuthority {
     pkey: PKey<Private>,
     private_key: PrivateKeyDer<'static>,
     ca_cert: X509,
+    /// DER 형태의 CA 인증서 (spawn_blocking 전달용, 생성자에서 미리 캐시)
+    ca_cert_der: Vec<u8>,
+    /// DER 형태의 개인키 (spawn_blocking 전달용, 생성자에서 미리 캐시)
+    pkey_der: Vec<u8>,
     hash: MessageDigest,
     cache: Cache<Authority, Arc<ServerConfig>>,
     #[cfg(feature = "openssl-ca")]
@@ -73,11 +77,17 @@ impl OpensslAuthority {
             pkey.private_key_to_pkcs8()
                 .expect("Failed to encode private key"),
         ));
+        let ca_cert_der = ca_cert.to_der().expect("Failed to encode CA cert to DER");
+        let pkey_der = pkey
+            .private_key_to_der()
+            .expect("Failed to encode private key to DER");
 
         Self {
             pkey,
             private_key,
             ca_cert,
+            ca_cert_der,
+            pkey_der,
             hash,
             cache: Cache::builder()
                 .max_capacity(cache_size)
@@ -192,9 +202,9 @@ impl CertificateAuthority for OpensslAuthority {
             authority
         );
 
-        // spawn_blocking에 전달할 데이터 준비 (Send 가능한 바이트 형태)
-        let ca_cert_der = self.ca_cert.to_der()?;
-        let pkey_der = self.pkey.private_key_to_der()?;
+        // 생성자에서 미리 캐시해둔 DER 바이트 사용 (async context에서 OpenSSL 호출 방지)
+        let ca_cert_der = self.ca_cert_der.clone();
+        let pkey_der = self.pkey_der.clone();
         let host = authority.host().to_string();
         let hash = self.hash;
 
