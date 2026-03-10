@@ -881,6 +881,98 @@ mod tests {
         }
     }
 
+    // --- Disconnected / Reconnected DaemonMessage 직렬화/역직렬화 테스트 ---
+
+    /// Disconnected 메시지 직렬화 검증
+    #[test]
+    fn test_daemon_message_disconnected_serialization() {
+        let msg = DaemonMessage::Disconnected {
+            reason: "daemon process killed".to_string(),
+        };
+        let json = serde_json::to_string(&msg).unwrap();
+        let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert_eq!(parsed["type"], "disconnected");
+        assert_eq!(parsed["reason"], "daemon process killed");
+    }
+
+    /// Disconnected 메시지 역직렬화 검증
+    #[test]
+    fn test_daemon_message_disconnected_deserialization() {
+        let json = r#"{"type":"disconnected","reason":"connection lost"}"#;
+        let msg: DaemonMessage = serde_json::from_str(json).unwrap();
+        match msg {
+            DaemonMessage::Disconnected { reason } => {
+                assert_eq!(reason, "connection lost");
+            }
+            _ => panic!("Expected Disconnected"),
+        }
+    }
+
+    /// Disconnected 메시지 roundtrip 검증
+    #[test]
+    fn test_daemon_message_disconnected_roundtrip() {
+        let msg = DaemonMessage::Disconnected {
+            reason: "프로세스 강제 종료".to_string(),
+        };
+        let json = serde_json::to_string(&msg).unwrap();
+        let deserialized: DaemonMessage = serde_json::from_str(&json).unwrap();
+        match deserialized {
+            DaemonMessage::Disconnected { reason } => {
+                assert_eq!(reason, "프로세스 강제 종료");
+            }
+            _ => panic!("Expected Disconnected"),
+        }
+    }
+
+    /// Reconnected 메시지 직렬화 검증
+    #[test]
+    fn test_daemon_message_reconnected_serialization() {
+        let msg = DaemonMessage::Reconnected;
+        let json = serde_json::to_string(&msg).unwrap();
+        let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert_eq!(parsed["type"], "reconnected");
+    }
+
+    /// Reconnected 메시지 역직렬화 검증
+    #[test]
+    fn test_daemon_message_reconnected_deserialization() {
+        let json = r#"{"type":"reconnected"}"#;
+        let msg: DaemonMessage = serde_json::from_str(json).unwrap();
+        assert!(matches!(msg, DaemonMessage::Reconnected));
+    }
+
+    /// Disconnected → Reconnected 시퀀스가 newline-delimited 프로토콜로 전송되는지 검증
+    #[test]
+    fn test_disconnected_reconnected_sequence_protocol() {
+        let messages = vec![
+            DaemonMessage::Disconnected {
+                reason: "daemon killed".to_string(),
+            },
+            DaemonMessage::Reconnected,
+        ];
+
+        let mut wire = String::new();
+        for msg in &messages {
+            wire.push_str(&serde_json::to_string(msg).unwrap());
+            wire.push('\n');
+        }
+
+        let parsed: Vec<DaemonMessage> = wire
+            .lines()
+            .filter(|l| !l.is_empty())
+            .map(|l| serde_json::from_str(l).unwrap())
+            .collect();
+
+        assert_eq!(parsed.len(), 2);
+        match &parsed[0] {
+            DaemonMessage::Disconnected { reason } => {
+                assert_eq!(reason, "daemon killed");
+            }
+            _ => panic!("Expected Disconnected"),
+        }
+        assert!(matches!(parsed[1], DaemonMessage::Reconnected));
+    }
+
     #[test]
     fn test_host_mappings_updated_message_serialize() {
         let msg = DaemonMessage::HostMappingsUpdated {

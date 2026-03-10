@@ -797,6 +797,173 @@ mod tests {
         assert!(rule.method.is_none());
     }
 
+    // --- ClientCountGuard 테스트 ---
+
+    /// ClientCountGuard Drop 시 카운트가 1 감소하는지 검증
+    #[tokio::test]
+    async fn test_client_count_guard_drop_decrements_count() {
+        let count = Arc::new(AtomicUsize::new(3));
+        let (shutdown_tx, _shutdown_rx) = tokio::sync::mpsc::channel::<()>(1);
+
+        {
+            let _guard = ClientCountGuard {
+                client_count: count.clone(),
+                shutdown_tx: shutdown_tx.clone(),
+            };
+            assert_eq!(count.load(Ordering::SeqCst), 3);
+        }
+        // Drop 후 카운트가 2로 감소해야 함
+        assert_eq!(count.load(Ordering::SeqCst), 2);
+    }
+
+    /// 여러 Guard가 순차적으로 Drop될 때 카운트가 정확히 감소하는지 검증
+    #[tokio::test]
+    async fn test_client_count_guard_multiple_drops() {
+        let count = Arc::new(AtomicUsize::new(3));
+        let (shutdown_tx, _shutdown_rx) = tokio::sync::mpsc::channel::<()>(1);
+
+        let guard1 = ClientCountGuard {
+            client_count: count.clone(),
+            shutdown_tx: shutdown_tx.clone(),
+        };
+        let guard2 = ClientCountGuard {
+            client_count: count.clone(),
+            shutdown_tx: shutdown_tx.clone(),
+        };
+        let guard3 = ClientCountGuard {
+            client_count: count.clone(),
+            shutdown_tx: shutdown_tx.clone(),
+        };
+
+        drop(guard1);
+        assert_eq!(count.load(Ordering::SeqCst), 2);
+
+        drop(guard2);
+        assert_eq!(count.load(Ordering::SeqCst), 1);
+
+        drop(guard3);
+        assert_eq!(count.load(Ordering::SeqCst), 0);
+    }
+
+    /// 카운트가 0이 될 때 shutdown 시그널이 전송되는지 검증
+    #[tokio::test]
+    async fn test_client_count_guard_sends_shutdown_when_zero() {
+        let count = Arc::new(AtomicUsize::new(1));
+        let (shutdown_tx, mut shutdown_rx) = tokio::sync::mpsc::channel::<()>(1);
+
+        {
+            let _guard = ClientCountGuard {
+                client_count: count.clone(),
+                shutdown_tx: shutdown_tx.clone(),
+            };
+        }
+        // 카운트가 1→0이 되었으므로 shutdown 시그널이 전송되어야 함
+        let result = shutdown_rx.try_recv();
+        assert!(
+            result.is_ok(),
+            "카운트가 0이 되면 shutdown 시그널이 전송되어야 함"
+        );
+    }
+
+    /// 카운트가 0보다 클 때는 shutdown 시그널이 전송되지 않는지 검증
+    #[tokio::test]
+    async fn test_client_count_guard_no_shutdown_when_remaining() {
+        let count = Arc::new(AtomicUsize::new(2));
+        let (shutdown_tx, mut shutdown_rx) = tokio::sync::mpsc::channel::<()>(1);
+
+        {
+            let _guard = ClientCountGuard {
+                client_count: count.clone(),
+                shutdown_tx: shutdown_tx.clone(),
+            };
+        }
+        // 카운트가 2→1이므로 shutdown 시그널이 전송되면 안 됨
+        let result = shutdown_rx.try_recv();
+        assert!(
+            result.is_err(),
+            "남은 클라이언트가 있으면 shutdown 시그널이 전송되면 안 됨"
+        );
+    }
+
+    /// 카운트가 이미 0인 상태에서 Drop되면 언더플로우 방지 후 0으로 복구되는지 검증
+    #[tokio::test]
+    async fn test_client_count_guard_underflow_protection() {
+        let count = Arc::new(AtomicUsize::new(0));
+        let (shutdown_tx, mut shutdown_rx) = tokio::sync::mpsc::channel::<()>(1);
+
+        {
+            let _guard = ClientCountGuard {
+                client_count: count.clone(),
+                shutdown_tx: shutdown_tx.clone(),
+            };
+        }
+        // 언더플로우 방지: 0으로 복구되어야 함
+        assert_eq!(
+            count.load(Ordering::SeqCst),
+            0,
+            "언더플로우 시 카운트가 0으로 복구되어야 함"
+        );
+        // 언더플로우 상황에서는 shutdown 시그널이 전송되면 안 됨
+        let result = shutdown_rx.try_recv();
+        assert!(
+            result.is_err(),
+            "언더플로우 시에는 shutdown 시그널이 전송되면 안 됨"
+        );
+    }
+
+    /// bounded channel backpressure: shutdown 채널이 가득 찬 상태에서 try_send 동작 검증
+    #[tokio::test]
+    async fn test_client_count_guard_shutdown_channel_full() {
+        let count = Arc::new(AtomicUsize::new(1));
+        // 용량 1인 채널을 미리 채워놓기
+        let (shutdown_tx, _shutdown_rx) = tokio::sync::mpsc::channel::<()>(1);
+        shutdown_tx.try_send(()).unwrap(); // 채널을 가득 채움
+
+        {
+            let _guard = ClientCountGuard {
+                client_count: count.clone(),
+                shutdown_tx: shutdown_tx.clone(),
+            };
+        }
+        // 채널이 가득 차도 패닉 없이 정상적으로 Drop이 완료되어야 함
+        assert_eq!(count.load(Ordering::SeqCst), 0);
+    }
+
+    /// 다중 클라이언트 시나리오: 하나씩 종료 시 마지막에만 shutdown 전송
+    #[tokio::test]
+    async fn test_client_count_guard_multi_client_last_triggers_shutdown() {
+        let count = Arc::new(AtomicUsize::new(3));
+        let (shutdown_tx, mut shutdown_rx) = tokio::sync::mpsc::channel::<()>(1);
+
+        let guard1 = ClientCountGuard {
+            client_count: count.clone(),
+            shutdown_tx: shutdown_tx.clone(),
+        };
+        let guard2 = ClientCountGuard {
+            client_count: count.clone(),
+            shutdown_tx: shutdown_tx.clone(),
+        };
+        let guard3 = ClientCountGuard {
+            client_count: count.clone(),
+            shutdown_tx: shutdown_tx.clone(),
+        };
+
+        // 첫 번째 클라이언트 종료 (3→2)
+        drop(guard1);
+        assert!(shutdown_rx.try_recv().is_err());
+
+        // 두 번째 클라이언트 종료 (2→1)
+        drop(guard2);
+        assert!(shutdown_rx.try_recv().is_err());
+
+        // 마지막 클라이언트 종료 (1→0) → shutdown 전송
+        drop(guard3);
+        assert!(
+            shutdown_rx.try_recv().is_ok(),
+            "마지막 클라이언트 종료 시 shutdown 전송"
+        );
+    }
+
     #[test]
     fn test_intercept_rule_modify_request_deserialization() {
         let json = r#"{
