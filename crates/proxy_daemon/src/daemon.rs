@@ -245,6 +245,8 @@ fn spawn_proxy_task(
     // .await를 넘어서 lock을 유지하지 않으므로 안전함.
     // 리팩토링 시 tokio::sync::RwLock으로 교체 검토 필요.
     proxy_auth: Arc<parking_lot::RwLock<Option<crate::protocol::ProxyAuthConfig>>>,
+    max_concurrent_connections: Option<usize>,
+    max_body_size: Option<usize>,
 ) -> (
     tokio::task::JoinHandle<()>,
     tokio::sync::oneshot::Sender<()>,
@@ -268,6 +270,8 @@ fn spawn_proxy_task(
             quick_settings,
             proxy_auth,
             shutdown_rx,
+            max_concurrent_connections,
+            max_body_size,
         )
         .await
         {
@@ -440,6 +444,11 @@ async fn daemon_main(port: u16, host: String) -> i32 {
         None::<crate::protocol::ProxyAuthConfig>,
     ));
 
+    // 동시 연결 수 제한 (기본값: 1024)
+    let max_concurrent_connections: Option<usize> = Some(1024);
+    // 요청 바디 크기 제한 (기본값: 100MB)
+    let max_body_size: Option<usize> = Some(100 * 1024 * 1024);
+
     let (proxy_handle, proxy_shutdown_tx) = spawn_proxy_task(
         addr,
         event_tx.clone(),
@@ -456,6 +465,8 @@ async fn daemon_main(port: u16, host: String) -> i32 {
         script_handle.clone(),
         quick_settings.clone(),
         proxy_auth.clone(),
+        max_concurrent_connections,
+        max_body_size,
     );
 
     let uds_listener = match UnixListener::bind(&uds_path) {

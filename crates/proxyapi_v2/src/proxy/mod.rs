@@ -123,6 +123,7 @@ where
 
         let shutdown = Shutdown::new(self.graceful_shutdown);
         let guard = shutdown.guard_weak();
+        let semaphore = self.ctx.connection_semaphore.clone();
 
         loop {
             tokio::select! {
@@ -133,6 +134,19 @@ where
                             error!("Failed to accept incoming connection: {}", e);
                             continue;
                         }
+                    };
+
+                    // 동시 연결 수 제한: 세마포어가 설정된 경우 permit 획득
+                    let permit = if let Some(ref sem) = semaphore {
+                        match sem.clone().acquire_owned().await {
+                            Ok(permit) => Some(permit),
+                            Err(_) => {
+                                error!("Connection semaphore closed");
+                                break;
+                            }
+                        }
+                    } else {
+                        None
                     };
 
                     let server = server.clone();
@@ -147,6 +161,9 @@ where
                     };
 
                     shutdown.spawn_task_fn(move |guard| async move {
+                        // permit을 태스크 스코프에 소유시켜 Drop 시 자동 반환
+                        let _permit = permit;
+
                         let conn = server.serve_connection_with_upgrades(
                             TokioIo::new(tcp),
                             svc,

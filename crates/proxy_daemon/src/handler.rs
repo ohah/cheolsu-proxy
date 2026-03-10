@@ -64,6 +64,8 @@ pub(crate) struct ProxyConfig {
     // 리팩토링 시 tokio::sync::RwLock으로 교체 검토 필요.
     /// 프록시 인증 설정
     pub(crate) proxy_auth: Arc<parking_lot::RwLock<Option<crate::protocol::ProxyAuthConfig>>>,
+    /// 요청 바디 최대 크기 (None이면 제한 없음)
+    pub(crate) max_body_size: Option<usize>,
 }
 
 /// 인터셉트 규칙 및 스크립트 엔진
@@ -115,6 +117,7 @@ impl LoggingHandler {
                 ca_cert_der: None,
                 quick_settings: Arc::new(tokio::sync::RwLock::new(QuickSettings::default())),
                 proxy_auth: Arc::new(parking_lot::RwLock::new(None)),
+                max_body_size: None,
             },
             intercept: InterceptEngine {
                 intercept_rules: Arc::new(RwLock::new(Vec::new())),
@@ -212,6 +215,12 @@ impl LoggingHandler {
         proxy_auth: Arc<parking_lot::RwLock<Option<crate::protocol::ProxyAuthConfig>>>,
     ) -> Self {
         self.config.proxy_auth = proxy_auth;
+        self
+    }
+
+    /// 요청 바디 최대 크기를 설정합니다 (None이면 제한 없음)
+    pub fn with_max_body_size(mut self, max_body_size: Option<usize>) -> Self {
+        self.config.max_body_size = max_body_size;
         self
     }
 
@@ -1100,6 +1109,33 @@ impl HttpHandler for LoggingHandler {
         // 인증 통과 후 Proxy-Authorization 헤더 제거 (upstream에 전달 방지)
         req.headers_mut().remove("proxy-authorization");
 
+        // 요청 바디 크기 제한 확인 (Content-Length 기반)
+        if let Some(max_size) = self.config.max_body_size {
+            if let Some(content_length) = req
+                .headers()
+                .get(proxyapi_v2::hyper::header::CONTENT_LENGTH)
+                .and_then(|v| v.to_str().ok())
+                .and_then(|v| v.parse::<usize>().ok())
+            {
+                if content_length > max_size {
+                    info!(
+                        "[BodyLimit] 요청 바디 크기 초과: {} > {} ({})",
+                        content_length,
+                        max_size,
+                        req.uri()
+                    );
+                    let response = Response::builder()
+                        .status(StatusCode::PAYLOAD_TOO_LARGE)
+                        .body(Body::from(format!(
+                            "Request body too large: {} bytes (max: {} bytes)",
+                            content_length, max_size
+                        )))
+                        .unwrap();
+                    return response.into();
+                }
+            }
+        }
+
         if let Some(cert_response) = self.check_cert_download_intercept(&req) {
             return cert_response.into();
         }
@@ -1665,6 +1701,7 @@ mod tests {
                 ca_cert_der: None,
                 quick_settings: Arc::new(tokio::sync::RwLock::new(QuickSettings::default())),
                 proxy_auth: Arc::new(parking_lot::RwLock::new(None)),
+                max_body_size: None,
             },
             intercept: InterceptEngine {
                 intercept_rules: Arc::new(RwLock::new(Vec::new())),
@@ -1720,6 +1757,7 @@ mod tests {
                 ca_cert_der: None,
                 quick_settings: Arc::new(tokio::sync::RwLock::new(QuickSettings::default())),
                 proxy_auth: Arc::new(parking_lot::RwLock::new(None)),
+                max_body_size: None,
             },
             intercept: InterceptEngine {
                 intercept_rules: Arc::new(RwLock::new(Vec::new())),

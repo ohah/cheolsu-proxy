@@ -4,7 +4,7 @@ use crate::upstream_proxy::UpstreamProxyConfig;
 use crate::websocket_registry::WebSocketRegistry;
 use proxy_v2_models::RequestInfo;
 use std::sync::Arc;
-use tokio::sync::{mpsc, watch};
+use tokio::sync::{Semaphore, mpsc, watch};
 use tokio_tungstenite::Connector;
 
 /// 프록시의 공유 상태를 담는 컨텍스트 구조체.
@@ -18,6 +18,8 @@ pub struct ProxyContext {
     pub websocket_registry: Option<WebSocketRegistry>,
     pub upstream_proxy: Option<UpstreamProxyConfig>,
     pub throttle_rx: Option<Arc<watch::Receiver<Option<ThrottleConfig>>>>,
+    /// 동시 연결 수를 제한하는 세마포어 (None이면 제한 없음)
+    pub connection_semaphore: Option<Arc<Semaphore>>,
 }
 
 impl ProxyContext {

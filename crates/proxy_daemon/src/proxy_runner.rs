@@ -1,5 +1,6 @@
 use std::net::SocketAddr;
-use tokio::sync::{broadcast, watch};
+use std::sync::Arc;
+use tokio::sync::{broadcast, watch, Semaphore};
 use tracing::info;
 
 use crate::breakpoint::BreakpointManager;
@@ -34,6 +35,8 @@ pub async fn run_proxy(
     quick_settings: std::sync::Arc<tokio::sync::RwLock<QuickSettings>>,
     proxy_auth: std::sync::Arc<parking_lot::RwLock<Option<crate::protocol::ProxyAuthConfig>>>,
     shutdown_signal: tokio::sync::oneshot::Receiver<()>,
+    max_concurrent_connections: Option<usize>,
+    max_body_size: Option<usize>,
 ) -> Result<(), DaemonError> {
     use proxyapi_v2::builder::ProxyBuilder;
     use proxyapi_v2::certificate_authority::{
@@ -61,7 +64,8 @@ pub async fn run_proxy(
         .with_ca_cert_der(ca_cert_der)
         .with_breakpoint_manager(breakpoint_manager.clone())
         .with_quick_settings(quick_settings)
-        .with_proxy_auth(proxy_auth);
+        .with_proxy_auth(proxy_auth)
+        .with_max_body_size(max_body_size);
 
     // 인터셉트 규칙 초기값 로드
     {
@@ -178,12 +182,16 @@ pub async fn run_proxy(
 
     let throttle_rx_arc = std::sync::Arc::new(throttle_rx);
 
+    // 동시 연결 수 제한 세마포어 생성
+    let connection_semaphore = max_concurrent_connections.map(|max| Arc::new(Semaphore::new(max)));
+
     let proxy_ctx = proxyapi_v2::ProxyContext {
         tunnel_event_sender: Some(tunnel_tx),
         tls_passthrough: Some(tls_passthrough),
         websocket_registry: Some(ws_registry),
         upstream_proxy: initial_upstream,
         throttle_rx: Some(throttle_rx_arc),
+        connection_semaphore,
         ..Default::default()
     };
 
