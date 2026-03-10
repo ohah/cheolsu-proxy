@@ -111,7 +111,8 @@ pub fn run_daemon(port: u16, host: String) -> ! {
         .with_ansi(true);
 
     // 로그 디렉토리 생성 및 파일 로깅 레이어 설정
-    let file_layer = app_support_dir()
+    // _guard를 유지하여 non_blocking writer가 프로세스 종료 시까지 플러시되도록 함
+    let (file_layer, _guard) = app_support_dir()
         .map(|dir| dir.join("logs"))
         .and_then(|log_dir| {
             std::fs::create_dir_all(&log_dir).map_err(|e| {
@@ -122,14 +123,28 @@ pub fn run_daemon(port: u16, host: String) -> ! {
                 );
                 DaemonError::DataDirNotFound
             })?;
-            // 일별 로테이션, 최대 7일 보관
-            let file_appender =
-                tracing_appender::rolling::daily(&log_dir, "cheolsu-proxy-daemon.log");
-            Ok(tracing_subscriber::fmt::layer()
-                .with_writer(file_appender)
-                .with_ansi(false))
+            // 일별 로테이션, 최대 7일 보관, non_blocking으로 I/O blocking 방지
+            let file_appender = tracing_appender::rolling::RollingFileAppender::builder()
+                .rotation(tracing_appender::rolling::Rotation::DAILY)
+                .filename_prefix("cheolsu-proxy-daemon")
+                .filename_suffix("log")
+                .max_log_files(7)
+                .build(&log_dir)
+                .map_err(|e| {
+                    eprintln!("로그 파일 생성 실패: {} — stderr만 사용합니다", e);
+                    DaemonError::DataDirNotFound
+                })?;
+            let (non_blocking, guard) = tracing_appender::non_blocking(file_appender);
+            Ok((
+                Some(
+                    tracing_subscriber::fmt::layer()
+                        .with_writer(non_blocking)
+                        .with_ansi(false),
+                ),
+                Some(guard),
+            ))
         })
-        .ok();
+        .unwrap_or((None, None));
 
     let _ = tracing_subscriber::registry()
         .with(env_filter)
