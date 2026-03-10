@@ -161,8 +161,28 @@ export default defineConfig({
           text: "가이드",
           items: [
             {
+              text: "설치",
+              link: "/guide/installation",
+            },
+            {
               text: "기본 사용법",
               link: "/guide/basic-usage",
+            },
+            {
+              text: "SSL 인증서",
+              link: "/guide/ssl-certificates",
+            },
+            {
+              text: "프록시 설정",
+              link: "/guide/proxying",
+            },
+            {
+              text: "트래픽 기록",
+              link: "/guide/recording",
+            },
+            {
+              text: "세션 관리",
+              link: "/guide/sessions",
             },
             {
               text: "문제 해결",
@@ -176,8 +196,28 @@ export default defineConfig({
           text: "Guide",
           items: [
             {
+              text: "Installation",
+              link: "/en/guide/installation",
+            },
+            {
               text: "Basic Usage",
               link: "/en/guide/basic-usage",
+            },
+            {
+              text: "SSL Certificates",
+              link: "/en/guide/ssl-certificates",
+            },
+            {
+              text: "Proxying",
+              link: "/en/guide/proxying",
+            },
+            {
+              text: "Recording",
+              link: "/en/guide/recording",
+            },
+            {
+              text: "Sessions",
+              link: "/en/guide/sessions",
             },
             {
               text: "Troubleshooting",
