@@ -170,7 +170,7 @@ struct DaemonContext {
     ssl_proxying_tx: watch::Sender<Vec<crate::protocol::SslProxyingEntry>>,
     ws_registry: WebSocketRegistry,
     script_handle: scripting::ScriptHandle,
-    quick_settings: Arc<parking_lot::RwLock<QuickSettings>>,
+    quick_settings: Arc<tokio::sync::RwLock<QuickSettings>>,
 }
 
 /// 프록시 태스크를 스폰합니다.
@@ -187,7 +187,7 @@ fn spawn_proxy_task(
     ssl_proxying_rx: watch::Receiver<Vec<crate::protocol::SslProxyingEntry>>,
     ws_registry: WebSocketRegistry,
     script_handle: scripting::ScriptHandle,
-    quick_settings: Arc<parking_lot::RwLock<QuickSettings>>,
+    quick_settings: Arc<tokio::sync::RwLock<QuickSettings>>,
 ) -> tokio::task::JoinHandle<()> {
     tokio::spawn(async move {
         if let Err(code) = run_proxy(
@@ -330,7 +330,7 @@ async fn daemon_main(port: u16, host: String) -> i32 {
 
     let ws_registry = WebSocketRegistry::new();
     let script_handle = scripting::ScriptHandle::new();
-    let quick_settings = Arc::new(parking_lot::RwLock::new(QuickSettings::default()));
+    let quick_settings = Arc::new(tokio::sync::RwLock::new(QuickSettings::default()));
 
     let proxy_handle = spawn_proxy_task(
         addr,

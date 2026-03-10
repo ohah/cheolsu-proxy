@@ -559,7 +559,7 @@ mod tests {
             config: crate::handler::ProxyConfig {
                 cache_dir: None,
                 ca_cert_der: None,
-                quick_settings: Arc::new(parking_lot::RwLock::new(
+                quick_settings: Arc::new(tokio::sync::RwLock::new(
                     crate::handler::QuickSettings::default(),
                 )),
             },
