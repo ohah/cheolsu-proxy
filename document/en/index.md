@@ -1,6 +1,6 @@
 # Cheolsu Proxy
 
-A Man In The Middle proxy built with Rust and Tauri.
+An HTTP/HTTPS debugging proxy built with Rust and Tauri. Capture, analyze, and modify network traffic between your browser and the server in real time.
 
 > This project was forked from [Proxelar](https://github.com/emanuele-em/proxelar).
 
@@ -22,9 +22,14 @@ A Man In The Middle proxy built with Rust and Tauri.
 
 ## Guide
 
-Guide for using Cheolsu Proxy.
+Step-by-step guides to get you started with Cheolsu Proxy.
 
-- [Basic Usage](/en/guide/basic-usage) - Simple guide for first-time users
+- [Installation](/en/guide/installation) - Download and install
+- [Basic Usage](/en/guide/basic-usage) - Start the proxy, capture traffic, inspect requests
+- [SSL Certificates](/en/guide/ssl-certificates) - Certificate installation for HTTPS capture
+- [Proxying](/en/guide/proxying) - System proxy, port settings, mobile connections
+- [Recording](/en/guide/recording) - Traffic views, filtering, HAR export
+- [Sessions](/en/guide/sessions) - Save and load sessions
 - [Troubleshooting](/en/guide/troubleshooting) - Resolving common issues
 
 ## Feature Documentation

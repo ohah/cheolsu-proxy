@@ -1,75 +1,59 @@
 # Guide
 
-Complete guide for using Cheolsu Proxy.
+Cheolsu Proxy is an HTTP/HTTPS debugging proxy built with Rust and Tauri. It sits between your browser or application and the server, allowing you to monitor and analyze network traffic in real time. It's useful for API development, frontend debugging, mobile app testing, and more.
 
-## 🚀 Quick Start
+## Getting Started
+
+### [Installation](./installation.md)
+
+How to download and install Cheolsu Proxy on your system. Cheolsu Proxy supports macOS and provides three interfaces: Desktop GUI, TUI, and MCP Server.
 
 ### [Basic Usage](./basic-usage.md)
 
-Simple guide for first-time users of Cheolsu Proxy.
+Learn the basics of starting the proxy and capturing traffic. If you're new to Cheolsu Proxy, start here.
 
-- How to launch the program
-- Start/stop proxy
-- Browser configuration
-- Using HTTPS sites
+### [SSL Certificates](./ssl-certificates.md)
 
-## 🛠️ Troubleshooting
+To capture HTTPS traffic, you need to install and trust Cheolsu Proxy's CA certificate on your system. This guide covers platform-specific installation steps.
 
-### [Troubleshooting](./troubleshooting.md)
+## Core Concepts
 
-Guide on resolving common issues during use.
+### [Proxying](./proxying.md)
 
-- Proxy startup issues
-- Website access issues
-- HTTPS site issues
-- Performance issues
+How Cheolsu Proxy works as a proxy, system proxy configuration, manual proxy setup, upstream proxy, and the daemon architecture.
 
-## 🔍 Advanced Features
+### [Recording](./recording.md)
 
-### [Cheolsu-Query](../features/cheolsu-query.md)
+Traffic capture, table/tree views, request/response details, HAR export, and more.
 
-Guide for using the dedicated query language for filtering network requests.
+### [Sessions](./sessions.md)
 
-- Query syntax and operators
-- Filtering examples
-- Auto-completion features
-- Advanced usage
+Save and load captured traffic as sessions for later review.
 
-## 🔒 Security Considerations
+## [Troubleshooting](./troubleshooting.md)
 
-### Important Security Rules
+Solutions for common issues including proxy startup failures, website access problems, HTTPS certificate issues, and performance problems.
 
-**1. Prohibition of Malicious Use**
+## Advanced Features
 
-- Never use Cheolsu Proxy for malicious purposes such as data tampering or unauthorized interception
-- Use Cheolsu Proxy only for development and testing purposes
+Beyond capturing traffic, Cheolsu Proxy offers powerful tools for manipulating and automating requests and responses.
 
-**2. Corporate Environment Usage**
+- [Cheolsu-Query](/en/features/cheolsu-query) - Network request filtering query language
+- [Intercept Rules](/en/features/intercept-rules) - Block, modify, or redirect requests
+- [Scripting](/en/features/scripting) - Automate traffic manipulation with JavaScript/TypeScript
+- [WebSocket](/en/features/websocket) - WebSocket traffic monitoring and injection
+- [Server Replay](/en/features/server-replay) - Cache and reuse captured responses
+- [MCP Server](/en/features/mcp-server) - AI assistant integration
 
-- When using in a corporate environment, ensure compliance with company policies and regulations
-- Obtain approval from your IT department before use
-- Be mindful not to violate company policies
+## Security Considerations
 
-**3. Privacy Protection**
+**Use only for development and testing purposes.** Cheolsu Proxy is a powerful tool that can intercept and modify network traffic. Please observe the following:
 
-- Do not intercept traffic containing sensitive personal information
-- Be careful not to log sensitive information
-
-**4. Legal Responsibility**
-
-- Users are responsible for all legal consequences of using Cheolsu Proxy
-- Do not use for illegal activities
-
-## 📚 Additional Resources
-
-### Developer Guide
-
-If you want to contribute to the project, see the [Contributing](../contributing/index.md) section.
-
-### Release Information
-
-For the latest updates, check the [Release Notes](../releases/index.md).
+1. **No malicious use** — Do not use Cheolsu Proxy for data tampering, unauthorized interception, or any malicious purpose.
+2. **Corporate compliance** — When using in a corporate environment, obtain IT department approval and comply with company policies.
+3. **Privacy protection** — Do not intercept traffic containing sensitive personal information. Ensure sensitive data is not recorded in logs.
+4. **Legal responsibility** — Users are responsible for all legal consequences of using Cheolsu Proxy.
 
 ---
 
-**Get Started**: Begin with [Basic Usage](./basic-usage.md)!
+**Get Started**: Begin with [Installation](./installation.md), or if already installed, jump to [Basic Usage](./basic-usage.md).
