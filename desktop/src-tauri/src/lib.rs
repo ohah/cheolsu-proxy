@@ -65,8 +65,13 @@ pub fn run() {
                 setup_tray(app_handle)?;
 
                 // 네이티브 메뉴 설정
+                let about_icon =
+                    tauri::image::Image::from_bytes(include_bytes!("../icons/logo.png")).ok();
+                let about_metadata = tauri::menu::AboutMetadataBuilder::new()
+                    .icon(about_icon)
+                    .build();
                 let app_menu = SubmenuBuilder::new(app_handle, "Cheolsu Proxy")
-                    .about(None)
+                    .about(Some(about_metadata))
                     .separator()
                     .hide()
                     .hide_others()
