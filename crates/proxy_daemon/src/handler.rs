@@ -1030,8 +1030,8 @@ impl LoggingHandler {
 
 impl HttpHandler for LoggingHandler {
     async fn should_intercept(&mut self, _ctx: &HttpContext, req: &Request<Body>) -> bool {
-        // 프록시 인증이 활성화된 경우, 인증 실패 시 인터셉트하여 handle_request에서 407 응답
-        {
+        // 프록시 인증 체크: 인증 실패 여부를 먼저 판정
+        let auth_failed = {
             let auth_config = self.config.proxy_auth.read();
             if let Some(config) = auth_config.as_ref() {
                 if config.enabled && !config.username.is_empty() {
@@ -1039,11 +1039,23 @@ impl HttpHandler for LoggingHandler {
                         .headers()
                         .get("proxy-authorization")
                         .and_then(|v| v.to_str().ok());
-                    if !config.validate_proxy_auth(auth_header) {
-                        return true;
-                    }
+                    !config.validate_proxy_auth(auth_header)
+                } else {
+                    false
                 }
+            } else {
+                false
             }
+        };
+
+        // 인증 실패 시 반드시 인터셉트하여 handle_request에서 407 응답 반환
+        // TLS Passthrough 경로로 빠지면 인증 없이 터널이 수립되므로 여기서 차단 필수
+        if auth_failed {
+            info!(
+                "[ProxyAuth] CONNECT 인증 실패, 터널 수립 거부: {:?}",
+                req.uri().authority().map(|a| a.to_string())
+            );
+            return true;
         }
 
         // CONNECT 요청의 URI에서 authority(host:port)를 추출
