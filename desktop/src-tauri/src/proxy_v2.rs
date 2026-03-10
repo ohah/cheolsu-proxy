@@ -75,106 +75,110 @@ pub async fn start_proxy_v2<R: Runtime>(
     let (event_tx, mut event_rx) = tokio::sync::mpsc::channel::<DaemonMessage>(2048);
 
     let app_emitter = app.clone();
-    // NOTE: 이 스레드는 별도 OS 스레드이므로 tracing subscriber가 설정되지 않을 수 있어
-    // eprintln!을 사용합니다.
+    // NOTE: emit()을 직접 호출하면 macOS WebKit 내부 락과 메인 스레드 dispatch 사이에서
+    // 데드락이 발생합니다. run_on_main_thread()로 메인 스레드 이벤트 루프에 큐잉하면
+    // event-emitter 스레드가 블록되지 않아 데드락을 방지합니다.
     std::thread::Builder::new()
         .name("event-emitter".into())
         .spawn(move || {
             while let Some(msg) = event_rx.blocking_recv() {
-                match msg {
-                    DaemonMessage::Event { data } => {
-                        if let Err(e) = app_emitter.emit("proxy_event", data) {
-                            eprintln!("emit proxy_event 실패: {}", e);
+                let app = app_emitter.clone();
+                let _ = app_emitter.run_on_main_thread(move || {
+                    match msg {
+                        DaemonMessage::Event { data } => {
+                            if let Err(e) = app.emit("proxy_event", data) {
+                                eprintln!("emit proxy_event 실패: {}", e);
+                            }
                         }
-                    }
-                    DaemonMessage::WsMessage { data } => {
-                        if let Err(e) = app_emitter.emit("ws_message", data) {
-                            eprintln!("emit ws_message 실패: {}", e);
+                        DaemonMessage::WsMessage { data } => {
+                            if let Err(e) = app.emit("ws_message", data) {
+                                eprintln!("emit ws_message 실패: {}", e);
+                            }
                         }
-                    }
-                    DaemonMessage::WsConnection { data } => {
-                        if let Err(e) = app_emitter.emit("ws_connection", data) {
-                            eprintln!("emit ws_connection 실패: {}", e);
+                        DaemonMessage::WsConnection { data } => {
+                            if let Err(e) = app.emit("ws_connection", data) {
+                                eprintln!("emit ws_connection 실패: {}", e);
+                            }
                         }
-                    }
-                    DaemonMessage::InterceptRulesUpdated { rules } => {
-                        if let Err(e) = app_emitter.emit("intercept_rules_updated", rules) {
-                            eprintln!("emit intercept_rules_updated 실패: {}", e);
+                        DaemonMessage::InterceptRulesUpdated { rules } => {
+                            if let Err(e) = app.emit("intercept_rules_updated", rules) {
+                                eprintln!("emit intercept_rules_updated 실패: {}", e);
+                            }
                         }
-                    }
-                    DaemonMessage::ScriptLog { level, message } => {
-                        if let Err(e) = app_emitter.emit(
-                            "script_log",
-                            serde_json::json!({ "level": level, "message": message }),
-                        ) {
-                            eprintln!("emit script_log 실패: {}", e);
+                        DaemonMessage::ScriptLog { level, message } => {
+                            if let Err(e) = app.emit(
+                                "script_log",
+                                serde_json::json!({ "level": level, "message": message }),
+                            ) {
+                                eprintln!("emit script_log 실패: {}", e);
+                            }
                         }
-                    }
-                    DaemonMessage::ScriptStatus {
-                        active,
-                        path,
-                        message,
-                    } => {
-                        if let Err(e) = app_emitter.emit(
-                            "script_status",
-                            serde_json::json!({ "active": active, "path": path, "message": message }),
-                        ) {
-                            eprintln!("emit script_status 실패: {}", e);
+                        DaemonMessage::ScriptStatus {
+                            active,
+                            path,
+                            message,
+                        } => {
+                            if let Err(e) = app.emit(
+                                "script_status",
+                                serde_json::json!({ "active": active, "path": path, "message": message }),
+                            ) {
+                                eprintln!("emit script_status 실패: {}", e);
+                            }
                         }
-                    }
-                    DaemonMessage::ScriptResult { success, error } => {
-                        if let Err(e) = app_emitter.emit(
-                            "script_result",
-                            serde_json::json!({ "success": success, "error": error }),
-                        ) {
-                            eprintln!("emit script_result 실패: {}", e);
+                        DaemonMessage::ScriptResult { success, error } => {
+                            if let Err(e) = app.emit(
+                                "script_result",
+                                serde_json::json!({ "success": success, "error": error }),
+                            ) {
+                                eprintln!("emit script_result 실패: {}", e);
+                            }
                         }
-                    }
-                    DaemonMessage::BreakpointRulesUpdated { rules } => {
-                        if let Err(e) = app_emitter.emit("breakpoint_rules_updated", rules) {
-                            eprintln!("emit breakpoint_rules_updated 실패: {}", e);
+                        DaemonMessage::BreakpointRulesUpdated { rules } => {
+                            if let Err(e) = app.emit("breakpoint_rules_updated", rules) {
+                                eprintln!("emit breakpoint_rules_updated 실패: {}", e);
+                            }
                         }
-                    }
-                    DaemonMessage::BreakpointHit {
-                        id,
-                        transaction_id,
-                        phase,
-                        data,
-                    } => {
-                        if let Err(e) = app_emitter.emit(
-                            "breakpoint_hit",
-                            serde_json::json!({ "id": id, "transaction_id": transaction_id, "phase": phase, "data": data }),
-                        ) {
-                            eprintln!("emit breakpoint_hit 실패: {}", e);
+                        DaemonMessage::BreakpointHit {
+                            id,
+                            transaction_id,
+                            phase,
+                            data,
+                        } => {
+                            if let Err(e) = app.emit(
+                                "breakpoint_hit",
+                                serde_json::json!({ "id": id, "transaction_id": transaction_id, "phase": phase, "data": data }),
+                            ) {
+                                eprintln!("emit breakpoint_hit 실패: {}", e);
+                            }
                         }
-                    }
-                    DaemonMessage::HostMappingsUpdated { mappings } => {
-                        if let Err(e) = app_emitter.emit("host_mappings_updated", mappings) {
-                            eprintln!("emit host_mappings_updated 실패: {}", e);
+                        DaemonMessage::HostMappingsUpdated { mappings } => {
+                            if let Err(e) = app.emit("host_mappings_updated", mappings) {
+                                eprintln!("emit host_mappings_updated 실패: {}", e);
+                            }
                         }
-                    }
-                    DaemonMessage::SslProxyingListUpdated { entries } => {
-                        if let Err(e) = app_emitter.emit("ssl_proxying_list_updated", entries) {
-                            eprintln!("emit ssl_proxying_list_updated 실패: {}", e);
+                        DaemonMessage::SslProxyingListUpdated { entries } => {
+                            if let Err(e) = app.emit("ssl_proxying_list_updated", entries) {
+                                eprintln!("emit ssl_proxying_list_updated 실패: {}", e);
+                            }
                         }
-                    }
-                    DaemonMessage::Disconnected { reason } => {
-                        eprintln!("데몬 연결 끊김: {}", reason);
-                        if let Err(e) = app_emitter.emit(
-                            "daemon_disconnected",
-                            serde_json::json!({ "reason": reason }),
-                        ) {
-                            eprintln!("emit daemon_disconnected 실패: {}", e);
+                        DaemonMessage::Disconnected { reason } => {
+                            eprintln!("데몬 연결 끊김: {}", reason);
+                            if let Err(e) = app.emit(
+                                "daemon_disconnected",
+                                serde_json::json!({ "reason": reason }),
+                            ) {
+                                eprintln!("emit daemon_disconnected 실패: {}", e);
+                            }
                         }
-                    }
-                    DaemonMessage::Reconnected => {
-                        eprintln!("데몬 재연결 성공");
-                        if let Err(e) = app_emitter.emit("daemon_reconnected", ()) {
-                            eprintln!("emit daemon_reconnected 실패: {}", e);
+                        DaemonMessage::Reconnected => {
+                            eprintln!("데몬 재연결 성공");
+                            if let Err(e) = app.emit("daemon_reconnected", ()) {
+                                eprintln!("emit daemon_reconnected 실패: {}", e);
+                            }
                         }
+                        _ => {}
                     }
-                    _ => {}
-                }
+                });
             }
         })
         .expect("event-emitter 스레드 생성 실패");
