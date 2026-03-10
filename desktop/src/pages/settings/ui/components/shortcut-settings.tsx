@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
-import { useSettingsStore } from "@/shared/stores/use-settings-store";
+import { useAppSettingsStore } from "@/shared/stores/app-settings-store";
 import {
   setStoredShortcut,
   setShortcutEnabled,
@@ -44,10 +44,10 @@ function ShortcutDisplay({ shortcut }: { shortcut: string }) {
 
 export function ShortcutSettings() {
   const { t } = useLingui();
-  const hotkeyEnabled = useSettingsStore((s) => s.hotkeyEnabled);
-  const storeSetHotkeyEnabled = useSettingsStore((s) => s.setHotkeyEnabled);
-  const hotkey = useSettingsStore((s) => s.hotkey);
-  const storeSetHotkey = useSettingsStore((s) => s.setHotkey);
+  const hotkeyEnabled = useAppSettingsStore((s) => s.proxyToggleShortcutEnabled);
+  const storeSetHotkeyEnabled = useAppSettingsStore((s) => s.setProxyToggleShortcutEnabled);
+  const hotkey = useAppSettingsStore((s) => s.proxyToggleShortcut);
+  const storeSetHotkey = useAppSettingsStore((s) => s.setProxyToggleShortcut);
 
   const [localHotkeyEnabled, setLocalHotkeyEnabled] = useState(hotkeyEnabled);
   const [localHotkey, setLocalHotkey] = useState(hotkey);
