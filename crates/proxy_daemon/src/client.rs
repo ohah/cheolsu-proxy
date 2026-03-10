@@ -9,6 +9,39 @@ use crate::daemon::{check_and_cleanup_stale_lock, lock_file_path, uds_socket_pat
 use crate::error::DaemonError;
 use crate::protocol::{ClientCommand, DaemonMessage, ProxyLockInfo};
 
+/// DaemonConnection에서 추출 가능한 클론 가능한 커맨드 전송 핸들.
+/// 외부 mutex를 잡지 않고도 데몬에 명령을 보낼 수 있습니다.
+#[derive(Clone)]
+pub struct CommandSender {
+    writer: Arc<Mutex<Option<tokio::io::WriteHalf<UnixStream>>>>,
+    is_connected: Arc<AtomicBool>,
+}
+
+impl CommandSender {
+    /// Send a command to the daemon.
+    pub async fn send_command(&self, cmd: &ClientCommand) -> Result<(), DaemonError> {
+        if !self.is_connected.load(Ordering::SeqCst) {
+            return Err(DaemonError::Uds(
+                "데몬에 연결되어 있지 않습니다".to_string(),
+            ));
+        }
+
+        let mut line = serde_json::to_string(cmd)?;
+        line.push('\n');
+        let mut guard = self.writer.lock().await;
+        let w = guard.as_mut().ok_or_else(|| {
+            DaemonError::Uds("데몬에 연결되어 있지 않습니다 (writer 없음)".to_string())
+        })?;
+        w.write_all(line.as_bytes())
+            .await
+            .map_err(|e| DaemonError::Uds(format!("write: {}", e)))?;
+        w.flush()
+            .await
+            .map_err(|e| DaemonError::Uds(format!("flush: {}", e)))?;
+        Ok(())
+    }
+}
+
 /// A connection to the daemon process.
 pub struct DaemonConnection {
     writer: Arc<Mutex<Option<tokio::io::WriteHalf<UnixStream>>>>,
@@ -40,27 +73,17 @@ impl DaemonConnection {
         }
     }
 
+    /// 클론 가능한 커맨드 전송 핸들을 반환합니다.
+    pub fn command_sender(&self) -> CommandSender {
+        CommandSender {
+            writer: self.writer.clone(),
+            is_connected: self.is_connected.clone(),
+        }
+    }
+
     /// Send a command to the daemon.
     pub async fn send_command(&self, cmd: &ClientCommand) -> Result<(), DaemonError> {
-        if !self.is_connected() {
-            return Err(DaemonError::Uds(
-                "데몬에 연결되어 있지 않습니다".to_string(),
-            ));
-        }
-
-        let mut line = serde_json::to_string(cmd)?;
-        line.push('\n');
-        let mut guard = self.writer.lock().await;
-        let w = guard.as_mut().ok_or_else(|| {
-            DaemonError::Uds("데몬에 연결되어 있지 않습니다 (writer 없음)".to_string())
-        })?;
-        w.write_all(line.as_bytes())
-            .await
-            .map_err(|e| DaemonError::Uds(format!("write: {}", e)))?;
-        w.flush()
-            .await
-            .map_err(|e| DaemonError::Uds(format!("flush: {}", e)))?;
-        Ok(())
+        self.command_sender().send_command(cmd).await
     }
 }
 
