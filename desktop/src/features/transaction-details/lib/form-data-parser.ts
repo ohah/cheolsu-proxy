@@ -47,6 +47,7 @@ export const extractBoundary = (contentType: string): string | null => {
  * Content-Type이 multipart/form-data인지 확인
  */
 export const isMultipartFormData = (contentType: string): boolean => {
+  if (!contentType) return false;
   return contentType.toLowerCase().startsWith("multipart/form-data");
 };
 
@@ -54,6 +55,7 @@ export const isMultipartFormData = (contentType: string): boolean => {
  * Content-Type이 application/x-www-form-urlencoded인지 확인
  */
 export const isUrlencoded = (contentType: string): boolean => {
+  if (!contentType) return false;
   return contentType.toLowerCase().startsWith("application/x-www-form-urlencoded");
 };
 
@@ -81,7 +83,7 @@ const parseContentDisposition = (
 const parsePartHeaders = (
   headerSection: string,
 ): { name: string; fileName?: string; contentType?: string } => {
-  const lines = headerSection.split("\r\n").filter(Boolean);
+  const lines = headerSection.split(/\r?\n/).filter(Boolean);
   let name = "";
   let fileName: string | undefined;
   let contentType: string | undefined;
@@ -125,11 +127,6 @@ export const parseMultipartFormData = (
   const fields: MultipartField[] = [];
 
   for (const part of parts) {
-    // 종료 구분자 이후는 무시
-    if (part.trim() === "--" || part.trim().startsWith("--")) {
-      continue;
-    }
-
     // 헤더와 바디를 분리 (\r\n\r\n 또는 \n\n)
     let headerEnd = part.indexOf("\r\n\r\n");
     let bodyStart = headerEnd + 4;
