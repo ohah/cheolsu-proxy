@@ -29,69 +29,19 @@ const DIAG_MINIMAL_MODE: bool = true;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    let mut builder = tauri::Builder::default();
+
     if DIAG_MINIMAL_MODE {
-        // ── 최소 구성: 프론트엔드 + invoke_handler만 ──
-        tauri::Builder::default()
+        // ── 최소 구성: opener 플러그인만 ──
+        builder = builder
             .plugin(tauri_plugin_opener::init())
             .setup(|app_handle| {
                 app_handle.manage(ProxyV2State::default());
                 Ok(())
-            })
-            .invoke_handler(tauri::generate_handler![
-                start_proxy_v2,
-                stop_proxy_v2,
-                proxy_v2_status,
-                update_intercept_rules_v2,
-                get_proxy_status_command,
-                read_body_file,
-                clean_old_proxy_cache,
-                replay_request,
-                replay_sequence,
-                advanced_repeat,
-                ws_inject_message,
-                update_upstream_proxy,
-                update_proxy_auth,
-                update_throttle,
-                update_server_replay,
-                update_host_mappings,
-                update_quick_settings,
-                get_mcp_server_path,
-                install_cli,
-                uninstall_cli,
-                check_cli_installed,
-                get_ca_cert_path,
-                check_ca_installed,
-                install_ca_cert,
-                uninstall_ca_cert,
-                load_script,
-                unload_script,
-                export_har_file,
-                save_session,
-                load_session,
-                autosave_session,
-                autoload_session,
-                import_har_file_cmd,
-                get_cert_download_info,
-                diff_transactions,
-                diff_transaction_pairs,
-                update_breakpoint_rules,
-                update_ssl_proxying_list,
-                update_client_certificate,
-                resolve_breakpoint,
-                tray::tray_get_info,
-                tray::tray_show_main_window,
-                tray::tray_quit_app,
-            ])
-            .run(tauri::generate_context!())
-            .expect("error while running tauri application");
-        return;
-    }
-
-    // ── 원래 전체 구성 ──
-    // #[cfg(debug_assertions)]
-    // let devtools = tauri_plugin_devtools::init();
-    {
-        let mut builder = tauri::Builder::default()
+            });
+    } else {
+        // ── 원래 전체 구성 ──
+        builder = builder
             .plugin(tauri_plugin_http::init())
             .plugin(tauri_plugin_opener::init())
             .plugin(tauri_plugin_fs::init())
@@ -102,7 +52,6 @@ pub fn run() {
             .plugin(tauri_plugin_global_shortcut::Builder::new().build())
             .plugin(tauri_plugin_os::init())
             .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
-                // 이미 실행 중인 인스턴스의 메인 윈도우를 포커스
                 if let Some(window) = app.get_webview_window("main") {
                     let _ = window.unminimize();
                     let _ = window.set_focus();
@@ -114,21 +63,12 @@ pub fn run() {
             builder = builder.plugin(tauri_plugin_mcp_bridge::init());
         }
 
-        // DevTools 플러그인 추가 (개발 빌드에서만)
-        // #[cfg(debug_assertions)]
-        // {
-        //     builder = builder.plugin(devtools);
-        // }
-
-        builder
+        builder = builder
             .setup(|app_handle| {
-                // proxyapi_v2 프록시 상태
                 app_handle.manage(ProxyV2State::default());
 
-                // 시스템 트레이 설정
                 setup_tray(app_handle)?;
 
-                // 네이티브 메뉴 설정
                 let app_menu = SubmenuBuilder::new(app_handle, "Cheolsu Proxy")
                     .about(None)
                     .separator()
@@ -165,7 +105,6 @@ pub fn run() {
 
                 app_handle.set_menu(menu)?;
 
-                // 앱 시작 시 자동 캐시 정리 (1일 이상 된 캐시)
                 tauri::async_runtime::spawn(async {
                     match clean_old_proxy_cache(1).await {
                         Ok(message) => println!("{}", message),
@@ -176,61 +115,61 @@ pub fn run() {
                 Ok(())
             })
             .on_window_event(|window, event| {
-                // 메인 윈도우 닫기 시 트레이로 최소화 (완전 종료 대신)
                 if let tauri::WindowEvent::CloseRequested { api, .. } = event {
                     if window.label() == "main" {
-                        // 닫기를 막고 윈도우를 숨김
                         api.prevent_close();
                         let _ = window.hide();
                     }
                 }
-            })
-            .invoke_handler(tauri::generate_handler![
-                start_proxy_v2,
-                stop_proxy_v2,
-                proxy_v2_status,
-                update_intercept_rules_v2,
-                get_proxy_status_command,
-                read_body_file,
-                clean_old_proxy_cache,
-                replay_request,
-                replay_sequence,
-                advanced_repeat,
-                ws_inject_message,
-                update_upstream_proxy,
-                update_proxy_auth,
-                update_throttle,
-                update_server_replay,
-                update_host_mappings,
-                update_quick_settings,
-                get_mcp_server_path,
-                install_cli,
-                uninstall_cli,
-                check_cli_installed,
-                get_ca_cert_path,
-                check_ca_installed,
-                install_ca_cert,
-                uninstall_ca_cert,
-                load_script,
-                unload_script,
-                export_har_file,
-                save_session,
-                load_session,
-                autosave_session,
-                autoload_session,
-                import_har_file_cmd,
-                get_cert_download_info,
-                diff_transactions,
-                diff_transaction_pairs,
-                update_breakpoint_rules,
-                update_ssl_proxying_list,
-                update_client_certificate,
-                resolve_breakpoint,
-                tray::tray_get_info,
-                tray::tray_show_main_window,
-                tray::tray_quit_app,
-            ])
-            .run(tauri::generate_context!())
-            .expect("error while running tauri application");
+            });
     }
+
+    builder
+        .invoke_handler(tauri::generate_handler![
+            start_proxy_v2,
+            stop_proxy_v2,
+            proxy_v2_status,
+            update_intercept_rules_v2,
+            get_proxy_status_command,
+            read_body_file,
+            clean_old_proxy_cache,
+            replay_request,
+            replay_sequence,
+            advanced_repeat,
+            ws_inject_message,
+            update_upstream_proxy,
+            update_proxy_auth,
+            update_throttle,
+            update_server_replay,
+            update_host_mappings,
+            update_quick_settings,
+            get_mcp_server_path,
+            install_cli,
+            uninstall_cli,
+            check_cli_installed,
+            get_ca_cert_path,
+            check_ca_installed,
+            install_ca_cert,
+            uninstall_ca_cert,
+            load_script,
+            unload_script,
+            export_har_file,
+            save_session,
+            load_session,
+            autosave_session,
+            autoload_session,
+            import_har_file_cmd,
+            get_cert_download_info,
+            diff_transactions,
+            diff_transaction_pairs,
+            update_breakpoint_rules,
+            update_ssl_proxying_list,
+            update_client_certificate,
+            resolve_breakpoint,
+            tray::tray_get_info,
+            tray::tray_show_main_window,
+            tray::tray_quit_app,
+        ])
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
 }
