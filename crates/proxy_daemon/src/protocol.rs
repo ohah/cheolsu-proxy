@@ -78,6 +78,12 @@ pub enum DaemonMessage {
     /// 클라이언트 인증서 설정 업데이트됨
     #[serde(rename = "client_certificate_updated")]
     ClientCertificateUpdated { config: Option<ClientCertConfig> },
+    /// 데몬 연결이 끊어졌음을 알리는 메시지
+    #[serde(rename = "disconnected")]
+    Disconnected { reason: String },
+    /// 데몬에 재연결되었음을 알리는 메시지
+    #[serde(rename = "reconnected")]
+    Reconnected,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

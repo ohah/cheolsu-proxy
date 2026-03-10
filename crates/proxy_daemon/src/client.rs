@@ -1,4 +1,6 @@
 use std::io::Write;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::net::UnixStream;
 use tokio::sync::Mutex;
@@ -9,9 +11,11 @@ use crate::protocol::{ClientCommand, DaemonMessage, ProxyLockInfo};
 
 /// A connection to the daemon process.
 pub struct DaemonConnection {
-    writer: Mutex<tokio::io::WriteHalf<UnixStream>>,
+    writer: Arc<Mutex<Option<tokio::io::WriteHalf<UnixStream>>>>,
     /// Background task that reads events from the UDS and forwards them.
     event_task: Option<tokio::task::JoinHandle<()>>,
+    /// 현재 데몬에 연결되어 있는지 여부
+    is_connected: Arc<AtomicBool>,
     pub port: u16,
 }
 
@@ -24,6 +28,11 @@ impl Drop for DaemonConnection {
 }
 
 impl DaemonConnection {
+    /// 현재 데몬에 연결되어 있는지 확인합니다.
+    pub fn is_connected(&self) -> bool {
+        self.is_connected.load(Ordering::Relaxed)
+    }
+
     /// Disconnect from the daemon (does NOT send stop command).
     pub async fn disconnect(mut self) {
         if let Some(task) = self.event_task.take() {
@@ -33,9 +42,18 @@ impl DaemonConnection {
 
     /// Send a command to the daemon.
     pub async fn send_command(&self, cmd: &ClientCommand) -> Result<(), DaemonError> {
+        if !self.is_connected() {
+            return Err(DaemonError::Uds(
+                "데몬에 연결되어 있지 않습니다".to_string(),
+            ));
+        }
+
         let mut line = serde_json::to_string(cmd)?;
         line.push('\n');
-        let mut w = self.writer.lock().await;
+        let mut guard = self.writer.lock().await;
+        let w = guard.as_mut().ok_or_else(|| {
+            DaemonError::Uds("데몬에 연결되어 있지 않습니다 (writer 없음)".to_string())
+        })?;
         w.write_all(line.as_bytes())
             .await
             .map_err(|e| DaemonError::Uds(format!("write: {}", e)))?;
@@ -137,7 +155,7 @@ pub async fn ensure_daemon<F>(
     on_message: F,
 ) -> Result<DaemonConnection, DaemonError>
 where
-    F: Fn(DaemonMessage) + Send + 'static,
+    F: Fn(DaemonMessage) + Send + Sync + 'static,
 {
     if is_daemon_running().is_none() {
         check_and_cleanup_stale_lock();
@@ -178,18 +196,22 @@ where
     connect_to_daemon(on_message).await
 }
 
-/// Connect to an already-running daemon.
-/// `on_message` is called for each `DaemonMessage` received.
-pub async fn connect_to_daemon<F>(on_message: F) -> Result<DaemonConnection, DaemonError>
-where
-    F: Fn(DaemonMessage) + Send + 'static,
-{
+/// UDS에 연결하고 Subscribe 명령을 보내는 내부 헬퍼.
+/// 성공 시 (reader, writer, port)를 반환합니다.
+async fn establish_connection() -> Result<
+    (
+        BufReader<tokio::io::ReadHalf<UnixStream>>,
+        tokio::io::WriteHalf<UnixStream>,
+        u16,
+    ),
+    DaemonError,
+> {
     let uds_path = uds_socket_path()?;
     let stream = UnixStream::connect(&uds_path)
         .await
         .map_err(|e| DaemonError::Uds(format!("connect: {}", e)))?;
 
-    let (reader, writer) = tokio::io::split(stream);
+    let (reader, mut writer) = tokio::io::split(stream);
     let mut reader = BufReader::new(reader);
 
     let mut first_line = String::new();
@@ -203,26 +225,65 @@ where
         _ => 8100,
     };
 
-    let writer = Mutex::new(writer);
+    // Subscribe 명령 전송
+    let mut sub_line = serde_json::to_string(&ClientCommand::Subscribe).unwrap_or_default();
+    sub_line.push('\n');
+    writer
+        .write_all(sub_line.as_bytes())
+        .await
+        .map_err(|e| DaemonError::Uds(format!("send subscribe: {}", e)))?;
+    writer
+        .flush()
+        .await
+        .map_err(|e| DaemonError::Uds(format!("flush subscribe: {}", e)))?;
 
-    {
-        let mut sub_line = serde_json::to_string(&ClientCommand::Subscribe).unwrap_or_default();
-        sub_line.push('\n');
-        let mut w = writer.lock().await;
-        w.write_all(sub_line.as_bytes())
-            .await
-            .map_err(|e| DaemonError::Uds(format!("send subscribe: {}", e)))?;
-        w.flush()
-            .await
-            .map_err(|e| DaemonError::Uds(format!("flush subscribe: {}", e)))?;
-    }
+    Ok((reader, writer, port))
+}
+
+/// Connect to an already-running daemon.
+/// `on_message` is called for each `DaemonMessage` received.
+pub async fn connect_to_daemon<F>(on_message: F) -> Result<DaemonConnection, DaemonError>
+where
+    F: Fn(DaemonMessage) + Send + Sync + 'static,
+{
+    let (reader, writer, port) = establish_connection().await?;
+
+    let is_connected = Arc::new(AtomicBool::new(true));
+    let shared_writer: Arc<Mutex<Option<tokio::io::WriteHalf<UnixStream>>>> =
+        Arc::new(Mutex::new(Some(writer)));
+
+    let event_is_connected = is_connected.clone();
+    let event_writer = shared_writer.clone();
 
     let event_task = tokio::spawn(async move {
-        let mut line_buf = String::new();
-        loop {
+        run_event_loop(reader, &on_message, &event_is_connected, &event_writer).await;
+    });
+
+    Ok(DaemonConnection {
+        writer: shared_writer,
+        event_task: Some(event_task),
+        is_connected,
+        port,
+    })
+}
+
+/// 이벤트 루프: 메시지를 읽고, 연결 끊김 시 지수 백오프로 재연결을 시도합니다.
+async fn run_event_loop<F>(
+    mut reader: BufReader<tokio::io::ReadHalf<UnixStream>>,
+    on_message: &F,
+    is_connected: &Arc<AtomicBool>,
+    writer: &Arc<Mutex<Option<tokio::io::WriteHalf<UnixStream>>>>,
+) where
+    F: Fn(DaemonMessage) + Send + Sync + 'static,
+{
+    let mut line_buf = String::new();
+
+    loop {
+        // 메시지 읽기 루프
+        let disconnect_reason = loop {
             line_buf.clear();
             match reader.read_line(&mut line_buf).await {
-                Ok(0) => break,
+                Ok(0) => break "EOF: 데몬 연결 종료".to_string(),
                 Ok(_) => {
                     let trimmed = line_buf.trim();
                     if trimmed.is_empty() {
@@ -237,17 +298,50 @@ where
                         }
                     }
                 }
-                Err(e) => {
-                    eprintln!("Daemon UDS read error: {}", e);
+                Err(e) => break format!("UDS 읽기 오류: {}", e),
+            }
+        };
+
+        // 연결 끊김 감지
+        is_connected.store(false, Ordering::Relaxed);
+        {
+            let mut w = writer.lock().await;
+            *w = None;
+        }
+        on_message(DaemonMessage::Disconnected {
+            reason: disconnect_reason.clone(),
+        });
+        eprintln!("Daemon 연결 끊김: {}", disconnect_reason);
+
+        // 지수 백오프로 재연결 시도
+        let mut backoff_ms: u64 = 100;
+        const MAX_BACKOFF_MS: u64 = 5000;
+
+        loop {
+            tokio::time::sleep(std::time::Duration::from_millis(backoff_ms)).await;
+
+            match establish_connection().await {
+                Ok((new_reader, new_writer, _port)) => {
+                    // 재연결 성공
+                    reader = new_reader;
+                    {
+                        let mut w = writer.lock().await;
+                        *w = Some(new_writer);
+                    }
+                    is_connected.store(true, Ordering::Relaxed);
+                    on_message(DaemonMessage::Reconnected);
+                    eprintln!("Daemon 재연결 성공");
                     break;
+                }
+                Err(e) => {
+                    eprintln!(
+                        "Daemon 재연결 실패 ({}ms 후 재시도): {}",
+                        backoff_ms.min(MAX_BACKOFF_MS),
+                        e
+                    );
+                    backoff_ms = (backoff_ms * 2).min(MAX_BACKOFF_MS);
                 }
             }
         }
-    });
-
-    Ok(DaemonConnection {
-        writer,
-        event_task: Some(event_task),
-        port,
-    })
+    }
 }

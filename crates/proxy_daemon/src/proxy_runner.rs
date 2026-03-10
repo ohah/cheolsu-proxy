@@ -33,6 +33,7 @@ pub async fn run_proxy(
     script_handle: scripting::ScriptHandle,
     quick_settings: std::sync::Arc<tokio::sync::RwLock<QuickSettings>>,
     proxy_auth: std::sync::Arc<parking_lot::RwLock<Option<crate::protocol::ProxyAuthConfig>>>,
+    shutdown_signal: tokio::sync::oneshot::Receiver<()>,
 ) -> Result<(), DaemonError> {
     use proxyapi_v2::builder::ProxyBuilder;
     use proxyapi_v2::certificate_authority::{
@@ -184,6 +185,9 @@ pub async fn run_proxy(
         .with_client(hybrid_client)
         .with_http_handler(handler.clone())
         .with_websocket_handler(handler.clone())
+        .with_graceful_shutdown(async {
+            let _ = shutdown_signal.await;
+        })
         .with_proxy_context(proxy_ctx)
         .build()
         .map_err(|e| DaemonError::Proxy(format!("Proxy build failed: {}", e)))?;

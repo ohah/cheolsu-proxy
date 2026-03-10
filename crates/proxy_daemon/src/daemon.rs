@@ -176,6 +176,7 @@ struct DaemonContext {
 }
 
 /// 프록시 태스크를 스폰합니다.
+/// 반환값: (JoinHandle, 종료 신호 송신자)
 fn spawn_proxy_task(
     addr: std::net::SocketAddr,
     event_tx: broadcast::Sender<String>,
@@ -192,8 +193,12 @@ fn spawn_proxy_task(
     script_handle: scripting::ScriptHandle,
     quick_settings: Arc<tokio::sync::RwLock<QuickSettings>>,
     proxy_auth: Arc<parking_lot::RwLock<Option<crate::protocol::ProxyAuthConfig>>>,
-) -> tokio::task::JoinHandle<()> {
-    tokio::spawn(async move {
+) -> (
+    tokio::task::JoinHandle<()>,
+    tokio::sync::oneshot::Sender<()>,
+) {
+    let (shutdown_tx, shutdown_rx) = tokio::sync::oneshot::channel::<()>();
+    let handle = tokio::spawn(async move {
         if let Err(code) = run_proxy(
             addr,
             event_tx,
@@ -210,12 +215,14 @@ fn spawn_proxy_task(
             script_handle,
             quick_settings,
             proxy_auth,
+            shutdown_rx,
         )
         .await
         {
             error!("Proxy error: {}", code);
         }
-    })
+    });
+    (handle, shutdown_tx)
 }
 
 /// Ctrl+C 및 SIGTERM 시그널 핸들러를 등록합니다.
@@ -242,6 +249,24 @@ fn spawn_signal_handlers(shutdown_tx: tokio::sync::mpsc::Sender<()>) {
     });
 }
 
+/// 클라이언트 연결 카운트를 자동으로 감소시키는 Drop guard.
+/// 태스크가 정상 종료, 패닉, abort 등 어떤 방식으로 끝나더라도 카운트가 감소됩니다.
+struct ClientCountGuard {
+    client_count: Arc<AtomicUsize>,
+    shutdown_tx: tokio::sync::mpsc::Sender<()>,
+}
+
+impl Drop for ClientCountGuard {
+    fn drop(&mut self) {
+        let remaining = self.client_count.fetch_sub(1, Ordering::SeqCst) - 1;
+        info!("Client disconnected. Remaining clients: {}", remaining);
+        if remaining == 0 {
+            info!("No clients remaining, shutting down daemon...");
+            let _ = self.shutdown_tx.try_send(());
+        }
+    }
+}
+
 /// UDS accept 루프를 실행합니다. shutdown 시그널 수신 시 종료.
 async fn run_accept_loop(
     uds_listener: UnixListener,
@@ -257,10 +282,13 @@ async fn run_accept_loop(
                         let count = ctx.client_count.fetch_add(1, Ordering::SeqCst) + 1;
                         info!("Client connected (total: {})", count);
 
+                        let _guard = ClientCountGuard {
+                            client_count: ctx.client_count.clone(),
+                            shutdown_tx: ctx.shutdown_tx.clone(),
+                        };
+
                         let event_rx = ctx.event_tx.subscribe();
                         let event_tx_clone = ctx.event_tx.clone();
-                        let client_count_clone = ctx.client_count.clone();
-                        let shutdown_tx_clone = ctx.shutdown_tx.clone();
                         let intercept_tx_clone = ctx.intercept_tx.clone();
                         let upstream_tx_clone = ctx.upstream_tx.clone();
                         let server_replay_tx_clone = ctx.server_replay_tx.clone();
@@ -276,16 +304,11 @@ async fn run_accept_loop(
                         let proxy_auth_clone = ctx.proxy_auth.clone();
 
                         tokio::spawn(async move {
+                            // guard가 이 태스크 스코프에 소유되므로, 태스크가 어떤 방식으로
+                            // 종료되든 (정상, 패닉, abort) Drop이 호출되어 카운트가 감소됩니다.
+                            let _guard = _guard;
                             handle_client(stream, event_rx, intercept_tx_clone, upstream_tx_clone, server_replay_tx_clone, throttle_tx_clone, breakpoint_tx_clone, breakpoint_mgr_clone, host_mapping_tx_clone, ssl_proxying_tx_clone, client_cert_tx_clone, event_tx_clone, port, registry_clone, script_handle_clone, quick_settings_clone, proxy_auth_clone)
                                 .await;
-
-                            let remaining = client_count_clone.fetch_sub(1, Ordering::SeqCst) - 1;
-                            info!("Client disconnected (remaining: {})", remaining);
-
-                            if remaining == 0 {
-                                info!("No clients remaining, shutting down daemon...");
-                                let _ = shutdown_tx_clone.send(()).await;
-                            }
                         });
                     }
                     Err(e) => {
@@ -345,7 +368,7 @@ async fn daemon_main(port: u16, host: String) -> i32 {
         None::<crate::protocol::ProxyAuthConfig>,
     ));
 
-    let proxy_handle = spawn_proxy_task(
+    let (proxy_handle, proxy_shutdown_tx) = spawn_proxy_task(
         addr,
         event_tx.clone(),
         intercept_rx,
@@ -407,7 +430,23 @@ async fn daemon_main(port: u16, host: String) -> i32 {
 
     run_accept_loop(uds_listener, &mut shutdown_rx, &ctx, port).await;
 
-    proxy_handle.abort();
+    // 프록시 태스크에 graceful shutdown 신호 전송
+    info!("Sending graceful shutdown signal to proxy task...");
+    let _ = proxy_shutdown_tx.send(());
+
+    // 최대 5초 대기 후 강제 종료
+    match tokio::time::timeout(std::time::Duration::from_secs(5), proxy_handle).await {
+        Ok(Ok(())) => {
+            info!("Proxy task shut down gracefully");
+        }
+        Ok(Err(e)) => {
+            warn!("Proxy task panicked during shutdown: {}", e);
+        }
+        Err(_) => {
+            warn!("Proxy task did not shut down within 5 seconds, aborting...");
+        }
+    }
+
     cleanup(port, &uds_path);
     info!("Daemon stopped");
     0
