@@ -190,8 +190,12 @@ pub async fn start_proxy_v2<R: Runtime>(
         }
     };
 
-    let mut proxy_guard = proxy.lock().await;
-    proxy_guard.replace(conn);
+    // [DIAG] daemon 연결을 저장하지 않고 즉시 drop — 이후 커맨드 모두 실패하게 됨
+    // 이 상태에서 멀쩡하면 → 이후 커맨드 호출이 원인
+    // 이 상태에서도 터지면 → 연결/이벤트 수신 자체가 원인
+    drop(conn);
+    // let mut proxy_guard = proxy.lock().await;
+    // proxy_guard.replace(conn);
 
     let log_path = proxy_daemon::daemon::app_support_dir()
         .map(|d| d.join("daemon.log").display().to_string())
