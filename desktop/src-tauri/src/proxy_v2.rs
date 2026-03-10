@@ -22,9 +22,16 @@ const DIAG_ENABLE_NEW_SETTINGS: bool = false;
 const DIAG_ENABLE_AUTO_SESSION: bool = false;
 /// Group D: advanced_repeat (false = 즉시 빈 결과 반환)
 const DIAG_ENABLE_ADVANCED_REPEAT: bool = false;
+/// Group E: 이벤트 포워딩 (false = app.emit 호출 자체를 하지 않음)
+const DIAG_ENABLE_EVENT_FORWARDING: bool = false;
+/// Group F: 프록시 daemon 연결 (false = start_proxy_v2가 연결 없이 성공 반환)
+const DIAG_ENABLE_PROXY_CONNECTION: bool = false;
 
 /// DaemonMessage를 app.emit()으로 전달하는 헬퍼
 fn emit_daemon_message<R: Runtime>(app: &AppHandle<R>, msg: DaemonMessage) {
+    if !DIAG_ENABLE_EVENT_FORWARDING {
+        return; // Group E: 이벤트 포워딩 완전 차단
+    }
     match msg {
         DaemonMessage::Event { data } => {
             let _ = app.emit("proxy_event", data);
@@ -133,6 +140,15 @@ pub async fn start_proxy_v2<R: Runtime>(
 
     let port = addr.port();
     let host = addr.ip().to_string();
+
+    // Group F: daemon 연결 자체를 건너뜀
+    if !DIAG_ENABLE_PROXY_CONNECTION {
+        tracing::warn!("[DIAG] 프록시 daemon 연결 비활성화됨 — 가짜 성공 반환");
+        return Ok(ProxyStartResult {
+            status: true,
+            message: format!("[DIAG] 프록시 포트 {} (연결 없음, 진단 모드)", port),
+        });
+    }
 
     // ── 이벤트 전달 방식: 진단 플래그에 따라 분기 ──
     let (event_tx, mut event_rx) = tokio::sync::mpsc::unbounded_channel::<DaemonMessage>();
