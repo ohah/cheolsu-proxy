@@ -307,7 +307,7 @@ msgstr "Claude Code (CLI)"
 msgid "Clear"
 msgstr "Clear"
 
-#: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:87
+#: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:95
 msgid "Clear all"
 msgstr "Clear all"
 
@@ -319,7 +319,7 @@ msgstr "Clear all"
 msgid "Clear All"
 msgstr "Clear All"
 
-#: src/widgets/network-header/ui/network-controls.tsx:61
+#: src/widgets/network-header/ui/network-controls.tsx:51
 msgid "Clear all transactions"
 msgstr "Clear all transactions"
 
@@ -355,7 +355,7 @@ msgstr "Comma-separated list of hosts to connect directly (supports *.domain.com
 msgid "Command copied to clipboard"
 msgstr "Command copied to clipboard"
 
-#: src/widgets/network-header/ui/network-controls.tsx:74
+#: src/widgets/network-header/ui/network-controls.tsx:64
 msgid "Compose request"
 msgstr "Compose request"
 
@@ -377,7 +377,7 @@ msgstr "Connected"
 msgid "Connection"
 msgstr "Connection"
 
-#: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:76
+#: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:84
 msgid "connections"
 msgstr "connections"
 
@@ -389,7 +389,7 @@ msgstr "Console"
 msgid "Copied!"
 msgstr "Copied!"
 
-#: src/features/transaction-details/ui/transaction-response.tsx:155
+#: src/features/transaction-details/ui/transaction-response.tsx:163
 msgid "Copy"
 msgstr "Copy"
 
@@ -401,7 +401,7 @@ msgstr "Copy as cURL"
 msgid "Copy as..."
 msgstr "Copy as..."
 
-#: src/features/transaction-details/ui/transaction-headers.tsx:37
+#: src/features/transaction-details/ui/transaction-headers.tsx:45
 msgid "Copy Headers"
 msgstr "Copy Headers"
 
@@ -472,7 +472,7 @@ msgstr "Disabled"
 msgid "Disconnected"
 msgstr "Disconnected"
 
-#: src/features/transaction-details/ui/image-preview.tsx:160
+#: src/features/transaction-details/ui/image-preview.tsx:169
 msgid "Download"
 msgstr "Download"
 
@@ -523,7 +523,7 @@ msgstr "example.com, *.example.com, or example.com:443"
 msgid "Exclude OPTIONS method"
 msgstr "Exclude OPTIONS method"
 
-#: src/features/transaction-details/ui/image-preview.tsx:150
+#: src/features/transaction-details/ui/image-preview.tsx:154
 msgid "Exit fullscreen"
 msgstr "Exit fullscreen"
 
@@ -536,7 +536,7 @@ msgstr "Expand"
 msgid "Expand sidebar"
 msgstr "Expand sidebar"
 
-#: src/widgets/network-header/ui/network-controls.tsx:121
+#: src/widgets/network-header/ui/network-controls.tsx:111
 msgid "Export HAR"
 msgstr "Export HAR"
 
@@ -597,7 +597,7 @@ msgstr "format"
 msgid "Forward"
 msgstr "Forward"
 
-#: src/features/transaction-details/ui/image-preview.tsx:150
+#: src/features/transaction-details/ui/image-preview.tsx:154
 msgid "Fullscreen"
 msgstr "Fullscreen"
 
@@ -684,7 +684,7 @@ msgstr "HTTP requests and responses"
 msgid "HTTPie"
 msgstr "HTTPie"
 
-#: src/widgets/network-header/ui/network-controls.tsx:132
+#: src/widgets/network-header/ui/network-controls.tsx:122
 msgid "Import HAR"
 msgstr "Import HAR"
 
@@ -772,7 +772,7 @@ msgstr "Load a script file from disk. The file will be watched for changes and a
 msgid "Load and manage proxy scripts"
 msgstr "Load and manage proxy scripts"
 
-#: src/widgets/network-header/ui/network-controls.tsx:103
+#: src/widgets/network-header/ui/network-controls.tsx:93
 msgid "Load Session"
 msgstr "Load Session"
 
@@ -880,7 +880,7 @@ msgstr "MCP Server Configuration"
 msgid "Message sent successfully"
 msgstr "Message sent successfully"
 
-#: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:77
+#: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:85
 msgid "messages"
 msgstr "messages"
 
@@ -1057,7 +1057,7 @@ msgstr "Pause and inspect HTTP requests/responses in real-time"
 msgid "Pause and inspect requests/responses"
 msgstr "Pause and inspect requests/responses"
 
-#: src/widgets/network-header/ui/network-controls.tsx:46
+#: src/widgets/network-header/ui/network-controls.tsx:40
 msgid "Pause recording"
 msgstr "Pause recording"
 
@@ -1291,7 +1291,7 @@ msgstr "Response Status Code"
 msgid "Response Time"
 msgstr "Response Time"
 
-#: src/widgets/network-header/ui/network-controls.tsx:46
+#: src/widgets/network-header/ui/network-controls.tsx:40
 msgid "Resume recording"
 msgstr "Resume recording"
 
@@ -1363,7 +1363,7 @@ msgstr "Running..."
 msgid "Save"
 msgstr "Save"
 
-#: src/widgets/network-header/ui/network-controls.tsx:92
+#: src/widgets/network-header/ui/network-controls.tsx:82
 msgid "Save Session"
 msgstr "Save Session"
 
@@ -1762,7 +1762,7 @@ msgstr "Version"
 msgid "Waiting for WebSocket messages..."
 msgstr "Waiting for WebSocket messages..."
 
-#: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:73
+#: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:81
 #: src/shared/app-sidebar/model/consts.ts:29
 msgid "WebSocket"
 msgstr "WebSocket"
