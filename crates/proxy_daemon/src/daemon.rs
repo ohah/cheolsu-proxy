@@ -450,7 +450,10 @@ async fn daemon_main(port: u16, host: String) -> i32 {
             loop {
                 match counter_rx.recv().await {
                     Ok(msg) => {
-                        // Event 메시지(트랜잭션)만 카운트
+                        // WARNING: JSON 문자열 패턴 매칭으로 트랜잭션을 카운팅하고 있음.
+                        // 이 방식은 fragile하며, JSON 직렬화 포맷이 변경되거나(예: 공백 추가,
+                        // 키 순서 변경) 다른 메시지에 동일 패턴이 포함될 경우 오탐/누락이 발생할 수 있음.
+                        // TODO: 구조화된 enum 매칭이나 별도 카운팅 채널로 개선 필요.
                         if msg.contains(r#""type":"event""#) {
                             total_tx_clone.fetch_add(1, Ordering::Relaxed);
                         }

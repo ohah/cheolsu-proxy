@@ -82,7 +82,7 @@ pub enum DaemonMessage {
     #[serde(rename = "health_check_result")]
     HealthCheckResult {
         uptime_secs: u64,
-        active_connections: usize,
+        active_connections: u32,
         total_transactions: u64,
     },
     /// 데몬 연결이 끊어졌음을 알리는 메시지
