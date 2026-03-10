@@ -13,6 +13,7 @@ import {
 } from "@/shared/stores";
 import { emit, listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import { router } from "./providers/router-provider";
 import type { ProxyEventTuple, HttpTransaction } from "@/entities/proxy";
 import { autosaveSession, autoloadSession } from "@/shared/api/proxy";
 import { useAppSettingsStore } from "@/shared/stores/app-settings-store";
@@ -217,6 +218,17 @@ const App: React.FC = () => {
       unlisten.then((f) => f());
     };
   }, [performAutosave]);
+
+  // 네이티브 메뉴 클릭 시 페이지 이동
+  useEffect(() => {
+    const unlisten = listen<string>("menu_navigate", (event) => {
+      router.navigate(event.payload);
+    });
+
+    return () => {
+      unlisten.then((f) => f());
+    };
+  }, []);
 
   // 앱 완전 종료 시 자동 세션 저장 (트레이 메뉴 종료)
   useEffect(() => {
