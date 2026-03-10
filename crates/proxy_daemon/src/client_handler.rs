@@ -13,6 +13,9 @@ use proxyapi_v2::throttle::ThrottleConfig;
 use proxyapi_v2::upstream_proxy::UpstreamProxyConfig;
 use proxyapi_v2::websocket_registry::WebSocketRegistry;
 
+// TODO: handle_client의 파라미터가 과도하게 많음.
+// DaemonContext(daemon.rs)와 유사한 ClientHandlerContext 구조체로 묶어 리팩토링 필요.
+// 현재는 호출부(daemon.rs run_accept_loop)와의 결합도가 높아 단계적 리팩토링을 권장.
 pub async fn handle_client(
     stream: UnixStream,
     mut event_rx: broadcast::Receiver<String>,
@@ -486,7 +489,8 @@ pub async fn handle_client(
                     }
                     Ok(ClientCommand::HealthCheck) => {
                         let uptime_secs = started_at.elapsed().as_secs();
-                        let active_conns = client_count.load(std::sync::atomic::Ordering::Relaxed);
+                        let active_conns =
+                            client_count.load(std::sync::atomic::Ordering::Relaxed) as u32;
                         let total_txns =
                             total_transactions.load(std::sync::atomic::Ordering::Relaxed);
                         let response = DaemonMessage::HealthCheckResult {
