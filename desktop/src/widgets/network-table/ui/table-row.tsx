@@ -28,7 +28,7 @@ import {
 import { useInterceptRuleDialogStore } from "@/shared/stores";
 import { toast } from "sonner";
 import { Code, Pin, PinOff, Repeat, Shield, Trash2 } from "lucide-react";
-import { Trans } from "@lingui/react/macro";
+import { Trans, useLingui } from "@lingui/react/macro";
 import type { HttpTransaction } from "@/entities/proxy";
 
 interface TableRowProps {
@@ -53,6 +53,7 @@ export const TableRow = memo(function TableRow({
   onAdvancedRepeat,
 }: TableRowProps) {
   const { isSelected } = data;
+  const { t } = useLingui();
 
   const rowClasses = useMemo(() => {
     let classes = `${ROW_BASE_CLASSES} ${GRID_COLS_CLASS}`;
@@ -70,14 +71,14 @@ export const TableRow = memo(function TableRow({
     (generator: (t: HttpTransaction) => string, label: string) => {
       const code = generator(data.transaction);
       navigator.clipboard.writeText(code);
-      toast.success(`${label} copied to clipboard`);
+      toast.success(t`${label} copied to clipboard`);
     },
     [data],
   );
 
   const handleClickDeleteTransaction = useCallback(() => {
     onDelete();
-    toast.success("Transaction deleted");
+    toast.success(t`Transaction deleted`);
   }, [onDelete]);
 
   const openInterceptRuleDialog = useInterceptRuleDialogStore((s) => s.openWithValues);
@@ -93,7 +94,7 @@ export const TableRow = memo(function TableRow({
 
   const handleClickPinTransaction = useCallback(() => {
     onPin();
-    toast.success(isPinned ? "Transaction unpinned" : "Transaction pinned to top");
+    toast.success(isPinned ? t`Transaction unpinned` : t`Transaction pinned to top`);
   }, [onPin, isPinned]);
 
   const handleCheckboxClick = useCallback(

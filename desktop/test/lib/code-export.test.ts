@@ -46,7 +46,7 @@ const createEmptyTransaction = (): HttpTransaction => ({
 describe("generateCurlCommand", () => {
   test("request가 없으면 기본 curl 반환", () => {
     const result = generateCurlCommand(createEmptyTransaction());
-    expect(result).toBe('curl -X GET "http://localhost"');
+    expect(result).toBe("curl -X GET 'http://localhost'");
   });
 
   test("GET 요청 변환", () => {
@@ -65,9 +65,19 @@ describe("generateCurlCommand", () => {
       }),
     );
     expect(result).toContain("curl -X POST");
-    expect(result).toContain('-H "Content-Type: application/json"');
+    expect(result).toContain("-H 'Content-Type: application/json'");
     expect(result).toContain("-d '");
     expect(result).toContain('{"key":"value"}');
+  });
+
+  test("헤더 값의 싱글 쿼트 이스케이프", () => {
+    const result = generateCurlCommand(
+      createTransaction({
+        method: "GET",
+        headers: { "X-Custom": "it's a value" },
+      }),
+    );
+    expect(result).toContain("-H 'X-Custom: it'\\''s a value'");
   });
 
   test("바디의 싱글 쿼트 이스케이프", () => {
@@ -204,6 +214,14 @@ describe("generateHttpieCommand", () => {
       createTransaction({ uri: "https://example.com/api?q=hello world" }),
     );
     expect(result).toContain("'https://example.com/api?q=hello world'");
+  });
+
+  test("URL fragment (#)가 쿼팅 없이 출력", () => {
+    const result = generateHttpieCommand(
+      createTransaction({ uri: "https://example.com/page#section" }),
+    );
+    expect(result).toContain("https://example.com/page#section");
+    expect(result).not.toContain("'https://example.com/page#section'");
   });
 });
 

@@ -59,7 +59,7 @@ export const generateHttpieCommand = (transaction: HttpTransaction): string => {
 };
 
 const shellEscape = (str: string): string => {
-  if (/^[a-zA-Z0-9_./:@=,{}\[\]"+-]+$/.test(str)) {
+  if (/^[a-zA-Z0-9_./:@=,{}\[\]"#+-]+$/.test(str)) {
     return str;
   }
   return `'${str.replace(/'/g, "'\\''")}'`;
