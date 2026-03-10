@@ -25,7 +25,7 @@ use tray::setup_tray;
 // 데드락 진단: DIAG_MINIMAL_MODE = true → 최소 구성으로 실행
 // 플러그인, 트레이, 메뉴, 시작 작업 모두 제거
 // ============================================================
-const DIAG_MINIMAL_MODE: bool = true;
+const DIAG_MINIMAL_MODE: bool = false;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
