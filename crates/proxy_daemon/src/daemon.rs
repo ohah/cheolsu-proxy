@@ -4,6 +4,7 @@ use std::sync::Arc;
 use tokio::net::UnixListener;
 use tokio::sync::{broadcast, watch};
 use tracing::{error, info, warn};
+use tracing_subscriber::prelude::*;
 
 use crate::breakpoint::BreakpointManager;
 use crate::client_handler::handle_client;
@@ -100,14 +101,40 @@ pub fn check_and_cleanup_stale_lock() -> bool {
 
 /// Runs the daemon process. This function never returns (calls std::process::exit).
 pub fn run_daemon(port: u16, host: String) -> ! {
-    // Initialize tracing so error!/info!/warn! output to stderr.
-    // Use try_init to avoid panic if a subscriber is already set (e.g., by Tauri).
-    let _ = tracing_subscriber::fmt()
+    // tracing 초기화: stderr 출력 + 파일 로깅 (일별 로테이션)
+    // try_init을 사용하여 이미 subscriber가 설정된 경우(예: Tauri) 패닉 방지
+    let env_filter = tracing_subscriber::EnvFilter::try_from_default_env()
+        .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("info"));
+
+    let stderr_layer = tracing_subscriber::fmt::layer()
         .with_writer(std::io::stderr)
-        .with_env_filter(
-            tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("info")),
-        )
+        .with_ansi(true);
+
+    // 로그 디렉토리 생성 및 파일 로깅 레이어 설정
+    let file_layer = app_support_dir()
+        .map(|dir| dir.join("logs"))
+        .and_then(|log_dir| {
+            std::fs::create_dir_all(&log_dir).map_err(|e| {
+                eprintln!(
+                    "로그 디렉토리 생성 실패 ({}): {} — stderr만 사용합니다",
+                    log_dir.display(),
+                    e
+                );
+                DaemonError::DataDirNotFound
+            })?;
+            // 일별 로테이션, 최대 7일 보관
+            let file_appender =
+                tracing_appender::rolling::daily(&log_dir, "cheolsu-proxy-daemon.log");
+            Ok(tracing_subscriber::fmt::layer()
+                .with_writer(file_appender)
+                .with_ansi(false))
+        })
+        .ok();
+
+    let _ = tracing_subscriber::registry()
+        .with(env_filter)
+        .with(stderr_layer)
+        .with(file_layer)
         .try_init();
 
     let rt = match tokio::runtime::Builder::new_multi_thread()
@@ -425,16 +452,16 @@ async fn daemon_main(port: u16, host: String) -> i32 {
         }
     };
 
-    let log_path = app_support_dir()
-        .map(|d| d.join("daemon.log"))
+    let log_dir = app_support_dir()
+        .map(|d| d.join("logs"))
         .unwrap_or_default();
     info!(
-        "Daemon started (PID {}, proxy={}:{}, uds={}, log={})",
+        "Daemon started (PID {}, proxy={}:{}, uds={}, log_dir={})",
         std::process::id(),
         host,
         port,
         uds_path_str,
-        log_path.display()
+        log_dir.display()
     );
 
     let signal_handles = spawn_signal_handlers(shutdown_tx.clone());

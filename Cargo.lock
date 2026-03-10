@@ -5750,6 +5750,7 @@ dependencies = [
  "tokio-stream",
  "tokio-tungstenite 0.27.0",
  "tracing",
+ "tracing-appender",
  "tracing-subscriber",
 ]
 
