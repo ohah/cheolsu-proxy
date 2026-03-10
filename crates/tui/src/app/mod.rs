@@ -140,6 +140,9 @@ pub struct App {
     // Quick Settings
     pub quick_settings_form: QuickSettingsForm,
 
+    // Client Certificate (mTLS)
+    pub client_cert_form: ClientCertForm,
+
     // Host Mapping
     pub host_mappings: Vec<HostMapping>,
     pub selected_host_mapping: Option<usize>,
@@ -218,6 +221,7 @@ impl App {
             proxy_auth_form: ProxyAuthForm::new(),
             throttle_form: ThrottleForm::new(),
             quick_settings_form: QuickSettingsForm::new(),
+            client_cert_form: ClientCertForm::new(),
             host_mappings: Vec::new(),
             selected_host_mapping: None,
             host_mapping_form: None,
@@ -400,6 +404,13 @@ impl App {
             }
             DaemonMessage::SslProxyingListUpdated { entries } => {
                 self.ssl_proxying_entries = entries;
+            }
+            DaemonMessage::ClientCertificateUpdated { config } => {
+                if let Some(cfg) = config {
+                    self.client_cert_form.enabled = cfg.enabled;
+                    self.client_cert_form.cert_path = cfg.cert_path;
+                    self.client_cert_form.key_path = cfg.key_path;
+                }
             }
             DaemonMessage::BreakpointRulesUpdated { rules } => {
                 self.breakpoint_rules = rules;
@@ -870,6 +881,19 @@ impl App {
             }
             Err(e) => {
                 self.set_status(&format!("Session load failed: {}", e));
+            }
+        }
+    }
+
+    async fn send_client_cert_update(&mut self) {
+        if let Some(conn) = &self.conn {
+            let config = self.client_cert_form.to_config();
+            let cmd = ClientCommand::UpdateClientCertificate { config };
+            let _ = conn.send_command(&cmd).await;
+            if self.client_cert_form.enabled {
+                self.set_status("Client Certificate: ON");
+            } else {
+                self.set_status("Client Certificate: OFF");
             }
         }
     }

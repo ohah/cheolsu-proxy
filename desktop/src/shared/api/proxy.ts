@@ -335,6 +335,18 @@ export async function updateProxyAuth(config: ProxyAuthConfig): Promise<void> {
   return invoke("update_proxy_auth", { config });
 }
 
+// ─── Client Certificate (mTLS) ───────────────────────────
+
+export interface ClientCertConfig {
+  cert_path: string;
+  key_path: string;
+  enabled: boolean;
+}
+
+export async function updateClientCertificate(config: ClientCertConfig | null): Promise<void> {
+  return invoke("update_client_certificate", { config });
+}
+
 // ─── Quick Settings ──────────────────────────────────────
 
 export async function updateQuickSettings(

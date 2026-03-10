@@ -3,8 +3,8 @@ use ratatui::prelude::*;
 use ratatui::widgets::*;
 
 use crate::app::{
-    App, HostMappingField, ProxyAuthField, QuickSettingsField, SettingsSection, SslProxyingAddForm,
-    ThrottleField, ThrottlePresetChoice, UpstreamProxyField,
+    App, ClientCertField, HostMappingField, ProxyAuthField, QuickSettingsField, SettingsSection,
+    SslProxyingAddForm, ThrottleField, ThrottlePresetChoice, UpstreamProxyField,
 };
 
 pub fn draw(f: &mut Frame, app: &App, area: Rect) {
@@ -55,6 +55,7 @@ pub fn draw(f: &mut Frame, app: &App, area: Rect) {
         SettingsSection::HostMapping => draw_host_mapping(f, app, chunks[4]),
         SettingsSection::QuickSettings => draw_quick_settings(f, app, chunks[4]),
         SettingsSection::SslProxying => draw_ssl_proxying(f, app, chunks[4]),
+        SettingsSection::ClientCertificate => draw_client_certificate(f, app, chunks[4]),
     }
     draw_keybindings(f, app, chunks[5]);
 }
@@ -89,6 +90,8 @@ fn draw_section_tabs(f: &mut Frame, app: &App, area: Rect) {
             tab_item(SettingsSection::QuickSettings, "Quick"),
             Span::raw(" "),
             tab_item(SettingsSection::SslProxying, "SSL"),
+            Span::raw(" "),
+            tab_item(SettingsSection::ClientCertificate, "Cert"),
         ]),
         Line::from(Span::styled(
             "  h/l: switch section",
@@ -1060,9 +1063,77 @@ fn draw_ssl_proxying_add_form(f: &mut Frame, form: &SslProxyingAddForm, area: Re
     f.render_widget(paragraph, area);
 }
 
+fn draw_client_certificate(f: &mut Frame, app: &App, area: Rect) {
+    let form = &app.client_cert_form;
+
+    let fields: Vec<Line> = ClientCertField::ALL
+        .iter()
+        .map(|field| {
+            let is_selected =
+                *field == form.field && app.settings_section == SettingsSection::ClientCertificate;
+            let is_editing = is_selected && form.editing;
+
+            let label = Span::styled(
+                format!("  {:<12} ", field.label()),
+                if is_selected {
+                    Style::default()
+                        .fg(Color::Cyan)
+                        .add_modifier(Modifier::BOLD)
+                } else {
+                    Style::default().fg(Color::Yellow)
+                },
+            );
+
+            let value = match field {
+                ClientCertField::Enabled => {
+                    let (text, color) = if form.enabled {
+                        ("ON", Color::Green)
+                    } else {
+                        ("OFF", Color::Red)
+                    };
+                    Span::styled(
+                        text,
+                        Style::default().fg(color).add_modifier(Modifier::BOLD),
+                    )
+                }
+                ClientCertField::CertPath => render_text_field(&form.cert_path, is_editing),
+                ClientCertField::KeyPath => render_text_field(&form.key_path, is_editing),
+            };
+
+            let cursor = if is_selected {
+                Span::styled("▶ ", Style::default().fg(Color::Cyan))
+            } else {
+                Span::raw("  ")
+            };
+
+            Line::from(vec![cursor, label, value])
+        })
+        .collect();
+
+    let title = if form.enabled {
+        " Client Certificate (mTLS) [ON] "
+    } else {
+        " Client Certificate (mTLS) [OFF] "
+    };
+
+    let border_color = if form.enabled {
+        Color::Green
+    } else {
+        Color::Gray
+    };
+
+    let block = Block::default()
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(border_color))
+        .title(title);
+
+    let paragraph = Paragraph::new(fields).block(block);
+    f.render_widget(paragraph, area);
+}
+
 fn draw_keybindings(f: &mut Frame, app: &App, area: Rect) {
     let editing =
-        app.upstream_form.editing || app.throttle_form.editing || app.proxy_auth_form.editing;
+        app.upstream_form.editing || app.throttle_form.editing || app.proxy_auth_form.editing || app.client_cert_form.editing;
     let in_host_mapping_form = app.host_mapping_form.is_some();
     let in_ssl_proxying_form = app.ssl_proxying_add_form.is_some();
 

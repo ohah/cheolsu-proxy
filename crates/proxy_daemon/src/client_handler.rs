@@ -6,7 +6,8 @@ use tracing::{error, info, warn};
 
 use crate::breakpoint::BreakpointManager;
 use crate::protocol::{
-    BreakpointRule, ClientCommand, DaemonMessage, HostMapping, InterceptRule, ProxyAuthConfig,
+    BreakpointRule, ClientCertConfig, ClientCommand, DaemonMessage, HostMapping, InterceptRule,
+    ProxyAuthConfig,
     ServerReplayEntry, SslProxyingEntry,
 };
 use proxyapi_v2::throttle::ThrottleConfig;
@@ -24,6 +25,7 @@ pub async fn handle_client(
     breakpoint_manager: BreakpointManager,
     host_mapping_tx: watch::Sender<Vec<HostMapping>>,
     ssl_proxying_tx: watch::Sender<Vec<SslProxyingEntry>>,
+    client_cert_tx: watch::Sender<Option<ClientCertConfig>>,
     event_tx: broadcast::Sender<String>,
     port: u16,
     ws_registry: WebSocketRegistry,
@@ -72,6 +74,15 @@ pub async fn handle_client(
         let mut ssl_line = serde_json::to_string(&ssl_msg).unwrap_or_default();
         ssl_line.push('\n');
         let _ = w.write_all(ssl_line.as_bytes()).await;
+        let _ = w.flush().await;
+
+        let current_client_cert = client_cert_tx.borrow().clone();
+        let cert_msg = DaemonMessage::ClientCertificateUpdated {
+            config: current_client_cert,
+        };
+        let mut cert_line = serde_json::to_string(&cert_msg).unwrap_or_default();
+        cert_line.push('\n');
+        let _ = w.write_all(cert_line.as_bytes()).await;
         let _ = w.flush().await;
     }
 
@@ -244,6 +255,19 @@ pub async fn handle_client(
                             let _ = event_tx.send(json);
                         }
                         let _ = ssl_proxying_tx.send(entries);
+                    }
+                    Ok(ClientCommand::UpdateClientCertificate { config }) => {
+                        info!(
+                            "Client certificate config updated: enabled={:?}",
+                            config.as_ref().map(|c| c.enabled)
+                        );
+                        let broadcast_msg = DaemonMessage::ClientCertificateUpdated {
+                            config: config.clone(),
+                        };
+                        if let Ok(json) = serde_json::to_string(&broadcast_msg) {
+                            let _ = event_tx.send(json);
+                        }
+                        let _ = client_cert_tx.send(config);
                     }
                     Ok(ClientCommand::UpdateQuickSettings {
                         no_caching,
