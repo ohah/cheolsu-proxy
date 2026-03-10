@@ -35,7 +35,11 @@ import {
 
 import { useTransactionFilters, useResizablePanelController } from "../hooks";
 import { useInterceptRuleDialogStore } from "@/shared/stores";
-import { useTransactionSelectors } from "@/hooks/use-transaction-selectors";
+import {
+  useTransactionData,
+  useTransactionActions,
+  useTransactionSelection,
+} from "@/shared/hooks/use-transaction-selectors";
 
 function parseTransactionsJson(json: string): HttpTransaction[] {
   const tuples: ProxyEventTuple[] = JSON.parse(json);
@@ -48,8 +52,18 @@ export const NetworkDashboard = () => {
     selectedTransaction,
     pinnedTransactionIds,
     checkedTransactionIds,
+    paused,
+  } = useTransactionData();
+
+  const {
     clearTransactions,
     deleteTransaction,
+    setTransactions,
+    appendTransactions,
+    togglePause,
+  } = useTransactionActions();
+
+  const {
     toggleSelectedTransaction,
     setSelectedTransaction,
     clearSelectedTransaction,
@@ -57,11 +71,7 @@ export const NetworkDashboard = () => {
     toggleCheckTransaction,
     checkAllTransactions,
     clearCheckedTransactions,
-    paused,
-    togglePause,
-    setTransactions,
-    appendTransactions,
-  } = useTransactionSelectors();
+  } = useTransactionSelection();
 
   const {
     filterQueryString,
