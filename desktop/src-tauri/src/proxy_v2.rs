@@ -150,52 +150,18 @@ pub async fn start_proxy_v2<R: Runtime>(
         });
     }
 
-    // ── 이벤트 전달 방식: 진단 플래그에 따라 분기 ──
-    let (event_tx, mut event_rx) = tokio::sync::mpsc::unbounded_channel::<DaemonMessage>();
+    // [DIAG-F2] ensure_daemon 호출 없이 채널만 셋업하고 성공 반환
+    // 이 상태에서 멀쩡하면 → ensure_daemon(spawn/connect) 자체가 원인
+    // 이 상태에서도 터지면 → 채널/tokio task 셋업이 원인 (가능성 낮음)
+    let (_event_tx, mut event_rx) = tokio::sync::mpsc::unbounded_channel::<DaemonMessage>();
 
-    if DIAG_USE_EVENT_EMITTER_THREAD {
-        // Group A ON: 전용 OS 스레드에서 emit (PR #146)
-        let app_emitter = app.clone();
-        std::thread::Builder::new()
-            .name("event-emitter".into())
-            .spawn(move || {
-                while let Some(msg) = event_rx.blocking_recv() {
-                    emit_daemon_message(&app_emitter, msg);
-                }
-            })
-            .expect("event-emitter 스레드 생성 실패");
-    } else {
-        // Group A OFF: tokio task에서 직접 emit (PR #146 이전 방식)
-        let app_emitter = app.clone();
-        tokio::spawn(async move {
-            while let Some(msg) = event_rx.recv().await {
-                emit_daemon_message(&app_emitter, msg);
-            }
-        });
-    }
-
-    let conn = match proxy_daemon::ensure_daemon(port, &host, move |msg| {
-        let _ = event_tx.send(msg);
-    })
-    .await
-    {
-        Ok(conn) => conn,
-        Err(e) => {
-            let error_msg = format!("Daemon 연결 실패: {}", e);
-            eprintln!("{}", error_msg);
-            return Err(ProxyStartResult {
-                status: false,
-                message: error_msg,
-            });
+    // 수신자 task는 셋업하되, 아무 메시지도 안 옴 (sender가 아무데도 안 넘어감)
+    let app_emitter = app.clone();
+    tokio::spawn(async move {
+        while let Some(msg) = event_rx.recv().await {
+            emit_daemon_message(&app_emitter, msg);
         }
-    };
-
-    // [DIAG] daemon 연결을 저장하지 않고 즉시 drop — 이후 커맨드 모두 실패하게 됨
-    // 이 상태에서 멀쩡하면 → 이후 커맨드 호출이 원인
-    // 이 상태에서도 터지면 → 연결/이벤트 수신 자체가 원인
-    drop(conn);
-    // let mut proxy_guard = proxy.lock().await;
-    // proxy_guard.replace(conn);
+    });
 
     let log_path = proxy_daemon::daemon::app_support_dir()
         .map(|d| d.join("daemon.log").display().to_string())
