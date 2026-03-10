@@ -261,7 +261,7 @@ export const RuleFormDialog = ({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="*">{t`All Methods`}</SelectItem>
+                  <SelectItem value="*" label={t`All Methods`}>{t`All Methods`}</SelectItem>
                   {HTTP_METHODS.map((m) => (
                     <SelectItem key={m} value={m}>
                       {m}
@@ -283,10 +283,10 @@ export const RuleFormDialog = ({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="block">{t`Block`}</SelectItem>
-                  <SelectItem value="modify_request">{t`Modify Request`}</SelectItem>
-                  <SelectItem value="modify_response">{t`Modify Response`}</SelectItem>
-                  <SelectItem value="rewrite">{t`Rewrite`}</SelectItem>
+                  <SelectItem value="block" label={t`Block`}>{t`Block`}</SelectItem>
+                  <SelectItem value="modify_request" label={t`Modify Request`}>{t`Modify Request`}</SelectItem>
+                  <SelectItem value="modify_response" label={t`Modify Response`}>{t`Modify Response`}</SelectItem>
+                  <SelectItem value="rewrite" label={t`Rewrite`}>{t`Rewrite`}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -398,10 +398,10 @@ export const RuleFormDialog = ({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="request_header">{t`Request Header`}</SelectItem>
-                    <SelectItem value="response_header">{t`Response Header`}</SelectItem>
-                    <SelectItem value="request_body">{t`Request Body`}</SelectItem>
-                    <SelectItem value="response_body">{t`Response Body`}</SelectItem>
+                    <SelectItem value="request_header" label={t`Request Header`}>{t`Request Header`}</SelectItem>
+                    <SelectItem value="response_header" label={t`Response Header`}>{t`Response Header`}</SelectItem>
+                    <SelectItem value="request_body" label={t`Request Body`}>{t`Request Body`}</SelectItem>
+                    <SelectItem value="response_body" label={t`Response Body`}>{t`Response Body`}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

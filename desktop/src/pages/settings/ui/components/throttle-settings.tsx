@@ -162,7 +162,7 @@ export function ThrottleSettings() {
               </SelectTrigger>
               <SelectContent>
                 {THROTTLE_PRESETS.map((preset) => (
-                  <SelectItem key={preset.value} value={preset.value}>
+                  <SelectItem key={preset.value} value={preset.value} label={preset.label}>
                     {preset.label}
                   </SelectItem>
                 ))}

@@ -182,6 +182,8 @@ msgid "All HTTPS traffic is being intercepted (no whitelist configured)"
 msgstr "All HTTPS traffic is being intercepted (no whitelist configured)"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:264
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:264
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:215
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:215
 msgid "All Methods"
 msgstr "All Methods"
@@ -220,6 +222,7 @@ msgstr "Automatically save the current session when the app closes and restore i
 msgid "available"
 msgstr "available"
 
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:286
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:286
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:43
 msgid "Block"
@@ -820,6 +823,7 @@ msgid "Map DNS hostnames to different targets"
 msgstr "Map DNS hostnames to different targets"
 
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:239
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:239
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:46
 #: src/pages/map-rules/ui/map-rules-page.tsx:34
 msgid "Map Local"
@@ -837,6 +841,7 @@ msgstr "Map Local: respond with a local file. Map Remote: redirect to another UR
 msgid "Map Local: respond with local files. Map Remote: redirect requests to another URL."
 msgstr "Map Local: respond with local files. Map Remote: redirect requests to another URL."
 
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:240
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:240
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:47
 #: src/pages/map-rules/ui/map-rules-page.tsx:35
@@ -900,10 +905,12 @@ msgid "Mobile Certificate Install"
 msgstr "Mobile Certificate Install"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:287
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:287
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:44
 msgid "Modify Request"
 msgstr "Modify Request"
 
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:288
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:288
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:45
 msgid "Modify Response"
@@ -1244,6 +1251,8 @@ msgid "Request aborted"
 msgstr "Request aborted"
 
 #: src/features/intercept-rule-form/ui/rewrite-action-fields.tsx:28
+#: src/features/intercept-rule-form/ui/rewrite-action-fields.tsx:28
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:403
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:403
 msgid "Request Body"
 msgstr "Request Body"
@@ -1261,6 +1270,8 @@ msgid "Request failed"
 msgstr "Request failed"
 
 #: src/features/intercept-rule-form/ui/rewrite-action-fields.tsx:26
+#: src/features/intercept-rule-form/ui/rewrite-action-fields.tsx:26
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:401
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:401
 msgid "Request Header"
 msgstr "Request Header"
@@ -1283,6 +1294,8 @@ msgid "Response"
 msgstr "Response"
 
 #: src/features/intercept-rule-form/ui/rewrite-action-fields.tsx:29
+#: src/features/intercept-rule-form/ui/rewrite-action-fields.tsx:29
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:404
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:404
 msgid "Response Body"
 msgstr "Response Body"
@@ -1293,6 +1306,8 @@ msgid "Response body (optional)"
 msgstr "Response body (optional)"
 
 #: src/features/intercept-rule-form/ui/rewrite-action-fields.tsx:27
+#: src/features/intercept-rule-form/ui/rewrite-action-fields.tsx:27
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:402
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:402
 msgid "Response Header"
 msgstr "Response Header"
@@ -1327,6 +1342,7 @@ msgstr "Return cached responses for matching requests"
 msgid "Return cached responses for matching requests instead of forwarding to the server"
 msgstr "Return cached responses for matching requests instead of forwarding to the server"
 
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:289
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:289
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:48
 msgid "Rewrite"
@@ -1661,9 +1677,11 @@ msgid "Time"
 msgstr "Time"
 
 #: src/features/websocket-replay/ui/ws-replay-dialog.tsx:134
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:134
 msgid "To Client (Server → Client)"
 msgstr "To Client (Server → Client)"
 
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:133
 #: src/features/websocket-replay/ui/ws-replay-dialog.tsx:133
 msgid "To Server (Client → Server)"
 msgstr "To Server (Client → Server)"
