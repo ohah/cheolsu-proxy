@@ -1,14 +1,7 @@
 import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
 import { useFormContext, Controller } from "react-hook-form";
-import {
-  Input,
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/shared/ui";
+import { Input, Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/shared/ui";
 import type { RewriteFormValues } from "@/entities/intercept-rule";
 
 export const RewriteActionFields = () => {
@@ -25,10 +18,7 @@ export const RewriteActionFields = () => {
           control={control}
           name="action.rewrite_target"
           render={({ field }) => (
-            <Select
-              value={field.value as string}
-              onValueChange={(v) => v && field.onChange(v)}
-            >
+            <Select value={field.value as string} onValueChange={(v) => v && field.onChange(v)}>
               <SelectTrigger className="w-full">
                 <SelectValue />
               </SelectTrigger>

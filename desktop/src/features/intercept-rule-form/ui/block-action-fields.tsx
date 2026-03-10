@@ -14,11 +14,7 @@ export const BlockActionFields = () => {
         <label className="text-sm font-medium">
           <Trans>Status Code</Trans>
         </label>
-        <Input
-          type="number"
-          placeholder="403"
-          {...register("action.status_code")}
-        />
+        <Input type="number" placeholder="403" {...register("action.status_code")} />
       </div>
 
       <div className="space-y-1.5">
