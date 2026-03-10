@@ -2,7 +2,8 @@ use proxy_daemon::{
     clean_old_cache, diff_headers, diff_json, diff_text, get_local_ips, is_text_data_type,
     BodyDiff, BreakpointAction, BreakpointRule, ClientCommand, CommandSender, DaemonConnection,
     DaemonMessage, HostMapping, InterceptRule, ProxyAuthConfig, ServerReplayEntry,
-    SslProxyingEntry, ThrottleConfig, TrafficDiff, TransactionPartDiff, UpstreamProxyConfig,
+    SslProxyingEntry, ThrottleConfig, TlsPassthroughEntry, TrafficDiff, TransactionPartDiff,
+    UpstreamProxyConfig,
 };
 use std::collections::HashMap;
 use std::net::SocketAddr;
@@ -107,24 +108,21 @@ pub async fn get_log_dir() -> Result<String, String> {
 
 // ─── TLS Passthrough ──────────────────────────────────────
 
-/// TLS Passthrough 바이패스 항목
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct TlsPassthroughEntry {
-    pub host: String,
-    pub failure_count: u32,
-}
-
-/// TLS passthrough JSON 파일 경로
-fn tls_passthrough_path() -> Result<std::path::PathBuf, String> {
-    proxy_daemon::daemon::app_support_dir()
-        .map(|d| d.join("tls_passthrough.json"))
-        .map_err(|e| format!("데이터 디렉토리를 찾을 수 없습니다: {}", e))
-}
-
-/// TLS Passthrough 바이패스 목록 조회
+/// TLS Passthrough 바이패스 목록 조회 (데몬을 통해 인메모리 상태 조회)
 #[tauri::command]
-pub async fn get_tls_passthrough_list() -> Result<Vec<TlsPassthroughEntry>, String> {
-    let path = tls_passthrough_path()?;
+pub async fn get_tls_passthrough_list(
+    proxy: State<'_, ProxyV2State>,
+) -> Result<Vec<TlsPassthroughEntry>, String> {
+    let sender = get_command_sender(&proxy).await?;
+    sender
+        .send_command(&ClientCommand::GetTlsPassthroughList)
+        .await
+        .map_err(|e| format!("TLS passthrough 목록 요청 실패: {}", e))?;
+    // 응답은 tls_passthrough_updated 이벤트로 수신됨
+    // 폴백: 파일에서 직접 읽기 (연결 직후 응답이 아직 안 온 경우)
+    let path = proxy_daemon::daemon::app_support_dir()
+        .map(|d| d.join("tls_passthrough.json"))
+        .map_err(|e| format!("데이터 디렉토리를 찾을 수 없습니다: {}", e))?;
     if !path.exists() {
         return Ok(Vec::new());
     }
@@ -143,34 +141,27 @@ pub async fn get_tls_passthrough_list() -> Result<Vec<TlsPassthroughEntry>, Stri
     Ok(entries)
 }
 
-/// TLS Passthrough 특정 도메인 바이패스 해제
+/// TLS Passthrough 특정 도메인 바이패스 해제 (데몬의 인메모리 + 파일 동시 업데이트)
 #[tauri::command]
-pub async fn remove_tls_passthrough(host: String) -> Result<(), String> {
-    let path = tls_passthrough_path()?;
-    if !path.exists() {
-        return Ok(());
-    }
-    let data = std::fs::read_to_string(&path)
-        .map_err(|e| format!("TLS passthrough 파일 읽기 실패: {}", e))?;
-    let mut map: std::collections::HashMap<String, u32> =
-        serde_json::from_str(&data).map_err(|e| format!("JSON 파싱 실패: {}", e))?;
-    map.remove(&host);
-    let json =
-        serde_json::to_string_pretty(&map).map_err(|e| format!("JSON 직렬화 실패: {}", e))?;
-    std::fs::write(&path, json).map_err(|e| format!("TLS passthrough 파일 저장 실패: {}", e))
+pub async fn remove_tls_passthrough(
+    proxy: State<'_, ProxyV2State>,
+    host: String,
+) -> Result<(), String> {
+    let sender = get_command_sender(&proxy).await?;
+    sender
+        .send_command(&ClientCommand::RemoveTlsPassthrough { host })
+        .await
+        .map_err(|e| format!("TLS passthrough 삭제 실패: {}", e))
 }
 
-/// TLS Passthrough 전체 바이패스 기록 초기화
+/// TLS Passthrough 전체 바이패스 기록 초기화 (데몬의 인메모리 + 파일 동시 업데이트)
 #[tauri::command]
-pub async fn clear_tls_passthrough() -> Result<(), String> {
-    let path = tls_passthrough_path()?;
-    if !path.exists() {
-        return Ok(());
-    }
-    let empty: std::collections::HashMap<String, u32> = std::collections::HashMap::new();
-    let json =
-        serde_json::to_string_pretty(&empty).map_err(|e| format!("JSON 직렬화 실패: {}", e))?;
-    std::fs::write(&path, json).map_err(|e| format!("TLS passthrough 파일 저장 실패: {}", e))
+pub async fn clear_tls_passthrough(proxy: State<'_, ProxyV2State>) -> Result<(), String> {
+    let sender = get_command_sender(&proxy).await?;
+    sender
+        .send_command(&ClientCommand::ClearTlsPassthrough)
+        .await
+        .map_err(|e| format!("TLS passthrough 초기화 실패: {}", e))
 }
 
 /// hop-by-hop 헤더인지 대소문자 무시하고 확인
@@ -322,6 +313,11 @@ pub async fn start_proxy_v2<R: Runtime>(
                         DaemonMessage::SslProxyingListUpdated { entries } => {
                             if let Err(e) = app.emit("ssl_proxying_list_updated", entries) {
                                 eprintln!("emit ssl_proxying_list_updated 실패: {}", e);
+                            }
+                        }
+                        DaemonMessage::TlsPassthroughUpdated { entries } => {
+                            if let Err(e) = app.emit("tls_passthrough_updated", entries) {
+                                eprintln!("emit tls_passthrough_updated 실패: {}", e);
                             }
                         }
                         DaemonMessage::Disconnected { reason } => {

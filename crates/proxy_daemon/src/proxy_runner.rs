@@ -16,8 +16,6 @@ use proxyapi_v2::throttle::ThrottleConfig;
 use proxyapi_v2::upstream_proxy::UpstreamProxyConfig;
 use proxyapi_v2::websocket_registry::WebSocketRegistry;
 
-use super::daemon::app_support_dir;
-
 pub async fn run_proxy(
     addr: SocketAddr,
     event_tx: broadcast::Sender<String>,
@@ -37,6 +35,7 @@ pub async fn run_proxy(
     shutdown_signal: tokio::sync::oneshot::Receiver<()>,
     max_concurrent_connections: Option<usize>,
     max_body_size: Option<usize>,
+    tls_passthrough: proxyapi_v2::tls_passthrough::TlsPassthrough,
 ) -> Result<(), DaemonError> {
     use proxyapi_v2::builder::ProxyBuilder;
     use proxyapi_v2::certificate_authority::{
@@ -173,12 +172,6 @@ pub async fn run_proxy(
     let listener = TcpListener::bind(addr)
         .await
         .map_err(|e| DaemonError::Proxy(format!("Port {} bind failed: {}", addr.port(), e)))?;
-
-    // TLS 자동 학습 바이패스 초기화
-    let passthrough_path = app_support_dir()
-        .ok()
-        .map(|dir| dir.join("tls_passthrough.json"));
-    let tls_passthrough = proxyapi_v2::tls_passthrough::TlsPassthrough::new(passthrough_path);
 
     let throttle_rx_arc = std::sync::Arc::new(throttle_rx);
 

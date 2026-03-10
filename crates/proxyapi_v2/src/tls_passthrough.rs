@@ -13,6 +13,8 @@ pub struct TlsPassthrough {
     failures: Arc<RwLock<HashMap<String, u32>>>,
     /// 저장 파일 경로
     file_path: Option<PathBuf>,
+    /// 변경 사항 알림 채널 (실시간 UI 업데이트용)
+    change_tx: Option<tokio::sync::mpsc::Sender<Vec<(String, u32)>>>,
 }
 
 impl TlsPassthrough {
@@ -37,12 +39,31 @@ impl TlsPassthrough {
         Self {
             failures: Arc::new(RwLock::new(initial)),
             file_path,
+            change_tx: None,
         }
+    }
+
+    /// 변경 알림 채널을 설정합니다.
+    pub fn with_change_notifier(
+        mut self,
+        tx: tokio::sync::mpsc::Sender<Vec<(String, u32)>>,
+    ) -> Self {
+        self.change_tx = Some(tx);
+        self
     }
 
     /// 내부 failures 맵에 대한 참조 (blocking context에서 사용)
     pub fn failures_ref(&self) -> &Arc<RwLock<HashMap<String, u32>>> {
         &self.failures
+    }
+
+    /// 변경 사항을 알림 채널로 전송
+    fn notify_change(&self, failures: &HashMap<String, u32>) {
+        if let Some(ref tx) = self.change_tx {
+            let entries: Vec<(String, u32)> =
+                failures.iter().map(|(k, v)| (k.clone(), *v)).collect();
+            let _ = tx.try_send(entries);
+        }
     }
 
     /// 핸드셰이크 실패 기록
@@ -58,6 +79,8 @@ impl TlsPassthrough {
 
         // 파일에 저장
         self.save_to_file(&failures);
+        // 변경 알림
+        self.notify_change(&failures);
     }
 
     /// 해당 도메인을 바이패스해야 하는지 확인 (1회 이상 실패한 경우)
@@ -82,6 +105,7 @@ impl TlsPassthrough {
         if failures.remove(&host).is_some() {
             info!("[TLS-PASSTHROUGH] 성공으로 바이패스 해제: {}", host);
             self.save_to_file(&failures);
+            self.notify_change(&failures);
         }
     }
 
@@ -96,6 +120,7 @@ impl TlsPassthrough {
         let mut failures = self.failures.write().await;
         failures.remove(host);
         self.save_to_file(&failures);
+        self.notify_change(&failures);
     }
 
     /// 전체 바이패스 기록 초기화
@@ -103,6 +128,7 @@ impl TlsPassthrough {
         let mut failures = self.failures.write().await;
         failures.clear();
         self.save_to_file(&failures);
+        self.notify_change(&failures);
         info!("[TLS-PASSTHROUGH] 전체 바이패스 기록 초기화");
     }
 
@@ -246,5 +272,19 @@ mod tests {
         assert_eq!(list.len(), 2);
         assert_eq!(list[0], ("a.com".to_string(), 1));
         assert_eq!(list[1], ("b.com".to_string(), 2));
+    }
+
+    #[tokio::test]
+    async fn test_change_notifier() {
+        let (tx, mut rx) = tokio::sync::mpsc::channel(16);
+        let passthrough = TlsPassthrough::new(None).with_change_notifier(tx);
+        let authority: Authority = "example.com:443".parse().unwrap();
+
+        passthrough.record_failure(&authority).await;
+
+        let entries = rx.try_recv().unwrap();
+        assert_eq!(entries.len(), 1);
+        assert_eq!(entries[0].0, "example.com");
+        assert_eq!(entries[0].1, 1);
     }
 }

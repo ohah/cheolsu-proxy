@@ -10,7 +10,7 @@ use crate::breakpoint::BreakpointManager;
 use crate::client_handler::handle_client;
 use crate::error::DaemonError;
 use crate::handler::QuickSettings;
-use crate::protocol::ProxyLockInfo;
+use crate::protocol::{DaemonMessage, ProxyLockInfo};
 use crate::proxy_runner::run_proxy;
 use crate::system_proxy::set_proxy;
 use proxyapi_v2::throttle::ThrottleConfig;
@@ -227,6 +227,7 @@ struct DaemonContext {
     // .await를 넘어서 lock을 유지하지 않으므로 안전함.
     // 리팩토링 시 tokio::sync::RwLock으로 교체 검토 필요.
     proxy_auth: Arc<parking_lot::RwLock<Option<crate::protocol::ProxyAuthConfig>>>,
+    tls_passthrough: proxyapi_v2::tls_passthrough::TlsPassthrough,
 }
 
 /// 프록시 태스크를 스폰합니다.
@@ -252,6 +253,7 @@ fn spawn_proxy_task(
     proxy_auth: Arc<parking_lot::RwLock<Option<crate::protocol::ProxyAuthConfig>>>,
     max_concurrent_connections: Option<usize>,
     max_body_size: Option<usize>,
+    tls_passthrough: proxyapi_v2::tls_passthrough::TlsPassthrough,
 ) -> (
     tokio::task::JoinHandle<()>,
     tokio::sync::oneshot::Sender<()>,
@@ -277,6 +279,7 @@ fn spawn_proxy_task(
             shutdown_rx,
             max_concurrent_connections,
             max_body_size,
+            tls_passthrough,
         )
         .await
         {
@@ -380,12 +383,13 @@ async fn run_accept_loop(
                         let started_at = ctx.started_at;
                         let total_transactions_clone = ctx.total_transactions.clone();
                         let client_count_for_health = ctx.client_count.clone();
+                        let tls_passthrough_clone = ctx.tls_passthrough.clone();
 
                         tokio::spawn(async move {
                             // guard가 이 태스크 스코프에 소유되므로, 태스크가 어떤 방식으로
                             // 종료되든 (정상, 패닉, abort) Drop이 호출되어 카운트가 감소됩니다.
                             let _guard = _guard;
-                            handle_client(stream, event_rx, intercept_tx_clone, upstream_tx_clone, server_replay_tx_clone, throttle_tx_clone, breakpoint_tx_clone, breakpoint_mgr_clone, host_mapping_tx_clone, ssl_proxying_tx_clone, client_cert_tx_clone, event_tx_clone, port, registry_clone, script_handle_clone, quick_settings_clone, proxy_auth_clone, started_at, total_transactions_clone, client_count_for_health)
+                            handle_client(stream, event_rx, intercept_tx_clone, upstream_tx_clone, server_replay_tx_clone, throttle_tx_clone, breakpoint_tx_clone, breakpoint_mgr_clone, host_mapping_tx_clone, ssl_proxying_tx_clone, client_cert_tx_clone, event_tx_clone, port, registry_clone, script_handle_clone, quick_settings_clone, proxy_auth_clone, started_at, total_transactions_clone, client_count_for_health, tls_passthrough_clone)
                                 .await;
                         });
                     }
@@ -452,6 +456,38 @@ async fn daemon_main(port: u16, host: String) -> i32 {
     let max_concurrent_connections: Option<usize> = Some(DEFAULT_MAX_CONCURRENT_CONNECTIONS);
     let max_body_size: Option<usize> = Some(DEFAULT_MAX_BODY_SIZE);
 
+    // TLS 자동 학습 바이패스 초기화 (변경 알림 채널 포함)
+    let (tls_change_tx, mut tls_change_rx) = tokio::sync::mpsc::channel::<Vec<(String, u32)>>(64);
+    let passthrough_path = app_support_dir()
+        .ok()
+        .map(|dir| dir.join("tls_passthrough.json"));
+    let tls_passthrough = proxyapi_v2::tls_passthrough::TlsPassthrough::new(passthrough_path)
+        .with_change_notifier(tls_change_tx);
+
+    // TLS passthrough 변경 시 이벤트 브로드캐스트
+    {
+        let event_tx_tls = event_tx.clone();
+        tokio::spawn(async move {
+            while let Some(entries) = tls_change_rx.recv().await {
+                let tls_entries: Vec<crate::protocol::TlsPassthroughEntry> = entries
+                    .into_iter()
+                    .map(
+                        |(host, failure_count)| crate::protocol::TlsPassthroughEntry {
+                            host,
+                            failure_count,
+                        },
+                    )
+                    .collect();
+                let msg = DaemonMessage::TlsPassthroughUpdated {
+                    entries: tls_entries,
+                };
+                if let Ok(json) = serde_json::to_string(&msg) {
+                    let _ = event_tx_tls.send(json);
+                }
+            }
+        });
+    }
+
     let (proxy_handle, proxy_shutdown_tx) = spawn_proxy_task(
         addr,
         event_tx.clone(),
@@ -470,6 +506,7 @@ async fn daemon_main(port: u16, host: String) -> i32 {
         proxy_auth.clone(),
         max_concurrent_connections,
         max_body_size,
+        tls_passthrough.clone(),
     );
 
     let uds_listener = match UnixListener::bind(&uds_path) {
@@ -540,6 +577,7 @@ async fn daemon_main(port: u16, host: String) -> i32 {
         script_handle,
         quick_settings,
         proxy_auth,
+        tls_passthrough,
     };
 
     run_accept_loop(uds_listener, &mut shutdown_rx, &ctx, port).await;

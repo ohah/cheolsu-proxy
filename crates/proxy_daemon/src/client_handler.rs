@@ -7,7 +7,7 @@ use tracing::{debug, error, info, warn};
 use crate::breakpoint::BreakpointManager;
 use crate::protocol::{
     BreakpointRule, ClientCertConfig, ClientCommand, DaemonMessage, HostMapping, InterceptRule,
-    ProxyAuthConfig, ServerReplayEntry, SslProxyingEntry,
+    ProxyAuthConfig, ServerReplayEntry, SslProxyingEntry, TlsPassthroughEntry,
 };
 use proxyapi_v2::throttle::ThrottleConfig;
 use proxyapi_v2::upstream_proxy::UpstreamProxyConfig;
@@ -37,6 +37,7 @@ pub async fn handle_client(
     started_at: std::time::Instant,
     total_transactions: std::sync::Arc<std::sync::atomic::AtomicU64>,
     client_count: std::sync::Arc<std::sync::atomic::AtomicUsize>,
+    tls_passthrough: proxyapi_v2::tls_passthrough::TlsPassthrough,
 ) {
     let (reader, writer) = stream.into_split();
     let mut reader = BufReader::new(reader);
@@ -503,6 +504,30 @@ pub async fn handle_client(
                         let mut w = writer.lock().await;
                         let _ = w.write_all(line.as_bytes()).await;
                         let _ = w.flush().await;
+                    }
+                    Ok(ClientCommand::GetTlsPassthroughList) => {
+                        let list = tls_passthrough.list_bypassed().await;
+                        let entries: Vec<TlsPassthroughEntry> = list
+                            .into_iter()
+                            .map(|(host, failure_count)| TlsPassthroughEntry {
+                                host,
+                                failure_count,
+                            })
+                            .collect();
+                        let response = DaemonMessage::TlsPassthroughUpdated { entries };
+                        let mut line = serde_json::to_string(&response).unwrap_or_default();
+                        line.push('\n');
+                        let mut w = writer.lock().await;
+                        let _ = w.write_all(line.as_bytes()).await;
+                        let _ = w.flush().await;
+                    }
+                    Ok(ClientCommand::RemoveTlsPassthrough { host }) => {
+                        info!("TLS Passthrough 바이패스 해제: {}", host);
+                        tls_passthrough.clear_domain(&host).await;
+                    }
+                    Ok(ClientCommand::ClearTlsPassthrough) => {
+                        info!("TLS Passthrough 전체 초기화");
+                        tls_passthrough.clear_all().await;
                     }
                     Ok(ClientCommand::Stop) => {
                         break;
