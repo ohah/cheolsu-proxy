@@ -226,6 +226,13 @@ export function SettingsPage() {
       return false;
     }
   });
+  const [noGzip, setNoGzip] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("quick_settings_no_gzip") ?? "false");
+    } catch {
+      return false;
+    }
+  });
 
   const [autosaveEnabled, setAutosaveEnabled] = useState(() => {
     return localStorage.getItem("autosave_session") !== "false";
@@ -407,8 +414,11 @@ export function SettingsPage() {
     setNoCaching(checked);
     localStorage.setItem("quick_settings_no_caching", JSON.stringify(checked));
     setBlockCookies((currentBlockCookies) => {
-      updateQuickSettings(checked, currentBlockCookies).catch((e) => {
-        console.error("No Caching 설정 실패:", e);
+      setNoGzip((currentNoGzip) => {
+        updateQuickSettings(checked, currentBlockCookies, currentNoGzip).catch((e) => {
+          console.error("No Caching 설정 실패:", e);
+        });
+        return currentNoGzip;
       });
       return currentBlockCookies;
     });
@@ -418,8 +428,25 @@ export function SettingsPage() {
     setBlockCookies(checked);
     localStorage.setItem("quick_settings_block_cookies", JSON.stringify(checked));
     setNoCaching((currentNoCaching) => {
-      updateQuickSettings(currentNoCaching, checked).catch((e) => {
-        console.error("Block Cookies 설정 실패:", e);
+      setNoGzip((currentNoGzip) => {
+        updateQuickSettings(currentNoCaching, checked, currentNoGzip).catch((e) => {
+          console.error("Block Cookies 설정 실패:", e);
+        });
+        return currentNoGzip;
+      });
+      return currentNoCaching;
+    });
+  }, []);
+
+  const handleNoGzipChange = useCallback(async (checked: boolean) => {
+    setNoGzip(checked);
+    localStorage.setItem("quick_settings_no_gzip", JSON.stringify(checked));
+    setNoCaching((currentNoCaching) => {
+      setBlockCookies((currentBlockCookies) => {
+        updateQuickSettings(currentNoCaching, currentBlockCookies, checked).catch((e) => {
+          console.error("No Gzip 설정 실패:", e);
+        });
+        return currentBlockCookies;
       });
       return currentNoCaching;
     });
@@ -428,7 +455,7 @@ export function SettingsPage() {
   // 프록시 연결 시 Quick Settings 동기화
   useEffect(() => {
     if (isProxyConnected) {
-      updateQuickSettings(noCaching, blockCookies).catch(() => {});
+      updateQuickSettings(noCaching, blockCookies, noGzip).catch(() => {});
     }
   }, [isProxyConnected]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -1083,6 +1110,20 @@ export function SettingsPage() {
                 </p>
               </div>
               <Switch checked={blockCookies} onCheckedChange={handleBlockCookiesChange} />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <label className="text-sm font-medium">
+                  <Trans>No Gzip</Trans>
+                </label>
+                <p className="text-xs text-muted-foreground">
+                  <Trans>
+                    Remove Accept-Encoding header from requests to prevent compressed responses
+                  </Trans>
+                </p>
+              </div>
+              <Switch checked={noGzip} onCheckedChange={handleNoGzipChange} />
             </div>
 
             <div className="flex items-center justify-between">

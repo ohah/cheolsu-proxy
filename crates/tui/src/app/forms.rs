@@ -128,6 +128,7 @@ cycle_enum!(SettingsSection);
 pub struct QuickSettingsForm {
     pub no_caching: bool,
     pub block_cookies: bool,
+    pub no_gzip: bool,
     pub field: QuickSettingsField,
 }
 
@@ -135,15 +136,17 @@ pub struct QuickSettingsForm {
 pub enum QuickSettingsField {
     NoCaching,
     BlockCookies,
+    NoGzip,
 }
 
 impl QuickSettingsField {
-    pub const ALL: [QuickSettingsField; 2] = [Self::NoCaching, Self::BlockCookies];
+    pub const ALL: [QuickSettingsField; 3] = [Self::NoCaching, Self::BlockCookies, Self::NoGzip];
 
     pub fn label(&self) -> &str {
         match self {
             Self::NoCaching => "No Caching",
             Self::BlockCookies => "Block Cookies",
+            Self::NoGzip => "No Gzip",
         }
     }
 }
@@ -155,6 +158,7 @@ impl QuickSettingsForm {
         Self {
             no_caching: false,
             block_cookies: false,
+            no_gzip: false,
             field: QuickSettingsField::NoCaching,
         }
     }

@@ -328,6 +328,7 @@ export async function updateSslProxyingList(entries: SslProxyingEntry[]): Promis
 export async function updateQuickSettings(
   noCaching: boolean,
   blockCookies: boolean,
+  noGzip: boolean,
 ): Promise<void> {
-  return invoke("update_quick_settings", { noCaching, blockCookies });
+  return invoke("update_quick_settings", { noCaching, blockCookies, noGzip });
 }

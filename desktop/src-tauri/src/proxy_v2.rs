@@ -796,12 +796,13 @@ pub async fn update_ssl_proxying_list(
     Ok(())
 }
 
-/// 빠른 설정 업데이트 (No Caching, Block Cookies)
+/// 빠른 설정 업데이트 (No Caching, Block Cookies, No Gzip)
 #[tauri::command]
 pub async fn update_quick_settings(
     proxy: State<'_, ProxyV2State>,
     no_caching: bool,
     block_cookies: bool,
+    no_gzip: bool,
 ) -> Result<(), String> {
     let proxy_guard = proxy.lock().await;
 
@@ -809,12 +810,14 @@ pub async fn update_quick_settings(
         let cmd = ClientCommand::UpdateQuickSettings {
             no_caching,
             block_cookies,
+            no_gzip,
         };
         conn.send_command(&cmd).await?;
         tracing::info!(
-            "Daemon에 빠른 설정 업데이트 완료: no_caching={}, block_cookies={}",
+            "Daemon에 빠른 설정 업데이트 완료: no_caching={}, block_cookies={}, no_gzip={}",
             no_caching,
-            block_cookies
+            block_cookies,
+            no_gzip
         );
     } else {
         return Err("프록시가 실행 중이 아닙니다".to_string());

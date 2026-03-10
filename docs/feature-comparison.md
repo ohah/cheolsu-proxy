@@ -44,33 +44,33 @@
 
 ## cheolsu-proxy에만 있는 기능
 
-| 기능                    | 설명                                                   |
-| ----------------------- | ------------------------------------------------------ |
-| 네이티브 데스크톱 앱    | Tauri 기반 (경량, 저메모리)                            |
-| MCP Server              | AI 어시스턴트(Claude Code, Cursor 등)에서 트래픽 조회  |
-| 하이브리드 TLS 엔진     | rustls + OpenSSL 자동 전환 (ClientHello 분석 기반)     |
-| 시퀀스 리플레이         | 여러 요청을 순차 배치 실행                             |
-| 호스트/경로 트리 뷰     | 트래픽을 호스트별 트리 구조로 그룹핑                   |
-| 핀/체크박스 선택        | 트랜잭션 고정 및 다중 선택                             |
-| 일시정지/재개           | 트래픽 캡처 일시 중지                                  |
-| SOCKS5 Proxy            | RFC 1929 인증 포함 완전 구현                           |
-| Server Replay           | 캡처된 응답 캐싱 및 자동 반환                          |
-| 세션 저장/불러오기      | .cheolsu 파일 (트래픽+규칙+설정 포함), HAR 가져오기    |
-| Breakpoints             | 요청/응답 일시 정지, Forward/Drop/Abort/Modify 지원    |
-| Host Mapping (DNS)      | 도메인→IP 매핑, 와일드카드 패턴, 포트 지정             |
-| 트래픽 비교 (Diff)      | 헤더/바디/JSON 구조적 diff                             |
-| Protobuf 디코딩         | Wire type 기반 자동 디코딩 뷰어                        |
-| TUI (터미널 UI)         | ratatui 기반 풀 인터랙티브 UI                          |
-| Headless CLI            | tcpdump 스타일 CLI + 인터셉트 셸                       |
-| 시스템 프록시 자동 관리 | 앱 시작/종료 시 자동 설정/해제                         |
-| 백그라운드 데몬         | UDS 기반 독립 데몬 프로세스                            |
-| CLI 인터셉트 셸         | headless 모드에서 규칙 관리 (block, modify-request 등) |
-| 스트리밍 응답 최적화    | SSE, Chunked, NDJSON 자동 감지 및 최적화               |
-| 세션별 캐시 격리        | 세션 해시 기반 독립 캐시 디렉토리                      |
-| SSL Proxying 화이트리스트 | 특정 도메인만 HTTPS 인터셉트 (GUI + TUI)             |
-| 자동 세션 저장/복원     | 앱 종료 시 자동 저장, 시작 시 자동 복원                |
-| multipart/urlencoded 뷰어 | 폼 데이터 파싱 및 키-값 테이블 표시                  |
-| 다양한 코드 내보내기    | curl, fetch, httpie, Python requests 4종 지원          |
+| 기능                      | 설명                                                   |
+| ------------------------- | ------------------------------------------------------ |
+| 네이티브 데스크톱 앱      | Tauri 기반 (경량, 저메모리)                            |
+| MCP Server                | AI 어시스턴트(Claude Code, Cursor 등)에서 트래픽 조회  |
+| 하이브리드 TLS 엔진       | rustls + OpenSSL 자동 전환 (ClientHello 분석 기반)     |
+| 시퀀스 리플레이           | 여러 요청을 순차 배치 실행                             |
+| 호스트/경로 트리 뷰       | 트래픽을 호스트별 트리 구조로 그룹핑                   |
+| 핀/체크박스 선택          | 트랜잭션 고정 및 다중 선택                             |
+| 일시정지/재개             | 트래픽 캡처 일시 중지                                  |
+| SOCKS5 Proxy              | RFC 1929 인증 포함 완전 구현                           |
+| Server Replay             | 캡처된 응답 캐싱 및 자동 반환                          |
+| 세션 저장/불러오기        | .cheolsu 파일 (트래픽+규칙+설정 포함), HAR 가져오기    |
+| Breakpoints               | 요청/응답 일시 정지, Forward/Drop/Abort/Modify 지원    |
+| Host Mapping (DNS)        | 도메인→IP 매핑, 와일드카드 패턴, 포트 지정             |
+| 트래픽 비교 (Diff)        | 헤더/바디/JSON 구조적 diff                             |
+| Protobuf 디코딩           | Wire type 기반 자동 디코딩 뷰어                        |
+| TUI (터미널 UI)           | ratatui 기반 풀 인터랙티브 UI                          |
+| Headless CLI              | tcpdump 스타일 CLI + 인터셉트 셸                       |
+| 시스템 프록시 자동 관리   | 앱 시작/종료 시 자동 설정/해제                         |
+| 백그라운드 데몬           | UDS 기반 독립 데몬 프로세스                            |
+| CLI 인터셉트 셸           | headless 모드에서 규칙 관리 (block, modify-request 등) |
+| 스트리밍 응답 최적화      | SSE, Chunked, NDJSON 자동 감지 및 최적화               |
+| 세션별 캐시 격리          | 세션 해시 기반 독립 캐시 디렉토리                      |
+| SSL Proxying 화이트리스트 | 특정 도메인만 HTTPS 인터셉트 (GUI + TUI)               |
+| 자동 세션 저장/복원       | 앱 종료 시 자동 저장, 시작 시 자동 복원                |
+| multipart/urlencoded 뷰어 | 폼 데이터 파싱 및 키-값 테이블 표시                    |
+| 다양한 코드 내보내기      | curl, fetch, httpie, Python requests 4종 지원          |
 
 ## 아키텍처 차이
 

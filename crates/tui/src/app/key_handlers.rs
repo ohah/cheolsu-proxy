@@ -856,6 +856,10 @@ impl App {
                             !self.quick_settings_form.block_cookies;
                         self.send_quick_settings_update().await;
                     }
+                    QuickSettingsField::NoGzip => {
+                        self.quick_settings_form.no_gzip = !self.quick_settings_form.no_gzip;
+                        self.send_quick_settings_update().await;
+                    }
                 },
             },
             // Host Mapping: a=add, d=delete, t=toggle
