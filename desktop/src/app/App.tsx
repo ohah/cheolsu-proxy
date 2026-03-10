@@ -11,7 +11,7 @@ import {
   useBreakpointStore,
   useHostMappingStore,
 } from "@/shared/stores";
-import { listen, emit } from "@tauri-apps/api/event";
+import { listen, emitTo } from "@tauri-apps/api/event";
 import type { ProxyEventTuple } from "@/entities/proxy";
 import type { WsMessageInfo, WsConnectionEvent } from "@/entities/websocket";
 import type { InterceptRule } from "@/entities/intercept-rule";
@@ -146,14 +146,32 @@ const App: React.FC = () => {
   const isConnected = useProxyStore((s) => s.isConnected);
   const transactionCount = useTransactionStore((s) => s.transactions.length);
 
-  // 메인 → 트레이: 상태 변경 시 이벤트로 전달
+  // 메인 → 트레이: 상태 변경 시 이벤트로 전달 (디바운스 적용)
   useEffect(() => {
-    emit("tray_sync", { transactionCount });
+    const timer = setTimeout(() => {
+      emitTo("tray-panel", "tray_sync", { transactionCount });
+    }, 500);
+    return () => clearTimeout(timer);
   }, [transactionCount]);
 
   useEffect(() => {
-    emit("tray_sync", { proxyConnected: isConnected });
+    emitTo("tray-panel", "tray_sync", { proxyConnected: isConnected });
   }, [isConnected]);
+
+  // 트레이 패널이 열릴 때 최신 상태 요청에 응답
+  useEffect(() => {
+    const unlisten = listen("tray_request_sync", () => {
+      const { isConnected: connected } = useProxyStore.getState();
+      const count = useTransactionStore.getState().transactions.length;
+      emitTo("tray-panel", "tray_sync", {
+        transactionCount: count,
+        proxyConnected: connected,
+      });
+    });
+    return () => {
+      unlisten.then((f) => f());
+    };
+  }, []);
 
   // 트레이 → 메인: 트레이 패널에서 보낸 액션 이벤트 수신
   useEffect(() => {

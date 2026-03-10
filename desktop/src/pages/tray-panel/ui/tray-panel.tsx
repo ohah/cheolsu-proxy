@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { listen, emit } from "@tauri-apps/api/event";
+import { listen, emitTo } from "@tauri-apps/api/event";
 import {
   Circle,
   Power,
@@ -40,8 +40,9 @@ export function TrayPanel() {
   }, []);
 
   useEffect(() => {
-    // 초기 로드 시 한 번만 조회
+    // 초기 로드 시 프록시 상태 조회 + 메인 윈도우에 최신 상태 요청
     fetchInfo();
+    emitTo("main", "tray_request_sync");
 
     // 메인 윈도우에서 보내는 상태 변경 이벤트 수신
     const unlistenSync = listen<TraySyncPayload>("tray_sync", (event) => {
@@ -60,11 +61,11 @@ export function TrayPanel() {
       if (proxyOn) {
         await invoke("stop_proxy_v2");
         setProxyOn(false);
-        await emit("tray_action", { type: "proxyConnected", value: false });
+        await emitTo("main", "tray_action", { type: "proxyConnected", value: false });
       } else {
         await invoke("start_proxy_v2", { addr: `127.0.0.1:${info?.port ?? 8100}` });
         setProxyOn(true);
-        await emit("tray_action", { type: "proxyConnected", value: true });
+        await emitTo("main", "tray_action", { type: "proxyConnected", value: true });
       }
       fetchInfo();
     } catch (e) {
@@ -74,7 +75,7 @@ export function TrayPanel() {
 
   const handleClearSession = async () => {
     setTransactionCount(0);
-    await emit("tray_action", { type: "clearSession" });
+    await emitTo("main", "tray_action", { type: "clearSession" });
   };
 
   const handleCleanCache = async () => {
