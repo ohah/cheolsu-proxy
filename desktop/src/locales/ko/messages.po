@@ -314,7 +314,7 @@ msgstr "Claude Code (CLI)"
 msgid "Clear"
 msgstr "지우기"
 
-#: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:95
+#: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:99
 msgid "Clear all"
 msgstr "전체 삭제"
 
@@ -384,7 +384,7 @@ msgstr "연결됨"
 msgid "Connection"
 msgstr "연결"
 
-#: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:84
+#: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:88
 msgid "connections"
 msgstr "연결"
 
@@ -886,7 +886,7 @@ msgstr "MCP 서버 설정"
 msgid "Message sent successfully"
 msgstr "메시지가 전송되었습니다"
 
-#: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:85
+#: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:89
 msgid "messages"
 msgstr "메시지"
 
@@ -1778,7 +1778,7 @@ msgstr "버전"
 msgid "Waiting for WebSocket messages..."
 msgstr "WebSocket 메시지 대기 중..."
 
-#: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:81
+#: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:85
 #: src/shared/app-sidebar/model/consts.ts:29
 msgid "WebSocket"
 msgstr "WebSocket"

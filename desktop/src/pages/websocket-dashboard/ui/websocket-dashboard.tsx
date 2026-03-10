@@ -1,6 +1,5 @@
 import { useMemo, useCallback, useState } from "react";
 import { Trans } from "@lingui/react/macro";
-import { useLingui } from "@lingui/react/macro";
 import { Trash2, Plug } from "lucide-react";
 
 import { WsReplayDialog } from "@/features/websocket-replay";
@@ -16,10 +15,10 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from "@/shared/ui";
+import { useDefaultLayout } from "react-resizable-panels";
 import type { WsMessageInfo, WsConnection } from "@/entities/websocket";
 
 export const WebSocketDashboard = () => {
-  const { t } = useLingui();
   const messages = useWebSocketStore((s) => s.messages);
   const connections = useWebSocketStore((s) => s.connections);
   const selectedConnectionId = useWebSocketStore((s) => s.selectedConnectionId);
@@ -71,6 +70,11 @@ export const WebSocketDashboard = () => {
     setReplayMessage(message);
   }, []);
 
+  const { defaultLayout, onLayoutChanged } = useDefaultLayout({
+    id: "websocket-dashboard-layout",
+    storage: localStorage,
+  });
+
   return (
     <div className="flex-1 flex flex-col h-full overflow-x-hidden">
       {/* Header */}
@@ -99,7 +103,17 @@ export const WebSocketDashboard = () => {
 
       {/* Main content */}
       <div className="flex-1 overflow-hidden">
-        <ResizablePanelGroup orientation="horizontal" className="flex-1 flex bg-background">
+        <ResizablePanelGroup
+          orientation="horizontal"
+          defaultLayout={
+            defaultLayout ?? {
+              "ws-connections": 20,
+              "ws-messages": 80,
+            }
+          }
+          onLayoutChanged={onLayoutChanged}
+          className="flex-1 flex bg-background"
+        >
           {/* Connection list */}
           <ResizablePanel
             id="ws-connections"

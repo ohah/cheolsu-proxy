@@ -314,7 +314,7 @@ msgstr "Claude Code (CLI)"
 msgid "Clear"
 msgstr "Clear"
 
-#: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:95
+#: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:99
 msgid "Clear all"
 msgstr "Clear all"
 
@@ -384,7 +384,7 @@ msgstr "Connected"
 msgid "Connection"
 msgstr "Connection"
 
-#: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:84
+#: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:88
 msgid "connections"
 msgstr "connections"
 
@@ -886,7 +886,7 @@ msgstr "MCP Server Configuration"
 msgid "Message sent successfully"
 msgstr "Message sent successfully"
 
-#: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:85
+#: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:89
 msgid "messages"
 msgstr "messages"
 
@@ -1778,7 +1778,7 @@ msgstr "Version"
 msgid "Waiting for WebSocket messages..."
 msgstr "Waiting for WebSocket messages..."
 
-#: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:81
+#: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:85
 #: src/shared/app-sidebar/model/consts.ts:29
 msgid "WebSocket"
 msgstr "WebSocket"
