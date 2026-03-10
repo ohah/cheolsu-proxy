@@ -1,34 +1,57 @@
 # Release Notes
 
-Check the version-by-version update history of Cheolsu Proxy.
+Version-by-version update history for Cheolsu Proxy.
 
-## 🚀 Latest Release
+## Latest Release
 
 ### v0.1.0 (In Development)
 
-- **Release Date**: Q1 2024
-- **Key Features**:
-  - Basic proxy functionality
-  - HTTPS traffic interception
-  - Automatic certificate generation and installation
-  - macOS support
-  - Intuitive GUI interface
+The first public release, including core proxy features and traffic manipulation tools.
 
-## 🔄 Update Notifications
+**Core Features**:
 
-To receive notifications when new releases are available:
+- Real-time HTTP/HTTPS traffic capture and analysis
+- Hybrid TLS engine (rustls + native-tls auto-switching)
+- Automatic CA certificate generation and system installation
+- macOS system proxy auto-configuration
 
-1. Visit [GitHub Repository](https://github.com/ohah/cheolsu-proxy)
-2. Click **Watch** button
+**Traffic Manipulation**:
+
+- Intercept Rules (Block, Modify Request/Response, Map Local, Map Remote)
+- JavaScript/TypeScript scripting (Deno Core based)
+- Server Replay (response caching and reuse)
+
+**Protocol Support**:
+
+- WebSocket monitoring and message injection (Plain Text, Socket.IO, MQTT)
+- Upstream Proxy support (proxy chaining, authentication)
+- gRPC/Protobuf decoding
+
+**Interfaces**:
+
+- Desktop GUI (Tauri)
+- Terminal TUI
+- MCP Server (AI assistant integration)
+
+**Other**:
+
+- Cheolsu-Query filtering language
+- HAR export (HTTP Archive 1.2)
+- Session save/load
+- cURL and various code export
+- Daemon architecture (multiple simultaneous client connections)
+
+## Update Notifications
+
+To receive notifications for new releases:
+
+1. Visit the [GitHub Repository](https://github.com/ohah/cheolsu-proxy)
+2. Click the **Watch** button
 3. Select **Releases only**
 
-## 📞 Feedback
+## Feedback
 
 For bug reports or feature requests:
 
-- Create an issue in [GitHub Issues](https://github.com/ohah/cheolsu-proxy/issues)
-- Participate in discussions in [GitHub Discussions](https://github.com/ohah/cheolsu-proxy/discussions)
-
----
-
-**Latest Information**: Check development progress on [GitHub](https://github.com/ohah/cheolsu-proxy).
+- [GitHub Issues](https://github.com/ohah/cheolsu-proxy/issues) — Bug reports and feature requests
+- [GitHub Discussions](https://github.com/ohah/cheolsu-proxy/discussions) — Discussion and questions

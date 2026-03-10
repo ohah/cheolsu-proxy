@@ -1,6 +1,6 @@
 # Cheolsu Proxy
 
-Rust와 Tauri로 구축된 Man In The Middle 프록시입니다.
+Rust와 Tauri로 구축된 HTTP/HTTPS 디버깅 프록시입니다. 웹 브라우저와 서버 사이의 네트워크 트래픽을 실시간으로 캡처, 분석, 수정할 수 있습니다.
 
 > 이 프로젝트는 [Proxelar](https://github.com/emanuele-em/proxelar)에서 포크하여 시작되었습니다.
 
@@ -22,9 +22,14 @@ Rust와 Tauri로 구축된 Man In The Middle 프록시입니다.
 
 ## 가이드
 
-Cheolsu Proxy 사용을 위한 가이드입니다.
+Cheolsu Proxy를 시작하기 위한 단계별 가이드입니다.
 
-- [기본 사용법](/guide/basic-usage) - 처음 사용자를 위한 간단한 가이드
+- [설치](/guide/installation) - 다운로드 및 설치
+- [기본 사용법](/guide/basic-usage) - 프록시 시작, 트래픽 캡처, 요청 확인
+- [SSL 인증서](/guide/ssl-certificates) - HTTPS 캡처를 위한 인증서 설치
+- [프록시 설정](/guide/proxying) - 시스템 프록시, 포트 설정, 모바일 연결
+- [트래픽 기록](/guide/recording) - 트래픽 뷰, 필터링, HAR 내보내기
+- [세션 관리](/guide/sessions) - 세션 저장 및 불러오기
 - [문제 해결](/guide/troubleshooting) - 자주 발생하는 문제 해결
 
 ## 기능 문서
