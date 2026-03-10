@@ -132,9 +132,7 @@ describe("generateFetchCommand", () => {
   });
 
   test("PUT 메서드", () => {
-    const result = generateFetchCommand(
-      createTransaction({ method: "PUT" }),
-    );
+    const result = generateFetchCommand(createTransaction({ method: "PUT" }));
     expect(result).toContain('method: "PUT"');
   });
 
@@ -197,9 +195,7 @@ describe("generateHttpieCommand", () => {
   });
 
   test("DELETE 메서드", () => {
-    const result = generateHttpieCommand(
-      createTransaction({ method: "DELETE" }),
-    );
+    const result = generateHttpieCommand(createTransaction({ method: "DELETE" }));
     expect(result).toContain("http DELETE");
   });
 
@@ -263,16 +259,12 @@ describe("generatePythonRequestsCommand", () => {
   });
 
   test("PUT 메서드", () => {
-    const result = generatePythonRequestsCommand(
-      createTransaction({ method: "PUT" }),
-    );
+    const result = generatePythonRequestsCommand(createTransaction({ method: "PUT" }));
     expect(result).toContain("requests.put(");
   });
 
   test("PATCH 메서드", () => {
-    const result = generatePythonRequestsCommand(
-      createTransaction({ method: "PATCH" }),
-    );
+    const result = generatePythonRequestsCommand(createTransaction({ method: "PATCH" }));
     expect(result).toContain("requests.patch(");
   });
 
