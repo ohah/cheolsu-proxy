@@ -112,7 +112,7 @@ export function GeneralSettings() {
           </SelectTrigger>
           <SelectContent>
             {Object.entries(locales).map(([code, name]) => (
-              <SelectItem key={code} value={code}>
+              <SelectItem key={code} value={code} label={name}>
                 {name}
               </SelectItem>
             ))}
@@ -137,11 +137,15 @@ export function GeneralSettings() {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {THEME_OPTIONS.map((opt) => (
-              <SelectItem key={opt.value} value={opt.value}>
-                {opt.value === "system" ? t`System` : opt.value === "light" ? t`Light` : t`Dark`}
-              </SelectItem>
-            ))}
+            {THEME_OPTIONS.map((opt) => {
+              const label =
+                opt.value === "system" ? t`System` : opt.value === "light" ? t`Light` : t`Dark`;
+              return (
+                <SelectItem key={opt.value} value={opt.value} label={label}>
+                  {label}
+                </SelectItem>
+              );
+            })}
           </SelectContent>
         </Select>
       </div>
