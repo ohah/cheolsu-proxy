@@ -7,8 +7,9 @@ use proxy_daemon::{
 };
 use std::collections::HashMap;
 use std::net::SocketAddr;
+use std::sync::atomic::Ordering;
 use std::sync::Arc;
-use tauri::{AppHandle, Emitter, Runtime, State};
+use tauri::{AppHandle, Emitter, Manager, Runtime, State};
 use tokio::sync::Mutex;
 
 // ─── Log Viewer ──────────────────────────────────────────
@@ -229,6 +230,9 @@ pub async fn start_proxy_v2<R: Runtime>(
     let (event_tx, mut event_rx) = tokio::sync::mpsc::channel::<DaemonMessage>(2048);
 
     let app_emitter = app.clone();
+    // TrayState에서 트랜잭션 카운터 추출 (event-emitter 스레드에서 사용)
+    let tray_state: Arc<crate::tray::TrayState> =
+        app.state::<Arc<crate::tray::TrayState>>().inner().clone();
     // NOTE: emit()을 직접 호출하면 macOS WebKit 내부 락과 메인 스레드 dispatch 사이에서
     // 데드락이 발생합니다. run_on_main_thread()로 메인 스레드 이벤트 루프에 큐잉하면
     // event-emitter 스레드가 블록되지 않아 데드락을 방지합니다.
@@ -236,6 +240,12 @@ pub async fn start_proxy_v2<R: Runtime>(
         .name("event-emitter".into())
         .spawn(move || {
             while let Some(msg) = event_rx.blocking_recv() {
+                // DaemonMessage::Event는 매 트랜잭션마다 발생하므로 여기서 카운트
+                if matches!(msg, DaemonMessage::Event { .. }) {
+                    tray_state
+                        .transaction_count
+                        .fetch_add(1, Ordering::Relaxed);
+                }
                 let app = app_emitter.clone();
                 let _ = app_emitter.run_on_main_thread(move || {
                     match msg {

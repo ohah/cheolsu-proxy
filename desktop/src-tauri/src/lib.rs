@@ -20,6 +20,7 @@ use proxy_v2::{
     update_request_client_cert, update_server_replay, update_ssl_proxying_list, update_throttle,
     update_upstream_proxy, ws_inject_message, ProxyV2State,
 };
+use std::sync::Arc;
 use system_proxy::get_proxy_status_command;
 use tauri::menu::{MenuItemBuilder, SubmenuBuilder};
 use tauri::{Emitter, Manager};
@@ -62,6 +63,8 @@ pub fn run() {
             .setup(|app_handle| {
                 // proxyapi_v2 프록시 상태
                 app_handle.manage(ProxyV2State::default());
+                // 트레이 ↔ 메인 윈도우 공유 상태 (Rust 중개)
+                app_handle.manage(Arc::new(tray::TrayState::default()));
 
                 // 시스템 트레이 설정
                 setup_tray(app_handle)?;
@@ -245,6 +248,8 @@ pub fn run() {
                 tray::tray_get_info,
                 tray::tray_show_main_window,
                 tray::tray_quit_app,
+                tray::tray_toggle_recording,
+                tray::tray_set_recording_paused,
                 get_log_files,
                 read_log_file,
                 clear_log_file,
