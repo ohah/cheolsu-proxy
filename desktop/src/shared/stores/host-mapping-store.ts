@@ -1,5 +1,6 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { createJSONStorage, persist } from "zustand/middleware";
+import { createTauriStorage } from "@/shared/lib/tauri-store-storage";
 import type { HostMapping } from "@/shared/api/proxy";
 import { updateHostMappings } from "@/shared/api/proxy";
 
@@ -75,6 +76,7 @@ export const useHostMappingStore = create<HostMappingStoreState>()(
     }),
     {
       name: "cheolsu-host-mappings",
+      storage: createJSONStorage(() => createTauriStorage()),
     },
   ),
 );

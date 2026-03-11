@@ -1,5 +1,6 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { createJSONStorage, persist } from "zustand/middleware";
+import { createTauriStorage } from "@/shared/lib/tauri-store-storage";
 import type {
   BreakpointRule,
   BreakpointAction,
@@ -79,6 +80,7 @@ export const useBreakpointStore = create<BreakpointStoreState>()(
     }),
     {
       name: "cheolsu-breakpoint-rules",
+      storage: createJSONStorage(() => createTauriStorage()),
       partialize: (state) => ({ rules: state.rules }),
     },
   ),
