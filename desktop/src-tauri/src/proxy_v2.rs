@@ -2,8 +2,8 @@ use proxy_daemon::{
     clean_old_cache, diff_headers, diff_json, diff_text, get_local_ips, is_text_data_type,
     BodyDiff, BreakpointAction, BreakpointRule, ClientCommand, CommandSender, DaemonConnection,
     DaemonMessage, HostMapping, InterceptRule, ProxyAuthConfig, ServerReplayEntry,
-    SslProxyingEntry, ThrottleConfig, TlsPassthroughEntry, TrafficDiff, TransactionPartDiff,
-    UpstreamProxyConfig,
+    SslProxyingEntry, SslProxyingMode, ThrottleConfig, TlsPassthroughEntry, TrafficDiff,
+    TransactionPartDiff, UpstreamProxyConfig,
 };
 use std::collections::HashMap;
 use std::net::SocketAddr;
@@ -320,8 +320,11 @@ pub async fn start_proxy_v2<R: Runtime>(
                                 eprintln!("emit host_mappings_updated 실패: {}", e);
                             }
                         }
-                        DaemonMessage::SslProxyingListUpdated { entries } => {
-                            if let Err(e) = app.emit("ssl_proxying_list_updated", entries) {
+                        DaemonMessage::SslProxyingListUpdated { mode, entries } => {
+                            if let Err(e) = app.emit(
+                                "ssl_proxying_list_updated",
+                                serde_json::json!({ "mode": mode, "entries": entries }),
+                            ) {
                                 eprintln!("emit ssl_proxying_list_updated 실패: {}", e);
                             }
                         }
@@ -1010,16 +1013,17 @@ pub async fn update_host_mappings(
     Ok(())
 }
 
-/// SSL Proxying 화이트리스트 업데이트
+/// SSL Proxying 목록 업데이트
 #[tauri::command]
 pub async fn update_ssl_proxying_list(
     proxy: State<'_, ProxyV2State>,
+    mode: SslProxyingMode,
     entries: Vec<SslProxyingEntry>,
 ) -> Result<(), String> {
     let sender = get_command_sender(&proxy).await?;
-    let cmd = ClientCommand::UpdateSslProxyingList { entries };
+    let cmd = ClientCommand::UpdateSslProxyingList { mode, entries };
     sender.send_command(&cmd).await?;
-    tracing::info!("Daemon에 SSL Proxying 화이트리스트 업데이트 완료");
+    tracing::info!("Daemon에 SSL Proxying 목록 업데이트 완료");
     Ok(())
 }
 

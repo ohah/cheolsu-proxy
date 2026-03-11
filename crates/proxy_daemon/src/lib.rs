@@ -40,7 +40,7 @@ pub use protocol::{
     BreakpointAction, BreakpointData, BreakpointPhase, BreakpointRule, CertificateInfo,
     ClientCertConfig, ClientCommand, DaemonMessage, DomainClientCertConfig, HostMapping,
     InterceptAction, InterceptRule, ProxyAuthConfig, ProxyLockInfo, RequestClientCertConfig,
-    ServerReplayEntry, SslProxyingEntry, TlsPassthroughEntry,
+    ServerReplayEntry, SslProxyingEntry, SslProxyingMode, TlsPassthroughEntry,
 };
 pub use proxy_v2_models::RequestInfo;
 pub use proxyapi_v2::certificate_authority::{clean_all_cache, clean_old_cache};

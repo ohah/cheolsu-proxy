@@ -220,7 +220,10 @@ struct DaemonContext {
     breakpoint_tx: watch::Sender<Vec<crate::protocol::BreakpointRule>>,
     breakpoint_manager: BreakpointManager,
     host_mapping_tx: watch::Sender<Vec<crate::protocol::HostMapping>>,
-    ssl_proxying_tx: watch::Sender<Vec<crate::protocol::SslProxyingEntry>>,
+    ssl_proxying_tx: watch::Sender<(
+        crate::protocol::SslProxyingMode,
+        Vec<crate::protocol::SslProxyingEntry>,
+    )>,
     client_cert_tx: watch::Sender<Option<crate::protocol::ClientCertConfig>>,
     request_client_cert_tx: watch::Sender<Option<crate::protocol::RequestClientCertConfig>>,
     ws_registry: WebSocketRegistry,
@@ -247,7 +250,10 @@ fn spawn_proxy_task(
     breakpoint_rx: watch::Receiver<Vec<crate::protocol::BreakpointRule>>,
     breakpoint_manager: BreakpointManager,
     host_mapping_rx: watch::Receiver<Vec<crate::protocol::HostMapping>>,
-    ssl_proxying_rx: watch::Receiver<Vec<crate::protocol::SslProxyingEntry>>,
+    ssl_proxying_rx: watch::Receiver<(
+        crate::protocol::SslProxyingMode,
+        Vec<crate::protocol::SslProxyingEntry>,
+    )>,
     client_cert_rx: watch::Receiver<Option<crate::protocol::ClientCertConfig>>,
     ws_registry: WebSocketRegistry,
     script_handle: scripting::ScriptHandle,
@@ -440,7 +446,10 @@ async fn daemon_main(port: u16, host: String) -> i32 {
     let (host_mapping_tx, host_mapping_rx) =
         watch::channel::<Vec<crate::protocol::HostMapping>>(Vec::new());
     let (ssl_proxying_tx, ssl_proxying_rx) =
-        watch::channel::<Vec<crate::protocol::SslProxyingEntry>>(Vec::new());
+        watch::channel::<(
+            crate::protocol::SslProxyingMode,
+            Vec<crate::protocol::SslProxyingEntry>,
+        )>((crate::protocol::SslProxyingMode::default(), Vec::new()));
     let (client_cert_tx, client_cert_rx) =
         watch::channel::<Option<crate::protocol::ClientCertConfig>>(None);
     let (request_client_cert_tx, request_client_cert_rx) =

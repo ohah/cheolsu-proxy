@@ -134,9 +134,13 @@ pub enum DaemonMessage {
         path: String,
         transaction_count: usize,
     },
-    /// SSL Proxying 화이트리스트 업데이트됨
+    /// SSL Proxying 목록 업데이트됨
     #[serde(rename = "ssl_proxying_list_updated")]
-    SslProxyingListUpdated { entries: Vec<SslProxyingEntry> },
+    SslProxyingListUpdated {
+        #[serde(default)]
+        mode: SslProxyingMode,
+        entries: Vec<SslProxyingEntry>,
+    },
     /// 클라이언트 인증서 설정 업데이트됨
     #[serde(rename = "client_certificate_updated")]
     ClientCertificateUpdated { config: Option<ClientCertConfig> },
@@ -249,9 +253,13 @@ pub enum ClientCommand {
         #[serde(default)]
         no_gzip: bool,
     },
-    /// SSL Proxying 화이트리스트 업데이트
+    /// SSL Proxying 목록 업데이트
     #[serde(rename = "update_ssl_proxying_list")]
-    UpdateSslProxyingList { entries: Vec<SslProxyingEntry> },
+    UpdateSslProxyingList {
+        #[serde(default)]
+        mode: SslProxyingMode,
+        entries: Vec<SslProxyingEntry>,
+    },
     /// 프록시 인증 설정 업데이트
     #[serde(rename = "update_proxy_auth")]
     UpdateProxyAuth { config: ProxyAuthConfig },
@@ -508,8 +516,20 @@ pub struct TlsPassthroughEntry {
     pub failure_count: u32,
 }
 
-/// SSL Proxying 화이트리스트 엔트리
-/// 지정된 도메인만 HTTPS 트래픽을 인터셉트(MITM)하고, 나머지는 TLS Passthrough
+/// SSL Proxying 모드
+/// - Blacklist: 모든 도메인 인터셉트, 목록에 있는 도메인만 패스스루
+/// - Whitelist: 모든 도메인 패스스루, 목록에 있는 도메인만 인터셉트
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum SslProxyingMode {
+    /// 블랙리스트 모드 (기본): 모든 도메인 인터셉트, 목록에 있는 도메인만 패스스루
+    #[default]
+    Blacklist,
+    /// 화이트리스트 모드: 모든 도메인 패스스루, 목록에 있는 도메인만 인터셉트
+    Whitelist,
+}
+
+/// SSL Proxying 엔트리
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SslProxyingEntry {
     /// 도메인 패턴 (예: "example.com", "*.example.com", "example.com:443")
@@ -778,6 +798,7 @@ mod tests {
     #[test]
     fn test_update_ssl_proxying_list_command_serialize() {
         let cmd = ClientCommand::UpdateSslProxyingList {
+            mode: SslProxyingMode::Blacklist,
             entries: vec![
                 SslProxyingEntry {
                     pattern: "example.com".to_string(),
@@ -792,10 +813,12 @@ mod tests {
         let json = serde_json::to_string(&cmd).unwrap();
         assert!(json.contains("update_ssl_proxying_list"));
         assert!(json.contains("example.com"));
+        assert!(json.contains("blacklist"));
 
         let deserialized: ClientCommand = serde_json::from_str(&json).unwrap();
         match deserialized {
-            ClientCommand::UpdateSslProxyingList { entries } => {
+            ClientCommand::UpdateSslProxyingList { mode, entries } => {
+                assert_eq!(mode, SslProxyingMode::Blacklist);
                 assert_eq!(entries.len(), 2);
                 assert_eq!(entries[0].pattern, "example.com");
                 assert!(entries[0].enabled);
@@ -807,8 +830,23 @@ mod tests {
     }
 
     #[test]
+    fn test_update_ssl_proxying_list_backward_compat() {
+        // mode 필드 없는 이전 형식도 역직렬화 가능 (기본값 Blacklist)
+        let json = r#"{"cmd":"update_ssl_proxying_list","entries":[]}"#;
+        let cmd: ClientCommand = serde_json::from_str(json).unwrap();
+        match cmd {
+            ClientCommand::UpdateSslProxyingList { mode, entries } => {
+                assert_eq!(mode, SslProxyingMode::Blacklist);
+                assert!(entries.is_empty());
+            }
+            _ => panic!("Expected UpdateSslProxyingList"),
+        }
+    }
+
+    #[test]
     fn test_ssl_proxying_list_updated_message_serialize() {
         let msg = DaemonMessage::SslProxyingListUpdated {
+            mode: SslProxyingMode::Whitelist,
             entries: vec![SslProxyingEntry {
                 pattern: "*.example.com".to_string(),
                 enabled: true,
@@ -816,15 +854,31 @@ mod tests {
         };
         let json = serde_json::to_string(&msg).unwrap();
         assert!(json.contains("ssl_proxying_list_updated"));
+        assert!(json.contains("whitelist"));
 
         let deserialized: DaemonMessage = serde_json::from_str(&json).unwrap();
         match deserialized {
-            DaemonMessage::SslProxyingListUpdated { entries } => {
+            DaemonMessage::SslProxyingListUpdated { mode, entries } => {
+                assert_eq!(mode, SslProxyingMode::Whitelist);
                 assert_eq!(entries.len(), 1);
                 assert_eq!(entries[0].pattern, "*.example.com");
             }
             _ => panic!("Expected SslProxyingListUpdated"),
         }
+    }
+
+    #[test]
+    fn test_ssl_proxying_mode_serde() {
+        assert_eq!(
+            serde_json::to_string(&SslProxyingMode::Blacklist).unwrap(),
+            r#""blacklist""#
+        );
+        assert_eq!(
+            serde_json::to_string(&SslProxyingMode::Whitelist).unwrap(),
+            r#""whitelist""#
+        );
+        let mode: SslProxyingMode = serde_json::from_str(r#""whitelist""#).unwrap();
+        assert_eq!(mode, SslProxyingMode::Whitelist);
     }
 
     #[test]

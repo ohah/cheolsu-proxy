@@ -1,4 +1,20 @@
-use crate::protocol::SslProxyingEntry;
+use crate::protocol::{SslProxyingEntry, SslProxyingMode};
+
+/// 블랙리스트 모드에서 기본적으로 패스스루할 OAuth/인증 관련 도메인
+pub const DEFAULT_PASSTHROUGH_DOMAINS: &[&str] = &[
+    "accounts.google.com",
+    "*.googleapis.com",
+    "login.microsoftonline.com",
+    "*.live.com",
+    "appleid.apple.com",
+    "*.icloud.com",
+    "github.com",
+    "*.github.com",
+    "auth0.com",
+    "*.auth0.com",
+    "*.okta.com",
+    "*.duosecurity.com",
+];
 
 /// SSL Proxying 화이트리스트의 도메인 패턴이 주어진 호스트:포트와 매칭되는지 확인합니다.
 ///
@@ -76,22 +92,51 @@ fn match_host_pattern(pattern: &str, host: &str) -> bool {
     false
 }
 
-/// SSL Proxying 화이트리스트를 기반으로 해당 호스트를 인터셉트해야 하는지 확인합니다.
+/// SSL Proxying 모드와 목록을 기반으로 해당 호스트를 인터셉트해야 하는지 확인합니다.
 ///
-/// - 화이트리스트가 비어있으면 (활성화된 엔트리 없음) → 모든 도메인 인터셉트 (true)
-/// - 화이트리스트에 활성화된 엔트리가 있으면 → 매칭되는 도메인만 인터셉트
-pub fn should_intercept_ssl(entries: &[SslProxyingEntry], host: &str, port: Option<u16>) -> bool {
+/// ## Blacklist 모드 (기본)
+/// - 모든 도메인을 인터셉트하되, 목록에 매칭되는 도메인은 패스스루
+/// - 기본 OAuth 도메인(DEFAULT_PASSTHROUGH_DOMAINS)도 항상 패스스루
+///
+/// ## Whitelist 모드
+/// - 목록이 비어있으면 모든 도메인 인터셉트
+/// - 목록에 활성화된 엔트리가 있으면 매칭되는 도메인만 인터셉트
+pub fn should_intercept_ssl(
+    mode: &SslProxyingMode,
+    entries: &[SslProxyingEntry],
+    host: &str,
+    port: Option<u16>,
+) -> bool {
     let enabled_entries: Vec<&SslProxyingEntry> = entries.iter().filter(|e| e.enabled).collect();
 
-    // 활성화된 엔트리가 없으면 모든 도메인 인터셉트
-    if enabled_entries.is_empty() {
-        return true;
+    match mode {
+        SslProxyingMode::Blacklist => {
+            // 기본 OAuth 도메인 체크
+            for pattern in DEFAULT_PASSTHROUGH_DOMAINS {
+                if matches_ssl_pattern(pattern, host, port) {
+                    return false;
+                }
+            }
+            // 사용자 지정 목록 체크
+            if enabled_entries.is_empty() {
+                return true;
+            }
+            // 매칭되면 패스스루 (인터셉트 안 함)
+            !enabled_entries
+                .iter()
+                .any(|entry| matches_ssl_pattern(&entry.pattern, host, port))
+        }
+        SslProxyingMode::Whitelist => {
+            // 활성화된 엔트리가 없으면 모든 도메인 인터셉트
+            if enabled_entries.is_empty() {
+                return true;
+            }
+            // 활성화된 엔트리 중 매칭되는 것이 있으면 인터셉트
+            enabled_entries
+                .iter()
+                .any(|entry| matches_ssl_pattern(&entry.pattern, host, port))
+        }
     }
-
-    // 활성화된 엔트리 중 매칭되는 것이 있으면 인터셉트
-    enabled_entries
-        .iter()
-        .any(|entry| matches_ssl_pattern(&entry.pattern, host, port))
 }
 
 #[cfg(test)]
@@ -217,21 +262,31 @@ mod tests {
         assert!(matches_ssl_pattern("example.com", "example.com", None));
     }
 
-    // --- should_intercept_ssl 테스트 ---
+    // --- should_intercept_ssl 테스트 (Whitelist 모드) ---
 
     #[test]
-    fn test_empty_whitelist_intercepts_all() {
+    fn test_whitelist_empty_intercepts_all() {
         let entries: Vec<SslProxyingEntry> = vec![];
-        assert!(should_intercept_ssl(&entries, "any.domain.com", Some(443)));
+        assert!(should_intercept_ssl(
+            &SslProxyingMode::Whitelist,
+            &entries,
+            "any.domain.com",
+            Some(443)
+        ));
     }
 
     #[test]
-    fn test_all_disabled_intercepts_all() {
+    fn test_whitelist_all_disabled_intercepts_all() {
         let entries = vec![SslProxyingEntry {
             pattern: "example.com".to_string(),
             enabled: false,
         }];
-        assert!(should_intercept_ssl(&entries, "any.domain.com", Some(443)));
+        assert!(should_intercept_ssl(
+            &SslProxyingMode::Whitelist,
+            &entries,
+            "any.domain.com",
+            Some(443)
+        ));
     }
 
     #[test]
@@ -240,7 +295,12 @@ mod tests {
             pattern: "example.com".to_string(),
             enabled: true,
         }];
-        assert!(should_intercept_ssl(&entries, "example.com", Some(443)));
+        assert!(should_intercept_ssl(
+            &SslProxyingMode::Whitelist,
+            &entries,
+            "example.com",
+            Some(443)
+        ));
     }
 
     #[test]
@@ -249,7 +309,12 @@ mod tests {
             pattern: "example.com".to_string(),
             enabled: true,
         }];
-        assert!(!should_intercept_ssl(&entries, "other.com", Some(443)));
+        assert!(!should_intercept_ssl(
+            &SslProxyingMode::Whitelist,
+            &entries,
+            "other.com",
+            Some(443)
+        ));
     }
 
     #[test]
@@ -264,9 +329,24 @@ mod tests {
                 enabled: true,
             },
         ];
-        assert!(should_intercept_ssl(&entries, "example.com", Some(443)));
-        assert!(should_intercept_ssl(&entries, "v1.api.io", Some(443)));
-        assert!(!should_intercept_ssl(&entries, "other.com", Some(443)));
+        assert!(should_intercept_ssl(
+            &SslProxyingMode::Whitelist,
+            &entries,
+            "example.com",
+            Some(443)
+        ));
+        assert!(should_intercept_ssl(
+            &SslProxyingMode::Whitelist,
+            &entries,
+            "v1.api.io",
+            Some(443)
+        ));
+        assert!(!should_intercept_ssl(
+            &SslProxyingMode::Whitelist,
+            &entries,
+            "other.com",
+            Some(443)
+        ));
     }
 
     #[test]
@@ -281,10 +361,18 @@ mod tests {
                 enabled: false,
             },
         ];
-        // example.com 매칭 (활성화)
-        assert!(should_intercept_ssl(&entries, "example.com", Some(443)));
-        // disabled.com 미매칭 (비활성화이므로 화이트리스트에 포함되지 않음)
-        assert!(!should_intercept_ssl(&entries, "disabled.com", Some(443)));
+        assert!(should_intercept_ssl(
+            &SslProxyingMode::Whitelist,
+            &entries,
+            "example.com",
+            Some(443)
+        ));
+        assert!(!should_intercept_ssl(
+            &SslProxyingMode::Whitelist,
+            &entries,
+            "disabled.com",
+            Some(443)
+        ));
     }
 
     #[test]
@@ -293,13 +381,22 @@ mod tests {
             pattern: "example.com:8443".to_string(),
             enabled: true,
         }];
-        assert!(should_intercept_ssl(&entries, "example.com", Some(8443)));
-        assert!(!should_intercept_ssl(&entries, "example.com", Some(443)));
+        assert!(should_intercept_ssl(
+            &SslProxyingMode::Whitelist,
+            &entries,
+            "example.com",
+            Some(8443)
+        ));
+        assert!(!should_intercept_ssl(
+            &SslProxyingMode::Whitelist,
+            &entries,
+            "example.com",
+            Some(443)
+        ));
     }
 
     #[test]
     fn test_host_with_port_in_host_string() {
-        // 호스트 문자열에 포트가 포함된 경우 (authority 형식)
         assert!(matches_ssl_pattern("example.com", "example.com:443", None));
     }
 
@@ -330,8 +427,12 @@ mod tests {
                 enabled: true,
             },
         ];
-        // 빈 패턴만 있는 경우 어떤 도메인도 매칭되지 않아야 함
-        assert!(!should_intercept_ssl(&entries, "example.com", Some(443)));
+        assert!(!should_intercept_ssl(
+            &SslProxyingMode::Whitelist,
+            &entries,
+            "example.com",
+            Some(443)
+        ));
     }
 
     #[test]
@@ -346,8 +447,119 @@ mod tests {
                 enabled: true,
             },
         ];
-        // 유효한 패턴은 정상 매칭되어야 함
-        assert!(should_intercept_ssl(&entries, "example.com", Some(443)));
-        assert!(!should_intercept_ssl(&entries, "other.com", Some(443)));
+        assert!(should_intercept_ssl(
+            &SslProxyingMode::Whitelist,
+            &entries,
+            "example.com",
+            Some(443)
+        ));
+        assert!(!should_intercept_ssl(
+            &SslProxyingMode::Whitelist,
+            &entries,
+            "other.com",
+            Some(443)
+        ));
+    }
+
+    // --- should_intercept_ssl 테스트 (Blacklist 모드) ---
+
+    #[test]
+    fn test_blacklist_empty_intercepts_all() {
+        let entries: Vec<SslProxyingEntry> = vec![];
+        assert!(should_intercept_ssl(
+            &SslProxyingMode::Blacklist,
+            &entries,
+            "any.domain.com",
+            Some(443)
+        ));
+    }
+
+    #[test]
+    fn test_blacklist_match_passthrough() {
+        let entries = vec![SslProxyingEntry {
+            pattern: "example.com".to_string(),
+            enabled: true,
+        }];
+        // 매칭되면 패스스루 (인터셉트 안 함)
+        assert!(!should_intercept_ssl(
+            &SslProxyingMode::Blacklist,
+            &entries,
+            "example.com",
+            Some(443)
+        ));
+    }
+
+    #[test]
+    fn test_blacklist_no_match_intercepts() {
+        let entries = vec![SslProxyingEntry {
+            pattern: "example.com".to_string(),
+            enabled: true,
+        }];
+        // 매칭 안 되면 인터셉트
+        assert!(should_intercept_ssl(
+            &SslProxyingMode::Blacklist,
+            &entries,
+            "other.com",
+            Some(443)
+        ));
+    }
+
+    #[test]
+    fn test_blacklist_default_oauth_passthrough() {
+        let entries: Vec<SslProxyingEntry> = vec![];
+        // 기본 OAuth 도메인은 항상 패스스루
+        assert!(!should_intercept_ssl(
+            &SslProxyingMode::Blacklist,
+            &entries,
+            "accounts.google.com",
+            Some(443)
+        ));
+        assert!(!should_intercept_ssl(
+            &SslProxyingMode::Blacklist,
+            &entries,
+            "login.microsoftonline.com",
+            Some(443)
+        ));
+        assert!(!should_intercept_ssl(
+            &SslProxyingMode::Blacklist,
+            &entries,
+            "api.googleapis.com",
+            Some(443)
+        ));
+    }
+
+    #[test]
+    fn test_blacklist_disabled_entry_ignored() {
+        let entries = vec![SslProxyingEntry {
+            pattern: "example.com".to_string(),
+            enabled: false,
+        }];
+        // 비활성화된 엔트리는 무시 → 인터셉트
+        assert!(should_intercept_ssl(
+            &SslProxyingMode::Blacklist,
+            &entries,
+            "example.com",
+            Some(443)
+        ));
+    }
+
+    #[test]
+    fn test_blacklist_wildcard_passthrough() {
+        let entries = vec![SslProxyingEntry {
+            pattern: "*.example.com".to_string(),
+            enabled: true,
+        }];
+        assert!(!should_intercept_ssl(
+            &SslProxyingMode::Blacklist,
+            &entries,
+            "api.example.com",
+            Some(443)
+        ));
+        assert!(should_intercept_ssl(
+            &SslProxyingMode::Blacklist,
+            &entries,
+            "other.com",
+            Some(443)
+        ));
     }
 }

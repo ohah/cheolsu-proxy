@@ -28,7 +28,7 @@ pub async fn handle_client(
     breakpoint_tx: watch::Sender<Vec<BreakpointRule>>,
     breakpoint_manager: BreakpointManager,
     host_mapping_tx: watch::Sender<Vec<HostMapping>>,
-    ssl_proxying_tx: watch::Sender<Vec<SslProxyingEntry>>,
+    ssl_proxying_tx: watch::Sender<(crate::protocol::SslProxyingMode, Vec<SslProxyingEntry>)>,
     client_cert_tx: watch::Sender<Option<ClientCertConfig>>,
     request_client_cert_tx: watch::Sender<Option<RequestClientCertConfig>>,
     event_tx: broadcast::Sender<String>,
@@ -78,9 +78,10 @@ pub async fn handle_client(
         let _ = w.write_all(mappings_line.as_bytes()).await;
         let _ = w.flush().await;
 
-        let current_ssl_proxying = ssl_proxying_tx.borrow().clone();
+        let (current_ssl_mode, current_ssl_entries) = ssl_proxying_tx.borrow().clone();
         let ssl_msg = DaemonMessage::SslProxyingListUpdated {
-            entries: current_ssl_proxying,
+            mode: current_ssl_mode,
+            entries: current_ssl_entries,
         };
         let mut ssl_line = serde_json::to_string(&ssl_msg).unwrap_or_default();
         ssl_line.push('\n');
@@ -285,15 +286,16 @@ pub async fn handle_client(
                             }
                         }
                     }
-                    Ok(ClientCommand::UpdateSslProxyingList { entries }) => {
+                    Ok(ClientCommand::UpdateSslProxyingList { mode, entries }) => {
                         info!(
-                            "SSL Proxying list updated from client: {} entries",
+                            "SSL Proxying list updated from client: mode={:?}, {} entries",
+                            mode,
                             entries.len()
                         );
-                        if let Err(e) = ssl_proxying_tx.send(entries.clone()) {
+                        if let Err(e) = ssl_proxying_tx.send((mode.clone(), entries.clone())) {
                             warn!("SSL 프록싱 목록 watch 채널 전송 실패: {}", e);
                         }
-                        let broadcast_msg = DaemonMessage::SslProxyingListUpdated { entries };
+                        let broadcast_msg = DaemonMessage::SslProxyingListUpdated { mode, entries };
                         if let Ok(json) = serde_json::to_string(&broadcast_msg) {
                             if event_tx.receiver_count() > 0 {
                                 if let Err(e) = event_tx.send(json) {
