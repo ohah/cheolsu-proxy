@@ -75,11 +75,8 @@ async fn rewrite_body_bytes(
 /// Rewrite 액션의 정규식 컴파일 + 헤더/바디 치환을 수행하는 공통 매크로.
 /// Request와 Response 모두에서 사용 가능하도록 매크로로 구현한다.
 /// `$msg`에 borrow 분리를 위해 `$msg.headers_mut()`, `$msg.body_mut()` 호출을 분리한다.
-/// `$remove_transfer_encoding`: 바디 rewrite 시 transfer-encoding 헤더 제거 여부.
-///   - 응답(response) 경로에서는 true (기존 동작 유지)
-///   - 요청(request) 경로에서는 false (기존에 transfer-encoding을 제거하지 않았음)
 macro_rules! apply_rewrite_action {
-    ($msg:expr, $match_pattern:expr, $replace_with:expr, $is_header:expr, $remove_transfer_encoding:expr, $rule_id:expr, $log_label:expr, $method:expr, $url:expr, $rule_name:expr) => {
+    ($msg:expr, $match_pattern:expr, $replace_with:expr, $is_header:expr, $log_label:expr, $method:expr, $url:expr, $rule_name:expr) => {
         match Regex::new($match_pattern) {
             Ok(re) => {
                 if $is_header {
@@ -99,11 +96,7 @@ macro_rules! apply_rewrite_action {
                     if let Some(new_bytes) =
                         rewrite_body_bytes($msg.body_mut(), &re, $replace_with).await
                     {
-                        $msg.headers_mut().remove("content-length");
-                        $msg.headers_mut().remove("content-encoding");
-                        if $remove_transfer_encoding {
-                            $msg.headers_mut().remove("transfer-encoding");
-                        }
+                        crate::header_utils::clear_content_encoding_headers($msg.headers_mut());
                         use http_body_util::Full;
                         *$msg.body_mut() = Body::from(Full::new(new_bytes));
                     }
@@ -260,8 +253,6 @@ impl LoggingHandler {
                         match_pattern,
                         replace_with,
                         *target == RewriteTarget::RequestHeader,
-                        false,
-                        &rule.id,
                         "요청",
                         method,
                         url,
@@ -418,9 +409,7 @@ impl LoggingHandler {
                     use http_body_util::Full;
                     // Content-Length 업데이트
                     let body_bytes = bytes::Bytes::from(new_body.clone());
-                    res.headers_mut().remove("content-length");
-                    res.headers_mut().remove("content-encoding");
-                    res.headers_mut().remove("transfer-encoding");
+                    crate::header_utils::clear_content_encoding_headers(res.headers_mut());
                     *res.body_mut() = Body::from(Full::new(body_bytes));
                 }
             }
@@ -439,8 +428,6 @@ impl LoggingHandler {
                         match_pattern,
                         replace_with,
                         *target == RewriteTarget::ResponseHeader,
-                        true,
-                        &rule.id,
                         "응답",
                         method,
                         url,
