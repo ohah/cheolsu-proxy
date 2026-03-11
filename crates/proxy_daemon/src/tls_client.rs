@@ -15,7 +15,7 @@ use tokio_rustls::rustls::{
     ClientConfig, SignatureScheme,
 };
 use tracing::{error, info};
-use x509_parser::extensions::{GeneralName, ParsedExtension};
+use x509_parser::extensions::GeneralName;
 use x509_parser::oid_registry::{OID_X509_COMMON_NAME, OID_X509_ORGANIZATION_NAME};
 
 use crate::protocol::{CertificateInfo, ClientCertConfig};
@@ -152,112 +152,36 @@ pub fn parse_certificate_info(
     let chain_length = certs.len();
     let cert_der = certs[0].as_ref();
 
-    // x509-parser로 인증서 파싱
     let (_, cert) = x509_parser::parse_x509_certificate(cert_der)
         .map_err(|e| format!("인증서 파싱 실패: {}", e))?;
 
-    // Subject CN, Organization 추출
-    let mut subject_cn = None;
-    let mut organization = None;
-    for rdn in cert.subject().iter() {
-        for attr in rdn.iter() {
-            if *attr.attr_type() == OID_X509_COMMON_NAME {
-                subject_cn = attr.as_str().ok().map(String::from);
-            }
-            if *attr.attr_type() == OID_X509_ORGANIZATION_NAME {
-                organization = attr.as_str().ok().map(String::from);
-            }
-        }
-    }
-
-    // Issuer CN 추출
-    let mut issuer_cn = None;
-    for rdn in cert.issuer().iter() {
-        for attr in rdn.iter() {
-            if *attr.attr_type() == OID_X509_COMMON_NAME {
-                issuer_cn = attr.as_str().ok().map(String::from);
-            }
-        }
-    }
-
-    // SAN 추출
-    let mut sans_dns = Vec::new();
-    let mut sans_ip = Vec::new();
-    if let Ok(Some(san_ext)) = cert.subject_alternative_name() {
-        for name in &san_ext.value.general_names {
-            match name {
-                GeneralName::DNSName(dns) => {
-                    sans_dns.push(dns.to_string());
-                }
-                GeneralName::IPAddress(ip_bytes) => {
-                    if ip_bytes.len() == 4 {
-                        let ip = format!(
-                            "{}.{}.{}.{}",
-                            ip_bytes[0], ip_bytes[1], ip_bytes[2], ip_bytes[3]
-                        );
-                        sans_ip.push(ip);
-                    } else if ip_bytes.len() == 16 {
-                        let addr: std::net::Ipv6Addr = {
-                            let mut octets = [0u8; 16];
-                            octets.copy_from_slice(ip_bytes);
-                            std::net::Ipv6Addr::from(octets)
-                        };
-                        sans_ip.push(addr.to_string());
-                    }
-                }
-                _ => {}
-            }
-        }
-    }
-
-    // 유효기간 (ISO 8601 형식 - JavaScript Date에서 파싱 가능)
-    let format_asn1_time = |asn1_time: &x509_parser::time::ASN1Time| -> String {
-        // ASN1Time의 Display는 "YYYY-MM-DD HH:MM:SS UTC" 형식
-        // JavaScript Date()가 안전하게 파싱하도록 ISO 8601로 변환
-        let s = format!("{}", asn1_time);
-        // "2026-03-11 00:00:00 UTC" → "2026-03-11T00:00:00Z"
-        s.replace(" UTC", "Z").replacen(' ', "T", 1)
-    };
-    let not_before = format_asn1_time(&cert.validity().not_before);
-    let not_after = format_asn1_time(&cert.validity().not_after);
-
-    // 시리얼 넘버
-    let serial_number = cert.raw_serial_as_string();
-
-    // SHA-256 지문
-    let hash = Sha256::digest(cert_der);
-    let fingerprint_sha256 = hash
-        .iter()
-        .map(|b| format!("{:02X}", b))
-        .collect::<Vec<_>>()
-        .join(":");
-
-    // CA 여부 (BasicConstraints 확인)
-    let is_ca = cert
-        .extensions()
-        .iter()
-        .find_map(|ext| {
-            if let ParsedExtension::BasicConstraints(bc) = ext.parsed_extension() {
-                Some(bc.ca)
-            } else {
-                None
-            }
-        })
-        .unwrap_or(false);
-
-    Ok(CertificateInfo {
-        subject_cn,
-        issuer_cn,
-        organization,
-        sans_dns,
-        sans_ip,
-        not_before,
-        not_after,
-        serial_number,
-        fingerprint_sha256,
-        is_ca,
+    Ok(parse_x509_to_certificate_info(
+        &cert,
+        cert_der,
         chain_length,
-    })
+    ))
+}
+
+/// 인증서 바이트(PEM 또는 DER)에서 상세 정보를 추출합니다.
+pub fn parse_certificate_info_from_bytes(
+    cert_bytes: &[u8],
+) -> Result<CertificateInfo, Box<dyn std::error::Error>> {
+    // PEM이면 DER로 변환
+    let der_data = if cert_bytes.starts_with(b"-----BEGIN") {
+        let certs: Vec<CertificateDer<'static>> =
+            rustls_pemfile::certs(&mut cert_bytes.as_ref()).collect::<Result<Vec<_>, _>>()?;
+        if certs.is_empty() {
+            return Err("PEM 데이터에서 인증서를 찾을 수 없습니다".into());
+        }
+        certs[0].to_vec()
+    } else {
+        cert_bytes.to_vec()
+    };
+
+    let (_, cert) = x509_parser::parse_x509_certificate(&der_data)
+        .map_err(|e| format!("인증서 파싱 실패: {}", e))?;
+
+    Ok(parse_x509_to_certificate_info(&cert, &der_data, 1))
 }
 
 /// PEM 파일에서 인증서 체인을 로드합니다 (하위 호환성).
@@ -699,7 +623,7 @@ pub fn parse_pkcs12(
 }
 
 /// 인증서 파일이 CA 인증서인지 검증합니다.
-/// CA 인증서는 BasicConstraints CA=true와 KeyUsage keyCertSign이 필요합니다.
+/// CA 인증서는 BasicConstraints CA=true가 필요합니다.
 pub fn validate_ca_certificate(
     cert_path: &str,
 ) -> Result<CertificateInfo, Box<dyn std::error::Error>> {
@@ -710,6 +634,35 @@ pub fn validate_ca_certificate(
     }
 
     Ok(info)
+}
+
+/// 인증서 바이트가 CA 인증서인지 검증합니다.
+pub fn validate_ca_certificate_from_bytes(
+    cert_bytes: &[u8],
+) -> Result<CertificateInfo, Box<dyn std::error::Error>> {
+    let info = parse_certificate_info_from_bytes(cert_bytes)?;
+
+    if !info.is_ca {
+        return Err("CA 인증서가 아닙니다. BasicConstraints CA=true가 필요합니다".into());
+    }
+
+    Ok(info)
+}
+
+/// 인증서와 키가 매칭되는 쌍인지 검증합니다.
+pub fn validate_cert_key_pair(
+    cert_pem: &[u8],
+    key_pem: &[u8],
+) -> Result<(), Box<dyn std::error::Error>> {
+    let cert = openssl::x509::X509::from_pem(cert_pem)
+        .or_else(|_| openssl::x509::X509::from_der(cert_pem))?;
+    let pkey = openssl::pkey::PKey::private_key_from_pem(key_pem)?;
+
+    if !cert.public_key()?.public_eq(&pkey) {
+        return Err("인증서와 키가 매칭되지 않습니다. 올바른 키 파일을 선택하세요".into());
+    }
+
+    Ok(())
 }
 
 /// 커스텀 CA 인증서를 앱 데이터 디렉토리에 저장합니다.
@@ -817,35 +770,31 @@ fn parse_x509_to_certificate_info(
         .and_then(|attr| attr.as_str().ok())
         .map(|s| s.to_string());
 
+    // SAN 추출
     let mut sans_dns = Vec::new();
     let mut sans_ip = Vec::new();
-
     if let Ok(Some(san)) = cert.subject_alternative_name() {
         for name in &san.value.general_names {
             match name {
                 GeneralName::DNSName(dns) => sans_dns.push(dns.to_string()),
                 GeneralName::IPAddress(ip_bytes) => {
-                    let ip_str = match ip_bytes.len() {
-                        4 => format!(
+                    if ip_bytes.len() == 4 {
+                        sans_ip.push(format!(
                             "{}.{}.{}.{}",
                             ip_bytes[0], ip_bytes[1], ip_bytes[2], ip_bytes[3]
-                        ),
-                        16 => {
-                            let parts: Vec<String> = ip_bytes
-                                .chunks(2)
-                                .map(|c| format!("{:02x}{:02x}", c[0], c[1]))
-                                .collect();
-                            parts.join(":")
-                        }
-                        _ => format!("{:?}", ip_bytes),
-                    };
-                    sans_ip.push(ip_str);
+                        ));
+                    } else if ip_bytes.len() == 16 {
+                        let mut octets = [0u8; 16];
+                        octets.copy_from_slice(ip_bytes);
+                        sans_ip.push(std::net::Ipv6Addr::from(octets).to_string());
+                    }
                 }
                 _ => {}
             }
         }
     }
 
+    // CA 여부 (BasicConstraints 확인)
     let is_ca = cert
         .basic_constraints()
         .ok()
@@ -853,19 +802,19 @@ fn parse_x509_to_certificate_info(
         .map(|bc| bc.value.ca)
         .unwrap_or(false);
 
-    let not_before = cert.validity().not_before.to_datetime().to_string();
-    let not_after = cert.validity().not_after.to_datetime().to_string();
-    let serial_number = cert
-        .raw_serial()
-        .iter()
-        .map(|b| format!("{:02X}", b))
-        .collect::<Vec<_>>()
-        .join(":");
+    // 유효기간 (ISO 8601 형식)
+    let format_asn1_time = |asn1_time: &x509_parser::time::ASN1Time| -> String {
+        let s = format!("{}", asn1_time);
+        s.replace(" UTC", "Z").replacen(' ', "T", 1)
+    };
+    let not_before = format_asn1_time(&cert.validity().not_before);
+    let not_after = format_asn1_time(&cert.validity().not_after);
 
-    let mut hasher = Sha256::new();
-    hasher.update(cert_der);
-    let fingerprint = hasher
-        .finalize()
+    let serial_number = cert.raw_serial_as_string();
+
+    // SHA-256 지문
+    let hash = Sha256::digest(cert_der);
+    let fingerprint_sha256 = hash
         .iter()
         .map(|b| format!("{:02X}", b))
         .collect::<Vec<_>>()
@@ -880,7 +829,7 @@ fn parse_x509_to_certificate_info(
         not_before,
         not_after,
         serial_number,
-        fingerprint_sha256: fingerprint,
+        fingerprint_sha256,
         is_ca,
         chain_length,
     }

@@ -50,6 +50,7 @@ pub use session::{
 };
 pub use system_proxy::{get_proxy_status, set_proxy, ProxyStatus};
 pub use tls_client::{
-    get_custom_ca_info, parse_certificate_info, parse_pkcs12, remove_custom_ca, save_custom_ca,
-    validate_ca_certificate,
+    get_custom_ca_info, parse_certificate_info, parse_certificate_info_from_bytes, parse_pkcs12,
+    remove_custom_ca, save_custom_ca, validate_ca_certificate, validate_ca_certificate_from_bytes,
+    validate_cert_key_pair,
 };
