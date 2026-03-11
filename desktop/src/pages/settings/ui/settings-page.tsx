@@ -385,10 +385,7 @@ function ClientCertificateSection() {
                 {domainCerts.map((dc, idx) => (
                   <div key={idx} className="flex items-center justify-between px-4 py-2">
                     <div className="flex items-center gap-3">
-                      <Switch
-                        checked={dc.enabled}
-                        onCheckedChange={() => toggleDomainCert(idx)}
-                      />
+                      <Switch checked={dc.enabled} onCheckedChange={() => toggleDomainCert(idx)} />
                       <div>
                         <span
                           className={`font-mono text-sm ${dc.enabled ? "text-foreground" : "text-muted-foreground line-through"}`}
@@ -584,9 +581,7 @@ function RequestClientCertSection() {
             <Trans>Request Client Certificate</Trans>
           </h2>
           <p className="text-sm text-muted-foreground">
-            <Trans>
-              Request a client certificate from connecting clients (mTLS server-side)
-            </Trans>
+            <Trans>Request a client certificate from connecting clients (mTLS server-side)</Trans>
           </p>
         </div>
         <Switch checked={enabled} onCheckedChange={setEnabled} />
@@ -636,13 +631,9 @@ function RequestClientCertSection() {
               </span>
               <p className="text-xs text-muted-foreground">
                 {required ? (
-                  <Trans>
-                    Clients without a valid certificate will be rejected
-                  </Trans>
+                  <Trans>Clients without a valid certificate will be rejected</Trans>
                 ) : (
-                  <Trans>
-                    Certificate is optional — clients without one can still connect
-                  </Trans>
+                  <Trans>Certificate is optional — clients without one can still connect</Trans>
                 )}
               </p>
             </div>
