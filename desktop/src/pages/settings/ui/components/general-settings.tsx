@@ -4,10 +4,8 @@ import { useLingui } from "@lingui/react/macro";
 import { useTheme } from "next-themes";
 import { loadCatalog, locales, type Locale } from "@/shared/lib/i18n";
 import { useAppSettingsStore } from "@/shared/stores/app-settings-store";
-import { updateQuickSettings } from "@/shared/api/proxy";
-import { useProxyStore } from "@/shared/stores/proxy-store";
-import { useEffect } from "react";
 import { Switch, Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/shared/ui";
+import { useSettingsForm } from "../settings-form";
 
 const THEME_OPTIONS = [
   { value: "system", label: "System" },
@@ -18,20 +16,16 @@ const THEME_OPTIONS = [
 export function GeneralSettings() {
   const { t } = useLingui();
   const { theme, setTheme } = useTheme();
-  const isProxyConnected = useProxyStore((s) => s.isConnected);
 
   const locale = useAppSettingsStore((s) => s.locale);
   const setLocale = useAppSettingsStore((s) => s.setLocale);
-  const autosaveEnabled = useAppSettingsStore((s) => s.autosaveSession);
-  const setAutosaveEnabled = useAppSettingsStore((s) => s.setAutosaveSession);
-  const noCaching = useAppSettingsStore((s) => s.quickSettingsNoCaching);
-  const setNoCaching = useAppSettingsStore((s) => s.setQuickSettingsNoCaching);
-  const blockCookies = useAppSettingsStore((s) => s.quickSettingsBlockCookies);
-  const setBlockCookies = useAppSettingsStore((s) => s.setQuickSettingsBlockCookies);
-  const noGzip = useAppSettingsStore((s) => s.quickSettingsNoGzip);
-  const setNoGzip = useAppSettingsStore((s) => s.setQuickSettingsNoGzip);
-  const showConnectRequests = useAppSettingsStore((s) => s.showConnectRequests);
-  const setShowConnectRequests = useAppSettingsStore((s) => s.setShowConnectRequests);
+
+  const { watch, setValue } = useSettingsForm();
+  const noCaching = watch("quickSettings.noCaching");
+  const blockCookies = watch("quickSettings.blockCookies");
+  const noGzip = watch("quickSettings.noGzip");
+  const autosaveSession = watch("quickSettings.autosaveSession");
+  const showConnectRequests = watch("quickSettings.showConnectRequests");
 
   const handleLocaleChange = useCallback(
     async (newLocale: string | null) => {
@@ -42,62 +36,6 @@ export function GeneralSettings() {
     },
     [setLocale],
   );
-
-  const handleAutosaveChange = useCallback(
-    (checked: boolean) => {
-      setAutosaveEnabled(checked);
-    },
-    [setAutosaveEnabled],
-  );
-
-  const handleNoCachingChange = useCallback(
-    async (checked: boolean) => {
-      setNoCaching(checked);
-
-      const { quickSettingsBlockCookies, quickSettingsNoGzip } = useAppSettingsStore.getState();
-      updateQuickSettings(checked, quickSettingsBlockCookies, quickSettingsNoGzip).catch((e) => {
-        console.error("No Caching 설정 실패:", e);
-      });
-    },
-    [setNoCaching],
-  );
-
-  const handleBlockCookiesChange = useCallback(
-    async (checked: boolean) => {
-      setBlockCookies(checked);
-
-      const { quickSettingsNoCaching, quickSettingsNoGzip } = useAppSettingsStore.getState();
-      updateQuickSettings(quickSettingsNoCaching, checked, quickSettingsNoGzip).catch((e) => {
-        console.error("Block Cookies 설정 실패:", e);
-      });
-    },
-    [setBlockCookies],
-  );
-
-  const handleNoGzipChange = useCallback(
-    async (checked: boolean) => {
-      setNoGzip(checked);
-
-      const { quickSettingsNoCaching, quickSettingsBlockCookies } = useAppSettingsStore.getState();
-      updateQuickSettings(quickSettingsNoCaching, quickSettingsBlockCookies, checked).catch((e) => {
-        console.error("No Gzip 설정 실패:", e);
-      });
-    },
-    [setNoGzip],
-  );
-
-  // 프록시 연결 시 Quick Settings 동기화
-  useEffect(() => {
-    if (isProxyConnected) {
-      const { quickSettingsNoCaching, quickSettingsBlockCookies, quickSettingsNoGzip } =
-        useAppSettingsStore.getState();
-      updateQuickSettings(
-        quickSettingsNoCaching,
-        quickSettingsBlockCookies,
-        quickSettingsNoGzip,
-      ).catch(() => {});
-    }
-  }, [isProxyConnected]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>
@@ -175,7 +113,10 @@ export function GeneralSettings() {
                 </Trans>
               </p>
             </div>
-            <Switch checked={noCaching} onCheckedChange={handleNoCachingChange} />
+            <Switch
+              checked={noCaching}
+              onCheckedChange={(v) => setValue("quickSettings.noCaching", v, { shouldDirty: true })}
+            />
           </div>
 
           <div className="flex items-center justify-between">
@@ -189,7 +130,12 @@ export function GeneralSettings() {
                 </Trans>
               </p>
             </div>
-            <Switch checked={blockCookies} onCheckedChange={handleBlockCookiesChange} />
+            <Switch
+              checked={blockCookies}
+              onCheckedChange={(v) =>
+                setValue("quickSettings.blockCookies", v, { shouldDirty: true })
+              }
+            />
           </div>
 
           <div className="flex items-center justify-between">
@@ -203,7 +149,10 @@ export function GeneralSettings() {
                 </Trans>
               </p>
             </div>
-            <Switch checked={noGzip} onCheckedChange={handleNoGzipChange} />
+            <Switch
+              checked={noGzip}
+              onCheckedChange={(v) => setValue("quickSettings.noGzip", v, { shouldDirty: true })}
+            />
           </div>
 
           <div className="flex items-center justify-between">
@@ -218,7 +167,12 @@ export function GeneralSettings() {
                 </Trans>
               </p>
             </div>
-            <Switch checked={autosaveEnabled} onCheckedChange={handleAutosaveChange} />
+            <Switch
+              checked={autosaveSession}
+              onCheckedChange={(v) =>
+                setValue("quickSettings.autosaveSession", v, { shouldDirty: true })
+              }
+            />
           </div>
 
           <div className="flex items-center justify-between">
@@ -230,7 +184,12 @@ export function GeneralSettings() {
                 <Trans>Display CONNECT tunnel requests in the network list</Trans>
               </p>
             </div>
-            <Switch checked={showConnectRequests} onCheckedChange={setShowConnectRequests} />
+            <Switch
+              checked={showConnectRequests}
+              onCheckedChange={(v) =>
+                setValue("quickSettings.showConnectRequests", v, { shouldDirty: true })
+              }
+            />
           </div>
         </div>
       </div>
