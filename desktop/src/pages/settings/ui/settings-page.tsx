@@ -25,31 +25,131 @@ import {
   CliSettings,
   ConnectionStrategySettings,
 } from "./components";
+import { SettingsSaveProvider, useSettingsSave } from "./settings-save-context";
+
+type SettingsCategory = "general" | "certificate" | "network" | "security" | "tools";
+
+const CATEGORIES: SettingsCategory[] = [
+  "general",
+  "certificate",
+  "network",
+  "security",
+  "tools",
+];
 
 export function SettingsPage() {
   return (
-    <div className="flex-1 flex flex-col h-full overflow-auto">
-      <div className="p-6 space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">
-            <Trans>Settings</Trans>
-          </h1>
-          <p className="text-muted-foreground">
-            <Trans>Proxy configuration and preferences</Trans>
-          </p>
+    <SettingsSaveProvider>
+      <SettingsPageInner />
+    </SettingsSaveProvider>
+  );
+}
+
+function SettingsPageInner() {
+  const { t } = useLingui();
+  const [activeCategory, setActiveCategory] = useState<SettingsCategory>("general");
+  const { isDirty, saveAll, isSaving } = useSettingsSave();
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saved" | "error">("idle");
+
+  const handleSave = useCallback(async () => {
+    setSaveStatus("idle");
+    const result = await saveAll();
+    if (result.success) {
+      setSaveStatus("saved");
+      setTimeout(() => setSaveStatus("idle"), 2000);
+    } else {
+      setSaveStatus("error");
+      setTimeout(() => setSaveStatus("idle"), 3000);
+    }
+  }, [saveAll]);
+
+  const categoryLabels: Record<SettingsCategory, string> = {
+    general: t`General`,
+    certificate: t`Certificate`,
+    network: t`Network`,
+    security: t`Security`,
+    tools: t`Tools`,
+  };
+
+  return (
+    <div className="flex-1 flex h-full overflow-hidden">
+      {/* Sidebar */}
+      <nav className="w-48 flex-shrink-0 border-r p-4 space-y-1">
+        {CATEGORIES.map((cat) => (
+          <button
+            key={cat}
+            type="button"
+            onClick={() => setActiveCategory(cat)}
+            className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
+              activeCategory === cat
+                ? "bg-accent text-accent-foreground font-medium"
+                : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
+            }`}
+          >
+            {categoryLabels[cat]}
+          </button>
+        ))}
+      </nav>
+
+      {/* Content */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {/* Sticky header with save button */}
+        <div className="flex items-center justify-between px-6 py-4 border-b flex-shrink-0">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">
+              {categoryLabels[activeCategory]}
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              <Trans>Proxy configuration and preferences</Trans>
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            {saveStatus === "saved" && (
+              <Badge variant="outline" className="text-green-600 border-green-600">
+                <Trans>Saved</Trans>
+              </Badge>
+            )}
+            {saveStatus === "error" && (
+              <Badge variant="outline" className="text-red-600 border-red-600">
+                <Trans>Save failed</Trans>
+              </Badge>
+            )}
+            {isDirty && (
+              <Button onClick={handleSave} disabled={isSaving} size="sm">
+                {isSaving ? t`Saving...` : t`Save Changes`}
+              </Button>
+            )}
+          </div>
         </div>
 
-        <GeneralSettings />
-        <CertificateSettings />
-        <CliSettings />
-        <ShortcutSettings />
-        <ThrottleSettings />
-        <ConnectionStrategySettings />
-        <SslProxyingSection />
-        <ProxyAuthSection />
-        <ProxySettings />
-        <ClientCertificateSection />
-        <RequestClientCertSection />
+        {/* Scrollable content area - all categories always mounted to preserve state */}
+        <div className="flex-1 overflow-auto p-6">
+          <div className={activeCategory === "general" ? "space-y-6" : "hidden"}>
+            <GeneralSettings />
+          </div>
+
+          <div className={activeCategory === "certificate" ? "space-y-6" : "hidden"}>
+            <CertificateSettings />
+            <ClientCertificateSection />
+            <RequestClientCertSection />
+          </div>
+
+          <div className={activeCategory === "network" ? "space-y-6" : "hidden"}>
+            <ThrottleSettings />
+            <ConnectionStrategySettings />
+            <SslProxyingSection />
+            <ProxySettings />
+          </div>
+
+          <div className={activeCategory === "security" ? "space-y-6" : "hidden"}>
+            <ProxyAuthSection />
+          </div>
+
+          <div className={activeCategory === "tools" ? "space-y-6" : "hidden"}>
+            <CliSettings />
+            <ShortcutSettings />
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -57,15 +157,13 @@ export function SettingsPage() {
 
 function ClientCertificateSection() {
   const { t } = useLingui();
+  const { registerSave, unregisterSave, markDirty } = useSettingsSave();
   const [certEnabled, setCertEnabled] = useState(false);
   const [certPath, setCertPath] = useState("");
   const [keyPath, setKeyPath] = useState("");
-  const [certSaving, setCertSaving] = useState(false);
-  const [certStatus, setCertStatus] = useState<"idle" | "saved" | "error">("idle");
   const [certInfo, setCertInfo] = useState<CertificateInfo | null>(null);
   const [certInfoLoading, setCertInfoLoading] = useState(false);
 
-  // 도메인별 인증서 상태
   const [domainCerts, setDomainCerts] = useState<DomainClientCertConfig[]>([]);
   const [newDomainPattern, setNewDomainPattern] = useState("");
   const [newDomainCertPath, setNewDomainCertPath] = useState("");
@@ -91,10 +189,10 @@ function ClientCertificateSection() {
     if (selected) {
       const path = selected as string;
       setCertPath(path);
-      setCertStatus("idle");
+      markDirty("clientCert");
       loadCertInfo(path);
     }
-  }, [loadCertInfo]);
+  }, [loadCertInfo, markDirty]);
 
   const handleSelectKey = useCallback(async () => {
     const selected = await openFileDialog({
@@ -103,11 +201,10 @@ function ClientCertificateSection() {
     });
     if (selected) {
       setKeyPath(selected as string);
-      setCertStatus("idle");
+      markDirty("clientCert");
     }
-  }, []);
+  }, [markDirty]);
 
-  // 도메인별 인증서 파일 선택
   const handleSelectDomainCert = useCallback(async () => {
     const selected = await openFileDialog({
       multiple: false,
@@ -131,7 +228,6 @@ function ClientCertificateSection() {
   const handleAddDomainCert = useCallback(() => {
     const pattern = newDomainPattern.trim();
     if (!pattern || !newDomainCertPath || !newDomainKeyPath) return;
-    // 중복 체크
     if (domainCerts.some((dc) => dc.domain_pattern === pattern)) return;
     setDomainCerts((prev) => [
       ...prev,
@@ -145,46 +241,48 @@ function ClientCertificateSection() {
     setNewDomainPattern("");
     setNewDomainCertPath("");
     setNewDomainKeyPath("");
-    setCertStatus("idle");
-  }, [newDomainPattern, newDomainCertPath, newDomainKeyPath, domainCerts]);
+    markDirty("clientCert");
+  }, [newDomainPattern, newDomainCertPath, newDomainKeyPath, domainCerts, markDirty]);
 
-  const toggleDomainCert = useCallback((idx: number) => {
-    setDomainCerts((prev) =>
-      prev.map((dc, i) => (i === idx ? { ...dc, enabled: !dc.enabled } : dc)),
-    );
-    setCertStatus("idle");
-  }, []);
+  const toggleDomainCert = useCallback(
+    (idx: number) => {
+      setDomainCerts((prev) =>
+        prev.map((dc, i) => (i === idx ? { ...dc, enabled: !dc.enabled } : dc)),
+      );
+      markDirty("clientCert");
+    },
+    [markDirty],
+  );
 
-  const removeDomainCert = useCallback((idx: number) => {
-    setDomainCerts((prev) => prev.filter((_, i) => i !== idx));
-    setCertStatus("idle");
-  }, []);
+  const removeDomainCert = useCallback(
+    (idx: number) => {
+      setDomainCerts((prev) => prev.filter((_, i) => i !== idx));
+      markDirty("clientCert");
+    },
+    [markDirty],
+  );
 
-  const handleCertSave = useCallback(async () => {
-    setCertSaving(true);
-    setCertStatus("idle");
-    try {
-      if (certEnabled && certPath && keyPath) {
-        await updateClientCertificate({
-          cert_path: certPath,
-          key_path: keyPath,
-          enabled: true,
-          domain_certs: domainCerts,
-        });
-      } else {
-        await updateClientCertificate(
-          certEnabled
-            ? { cert_path: certPath, key_path: keyPath, enabled: false, domain_certs: domainCerts }
-            : null,
-        );
-      }
-      setCertStatus("saved");
-    } catch {
-      setCertStatus("error");
-    } finally {
-      setCertSaving(false);
+  const handleSave = useCallback(async () => {
+    if (certEnabled && certPath && keyPath) {
+      await updateClientCertificate({
+        cert_path: certPath,
+        key_path: keyPath,
+        enabled: true,
+        domain_certs: domainCerts,
+      });
+    } else {
+      await updateClientCertificate(
+        certEnabled
+          ? { cert_path: certPath, key_path: keyPath, enabled: false, domain_certs: domainCerts }
+          : null,
+      );
     }
   }, [certEnabled, certPath, keyPath, domainCerts]);
+
+  useEffect(() => {
+    registerSave("clientCert", handleSave);
+    return () => unregisterSave("clientCert");
+  }, [registerSave, unregisterSave, handleSave]);
 
   return (
     <div className="border rounded-lg p-5 space-y-5">
@@ -200,7 +298,13 @@ function ClientCertificateSection() {
             </Trans>
           </p>
         </div>
-        <Switch checked={certEnabled} onCheckedChange={setCertEnabled} />
+        <Switch
+          checked={certEnabled}
+          onCheckedChange={(v) => {
+            setCertEnabled(v);
+            markDirty("clientCert");
+          }}
+        />
       </div>
 
       {certEnabled && (
@@ -330,7 +434,7 @@ function ClientCertificateSection() {
             <Trans>Supports PEM-encoded certificates and keys (RSA, ECDSA, PKCS#8)</Trans>
           </p>
 
-          {/* 도메인별 인증서 섹션 */}
+          {/* Domain-specific Certificates */}
           <div className="space-y-4 pt-4 border-t">
             <div>
               <h3 className="text-sm font-semibold">
@@ -345,7 +449,6 @@ function ClientCertificateSection() {
               </p>
             </div>
 
-            {/* 새 도메인 인증서 추가 폼 */}
             <div className="space-y-2">
               <Input
                 placeholder="*.example.com"
@@ -382,7 +485,6 @@ function ClientCertificateSection() {
               </Button>
             </div>
 
-            {/* 도메인 인증서 목록 */}
             {domainCerts.length > 0 && (
               <div className="border rounded-lg divide-y">
                 {domainCerts.map((dc, idx) => (
@@ -418,22 +520,6 @@ function ClientCertificateSection() {
           </div>
         </div>
       )}
-
-      <div className="flex items-center gap-3 pt-2">
-        <Button onClick={handleCertSave} disabled={certSaving}>
-          {certSaving ? t`Saving...` : t`Save`}
-        </Button>
-        {certStatus === "saved" && (
-          <Badge variant="outline" className="text-green-600 border-green-600">
-            <Trans>Saved</Trans>
-          </Badge>
-        )}
-        {certStatus === "error" && (
-          <Badge variant="outline" className="text-red-600 border-red-600">
-            <Trans>Failed — check file paths and proxy status</Trans>
-          </Badge>
-        )}
-      </div>
     </div>
   );
 }
@@ -449,7 +535,6 @@ function SslProxyingSection() {
   const handleAdd = useCallback(() => {
     const pattern = newPattern.trim();
     if (!pattern) return;
-    // 중복 체크
     if (entries.some((e) => e.pattern === pattern)) return;
     addEntry({ pattern, enabled: true });
     setNewPattern("");
@@ -484,7 +569,6 @@ function SslProxyingSection() {
         </p>
       </div>
 
-      {/* 도메인 입력 */}
       <div className="flex items-center gap-2">
         <Input
           placeholder={t`example.com, *.example.com, or example.com:443`}
@@ -505,7 +589,6 @@ function SslProxyingSection() {
         </Trans>
       </p>
 
-      {/* 도메인 목록 */}
       {entries.length > 0 && (
         <div className="border rounded-lg divide-y">
           {entries.map((entry) => (
@@ -539,11 +622,10 @@ function SslProxyingSection() {
 
 function RequestClientCertSection() {
   const { t } = useLingui();
+  const { registerSave, unregisterSave, markDirty } = useSettingsSave();
   const [enabled, setEnabled] = useState(false);
   const [caCertPath, setCaCertPath] = useState("");
   const [required, setRequired] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [status, setStatus] = useState<"idle" | "saved" | "error">("idle");
 
   const handleSelectCaCert = useCallback(async () => {
     const selected = await openFileDialog({
@@ -552,32 +634,27 @@ function RequestClientCertSection() {
     });
     if (selected) {
       setCaCertPath(selected as string);
-      setStatus("idle");
+      markDirty("requestClientCert");
     }
-  }, []);
+  }, [markDirty]);
 
   const handleSave = useCallback(async () => {
-    setSaving(true);
-    setStatus("idle");
-    try {
-      if (enabled) {
-        const config: RequestClientCertConfig = {
-          enabled: true,
-          ca_cert_path: caCertPath || null,
-          required,
-        };
-        await updateRequestClientCert(config);
-      } else {
-        await updateRequestClientCert(null);
-      }
-      setStatus("saved");
-      setTimeout(() => setStatus("idle"), 2000);
-    } catch {
-      setStatus("error");
-    } finally {
-      setSaving(false);
+    if (enabled) {
+      const config: RequestClientCertConfig = {
+        enabled: true,
+        ca_cert_path: caCertPath || null,
+        required,
+      };
+      await updateRequestClientCert(config);
+    } else {
+      await updateRequestClientCert(null);
     }
   }, [enabled, caCertPath, required]);
+
+  useEffect(() => {
+    registerSave("requestClientCert", handleSave);
+    return () => unregisterSave("requestClientCert");
+  }, [registerSave, unregisterSave, handleSave]);
 
   return (
     <div className="border rounded-lg p-5 space-y-5">
@@ -590,7 +667,13 @@ function RequestClientCertSection() {
             <Trans>Request a client certificate from connecting clients (mTLS server-side)</Trans>
           </p>
         </div>
-        <Switch checked={enabled} onCheckedChange={setEnabled} />
+        <Switch
+          checked={enabled}
+          onCheckedChange={(v) => {
+            setEnabled(v);
+            markDirty("requestClientCert");
+          }}
+        />
       </div>
 
       {enabled && (
@@ -615,7 +698,7 @@ function RequestClientCertSection() {
                   size="sm"
                   onClick={() => {
                     setCaCertPath("");
-                    setStatus("idle");
+                    markDirty("requestClientCert");
                   }}
                 >
                   <Trans>Clear</Trans>
@@ -630,7 +713,13 @@ function RequestClientCertSection() {
           </div>
 
           <div className="flex items-center gap-3">
-            <Switch checked={required} onCheckedChange={setRequired} />
+            <Switch
+              checked={required}
+              onCheckedChange={(v) => {
+                setRequired(v);
+                markDirty("requestClientCert");
+              }}
+            />
             <div>
               <span className="text-sm font-medium">
                 <Trans>Require certificate</Trans>
@@ -646,36 +735,18 @@ function RequestClientCertSection() {
           </div>
         </div>
       )}
-
-      <div className="flex items-center gap-3 pt-2">
-        <Button onClick={handleSave} disabled={saving}>
-          {saving ? t`Saving...` : t`Save`}
-        </Button>
-        {status === "saved" && (
-          <Badge variant="outline" className="text-green-600 border-green-600">
-            <Trans>Saved</Trans>
-          </Badge>
-        )}
-        {status === "error" && (
-          <Badge variant="outline" className="text-red-600 border-red-600">
-            <Trans>Failed — check proxy status</Trans>
-          </Badge>
-        )}
-      </div>
     </div>
   );
 }
 
 function ProxyAuthSection() {
   const { t } = useLingui();
+  const { registerSave, unregisterSave, markDirty } = useSettingsSave();
   const isProxyConnected = useProxyStore((s) => s.isConnected);
   const [proxyAuthEnabled, setProxyAuthEnabled] = useState(false);
   const [proxyAuthUsername, setProxyAuthUsername] = useState("");
   const [proxyAuthPassword, setProxyAuthPassword] = useState("");
-  const [proxyAuthSaving, setProxyAuthSaving] = useState(false);
-  const [proxyAuthStatus, setProxyAuthStatus] = useState<"idle" | "saved" | "error">("idle");
 
-  // store에서 설정 불러오기
   useEffect(() => {
     const config = useAppSettingsStore.getState().proxyAuthConfig;
     setProxyAuthEnabled(config.enabled);
@@ -683,7 +754,6 @@ function ProxyAuthSection() {
     setProxyAuthPassword(config.password);
   }, []);
 
-  // 프록시 연결 시 설정 동기화
   useEffect(() => {
     if (isProxyConnected && proxyAuthEnabled) {
       updateProxyAuth({
@@ -694,30 +764,20 @@ function ProxyAuthSection() {
     }
   }, [isProxyConnected]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleProxyAuthSave = useCallback(async () => {
-    setProxyAuthSaving(true);
-    setProxyAuthStatus("idle");
-
-    try {
-      const config: ProxyAuthConfig = {
-        enabled: proxyAuthEnabled,
-        username: proxyAuthUsername,
-        password: proxyAuthPassword,
-      };
-
-      await updateProxyAuth(config);
-
-      useAppSettingsStore.getState().setProxyAuthConfig(config);
-
-      setProxyAuthStatus("saved");
-      setTimeout(() => setProxyAuthStatus("idle"), 2000);
-    } catch (e) {
-      console.error("Proxy auth 설정 저장 실패:", e);
-      setProxyAuthStatus("error");
-    } finally {
-      setProxyAuthSaving(false);
-    }
+  const handleSave = useCallback(async () => {
+    const config: ProxyAuthConfig = {
+      enabled: proxyAuthEnabled,
+      username: proxyAuthUsername,
+      password: proxyAuthPassword,
+    };
+    await updateProxyAuth(config);
+    useAppSettingsStore.getState().setProxyAuthConfig(config);
   }, [proxyAuthEnabled, proxyAuthUsername, proxyAuthPassword]);
+
+  useEffect(() => {
+    registerSave("proxyAuth", handleSave);
+    return () => unregisterSave("proxyAuth");
+  }, [registerSave, unregisterSave, handleSave]);
 
   return (
     <div className="border rounded-lg p-5 space-y-5">
@@ -730,7 +790,13 @@ function ProxyAuthSection() {
             <Trans>Require authentication to use this proxy server</Trans>
           </p>
         </div>
-        <Switch checked={proxyAuthEnabled} onCheckedChange={setProxyAuthEnabled} />
+        <Switch
+          checked={proxyAuthEnabled}
+          onCheckedChange={(v) => {
+            setProxyAuthEnabled(v);
+            markDirty("proxyAuth");
+          }}
+        />
       </div>
 
       {proxyAuthEnabled && (
@@ -743,7 +809,10 @@ function ProxyAuthSection() {
               <Input
                 placeholder={t`Username`}
                 value={proxyAuthUsername}
-                onChange={(e) => setProxyAuthUsername(e.target.value)}
+                onChange={(e) => {
+                  setProxyAuthUsername(e.target.value);
+                  markDirty("proxyAuth");
+                }}
               />
             </div>
             <div className="flex-1">
@@ -754,7 +823,10 @@ function ProxyAuthSection() {
                 type="password"
                 placeholder={t`Password`}
                 value={proxyAuthPassword}
-                onChange={(e) => setProxyAuthPassword(e.target.value)}
+                onChange={(e) => {
+                  setProxyAuthPassword(e.target.value);
+                  markDirty("proxyAuth");
+                }}
               />
             </div>
           </div>
@@ -766,23 +838,6 @@ function ProxyAuthSection() {
           </p>
         </div>
       )}
-
-      {/* Save Button */}
-      <div className="flex items-center gap-3 pt-2">
-        <Button onClick={handleProxyAuthSave} disabled={proxyAuthSaving}>
-          {proxyAuthSaving ? t`Saving...` : t`Save`}
-        </Button>
-        {proxyAuthStatus === "saved" && (
-          <Badge variant="outline" className="text-green-600 border-green-600">
-            <Trans>Saved</Trans>
-          </Badge>
-        )}
-        {proxyAuthStatus === "error" && (
-          <Badge variant="outline" className="text-red-600 border-red-600">
-            <Trans>Failed — is the proxy running?</Trans>
-          </Badge>
-        )}
-      </div>
     </div>
   );
 }
