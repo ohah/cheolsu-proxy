@@ -273,9 +273,9 @@ msgid "Breakpoints"
 msgstr "Breakpoints"
 
 #: src/pages/script/ui/script-page.tsx:263
-#: src/pages/settings/ui/components/certificate-settings.tsx:624
-#: src/pages/settings/ui/components/certificate-settings.tsx:640
-#: src/pages/settings/ui/components/certificate-settings.tsx:659
+#: src/pages/settings/ui/components/certificate-settings.tsx:622
+#: src/pages/settings/ui/components/certificate-settings.tsx:638
+#: src/pages/settings/ui/components/certificate-settings.tsx:657
 #: src/pages/settings/ui/settings-page.tsx:218
 #: src/pages/settings/ui/settings-page.tsx:235
 #: src/pages/settings/ui/settings-page.tsx:361
@@ -296,7 +296,7 @@ msgstr "바이트 본문"
 msgid "CA Certificate"
 msgstr "CA 인증서"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:614
+#: src/pages/settings/ui/components/certificate-settings.tsx:612
 msgid "CA Certificate File"
 msgstr ""
 
@@ -304,7 +304,7 @@ msgstr ""
 msgid "CA Certificate File (optional)"
 msgstr "CA 인증서 파일 (선택사항)"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:630
+#: src/pages/settings/ui/components/certificate-settings.tsx:628
 msgid "CA Key File"
 msgstr ""
 
@@ -620,7 +620,7 @@ msgstr "사이드바 펼치기"
 msgid "Export HAR"
 msgstr "HAR 내보내기"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:688
+#: src/pages/settings/ui/components/certificate-settings.tsx:686
 msgid "Failed"
 msgstr ""
 
@@ -782,7 +782,7 @@ msgstr "HTTPie"
 msgid "If not specified, any client certificate will be accepted without verification"
 msgstr "지정하지 않으면 모든 클라이언트 인증서가 검증 없이 수락됩니다"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:679
+#: src/pages/settings/ui/components/certificate-settings.tsx:677
 msgid "Import"
 msgstr ""
 
@@ -790,11 +790,11 @@ msgstr ""
 msgid "Import HAR"
 msgstr "HAR 가져오기"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:683
+#: src/pages/settings/ui/components/certificate-settings.tsx:681
 msgid "Imported"
 msgstr ""
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:679
+#: src/pages/settings/ui/components/certificate-settings.tsx:677
 msgid "Importing..."
 msgstr ""
 
@@ -1191,7 +1191,7 @@ msgstr "조직"
 msgid "Original"
 msgstr "원본"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:665
+#: src/pages/settings/ui/components/certificate-settings.tsx:663
 #: src/pages/settings/ui/components/proxy-settings.tsx:141
 #: src/pages/settings/ui/settings-page.tsx:749
 #: src/pages/settings/ui/settings-page.tsx:753
@@ -1235,11 +1235,11 @@ msgstr "대기 중인 Breakpoints"
 msgid "Pin to Top"
 msgstr "상단에 고정"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:649
+#: src/pages/settings/ui/components/certificate-settings.tsx:647
 msgid "PKCS12 File"
 msgstr ""
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:669
+#: src/pages/settings/ui/components/certificate-settings.tsx:667
 msgid "PKCS12 password (leave empty if none)"
 msgstr ""
 
@@ -1368,7 +1368,7 @@ msgstr "압축된 응답을 방지하기 위해 요청에서 Accept-Encoding 헤
 msgid "Remove Cookie headers from requests and Set-Cookie headers from responses"
 msgstr "요청에서 Cookie 헤더를 제거하고 응답에서 Set-Cookie 헤더를 제거합니다"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:578
+#: src/pages/settings/ui/components/certificate-settings.tsx:576
 msgid "Remove Custom CA"
 msgstr ""
 
@@ -1381,7 +1381,7 @@ msgstr "엔트리 삭제"
 msgid "Remove Headers"
 msgstr "헤더 삭제"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:710
+#: src/pages/settings/ui/components/certificate-settings.tsx:708
 msgid "Removed"
 msgstr ""
 
@@ -1511,11 +1511,11 @@ msgstr "응답 상태 코드"
 msgid "Response Time"
 msgstr "응답 시간"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:582
+#: src/pages/settings/ui/components/certificate-settings.tsx:580
 msgid "Restart proxy to apply changes"
 msgstr ""
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:714
+#: src/pages/settings/ui/components/certificate-settings.tsx:712
 msgid "Restart proxy to use auto-generated CA"
 msgstr ""
 
@@ -1647,7 +1647,7 @@ msgstr "스크립트가 언로드되었습니다"
 msgid "Select a log file to view its contents"
 msgstr "로그 파일을 선택하여 내용을 확인하세요"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:619
+#: src/pages/settings/ui/components/certificate-settings.tsx:617
 msgid "Select CA certificate (.pem, .crt, .cer, .der)"
 msgstr ""
 
@@ -1655,7 +1655,7 @@ msgstr ""
 msgid "Select CA certificate to verify clients (.pem, .crt)"
 msgstr "클라이언트 검증용 CA 인증서 선택 (.pem, .crt)"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:635
+#: src/pages/settings/ui/components/certificate-settings.tsx:633
 msgid "Select CA key file (.pem, .key)"
 msgstr ""
 
@@ -1675,7 +1675,7 @@ msgstr "키 파일 선택 (.pem, .key)"
 msgid "Select local file"
 msgstr "로컬 파일 선택"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:654
+#: src/pages/settings/ui/components/certificate-settings.tsx:652
 msgid "Select PKCS12 file (.p12, .pfx)"
 msgstr ""
 
@@ -1879,7 +1879,7 @@ msgstr "대상 URL"
 msgid "Terminal Command"
 msgstr "터미널 명령어"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:698
+#: src/pages/settings/ui/components/certificate-settings.tsx:696
 msgid "The certificate must be a CA certificate (BasicConstraints CA=true). After importing, restart the proxy to use the new CA. You also need to install this CA on your system and devices."
 msgstr ""
 
