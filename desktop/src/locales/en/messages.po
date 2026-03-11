@@ -13,7 +13,7 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
-#: src/pages/map-rules/ui/map-rules-page.tsx:117
+#: src/pages/map-rules/ui/map-rules-page.tsx:116
 msgid " (preserve path)"
 msgstr " (preserve path)"
 
@@ -122,7 +122,7 @@ msgstr "Add Intercept Rule"
 msgid "Add Map Rule"
 msgstr "Add Map Rule"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:162
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:160
 msgid "Add Mapping"
 msgstr "Add Mapping"
 
@@ -147,7 +147,7 @@ msgstr "Add rules to intercept, block, or modify HTTP requests and responses."
 msgid "Add rules to map URLs to local files or redirect to other servers."
 msgstr "Add rules to map URLs to local files or redirect to other servers."
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:161
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:159
 msgid "Add your first mapping"
 msgstr "Add your first mapping"
 
@@ -512,7 +512,7 @@ msgstr "cURL"
 msgid "Curl command copied to clipboard"
 msgstr "Curl command copied to clipboard"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:136
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:134
 msgid "Custom body"
 msgstr "Custom body"
 
@@ -532,13 +532,13 @@ msgstr "Data"
 msgid "Delay between requests (ms)"
 msgstr "Delay between requests (ms)"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:209
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:201
 msgid "Delete mapping"
 msgstr "Delete mapping"
 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:210
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:160
-#: src/pages/map-rules/ui/map-rules-page.tsx:136
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:158
+#: src/pages/map-rules/ui/map-rules-page.tsx:135
 msgid "Delete rule"
 msgstr "Delete rule"
 
@@ -556,7 +556,7 @@ msgstr "Dir"
 msgid "Direction"
 msgstr "Direction"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:194
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:186
 #: src/pages/server-replay/ui/server-replay-page.tsx:96
 msgid "Disabled"
 msgstr "Disabled"
@@ -603,8 +603,8 @@ msgstr "Drop"
 msgid "Edit Map Rule"
 msgstr "Edit Map Rule"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:152
-#: src/pages/map-rules/ui/map-rules-page.tsx:128
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:150
+#: src/pages/map-rules/ui/map-rules-page.tsx:127
 msgid "Edit rule"
 msgstr "Edit rule"
 
@@ -620,7 +620,7 @@ msgstr "Editor"
 msgid "Enable full trust for the Cheolsu Proxy CA certificate"
 msgstr "Enable full trust for the Cheolsu Proxy CA certificate"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:194
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:186
 #: src/pages/server-replay/ui/server-replay-page.tsx:96
 msgid "Enabled"
 msgstr "Enabled"
@@ -757,7 +757,7 @@ msgstr "Header name"
 msgid "Header name to remove"
 msgstr "Header name to remove"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:129
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:127
 #: src/pages/server-replay/ui/server-replay-page.tsx:225
 msgid "headers"
 msgstr "headers"
@@ -1853,8 +1853,8 @@ msgstr "Start Replay"
 msgid "Starts background server connection immediately after ClientHello detection"
 msgstr "Starts background server connection immediately after ClientHello detection"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:117
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:122
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:115
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:120
 #: src/shared/app-sidebar/ui/sidebar-status.tsx:39
 msgid "Status"
 msgstr "Status"
@@ -2110,7 +2110,7 @@ msgstr "WebSocket Replay"
 msgid "Whitelist (Include)"
 msgstr "Whitelist (Include)"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:198
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:190
 msgid "Wildcard"
 msgstr "Wildcard"
 

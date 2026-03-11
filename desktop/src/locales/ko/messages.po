@@ -13,7 +13,7 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
-#: src/pages/map-rules/ui/map-rules-page.tsx:117
+#: src/pages/map-rules/ui/map-rules-page.tsx:116
 msgid " (preserve path)"
 msgstr " (경로 유지)"
 
@@ -122,7 +122,7 @@ msgstr "인터셉트 규칙 추가"
 msgid "Add Map Rule"
 msgstr "맵 규칙 추가"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:162
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:160
 msgid "Add Mapping"
 msgstr "매핑 추가"
 
@@ -147,7 +147,7 @@ msgstr "HTTP 요청과 응답을 가로채거나, 차단하거나, 수정하는 
 msgid "Add rules to map URLs to local files or redirect to other servers."
 msgstr "URL을 로컬 파일에 매핑하거나 다른 서버로 리다이렉트하는 규칙을 추가하세요."
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:161
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:159
 msgid "Add your first mapping"
 msgstr "첫 번째 매핑 추가"
 
@@ -512,7 +512,7 @@ msgstr "cURL"
 msgid "Curl command copied to clipboard"
 msgstr "Curl 명령어가 클립보드에 복사되었습니다"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:136
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:134
 msgid "Custom body"
 msgstr "커스텀 본문"
 
@@ -532,13 +532,13 @@ msgstr "데이터"
 msgid "Delay between requests (ms)"
 msgstr "요청 간 딜레이 (ms)"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:209
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:201
 msgid "Delete mapping"
 msgstr "매핑 삭제"
 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:210
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:160
-#: src/pages/map-rules/ui/map-rules-page.tsx:136
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:158
+#: src/pages/map-rules/ui/map-rules-page.tsx:135
 msgid "Delete rule"
 msgstr "규칙 삭제"
 
@@ -556,7 +556,7 @@ msgstr "방향"
 msgid "Direction"
 msgstr "방향"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:194
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:186
 #: src/pages/server-replay/ui/server-replay-page.tsx:96
 msgid "Disabled"
 msgstr "비활성"
@@ -603,8 +603,8 @@ msgstr "드롭"
 msgid "Edit Map Rule"
 msgstr "맵 규칙 수정"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:152
-#: src/pages/map-rules/ui/map-rules-page.tsx:128
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:150
+#: src/pages/map-rules/ui/map-rules-page.tsx:127
 msgid "Edit rule"
 msgstr "규칙 수정"
 
@@ -620,7 +620,7 @@ msgstr "에디터"
 msgid "Enable full trust for the Cheolsu Proxy CA certificate"
 msgstr "Cheolsu Proxy CA 인증서에 대한 완전 신뢰를 활성화하세요"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:194
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:186
 #: src/pages/server-replay/ui/server-replay-page.tsx:96
 msgid "Enabled"
 msgstr "활성"
@@ -757,7 +757,7 @@ msgstr "헤더 이름"
 msgid "Header name to remove"
 msgstr "삭제할 헤더 이름"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:129
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:127
 #: src/pages/server-replay/ui/server-replay-page.tsx:225
 msgid "headers"
 msgstr "헤더"
@@ -1853,8 +1853,8 @@ msgstr "리플레이 시작"
 msgid "Starts background server connection immediately after ClientHello detection"
 msgstr "ClientHello 감지 직후 백그라운드에서 서버 연결을 시작합니다"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:117
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:122
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:115
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:120
 #: src/shared/app-sidebar/ui/sidebar-status.tsx:39
 msgid "Status"
 msgstr "상태"
@@ -2110,7 +2110,7 @@ msgstr "WebSocket 리플레이"
 msgid "Whitelist (Include)"
 msgstr "화이트리스트 (포함)"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:198
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:190
 msgid "Wildcard"
 msgstr "와일드카드"
 

@@ -93,9 +93,7 @@ export const InterceptRulesPage = () => {
               className={`flex-1 min-w-0 transition-opacity ${!rule.enabled ? "opacity-50" : ""}`}
             >
               <div className="flex items-center gap-2 mb-1">
-                <span className="font-medium text-sm truncate">
-                  {rule.name || rule.pattern}
-                </span>
+                <span className="font-medium text-sm truncate">{rule.name || rule.pattern}</span>
                 {rule.name && (
                   <code className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded truncate max-w-[300px]">
                     {rule.pattern}
@@ -166,7 +164,7 @@ export const InterceptRulesPage = () => {
           </div>
         );
       }}
-      footer={
+      dialogs={
         <RuleFormDialog open={dialogOpen} onOpenChange={setDialogOpen} editingRule={editingRule} />
       }
     />
