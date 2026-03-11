@@ -5733,6 +5733,7 @@ dependencies = [
  "hyper-util",
  "nix 0.29.0",
  "notify",
+ "openssl",
  "parking_lot",
  "proxy_v2_models",
  "proxyapi_v2",

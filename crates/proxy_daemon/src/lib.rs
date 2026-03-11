@@ -49,4 +49,7 @@ pub use session::{
     ensure_extension, import_har, import_har_file, SessionFile, SessionMetadata, SessionTransaction,
 };
 pub use system_proxy::{get_proxy_status, set_proxy, ProxyStatus};
-pub use tls_client::parse_certificate_info;
+pub use tls_client::{
+    get_custom_ca_info, parse_certificate_info, parse_pkcs12, remove_custom_ca, save_custom_ca,
+    validate_ca_certificate,
+};

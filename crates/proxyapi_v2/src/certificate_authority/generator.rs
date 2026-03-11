@@ -134,11 +134,40 @@ pub fn generate_and_save_ca(storage_dir: &std::path::Path) -> Result<RcgenAuthor
     ))
 }
 
+/// 커스텀 CA 인증서 파일이 존재하는지 확인합니다.
+#[cfg(feature = "rcgen-ca")]
+pub fn has_custom_ca() -> bool {
+    if let Ok(storage_dir) = get_ca_storage_dir() {
+        let cert_path = storage_dir.join("custom-ca.cer");
+        let key_path = storage_dir.join("custom-ca.key");
+        cert_path.exists() && key_path.exists()
+    } else {
+        false
+    }
+}
+
+/// 커스텀 CA 인증서 파일 경로를 반환합니다.
+#[cfg(feature = "rcgen-ca")]
+pub fn get_custom_ca_paths() -> Result<(std::path::PathBuf, std::path::PathBuf), String> {
+    let storage_dir = get_ca_storage_dir()?;
+    Ok((
+        storage_dir.join("custom-ca.cer"),
+        storage_dir.join("custom-ca.key"),
+    ))
+}
+
 /// CA 인증서를 빌드합니다.
+/// 커스텀 CA가 존재하면 우선 사용하고, 없으면 자동 생성합니다.
 #[cfg(feature = "rcgen-ca")]
 pub fn build_ca() -> Result<RcgenAuthority, String> {
-    info!("런타임 인증서 생성");
-    load_or_generate_ca()
+    if has_custom_ca() {
+        let (cert_path, key_path) = get_custom_ca_paths()?;
+        info!(cert = %cert_path.display(), "커스텀 CA 인증서 사용");
+        load_ca_from_storage(&key_path, &cert_path)
+    } else {
+        info!("런타임 인증서 생성");
+        load_or_generate_ca()
+    }
 }
 
 /// OpenSSL Authority를 빌드합니다.
