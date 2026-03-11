@@ -362,6 +362,8 @@ function SettingsPageInner() {
         s.quickSettingsBlockCookies,
         s.quickSettingsNoGzip,
       ).catch(() => {});
+      // SSL Proxying 설정 동기화
+      useSslProxyingStore.getState().syncToProxy();
     }
   }, [isProxyConnected]);
 
