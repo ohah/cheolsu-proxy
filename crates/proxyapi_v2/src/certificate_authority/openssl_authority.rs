@@ -1,4 +1,6 @@
-use crate::certificate_authority::{CACHE_TTL, CertificateAuthority, NOT_BEFORE_OFFSET, TTL_SECS};
+use crate::certificate_authority::{
+    CACHE_TTL, CertificateAuthority, NOT_BEFORE_OFFSET, TTL_SECS, truncate_cn,
+};
 use crate::upstream_cert::UpstreamCertInfo;
 use http::uri::Authority;
 use moka::future::Cache;
@@ -9,7 +11,10 @@ use openssl::{
     hash::MessageDigest,
     pkey::{PKey, Private},
     rand,
-    x509::{X509, X509Builder, X509NameBuilder, extension::SubjectAlternativeName},
+    x509::{
+        X509, X509Builder, X509NameBuilder,
+        extension::{AuthorityKeyIdentifier, SubjectAlternativeName},
+    },
 };
 use std::{
     collections::HashSet,
@@ -111,19 +116,19 @@ impl OpensslAuthority {
     ) -> Result<CertificateDer<'static>, ErrorStack> {
         let host = authority.host();
 
-        // CN 설정 - upstream 인증서 정보 우선 사용
+        // CN 설정 - upstream 인증서 정보 우선 사용 (RFC 5280: 64자 제한)
         let mut name_builder = X509NameBuilder::new()?;
         if let Some(upstream) = upstream_cert {
             if let Some(ref cn) = upstream.common_name {
-                name_builder.append_entry_by_text("CN", cn)?;
+                name_builder.append_entry_by_text("CN", &truncate_cn(cn))?;
             } else {
-                name_builder.append_entry_by_text("CN", host)?;
+                name_builder.append_entry_by_text("CN", &truncate_cn(host))?;
             }
             if let Some(ref org) = upstream.organization {
                 name_builder.append_entry_by_text("O", org)?;
             }
         } else {
-            name_builder.append_entry_by_text("CN", host)?;
+            name_builder.append_entry_by_text("CN", &truncate_cn(host))?;
         }
         let name = name_builder.build();
 
@@ -142,8 +147,18 @@ impl OpensslAuthority {
         x509_builder.set_pubkey(&self.pkey)?;
         x509_builder.set_issuer_name(self.ca_cert.subject_name())?;
 
+        // Authority Key Identifier (AKI) 추가 — CA 공개키 해시로 발급자 식별
+        let aki = AuthorityKeyIdentifier::new()
+            .keyid(true)
+            .build(&x509_builder.x509v3_context(Some(&self.ca_cert), None))?;
+        x509_builder.append_extension(aki)?;
+
         // SAN 설정 - upstream 인증서 정보 우선 사용
+        // RFC 5280 4.2.1.6: subject가 비어있을 때만 SAN을 critical로 설정
         let mut san_builder = SubjectAlternativeName::new();
+        if name.entries().count() == 0 {
+            san_builder.critical();
+        }
         if let Some(upstream) = upstream_cert {
             let mut added_dns: HashSet<String> = HashSet::new();
             for dns in &upstream.sans_dns {
@@ -293,15 +308,15 @@ impl CertificateAuthority for OpensslAuthority {
             let mut name_builder = X509NameBuilder::new()?;
             if let Some(ref upstream) = upstream_cert {
                 if let Some(ref cn) = upstream.common_name {
-                    name_builder.append_entry_by_text("CN", cn)?;
+                    name_builder.append_entry_by_text("CN", &truncate_cn(cn))?;
                 } else {
-                    name_builder.append_entry_by_text("CN", &host)?;
+                    name_builder.append_entry_by_text("CN", &truncate_cn(&host))?;
                 }
                 if let Some(ref org) = upstream.organization {
                     name_builder.append_entry_by_text("O", org)?;
                 }
             } else {
-                name_builder.append_entry_by_text("CN", &host)?;
+                name_builder.append_entry_by_text("CN", &truncate_cn(&host))?;
             }
             let name = name_builder.build();
 
@@ -320,7 +335,17 @@ impl CertificateAuthority for OpensslAuthority {
             x509_builder.set_pubkey(&pkey)?;
             x509_builder.set_issuer_name(ca_cert.subject_name())?;
 
+            // Authority Key Identifier (AKI) 추가
+            let aki = AuthorityKeyIdentifier::new()
+                .keyid(true)
+                .build(&x509_builder.x509v3_context(Some(&ca_cert), None))?;
+            x509_builder.append_extension(aki)?;
+
+            // SAN 설정 (RFC 5280: subject 비어있을 때만 critical)
             let mut san_builder = SubjectAlternativeName::new();
+            if name.entries().count() == 0 {
+                san_builder.critical();
+            }
             if let Some(ref upstream) = upstream_cert {
                 let mut added_dns: HashSet<String> = HashSet::new();
                 for dns in &upstream.sans_dns {

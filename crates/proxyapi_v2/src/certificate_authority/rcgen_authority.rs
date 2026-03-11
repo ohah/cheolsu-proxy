@@ -1,4 +1,6 @@
-use crate::certificate_authority::{CACHE_TTL, CertificateAuthority, NOT_BEFORE_OFFSET, TTL_SECS};
+use crate::certificate_authority::{
+    CACHE_TTL, CertificateAuthority, NOT_BEFORE_OFFSET, TTL_SECS, truncate_cn,
+};
 use crate::upstream_cert::UpstreamCertInfo;
 use http::uri::Authority;
 use moka::future::Cache;
@@ -132,18 +134,18 @@ impl RcgenAuthority {
         let mut distinguished_name = DistinguishedName::new();
 
         if let Some(upstream) = upstream_cert {
-            // upstream 인증서의 CN 사용
+            // upstream 인증서의 CN 사용 (RFC 5280: 64자 제한)
             if let Some(ref cn) = upstream.common_name {
-                distinguished_name.push(DnType::CommonName, cn);
+                distinguished_name.push(DnType::CommonName, &truncate_cn(cn));
             } else {
-                distinguished_name.push(DnType::CommonName, host);
+                distinguished_name.push(DnType::CommonName, &truncate_cn(host));
             }
             // upstream 인증서의 Organization 복제
             if let Some(ref org) = upstream.organization {
                 distinguished_name.push(DnType::OrganizationName, org);
             }
         } else {
-            distinguished_name.push(DnType::CommonName, host);
+            distinguished_name.push(DnType::CommonName, &truncate_cn(host));
         }
 
         params.distinguished_name = distinguished_name;
@@ -483,15 +485,15 @@ impl CertificateAuthority for RcgenAuthority {
 
             if let Some(ref upstream) = upstream_cert {
                 if let Some(ref cn) = upstream.common_name {
-                    distinguished_name.push(DnType::CommonName, cn);
+                    distinguished_name.push(DnType::CommonName, &truncate_cn(cn));
                 } else {
-                    distinguished_name.push(DnType::CommonName, &host);
+                    distinguished_name.push(DnType::CommonName, &truncate_cn(&host));
                 }
                 if let Some(ref org) = upstream.organization {
                     distinguished_name.push(DnType::OrganizationName, org);
                 }
             } else {
-                distinguished_name.push(DnType::CommonName, &host);
+                distinguished_name.push(DnType::CommonName, &truncate_cn(&host));
             }
             params.distinguished_name = distinguished_name;
 

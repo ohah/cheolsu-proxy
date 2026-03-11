@@ -28,6 +28,7 @@ pub mod certificate_authority;
 pub mod hybrid_tls_handler;
 pub mod socks5;
 pub mod throttle;
+pub mod tls_event;
 pub mod tls_passthrough;
 pub mod tls_version_detector;
 pub mod tunnel_event;

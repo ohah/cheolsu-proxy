@@ -23,7 +23,19 @@ pub use storage::*;
 
 pub(crate) const TTL_SECS: i64 = 365 * 24 * 60 * 60;
 pub(crate) const CACHE_TTL: u64 = TTL_SECS as u64 / 2;
-pub(crate) const NOT_BEFORE_OFFSET: i64 = 60;
+/// 인증서 not_before 오프셋 (2일 = 172800초)
+/// 클라이언트 시계 오차를 대비하여 mitmproxy와 동일하게 -2일로 설정
+pub(crate) const NOT_BEFORE_OFFSET: i64 = 172_800;
+
+/// CN(Common Name)을 RFC 5280 제한인 64자로 truncate합니다.
+/// char 경계를 존중하여 안전하게 자릅니다.
+pub(crate) fn truncate_cn(cn: &str) -> String {
+    if cn.len() <= 64 {
+        cn.to_string()
+    } else {
+        cn.chars().take(64).collect()
+    }
+}
 
 /// Issues certificates for use when communicating with clients.
 ///

@@ -1,5 +1,6 @@
 use crate::certificate_authority::CertificateAuthority;
 use crate::rewind::Rewind;
+use crate::tls_event::{TlsEvent, TlsEventSender, emit_tls_event};
 use crate::tls_version_detector::TlsVersion;
 use crate::upstream_cert::UpstreamCertInfo;
 use http::uri::Authority;
@@ -55,12 +56,19 @@ pub enum TlsStrategy {
 /// TLS 핸들러 - rustls 사용 (Hudsucker 방식으로 단순화)
 pub(crate) struct HybridTlsHandler<CA: CertificateAuthority> {
     ca: Arc<CA>,
+    tls_event_sender: Option<TlsEventSender>,
 }
 
 impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
     /// 새로운 TLS 핸들러를 생성합니다
-    pub async fn new(ca: Arc<CA>) -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
-        Ok(Self { ca })
+    pub async fn new(
+        ca: Arc<CA>,
+        tls_event_sender: Option<TlsEventSender>,
+    ) -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
+        Ok(Self {
+            ca,
+            tls_event_sender,
+        })
     }
 
     /// TLS 연결을 상세 분석합니다
@@ -89,17 +97,35 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
         upstream_cert: Option<&UpstreamCertInfo>,
     ) -> Result<HybridTlsStream, Box<dyn std::error::Error + Send + Sync>> {
         info!("🔍 [TLS-NEGOTIATION] 새로운 TLS 협상 시작: {}", authority);
+        let handshake_start = std::time::Instant::now();
 
         // 1단계: TLS 연결 유효성 검사
         let tls_info = self.analyze_tls_connection(initial_buffer)?;
         info!("📊 [TLS-INFO] 연결 분석 완료: {:?}", tls_info);
 
+        emit_tls_event(
+            &self.tls_event_sender,
+            TlsEvent::ClientHelloAnalyzed {
+                authority: authority.clone(),
+                tls_info: tls_info.clone(),
+            },
+        );
+
         // 2단계: 결정적 라이브러리 선택
         let strategy = self.determine_tls_strategy(authority, &tls_info);
         info!("🎯 [TLS-STRATEGY] 선택된 전략: {:?}", strategy);
 
+        emit_tls_event(
+            &self.tls_event_sender,
+            TlsEvent::StrategySelected {
+                authority: authority.clone(),
+                strategy,
+                tls_info,
+            },
+        );
+
         // 3단계: 선택된 전략으로 연결 시도
-        match strategy {
+        let result = match strategy {
             TlsStrategy::OpenSslOnly => {
                 info!("🔧 [OPENSSL-ONLY] OpenSSL 전용 처리: {}", authority);
                 #[cfg(feature = "openssl-ca")]
@@ -123,21 +149,39 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
             }
             TlsStrategy::RustlsOnly => {
                 info!("🔧 [RUSTLS-ONLY] Rustls 전용 처리: {}", authority);
-                match self
-                    .handle_with_rustls_upgraded(authority, upgraded, initial_buffer, upstream_cert)
+                self.handle_with_rustls_upgraded(authority, upgraded, initial_buffer, upstream_cert)
                     .await
-                {
-                    Ok(stream) => {
-                        info!("✅ [RUSTLS-ONLY] 성공: {}", authority);
-                        Ok(stream)
-                    }
-                    Err(e) => {
-                        error!("❌ [RUSTLS-ONLY] 실패: {} - {}", authority, e);
-                        Err(e)
-                    }
-                }
+            }
+        };
+
+        let duration = handshake_start.elapsed();
+        match &result {
+            Ok(_) => {
+                info!("✅ [TLS] 핸드셰이크 성공: {} ({:?})", authority, duration);
+                emit_tls_event(
+                    &self.tls_event_sender,
+                    TlsEvent::HandshakeCompleted {
+                        authority: authority.clone(),
+                        strategy,
+                        duration,
+                    },
+                );
+            }
+            Err(e) => {
+                error!("❌ [TLS] 핸드셰이크 실패: {} - {}", authority, e);
+                emit_tls_event(
+                    &self.tls_event_sender,
+                    TlsEvent::HandshakeFailed {
+                        authority: authority.clone(),
+                        strategy,
+                        error: e.to_string(),
+                        duration,
+                    },
+                );
             }
         }
+
+        result
     }
 
     /// TLS 버전을 감지하고 적절한 TLS 핸들러를 선택합니다
@@ -228,6 +272,13 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
         _initial_buffer: &[u8],
         upstream_cert: Option<&UpstreamCertInfo>,
     ) -> Result<HybridTlsStream, Box<dyn std::error::Error + Send + Sync>> {
+        emit_tls_event(
+            &self.tls_event_sender,
+            TlsEvent::FakeCertGenerating {
+                authority: authority.clone(),
+                has_upstream_cert: upstream_cert.is_some(),
+            },
+        );
         info!("🔧 [RUSTLS] 서버 설정 생성 시작: {}", authority);
         let server_config = self.ca.gen_server_config(authority, upstream_cert).await;
         let acceptor = TlsAcceptor::from(server_config);
@@ -300,6 +351,13 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
         info!("📊 [OPENSSL-IMPROVED] TLS 정보: {:?}", tls_info);
 
         // CA에서 OpenSSL 컨텍스트 생성
+        emit_tls_event(
+            &self.tls_event_sender,
+            TlsEvent::FakeCertGenerating {
+                authority: authority.clone(),
+                has_upstream_cert: upstream_cert.is_some(),
+            },
+        );
         let ctx = self
             .ca
             .gen_openssl_context(authority, upstream_cert)

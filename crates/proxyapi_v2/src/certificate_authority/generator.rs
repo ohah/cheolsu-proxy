@@ -363,10 +363,19 @@ pub fn generate_openssl_ca(storage_dir: &PathBuf) -> Result<OpensslAuthority, St
         .to_pem()
         .map_err(|e| format!("Failed to convert certificate to PEM: {}", e))?;
 
-    fs::write(&storage_dir.join("cheolsu-proxy.key"), &private_key_pem)
+    let key_path = storage_dir.join("cheolsu-proxy.key");
+    fs::write(&key_path, &private_key_pem)
         .map_err(|e| format!("Failed to write private key: {}", e))?;
     fs::write(&storage_dir.join("cheolsu-proxy.cer"), &ca_cert_pem)
         .map_err(|e| format!("Failed to write CA certificate: {}", e))?;
+
+    // 키 파일 권한 설정 (macOS/Linux)
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        fs::set_permissions(&key_path, fs::Permissions::from_mode(0o600))
+            .map_err(|e| format!("Failed to set key permissions: {}", e))?;
+    }
 
     info!(path = %storage_dir.display(), "OpenSSL CA 인증서 생성 완료");
 

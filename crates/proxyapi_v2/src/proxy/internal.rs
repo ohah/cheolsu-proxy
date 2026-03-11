@@ -2,10 +2,16 @@ use super::context::ProxyContext;
 use super::helpers::{bad_request, spawn_with_trace};
 use super::middleware::optimize_streaming_response;
 use crate::{
-    HttpContext, HttpHandler, RequestOrResponse, WebSocketHandler, body::Body,
-    certificate_authority::CertificateAuthority, hybrid_tls_handler::HybridTlsHandler,
-    rewind::Rewind, throttle, tls_version_detector::TlsVersionDetector,
-    upstream_cert::sniff_upstream_cert, upstream_proxy::connect_to_target,
+    HttpContext, HttpHandler, RequestOrResponse, WebSocketHandler,
+    body::Body,
+    certificate_authority::CertificateAuthority,
+    hybrid_tls_handler::HybridTlsHandler,
+    rewind::Rewind,
+    throttle,
+    tls_event::{TlsEvent, emit_tls_event},
+    tls_version_detector::TlsVersionDetector,
+    upstream_cert::sniff_upstream_cert,
+    upstream_proxy::connect_to_target,
 };
 use http::uri::{Authority, Scheme};
 use hyper::{
@@ -374,27 +380,43 @@ where
                                                 );
                                                 None
                                             } else {
-                                                sniff_upstream_cert(
+                                                emit_tls_event(
+                                                    &self.ctx.tls_event_sender,
+                                                    TlsEvent::ServerConnectionStarting {
+                                                        authority: authority.clone(),
+                                                    },
+                                                );
+                                                let cert = sniff_upstream_cert(
                                                     &authority,
                                                     self.ctx.upstream_proxy.as_ref(),
                                                 )
-                                                .await
+                                                .await;
+                                                emit_tls_event(
+                                                    &self.ctx.tls_event_sender,
+                                                    TlsEvent::UpstreamCertSniffed {
+                                                        authority: authority.clone(),
+                                                        cert_info: cert.clone(),
+                                                    },
+                                                );
+                                                cert
                                             };
 
                                             // HybridTlsHandler 생성
-                                            let hybrid_handler =
-                                                match HybridTlsHandler::new(Arc::clone(&self.ca))
-                                                    .await
-                                                {
-                                                    Ok(handler) => handler,
-                                                    Err(e) => {
-                                                        error!(
-                                                            error = %e,
-                                                            "HybridTlsHandler 생성 실패"
-                                                        );
-                                                        return;
-                                                    }
-                                                };
+                                            let hybrid_handler = match HybridTlsHandler::new(
+                                                Arc::clone(&self.ca),
+                                                self.ctx.tls_event_sender.clone(),
+                                            )
+                                            .await
+                                            {
+                                                Ok(handler) => handler,
+                                                Err(e) => {
+                                                    error!(
+                                                        error = %e,
+                                                        "HybridTlsHandler 생성 실패"
+                                                    );
+                                                    return;
+                                                }
+                                            };
 
                                             // 하이브리드 TLS 연결 처리
                                             match hybrid_handler
