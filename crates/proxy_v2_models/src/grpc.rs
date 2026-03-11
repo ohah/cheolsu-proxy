@@ -115,30 +115,31 @@ pub fn extract_grpc_status(headers: &HeaderMap) -> (Option<i32>, Option<String>)
 }
 
 /// 간단한 percent-decoding (grpc-message용)
+/// UTF-8 멀티바이트 시퀀스도 정확히 디코딩합니다.
 fn percent_decode(input: &str) -> String {
-    let mut result = String::with_capacity(input.len());
-    let mut chars = input.chars();
+    let mut bytes = Vec::with_capacity(input.len());
+    let mut chars = input.as_bytes().iter();
 
-    while let Some(c) = chars.next() {
-        if c == '%' {
-            let hex: String = chars.by_ref().take(2).collect();
+    while let Some(&b) = chars.next() {
+        if b == b'%' {
+            let hex: Vec<u8> = chars.by_ref().take(2).copied().collect();
             if hex.len() == 2 {
-                if let Ok(byte) = u8::from_str_radix(&hex, 16) {
-                    result.push(byte as char);
+                if let Ok(byte) = u8::from_str_radix(&String::from_utf8_lossy(&hex), 16) {
+                    bytes.push(byte);
                 } else {
-                    result.push('%');
-                    result.push_str(&hex);
+                    bytes.push(b'%');
+                    bytes.extend_from_slice(&hex);
                 }
             } else {
-                result.push('%');
-                result.push_str(&hex);
+                bytes.push(b'%');
+                bytes.extend_from_slice(&hex);
             }
         } else {
-            result.push(c);
+            bytes.push(b);
         }
     }
 
-    result
+    String::from_utf8(bytes).unwrap_or_else(|e| String::from_utf8_lossy(e.as_bytes()).into_owned())
 }
 
 /// gRPC 상태 코드 이름 매핑

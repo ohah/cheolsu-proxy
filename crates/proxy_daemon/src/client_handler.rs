@@ -565,7 +565,7 @@ pub async fn handle_client(
                         let snapshot = metrics_aggregator.get_metrics_snapshot();
                         let uptime = metrics_aggregator.uptime_secs();
                         let response = DaemonMessage::MetricsResult {
-                            active_connections: snapshot.active_connections,
+                            active_requests: snapshot.active_requests,
                             total_requests: snapshot.total_requests,
                             total_bytes_sent: snapshot.total_bytes_sent,
                             total_bytes_received: snapshot.total_bytes_received,
