@@ -107,11 +107,7 @@ export function SettingsFormProvider({ children }: { children: ReactNode }) {
     defaultValues: getDefaultValues(),
   });
 
-  return (
-    <SettingsFormContext.Provider value={form}>
-      {children}
-    </SettingsFormContext.Provider>
-  );
+  return <SettingsFormContext.Provider value={form}>{children}</SettingsFormContext.Provider>;
 }
 
 export function useSettingsForm(): UseFormReturn<SettingsFormValues> {
@@ -119,4 +115,3 @@ export function useSettingsForm(): UseFormReturn<SettingsFormValues> {
   if (!ctx) throw new Error("useSettingsForm must be used within SettingsFormProvider");
   return ctx;
 }
-
