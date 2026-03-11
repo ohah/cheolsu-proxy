@@ -33,8 +33,10 @@ pub enum DataType {
     Document,
     /// 압축 파일 (ZIP, GZIP 등)
     Archive,
-    /// Protobuf / gRPC 바이너리 데이터
+    /// Protobuf 바이너리 데이터
     Protobuf,
+    /// gRPC 요청/응답
+    Grpc,
     /// 바이너리 데이터 (알 수 없는 형식)
     Binary,
     /// 빈 데이터
@@ -61,6 +63,7 @@ impl DataType {
             DataType::Document => "application/pdf",
             DataType::Archive => "application/zip",
             DataType::Protobuf => "application/x-protobuf",
+            DataType::Grpc => "application/grpc",
             DataType::Binary => "application/octet-stream",
             DataType::Empty => "empty",
             DataType::Unknown => "application/octet-stream",
@@ -83,6 +86,7 @@ impl DataType {
             | DataType::Document
             | DataType::Archive
             | DataType::Protobuf
+            | DataType::Grpc
             | DataType::Binary
             | DataType::Empty
             | DataType::Unknown => "plaintext",
@@ -138,6 +142,7 @@ impl DataType {
                 | DataType::Document
                 | DataType::Archive
                 | DataType::Protobuf
+                | DataType::Grpc
                 | DataType::Binary
         )
     }

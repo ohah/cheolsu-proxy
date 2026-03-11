@@ -5,6 +5,7 @@ use tokio::sync::{broadcast, watch, Mutex};
 use tracing::{debug, error, info, warn};
 
 use crate::breakpoint::BreakpointManager;
+use crate::metrics_aggregator::MetricsAggregator;
 use crate::protocol::{
     BreakpointRule, ClientCertConfig, ClientCommand, DaemonMessage, HostMapping, InterceptRule,
     ProxyAuthConfig, RequestClientCertConfig, ServerReplayEntry, SslProxyingEntry,
@@ -41,6 +42,7 @@ pub async fn handle_client(
     client_count: std::sync::Arc<std::sync::atomic::AtomicUsize>,
     tls_passthrough: proxyapi_v2::tls_passthrough::TlsPassthrough,
     connection_strategy: std::sync::Arc<std::sync::atomic::AtomicU8>,
+    metrics_aggregator: std::sync::Arc<MetricsAggregator>,
 ) {
     let (reader, writer) = stream.into_split();
     let mut reader = BufReader::new(reader);
@@ -558,6 +560,44 @@ pub async fn handle_client(
                         connection_strategy
                             .store(strategy_value, std::sync::atomic::Ordering::Relaxed);
                         info!("Connection strategy updated: {}", strategy);
+                    }
+                    Ok(ClientCommand::GetMetrics) => {
+                        let snapshot = metrics_aggregator.get_metrics_snapshot();
+                        let uptime = metrics_aggregator.uptime_secs();
+                        let response = DaemonMessage::MetricsResult {
+                            active_connections: snapshot.active_connections,
+                            total_requests: snapshot.total_requests,
+                            total_bytes_sent: snapshot.total_bytes_sent,
+                            total_bytes_received: snapshot.total_bytes_received,
+                            total_tls_handshakes: snapshot.total_tls_handshakes,
+                            total_tls_failures: snapshot.total_tls_failures,
+                            total_connection_failures: snapshot.total_connection_failures,
+                            total_timeouts: snapshot.total_timeouts,
+                            uptime_secs: uptime,
+                        };
+                        let mut line = serde_json::to_string(&response).unwrap_or_default();
+                        line.push('\n');
+                        let mut w = writer.lock().await;
+                        let _ = w.write_all(line.as_bytes()).await;
+                        let _ = w.flush().await;
+                    }
+                    Ok(ClientCommand::GetDomainStats { domain }) => {
+                        let stats = metrics_aggregator.get_domain_stats(domain.as_deref()).await;
+                        let response = DaemonMessage::DomainStatsResult { stats };
+                        let mut line = serde_json::to_string(&response).unwrap_or_default();
+                        line.push('\n');
+                        let mut w = writer.lock().await;
+                        let _ = w.write_all(line.as_bytes()).await;
+                        let _ = w.flush().await;
+                    }
+                    Ok(ClientCommand::GetRecentErrors { limit }) => {
+                        let errors = metrics_aggregator.get_recent_errors(limit).await;
+                        let response = DaemonMessage::RecentErrorsResult { errors };
+                        let mut line = serde_json::to_string(&response).unwrap_or_default();
+                        line.push('\n');
+                        let mut w = writer.lock().await;
+                        let _ = w.write_all(line.as_bytes()).await;
+                        let _ = w.flush().await;
                     }
                     Ok(ClientCommand::Stop) => {
                         break;

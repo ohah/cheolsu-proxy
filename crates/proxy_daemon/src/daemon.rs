@@ -10,9 +10,11 @@ use crate::breakpoint::BreakpointManager;
 use crate::client_handler::handle_client;
 use crate::error::DaemonError;
 use crate::handler::QuickSettings;
+use crate::metrics_aggregator::MetricsAggregator;
 use crate::protocol::{DaemonMessage, ProxyLockInfo};
 use crate::proxy_runner::run_proxy;
 use crate::system_proxy::set_proxy;
+use proxyapi_v2::metrics::MetricsCollector;
 use proxyapi_v2::throttle::ThrottleConfig;
 use proxyapi_v2::upstream_proxy::UpstreamProxyConfig;
 use proxyapi_v2::websocket_registry::WebSocketRegistry;
@@ -230,6 +232,7 @@ struct DaemonContext {
     proxy_auth: Arc<parking_lot::RwLock<Option<crate::protocol::ProxyAuthConfig>>>,
     tls_passthrough: proxyapi_v2::tls_passthrough::TlsPassthrough,
     connection_strategy: Arc<std::sync::atomic::AtomicU8>,
+    metrics_aggregator: Arc<MetricsAggregator>,
 }
 
 /// 프록시 태스크를 스폰합니다.
@@ -258,6 +261,7 @@ fn spawn_proxy_task(
     tls_passthrough: proxyapi_v2::tls_passthrough::TlsPassthrough,
     request_client_cert_rx: watch::Receiver<Option<crate::protocol::RequestClientCertConfig>>,
     connection_strategy: Arc<std::sync::atomic::AtomicU8>,
+    metrics_collector: Arc<MetricsCollector>,
 ) -> (
     tokio::task::JoinHandle<()>,
     tokio::sync::oneshot::Sender<()>,
@@ -286,6 +290,7 @@ fn spawn_proxy_task(
             tls_passthrough,
             request_client_cert_rx,
             connection_strategy,
+            metrics_collector,
         )
         .await
         {
@@ -392,12 +397,13 @@ async fn run_accept_loop(
                         let client_count_for_health = ctx.client_count.clone();
                         let tls_passthrough_clone = ctx.tls_passthrough.clone();
                         let connection_strategy_clone = ctx.connection_strategy.clone();
+                        let metrics_aggregator_clone = ctx.metrics_aggregator.clone();
 
                         tokio::spawn(async move {
                             // guard가 이 태스크 스코프에 소유되므로, 태스크가 어떤 방식으로
                             // 종료되든 (정상, 패닉, abort) Drop이 호출되어 카운트가 감소됩니다.
                             let _guard = _guard;
-                            handle_client(stream, event_rx, intercept_tx_clone, upstream_tx_clone, server_replay_tx_clone, throttle_tx_clone, breakpoint_tx_clone, breakpoint_mgr_clone, host_mapping_tx_clone, ssl_proxying_tx_clone, client_cert_tx_clone, request_client_cert_tx_clone, event_tx_clone, port, registry_clone, script_handle_clone, quick_settings_clone, proxy_auth_clone, started_at, total_transactions_clone, client_count_for_health, tls_passthrough_clone, connection_strategy_clone)
+                            handle_client(stream, event_rx, intercept_tx_clone, upstream_tx_clone, server_replay_tx_clone, throttle_tx_clone, breakpoint_tx_clone, breakpoint_mgr_clone, host_mapping_tx_clone, ssl_proxying_tx_clone, client_cert_tx_clone, request_client_cert_tx_clone, event_tx_clone, port, registry_clone, script_handle_clone, quick_settings_clone, proxy_auth_clone, started_at, total_transactions_clone, client_count_for_health, tls_passthrough_clone, connection_strategy_clone, metrics_aggregator_clone)
                                 .await;
                         });
                     }
@@ -469,6 +475,12 @@ async fn daemon_main(port: u16, host: String) -> i32 {
     // 연결 전략: 런타임 변경을 위한 공유 AtomicU8 (0=Lazy 기본값)
     let connection_strategy = Arc::new(std::sync::atomic::AtomicU8::new(0));
 
+    // 메트릭 수집기 초기화
+    let (metric_event_tx, metric_event_rx) = proxyapi_v2::metrics::metric_event_channel(1024);
+    let metrics_collector = Arc::new(MetricsCollector::new(metric_event_tx));
+    let metrics_aggregator = Arc::new(MetricsAggregator::new(metrics_collector.clone()));
+    let _metrics_handle = metrics_aggregator.spawn_aggregation_loop(metric_event_rx);
+
     // TLS 자동 학습 바이패스 초기화 (변경 알림 채널 포함)
     let (tls_change_tx, mut tls_change_rx) = tokio::sync::mpsc::channel::<Vec<(String, u32)>>(64);
     let passthrough_path = app_support_dir()
@@ -522,6 +534,7 @@ async fn daemon_main(port: u16, host: String) -> i32 {
         tls_passthrough.clone(),
         request_client_cert_rx,
         connection_strategy.clone(),
+        metrics_collector.clone(),
     );
 
     let uds_listener = match UnixListener::bind(&uds_path) {
@@ -595,6 +608,7 @@ async fn daemon_main(port: u16, host: String) -> i32 {
         proxy_auth,
         tls_passthrough,
         connection_strategy,
+        metrics_aggregator,
     };
 
     run_accept_loop(uds_listener, &mut shutdown_rx, &ctx, port).await;

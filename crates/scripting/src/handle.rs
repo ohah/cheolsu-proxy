@@ -1,8 +1,8 @@
 use crate::engine::ScriptEngine;
 use crate::error::ScriptError;
 use crate::types::{
-    RequestAction, ResponseAction, ScriptLogEntry, ScriptRequest, ScriptResponse, ScriptWsMessage,
-    WsAction,
+    RequestAction, ResponseAction, ScriptLogEntry, ScriptRequest, ScriptResponse, ScriptSseEvent,
+    ScriptWsMessage, SseAction, WsAction,
 };
 use std::sync::{Arc, Mutex};
 use std::thread::JoinHandle;
@@ -41,6 +41,10 @@ enum ScriptCommand {
     InvokeOnWsMessage {
         message: ScriptWsMessage,
         reply: oneshot::Sender<Result<WsAction, ScriptError>>,
+    },
+    InvokeOnSseEvent {
+        event: ScriptSseEvent,
+        reply: oneshot::Sender<Result<SseAction, ScriptError>>,
     },
     /// 엔진 스레드 종료
     Shutdown,
@@ -237,6 +241,28 @@ impl ScriptHandle {
             .map_err(|_| ScriptError::Timeout("onWebSocketMessage".to_string()))?
             .map_err(|_| ScriptError::NoResponse)?
     }
+
+    /// onSSEMessage 훅 호출
+    pub async fn invoke_on_sse_event(
+        &self,
+        event: &ScriptSseEvent,
+    ) -> Result<SseAction, ScriptError> {
+        if !self.is_active() {
+            return Ok(SseAction::Forward);
+        }
+        let (reply_tx, reply_rx) = oneshot::channel();
+        self.sender()?
+            .send(ScriptCommand::InvokeOnSseEvent {
+                event: event.clone(),
+                reply: reply_tx,
+            })
+            .await
+            .map_err(|_| ScriptError::EngineShutdown)?;
+        tokio::time::timeout(SCRIPT_TIMEOUT, reply_rx)
+            .await
+            .map_err(|_| ScriptError::Timeout("onSSEMessage".to_string()))?
+            .map_err(|_| ScriptError::NoResponse)?
+    }
 }
 
 impl Drop for ScriptHandle {
@@ -377,6 +403,16 @@ async fn script_engine_loop(
                     r
                 } else {
                     Ok(WsAction::Forward)
+                };
+                let _ = reply.send(result);
+            }
+            ScriptCommand::InvokeOnSseEvent { event, reply } => {
+                let result = if let Some(e) = engine.as_mut() {
+                    let r = e.invoke_on_sse_event(&event).await;
+                    flush_logs(e, &log_tx);
+                    r
+                } else {
+                    Ok(SseAction::Forward)
                 };
                 let _ = reply.send(result);
             }

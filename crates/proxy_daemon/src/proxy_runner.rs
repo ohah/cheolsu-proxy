@@ -5,7 +5,7 @@ use tracing::info;
 
 use crate::breakpoint::BreakpointManager;
 use crate::error::DaemonError;
-use crate::handler::{LoggingHandler, QuickSettings, WsEvent};
+use crate::handler::{LoggingHandler, QuickSettings, SseEvent, WsEvent};
 use crate::protocol::{
     BreakpointRule, ClientCertConfig, DaemonMessage, HostMapping, InterceptRule,
     RequestClientCertConfig, ServerReplayEntry, SslProxyingEntry,
@@ -38,6 +38,7 @@ pub async fn run_proxy(
     tls_passthrough: proxyapi_v2::tls_passthrough::TlsPassthrough,
     request_client_cert_rx: watch::Receiver<Option<RequestClientCertConfig>>,
     connection_strategy: std::sync::Arc<std::sync::atomic::AtomicU8>,
+    metrics_collector: std::sync::Arc<proxyapi_v2::metrics::MetricsCollector>,
 ) -> Result<(), DaemonError> {
     use proxyapi_v2::builder::ProxyBuilder;
     use proxyapi_v2::certificate_authority::{
@@ -92,11 +93,13 @@ pub async fn run_proxy(
         tokio::sync::mpsc::channel::<proxy_v2_models::RequestInfo>(256);
 
     let (ws_tx, mut ws_rx) = tokio::sync::mpsc::channel::<WsEvent>(256);
+    let (sse_tx, mut sse_rx) = tokio::sync::mpsc::channel::<SseEvent>(256);
 
     let ca_cert_der = ca.get_ca_cert_der().unwrap_or_default();
 
     let handler = LoggingHandler::new(tx.clone(), cache_dir)
         .with_ws_sender(ws_tx)
+        .with_sse_sender(sse_tx)
         .with_script_handle(script_handle)
         .with_ca_cert_der(ca_cert_der)
         .with_breakpoint_manager(breakpoint_manager.clone())
@@ -224,6 +227,7 @@ pub async fn run_proxy(
         throttle_rx: Some(throttle_rx_arc),
         connection_semaphore,
         connection_strategy: Some(connection_strategy),
+        metrics: Some(metrics_collector),
         ..Default::default()
     };
 
@@ -273,6 +277,23 @@ pub async fn run_proxy(
             };
             if let Ok(msg) = msg {
                 let _ = event_tx_ws.send(msg);
+            }
+        }
+    });
+
+    let event_tx_sse = event_tx.clone();
+    tokio::spawn(async move {
+        while let Some(sse_event) = sse_rx.recv().await {
+            let msg = match sse_event {
+                SseEvent::Event(info) => {
+                    serde_json::to_string(&DaemonMessage::SseEvent { data: info })
+                }
+                SseEvent::Connection(event) => {
+                    serde_json::to_string(&DaemonMessage::SseConnection { data: event })
+                }
+            };
+            if let Ok(msg) = msg {
+                let _ = event_tx_sse.send(msg);
             }
         }
     });

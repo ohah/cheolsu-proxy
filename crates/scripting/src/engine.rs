@@ -1,8 +1,8 @@
 use crate::error::ScriptError;
 use crate::transpiler::transpile_ts;
 use crate::types::{
-    RequestAction, ResponseAction, ScriptLogEntry, ScriptRequest, ScriptResponse, ScriptWsMessage,
-    WsAction,
+    RequestAction, ResponseAction, ScriptLogEntry, ScriptRequest, ScriptResponse, ScriptSseEvent,
+    ScriptWsMessage, SseAction, WsAction,
 };
 use deno_core::{JsRuntime, PollEventLoopOptions, RuntimeOptions};
 use std::time::Duration;
@@ -24,6 +24,7 @@ pub struct ScriptEngine {
     has_on_request: bool,
     has_on_response: bool,
     has_on_ws_message: bool,
+    has_on_sse_message: bool,
 }
 
 impl ScriptEngine {
@@ -43,6 +44,7 @@ impl ScriptEngine {
             has_on_request: false,
             has_on_response: false,
             has_on_ws_message: false,
+            has_on_sse_message: false,
         })
     }
 
@@ -91,8 +93,12 @@ impl ScriptEngine {
         self.check_hooks()?;
 
         info!(
-            "[Script] 로드 완료: {} (onRequest={}, onResponse={}, onWsMessage={})",
-            path, self.has_on_request, self.has_on_response, self.has_on_ws_message
+            "[Script] 로드 완료: {} (onRequest={}, onResponse={}, onWsMessage={}, onSSEMessage={})",
+            path,
+            self.has_on_request,
+            self.has_on_response,
+            self.has_on_ws_message,
+            self.has_on_sse_message
         );
 
         Ok(())
@@ -107,8 +113,8 @@ impl ScriptEngine {
         self.check_hooks()?;
 
         info!(
-            "[Script] 코드 로드 완료 (onRequest={}, onResponse={}, onWsMessage={})",
-            self.has_on_request, self.has_on_response, self.has_on_ws_message
+            "[Script] 코드 로드 완료 (onRequest={}, onResponse={}, onWsMessage={}, onSSEMessage={})",
+            self.has_on_request, self.has_on_response, self.has_on_ws_message, self.has_on_sse_message
         );
 
         Ok(())
@@ -125,6 +131,8 @@ impl ScriptEngine {
         self.has_on_response = self.eval_bool("globalThis.__cheolsu_internal.hasOnResponse()")?;
         self.has_on_ws_message =
             self.eval_bool("globalThis.__cheolsu_internal.hasOnWebSocketMessage()")?;
+        self.has_on_sse_message =
+            self.eval_bool("globalThis.__cheolsu_internal.hasOnSSEMessage()")?;
         Ok(())
     }
 
@@ -226,6 +234,31 @@ impl ScriptEngine {
         })
     }
 
+    /// onSSEMessage 훅 호출 (async 훅 지원)
+    pub async fn invoke_on_sse_event(
+        &mut self,
+        event: &ScriptSseEvent,
+    ) -> Result<SseAction, ScriptError> {
+        if !self.has_on_sse_message {
+            return Ok(SseAction::Forward);
+        }
+
+        let event_json = serde_json::to_string(event)?;
+
+        let safe_js_str = serde_json::to_string(&event_json)?;
+        let code = format!(
+            "globalThis.__cheolsu_internal.invokeOnSSEMessage({})",
+            safe_js_str
+        );
+
+        let result = self.eval_string_resolving(&code).await?;
+
+        serde_json::from_str(&result).map_err(|e| ScriptError::HookParse {
+            message: e.to_string(),
+            raw: result,
+        })
+    }
+
     /// JS 코드를 실행하고 Promise면 resolve 후 문자열 결과 반환
     async fn eval_string_resolving(&mut self, code: &str) -> Result<String, ScriptError> {
         let global = self
@@ -293,6 +326,10 @@ impl ScriptEngine {
 
     pub fn has_on_ws_message(&self) -> bool {
         self.has_on_ws_message
+    }
+
+    pub fn has_on_sse_message(&self) -> bool {
+        self.has_on_sse_message
     }
 }
 

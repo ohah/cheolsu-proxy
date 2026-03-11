@@ -5,6 +5,9 @@ use std::path::Path;
 
 use crate::data_type::{detect_data_type, DataType};
 use crate::file_storage::{decompress_body_if_needed, save_body_to_file};
+use crate::grpc::{
+    extract_grpc_content_subtype, extract_grpc_service_method, parse_grpc_frames, GrpcMetadata,
+};
 use crate::mime_utils::is_media_data_type;
 use crate::BODY_FILE_THRESHOLD;
 
@@ -26,6 +29,8 @@ pub struct ProxiedRequest {
     data_type: DataType,
     #[serde(skip)]
     body_json: Option<serde_json::Value>,
+    #[serde(skip)]
+    grpc_metadata: Option<GrpcMetadata>,
 }
 
 impl ProxiedRequest {
@@ -45,6 +50,31 @@ impl ProxiedRequest {
         );
 
         let data_type = detect_data_type(&headers, &body);
+
+        // gRPC 메타데이터 추출
+        let grpc_metadata = if data_type == DataType::Grpc {
+            let (service, method) = extract_grpc_service_method(uri.path());
+            let content_subtype = headers
+                .get("content-type")
+                .and_then(|v| v.to_str().ok())
+                .and_then(extract_grpc_content_subtype);
+            let frames = parse_grpc_frames(&body);
+            let is_compressed = frames.iter().any(|f| f.compressed);
+            let frame_count = frames.len();
+
+            Some(GrpcMetadata {
+                service,
+                method,
+                status_code: None, // 요청에는 상태 코드 없음
+                status_message: None,
+                content_subtype,
+                streaming_type: Default::default(),
+                frame_count,
+                is_compressed,
+            })
+        } else {
+            None
+        };
 
         // JSON 타입인 경우 파싱 시도 (GraphQL도 JSON 기반)
         let body_json = if data_type == DataType::Json || data_type == DataType::GraphQL {
@@ -70,6 +100,7 @@ impl ProxiedRequest {
             id,
             data_type,
             body_json,
+            grpc_metadata,
         }
     }
 
@@ -120,6 +151,11 @@ impl ProxiedRequest {
         &self.body_json
     }
 
+    /// gRPC 메타데이터 반환
+    pub fn grpc_metadata(&self) -> &Option<GrpcMetadata> {
+        &self.grpc_metadata
+    }
+
     /// 클라이언트(타우리 UI)용으로 변환
     pub fn for_client(self, cache_dir: Option<&Path>) -> ClientRequest {
         let original_body_size = self.body.len();
@@ -159,6 +195,7 @@ impl ProxiedRequest {
             id: self.id,
             data_type: self.data_type,
             body_json: self.body_json,
+            grpc_metadata: self.grpc_metadata,
             file_path,
             body_size: original_body_size, // 원본 크기 유지
         }
@@ -181,6 +218,7 @@ pub struct ClientRequest {
     id: String,
     data_type: DataType,
     body_json: Option<serde_json::Value>,
+    grpc_metadata: Option<GrpcMetadata>,
     file_path: Option<String>, // body가 저장된 파일 경로
     body_size: usize,          // 실제 body 크기 (파일 저장 시에도 원본 크기 유지)
 }
@@ -231,6 +269,11 @@ impl ClientRequest {
     /// JSON 파싱된 데이터 반환 (JSON 타입인 경우)
     pub fn body_json(&self) -> &Option<serde_json::Value> {
         &self.body_json
+    }
+
+    /// gRPC 메타데이터 반환
+    pub fn grpc_metadata(&self) -> &Option<GrpcMetadata> {
+        &self.grpc_metadata
     }
 
     /// body가 저장된 파일 경로 반환
