@@ -15,8 +15,6 @@
 
 Rust 기반 **Man in the Middle 프록시**로, HTTP/HTTPS/WebSocket 트래픽을 검사하고 조작할 수 있습니다. 데스크톱 GUI (Tauri + React), 터미널 UI (Ratatui), headless CLI 모드를 제공하며, 스크립트 기반 트래픽 조작과 인터셉트 규칙을 지원합니다. MCP를 통해 AI 어시스턴트와도 연동됩니다.
 
-![Cast](assets/screenshots/0.gif)
-
 ## 기능
 
 ### 핵심
@@ -212,10 +210,6 @@ PKG_CONFIG_PATH="/opt/homebrew/opt/openssl@3/lib/pkgconfig" cargo test -p proxya
 ## 기여하기
 
 기여는 언제나 환영합니다!
-
-시작 방법은 `contributing.md`를 참고하세요.
-
-프로젝트의 `code of conduct`를 준수해 주세요.
 
 ## 라이선스
 
