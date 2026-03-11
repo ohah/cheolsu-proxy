@@ -324,6 +324,7 @@ msgstr "CA Key File"
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:255
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:137
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:166
+#: src/pages/log-viewer/ui/logs-page.tsx:469
 #: src/pages/settings/ui/settings-page.tsx:885
 msgid "Cancel"
 msgstr "Cancel"
@@ -376,7 +377,7 @@ msgstr "Cheolsu Proxy Logo"
 msgid "Claude Code (CLI)"
 msgstr "Claude Code (CLI)"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:241
+#: src/pages/log-viewer/ui/logs-page.tsx:256
 #: src/pages/script/ui/script-page.tsx:298
 #: src/pages/settings/ui/settings-page.tsx:1308
 msgid "Clear"
@@ -389,7 +390,7 @@ msgstr "Clear all"
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:108
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:98
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:91
-#: src/pages/log-viewer/ui/logs-page.tsx:266
+#: src/pages/log-viewer/ui/logs-page.tsx:286
 #: src/pages/map-rules/ui/map-rules-page.tsx:80
 #: src/pages/server-replay/ui/server-replay-page.tsx:105
 msgid "Clear All"
@@ -534,9 +535,19 @@ msgstr "Data"
 msgid "Delay between requests (ms)"
 msgstr "Delay between requests (ms)"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:245
+#: src/pages/log-viewer/ui/logs-page.tsx:265
+#: src/pages/log-viewer/ui/logs-page.tsx:473
 msgid "Delete"
 msgstr "Delete"
+
+#. placeholder {0}: selectedFile?.name
+#: src/pages/log-viewer/ui/logs-page.tsx:463
+msgid "Delete \"{0}\"? This action cannot be undone."
+msgstr "Delete \"{0}\"? This action cannot be undone."
+
+#: src/pages/log-viewer/ui/logs-page.tsx:460
+msgid "Delete Log File"
+msgstr "Delete Log File"
 
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:241
 msgid "Delete mapping"
@@ -576,7 +587,7 @@ msgstr "Disconnected"
 msgid "Display CONNECT tunnel requests in the network list"
 msgstr "Display CONNECT tunnel requests in the network list"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:399
+#: src/pages/log-viewer/ui/logs-page.tsx:419
 msgid "Domain"
 msgstr "Domain"
 
@@ -588,7 +599,7 @@ msgstr "Domain-specific Certificates"
 msgid "Domains in this list will NOT be intercepted (pass-through). OAuth domains like accounts.google.com are always excluded by default."
 msgstr "Domains in this list will NOT be intercepted (pass-through). OAuth domains like accounts.google.com are always excluded by default."
 
-#: src/pages/log-viewer/ui/logs-page.tsx:383
+#: src/pages/log-viewer/ui/logs-page.tsx:403
 msgid "Domains that failed TLS handshake are automatically tunneled without MITM decryption. You can remove entries to retry MITM for specific domains."
 msgstr "Domains that failed TLS handshake are automatically tunneled without MITM decryption. You can remove entries to retry MITM for specific domains."
 
@@ -685,7 +696,7 @@ msgstr "Failed to read file: {0}"
 msgid "Failed to send"
 msgstr "Failed to send"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:402
+#: src/pages/log-viewer/ui/logs-page.tsx:422
 msgid "Failures"
 msgstr "Failures"
 
@@ -693,7 +704,7 @@ msgstr "Failures"
 msgid "File"
 msgstr "File"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:347
+#: src/pages/log-viewer/ui/logs-page.tsx:367
 msgid "Filter log lines..."
 msgstr "Filter log lines..."
 
@@ -904,7 +915,7 @@ msgstr "Latency (ms)"
 msgid "Light"
 msgstr "Light"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:354
+#: src/pages/log-viewer/ui/logs-page.tsx:374
 msgid "lines"
 msgstr "lines"
 
@@ -946,8 +957,8 @@ msgstr "Local File Path"
 msgid "localhost, 127.0.0.1, *.internal.com"
 msgstr "localhost, 127.0.0.1, *.internal.com"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:283
-#: src/pages/log-viewer/ui/logs-page.tsx:310
+#: src/pages/log-viewer/ui/logs-page.tsx:303
+#: src/pages/log-viewer/ui/logs-page.tsx:330
 msgid "Log Files"
 msgstr "Log Files"
 
@@ -955,7 +966,7 @@ msgstr "Log Files"
 msgid "Logical OR:"
 msgstr "Logical OR:"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:226
+#: src/pages/log-viewer/ui/logs-page.tsx:241
 #: src/shared/app-sidebar/model/consts.ts:86
 msgid "Logs"
 msgstr "Logs"
@@ -1128,7 +1139,7 @@ msgstr "No host mappings"
 msgid "No intercept rules"
 msgstr "No intercept rules"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:315
+#: src/pages/log-viewer/ui/logs-page.tsx:335
 msgid "No log files found"
 msgstr "No log files found"
 
@@ -1148,7 +1159,7 @@ msgstr "No phase selected"
 msgid "No replay entries"
 msgstr "No replay entries"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:391
+#: src/pages/log-viewer/ui/logs-page.tsx:411
 msgid "No TLS passthrough entries"
 msgstr "No TLS passthrough entries"
 
@@ -1200,7 +1211,7 @@ msgstr "Open <0>{CERT_DOWNLOAD_URL}</0> in Safari"
 msgid "Open <0>{CERT_DOWNLOAD_URL}</0> in your device browser"
 msgstr "Open <0>{CERT_DOWNLOAD_URL}</0> in your device browser"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:249
+#: src/pages/log-viewer/ui/logs-page.tsx:269
 msgid "Open Directory"
 msgstr "Open Directory"
 
@@ -1366,8 +1377,8 @@ msgstr "Received"
 msgid "Received (Server → Client)"
 msgstr "Received (Server → Client)"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:237
-#: src/pages/log-viewer/ui/logs-page.tsx:257
+#: src/pages/log-viewer/ui/logs-page.tsx:252
+#: src/pages/log-viewer/ui/logs-page.tsx:277
 #: src/pages/settings/ui/components/certificate-settings.tsx:402
 msgid "Refresh"
 msgstr "Refresh"
@@ -1672,7 +1683,7 @@ msgstr "Script unloaded"
 msgid "Security"
 msgstr "Security"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:370
+#: src/pages/log-viewer/ui/logs-page.tsx:390
 msgid "Select a log file to view its contents"
 msgstr "Select a log file to view its contents"
 
@@ -1937,7 +1948,7 @@ msgstr "Throughput"
 msgid "Time"
 msgstr "Time"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:294
+#: src/pages/log-viewer/ui/logs-page.tsx:314
 msgid "TLS Passthrough"
 msgstr "TLS Passthrough"
 
@@ -2087,7 +2098,7 @@ msgstr "Value"
 msgid "Version"
 msgstr "Version"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:229
+#: src/pages/log-viewer/ui/logs-page.tsx:244
 msgid "View and manage application log files"
 msgstr "View and manage application log files"
 
