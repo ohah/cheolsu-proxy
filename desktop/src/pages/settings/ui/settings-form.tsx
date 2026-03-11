@@ -1,7 +1,8 @@
 import { type ReactNode } from "react";
 import { useForm, useFormContext, FormProvider, type UseFormReturn } from "react-hook-form";
 import { useAppSettingsStore } from "@/shared/stores/app-settings-store";
-import type { ConnectionStrategy } from "@/shared/api/proxy";
+import { useSslProxyingStore } from "@/shared/stores/ssl-proxying-store";
+import type { ConnectionStrategy, SslProxyingMode, SslProxyingEntry } from "@/shared/api/proxy";
 import type { DomainClientCertConfig } from "@/shared/api/proxy";
 
 export interface SettingsFormValues {
@@ -64,6 +65,12 @@ export interface SettingsFormValues {
     caCertPath: string;
     required: boolean;
   };
+
+  // SSL Proxying
+  sslProxying: {
+    mode: SslProxyingMode;
+    entries: SslProxyingEntry[];
+  };
 }
 
 export function getDefaultValues(): SettingsFormValues {
@@ -112,6 +119,10 @@ export function getDefaultValues(): SettingsFormValues {
       enabled: false,
       caCertPath: "",
       required: false,
+    },
+    sslProxying: {
+      mode: useSslProxyingStore.getState().mode,
+      entries: useSslProxyingStore.getState().entries,
     },
   };
 }
