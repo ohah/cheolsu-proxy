@@ -5,7 +5,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { openPath } from "@tauri-apps/plugin-opener";
 import { Button, Badge, Input } from "@/shared/ui";
-import { RefreshCw, Trash2, FolderOpen, Search, X, Shield } from "lucide-react";
+import { RefreshCw, Trash2, FolderOpen, Search, X, Shield, FileX2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface LogFileInfo {
@@ -99,6 +99,18 @@ export function LogsPage() {
     try {
       await invoke("clear_log_file", { path: selectedFile.path });
       setLogContent("");
+      await fetchLogFiles();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : String(e));
+    }
+  }, [selectedFile, fetchLogFiles]);
+
+  const handleDelete = useCallback(async () => {
+    if (!selectedFile) return;
+    try {
+      await invoke("delete_log_file", { path: selectedFile.path });
+      setLogContent("");
+      setSelectedFile(null);
       await fetchLogFiles();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : String(e));
@@ -227,6 +239,10 @@ export function LogsPage() {
                 <Button variant="outline" size="sm" onClick={handleClear} disabled={!selectedFile}>
                   <Trash2 className="w-4 h-4 mr-1" />
                   <Trans>Clear</Trans>
+                </Button>
+                <Button variant="outline" size="sm" onClick={handleDelete} disabled={!selectedFile}>
+                  <FileX2 className="w-4 h-4 mr-1" />
+                  <Trans>Delete</Trans>
                 </Button>
                 <Button variant="outline" size="sm" onClick={handleOpenLogDir}>
                   <FolderOpen className="w-4 h-4 mr-1" />

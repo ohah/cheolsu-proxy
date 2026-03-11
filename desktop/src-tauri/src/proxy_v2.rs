@@ -99,6 +99,12 @@ pub async fn clear_log_file(path: String) -> Result<(), String> {
     std::fs::write(&path, "").map_err(|e| format!("로그 파일 초기화 실패: {}", e))
 }
 
+/// 로그 파일 삭제 (파일 자체를 제거)
+#[tauri::command]
+pub async fn delete_log_file(path: String) -> Result<(), String> {
+    std::fs::remove_file(&path).map_err(|e| format!("로그 파일 삭제 실패: {}", e))
+}
+
 /// 로그 디렉토리 경로 반환
 #[tauri::command]
 pub async fn get_log_dir() -> Result<String, String> {
