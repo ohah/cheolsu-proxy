@@ -13,7 +13,7 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
-#: src/pages/map-rules/ui/map-rules-page.tsx:157
+#: src/pages/map-rules/ui/map-rules-page.tsx:116
 msgid " (preserve path)"
 msgstr " (preserve path)"
 
@@ -86,7 +86,7 @@ msgstr "Active Custom CA"
 #: src/features/map-rule-form/ui/map-local-fields.tsx:73
 #: src/features/transaction-details/ui/replay-dialog.tsx:427
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:134
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:169
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:140
 #: src/pages/server-replay/ui/server-replay-page.tsx:170
 #: src/pages/settings/ui/components/ssl-proxying-section.tsx:126
 msgid "Add"
@@ -122,11 +122,11 @@ msgstr "Add Intercept Rule"
 msgid "Add Map Rule"
 msgstr "Add Map Rule"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:103
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:160
 msgid "Add Mapping"
 msgstr "Add Mapping"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:185
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:157
 msgid "Add mappings to redirect DNS hostnames to different target hosts for testing."
 msgstr "Add mappings to redirect DNS hostnames to different target hosts for testing."
 
@@ -134,26 +134,26 @@ msgstr "Add mappings to redirect DNS hostnames to different target hosts for tes
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:477
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:258
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:113
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:96
-#: src/pages/map-rules/ui/map-rules-page.tsx:85
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:81
+#: src/pages/map-rules/ui/map-rules-page.tsx:72
 msgid "Add Rule"
 msgstr "Add Rule"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:109
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:78
 msgid "Add rules to intercept, block, or modify HTTP requests and responses."
 msgstr "Add rules to intercept, block, or modify HTTP requests and responses."
 
-#: src/pages/map-rules/ui/map-rules-page.tsx:98
+#: src/pages/map-rules/ui/map-rules-page.tsx:69
 msgid "Add rules to map URLs to local files or redirect to other servers."
 msgstr "Add rules to map URLs to local files or redirect to other servers."
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:191
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:159
 msgid "Add your first mapping"
 msgstr "Add your first mapping"
 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:172
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:115
-#: src/pages/map-rules/ui/map-rules-page.tsx:104
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:80
+#: src/pages/map-rules/ui/map-rules-page.tsx:71
 msgid "Add your first rule"
 msgstr "Add your first rule"
 
@@ -323,7 +323,8 @@ msgstr "CA Key File"
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:474
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:255
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:137
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:166
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:137
+#: src/pages/log-viewer/ui/logs-page.tsx:469
 #: src/pages/settings/ui/components/shortcut-section.tsx:117
 msgid "Cancel"
 msgstr "Cancel"
@@ -376,7 +377,7 @@ msgstr "Cheolsu Proxy Logo"
 msgid "Claude Code (CLI)"
 msgstr "Claude Code (CLI)"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:229
+#: src/pages/log-viewer/ui/logs-page.tsx:256
 #: src/pages/script/ui/script-page.tsx:298
 #: src/pages/settings/ui/components/request-client-cert-section.tsx:68
 msgid "Clear"
@@ -387,11 +388,9 @@ msgid "Clear all"
 msgstr "Clear all"
 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:108
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:98
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:91
-#: src/pages/log-viewer/ui/logs-page.tsx:250
-#: src/pages/map-rules/ui/map-rules-page.tsx:80
+#: src/pages/log-viewer/ui/logs-page.tsx:286
 #: src/pages/server-replay/ui/server-replay-page.tsx:105
+#: src/shared/ui/rule-list-page.tsx:69
 msgid "Clear All"
 msgstr "Clear All"
 
@@ -514,7 +513,7 @@ msgstr "cURL"
 msgid "Curl command copied to clipboard"
 msgstr "Curl command copied to clipboard"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:178
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:134
 msgid "Custom body"
 msgstr "Custom body"
 
@@ -534,13 +533,27 @@ msgstr "Data"
 msgid "Delay between requests (ms)"
 msgstr "Delay between requests (ms)"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:241
+#: src/pages/log-viewer/ui/logs-page.tsx:265
+#: src/pages/log-viewer/ui/logs-page.tsx:473
+msgid "Delete"
+msgstr "Delete"
+
+#. placeholder {0}: selectedFile?.name
+#: src/pages/log-viewer/ui/logs-page.tsx:463
+msgid "Delete \"{0}\"? This action cannot be undone."
+msgstr "Delete \"{0}\"? This action cannot be undone."
+
+#: src/pages/log-viewer/ui/logs-page.tsx:460
+msgid "Delete Log File"
+msgstr "Delete Log File"
+
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:201
 msgid "Delete mapping"
 msgstr "Delete mapping"
 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:210
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:202
-#: src/pages/map-rules/ui/map-rules-page.tsx:176
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:158
+#: src/pages/map-rules/ui/map-rules-page.tsx:135
 msgid "Delete rule"
 msgstr "Delete rule"
 
@@ -558,7 +571,7 @@ msgstr "Dir"
 msgid "Direction"
 msgstr "Direction"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:226
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:186
 #: src/pages/server-replay/ui/server-replay-page.tsx:96
 msgid "Disabled"
 msgstr "Disabled"
@@ -572,7 +585,7 @@ msgstr "Disconnected"
 msgid "Display CONNECT tunnel requests in the network list"
 msgstr "Display CONNECT tunnel requests in the network list"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:383
+#: src/pages/log-viewer/ui/logs-page.tsx:419
 msgid "Domain"
 msgstr "Domain"
 
@@ -584,7 +597,7 @@ msgstr "Domain-specific Certificates"
 msgid "Domains in this list will NOT be intercepted (pass-through). OAuth domains like accounts.google.com are always excluded by default."
 msgstr "Domains in this list will NOT be intercepted (pass-through). OAuth domains like accounts.google.com are always excluded by default."
 
-#: src/pages/log-viewer/ui/logs-page.tsx:367
+#: src/pages/log-viewer/ui/logs-page.tsx:403
 msgid "Domains that failed TLS handshake are automatically tunneled without MITM decryption. You can remove entries to retry MITM for specific domains."
 msgstr "Domains that failed TLS handshake are automatically tunneled without MITM decryption. You can remove entries to retry MITM for specific domains."
 
@@ -605,8 +618,8 @@ msgstr "Drop"
 msgid "Edit Map Rule"
 msgstr "Edit Map Rule"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:194
-#: src/pages/map-rules/ui/map-rules-page.tsx:168
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:150
+#: src/pages/map-rules/ui/map-rules-page.tsx:127
 msgid "Edit rule"
 msgstr "Edit rule"
 
@@ -622,7 +635,7 @@ msgstr "Editor"
 msgid "Enable full trust for the Cheolsu Proxy CA certificate"
 msgstr "Enable full trust for the Cheolsu Proxy CA certificate"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:226
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:186
 #: src/pages/server-replay/ui/server-replay-page.tsx:96
 msgid "Enabled"
 msgstr "Enabled"
@@ -681,7 +694,7 @@ msgstr "Failed to read file: {0}"
 msgid "Failed to send"
 msgstr "Failed to send"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:386
+#: src/pages/log-viewer/ui/logs-page.tsx:422
 msgid "Failures"
 msgstr "Failures"
 
@@ -689,7 +702,7 @@ msgstr "Failures"
 msgid "File"
 msgstr "File"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:331
+#: src/pages/log-viewer/ui/logs-page.tsx:367
 msgid "Filter log lines..."
 msgstr "Filter log lines..."
 
@@ -759,7 +772,7 @@ msgstr "Header name"
 msgid "Header name to remove"
 msgstr "Header name to remove"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:171
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:127
 #: src/pages/server-replay/ui/server-replay-page.tsx:225
 msgid "headers"
 msgstr "headers"
@@ -775,7 +788,7 @@ msgstr "Headers ({0})"
 msgid "Host"
 msgstr "Host"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:85
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:150
 #: src/shared/app-sidebar/model/consts.ts:65
 msgid "Host Mapping"
 msgstr "Host Mapping"
@@ -859,7 +872,7 @@ msgstr "Installed"
 msgid "Installing..."
 msgstr "Installing..."
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:78
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:73
 #: src/shared/app-sidebar/model/consts.ts:37
 msgid "Intercept Rules"
 msgstr "Intercept Rules"
@@ -900,7 +913,7 @@ msgstr "Latency (ms)"
 msgid "Light"
 msgstr "Light"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:338
+#: src/pages/log-viewer/ui/logs-page.tsx:374
 msgid "lines"
 msgstr "lines"
 
@@ -942,8 +955,8 @@ msgstr "Local File Path"
 msgid "localhost, 127.0.0.1, *.internal.com"
 msgstr "localhost, 127.0.0.1, *.internal.com"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:267
-#: src/pages/log-viewer/ui/logs-page.tsx:294
+#: src/pages/log-viewer/ui/logs-page.tsx:303
+#: src/pages/log-viewer/ui/logs-page.tsx:330
 msgid "Log Files"
 msgstr "Log Files"
 
@@ -951,7 +964,7 @@ msgstr "Log Files"
 msgid "Logical OR:"
 msgstr "Logical OR:"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:214
+#: src/pages/log-viewer/ui/logs-page.tsx:241
 #: src/shared/app-sidebar/model/consts.ts:86
 msgid "Logs"
 msgstr "Logs"
@@ -960,11 +973,11 @@ msgstr "Logs"
 msgid "Manage request/response intercept rules"
 msgstr "Manage request/response intercept rules"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:81
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:74
 msgid "Manage wildcard-based request/response intercept rules"
 msgstr "Manage wildcard-based request/response intercept rules"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:88
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:152
 msgid "Map DNS hostnames to different target hosts for testing and development"
 msgstr "Map DNS hostnames to different target hosts for testing and development"
 
@@ -987,7 +1000,7 @@ msgstr "Map Local / Map Remote rules"
 msgid "Map Local: respond with a local file. Map Remote: redirect to another URL."
 msgstr "Map Local: respond with a local file. Map Remote: redirect to another URL."
 
-#: src/pages/map-rules/ui/map-rules-page.tsx:68
+#: src/pages/map-rules/ui/map-rules-page.tsx:62
 msgid "Map Local: respond with local files. Map Remote: redirect requests to another URL."
 msgstr "Map Local: respond with local files. Map Remote: redirect requests to another URL."
 
@@ -998,12 +1011,12 @@ msgstr "Map Local: respond with local files. Map Remote: redirect requests to an
 msgid "Map Remote"
 msgstr "Map Remote"
 
-#: src/pages/map-rules/ui/map-rules-page.tsx:65
+#: src/pages/map-rules/ui/map-rules-page.tsx:60
 #: src/shared/app-sidebar/model/consts.ts:44
 msgid "Map Rules"
 msgstr "Map Rules"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:93
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:154
 msgid "mappings"
 msgstr "mappings"
 
@@ -1116,19 +1129,19 @@ msgstr "No console output yet"
 msgid "No Gzip"
 msgstr "No Gzip"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:182
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:155
 msgid "No host mappings"
 msgstr "No host mappings"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:106
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:76
 msgid "No intercept rules"
 msgstr "No intercept rules"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:299
+#: src/pages/log-viewer/ui/logs-page.tsx:335
 msgid "No log files found"
 msgstr "No log files found"
 
-#: src/pages/map-rules/ui/map-rules-page.tsx:95
+#: src/pages/map-rules/ui/map-rules-page.tsx:67
 msgid "No map rules"
 msgstr "No map rules"
 
@@ -1144,7 +1157,7 @@ msgstr "No phase selected"
 msgid "No replay entries"
 msgstr "No replay entries"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:375
+#: src/pages/log-viewer/ui/logs-page.tsx:411
 msgid "No TLS passthrough entries"
 msgstr "No TLS passthrough entries"
 
@@ -1196,7 +1209,7 @@ msgstr "Open <0>{CERT_DOWNLOAD_URL}</0> in Safari"
 msgid "Open <0>{CERT_DOWNLOAD_URL}</0> in your device browser"
 msgstr "Open <0>{CERT_DOWNLOAD_URL}</0> in your device browser"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:233
+#: src/pages/log-viewer/ui/logs-page.tsx:269
 msgid "Open Directory"
 msgstr "Open Directory"
 
@@ -1208,8 +1221,8 @@ msgstr "Open File"
 msgid "Open this URL in your mobile browser after setting the Wi-Fi proxy. The page automatically detects your device and provides the correct certificate format."
 msgstr "Open this URL in your mobile browser after setting the Wi-Fi proxy. The page automatically detects your device and provides the correct certificate format."
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:127
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:153
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:98
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:124
 msgid "optional"
 msgstr "optional"
 
@@ -1362,8 +1375,8 @@ msgstr "Received"
 msgid "Received (Server → Client)"
 msgstr "Received (Server → Client)"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:225
-#: src/pages/log-viewer/ui/logs-page.tsx:241
+#: src/pages/log-viewer/ui/logs-page.tsx:252
+#: src/pages/log-viewer/ui/logs-page.tsx:277
 #: src/pages/settings/ui/components/certificate-settings.tsx:402
 msgid "Refresh"
 msgstr "Refresh"
@@ -1598,8 +1611,8 @@ msgid "Rule updated"
 msgstr "Rule updated"
 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:103
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:86
-#: src/pages/map-rules/ui/map-rules-page.tsx:75
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:75
+#: src/pages/map-rules/ui/map-rules-page.tsx:66
 msgid "rules"
 msgstr "rules"
 
@@ -1668,7 +1681,7 @@ msgstr "Script unloaded"
 msgid "Security"
 msgstr "Security"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:354
+#: src/pages/log-viewer/ui/logs-page.tsx:390
 msgid "Select a log file to view its contents"
 msgstr "Select a log file to view its contents"
 
@@ -1822,7 +1835,7 @@ msgstr "Simulate slow network conditions for testing"
 msgid "Size"
 msgstr "Size"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:115
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:86
 msgid "Source Host"
 msgstr "Source Host"
 
@@ -1830,7 +1843,7 @@ msgstr "Source Host"
 msgid "Source host and target host are required"
 msgstr "Source host and target host are required"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:125
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:96
 msgid "Source Port"
 msgstr "Source Port"
 
@@ -1855,8 +1868,8 @@ msgstr "Start Replay"
 msgid "Starts background server connection immediately after ClientHello detection"
 msgstr "Starts background server connection immediately after ClientHello detection"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:158
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:163
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:115
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:120
 #: src/shared/app-sidebar/ui/sidebar-status.tsx:39
 msgid "Status"
 msgstr "Status"
@@ -1896,11 +1909,11 @@ msgstr "Tap \"Install a certificate\" → \"CA certificate\""
 msgid "Target"
 msgstr "Target"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:141
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:112
 msgid "Target Host"
 msgstr "Target Host"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:151
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:122
 msgid "Target Port"
 msgstr "Target Port"
 
@@ -1933,7 +1946,7 @@ msgstr "Throughput"
 msgid "Time"
 msgstr "Time"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:278
+#: src/pages/log-viewer/ui/logs-page.tsx:314
 msgid "TLS Passthrough"
 msgstr "TLS Passthrough"
 
@@ -2083,7 +2096,7 @@ msgstr "Value"
 msgid "Version"
 msgstr "Version"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:217
+#: src/pages/log-viewer/ui/logs-page.tsx:244
 msgid "View and manage application log files"
 msgstr "View and manage application log files"
 
@@ -2112,7 +2125,7 @@ msgstr "WebSocket Replay"
 msgid "Whitelist (Include)"
 msgstr "Whitelist (Include)"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:230
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:190
 msgid "Wildcard"
 msgstr "Wildcard"
 
