@@ -13,7 +13,7 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
-#: src/pages/map-rules/ui/map-rules-page.tsx:157
+#: src/pages/map-rules/ui/map-rules-page.tsx:117
 msgid " (preserve path)"
 msgstr " (경로 유지)"
 
@@ -86,7 +86,7 @@ msgstr "활성 커스텀 CA"
 #: src/features/map-rule-form/ui/map-local-fields.tsx:73
 #: src/features/transaction-details/ui/replay-dialog.tsx:427
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:134
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:169
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:140
 #: src/pages/server-replay/ui/server-replay-page.tsx:170
 #: src/pages/settings/ui/settings-page.tsx:1462
 msgid "Add"
@@ -122,11 +122,11 @@ msgstr "인터셉트 규칙 추가"
 msgid "Add Map Rule"
 msgstr "맵 규칙 추가"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:103
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:162
 msgid "Add Mapping"
 msgstr "매핑 추가"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:185
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:157
 msgid "Add mappings to redirect DNS hostnames to different target hosts for testing."
 msgstr "테스트를 위해 DNS 호스트명을 다른 대상 호스트로 리디렉션하는 매핑을 추가하세요."
 
@@ -134,26 +134,26 @@ msgstr "테스트를 위해 DNS 호스트명을 다른 대상 호스트로 리�
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:477
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:258
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:113
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:96
-#: src/pages/map-rules/ui/map-rules-page.tsx:85
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:81
+#: src/pages/map-rules/ui/map-rules-page.tsx:72
 msgid "Add Rule"
 msgstr "규칙 추가"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:109
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:78
 msgid "Add rules to intercept, block, or modify HTTP requests and responses."
 msgstr "HTTP 요청과 응답을 가로채거나, 차단하거나, 수정하는 규칙을 추가하세요."
 
-#: src/pages/map-rules/ui/map-rules-page.tsx:98
+#: src/pages/map-rules/ui/map-rules-page.tsx:69
 msgid "Add rules to map URLs to local files or redirect to other servers."
 msgstr "URL을 로컬 파일에 매핑하거나 다른 서버로 리다이렉트하는 규칙을 추가하세요."
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:191
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:161
 msgid "Add your first mapping"
 msgstr "첫 번째 매핑 추가"
 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:172
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:115
-#: src/pages/map-rules/ui/map-rules-page.tsx:104
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:80
+#: src/pages/map-rules/ui/map-rules-page.tsx:71
 msgid "Add your first rule"
 msgstr "첫 번째 규칙 추가"
 
@@ -323,8 +323,7 @@ msgstr "CA 키 파일"
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:474
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:255
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:137
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:166
-#: src/pages/log-viewer/ui/logs-page.tsx:469
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:137
 #: src/pages/settings/ui/settings-page.tsx:885
 msgid "Cancel"
 msgstr "취소"
@@ -377,7 +376,7 @@ msgstr "Cheolsu Proxy 로고"
 msgid "Claude Code (CLI)"
 msgstr "Claude Code (CLI)"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:256
+#: src/pages/log-viewer/ui/logs-page.tsx:229
 #: src/pages/script/ui/script-page.tsx:298
 #: src/pages/settings/ui/settings-page.tsx:1308
 msgid "Clear"
@@ -388,11 +387,9 @@ msgid "Clear all"
 msgstr "전체 삭제"
 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:108
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:98
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:91
-#: src/pages/log-viewer/ui/logs-page.tsx:286
-#: src/pages/map-rules/ui/map-rules-page.tsx:80
+#: src/pages/log-viewer/ui/logs-page.tsx:250
 #: src/pages/server-replay/ui/server-replay-page.tsx:105
+#: src/shared/ui/rule-list-page.tsx:69
 msgid "Clear All"
 msgstr "전체 삭제"
 
@@ -515,7 +512,7 @@ msgstr "cURL"
 msgid "Curl command copied to clipboard"
 msgstr "Curl 명령어가 클립보드에 복사되었습니다"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:178
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:136
 msgid "Custom body"
 msgstr "커스텀 본문"
 
@@ -535,27 +532,13 @@ msgstr "데이터"
 msgid "Delay between requests (ms)"
 msgstr "요청 간 딜레이 (ms)"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:265
-#: src/pages/log-viewer/ui/logs-page.tsx:473
-msgid "Delete"
-msgstr "삭제"
-
-#. placeholder {0}: selectedFile?.name
-#: src/pages/log-viewer/ui/logs-page.tsx:463
-msgid "Delete \"{0}\"? This action cannot be undone."
-msgstr "\"{0}\"을(를) 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
-
-#: src/pages/log-viewer/ui/logs-page.tsx:460
-msgid "Delete Log File"
-msgstr "로그 파일 삭제"
-
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:241
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:209
 msgid "Delete mapping"
 msgstr "매핑 삭제"
 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:210
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:202
-#: src/pages/map-rules/ui/map-rules-page.tsx:176
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:160
+#: src/pages/map-rules/ui/map-rules-page.tsx:136
 msgid "Delete rule"
 msgstr "규칙 삭제"
 
@@ -573,7 +556,7 @@ msgstr "방향"
 msgid "Direction"
 msgstr "방향"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:226
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:194
 #: src/pages/server-replay/ui/server-replay-page.tsx:96
 msgid "Disabled"
 msgstr "비활성"
@@ -587,7 +570,7 @@ msgstr "연결 끊김"
 msgid "Display CONNECT tunnel requests in the network list"
 msgstr "CONNECT 터널 요청을 네트워크 목록에 표시합니다"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:419
+#: src/pages/log-viewer/ui/logs-page.tsx:383
 msgid "Domain"
 msgstr "도메인"
 
@@ -599,7 +582,7 @@ msgstr "도메인별 인증서"
 msgid "Domains in this list will NOT be intercepted (pass-through). OAuth domains like accounts.google.com are always excluded by default."
 msgstr "이 목록에 있는 도메인은 인터셉트되지 않습니다(패스스루). accounts.google.com 같은 OAuth 도메인은 기본적으로 항상 제외됩니다."
 
-#: src/pages/log-viewer/ui/logs-page.tsx:403
+#: src/pages/log-viewer/ui/logs-page.tsx:367
 msgid "Domains that failed TLS handshake are automatically tunneled without MITM decryption. You can remove entries to retry MITM for specific domains."
 msgstr "TLS 핸드셰이크에 실패한 도메인은 MITM 복호화 없이 자동으로 터널링됩니다. 항목을 삭제하면 해당 도메인에 대해 MITM을 다시 시도합니다."
 
@@ -620,8 +603,8 @@ msgstr "드롭"
 msgid "Edit Map Rule"
 msgstr "맵 규칙 수정"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:194
-#: src/pages/map-rules/ui/map-rules-page.tsx:168
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:152
+#: src/pages/map-rules/ui/map-rules-page.tsx:128
 msgid "Edit rule"
 msgstr "규칙 수정"
 
@@ -637,7 +620,7 @@ msgstr "에디터"
 msgid "Enable full trust for the Cheolsu Proxy CA certificate"
 msgstr "Cheolsu Proxy CA 인증서에 대한 완전 신뢰를 활성화하세요"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:226
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:194
 #: src/pages/server-replay/ui/server-replay-page.tsx:96
 msgid "Enabled"
 msgstr "활성"
@@ -696,7 +679,7 @@ msgstr "파일 읽기 실패: {0}"
 msgid "Failed to send"
 msgstr "전송 실패"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:422
+#: src/pages/log-viewer/ui/logs-page.tsx:386
 msgid "Failures"
 msgstr "실패 횟수"
 
@@ -704,7 +687,7 @@ msgstr "실패 횟수"
 msgid "File"
 msgstr "파일"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:367
+#: src/pages/log-viewer/ui/logs-page.tsx:331
 msgid "Filter log lines..."
 msgstr "로그 라인 필터..."
 
@@ -774,7 +757,7 @@ msgstr "헤더 이름"
 msgid "Header name to remove"
 msgstr "삭제할 헤더 이름"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:171
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:129
 #: src/pages/server-replay/ui/server-replay-page.tsx:225
 msgid "headers"
 msgstr "헤더"
@@ -790,7 +773,7 @@ msgstr "헤더 ({0})"
 msgid "Host"
 msgstr "호스트"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:85
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:150
 #: src/shared/app-sidebar/model/consts.ts:65
 msgid "Host Mapping"
 msgstr "호스트 매핑"
@@ -874,7 +857,7 @@ msgstr "설치됨"
 msgid "Installing..."
 msgstr "설치 중..."
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:78
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:73
 #: src/shared/app-sidebar/model/consts.ts:37
 msgid "Intercept Rules"
 msgstr "인터셉트 규칙"
@@ -915,7 +898,7 @@ msgstr "지연 (ms)"
 msgid "Light"
 msgstr "라이트"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:374
+#: src/pages/log-viewer/ui/logs-page.tsx:338
 msgid "lines"
 msgstr "줄"
 
@@ -957,8 +940,8 @@ msgstr "로컬 파일 경로"
 msgid "localhost, 127.0.0.1, *.internal.com"
 msgstr "localhost, 127.0.0.1, *.internal.com"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:303
-#: src/pages/log-viewer/ui/logs-page.tsx:330
+#: src/pages/log-viewer/ui/logs-page.tsx:267
+#: src/pages/log-viewer/ui/logs-page.tsx:294
 msgid "Log Files"
 msgstr "로그 파일"
 
@@ -966,7 +949,7 @@ msgstr "로그 파일"
 msgid "Logical OR:"
 msgstr "논리 OR:"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:241
+#: src/pages/log-viewer/ui/logs-page.tsx:214
 #: src/shared/app-sidebar/model/consts.ts:86
 msgid "Logs"
 msgstr "로그"
@@ -975,11 +958,11 @@ msgstr "로그"
 msgid "Manage request/response intercept rules"
 msgstr "요청/응답 인터셉트 규칙 관리"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:81
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:74
 msgid "Manage wildcard-based request/response intercept rules"
 msgstr "와일드카드 기반 요청/응답 인터셉트 규칙 관리"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:88
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:152
 msgid "Map DNS hostnames to different target hosts for testing and development"
 msgstr "테스트 및 개발을 위해 DNS 호스트명을 다른 대상 호스트로 매핑"
 
@@ -1002,7 +985,7 @@ msgstr "로컬 매핑 / 원격 매핑 규칙"
 msgid "Map Local: respond with a local file. Map Remote: redirect to another URL."
 msgstr "로컬 매핑: 로컬 파일로 응답. 원격 매핑: 다른 URL로 리다이렉트."
 
-#: src/pages/map-rules/ui/map-rules-page.tsx:68
+#: src/pages/map-rules/ui/map-rules-page.tsx:62
 msgid "Map Local: respond with local files. Map Remote: redirect requests to another URL."
 msgstr "로컬 매핑: 로컬 파일로 응답. 원격 매핑: 요청을 다른 URL로 리다이렉트."
 
@@ -1013,12 +996,12 @@ msgstr "로컬 매핑: 로컬 파일로 응답. 원격 매핑: 요청을 다른 
 msgid "Map Remote"
 msgstr "원격 매핑"
 
-#: src/pages/map-rules/ui/map-rules-page.tsx:65
+#: src/pages/map-rules/ui/map-rules-page.tsx:60
 #: src/shared/app-sidebar/model/consts.ts:44
 msgid "Map Rules"
 msgstr "맵 규칙"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:93
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:154
 msgid "mappings"
 msgstr "매핑"
 
@@ -1131,19 +1114,19 @@ msgstr "콘솔 출력이 아직 없습니다"
 msgid "No Gzip"
 msgstr "Gzip 비활성화"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:182
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:155
 msgid "No host mappings"
 msgstr "호스트 매핑 없음"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:106
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:76
 msgid "No intercept rules"
 msgstr "인터셉트 규칙 없음"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:335
+#: src/pages/log-viewer/ui/logs-page.tsx:299
 msgid "No log files found"
 msgstr "로그 파일을 찾을 수 없습니다"
 
-#: src/pages/map-rules/ui/map-rules-page.tsx:95
+#: src/pages/map-rules/ui/map-rules-page.tsx:67
 msgid "No map rules"
 msgstr "맵 규칙 없음"
 
@@ -1159,7 +1142,7 @@ msgstr "단계가 선택되지 않음"
 msgid "No replay entries"
 msgstr "리플레이 엔트리 없음"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:411
+#: src/pages/log-viewer/ui/logs-page.tsx:375
 msgid "No TLS passthrough entries"
 msgstr "TLS Passthrough 항목이 없습니다"
 
@@ -1211,7 +1194,7 @@ msgstr "Safari에서 <0>{CERT_DOWNLOAD_URL}</0>을 여세요"
 msgid "Open <0>{CERT_DOWNLOAD_URL}</0> in your device browser"
 msgstr "기기 브라우저에서 <0>{CERT_DOWNLOAD_URL}</0>을 여세요"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:269
+#: src/pages/log-viewer/ui/logs-page.tsx:233
 msgid "Open Directory"
 msgstr "디렉토리 열기"
 
@@ -1223,8 +1206,8 @@ msgstr "파일 열기"
 msgid "Open this URL in your mobile browser after setting the Wi-Fi proxy. The page automatically detects your device and provides the correct certificate format."
 msgstr "Wi-Fi 프록시를 설정한 후 모바일 브라우저에서 이 URL을 여세요. 페이지가 자동으로 기기를 감지하고 올바른 인증서 형식을 제공합니다."
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:127
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:153
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:98
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:124
 msgid "optional"
 msgstr "선택사항"
 
@@ -1377,8 +1360,8 @@ msgstr "수신"
 msgid "Received (Server → Client)"
 msgstr "수신 (서버 → 클라이언트)"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:252
-#: src/pages/log-viewer/ui/logs-page.tsx:277
+#: src/pages/log-viewer/ui/logs-page.tsx:225
+#: src/pages/log-viewer/ui/logs-page.tsx:241
 #: src/pages/settings/ui/components/certificate-settings.tsx:402
 msgid "Refresh"
 msgstr "새로고침"
@@ -1613,8 +1596,8 @@ msgid "Rule updated"
 msgstr "규칙이 수정되었습니다"
 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:103
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:86
-#: src/pages/map-rules/ui/map-rules-page.tsx:75
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:75
+#: src/pages/map-rules/ui/map-rules-page.tsx:66
 msgid "rules"
 msgstr "규칙"
 
@@ -1683,7 +1666,7 @@ msgstr "스크립트가 언로드되었습니다"
 msgid "Security"
 msgstr "보안"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:390
+#: src/pages/log-viewer/ui/logs-page.tsx:354
 msgid "Select a log file to view its contents"
 msgstr "로그 파일을 선택하여 내용을 확인하세요"
 
@@ -1837,7 +1820,7 @@ msgstr "테스트를 위한 저속 네트워크 환경 시뮬레이션"
 msgid "Size"
 msgstr "크기"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:115
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:86
 msgid "Source Host"
 msgstr "소스 호스트"
 
@@ -1845,7 +1828,7 @@ msgstr "소스 호스트"
 msgid "Source host and target host are required"
 msgstr "소스 호스트와 대상 호스트는 필수입니다"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:125
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:96
 msgid "Source Port"
 msgstr "소스 포트"
 
@@ -1870,8 +1853,8 @@ msgstr "리플레이 시작"
 msgid "Starts background server connection immediately after ClientHello detection"
 msgstr "ClientHello 감지 직후 백그라운드에서 서버 연결을 시작합니다"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:158
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:163
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:117
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:122
 #: src/shared/app-sidebar/ui/sidebar-status.tsx:39
 msgid "Status"
 msgstr "상태"
@@ -1911,11 +1894,11 @@ msgstr "\"Install a certificate\" → \"CA certificate\"를 탭하세요"
 msgid "Target"
 msgstr "대상"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:141
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:112
 msgid "Target Host"
 msgstr "대상 호스트"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:151
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:122
 msgid "Target Port"
 msgstr "대상 포트"
 
@@ -1948,7 +1931,7 @@ msgstr "처리량"
 msgid "Time"
 msgstr "시간"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:314
+#: src/pages/log-viewer/ui/logs-page.tsx:278
 msgid "TLS Passthrough"
 msgstr "TLS Passthrough"
 
@@ -2098,7 +2081,7 @@ msgstr "값"
 msgid "Version"
 msgstr "버전"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:244
+#: src/pages/log-viewer/ui/logs-page.tsx:217
 msgid "View and manage application log files"
 msgstr "애플리케이션 로그 파일 조회 및 관리"
 
@@ -2127,7 +2110,7 @@ msgstr "WebSocket 리플레이"
 msgid "Whitelist (Include)"
 msgstr "화이트리스트 (포함)"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:230
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:198
 msgid "Wildcard"
 msgstr "와일드카드"
 
