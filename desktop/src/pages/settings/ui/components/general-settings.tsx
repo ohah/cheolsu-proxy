@@ -30,6 +30,8 @@ export function GeneralSettings() {
   const setBlockCookies = useAppSettingsStore((s) => s.setQuickSettingsBlockCookies);
   const noGzip = useAppSettingsStore((s) => s.quickSettingsNoGzip);
   const setNoGzip = useAppSettingsStore((s) => s.setQuickSettingsNoGzip);
+  const showConnectRequests = useAppSettingsStore((s) => s.showConnectRequests);
+  const setShowConnectRequests = useAppSettingsStore((s) => s.setShowConnectRequests);
 
   const handleLocaleChange = useCallback(
     async (newLocale: string | null) => {
@@ -217,6 +219,20 @@ export function GeneralSettings() {
               </p>
             </div>
             <Switch checked={autosaveEnabled} onCheckedChange={handleAutosaveChange} />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div>
+              <label className="text-sm font-medium">
+                <Trans>Show CONNECT Requests</Trans>
+              </label>
+              <p className="text-xs text-muted-foreground">
+                <Trans>
+                  Display CONNECT tunnel requests in the network list
+                </Trans>
+              </p>
+            </div>
+            <Switch checked={showConnectRequests} onCheckedChange={setShowConnectRequests} />
           </div>
         </div>
       </div>

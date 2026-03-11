@@ -1156,6 +1156,9 @@ impl HttpHandler for LoggingHandler {
         let (proxied_request, restored_req) = self.request_to_proxied_request(req).await;
 
         if restored_req.method() == Method::CONNECT || proxied_request.method() == "CONNECT" {
+            // CONNECT 터널 요청을 UI에서 볼 수 있도록 로깅
+            self.request.req = Some(proxied_request.clone());
+            self.send_output().await;
             return restored_req.into();
         }
 
