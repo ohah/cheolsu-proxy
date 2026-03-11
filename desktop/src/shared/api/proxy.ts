@@ -389,10 +389,7 @@ export async function updateRequestClientCert(
 
 // ─── Custom CA Certificate ───────────────────────────────
 
-export async function importCustomCa(
-  certPath: string,
-  keyPath: string,
-): Promise<CertificateInfo> {
+export async function importCustomCa(certPath: string, keyPath: string): Promise<CertificateInfo> {
   return invoke("import_custom_ca", { certPath, keyPath });
 }
 
