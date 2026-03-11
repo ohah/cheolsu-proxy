@@ -12,7 +12,8 @@ use crossterm::{
 use proxy_daemon::{
     diff_headers, diff_json, diff_text, format_diff_text, BodyDiff, BreakpointAction,
     BreakpointData, BreakpointPhase, BreakpointRule, ClientCommand, DaemonConnection,
-    DaemonMessage, HostMapping, InterceptRule, SslProxyingEntry, TrafficDiff, TransactionPartDiff,
+    DaemonMessage, HostMapping, InterceptRule, SslProxyingEntry, SslProxyingMode, TrafficDiff,
+    TransactionPartDiff,
 };
 use proxy_v2_models::{RequestInfo, WsConnectionEvent, WsMessageInfo};
 use ratatui::prelude::*;
@@ -157,7 +158,8 @@ pub struct App {
     pub host_mapping_form: Option<HostMappingForm>,
     pub host_mapping_table_state: TableState,
 
-    // SSL Proxying whitelist
+    // SSL Proxying
+    pub ssl_proxying_mode: SslProxyingMode,
     pub ssl_proxying_entries: Vec<SslProxyingEntry>,
     pub selected_ssl_proxying: Option<usize>,
     pub ssl_proxying_add_form: Option<SslProxyingAddForm>,
@@ -243,6 +245,7 @@ impl App {
             selected_host_mapping: None,
             host_mapping_form: None,
             host_mapping_table_state: TableState::default(),
+            ssl_proxying_mode: SslProxyingMode::default(),
             ssl_proxying_entries: Vec::new(),
             selected_ssl_proxying: None,
             ssl_proxying_add_form: None,
@@ -516,7 +519,8 @@ impl App {
                     self.set_status(&format!("Script error: {}", e));
                 }
             }
-            DaemonMessage::SslProxyingListUpdated { entries } => {
+            DaemonMessage::SslProxyingListUpdated { mode, entries } => {
+                self.ssl_proxying_mode = mode;
                 self.ssl_proxying_entries = entries;
             }
             DaemonMessage::ClientCertificateUpdated { config } => {
@@ -1015,11 +1019,15 @@ impl App {
     async fn send_ssl_proxying_update(&mut self) {
         if let Some(conn) = &self.conn {
             let cmd = ClientCommand::UpdateSslProxyingList {
+                mode: self.ssl_proxying_mode.clone(),
                 entries: self.ssl_proxying_entries.clone(),
             };
             let _ = conn.send_command(&cmd).await;
             let count = self.ssl_proxying_entries.len();
-            self.set_status(&format!("SSL Proxying whitelist: {} entries", count));
+            self.set_status(&format!(
+                "SSL Proxying ({:?}): {} entries",
+                self.ssl_proxying_mode, count
+            ));
         }
     }
 

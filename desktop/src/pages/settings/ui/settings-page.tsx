@@ -1348,7 +1348,9 @@ function RequestClientCertSection() {
 // --- SSL Proxying (auto-save via store, not form) ---
 function SslProxyingSection() {
   const { t } = useLingui();
+  const mode = useSslProxyingStore((s) => s.mode);
   const entries = useSslProxyingStore((s) => s.entries);
+  const setMode = useSslProxyingStore((s) => s.setMode);
   const addEntry = useSslProxyingStore((s) => s.addEntry);
   const removeEntry = useSslProxyingStore((s) => s.removeEntry);
   const toggleEntry = useSslProxyingStore((s) => s.toggleEntry);
@@ -1380,7 +1382,19 @@ function SslProxyingSection() {
           <Trans>SSL Proxying</Trans>
         </h2>
         <p className="text-sm text-muted-foreground">
-          {enabledCount === 0 ? (
+          {mode === "blacklist" ? (
+            enabledCount === 0 ? (
+              <Trans>
+                All HTTPS traffic is intercepted. OAuth domains (accounts.google.com, etc.) are
+                automatically excluded.
+              </Trans>
+            ) : (
+              <Trans>
+                All HTTPS traffic is intercepted except {enabledCount} excluded domain(s) and
+                built-in OAuth domains.
+              </Trans>
+            )
+          ) : enabledCount === 0 ? (
             <Trans>All HTTPS traffic is being intercepted (no whitelist configured)</Trans>
           ) : (
             <Trans>
@@ -1388,6 +1402,24 @@ function SslProxyingSection() {
             </Trans>
           )}
         </p>
+      </div>
+      <div className="flex items-center gap-3">
+        <span className="text-sm font-medium whitespace-nowrap">
+          <Trans>Mode</Trans>
+        </span>
+        <Select value={mode} onValueChange={(v) => setMode(v as "blacklist" | "whitelist")}>
+          <SelectTrigger className="w-48">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="blacklist">
+              <Trans>Blacklist (Exclude)</Trans>
+            </SelectItem>
+            <SelectItem value="whitelist">
+              <Trans>Whitelist (Include)</Trans>
+            </SelectItem>
+          </SelectContent>
+        </Select>
       </div>
       <div className="flex items-center gap-2">
         <Input
@@ -1402,10 +1434,17 @@ function SslProxyingSection() {
         </Button>
       </div>
       <p className="text-xs text-muted-foreground">
-        <Trans>
-          Supports exact domains (example.com), wildcards (*.example.com), and port-specific
-          patterns (example.com:443). When the list is empty, all domains are intercepted.
-        </Trans>
+        {mode === "blacklist" ? (
+          <Trans>
+            Domains in this list will NOT be intercepted (pass-through). OAuth domains like
+            accounts.google.com are always excluded by default.
+          </Trans>
+        ) : (
+          <Trans>
+            Only domains in this list will be intercepted. When the list is empty, all domains are
+            intercepted.
+          </Trans>
+        )}
       </p>
       {entries.length > 0 && (
         <div className="border rounded-lg divide-y">

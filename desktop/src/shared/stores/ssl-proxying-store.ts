@@ -1,16 +1,18 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { SslProxyingEntry } from "@/shared/api/proxy";
+import type { SslProxyingEntry, SslProxyingMode } from "@/shared/api/proxy";
 import { updateSslProxyingList } from "@/shared/api/proxy";
 
 interface SslProxyingStoreState {
+  mode: SslProxyingMode;
   entries: SslProxyingEntry[];
+  setMode: (mode: SslProxyingMode) => void;
   addEntry: (entry: SslProxyingEntry) => void;
   removeEntry: (pattern: string) => void;
   toggleEntry: (pattern: string) => void;
-  /** 데몬 이벤트(ssl_proxying_list_updated)로 수신한 엔트리를 반영할 때 사용.
+  /** 데몬 이벤트(ssl_proxying_list_updated)로 수신한 상태를 반영할 때 사용.
    *  데몬에서 이미 반영된 상태이므로 syncToProxy를 호출하지 않는다. */
-  setEntries: (entries: SslProxyingEntry[]) => void;
+  setFromDaemon: (mode: SslProxyingMode, entries: SslProxyingEntry[]) => void;
   clearEntries: () => void;
   syncToProxy: () => void;
 }
@@ -29,7 +31,13 @@ function debouncedSync(fn: () => Promise<void>) {
 export const useSslProxyingStore = create<SslProxyingStoreState>()(
   persist(
     (set, get) => ({
+      mode: "blacklist" as SslProxyingMode,
       entries: [],
+
+      setMode: (mode: SslProxyingMode) => {
+        set({ mode });
+        get().syncToProxy();
+      },
 
       addEntry: (entry: SslProxyingEntry) => {
         set((state) => ({ entries: [...state.entries, entry] }));
@@ -52,9 +60,9 @@ export const useSslProxyingStore = create<SslProxyingStoreState>()(
         get().syncToProxy();
       },
 
-      /** 데몬 이벤트로 수신한 엔트리 반영 전용 -- syncToProxy 호출 안 함 */
-      setEntries: (entries: SslProxyingEntry[]) => {
-        set({ entries });
+      /** 데몬 이벤트로 수신한 상태 반영 전용 -- syncToProxy 호출 안 함 */
+      setFromDaemon: (mode: SslProxyingMode, entries: SslProxyingEntry[]) => {
+        set({ mode, entries });
       },
 
       clearEntries: () => {
@@ -65,8 +73,8 @@ export const useSslProxyingStore = create<SslProxyingStoreState>()(
       syncToProxy: () => {
         debouncedSync(async () => {
           try {
-            const { entries } = get();
-            await updateSslProxyingList(entries);
+            const { mode, entries } = get();
+            await updateSslProxyingList(mode, entries);
           } catch (error) {
             console.error("Failed to sync SSL proxying list:", error);
           }
