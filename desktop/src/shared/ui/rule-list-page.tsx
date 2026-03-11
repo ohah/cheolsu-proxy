@@ -21,7 +21,7 @@ export interface RuleListPageProps<T> {
   /** List of items */
   items: T[];
   /** Get unique key for each item */
-  getItemKey: (item: T) => string;
+  getItemKey: (item: T) => string | number;
   /** Called when "Add" button is clicked */
   onAdd: () => void;
   /** Called when "Clear All" button is clicked */
@@ -30,8 +30,8 @@ export interface RuleListPageProps<T> {
   renderItem: (item: T) => ReactNode;
   /** Optional content inserted between header and list (e.g., inline form) */
   headerExtra?: ReactNode;
-  /** Optional content rendered after the list (e.g., dialogs) */
-  footer?: ReactNode;
+  /** Optional content rendered after the list (e.g., dialogs/modals) */
+  dialogs?: ReactNode;
 }
 
 export function RuleListPage<T>({
@@ -48,7 +48,7 @@ export function RuleListPage<T>({
   onClearAll,
   renderItem,
   headerExtra,
-  footer,
+  dialogs,
 }: RuleListPageProps<T>) {
   return (
     <>
@@ -82,7 +82,7 @@ export function RuleListPage<T>({
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <div className="text-center space-y-2">
-                  <h3 className="text-lg font-semibold">{emptyTitle}</h3>
+                  <h2 className="text-lg font-semibold">{emptyTitle}</h2>
                   <p className="text-muted-foreground">{emptyDescription}</p>
                   <Button className="mt-4" onClick={onAdd}>
                     <Plus className="w-4 h-4 mr-1" />
@@ -103,7 +103,7 @@ export function RuleListPage<T>({
         </div>
       </div>
 
-      {footer}
+      {dialogs}
     </>
   );
 }

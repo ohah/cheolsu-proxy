@@ -87,9 +87,7 @@ export const MapRulesPage = () => {
               className={`flex-1 min-w-0 transition-opacity ${!rule.enabled ? "opacity-50" : ""}`}
             >
               <div className="flex items-center gap-2 mb-1">
-                <span className="font-medium text-sm truncate">
-                  {rule.name || rule.pattern}
-                </span>
+                <span className="font-medium text-sm truncate">{rule.name || rule.pattern}</span>
                 {rule.name && (
                   <code className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded truncate max-w-[300px]">
                     {rule.pattern}
@@ -114,7 +112,8 @@ export const MapRulesPage = () => {
                 {rule.action.type === "map_remote" && (
                   <span className="text-xs text-muted-foreground truncate max-w-[300px]">
                     → {(rule.action as { target_url: string }).target_url}
-                    {(rule.action as { preserve_path: boolean }).preserve_path && t` (preserve path)`}
+                    {(rule.action as { preserve_path: boolean }).preserve_path &&
+                      t` (preserve path)`}
                   </span>
                 )}
               </div>
@@ -142,7 +141,7 @@ export const MapRulesPage = () => {
           </div>
         );
       }}
-      footer={
+      dialogs={
         <MapRuleFormDialog
           open={dialogOpen}
           onOpenChange={setDialogOpen}

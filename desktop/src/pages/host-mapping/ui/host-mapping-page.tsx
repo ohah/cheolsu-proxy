@@ -154,9 +154,7 @@ export const HostMappingPage = () => {
       badgeLabel={<Trans>mappings</Trans>}
       emptyTitle={<Trans>No host mappings</Trans>}
       emptyDescription={
-        <Trans>
-          Add mappings to redirect DNS hostnames to different target hosts for testing.
-        </Trans>
+        <Trans>Add mappings to redirect DNS hostnames to different target hosts for testing.</Trans>
       }
       emptyAddLabel={<Trans>Add your first mapping</Trans>}
       addLabel={<Trans>Add Mapping</Trans>}
@@ -169,10 +167,7 @@ export const HostMappingPage = () => {
         const { src, tgt } = formatMapping(mapping);
         return (
           <div className="flex items-center gap-4">
-            <Switch
-              checked={mapping.enabled}
-              onCheckedChange={() => toggleMapping(mapping.id)}
-            />
+            <Switch checked={mapping.enabled} onCheckedChange={() => toggleMapping(mapping.id)} />
 
             <div
               className={`flex-1 min-w-0 transition-opacity ${!mapping.enabled ? "opacity-50" : ""}`}
@@ -187,10 +182,7 @@ export const HostMappingPage = () => {
                 </code>
               </div>
               <div className="flex items-center gap-2">
-                <Badge
-                  variant={mapping.enabled ? "default" : "secondary"}
-                  className="text-xs"
-                >
+                <Badge variant={mapping.enabled ? "default" : "secondary"} className="text-xs">
                   {mapping.enabled ? <Trans>Enabled</Trans> : <Trans>Disabled</Trans>}
                 </Badge>
                 {mapping.source_host.includes("*") && (
