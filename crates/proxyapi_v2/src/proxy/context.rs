@@ -1,4 +1,5 @@
 use crate::throttle::ThrottleConfig;
+use crate::tls_event::TlsEventSender;
 use crate::tls_passthrough::TlsPassthrough;
 use crate::upstream_proxy::UpstreamProxyConfig;
 use crate::websocket_registry::WebSocketRegistry;
@@ -20,6 +21,8 @@ pub struct ProxyContext {
     pub throttle_rx: Option<Arc<watch::Receiver<Option<ThrottleConfig>>>>,
     /// 동시 연결 수를 제한하는 세마포어 (None이면 제한 없음)
     pub connection_semaphore: Option<Arc<Semaphore>>,
+    /// TLS 이벤트 채널 (None이면 이벤트 미발송)
+    pub tls_event_sender: Option<TlsEventSender>,
 }
 
 impl ProxyContext {

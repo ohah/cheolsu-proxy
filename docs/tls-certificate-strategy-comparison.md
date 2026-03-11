@@ -159,7 +159,297 @@ mitmproxy는 7개의 TLS 이벤트 훅을 제공:
 
 ---
 
-## 5. 참고 자료
+## 5. 미구현 기능 상세 분석 및 구현 계획
+
+> 작성일: 2026-03-11
+
+### 5.1 난이도 및 일정 요약
+
+| 기능 | 난이도 | 예상 일수 | 리스크 | 주요 수정 파일 |
+| --- | --- | --- | --- | --- |
+| 인증서 생성 세부 사항 | 낮음 | 1-2일 | 낮음 | `generator.rs`, `rcgen_authority.rs`, `openssl_authority.rs` | **✅ 완료** |
+| TLS 이벤트 훅 (7개) | 중~상 | 4-5일 | 중~상 | 신규 `tls_event.rs`, `hybrid_tls_handler.rs`, `internal.rs`, `context.rs` | **✅ 완료** |
+| TLS 버전/암호화 세분화 | 중간 | 3-4일 | 중간 | 신규 `tls_config.rs`, `rcgen_authority.rs`, `openssl_authority.rs` | 미구현 |
+| Eager/Lazy 연결 전략 | 중간 | 2-3일 | 중간 | `internal.rs`, `upstream_cert.rs`, `context.rs` | 미구현 |
+| **합계** | | **10-14일** | | | |
+
+### 5.2 권장 구현 순서
+
+한번에 4개를 동시 구현하면 영향 범위가 겹쳐(특히 `hybrid_tls_handler.rs`, `internal.rs`) 충돌과 테스트 복잡도가 급증하므로, **2라운드로 분할** 권장:
+
+- **라운드 1:** 인증서 생성 세부 사항 + TLS 이벤트 훅 — **✅ 완료**
+  - 이유: 인증서 세부 사항은 독립적이고 간단. 이벤트 훅은 인프라성 기능이라 먼저 깔아두면 나머지 기능의 디버깅/관찰이 쉬워짐
+- **라운드 2:** TLS 버전/암호화 세분화 + Eager/Lazy 연결 전략 — 미구현
+  - 이유: 훅 위에 설정 레이어를 추가하고, 가장 복잡한 연결 타이밍 변경은 마지막에 진행
+
+### 5.3 인증서 생성 세부 사항 — ✅ 구현 완료
+
+**구현 항목:**
+
+| 항목 | 이전 | mitmproxy | 변경 내용 | 상태 |
+| --- | --- | --- | --- | --- |
+| CA NOT_BEFORE | -60초 | -2일 (-172800초) | `mod.rs` NOT_BEFORE_OFFSET 변경 | ✅ |
+| 리프 NOT_BEFORE | -60초 | -2일 | 동일하게 변경 | ✅ |
+| CN 길이 제한 | 미적용 | 64자 미만 (RFC 준수) | `truncate_cn()` 헬퍼로 모든 CN 설정에 적용 | ✅ |
+| SAN critical 조건 | 항상 critical | subject 비어있을 때만 critical | OpenSSL: `name.entries().count() == 0` 조건부 설정 | ✅ |
+| Authority Key Identifier | 미포함 | 포함 | OpenSSL: `AuthorityKeyIdentifier` 확장 추가, rcgen: `signed_by()` 자동 생성 | ✅ |
+| Subject Key Identifier | 미포함 | 의도적 생략 (SChannel 호환) | 생략 유지 (mitmproxy와 동일) | ✅ |
+| 파일 권한 | rcgen만 적용 | `umask_secret()` (0o77) | OpenSSL CA 생성 시에도 키 파일 `0o600` 권한 설정 추가 | ✅ |
+
+**수정 파일:**
+- `crates/proxyapi_v2/src/certificate_authority/mod.rs` — NOT_BEFORE_OFFSET 상수 변경
+- `crates/proxyapi_v2/src/certificate_authority/rcgen_authority.rs` — AKI 추가, CN 길이 제한, SAN critical 조건
+- `crates/proxyapi_v2/src/certificate_authority/openssl_authority.rs` — AKI 추가, CN 길이 제한, SAN critical 조건
+- `crates/proxyapi_v2/src/certificate_authority/generator.rs` — CA 키 파일 권한 설정
+
+### 5.4 TLS 이벤트 훅 아키텍처 — ✅ 구현 완료
+
+mitmproxy의 7개 TLS 이벤트 훅에 대응하는 channel 기반 이벤트 시스템 구현:
+
+**훅 매핑:**
+
+| mitmproxy 훅 | cheolsu-proxy 대응 | 발생 시점 | 데이터 |
+| --- | --- | --- | --- |
+| `tls_clienthello` | `on_client_hello` | ClientHello 분석 후 | SNI, cipher suites, ALPN, extensions, complexity_score |
+| — | `on_strategy_selected` | 전략 결정 후 (cheolsu 고유) | TlsStrategy (Rustls/OpenSSL), 결정 사유 |
+| `tls_start_server` | `on_server_connection_starting` | 서버 TLS 협상 시작 전 | authority, connection_strategy |
+| `tls_start_client` | `on_fake_cert_generating` | 위조 인증서 생성 전 | authority, upstream_cert_info, cache 여부 |
+| `tls_established_server` | `on_upstream_cert_sniffed` | 상류 인증서 스니핑 후 | UpstreamCertInfo, 소요시간, 성공여부 |
+| `tls_established_client` | `on_handshake_completed` | 클라이언트 핸드셰이크 성공 | authority, TLS 버전, cipher, 소요시간 |
+| `tls_failed_client/server` | `on_handshake_failed` | 핸드셰이크 실패 | authority, 에러 정보, 방향(client/server) |
+
+**구현 방식:** channel 기반 (`tokio::sync::mpsc`)
+
+기존 `tunnel_event_sender` 패턴과 일관성을 유지하며, `try_send`로 non-blocking을 보장합니다.
+
+```rust
+// crates/proxyapi_v2/src/tls_event.rs
+pub enum TlsEvent {
+    ClientHelloAnalyzed { authority, tls_info },
+    StrategySelected { authority, strategy, tls_info },
+    ServerConnectionStarting { authority },
+    UpstreamCertSniffed { authority, cert_info },
+    FakeCertGenerating { authority, has_upstream_cert },
+    HandshakeCompleted { authority, strategy, duration },
+    HandshakeFailed { authority, strategy, error, duration },
+}
+
+pub type TlsEventSender = tokio::sync::mpsc::Sender<TlsEvent>;
+pub fn emit_tls_event(sender: &Option<TlsEventSender>, event: TlsEvent) { ... }
+```
+
+**이벤트 emit 위치:**
+- `hybrid_tls_handler.rs` — `analyze_tls_connection()` 후 → `ClientHelloAnalyzed`, 전략 결정 후 → `StrategySelected`, 핸드셰이크 성공/실패 → `HandshakeCompleted`/`HandshakeFailed`
+- `hybrid_tls_handler.rs` — `gen_server_config()`/`gen_openssl_context()` 호출 전 → `FakeCertGenerating`
+- `internal.rs` — `sniff_upstream_cert()` 호출 전/후 → `ServerConnectionStarting`, `UpstreamCertSniffed`
+
+**사용법:** `ProxyContext.tls_event_sender`에 `tls_event_channel(buffer)` 로 생성한 sender를 설정하면 이벤트를 수신할 수 있습니다. 현재는 인프라만 구축된 상태이며, 라운드 2에서 Eager/Lazy 전략 자동 조정 등에 활용 예정.
+
+### 5.5 TLS 버전/암호화 스위트 세분화
+
+클라이언트↔프록시, 프록시↔서버 방향별 독립 TLS 설정:
+
+**설정 구조:**
+
+```rust
+// 신규 파일: crates/proxyapi_v2/src/tls_config.rs (~400줄)
+
+pub struct DirectionalTlsConfig {
+    pub version_min: TlsVersion,       // 기본: TLS 1.2
+    pub version_max: TlsVersion,       // 기본: TLS 1.3
+    pub cipher_suites: Option<Vec<u16>>, // None이면 기본값 사용
+    pub ecdh_curves: Option<Vec<String>>,
+}
+
+pub struct TlsConfigRule {
+    pub domain_pattern: String,         // "*.apple.com", "api2.cursor.sh"
+    pub client_direction: DirectionalTlsConfig,  // 클라이언트 → 프록시
+    pub server_direction: DirectionalTlsConfig,  // 프록시 → 서버
+    pub priority: u32,
+}
+
+pub struct TlsConfigManager {
+    rules: Vec<TlsConfigRule>,         // 우선순위 정렬
+    default_client: DirectionalTlsConfig,
+    default_server: DirectionalTlsConfig,
+}
+```
+
+**현재 하드코딩된 부분:**
+- `rcgen_authority.rs:301-304` — TLS 1.2/1.3 고정
+- `rcgen_authority.rs:546` — OpenSSL cipher 문자열 `"@SECLEVEL=0:ALL:!aNULL:!eNULL"` 고정
+- `hybrid_tls_handler.rs:429-436` — Apple 서비스 전용 cipher 하드코딩
+
+**변경 포인트:**
+- `gen_server_config()` 호출 시 `TlsConfigManager`에서 도메인 매칭 → 방향별 설정 주입
+- OpenSSL `SslContext` 생성 시 cipher 문자열 동적 구성
+- Apple 서비스 특수 처리를 규칙 기반으로 전환 (하드코딩 → 설정)
+
+**제약사항:**
+- rustls는 `ServerConfig` 레벨에서만 cipher 선택 가능 (연결별 동적 변경 불가 → 도메인별 ServerConfig 캐시 필요)
+- 설정 변경 시 캐시 무효화 전략 필요
+
+### 5.6 Eager/Lazy 연결 전략
+
+**현재 동작:** Lazy — 서버 연결은 스니핑 시점 또는 HTTP 요청 처리 시점에 발생
+
+**구현 설계:**
+
+```rust
+pub enum ConnectionStrategy {
+    Lazy,                // 현재 동작: 필요 시 서버 연결
+    Eager,               // ClientHello 직후 서버 먼저 연결
+    EagerWithFallback,   // Eager 시도 → 실패 시 Lazy 폴백
+}
+```
+
+**Eager 흐름:**
+```
+[클라이언트] → ClientHello → [프록시]
+                                ├→ 백그라운드: 서버 TCP+TLS 연결 시작
+                                ├→ 상류 인증서 추출 (Eager 연결 재사용)
+                                ├→ 위조 인증서 생성
+                                └→ 클라이언트 TLS 핸드셰이크
+                              → HTTP 요청 시 기존 서버 연결 재사용
+```
+
+**수정 파일:**
+- `proxy/context.rs` — `ConnectionStrategy` 필드 추가
+- `proxy/builder.rs` — `with_connection_strategy()` 빌더 메서드 추가
+- `proxy/internal.rs` — `process_connect()` 에서 전략 분기, 백그라운드 서버 연결 스폰
+- `upstream_cert.rs` — Eager 연결에서 인증서 스니핑 재사용
+
+**핵심 과제:**
+- 연결 수명 관리 (idle timeout, 재연결)
+- Eager 연결 실패 시 에러 핸들링
+- 미사용 연결의 메모리 오버헤드
+- `sniff_upstream_cert()`와 Eager 연결 간 TCP 스트림 공유
+
+---
+
+## 6. 구현 단계 상세 (라운드 1)
+
+### Phase 1: 인증서 생성 세부 개선
+
+충돌 최소화를 위해 Feature 2(TLS 이벤트 훅)보다 먼저 완료한다.
+
+#### Step 1-1: NOT_BEFORE_OFFSET 변경 + truncate_cn 헬퍼 추가
+
+**파일**: `certificate_authority/mod.rs`
+
+- `NOT_BEFORE_OFFSET: i64 = 60` → `NOT_BEFORE_OFFSET: i64 = 172_800` (2일 = 172800초)
+- `truncate_cn(cn: &str) -> String` 헬퍼 함수 추가 (char 경계 존중: `cn.chars().take(64).collect()`)
+
+> 기존 사용처(`rcgen_authority.rs`, `openssl_authority.rs`)가 모두 빼기 연산이므로 상수만 변경하면 자동 적용.
+
+#### Step 1-2: OpenSSL CA 키 파일 권한 설정
+
+**파일**: `certificate_authority/generator.rs`
+
+- rcgen 경로(96-109행)에는 이미 `#[cfg(unix)] set_permissions(0o600)` 적용됨
+- OpenSSL 경로(`generate_openssl_ca`)에 동일한 권한 설정 추가 (키 파일 write 직후)
+
+#### Step 1-3: openssl_authority.rs 개선
+
+- `gen_cert()`: CN truncation 적용, AKI extension 추가, SAN critical 조건부 설정
+- `gen_openssl_context()` 내 spawn_blocking: 동일하게 적용
+
+```rust
+// AKI 추가
+use openssl::x509::extension::AuthorityKeyIdentifier;
+let aki = AuthorityKeyIdentifier::new()
+    .keyid(true)
+    .build(&x509_builder.x509v3_context(Some(&ca_cert), None))?;
+x509_builder.append_extension(aki)?;
+
+// SAN critical 조건부
+let mut san_builder = SubjectAlternativeName::new();
+if name.entries().count() == 0 {
+    san_builder.critical();
+}
+```
+
+#### Step 1-4: rcgen_authority.rs 개선
+
+- `gen_cert()`: CN truncation 적용
+- rcgen은 `signed_by()` 호출 시 AKI를 자동 생성하므로 명시적 설정 불필요 (rcgen 버전 확인 필요)
+- `gen_openssl_context()` 내 spawn_blocking: CN truncation + AKI + SAN critical 동일 적용
+
+### Phase 2: TLS 이벤트 훅 아키텍처
+
+#### 설계 결정: channel 기반 (trait object 대신)
+
+기존 `tunnel_event_sender: Option<mpsc::Sender<RequestInfo>>` 패턴과 일관성을 유지하기 위해 channel 기반으로 구현:
+- `TlsEventSender = tokio::sync::mpsc::Sender<TlsEvent>` 타입 alias
+- non-blocking 보장 (`try_send` 사용)
+- 수신자 측에서 별도 태스크로 처리 가능
+
+#### Step 2-1: tls_event.rs 모듈 생성
+
+**신규 파일**: `crates/proxyapi_v2/src/tls_event.rs` (~150줄)
+
+```rust
+pub enum TlsEvent {
+    ClientHelloAnalyzed { authority, tls_info },
+    StrategySelected { authority, strategy, tls_info },
+    ServerConnectionStarting { authority, strategy },
+    UpstreamCertSniffed { authority, cert_info: Option<UpstreamCertInfo> },
+    FakeCertGenerating { authority, upstream_cert },
+    HandshakeCompleted { authority, strategy, duration },
+    HandshakeFailed { authority, strategy, error, duration },
+}
+
+pub type TlsEventSender = tokio::sync::mpsc::Sender<TlsEvent>;
+
+/// non-blocking emit 헬퍼
+pub fn emit_tls_event(sender: &Option<TlsEventSender>, event: TlsEvent) {
+    if let Some(ref s) = sender {
+        let _ = s.try_send(event);
+    }
+}
+```
+
+#### Step 2-2: lib.rs + context.rs + builder.rs 수정
+
+- `lib.rs`: `pub mod tls_event;` 추가
+- `context.rs`: `tls_event_sender: Option<TlsEventSender>` 필드 추가
+- `builder.rs`: `with_tls_event_sender()` 빌더 메서드 추가 (선택적)
+
+#### Step 2-3: CA 구조체에 sender 필드 추가
+
+- `RcgenAuthority` / `OpensslAuthority` 구조체에 `tls_event_sender: Option<TlsEventSender>` 추가
+- setter 메서드 추가 (기존 `new()` 시그니처 유지)
+- `gen_cert()` 시작 시 `FakeCertGenerating` 이벤트 emit
+
+#### Step 2-4: hybrid_tls_handler.rs 이벤트 emit 삽입
+
+`HybridTlsHandler`에 `tls_event_sender` 필드 추가 후:
+
+| 위치 | 이벤트 |
+| --- | --- |
+| `analyze_tls_connection()` 직후 | `ClientHelloAnalyzed` |
+| `determine_tls_strategy()` 직후 | `StrategySelected` |
+| 핸드셰이크 성공 | `HandshakeCompleted` |
+| 핸드셰이크 실패 | `HandshakeFailed` |
+
+모든 emit은 `try_send`로 non-blocking.
+
+#### Step 2-5: internal.rs 이벤트 emit 삽입
+
+- `HybridTlsHandler::new()` 호출 시 sender 전달
+- `sniff_upstream_cert()` 전: `ServerConnectionStarting` emit
+- `sniff_upstream_cert()` 후: `UpstreamCertSniffed` emit
+
+### 위험 요소
+
+1. **rcgen AKI 자동 설정 여부**: rcgen 버전에 따라 `signed_by()`가 AKI를 자동 추가하는지 확인 필요
+2. **HybridTlsHandler::new() 시그니처 변경**: `internal.rs` 호출부 동시 수정 필수
+3. **spawn_blocking 내 sender 사용**: `tokio::sync::mpsc::Sender`는 `Send`이므로 문제 없음
+4. **NOT_BEFORE_OFFSET 변경**: 기존 캐시된 인증서와 새 인증서의 not_before 시점이 달라지지만, 기능에 영향 없음
+
+---
+
+## 7. 참고 자료
 
 - [mitmproxy 인증서 문서](https://docs.mitmproxy.org/stable/concepts-certificates/)
 - [mitmproxy TLS 동작 원리](https://docs.mitmproxy.org/stable/concepts-howmitmproxyworks/)
