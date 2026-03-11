@@ -3,7 +3,6 @@ import { createRoot } from "react-dom/client";
 import { I18nProvider } from "@lingui/react";
 import App from "./app/App";
 import { i18n, defaultLocale, loadCatalog } from "@/shared/lib/i18n";
-import { migrateLocalStorageToTauriStore } from "@/shared/lib/migrate-localstorage";
 import { useAppSettingsStore } from "@/shared/stores/app-settings-store";
 import "./main.css";
 import "../styles.css";
@@ -24,7 +23,6 @@ function waitForHydration(): Promise<void> {
       unsub();
       resolve();
     });
-    // 이미 hydration이 완료된 경우
     if (useAppSettingsStore.persist.hasHydrated()) {
       unsub();
       resolve();
@@ -38,10 +36,6 @@ if (container) {
   const root = createRoot(container);
 
   (async () => {
-    // localStorage → tauri-store 마이그레이션 (최초 1회)
-    await migrateLocalStorageToTauriStore();
-
-    // store hydration 대기
     await waitForHydration();
 
     const savedLocale = useAppSettingsStore.getState().locale || defaultLocale;
