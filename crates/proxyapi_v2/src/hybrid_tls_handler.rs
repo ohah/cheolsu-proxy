@@ -455,30 +455,31 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
             self.apply_tls_version_for_client(ssl, tls_info)?;
 
             // 규칙에서 cipher_list가 지정된 경우 적용
-            if let Some(ref cipher_list) = client_cfg.cipher_list {
-                ssl.set_cipher_list(cipher_list)?;
-                info!(
-                    "🔧 [SSL-CONFIG] 규칙 기반 암호화 스위트 적용: {} (패턴: {:?})",
-                    cipher_list, resolved.matched_pattern
-                );
-            } else if matches!(
+            let is_legacy_tls = matches!(
                 tls_info.version,
                 TlsVersion::Tls10 | TlsVersion::Ssl30 | TlsVersion::Tls11
-            ) {
+            );
+            if let Some(ref cipher_list) = client_cfg.cipher_list {
+                // 레거시 TLS + 사용자 cipher에 @SECLEVEL=0이 없으면 자동 추가
+                let effective_cipher = if is_legacy_tls && !cipher_list.contains("@SECLEVEL=0") {
+                    let prefixed = format!("@SECLEVEL=0:{}", cipher_list);
+                    info!(
+                        "🔧 [SSL-CONFIG] 레거시 TLS용 @SECLEVEL=0 자동 추가: {}",
+                        prefixed
+                    );
+                    prefixed
+                } else {
+                    cipher_list.clone()
+                };
+                ssl.set_cipher_list(&effective_cipher)?;
+                info!(
+                    "🔧 [SSL-CONFIG] 규칙 기반 암호화 스위트 적용: {} (패턴: {:?})",
+                    effective_cipher, resolved.matched_pattern
+                );
+            } else if is_legacy_tls {
                 // 레거시 TLS 버전은 SECLEVEL=0이 필요
                 ssl.set_cipher_list("@SECLEVEL=0:ALL:!aNULL:!eNULL")?;
                 info!("🔧 [SSL-CONFIG] 레거시 TLS용 SECLEVEL=0 적용");
-            }
-
-            // ECDH 곡선 설정 (SslRef에서는 set_curves_list 사용)
-            if let Some(ref curves) = client_cfg.ecdh_curves {
-                let curves_str = curves.join(":");
-                // openssl::ssl::SslRef 레벨에서는 직접 곡선 설정이 제한적이므로
-                // 로그만 남기고 SslContext 레벨에서 처리하도록 안내
-                info!(
-                    "🔧 [SSL-CONFIG] ECDH 곡선 요청됨 (SslContext 레벨에서 적용): {}",
-                    curves_str
-                );
             }
 
             // 인증서 검증 비활성화

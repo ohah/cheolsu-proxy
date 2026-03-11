@@ -50,6 +50,10 @@ impl TlsVersionConfig {
 }
 
 /// 방향별 TLS 설정
+///
+/// `version_min`/`version_max`는 현재 OpenSSL SslContext 레벨에서 사용됩니다.
+/// 연결 레벨에서는 클라이언트 ClientHello 버전을 존중하여 고정합니다.
+/// 향후 버전 범위 clamping이 구현되면 연결 레벨에서도 활용됩니다.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DirectionalTlsConfig {
     /// 최소 TLS 버전
@@ -58,8 +62,6 @@ pub struct DirectionalTlsConfig {
     pub version_max: TlsVersionConfig,
     /// OpenSSL cipher 문자열 (None이면 기본값 사용)
     pub cipher_list: Option<String>,
-    /// ECDH 곡선 설정 (None이면 기본값 사용)
-    pub ecdh_curves: Option<Vec<String>>,
 }
 
 impl Default for DirectionalTlsConfig {
@@ -68,7 +70,6 @@ impl Default for DirectionalTlsConfig {
             version_min: TlsVersionConfig::Tls12,
             version_max: TlsVersionConfig::Tls13,
             cipher_list: None,
-            ecdh_curves: None,
         }
     }
 }
@@ -80,7 +81,6 @@ impl DirectionalTlsConfig {
             version_min: TlsVersionConfig::Tls10,
             version_max: TlsVersionConfig::Tls13,
             cipher_list: Some("@SECLEVEL=0:ALL:!aNULL:!eNULL".to_string()),
-            ecdh_curves: None,
         }
     }
 }
@@ -166,7 +166,6 @@ impl TlsConfigManager {
             version_min: TlsVersionConfig::Tls12,
             version_max: TlsVersionConfig::Tls13,
             cipher_list: Some(apple_cipher.clone()),
-            ecdh_curves: None,
         };
 
         manager.add_rule(TlsConfigRule {
@@ -261,23 +260,18 @@ impl TlsConfigManager {
         }
     }
 
-    /// 도메인이 OpenSSL을 필요로 하는지 확인 (빠른 조회)
+    /// 도메인이 OpenSSL을 필요로 하는지 확인
+    ///
+    /// `resolve()`에 위임하여 우선순위 기반 매칭과 일관된 결과를 보장합니다.
     pub fn requires_openssl(&self, host: &str) -> bool {
-        self.rules
-            .iter()
-            .any(|rule| rule.require_openssl && matches_domain_pattern(&rule.domain_pattern, host))
+        self.resolve(host).require_openssl
     }
 
     /// 도메인의 핸드셰이크 타임아웃을 조회합니다
+    ///
+    /// `resolve()`에 위임하여 우선순위 기반 매칭과 일관된 결과를 보장합니다.
     pub fn handshake_timeout(&self, host: &str) -> Option<u64> {
-        for rule in &self.rules {
-            if matches_domain_pattern(&rule.domain_pattern, host) {
-                if let Some(timeout) = rule.handshake_timeout_secs {
-                    return Some(timeout);
-                }
-            }
-        }
-        None
+        self.resolve(host).handshake_timeout_secs
     }
 }
 
@@ -288,7 +282,11 @@ impl TlsConfigManager {
 fn matches_domain_pattern(pattern: &str, host: &str) -> bool {
     if let Some(suffix) = pattern.strip_prefix("*.") {
         // 와일드카드: host가 suffix와 같거나 .suffix로 끝남
-        host == suffix || host.ends_with(&format!(".{}", suffix))
+        // format! 대신 바이트 경계 비교로 힙 할당 회피
+        host == suffix
+            || (host.len() > suffix.len()
+                && host.ends_with(suffix)
+                && host.as_bytes()[host.len() - suffix.len() - 1] == b'.')
     } else {
         // 정확한 매칭
         host == pattern
@@ -329,13 +327,13 @@ mod tests {
     fn test_builtin_rules_apple_resolve() {
         let manager = TlsConfigManager::with_builtin_rules();
 
-        // Apple 도메인 → cipher 설정 + 15초 타임아웃
-        let resolved = manager.resolve("wps.apple.com");
+        // 정확 매칭 규칙이 없는 Apple 도메인 → 와일드카드 규칙 매칭 (cipher + 15초 타임아웃)
+        let resolved = manager.resolve("maps.apple.com");
         assert!(resolved.client_config.cipher_list.is_some());
         assert_eq!(resolved.handshake_timeout_secs, Some(15));
         assert!(resolved.disable_cert_verify);
 
-        // Apple 도메인 중 OpenSSL 필수
+        // Apple 도메인 중 OpenSSL 필수 (정확 매칭 우선)
         assert!(manager.requires_openssl("wps.apple.com"));
         assert!(manager.requires_openssl("gateway.icloud.com"));
     }
@@ -357,6 +355,30 @@ mod tests {
         let resolved = manager.resolve("wps.apple.com");
         assert!(resolved.require_openssl);
         assert_eq!(resolved.matched_pattern.as_deref(), Some("wps.apple.com"));
+        // 정확 매칭 규칙에는 cipher_list가 None
+        assert!(resolved.client_config.cipher_list.is_none());
+    }
+
+    #[test]
+    fn test_requires_openssl_consistent_with_resolve() {
+        let manager = TlsConfigManager::with_builtin_rules();
+
+        // requires_openssl()과 resolve().require_openssl이 항상 일치하는지 검증
+        let test_domains = [
+            "wps.apple.com",
+            "maps.apple.com",
+            "gateway.icloud.com",
+            "api2.cursor.sh",
+            "example.com",
+        ];
+        for domain in test_domains {
+            assert_eq!(
+                manager.requires_openssl(domain),
+                manager.resolve(domain).require_openssl,
+                "불일치: {}",
+                domain
+            );
+        }
     }
 
     #[test]
