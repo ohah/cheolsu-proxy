@@ -71,7 +71,7 @@ fn graceful_quit<R: Runtime>(app: AppHandle<R>) {
 // ─── 트레이 패널 윈도우 ────────────────────────────────────
 
 const PANEL_WIDTH: f64 = 300.0;
-const PANEL_HEIGHT: f64 = 310.0;
+const PANEL_HEIGHT: f64 = 270.0;
 
 /// 트레이 클릭 중 포커스 잃음 이벤트를 무시하기 위한 플래그
 static SUPPRESS_FOCUS_LOST: AtomicBool = AtomicBool::new(false);
@@ -234,6 +234,35 @@ pub async fn tray_get_info(
         transaction_count,
         recording_paused,
     })
+}
+
+/// 트레이에서 프록시 토글 시 메인 윈도우에도 상태 변경 전파
+#[tauri::command]
+pub async fn tray_toggle_proxy<R: Runtime>(
+    app: AppHandle<R>,
+    proxy: State<'_, ProxyV2State>,
+    tray_state: State<'_, Arc<TrayState>>,
+    addr: String,
+) -> Result<bool, String> {
+    let is_connected = proxy.lock().await.is_some();
+
+    if is_connected {
+        // stop
+        crate::proxy_v2::stop_proxy_v2(proxy, tray_state)
+            .await
+            .map_err(|e| e.to_string())?;
+        let _ = app.emit("proxy_status_changed", false);
+        Ok(false)
+    } else {
+        // start
+        let socket_addr: std::net::SocketAddr =
+            addr.parse().map_err(|e| format!("주소 파싱 실패: {}", e))?;
+        crate::proxy_v2::start_proxy_v2(app.clone(), proxy, socket_addr)
+            .await
+            .map_err(|e| e.message)?;
+        let _ = app.emit("proxy_status_changed", true);
+        Ok(true)
+    }
 }
 
 /// 녹화 일시정지 토글 커맨드 (트레이 또는 메인 윈도우에서 호출)
