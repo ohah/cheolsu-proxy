@@ -1,19 +1,18 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
 import { useAppSettingsStore } from "@/shared/stores/app-settings-store";
 import { updateThrottle, type ThrottleConfig } from "@/shared/api/proxy";
 import {
-  Button,
   Input,
   Switch,
-  Badge,
   Select,
   SelectTrigger,
   SelectContent,
   SelectItem,
   SelectValue,
 } from "@/shared/ui";
+import { useSettingsSave } from "../settings-save-context";
 
 const THROTTLE_PRESETS = [
   { value: "none", label: "None", config: null },
@@ -67,6 +66,7 @@ const THROTTLE_PRESETS = [
 
 export function ThrottleSettings() {
   const { t } = useLingui();
+  const { registerSave, unregisterSave, markDirty } = useSettingsSave();
   const throttleConfig = useAppSettingsStore((s) => s.throttleConfig);
   const setThrottleConfig = useAppSettingsStore((s) => s.setThrottleConfig);
 
@@ -75,61 +75,43 @@ export function ThrottleSettings() {
   const [throttleDownload, setThrottleDownload] = useState(throttleConfig.download);
   const [throttleUpload, setThrottleUpload] = useState(throttleConfig.upload);
   const [throttleLatency, setThrottleLatency] = useState(throttleConfig.latency);
-  const [throttleSaving, setThrottleSaving] = useState(false);
-  const [throttleStatus, setThrottleStatus] = useState<"idle" | "saved" | "error">("idle");
 
-  const handleThrottleSave = useCallback(async () => {
-    setThrottleSaving(true);
-    setThrottleStatus("idle");
+  const handleSave = useCallback(async () => {
+    let config: ThrottleConfig | null = null;
 
-    try {
-      let config: ThrottleConfig | null = null;
-
-      if (throttleEnabled) {
-        if (throttlePreset === "custom") {
-          const dlRate = Number.parseInt(throttleDownload, 10);
-          const ulRate = Number.parseInt(throttleUpload, 10);
-          config = {
-            enabled: true,
-            download_rate: dlRate > 0 ? dlRate * 1024 : null, // KB/s -> bytes/s
-            upload_rate: ulRate > 0 ? ulRate * 1024 : null,
-            latency_ms: Number.parseInt(throttleLatency, 10) || 0,
-          };
-        } else {
-          const preset = THROTTLE_PRESETS.find((p) => p.value === throttlePreset);
-          if (preset?.config) {
-            config = preset.config;
-          }
+    if (throttleEnabled) {
+      if (throttlePreset === "custom") {
+        const dlRate = Number.parseInt(throttleDownload, 10);
+        const ulRate = Number.parseInt(throttleUpload, 10);
+        config = {
+          enabled: true,
+          download_rate: dlRate > 0 ? dlRate * 1024 : null,
+          upload_rate: ulRate > 0 ? ulRate * 1024 : null,
+          latency_ms: Number.parseInt(throttleLatency, 10) || 0,
+        };
+      } else {
+        const preset = THROTTLE_PRESETS.find((p) => p.value === throttlePreset);
+        if (preset?.config) {
+          config = preset.config;
         }
       }
-
-      await updateThrottle(config);
-
-      const localConfig = {
-        enabled: throttleEnabled,
-        preset: throttlePreset,
-        download: throttleDownload,
-        upload: throttleUpload,
-        latency: throttleLatency,
-      };
-      setThrottleConfig(localConfig);
-
-      setThrottleStatus("saved");
-      setTimeout(() => setThrottleStatus("idle"), 2000);
-    } catch (e) {
-      console.error("스로틀링 설정 저장 실패:", e);
-      setThrottleStatus("error");
-    } finally {
-      setThrottleSaving(false);
     }
-  }, [
-    throttleEnabled,
-    throttlePreset,
-    throttleDownload,
-    throttleUpload,
-    throttleLatency,
-    setThrottleConfig,
-  ]);
+
+    await updateThrottle(config);
+
+    setThrottleConfig({
+      enabled: throttleEnabled,
+      preset: throttlePreset,
+      download: throttleDownload,
+      upload: throttleUpload,
+      latency: throttleLatency,
+    });
+  }, [throttleEnabled, throttlePreset, throttleDownload, throttleUpload, throttleLatency, setThrottleConfig]);
+
+  useEffect(() => {
+    registerSave("throttle", handleSave);
+    return () => unregisterSave("throttle");
+  }, [registerSave, unregisterSave, handleSave]);
 
   return (
     <div className="border rounded-lg p-5 space-y-5">
@@ -142,7 +124,13 @@ export function ThrottleSettings() {
             <Trans>Simulate slow network conditions for testing</Trans>
           </p>
         </div>
-        <Switch checked={throttleEnabled} onCheckedChange={setThrottleEnabled} />
+        <Switch
+          checked={throttleEnabled}
+          onCheckedChange={(v) => {
+            setThrottleEnabled(v);
+            markDirty("throttle");
+          }}
+        />
       </div>
 
       {throttleEnabled && (
@@ -154,7 +142,10 @@ export function ThrottleSettings() {
             <Select
               value={throttlePreset}
               onValueChange={(v) => {
-                if (v) setThrottlePreset(v);
+                if (v) {
+                  setThrottlePreset(v);
+                  markDirty("throttle");
+                }
               }}
             >
               <SelectTrigger className="w-64">
@@ -181,7 +172,10 @@ export function ThrottleSettings() {
                     type="number"
                     placeholder={t`Unlimited`}
                     value={throttleDownload}
-                    onChange={(e) => setThrottleDownload(e.target.value)}
+                    onChange={(e) => {
+                      setThrottleDownload(e.target.value);
+                      markDirty("throttle");
+                    }}
                   />
                 </div>
                 <div className="flex-1">
@@ -192,7 +186,10 @@ export function ThrottleSettings() {
                     type="number"
                     placeholder={t`Unlimited`}
                     value={throttleUpload}
-                    onChange={(e) => setThrottleUpload(e.target.value)}
+                    onChange={(e) => {
+                      setThrottleUpload(e.target.value);
+                      markDirty("throttle");
+                    }}
                   />
                 </div>
                 <div className="w-28">
@@ -203,7 +200,10 @@ export function ThrottleSettings() {
                     type="number"
                     placeholder="0"
                     value={throttleLatency}
-                    onChange={(e) => setThrottleLatency(e.target.value)}
+                    onChange={(e) => {
+                      setThrottleLatency(e.target.value);
+                      markDirty("throttle");
+                    }}
                   />
                 </div>
               </div>
@@ -211,22 +211,6 @@ export function ThrottleSettings() {
           )}
         </div>
       )}
-
-      <div className="flex items-center gap-3 pt-2">
-        <Button onClick={handleThrottleSave} disabled={throttleSaving}>
-          {throttleSaving ? t`Saving...` : t`Save`}
-        </Button>
-        {throttleStatus === "saved" && (
-          <Badge variant="outline" className="text-green-600 border-green-600">
-            <Trans>Saved</Trans>
-          </Badge>
-        )}
-        {throttleStatus === "error" && (
-          <Badge variant="outline" className="text-red-600 border-red-600">
-            <Trans>Failed — is the proxy running?</Trans>
-          </Badge>
-        )}
-      </div>
     </div>
   );
 }

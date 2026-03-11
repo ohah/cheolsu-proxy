@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
 import { useAppSettingsStore } from "@/shared/stores/app-settings-store";
@@ -10,7 +10,8 @@ import {
 } from "@/shared/lib/global-shortcut";
 import { toggleProxy } from "@/features/proxy-toggle";
 import { platform } from "@tauri-apps/plugin-os";
-import { Button, Switch, Badge } from "@/shared/ui";
+import { Button, Switch } from "@/shared/ui";
+import { useSettingsSave } from "../settings-save-context";
 
 const isMac = platform() === "macos";
 
@@ -44,6 +45,7 @@ function ShortcutDisplay({ shortcut }: { shortcut: string }) {
 
 export function ShortcutSettings() {
   const { t } = useLingui();
+  const { registerSave, unregisterSave, markDirty } = useSettingsSave();
   const hotkeyEnabled = useAppSettingsStore((s) => s.proxyToggleShortcutEnabled);
   const storeSetHotkeyEnabled = useAppSettingsStore((s) => s.setProxyToggleShortcutEnabled);
   const hotkey = useAppSettingsStore((s) => s.proxyToggleShortcut);
@@ -52,7 +54,6 @@ export function ShortcutSettings() {
   const [localHotkeyEnabled, setLocalHotkeyEnabled] = useState(hotkeyEnabled);
   const [localHotkey, setLocalHotkey] = useState(hotkey);
   const [isRecording, setIsRecording] = useState(false);
-  const [hotkeyStatus, setHotkeyStatus] = useState<"idle" | "saved" | "error">("idle");
 
   const handleHotkeyRecord = useCallback(
     (e: React.KeyboardEvent) => {
@@ -68,13 +69,9 @@ export function ShortcutSettings() {
       if (e.shiftKey) parts.push("Shift");
 
       const key = e.key;
-      // modifier 키만 누른 경우 무시
       if (["Control", "Meta", "Alt", "Shift"].includes(key)) return;
-
-      // CommandOrControl 또는 Alt 필수 (Shift 단독은 일반 타이핑과 충돌)
       if (!hasCtrlOrCmd && !hasAlt) return;
 
-      // 알파벳/숫자/F키 등
       let keyName = key;
       if (key.length === 1) {
         keyName = key.toUpperCase();
@@ -85,29 +82,28 @@ export function ShortcutSettings() {
       parts.push(keyName);
       setLocalHotkey(parts.join("+"));
       setIsRecording(false);
+      markDirty("shortcut");
     },
-    [isRecording],
+    [isRecording, markDirty],
   );
 
-  const handleHotkeySave = useCallback(async () => {
-    try {
-      setStoredShortcut(localHotkey);
-      setShortcutEnabled(localHotkeyEnabled);
-      storeSetHotkey(localHotkey);
-      storeSetHotkeyEnabled(localHotkeyEnabled);
+  const handleSave = useCallback(async () => {
+    setStoredShortcut(localHotkey);
+    setShortcutEnabled(localHotkeyEnabled);
+    storeSetHotkey(localHotkey);
+    storeSetHotkeyEnabled(localHotkeyEnabled);
 
-      if (localHotkeyEnabled) {
-        await registerShortcut(localHotkey, toggleProxy);
-      } else {
-        await unregisterShortcut();
-      }
-
-      setHotkeyStatus("saved");
-      setTimeout(() => setHotkeyStatus("idle"), 2000);
-    } catch {
-      setHotkeyStatus("error");
+    if (localHotkeyEnabled) {
+      await registerShortcut(localHotkey, toggleProxy);
+    } else {
+      await unregisterShortcut();
     }
   }, [localHotkey, localHotkeyEnabled, storeSetHotkey, storeSetHotkeyEnabled]);
+
+  useEffect(() => {
+    registerSave("shortcut", handleSave);
+    return () => unregisterSave("shortcut");
+  }, [registerSave, unregisterSave, handleSave]);
 
   return (
     <div className="border rounded-lg p-5 space-y-5">
@@ -124,6 +120,7 @@ export function ShortcutSettings() {
           checked={localHotkeyEnabled}
           onCheckedChange={(checked) => {
             setLocalHotkeyEnabled(checked);
+            markDirty("shortcut");
           }}
         />
       </div>
@@ -162,20 +159,6 @@ export function ShortcutSettings() {
           </div>
         </div>
       )}
-
-      <div className="flex items-center gap-3 pt-2">
-        <Button onClick={handleHotkeySave}>{t`Save`}</Button>
-        {hotkeyStatus === "saved" && (
-          <Badge variant="outline" className="text-green-600 border-green-600">
-            <Trans>Saved</Trans>
-          </Badge>
-        )}
-        {hotkeyStatus === "error" && (
-          <Badge variant="outline" className="text-red-600 border-red-600">
-            <Trans>Failed to register shortcut</Trans>
-          </Badge>
-        )}
-      </div>
     </div>
   );
 }
