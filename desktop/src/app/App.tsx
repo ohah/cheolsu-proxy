@@ -227,7 +227,10 @@ const App: React.FC = () => {
         );
       }
 
-      const tuples = currentTransactions.map((tx) => [tx.request, tx.response]);
+      const saveable = currentTransactions.filter((tx) => tx.request?.method !== "CONNECT");
+      if (saveable.length === 0) return;
+
+      const tuples = saveable.map((tx) => [tx.request, tx.response]);
 
       const t0 = performance.now();
       const transactionsJson = JSON.stringify(tuples);
