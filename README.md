@@ -15,8 +15,6 @@
 
 Rust-based **Man in the Middle proxy** for inspecting and manipulating HTTP/HTTPS/WebSocket traffic. Provides a desktop GUI (Tauri + React), a terminal UI (Ratatui), and a headless CLI mode. Supports scriptable traffic manipulation, intercept rules, and integrates with AI assistants via MCP.
 
-![Cast](assets/screenshots/0.gif)
-
 ## Features
 
 ### Core
@@ -212,10 +210,6 @@ If you have questions on how to use Cheolsu Proxy, please use [GitHub Discussion
 ## Contributing
 
 Contributions are always welcome!
-
-See `contributing.md` for ways to get started.
-
-Please adhere to this project's `code of conduct`.
 
 ## License
 
