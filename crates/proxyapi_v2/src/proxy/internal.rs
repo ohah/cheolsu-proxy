@@ -9,10 +9,10 @@ use crate::{
     proxy::context::ConnectionStrategy,
     rewind::Rewind,
     throttle,
-    tls_event::{TlsEvent, emit_tls_event},
+    tls_event::{TlsEvent, TlsEventSender, emit_tls_event},
     tls_version_detector::TlsVersionDetector,
-    upstream_cert::{connect_and_sniff_upstream, sniff_upstream_cert},
-    upstream_proxy::connect_to_target,
+    upstream_cert::{UpstreamCertInfo, sniff_upstream_cert},
+    upstream_proxy::{UpstreamProxyConfig, connect_to_target},
 };
 use http::uri::{Authority, Scheme};
 use hyper::{
@@ -30,6 +30,29 @@ use std::{convert::Infallible, net::SocketAddr, pin::Pin, sync::Arc};
 use tokio::io::AsyncReadExt;
 use tokio_rustls::TlsAcceptor;
 use tracing::{Instrument, debug, error, info, info_span, instrument, warn};
+
+/// Lazy 폴백: upstream 인증서를 동기적으로 스니핑하고 이벤트를 발송합니다.
+async fn lazy_sniff_upstream(
+    authority: &Authority,
+    upstream_proxy: Option<&UpstreamProxyConfig>,
+    tls_event_sender: &Option<TlsEventSender>,
+) -> Option<UpstreamCertInfo> {
+    emit_tls_event(
+        tls_event_sender,
+        TlsEvent::ServerConnectionStarting {
+            authority: authority.clone(),
+        },
+    );
+    let cert = sniff_upstream_cert(authority, upstream_proxy).await;
+    emit_tls_event(
+        tls_event_sender,
+        TlsEvent::UpstreamCertSniffed {
+            authority: authority.clone(),
+            cert_info: cert.clone(),
+        },
+    );
+    cert
+}
 
 pub(crate) struct InternalProxy<C, CA, H, W> {
     pub(crate) ca: Arc<CA>,
@@ -359,13 +382,13 @@ where
                                             == ConnectionStrategy::EagerWithFallback;
 
                                         Some(tokio::spawn(async move {
-                                            let result = connect_and_sniff_upstream(
+                                            let cert = sniff_upstream_cert(
                                                 &authority_clone,
                                                 upstream_proxy_clone.as_ref(),
                                             )
                                             .await;
                                             let duration = start_time.elapsed();
-                                            let success = result.cert_info.is_some();
+                                            let success = cert.is_some();
 
                                             emit_tls_event(
                                                 &tls_event_sender,
@@ -377,7 +400,7 @@ where
                                                 },
                                             );
 
-                                            result
+                                            cert
                                         }))
                                     }
                                     ConnectionStrategy::Lazy => None,
@@ -435,8 +458,7 @@ where
                                             } else if let Some(handle) = eager_handle {
                                                 // Eager 핸들이 있으면 결과를 기다림
                                                 match handle.await {
-                                                    Ok(result) => {
-                                                        let cert = result.cert_info;
+                                                    Ok(cert) => {
                                                         emit_tls_event(
                                                             &self.ctx.tls_event_sender,
                                                             TlsEvent::UpstreamCertSniffed {
@@ -453,25 +475,12 @@ where
                                                                 "[UPSTREAM-CERT] Eager 실패 → Lazy 폴백: {}",
                                                                 authority
                                                             );
-                                                            emit_tls_event(
-                                                                &self.ctx.tls_event_sender,
-                                                                TlsEvent::ServerConnectionStarting {
-                                                                    authority: authority.clone(),
-                                                                },
-                                                            );
-                                                            let fallback_cert = sniff_upstream_cert(
+                                                            lazy_sniff_upstream(
                                                                 &authority,
                                                                 self.ctx.upstream_proxy.as_ref(),
-                                                            )
-                                                            .await;
-                                                            emit_tls_event(
                                                                 &self.ctx.tls_event_sender,
-                                                                TlsEvent::UpstreamCertSniffed {
-                                                                    authority: authority.clone(),
-                                                                    cert_info: fallback_cert.clone(),
-                                                                },
-                                                            );
-                                                            fallback_cert
+                                                            )
+                                                            .await
                                                         } else {
                                                             cert
                                                         }
@@ -485,29 +494,12 @@ where
                                                         if self.ctx.connection_strategy
                                                             == ConnectionStrategy::EagerWithFallback
                                                         {
-                                                            emit_tls_event(
+                                                            lazy_sniff_upstream(
+                                                                &authority,
+                                                                self.ctx.upstream_proxy.as_ref(),
                                                                 &self.ctx.tls_event_sender,
-                                                                TlsEvent::ServerConnectionStarting {
-                                                                    authority: authority.clone(),
-                                                                },
-                                                            );
-                                                            let fallback_cert =
-                                                                sniff_upstream_cert(
-                                                                    &authority,
-                                                                    self.ctx
-                                                                        .upstream_proxy
-                                                                        .as_ref(),
-                                                                )
-                                                                .await;
-                                                            emit_tls_event(
-                                                                &self.ctx.tls_event_sender,
-                                                                TlsEvent::UpstreamCertSniffed {
-                                                                    authority: authority.clone(),
-                                                                    cert_info: fallback_cert
-                                                                        .clone(),
-                                                                },
-                                                            );
-                                                            fallback_cert
+                                                            )
+                                                            .await
                                                         } else {
                                                             None
                                                         }
@@ -515,25 +507,12 @@ where
                                                 }
                                             } else {
                                                 // Lazy 전략: 기존 동작
-                                                emit_tls_event(
-                                                    &self.ctx.tls_event_sender,
-                                                    TlsEvent::ServerConnectionStarting {
-                                                        authority: authority.clone(),
-                                                    },
-                                                );
-                                                let cert = sniff_upstream_cert(
+                                                lazy_sniff_upstream(
                                                     &authority,
                                                     self.ctx.upstream_proxy.as_ref(),
-                                                )
-                                                .await;
-                                                emit_tls_event(
                                                     &self.ctx.tls_event_sender,
-                                                    TlsEvent::UpstreamCertSniffed {
-                                                        authority: authority.clone(),
-                                                        cert_info: cert.clone(),
-                                                    },
-                                                );
-                                                cert
+                                                )
+                                                .await
                                             };
 
                                             // HybridTlsHandler 생성
@@ -709,6 +688,12 @@ where
                                         &full_buffer[..full_buffer.len().min(16)]
                                     );
                                 }
+                            }
+
+                            // intercept하지 않거나 알 수 없는 프로토콜인 경우
+                            // 백그라운드 Eager 스니핑 태스크가 있으면 중단하여 리소스 낭비 방지
+                            if let Some(handle) = eager_handle {
+                                handle.abort();
                             }
 
                             let mut server = match connect_to_target(
