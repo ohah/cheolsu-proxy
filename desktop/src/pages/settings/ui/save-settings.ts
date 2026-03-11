@@ -18,10 +18,15 @@ import {
 } from "@/shared/lib/global-shortcut";
 import { toggleProxy } from "@/features/proxy-toggle";
 import type { SettingsFormValues } from "./settings-form";
-import { THROTTLE_PRESETS } from "./components/throttle-section";
+import { THROTTLE_PRESETS } from "./constants";
 
 // =============================================================================
 // Save logic — only saves dirty sections, collects errors per-section
+//
+// Note: This function is called outside of React components, so we use
+// zustand's `getState()` API to access store state directly.
+// This is an officially supported pattern by zustand for non-React contexts.
+// See: https://docs.pmnd.rs/zustand/guides/practice-with-no-store-actions
 // =============================================================================
 interface SaveResult {
   section: string;

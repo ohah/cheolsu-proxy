@@ -38,6 +38,7 @@ function SettingsPageInner() {
   const form = useSettingsForm();
   const { isDirty, isSubmitting, dirtyFields } = form.formState;
   const [saveStatus, setSaveStatus] = useState<"idle" | "saved" | "error">("idle");
+  const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null);
   const dirtyFieldsRef = useRef(dirtyFields);
   dirtyFieldsRef.current = dirtyFields;
 
@@ -78,6 +79,7 @@ function SettingsPageInner() {
   const handleSave = useCallback(
     async (data: SettingsFormValues) => {
       setSaveStatus("idle");
+      setSaveErrorMessage(null);
       try {
         await saveAllSettings(data, dirtyFieldsRef.current);
         form.reset(data);
@@ -86,7 +88,11 @@ function SettingsPageInner() {
       } catch (e) {
         console.error("Settings save failed:", e);
         setSaveStatus("error");
-        setTimeout(() => setSaveStatus("idle"), 3000);
+        setSaveErrorMessage(e instanceof Error ? e.message : null);
+        setTimeout(() => {
+          setSaveStatus("idle");
+          setSaveErrorMessage(null);
+        }, 3000);
       }
     },
     [form],
@@ -147,7 +153,7 @@ function SettingsPageInner() {
             )}
             {saveStatus === "error" && (
               <Badge variant="outline" className="text-red-600 border-red-600">
-                <Trans>Save failed</Trans>
+                {saveErrorMessage ? saveErrorMessage : <Trans>Save failed</Trans>}
               </Badge>
             )}
             {isDirty && (

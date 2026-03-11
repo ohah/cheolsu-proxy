@@ -2,7 +2,11 @@ import { useState, useCallback } from "react";
 import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
 import { open as openFileDialog } from "@tauri-apps/plugin-dialog";
-import { parseCertificateInfo, type CertificateInfo, type DomainClientCertConfig } from "@/shared/api/proxy";
+import {
+  parseCertificateInfo,
+  type CertificateInfo,
+  type DomainClientCertConfig,
+} from "@/shared/api/proxy";
 import { Button, Input, Switch, Badge } from "@/shared/ui";
 import { useSettingsForm } from "../settings-form";
 
@@ -12,7 +16,7 @@ export function ClientCertificateSection() {
   const enabled = watch("clientCert.enabled");
   const certPath = watch("clientCert.certPath");
   const keyPath = watch("clientCert.keyPath");
-  const domainCerts = watch("clientCert.domainCerts");
+  const domainCerts: DomainClientCertConfig[] = watch("clientCert.domainCerts");
 
   const [certInfo, setCertInfo] = useState<CertificateInfo | null>(null);
   const [certInfoLoading, setCertInfoLoading] = useState(false);
@@ -76,7 +80,7 @@ export function ClientCertificateSection() {
   const handleAddDomainCert = useCallback(() => {
     const pattern = newDomainPattern.trim();
     if (!pattern || !newDomainCertPath || !newDomainKeyPath) return;
-    if (domainCerts.some((dc: DomainClientCertConfig) => dc.domain_pattern === pattern)) return;
+    if (domainCerts.some((dc) => dc.domain_pattern === pattern)) return;
     setValue(
       "clientCert.domainCerts",
       [
@@ -99,7 +103,7 @@ export function ClientCertificateSection() {
     (idx: number) => {
       setValue(
         "clientCert.domainCerts",
-        domainCerts.map((dc: DomainClientCertConfig, i: number) => (i === idx ? { ...dc, enabled: !dc.enabled } : dc)),
+        domainCerts.map((dc, i: number) => (i === idx ? { ...dc, enabled: !dc.enabled } : dc)),
         { shouldDirty: true },
       );
     },
@@ -110,7 +114,7 @@ export function ClientCertificateSection() {
     (idx: number) => {
       setValue(
         "clientCert.domainCerts",
-        domainCerts.filter((_: DomainClientCertConfig, i: number) => i !== idx),
+        domainCerts.filter((_, i: number) => i !== idx),
         { shouldDirty: true },
       );
     },

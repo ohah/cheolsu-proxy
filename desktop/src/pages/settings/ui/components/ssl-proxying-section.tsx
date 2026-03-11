@@ -10,12 +10,12 @@ export function SslProxyingSection() {
   const { t } = useLingui();
   const form = useSettingsForm();
   const mode = form.watch("sslProxying.mode");
-  const entries = form.watch("sslProxying.entries");
+  const entries: SslProxyingEntry[] = form.watch("sslProxying.entries");
   const [newPattern, setNewPattern] = useState("");
 
   const handleAdd = useCallback(() => {
     const pattern = newPattern.trim();
-    if (!pattern || entries.some((e: SslProxyingEntry) => e.pattern === pattern)) return;
+    if (!pattern || entries.some((e) => e.pattern === pattern)) return;
     form.setValue("sslProxying.entries", [...entries, { pattern, enabled: true }], {
       shouldDirty: true,
     });
@@ -36,7 +36,7 @@ export function SslProxyingSection() {
     (pattern: string) => {
       form.setValue(
         "sslProxying.entries",
-        entries.filter((e: SslProxyingEntry) => e.pattern !== pattern),
+        entries.filter((e) => e.pattern !== pattern),
         { shouldDirty: true },
       );
     },
@@ -47,7 +47,7 @@ export function SslProxyingSection() {
     (pattern: string) => {
       form.setValue(
         "sslProxying.entries",
-        entries.map((e: SslProxyingEntry) => (e.pattern === pattern ? { ...e, enabled: !e.enabled } : e)),
+        entries.map((e) => (e.pattern === pattern ? { ...e, enabled: !e.enabled } : e)),
         { shouldDirty: true },
       );
     },
@@ -61,7 +61,7 @@ export function SslProxyingSection() {
     [form],
   );
 
-  const enabledCount = entries.filter((e: SslProxyingEntry) => e.enabled).length;
+  const enabledCount = entries.filter((e) => e.enabled).length;
 
   return (
     <div className="border rounded-lg p-5 space-y-4">
@@ -141,7 +141,7 @@ export function SslProxyingSection() {
       </p>
       {entries.length > 0 && (
         <div className="border rounded-lg divide-y">
-          {entries.map((entry: SslProxyingEntry) => (
+          {entries.map((entry) => (
             <div key={entry.pattern} className="flex items-center justify-between px-4 py-2">
               <div className="flex items-center gap-3">
                 <Switch
