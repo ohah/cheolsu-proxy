@@ -273,9 +273,9 @@ msgid "Breakpoints"
 msgstr "Breakpoints"
 
 #: src/pages/script/ui/script-page.tsx:263
-#: src/pages/settings/ui/components/certificate-settings.tsx:624
-#: src/pages/settings/ui/components/certificate-settings.tsx:640
-#: src/pages/settings/ui/components/certificate-settings.tsx:659
+#: src/pages/settings/ui/components/certificate-settings.tsx:622
+#: src/pages/settings/ui/components/certificate-settings.tsx:638
+#: src/pages/settings/ui/components/certificate-settings.tsx:657
 #: src/pages/settings/ui/settings-page.tsx:218
 #: src/pages/settings/ui/settings-page.tsx:235
 #: src/pages/settings/ui/settings-page.tsx:361
@@ -296,7 +296,7 @@ msgstr "bytes body"
 msgid "CA Certificate"
 msgstr "CA Certificate"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:614
+#: src/pages/settings/ui/components/certificate-settings.tsx:612
 msgid "CA Certificate File"
 msgstr "CA Certificate File"
 
@@ -304,7 +304,7 @@ msgstr "CA Certificate File"
 msgid "CA Certificate File (optional)"
 msgstr "CA Certificate File (optional)"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:630
+#: src/pages/settings/ui/components/certificate-settings.tsx:628
 msgid "CA Key File"
 msgstr "CA Key File"
 
@@ -620,7 +620,7 @@ msgstr "Expand sidebar"
 msgid "Export HAR"
 msgstr "Export HAR"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:688
+#: src/pages/settings/ui/components/certificate-settings.tsx:686
 msgid "Failed"
 msgstr "Failed"
 
@@ -782,7 +782,7 @@ msgstr "HTTPie"
 msgid "If not specified, any client certificate will be accepted without verification"
 msgstr "If not specified, any client certificate will be accepted without verification"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:679
+#: src/pages/settings/ui/components/certificate-settings.tsx:677
 msgid "Import"
 msgstr "Import"
 
@@ -790,11 +790,11 @@ msgstr "Import"
 msgid "Import HAR"
 msgstr "Import HAR"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:683
+#: src/pages/settings/ui/components/certificate-settings.tsx:681
 msgid "Imported"
 msgstr "Imported"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:679
+#: src/pages/settings/ui/components/certificate-settings.tsx:677
 msgid "Importing..."
 msgstr "Importing..."
 
@@ -1191,7 +1191,7 @@ msgstr "Organization"
 msgid "Original"
 msgstr "Original"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:665
+#: src/pages/settings/ui/components/certificate-settings.tsx:663
 #: src/pages/settings/ui/components/proxy-settings.tsx:141
 #: src/pages/settings/ui/settings-page.tsx:749
 #: src/pages/settings/ui/settings-page.tsx:753
@@ -1235,11 +1235,11 @@ msgstr "Pending Breakpoints"
 msgid "Pin to Top"
 msgstr "Pin to Top"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:649
+#: src/pages/settings/ui/components/certificate-settings.tsx:647
 msgid "PKCS12 File"
 msgstr "PKCS12 File"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:669
+#: src/pages/settings/ui/components/certificate-settings.tsx:667
 msgid "PKCS12 password (leave empty if none)"
 msgstr "PKCS12 password (leave empty if none)"
 
@@ -1368,7 +1368,7 @@ msgstr "Remove Accept-Encoding header from requests to prevent compressed respon
 msgid "Remove Cookie headers from requests and Set-Cookie headers from responses"
 msgstr "Remove Cookie headers from requests and Set-Cookie headers from responses"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:578
+#: src/pages/settings/ui/components/certificate-settings.tsx:576
 msgid "Remove Custom CA"
 msgstr "Remove Custom CA"
 
@@ -1381,7 +1381,7 @@ msgstr "Remove entry"
 msgid "Remove Headers"
 msgstr "Remove Headers"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:710
+#: src/pages/settings/ui/components/certificate-settings.tsx:708
 msgid "Removed"
 msgstr "Removed"
 
@@ -1511,11 +1511,11 @@ msgstr "Response Status Code"
 msgid "Response Time"
 msgstr "Response Time"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:582
+#: src/pages/settings/ui/components/certificate-settings.tsx:580
 msgid "Restart proxy to apply changes"
 msgstr "Restart proxy to apply changes"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:714
+#: src/pages/settings/ui/components/certificate-settings.tsx:712
 msgid "Restart proxy to use auto-generated CA"
 msgstr "Restart proxy to use auto-generated CA"
 
@@ -1647,7 +1647,7 @@ msgstr "Script unloaded"
 msgid "Select a log file to view its contents"
 msgstr "Select a log file to view its contents"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:619
+#: src/pages/settings/ui/components/certificate-settings.tsx:617
 msgid "Select CA certificate (.pem, .crt, .cer, .der)"
 msgstr "Select CA certificate (.pem, .crt, .cer, .der)"
 
@@ -1655,7 +1655,7 @@ msgstr "Select CA certificate (.pem, .crt, .cer, .der)"
 msgid "Select CA certificate to verify clients (.pem, .crt)"
 msgstr "Select CA certificate to verify clients (.pem, .crt)"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:635
+#: src/pages/settings/ui/components/certificate-settings.tsx:633
 msgid "Select CA key file (.pem, .key)"
 msgstr "Select CA key file (.pem, .key)"
 
@@ -1675,7 +1675,7 @@ msgstr "Select key file (.pem, .key)"
 msgid "Select local file"
 msgstr "Select local file"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:654
+#: src/pages/settings/ui/components/certificate-settings.tsx:652
 msgid "Select PKCS12 file (.p12, .pfx)"
 msgstr "Select PKCS12 file (.p12, .pfx)"
 
@@ -1879,7 +1879,7 @@ msgstr "Target URL"
 msgid "Terminal Command"
 msgstr "Terminal Command"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:698
+#: src/pages/settings/ui/components/certificate-settings.tsx:696
 msgid "The certificate must be a CA certificate (BasicConstraints CA=true). After importing, restart the proxy to use the new CA. You also need to install this CA on your system and devices."
 msgstr "The certificate must be a CA certificate (BasicConstraints CA=true). After importing, restart the proxy to use the new CA. You also need to install this CA on your system and devices."
 
