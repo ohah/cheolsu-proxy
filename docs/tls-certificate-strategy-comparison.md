@@ -415,11 +415,11 @@ pub fn emit_tls_event(sender: &Option<TlsEventSender>, event: TlsEvent) {
 - `context.rs`: `tls_event_sender: Option<TlsEventSender>` 필드 추가
 - `builder.rs`: `with_tls_event_sender()` 빌더 메서드 추가 (선택적)
 
-#### Step 2-3: CA 구조체에 sender 필드 추가
+#### Step 2-3: HybridTlsHandler에 sender 필드 추가
 
-- `RcgenAuthority` / `OpensslAuthority` 구조체에 `tls_event_sender: Option<TlsEventSender>` 추가
-- setter 메서드 추가 (기존 `new()` 시그니처 유지)
-- `gen_cert()` 시작 시 `FakeCertGenerating` 이벤트 emit
+- `HybridTlsHandler` 구조체에 `tls_event_sender: Option<TlsEventSender>` 추가
+- `new()` 시그니처에 sender 파라미터 추가
+- CA 구조체(RcgenAuthority/OpensslAuthority)는 변경하지 않음 — `FakeCertGenerating` 이벤트는 `HybridTlsHandler` 내에서 `gen_server_config()`/`gen_openssl_context()` 호출 전에 emit
 
 #### Step 2-4: hybrid_tls_handler.rs 이벤트 emit 삽입
 
