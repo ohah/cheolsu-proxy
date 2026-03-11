@@ -5,6 +5,15 @@ import type { ConnectionStrategy } from "@/shared/api/proxy";
 import type { DomainClientCertConfig } from "@/shared/api/proxy";
 
 export interface SettingsFormValues {
+  // Quick Settings
+  quickSettings: {
+    noCaching: boolean;
+    blockCookies: boolean;
+    noGzip: boolean;
+    autosaveSession: boolean;
+    showConnectRequests: boolean;
+  };
+
   // Throttle
   throttle: {
     enabled: boolean;
@@ -60,6 +69,13 @@ export interface SettingsFormValues {
 export function getDefaultValues(): SettingsFormValues {
   const store = useAppSettingsStore.getState();
   return {
+    quickSettings: {
+      noCaching: store.quickSettingsNoCaching,
+      blockCookies: store.quickSettingsBlockCookies,
+      noGzip: store.quickSettingsNoGzip,
+      autosaveSession: store.autosaveSession,
+      showConnectRequests: store.showConnectRequests,
+    },
     throttle: {
       enabled: store.throttleConfig.enabled,
       preset: store.throttleConfig.preset,

@@ -12,6 +12,7 @@ import {
   updateRequestClientCert,
   updateThrottle,
   updateConnectionStrategy,
+  updateQuickSettings,
   parseCertificateInfo,
   type ThrottleConfig,
   type ConnectionStrategy,
@@ -102,6 +103,27 @@ async function saveAllSettings(
 ) {
   const store = useAppSettingsStore.getState();
   const results: SaveResult[] = [];
+
+  // Quick Settings
+  if (dirtyFields.quickSettings) {
+    try {
+      await updateQuickSettings(
+        data.quickSettings.noCaching,
+        data.quickSettings.blockCookies,
+        data.quickSettings.noGzip,
+      );
+      store.setQuickSettings({
+        quickSettingsNoCaching: data.quickSettings.noCaching,
+        quickSettingsBlockCookies: data.quickSettings.blockCookies,
+        quickSettingsNoGzip: data.quickSettings.noGzip,
+      });
+      store.setAutosaveSession(data.quickSettings.autosaveSession);
+      store.setShowConnectRequests(data.quickSettings.showConnectRequests);
+      results.push({ section: "quickSettings", success: true });
+    } catch (error) {
+      results.push({ section: "quickSettings", success: false, error });
+    }
+  }
 
   // Throttle
   if (dirtyFields.throttle) {
@@ -315,13 +337,18 @@ function SettingsPageInner() {
     return () => observer.disconnect();
   }, []);
 
-  // Sync proxy auth to backend when proxy connects
+  // Sync settings to backend when proxy connects
   useEffect(() => {
     if (isProxyConnected) {
-      const { proxyAuthConfig } = useAppSettingsStore.getState();
-      if (proxyAuthConfig.enabled) {
-        updateProxyAuth(proxyAuthConfig).catch(() => {});
+      const s = useAppSettingsStore.getState();
+      if (s.proxyAuthConfig.enabled) {
+        updateProxyAuth(s.proxyAuthConfig).catch(() => {});
       }
+      updateQuickSettings(
+        s.quickSettingsNoCaching,
+        s.quickSettingsBlockCookies,
+        s.quickSettingsNoGzip,
+      ).catch(() => {});
     }
   }, [isProxyConnected]);
 
