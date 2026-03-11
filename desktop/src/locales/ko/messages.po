@@ -71,8 +71,13 @@ msgid "Action"
 msgstr "동작"
 
 #: src/pages/script/ui/script-page.tsx:170
+#: src/pages/settings/ui/components/certificate-settings.tsx:545
 msgid "Active"
 msgstr "활성"
+
+#: src/pages/settings/ui/components/certificate-settings.tsx:542
+msgid "Active Custom CA"
+msgstr ""
 
 #: src/features/intercept-rule-form/ui/headers-fields.tsx:59
 #: src/features/intercept-rule-form/ui/headers-fields.tsx:88
@@ -268,6 +273,9 @@ msgid "Breakpoints"
 msgstr "Breakpoints"
 
 #: src/pages/script/ui/script-page.tsx:263
+#: src/pages/settings/ui/components/certificate-settings.tsx:624
+#: src/pages/settings/ui/components/certificate-settings.tsx:640
+#: src/pages/settings/ui/components/certificate-settings.tsx:659
 #: src/pages/settings/ui/settings-page.tsx:218
 #: src/pages/settings/ui/settings-page.tsx:235
 #: src/pages/settings/ui/settings-page.tsx:361
@@ -284,13 +292,21 @@ msgstr "바이패스 목록"
 msgid "bytes body"
 msgstr "바이트 본문"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:103
+#: src/pages/settings/ui/components/certificate-settings.tsx:112
 msgid "CA Certificate"
 msgstr "CA 인증서"
+
+#: src/pages/settings/ui/components/certificate-settings.tsx:614
+msgid "CA Certificate File"
+msgstr ""
 
 #: src/pages/settings/ui/settings-page.tsx:598
 msgid "CA Certificate File (optional)"
 msgstr "CA 인증서 파일 (선택사항)"
+
+#: src/pages/settings/ui/components/certificate-settings.tsx:630
+msgid "CA Key File"
+msgstr ""
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:474
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:255
@@ -308,7 +324,7 @@ msgstr "추가할 수 없습니다: 응답 데이터 없음"
 msgid "Certificate Details"
 msgstr "인증서 상세 정보"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:386
+#: src/pages/settings/ui/components/certificate-settings.tsx:395
 msgid "Certificate Download URL"
 msgstr "인증서 다운로드 URL"
 
@@ -433,7 +449,7 @@ msgstr "연결"
 msgid "Console"
 msgstr "콘솔"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:230
+#: src/pages/settings/ui/components/certificate-settings.tsx:239
 msgid "Copied!"
 msgstr "복사됨!"
 
@@ -458,7 +474,7 @@ msgstr "헤더 복사"
 msgid "Copy to clipboard"
 msgstr "클립보드에 복사"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:230
+#: src/pages/settings/ui/components/certificate-settings.tsx:239
 msgid "Copy URL"
 msgstr "URL 복사"
 
@@ -473,6 +489,10 @@ msgstr "Curl 명령어가 클립보드에 복사되었습니다"
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:178
 msgid "Custom body"
 msgstr "커스텀 본문"
+
+#: src/pages/settings/ui/components/certificate-settings.tsx:530
+msgid "Custom CA Certificate"
+msgstr ""
 
 #: src/pages/settings/ui/components/general-settings.tsx:142
 msgid "Dark"
@@ -562,7 +582,7 @@ msgstr "규칙 수정"
 msgid "Editor"
 msgstr "에디터"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:305
+#: src/pages/settings/ui/components/certificate-settings.tsx:314
 msgid "Enable full trust for the Cheolsu Proxy CA certificate"
 msgstr "Cheolsu Proxy CA 인증서에 대한 완전 신뢰를 활성화하세요"
 
@@ -599,6 +619,10 @@ msgstr "사이드바 펼치기"
 #: src/widgets/network-header/ui/network-controls.tsx:111
 msgid "Export HAR"
 msgstr "HAR 내보내기"
+
+#: src/pages/settings/ui/components/certificate-settings.tsx:688
+msgid "Failed"
+msgstr ""
 
 #: src/pages/settings/ui/settings-page.tsx:431
 msgid "Failed — check file paths and proxy status"
@@ -655,8 +679,8 @@ msgstr "로그 라인 필터..."
 msgid "For Cursor, Claude Desktop, and other MCP-compatible clients:"
 msgstr "Cursor, Claude Desktop 및 기타 MCP 호환 클라이언트용:"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:248
-#: src/pages/settings/ui/components/certificate-settings.tsx:252
+#: src/pages/settings/ui/components/certificate-settings.tsx:257
+#: src/pages/settings/ui/components/certificate-settings.tsx:261
 msgid "format"
 msgstr "형식"
 
@@ -673,15 +697,15 @@ msgstr "전체 화면"
 msgid "Global Shortcut"
 msgstr "글로벌 단축키"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:299
+#: src/pages/settings/ui/components/certificate-settings.tsx:308
 msgid "Go to <0>Settings → General → About → Certificate Trust Settings</0>"
 msgstr "<0>설정 → 일반 → 정보 → 인증서 신뢰 설정</0>으로 이동하세요"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:291
+#: src/pages/settings/ui/components/certificate-settings.tsx:300
 msgid "Go to <0>Settings → General → VPN & Device Management</0>"
 msgstr "<0>설정 → 일반 → VPN 및 기기 관리</0>로 이동하세요"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:339
+#: src/pages/settings/ui/components/certificate-settings.tsx:348
 msgid "Go to <0>Settings → Security → Encryption & credentials</0>"
 msgstr "<0>설정 → 보안 → 암호화 및 자격증명</0>으로 이동하세요"
 
@@ -758,25 +782,37 @@ msgstr "HTTPie"
 msgid "If not specified, any client certificate will be accepted without verification"
 msgstr "지정하지 않으면 모든 클라이언트 인증서가 검증 없이 수락됩니다"
 
+#: src/pages/settings/ui/components/certificate-settings.tsx:679
+msgid "Import"
+msgstr ""
+
 #: src/widgets/network-header/ui/network-controls.tsx:122
 msgid "Import HAR"
 msgstr "HAR 가져오기"
+
+#: src/pages/settings/ui/components/certificate-settings.tsx:683
+msgid "Imported"
+msgstr ""
+
+#: src/pages/settings/ui/components/certificate-settings.tsx:679
+msgid "Importing..."
+msgstr ""
 
 #: src/pages/script/ui/script-page.tsx:170
 msgid "Inactive"
 msgstr "비활성"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:116
+#: src/pages/settings/ui/components/certificate-settings.tsx:125
 #: src/pages/settings/ui/components/cli-settings.tsx:61
 msgid "Install"
 msgstr "설치"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:192
+#: src/pages/settings/ui/components/certificate-settings.tsx:201
 msgid "Install and trust the downloaded certificate"
 msgstr "다운로드된 인증서를 설치하고 신뢰"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:271
-#: src/pages/settings/ui/components/certificate-settings.tsx:321
+#: src/pages/settings/ui/components/certificate-settings.tsx:280
+#: src/pages/settings/ui/components/certificate-settings.tsx:330
 msgid "Install Guide"
 msgstr "설치 가이드"
 
@@ -784,11 +820,11 @@ msgstr "설치 가이드"
 msgid "Install the <0>cheolsu</0> command to use the TUI from your terminal"
 msgstr "터미널에서 TUI를 사용하려면 <0>cheolsu</0> 명령어를 설치하세요"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:149
+#: src/pages/settings/ui/components/certificate-settings.tsx:158
 msgid "Install the CA certificate on external devices (mobile, tablet) to intercept HTTPS traffic"
 msgstr "HTTPS 트래픽을 가로채려면 외부 기기(모바일, 태블릿)에 CA 인증서를 설치하세요"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:106
+#: src/pages/settings/ui/components/certificate-settings.tsx:115
 msgid "Install the CA certificate to trust HTTPS traffic intercepted by the proxy"
 msgstr "프록시가 가로채는 HTTPS 트래픽을 신뢰하려면 CA 인증서를 설치하세요"
 
@@ -796,7 +832,7 @@ msgstr "프록시가 가로채는 HTTPS 트래픽을 신뢰하려면 CA 인증�
 msgid "Installed"
 msgstr "설치됨"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:116
+#: src/pages/settings/ui/components/certificate-settings.tsx:125
 #: src/pages/settings/ui/components/cli-settings.tsx:61
 msgid "Installing..."
 msgstr "설치 중..."
@@ -872,7 +908,7 @@ msgstr "인증서 정보 로딩 중..."
 
 #: src/pages/script/ui/script-page.tsx:214
 #: src/pages/script/ui/script-page.tsx:266
-#: src/pages/settings/ui/components/certificate-settings.tsx:164
+#: src/pages/settings/ui/components/certificate-settings.tsx:173
 msgid "Loading..."
 msgstr "로딩 중..."
 
@@ -992,7 +1028,7 @@ msgstr "메시지"
 msgid "Method"
 msgstr "메서드"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:201
+#: src/pages/settings/ui/components/certificate-settings.tsx:210
 msgid "Mobile Certificate Install"
 msgstr "모바일 인증서 설치"
 
@@ -1097,7 +1133,7 @@ msgstr "재생할 유효한 요청이 없습니다"
 msgid "No valid requests to replay"
 msgstr "리플레이할 유효한 요청이 없습니다"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:130
+#: src/pages/settings/ui/components/certificate-settings.tsx:139
 msgid "Not Trusted"
 msgstr "신뢰되지 않음"
 
@@ -1117,15 +1153,15 @@ msgstr "http:// 및 https:// URL만 허용됩니다"
 msgid "Only whitelisted domains ({enabledCount}) will have HTTPS traffic intercepted"
 msgstr "화이트리스트에 등록된 도메인({enabledCount}개)만 HTTPS 트래픽이 인터셉트됩니다"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:331
+#: src/pages/settings/ui/components/certificate-settings.tsx:340
 msgid "Open <0>{CERT_DOWNLOAD_URL}</0> in Chrome"
 msgstr "Chrome에서 <0>{CERT_DOWNLOAD_URL}</0>을 여세요"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:281
+#: src/pages/settings/ui/components/certificate-settings.tsx:290
 msgid "Open <0>{CERT_DOWNLOAD_URL}</0> in Safari"
 msgstr "Safari에서 <0>{CERT_DOWNLOAD_URL}</0>을 여세요"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:183
+#: src/pages/settings/ui/components/certificate-settings.tsx:192
 msgid "Open <0>{CERT_DOWNLOAD_URL}</0> in your device browser"
 msgstr "기기 브라우저에서 <0>{CERT_DOWNLOAD_URL}</0>을 여세요"
 
@@ -1137,7 +1173,7 @@ msgstr "디렉토리 열기"
 msgid "Open File"
 msgstr "파일 열기"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:239
+#: src/pages/settings/ui/components/certificate-settings.tsx:248
 msgid "Open this URL in your mobile browser after setting the Wi-Fi proxy. The page automatically detects your device and provides the correct certificate format."
 msgstr "Wi-Fi 프록시를 설정한 후 모바일 브라우저에서 이 URL을 여세요. 페이지가 자동으로 기기를 감지하고 올바른 인증서 형식을 제공합니다."
 
@@ -1146,6 +1182,7 @@ msgstr "Wi-Fi 프록시를 설정한 후 모바일 브라우저에서 이 URL을
 msgid "optional"
 msgstr "선택사항"
 
+#: src/pages/settings/ui/components/certificate-settings.tsx:558
 #: src/pages/settings/ui/settings-page.tsx:269
 msgid "Organization"
 msgstr "조직"
@@ -1154,6 +1191,7 @@ msgstr "조직"
 msgid "Original"
 msgstr "원본"
 
+#: src/pages/settings/ui/components/certificate-settings.tsx:665
 #: src/pages/settings/ui/components/proxy-settings.tsx:141
 #: src/pages/settings/ui/settings-page.tsx:749
 #: src/pages/settings/ui/settings-page.tsx:753
@@ -1197,6 +1235,22 @@ msgstr "대기 중인 Breakpoints"
 msgid "Pin to Top"
 msgstr "상단에 고정"
 
+#: src/pages/settings/ui/components/certificate-settings.tsx:649
+msgid "PKCS12 File"
+msgstr ""
+
+#: src/pages/settings/ui/components/certificate-settings.tsx:669
+msgid "PKCS12 password (leave empty if none)"
+msgstr ""
+
+#: src/pages/settings/ui/components/certificate-settings.tsx:487
+msgid "Please select a PKCS12 file"
+msgstr ""
+
+#: src/pages/settings/ui/components/certificate-settings.tsx:479
+msgid "Please select both certificate and key files"
+msgstr ""
+
 #: src/pages/settings/ui/components/proxy-settings.tsx:110
 msgid "Port"
 msgstr "포트"
@@ -1229,7 +1283,7 @@ msgstr "프로파일"
 msgid "Progress"
 msgstr "진행률"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:376
+#: src/pages/settings/ui/components/certificate-settings.tsx:385
 msgid "Proxy Address"
 msgstr "프록시 주소"
 
@@ -1279,7 +1333,7 @@ msgstr "수신 (서버 → 클라이언트)"
 
 #: src/pages/log-viewer/ui/logs-page.tsx:225
 #: src/pages/log-viewer/ui/logs-page.tsx:241
-#: src/pages/settings/ui/components/certificate-settings.tsx:393
+#: src/pages/settings/ui/components/certificate-settings.tsx:402
 msgid "Refresh"
 msgstr "새로고침"
 
@@ -1288,7 +1342,7 @@ msgstr "새로고침"
 msgid "Regex pattern (e.g. old-domain\\.com)"
 msgstr "정규식 패턴 (예: old-domain\\.com)"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:116
+#: src/pages/settings/ui/components/certificate-settings.tsx:125
 #: src/pages/settings/ui/components/cli-settings.tsx:61
 msgid "Reinstall"
 msgstr "재설치"
@@ -1297,7 +1351,7 @@ msgstr "재설치"
 msgid "Reload"
 msgstr "리로드"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:146
+#: src/pages/settings/ui/components/certificate-settings.tsx:155
 msgid "Remote Device Certificate"
 msgstr "외부 기기 인증서"
 
@@ -1314,6 +1368,10 @@ msgstr "압축된 응답을 방지하기 위해 요청에서 Accept-Encoding 헤
 msgid "Remove Cookie headers from requests and Set-Cookie headers from responses"
 msgstr "요청에서 Cookie 헤더를 제거하고 응답에서 Set-Cookie 헤더를 제거합니다"
 
+#: src/pages/settings/ui/components/certificate-settings.tsx:578
+msgid "Remove Custom CA"
+msgstr ""
+
 #: src/pages/server-replay/ui/server-replay-page.tsx:238
 msgid "Remove entry"
 msgstr "엔트리 삭제"
@@ -1322,6 +1380,10 @@ msgstr "엔트리 삭제"
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:368
 msgid "Remove Headers"
 msgstr "헤더 삭제"
+
+#: src/pages/settings/ui/components/certificate-settings.tsx:710
+msgid "Removed"
+msgstr ""
 
 #. placeholder {0}: transactions.length
 #. placeholder {1}: loaded.length
@@ -1449,6 +1511,14 @@ msgstr "응답 상태 코드"
 msgid "Response Time"
 msgstr "응답 시간"
 
+#: src/pages/settings/ui/components/certificate-settings.tsx:582
+msgid "Restart proxy to apply changes"
+msgstr ""
+
+#: src/pages/settings/ui/components/certificate-settings.tsx:714
+msgid "Restart proxy to use auto-generated CA"
+msgstr ""
+
 #: src/widgets/network-header/ui/network-controls.tsx:40
 msgid "Resume recording"
 msgstr "기록 재개"
@@ -1544,7 +1614,7 @@ msgstr "저장됨"
 msgid "Saving..."
 msgstr "저장 중..."
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:368
+#: src/pages/settings/ui/components/certificate-settings.tsx:377
 msgid "Scan for proxy info"
 msgstr "프록시 정보 스캔"
 
@@ -1577,9 +1647,17 @@ msgstr "스크립트가 언로드되었습니다"
 msgid "Select a log file to view its contents"
 msgstr "로그 파일을 선택하여 내용을 확인하세요"
 
+#: src/pages/settings/ui/components/certificate-settings.tsx:619
+msgid "Select CA certificate (.pem, .crt, .cer, .der)"
+msgstr ""
+
 #: src/pages/settings/ui/settings-page.tsx:603
 msgid "Select CA certificate to verify clients (.pem, .crt)"
 msgstr "클라이언트 검증용 CA 인증서 선택 (.pem, .crt)"
+
+#: src/pages/settings/ui/components/certificate-settings.tsx:635
+msgid "Select CA key file (.pem, .key)"
+msgstr ""
 
 #: src/pages/settings/ui/settings-page.tsx:213
 msgid "Select certificate file (.pem, .crt)"
@@ -1597,11 +1675,15 @@ msgstr "키 파일 선택 (.pem, .key)"
 msgid "Select local file"
 msgstr "로컬 파일 선택"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:347
+#: src/pages/settings/ui/components/certificate-settings.tsx:654
+msgid "Select PKCS12 file (.p12, .pfx)"
+msgstr ""
+
+#: src/pages/settings/ui/components/certificate-settings.tsx:356
 msgid "Select the downloaded certificate file and confirm"
 msgstr "다운로드된 인증서 파일을 선택하고 확인하세요"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:296
+#: src/pages/settings/ui/components/certificate-settings.tsx:305
 msgid "Select the downloaded profile and tap \"Install\""
 msgstr "다운로드된 프로필을 선택하고 \"Install\"을 탭하세요"
 
@@ -1685,7 +1767,7 @@ msgstr "본문 설정 (선택사항)"
 
 #. placeholder {0}: certDownloadInfo.local_ips[0] || "127.0.0.1"
 #. placeholder {1}: certDownloadInfo.port
-#: src/pages/settings/ui/components/certificate-settings.tsx:175
+#: src/pages/settings/ui/components/certificate-settings.tsx:184
 msgid "Set Wi-Fi proxy on your device to <0>{0}:{1}</0>"
 msgstr "기기의 Wi-Fi 프록시를 <0>{0}:{1}</0>로 설정"
 
@@ -1694,7 +1776,7 @@ msgstr "기기의 Wi-Fi 프록시를 <0>{0}:{1}</0>로 설정"
 msgid "Settings"
 msgstr "설정"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:171
+#: src/pages/settings/ui/components/certificate-settings.tsx:180
 msgid "Setup Instructions:"
 msgstr "설정 방법:"
 
@@ -1731,8 +1813,8 @@ msgstr "SSL Proxying"
 msgid "Start"
 msgstr "시작"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:135
-#: src/pages/settings/ui/components/certificate-settings.tsx:159
+#: src/pages/settings/ui/components/certificate-settings.tsx:144
+#: src/pages/settings/ui/components/certificate-settings.tsx:168
 msgid "Start proxy first"
 msgstr "프록시를 먼저 실행하세요"
 
@@ -1768,11 +1850,11 @@ msgstr "PEM 인코딩된 인증서 및 키를 지원합니다 (RSA, ECDSA, PKCS#
 msgid "System"
 msgstr "시스템"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:286
+#: src/pages/settings/ui/components/certificate-settings.tsx:295
 msgid "Tap \"Allow\" when prompted to download the configuration profile"
 msgstr "구성 프로필 다운로드 프롬프트에서 \"Allow\"를 탭하세요"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:344
+#: src/pages/settings/ui/components/certificate-settings.tsx:353
 msgid "Tap \"Install a certificate\" → \"CA certificate\""
 msgstr "\"Install a certificate\" → \"CA certificate\"를 탭하세요"
 
@@ -1797,7 +1879,11 @@ msgstr "대상 URL"
 msgid "Terminal Command"
 msgstr "터미널 명령어"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:336
+#: src/pages/settings/ui/components/certificate-settings.tsx:698
+msgid "The certificate must be a CA certificate (BasicConstraints CA=true). After importing, restart the proxy to use the new CA. You also need to install this CA on your system and devices."
+msgstr ""
+
+#: src/pages/settings/ui/components/certificate-settings.tsx:345
 msgid "The DER certificate file will download automatically"
 msgstr "DER 인증서 파일이 자동으로 다운로드됩니다"
 
@@ -1857,7 +1943,7 @@ msgstr "트랜잭션이 상단에 고정되었습니다"
 msgid "Transaction unpinned"
 msgstr "트랜잭션 고정이 해제되었습니다"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:125
+#: src/pages/settings/ui/components/certificate-settings.tsx:134
 msgid "Trusted"
 msgstr "신뢰됨"
 
@@ -1867,12 +1953,12 @@ msgstr "신뢰됨"
 msgid "Type"
 msgstr "타입"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:120
+#: src/pages/settings/ui/components/certificate-settings.tsx:129
 #: src/pages/settings/ui/components/cli-settings.tsx:65
 msgid "Uninstall"
 msgstr "제거"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:258
+#: src/pages/settings/ui/components/certificate-settings.tsx:267
 msgid "Universal format"
 msgstr "범용 형식"
 
@@ -1926,6 +2012,10 @@ msgstr "특정 도메인에 다른 클라이언트 인증서를 사용합니다.
 msgid "Use wildcard patterns: * matches any string, ? matches a single character."
 msgstr "와일드카드 패턴 사용: *는 모든 문자열, ?는 단일 문자를 매칭합니다."
 
+#: src/pages/settings/ui/components/certificate-settings.tsx:533
+msgid "Use your own CA certificate instead of the auto-generated one"
+msgstr ""
+
 #: src/pages/settings/ui/components/proxy-settings.tsx:133
 #: src/pages/settings/ui/settings-page.tsx:739
 #: src/pages/settings/ui/settings-page.tsx:742
@@ -1936,6 +2026,7 @@ msgstr "사용자 이름"
 msgid "Valid From"
 msgstr "유효 기간 시작"
 
+#: src/pages/settings/ui/components/certificate-settings.tsx:565
 #: src/pages/settings/ui/settings-page.tsx:294
 msgid "Valid Until"
 msgstr "유효 기간 만료"

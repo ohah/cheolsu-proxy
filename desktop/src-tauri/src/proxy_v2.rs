@@ -1045,6 +1045,92 @@ pub async fn parse_certificate_info(
     .map_err(|e| format!("파싱 태스크 실패: {}", e))?
 }
 
+// ─── Custom CA Certificate ───────────────────────────────
+
+/// 커스텀 CA 인증서를 임포트합니다 (PEM/DER cert + key)
+#[tauri::command]
+pub async fn import_custom_ca(
+    cert_path: String,
+    key_path: String,
+) -> Result<proxy_daemon::CertificateInfo, String> {
+    tokio::task::spawn_blocking(move || {
+        // 1. CA 인증서인지 검증
+        let info = proxy_daemon::validate_ca_certificate(&cert_path)
+            .map_err(|e| format!("CA 인증서 검증 실패: {}", e))?;
+
+        // 2. 인증서와 키 파일 읽기
+        let cert_data =
+            std::fs::read(&cert_path).map_err(|e| format!("인증서 파일 읽기 실패: {}", e))?;
+        let key_data = std::fs::read(&key_path).map_err(|e| format!("키 파일 읽기 실패: {}", e))?;
+
+        // 3. 키가 PEM인지 확인, PEM이 아니면 에러
+        if !key_data.starts_with(b"-----BEGIN") {
+            return Err("키 파일이 PEM 형식이 아닙니다".to_string());
+        }
+
+        // 4. 저장
+        proxy_daemon::save_custom_ca(&cert_data, &key_data)
+            .map_err(|e| format!("커스텀 CA 저장 실패: {}", e))?;
+
+        Ok(info)
+    })
+    .await
+    .map_err(|e| format!("태스크 실패: {}", e))?
+}
+
+/// PKCS12 파일에서 커스텀 CA 인증서를 임포트합니다
+#[tauri::command]
+pub async fn import_custom_ca_pkcs12(
+    p12_path: String,
+    password: String,
+) -> Result<proxy_daemon::CertificateInfo, String> {
+    tokio::task::spawn_blocking(move || {
+        // 1. PKCS12 파싱
+        let (cert_pem, key_pem) = proxy_daemon::parse_pkcs12(&p12_path, &password)
+            .map_err(|e| format!("PKCS12 파싱 실패: {}", e))?;
+
+        // 2. 임시 파일에 인증서 저장하여 검증
+        let temp_dir = std::env::temp_dir();
+        let temp_cert = temp_dir.join("cheolsu-ca-validate.pem");
+        std::fs::write(&temp_cert, &cert_pem).map_err(|e| format!("임시 파일 쓰기 실패: {}", e))?;
+
+        let info =
+            proxy_daemon::validate_ca_certificate(temp_cert.to_str().unwrap()).map_err(|e| {
+                let _ = std::fs::remove_file(&temp_cert);
+                format!("CA 인증서 검증 실패: {}", e)
+            })?;
+        let _ = std::fs::remove_file(&temp_cert);
+
+        // 3. 저장
+        proxy_daemon::save_custom_ca(&cert_pem, &key_pem)
+            .map_err(|e| format!("커스텀 CA 저장 실패: {}", e))?;
+
+        Ok(info)
+    })
+    .await
+    .map_err(|e| format!("태스크 실패: {}", e))?
+}
+
+/// 커스텀 CA 인증서를 제거하고 자동 생성 CA로 복귀합니다
+#[tauri::command]
+pub async fn remove_custom_ca() -> Result<(), String> {
+    tokio::task::spawn_blocking(|| {
+        proxy_daemon::remove_custom_ca().map_err(|e| format!("커스텀 CA 제거 실패: {}", e))
+    })
+    .await
+    .map_err(|e| format!("태스크 실패: {}", e))?
+}
+
+/// 현재 커스텀 CA 상태를 확인합니다
+#[tauri::command]
+pub async fn get_custom_ca_status() -> Result<Option<proxy_daemon::CertificateInfo>, String> {
+    tokio::task::spawn_blocking(|| {
+        proxy_daemon::get_custom_ca_info().map_err(|e| format!("커스텀 CA 상태 확인 실패: {}", e))
+    })
+    .await
+    .map_err(|e| format!("태스크 실패: {}", e))?
+}
+
 /// 빠른 설정 업데이트 (No Caching, Block Cookies, No Gzip)
 #[tauri::command]
 pub async fn update_quick_settings(

@@ -387,6 +387,30 @@ export async function updateRequestClientCert(
   return invoke("update_request_client_cert", { config });
 }
 
+// ─── Custom CA Certificate ───────────────────────────────
+
+export async function importCustomCa(
+  certPath: string,
+  keyPath: string,
+): Promise<CertificateInfo> {
+  return invoke("import_custom_ca", { certPath, keyPath });
+}
+
+export async function importCustomCaPkcs12(
+  p12Path: string,
+  password: string,
+): Promise<CertificateInfo> {
+  return invoke("import_custom_ca_pkcs12", { p12Path, password });
+}
+
+export async function removeCustomCa(): Promise<void> {
+  return invoke("remove_custom_ca");
+}
+
+export async function getCustomCaStatus(): Promise<CertificateInfo | null> {
+  return invoke("get_custom_ca_status");
+}
+
 // ─── Quick Settings ──────────────────────────────────────
 
 export async function updateQuickSettings(

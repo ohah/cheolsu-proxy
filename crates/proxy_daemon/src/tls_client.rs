@@ -676,3 +676,212 @@ mod tests {
         assert!(resolver.resolve(&[], &[]).is_none());
     }
 }
+
+// ─── Custom CA & PKCS12 유틸리티 ─────────────────────────
+
+/// PKCS12 (.p12/.pfx) 파일에서 인증서(PEM)와 개인키(PEM)를 추출합니다.
+pub fn parse_pkcs12(
+    p12_path: &str,
+    password: &str,
+) -> Result<(Vec<u8>, Vec<u8>), Box<dyn std::error::Error>> {
+    let p12_data = std::fs::read(p12_path)?;
+    let pkcs12 = openssl::pkcs12::Pkcs12::from_der(&p12_data)?;
+    let parsed = pkcs12.parse2(password)?;
+
+    let cert = parsed.cert.ok_or("PKCS12 파일에 인증서가 없습니다")?;
+    let pkey = parsed.pkey.ok_or("PKCS12 파일에 개인키가 없습니다")?;
+
+    let cert_pem = cert.to_pem()?;
+    // PKCS8 형식으로 내보내기 (rcgen과 호환)
+    let key_pem = pkey.private_key_to_pem_pkcs8()?;
+
+    Ok((cert_pem, key_pem))
+}
+
+/// 인증서 파일이 CA 인증서인지 검증합니다.
+/// CA 인증서는 BasicConstraints CA=true와 KeyUsage keyCertSign이 필요합니다.
+pub fn validate_ca_certificate(
+    cert_path: &str,
+) -> Result<CertificateInfo, Box<dyn std::error::Error>> {
+    let info = parse_certificate_info(cert_path)?;
+
+    if !info.is_ca {
+        return Err("CA 인증서가 아닙니다. BasicConstraints CA=true가 필요합니다".into());
+    }
+
+    Ok(info)
+}
+
+/// 커스텀 CA 인증서를 앱 데이터 디렉토리에 저장합니다.
+/// cert_pem과 key_pem 바이트를 custom-ca.cer, custom-ca.key로 저장합니다.
+pub fn save_custom_ca(cert_pem: &[u8], key_pem: &[u8]) -> Result<(), Box<dyn std::error::Error>> {
+    let storage_dir = proxyapi_v2::certificate_authority::get_ca_storage_dir()
+        .map_err(|e| -> Box<dyn std::error::Error> { e.into() })?;
+
+    let cert_path = storage_dir.join("custom-ca.cer");
+    let key_path = storage_dir.join("custom-ca.key");
+
+    // 인증서가 PEM 형식인지 확인하고, PEM이면 DER로 변환하여 저장
+    // (기존 load_ca_from_storage는 cert를 DER, key를 PEM으로 읽음)
+    let cert_data = if cert_pem.starts_with(b"-----BEGIN") {
+        // PEM → DER 변환
+        let x509 = openssl::x509::X509::from_pem(cert_pem)?;
+        x509.to_der()?
+    } else {
+        cert_pem.to_vec()
+    };
+
+    std::fs::write(&cert_path, &cert_data)?;
+    std::fs::write(&key_path, key_pem)?;
+
+    // 키 파일 권한 제한 (Unix)
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::set_permissions(&key_path, std::fs::Permissions::from_mode(0o600))?;
+    }
+
+    info!(
+        cert = %cert_path.display(),
+        key = %key_path.display(),
+        "커스텀 CA 인증서 저장 완료"
+    );
+
+    Ok(())
+}
+
+/// 커스텀 CA 인증서를 제거합니다.
+pub fn remove_custom_ca() -> Result<(), Box<dyn std::error::Error>> {
+    let storage_dir = proxyapi_v2::certificate_authority::get_ca_storage_dir()
+        .map_err(|e| -> Box<dyn std::error::Error> { e.into() })?;
+
+    let cert_path = storage_dir.join("custom-ca.cer");
+    let key_path = storage_dir.join("custom-ca.key");
+
+    if cert_path.exists() {
+        std::fs::remove_file(&cert_path)?;
+    }
+    if key_path.exists() {
+        std::fs::remove_file(&key_path)?;
+    }
+
+    info!("커스텀 CA 인증서 제거 완료");
+    Ok(())
+}
+
+/// 현재 커스텀 CA가 활성화되어 있는지 확인하고 인증서 정보를 반환합니다.
+pub fn get_custom_ca_info() -> Result<Option<CertificateInfo>, Box<dyn std::error::Error>> {
+    if !proxyapi_v2::certificate_authority::has_custom_ca() {
+        return Ok(None);
+    }
+
+    let (cert_path, _) = proxyapi_v2::certificate_authority::get_custom_ca_paths()
+        .map_err(|e| -> Box<dyn std::error::Error> { e.into() })?;
+
+    // DER 형식으로 저장되어 있으므로 DER에서 정보 파싱
+    let cert_data = std::fs::read(&cert_path)?;
+    let (_, cert) = x509_parser::parse_x509_certificate(&cert_data)
+        .map_err(|e| format!("인증서 파싱 실패: {}", e))?;
+
+    let info = parse_x509_to_certificate_info(&cert, &cert_data, 1);
+    Ok(Some(info))
+}
+
+/// x509_parser::X509Certificate에서 CertificateInfo를 추출합니다.
+fn parse_x509_to_certificate_info(
+    cert: &x509_parser::certificate::X509Certificate<'_>,
+    cert_der: &[u8],
+    chain_length: usize,
+) -> CertificateInfo {
+    let subject_cn = cert
+        .subject()
+        .iter()
+        .flat_map(|rdn| rdn.iter())
+        .find(|attr| *attr.attr_type() == OID_X509_COMMON_NAME)
+        .and_then(|attr| attr.as_str().ok())
+        .map(|s| s.to_string());
+
+    let issuer_cn = cert
+        .issuer()
+        .iter()
+        .flat_map(|rdn| rdn.iter())
+        .find(|attr| *attr.attr_type() == OID_X509_COMMON_NAME)
+        .and_then(|attr| attr.as_str().ok())
+        .map(|s| s.to_string());
+
+    let organization = cert
+        .subject()
+        .iter()
+        .flat_map(|rdn| rdn.iter())
+        .find(|attr| *attr.attr_type() == OID_X509_ORGANIZATION_NAME)
+        .and_then(|attr| attr.as_str().ok())
+        .map(|s| s.to_string());
+
+    let mut sans_dns = Vec::new();
+    let mut sans_ip = Vec::new();
+
+    if let Ok(Some(san)) = cert.subject_alternative_name() {
+        for name in &san.value.general_names {
+            match name {
+                GeneralName::DNSName(dns) => sans_dns.push(dns.to_string()),
+                GeneralName::IPAddress(ip_bytes) => {
+                    let ip_str = match ip_bytes.len() {
+                        4 => format!(
+                            "{}.{}.{}.{}",
+                            ip_bytes[0], ip_bytes[1], ip_bytes[2], ip_bytes[3]
+                        ),
+                        16 => {
+                            let parts: Vec<String> = ip_bytes
+                                .chunks(2)
+                                .map(|c| format!("{:02x}{:02x}", c[0], c[1]))
+                                .collect();
+                            parts.join(":")
+                        }
+                        _ => format!("{:?}", ip_bytes),
+                    };
+                    sans_ip.push(ip_str);
+                }
+                _ => {}
+            }
+        }
+    }
+
+    let is_ca = cert
+        .basic_constraints()
+        .ok()
+        .flatten()
+        .map(|bc| bc.value.ca)
+        .unwrap_or(false);
+
+    let not_before = cert.validity().not_before.to_datetime().to_string();
+    let not_after = cert.validity().not_after.to_datetime().to_string();
+    let serial_number = cert
+        .raw_serial()
+        .iter()
+        .map(|b| format!("{:02X}", b))
+        .collect::<Vec<_>>()
+        .join(":");
+
+    let mut hasher = Sha256::new();
+    hasher.update(cert_der);
+    let fingerprint = hasher
+        .finalize()
+        .iter()
+        .map(|b| format!("{:02X}", b))
+        .collect::<Vec<_>>()
+        .join(":");
+
+    CertificateInfo {
+        subject_cn,
+        issuer_cn,
+        organization,
+        sans_dns,
+        sans_ip,
+        not_before,
+        not_after,
+        serial_number,
+        fingerprint_sha256: fingerprint,
+        is_ca,
+        chain_length,
+    }
+}
