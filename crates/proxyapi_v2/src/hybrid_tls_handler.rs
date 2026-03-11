@@ -1,5 +1,6 @@
 use crate::certificate_authority::CertificateAuthority;
 use crate::rewind::Rewind;
+use crate::tls_config::SharedTlsConfig;
 use crate::tls_event::{TlsEvent, TlsEventSender, emit_tls_event};
 use crate::tls_version_detector::TlsVersion;
 use crate::upstream_cert::UpstreamCertInfo;
@@ -57,6 +58,7 @@ pub enum TlsStrategy {
 pub(crate) struct HybridTlsHandler<CA: CertificateAuthority> {
     ca: Arc<CA>,
     tls_event_sender: Option<TlsEventSender>,
+    tls_config: Option<SharedTlsConfig>,
 }
 
 impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
@@ -64,10 +66,12 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
     pub async fn new(
         ca: Arc<CA>,
         tls_event_sender: Option<TlsEventSender>,
+        tls_config: Option<SharedTlsConfig>,
     ) -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
         Ok(Self {
             ca,
             tls_event_sender,
+            tls_config,
         })
     }
 
@@ -85,7 +89,7 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
         authority: &Authority,
         tls_info: &TlsConnectionInfo,
     ) -> TlsStrategy {
-        determine_tls_strategy(authority, tls_info)
+        determine_tls_strategy(authority, tls_info, self.tls_config.as_deref())
     }
 
     /// TLS 버전을 감지하고 적절한 TLS 핸들러를 선택합니다 (Upgraded 스트림 전용)
@@ -379,14 +383,17 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
 
         info!("🔧 [OPENSSL-IMPROVED] accept() 호출 시작...");
 
-        // Apple 서비스용 더 긴 타임아웃 설정
-        let timeout_duration = if authority.as_str().contains("apple.com")
+        // 도메인별 핸드셰이크 타임아웃 설정
+        let timeout_secs = if let Some(ref tls_config) = self.tls_config {
+            tls_config.handshake_timeout(authority.host()).unwrap_or(10)
+        } else if authority.as_str().contains("apple.com")
             || authority.as_str().contains("icloud.com")
         {
-            std::time::Duration::from_secs(15) // Apple 서비스용 15초 타임아웃
+            15 // Apple 서비스용 15초 (하드코딩 fallback)
         } else {
-            std::time::Duration::from_secs(10) // 일반 서비스용 10초 타임아웃
+            10 // 일반 서비스용 10초
         };
+        let timeout_duration = std::time::Duration::from_secs(timeout_secs);
 
         info!(
             "🔧 [OPENSSL-IMPROVED] 핸드셰이크 타임아웃 설정: {:?}",
@@ -439,16 +446,109 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         info!("🔧 [SSL-CONFIG] SSL 객체 설정 시작: {}", authority);
 
-        // 레거시 TLS 버전은 OpenSSL 3.0+에서 SECLEVEL=0이 필요
-        if matches!(
-            tls_info.version,
-            TlsVersion::Tls10 | TlsVersion::Ssl30 | TlsVersion::Tls11
-        ) {
-            ssl.set_cipher_list("@SECLEVEL=0:ALL:!aNULL:!eNULL")?;
-            info!("🔧 [SSL-CONFIG] 레거시 TLS용 SECLEVEL=0 적용");
+        // TlsConfigManager가 있으면 규칙 기반 설정, 없으면 기존 하드코딩 동작
+        if let Some(ref tls_config) = self.tls_config {
+            let resolved = tls_config.resolve(authority.host());
+            let client_cfg = &resolved.client_config;
+
+            // 클라이언트가 요청한 TLS 버전에 맞춰 설정 (클라이언트 요청 버전을 존중)
+            self.apply_tls_version_for_client(ssl, tls_info)?;
+
+            // 규칙에서 cipher_list가 지정된 경우 적용
+            if let Some(ref cipher_list) = client_cfg.cipher_list {
+                ssl.set_cipher_list(cipher_list)?;
+                info!(
+                    "🔧 [SSL-CONFIG] 규칙 기반 암호화 스위트 적용: {} (패턴: {:?})",
+                    cipher_list, resolved.matched_pattern
+                );
+            } else if matches!(
+                tls_info.version,
+                TlsVersion::Tls10 | TlsVersion::Ssl30 | TlsVersion::Tls11
+            ) {
+                // 레거시 TLS 버전은 SECLEVEL=0이 필요
+                ssl.set_cipher_list("@SECLEVEL=0:ALL:!aNULL:!eNULL")?;
+                info!("🔧 [SSL-CONFIG] 레거시 TLS용 SECLEVEL=0 적용");
+            }
+
+            // ECDH 곡선 설정 (SslRef에서는 set_curves_list 사용)
+            if let Some(ref curves) = client_cfg.ecdh_curves {
+                let curves_str = curves.join(":");
+                // openssl::ssl::SslRef 레벨에서는 직접 곡선 설정이 제한적이므로
+                // 로그만 남기고 SslContext 레벨에서 처리하도록 안내
+                info!(
+                    "🔧 [SSL-CONFIG] ECDH 곡선 요청됨 (SslContext 레벨에서 적용): {}",
+                    curves_str
+                );
+            }
+
+            // 인증서 검증 비활성화
+            if resolved.disable_cert_verify {
+                ssl.set_verify(openssl::ssl::SslVerifyMode::NONE);
+                info!(
+                    "🔧 [SSL-CONFIG] 인증서 검증 비활성화 (패턴: {:?})",
+                    resolved.matched_pattern
+                );
+            }
+        } else {
+            // === 기존 하드코딩 동작 (TlsConfigManager 미설정 시 backward compatible) ===
+
+            // 레거시 TLS 버전은 OpenSSL 3.0+에서 SECLEVEL=0이 필요
+            if matches!(
+                tls_info.version,
+                TlsVersion::Tls10 | TlsVersion::Ssl30 | TlsVersion::Tls11
+            ) {
+                ssl.set_cipher_list("@SECLEVEL=0:ALL:!aNULL:!eNULL")?;
+                info!("🔧 [SSL-CONFIG] 레거시 TLS용 SECLEVEL=0 적용");
+            }
+
+            // 클라이언트가 요청한 TLS 버전에 맞춰 설정
+            self.apply_tls_version_for_client(ssl, tls_info)?;
+
+            // Apple 서비스용 특별 설정
+            let domain = authority.as_str();
+            if domain.contains("apple.com") || domain.contains("icloud.com") {
+                info!(
+                    "🍎 [SSL-CONFIG] Apple 서비스 감지, 특별 설정 적용: {}",
+                    domain
+                );
+
+                ssl.set_verify(openssl::ssl::SslVerifyMode::NONE);
+                info!("🍎 [SSL-CONFIG] Apple 서비스용 인증서 검증 비활성화");
+
+                let apple_ciphers =
+                    "ECDHE+AESGCM:ECDHE+CHACHA20:DHE+AESGCM:DHE+CHACHA20:!aNULL:!MD5:!DSS";
+                ssl.set_cipher_list(apple_ciphers)?;
+                info!(
+                    "🍎 [SSL-CONFIG] Apple 서비스용 암호화 스위트 설정: {}",
+                    apple_ciphers
+                );
+            }
         }
 
-        // 클라이언트가 요청한 TLS 버전에 맞춰 설정
+        // Apple 특별 암호화 스위트가 있는 경우
+        if tls_info.has_apple_cipher {
+            info!("🔧 [SSL-CONFIG] Apple 특별 암호화 스위트 감지, Apple 호환성 모드 활성화");
+        }
+
+        // SNI가 없는 경우
+        if !tls_info.has_sni {
+            info!("🔧 [SSL-CONFIG] SNI 없음 감지, SNI 비활성화 모드 활성화");
+        }
+
+        info!(
+            "✅ [SSL-CONFIG] SSL 객체 설정 완료: {} (버전: {})",
+            authority, tls_info.version
+        );
+        Ok(())
+    }
+
+    /// 클라이언트가 요청한 TLS 버전에 맞춰 SSL 객체의 프로토콜 버전을 고정합니다
+    #[cfg(feature = "openssl-ca")]
+    fn apply_tls_version_for_client(
+        &self,
+        ssl: &mut openssl::ssl::Ssl,
+        tls_info: &TlsConnectionInfo,
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         match tls_info.version {
             TlsVersion::Tls10 | TlsVersion::Ssl30 => {
                 info!("🔧 [SSL-CONFIG] 레거시 TLS 버전 감지, TLS 1.0 고정");
@@ -471,46 +571,6 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
                 ssl.set_max_proto_version(Some(openssl::ssl::SslVersion::TLS1_3))?;
             }
         }
-
-        // Apple 서비스용 특별 설정
-        let domain = authority.as_str();
-        if domain.contains("apple.com") || domain.contains("icloud.com") {
-            info!(
-                "🍎 [SSL-CONFIG] Apple 서비스 감지, 특별 설정 적용: {}",
-                domain
-            );
-
-            // Apple 서비스용 더 관대한 설정
-            ssl.set_verify(openssl::ssl::SslVerifyMode::NONE);
-            info!("🍎 [SSL-CONFIG] Apple 서비스용 인증서 검증 비활성화");
-
-            // Apple 서비스용 특별한 암호화 스위트 설정
-            let apple_ciphers =
-                "ECDHE+AESGCM:ECDHE+CHACHA20:DHE+AESGCM:DHE+CHACHA20:!aNULL:!MD5:!DSS";
-            ssl.set_cipher_list(apple_ciphers)?;
-            info!(
-                "🍎 [SSL-CONFIG] Apple 서비스용 암호화 스위트 설정: {}",
-                apple_ciphers
-            );
-
-            // Apple 서비스용 추가 설정 (OpenSSL 옵션 설정)
-            info!("🍎 [SSL-CONFIG] Apple 서비스용 SSL 옵션 설정 완료");
-        }
-
-        // Apple 특별 암호화 스위트가 있는 경우
-        if tls_info.has_apple_cipher {
-            info!("🔧 [SSL-CONFIG] Apple 특별 암호화 스위트 감지, Apple 호환성 모드 활성화");
-        }
-
-        // SNI가 없는 경우
-        if !tls_info.has_sni {
-            info!("🔧 [SSL-CONFIG] SNI 없음 감지, SNI 비활성화 모드 활성화");
-        }
-
-        info!(
-            "✅ [SSL-CONFIG] SSL 객체 설정 완료: {} (버전: {})",
-            authority, tls_info.version
-        );
         Ok(())
     }
 
@@ -891,6 +951,7 @@ pub(crate) fn analyze_tls_connection(
 pub(crate) fn determine_tls_strategy(
     authority: &Authority,
     tls_info: &TlsConnectionInfo,
+    tls_config: Option<&crate::tls_config::TlsConfigManager>,
 ) -> TlsStrategy {
     let host = authority.host();
 
@@ -913,25 +974,33 @@ pub(crate) fn determine_tls_strategy(
         return TlsStrategy::OpenSslOnly;
     }
 
-    // 3. 특별한 도메인들은 OpenSSL 전용
-    if is_openssl_required_domain(authority) {
-        info!("🎯 [STRATEGY] 특별한 도메인 감지 → OpenSSL 전용");
-        return TlsStrategy::OpenSslOnly;
+    // 2. TlsConfigManager 기반 도메인 규칙 확인
+    if let Some(config) = tls_config {
+        if config.requires_openssl(host) {
+            info!("🎯 [STRATEGY] TLS 설정 규칙에 의해 OpenSSL 필수 → OpenSSL 전용");
+            return TlsStrategy::OpenSslOnly;
+        }
+    } else {
+        // TlsConfigManager 미설정 시 기존 하드코딩 동작
+        if is_openssl_required_domain(authority) {
+            info!("🎯 [STRATEGY] 특별한 도메인 감지 → OpenSSL 전용");
+            return TlsStrategy::OpenSslOnly;
+        }
     }
 
-    // 4. Apple 특별 암호화 스위트가 있으면 OpenSSL 전용
+    // 3. Apple 특별 암호화 스위트가 있으면 OpenSSL 전용
     if tls_info.has_apple_cipher {
         info!("🎯 [STRATEGY] Apple 암호화 스위트 감지 → OpenSSL 전용");
         return TlsStrategy::OpenSslOnly;
     }
 
-    // 5. SNI가 없고 복잡도가 높으면 OpenSSL 전용
+    // 4. SNI가 없고 복잡도가 높으면 OpenSSL 전용
     if !tls_info.has_sni && tls_info.complexity_score >= 6 {
         info!("🎯 [STRATEGY] SNI 없음 + 높은 복잡도 → OpenSSL 전용");
         return TlsStrategy::OpenSslOnly;
     }
 
-    // 6. 기본적으로는 rustls 전용
+    // 5. 기본적으로는 rustls 전용
     info!("🎯 [STRATEGY] 기본 전략 → Rustls 전용");
     TlsStrategy::RustlsOnly
 }
@@ -1064,7 +1133,7 @@ mod tests {
         assert_eq!(info.version, TlsVersion::Tls10);
 
         let authority: Authority = "example.com:443".parse().unwrap();
-        let strategy = determine_tls_strategy(&authority, &info);
+        let strategy = determine_tls_strategy(&authority, &info, None);
         assert_eq!(strategy, TlsStrategy::OpenSslOnly);
     }
 
@@ -1075,7 +1144,7 @@ mod tests {
         assert_eq!(info.version, TlsVersion::Tls11);
 
         let authority: Authority = "example.com:443".parse().unwrap();
-        let strategy = determine_tls_strategy(&authority, &info);
+        let strategy = determine_tls_strategy(&authority, &info, None);
         assert_eq!(strategy, TlsStrategy::OpenSslOnly);
     }
 
@@ -1086,7 +1155,7 @@ mod tests {
         assert_eq!(info.version, TlsVersion::Ssl30);
 
         let authority: Authority = "example.com:443".parse().unwrap();
-        let strategy = determine_tls_strategy(&authority, &info);
+        let strategy = determine_tls_strategy(&authority, &info, None);
         assert_eq!(strategy, TlsStrategy::OpenSslOnly);
     }
 
@@ -1104,7 +1173,7 @@ mod tests {
         assert!(info.has_sni);
 
         let authority: Authority = "example.com:443".parse().unwrap();
-        let strategy = determine_tls_strategy(&authority, &info);
+        let strategy = determine_tls_strategy(&authority, &info, None);
         assert_eq!(strategy, TlsStrategy::RustlsOnly);
     }
 
@@ -1116,7 +1185,7 @@ mod tests {
         let info = analyze_tls_connection(&buf).unwrap();
 
         let authority: Authority = "gateway.icloud.com:443".parse().unwrap();
-        let strategy = determine_tls_strategy(&authority, &info);
+        let strategy = determine_tls_strategy(&authority, &info, None);
         // TLS 자동 바이패스가 터널 역할을 대체
         assert!(matches!(
             strategy,
@@ -1137,7 +1206,7 @@ mod tests {
         assert!(info.has_apple_cipher);
 
         let authority: Authority = "example.com:443".parse().unwrap();
-        let strategy = determine_tls_strategy(&authority, &info);
+        let strategy = determine_tls_strategy(&authority, &info, None);
         assert_eq!(strategy, TlsStrategy::OpenSslOnly);
     }
 
@@ -1157,7 +1226,7 @@ mod tests {
         assert!(info.complexity_score >= 6);
 
         let authority: Authority = "some-server.com:443".parse().unwrap();
-        let strategy = determine_tls_strategy(&authority, &info);
+        let strategy = determine_tls_strategy(&authority, &info, None);
         assert_eq!(strategy, TlsStrategy::OpenSslOnly);
     }
 

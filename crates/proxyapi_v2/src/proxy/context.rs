@@ -1,4 +1,5 @@
 use crate::throttle::ThrottleConfig;
+use crate::tls_config::SharedTlsConfig;
 use crate::tls_event::TlsEventSender;
 use crate::tls_passthrough::TlsPassthrough;
 use crate::upstream_proxy::UpstreamProxyConfig;
@@ -23,6 +24,8 @@ pub struct ProxyContext {
     pub connection_semaphore: Option<Arc<Semaphore>>,
     /// TLS 이벤트 채널 (None이면 이벤트 미발송)
     pub tls_event_sender: Option<TlsEventSender>,
+    /// 도메인별 TLS 버전/암호화 스위트 세분화 설정 (None이면 기존 하드코딩 동작)
+    pub tls_config: Option<SharedTlsConfig>,
 }
 
 impl ProxyContext {
