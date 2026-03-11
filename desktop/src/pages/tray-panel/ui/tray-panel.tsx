@@ -68,13 +68,10 @@ export function TrayPanel() {
 
   const handleToggleProxy = async () => {
     try {
-      if (proxyOn) {
-        await invoke("stop_proxy_v2");
-        setProxyOn(false);
-      } else {
-        await invoke("start_proxy_v2", { addr: `127.0.0.1:${info?.port ?? 8100}` });
-        setProxyOn(true);
-      }
+      const result = await invoke<boolean>("tray_toggle_proxy", {
+        addr: `127.0.0.1:${info?.port ?? 8100}`,
+      });
+      setProxyOn(result);
       fetchInfo();
     } catch (e) {
       console.error("Proxy toggle failed:", e);

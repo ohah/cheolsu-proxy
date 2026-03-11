@@ -248,6 +248,7 @@ pub fn run() {
                 tray::tray_get_info,
                 tray::tray_show_main_window,
                 tray::tray_quit_app,
+                tray::tray_toggle_proxy,
                 tray::tray_toggle_recording,
                 tray::tray_set_recording_paused,
                 get_log_files,

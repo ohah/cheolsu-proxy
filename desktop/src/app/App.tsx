@@ -28,6 +28,7 @@ import { updateDaemonRules, waitForDaemonRules } from "@/shared/stores/sync-rule
 const App: React.FC = () => {
   useGlobalShortcut();
   const initializeProxy = useProxyStore((s) => s.initializeProxy);
+  const setConnected = useProxyStore((s) => s.setConnected);
   const syncToProxy = useInterceptRuleStore((s) => s.syncToProxy);
   const addTransaction = useTransactionStore((s) => s.addTransaction);
   const paused = useTransactionStore((s) => s.paused);
@@ -147,6 +148,17 @@ const App: React.FC = () => {
       unlisten.then((f) => f());
     };
   }, [setHostMappings]);
+
+  // 트레이에서 프록시 시작/중지 시 메인 윈도우 상태 동기화
+  useEffect(() => {
+    const unlisten = listen<boolean>("proxy_status_changed", (event) => {
+      setConnected(event.payload);
+    });
+
+    return () => {
+      unlisten.then((f) => f());
+    };
+  }, [setConnected]);
 
   // 트레이에서 녹화 토글 시 Rust 백엔드를 통해 동기화 수신
   useEffect(() => {
