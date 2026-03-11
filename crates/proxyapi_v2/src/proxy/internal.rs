@@ -128,6 +128,13 @@ where
     ) -> Result<Response<Body>, Infallible> {
         let ctx = self.context();
 
+        // 메트릭: 활성 요청 증가
+        if let Some(ref metrics) = self.ctx.metrics {
+            metrics.request_started();
+        }
+
+        let request_start = std::time::Instant::now();
+
         let req = match self
             .http_handler
             .handle_request(&ctx, req.map(Body::from))
@@ -135,21 +142,41 @@ where
             .await
         {
             RequestOrResponse::Request(req) => req,
-            RequestOrResponse::Response(res) => return Ok(res),
+            RequestOrResponse::Response(res) => {
+                // 메트릭: 활성 요청 감소
+                if let Some(ref metrics) = self.ctx.metrics {
+                    metrics.request_finished();
+                }
+                return Ok(res);
+            }
         };
 
         if req.method() == Method::CONNECT {
+            // CONNECT 요청은 터널링이므로 여기서 활성 요청 감소
+            if let Some(ref metrics) = self.ctx.metrics {
+                metrics.request_finished();
+            }
             Ok(self.process_connect(req))
         } else if hyper_tungstenite::is_upgrade_request(&req) {
+            if let Some(ref metrics) = self.ctx.metrics {
+                metrics.request_finished();
+            }
             Ok(self.upgrade_websocket(req))
         } else {
             let normalized_req = normalize_request(req);
 
-            // 요청 정보 미리 추출 (에러 로깅용)
+            // 요청 정보 미리 추출 (에러 로깅용 + 메트릭용)
             let req_uri = normalized_req.uri().clone();
             let req_method = normalized_req.method().clone();
             let req_host = normalized_req.headers().get("host").cloned();
             let req_user_agent = normalized_req.headers().get("user-agent").cloned();
+            let domain = req_uri.host().unwrap_or("unknown").to_string();
+            let req_content_length = normalized_req
+                .headers()
+                .get("content-length")
+                .and_then(|v| v.to_str().ok())
+                .and_then(|v| v.parse::<u64>().ok())
+                .unwrap_or(0);
 
             let res = self
                 .client
@@ -157,8 +184,27 @@ where
                 .instrument(info_span!("proxy_request"))
                 .await;
 
-            match res {
+            let result = match res {
                 Ok(res) => {
+                    // 메트릭: 요청 완료 기록
+                    if let Some(ref metrics) = self.ctx.metrics {
+                        let duration_ms = request_start.elapsed().as_millis() as u64;
+                        let status = res.status().as_u16();
+                        let res_content_length = res
+                            .headers()
+                            .get("content-length")
+                            .and_then(|v| v.to_str().ok())
+                            .and_then(|v| v.parse::<u64>().ok())
+                            .unwrap_or(0);
+                        metrics.request_completed(
+                            domain,
+                            status,
+                            duration_ms,
+                            req_content_length,
+                            res_content_length,
+                        );
+                    }
+
                     let response = optimize_streaming_response(res.map(Body::from), &req_uri);
 
                     Ok(self
@@ -168,6 +214,11 @@ where
                         .await)
                 }
                 Err(err) => {
+                    // 메트릭: 연결 실패 기록
+                    if let Some(ref metrics) = self.ctx.metrics {
+                        metrics.connection_failed(domain, err.to_string());
+                    }
+
                     error!(
                         url = %req_uri,
                         method = %req_method,
@@ -184,7 +235,14 @@ where
                         .instrument(info_span!("handle_error"))
                         .await)
                 }
+            };
+
+            // 메트릭: 활성 요청 감소
+            if let Some(ref metrics) = self.ctx.metrics {
+                metrics.request_finished();
             }
+
+            result
         }
     }
 

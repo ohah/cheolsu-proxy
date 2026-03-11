@@ -396,6 +396,12 @@ impl<CA, C, H, W, F> ProxyBuilder<WantsHandlers<CA, C, H, W, F>> {
         self
     }
 
+    /// Set the metrics collector for monitoring connection statistics.
+    pub fn with_metrics(mut self, metrics: Arc<crate::metrics::MetricsCollector>) -> Self {
+        self.0.ctx.metrics = Some(metrics);
+        self
+    }
+
     /// Build the proxy.
     pub fn build(self) -> Result<Proxy<C, CA, H, W, F>, crate::Error> {
         Ok(Proxy {

@@ -238,8 +238,9 @@ pub fn detect_data_type(headers: &HeaderMap, body: &Bytes) -> DataType {
     if let Some(content_type_header) = headers.get("content-type") {
         if let Ok(content_type_str) = content_type_header.to_str() {
             let content_type = content_type_str.to_lowercase();
-            if content_type.contains("application/grpc")
-                || content_type.contains("application/protobuf")
+            if content_type.contains("application/grpc") {
+                return DataType::Grpc;
+            } else if content_type.contains("application/protobuf")
                 || content_type.contains("application/x-protobuf")
             {
                 return DataType::Protobuf;
@@ -651,22 +652,40 @@ mod tests {
 
         let body = Bytes::from(vec![0x08, 0x96, 0x01]);
 
-        let cases = vec![
-            "application/protobuf",
-            "application/x-protobuf",
-            "application/grpc",
-            "application/grpc+proto",
-            "application/grpc-web",
-            "application/grpc-web+proto",
-        ];
+        let protobuf_cases = vec!["application/protobuf", "application/x-protobuf"];
 
-        for ct in cases {
+        for ct in protobuf_cases {
             let mut headers = HeaderMap::new();
             headers.insert("content-type", HeaderValue::from_str(ct).unwrap());
             assert_eq!(
                 detect_data_type(&headers, &body),
                 DataType::Protobuf,
                 "Content-Type: {} should be detected as Protobuf",
+                ct
+            );
+        }
+    }
+
+    #[test]
+    fn test_grpc_detection_by_content_type() {
+        use http::HeaderValue;
+
+        let body = Bytes::from(vec![0x08, 0x96, 0x01]);
+
+        let grpc_cases = vec![
+            "application/grpc",
+            "application/grpc+proto",
+            "application/grpc-web",
+            "application/grpc-web+proto",
+        ];
+
+        for ct in grpc_cases {
+            let mut headers = HeaderMap::new();
+            headers.insert("content-type", HeaderValue::from_str(ct).unwrap());
+            assert_eq!(
+                detect_data_type(&headers, &body),
+                DataType::Grpc,
+                "Content-Type: {} should be detected as Grpc",
                 ct
             );
         }

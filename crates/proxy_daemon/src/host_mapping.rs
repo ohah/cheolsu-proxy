@@ -545,7 +545,7 @@ mod tests {
 
     /// 테스트용 LoggingHandler 생성 헬퍼
     async fn create_test_handler() -> LoggingHandler {
-        use crate::handler::{InterceptEngine, WebSocketState};
+        use crate::handler::{InterceptEngine, SseState, WebSocketState};
         use std::sync::Arc;
         use tokio::sync::RwLock;
 
@@ -576,6 +576,10 @@ mod tests {
                 ws_sender: None,
                 ws_sequence: Arc::new(std::sync::atomic::AtomicU64::new(0)),
                 mqtt_versions: Arc::new(parking_lot::Mutex::new(std::collections::HashMap::new())),
+            },
+            sse: SseState {
+                sse_sender: None,
+                sse_sequence: Arc::new(std::sync::atomic::AtomicU64::new(0)),
             },
             breakpoint_manager: None,
         }

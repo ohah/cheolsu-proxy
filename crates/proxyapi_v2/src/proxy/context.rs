@@ -1,3 +1,4 @@
+use crate::metrics::MetricsCollector;
 use crate::throttle::ThrottleConfig;
 use crate::tls_config::SharedTlsConfig;
 use crate::tls_event::TlsEventSender;
@@ -66,6 +67,8 @@ pub struct ProxyContext {
     /// 서버 연결 전략 (Lazy: 순차적, Eager: 백그라운드 선행 연결)
     /// Arc<AtomicU8>로 런타임 변경 지원
     pub connection_strategy: Option<Arc<AtomicU8>>,
+    /// 메트릭 수집기 (None이면 메트릭 미수집)
+    pub metrics: Option<Arc<MetricsCollector>>,
 }
 
 impl ProxyContext {

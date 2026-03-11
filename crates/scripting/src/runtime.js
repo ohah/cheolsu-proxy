@@ -5,6 +5,7 @@
     onRequest: null,
     onResponse: null,
     onWebSocketMessage: null,
+    onSSEMessage: null,
   };
 
   // 로그 버퍼
@@ -93,6 +94,9 @@
     onWebSocketMessage(handler) {
       _hooks.onWebSocketMessage = handler;
     },
+    onSSEMessage(handler) {
+      _hooks.onSSEMessage = handler;
+    },
   });
 
   // console.log를 로그 버퍼에 저장 + Rust 쪽으로 전달
@@ -167,6 +171,12 @@
       return invokeHook(_hooks.onWebSocketMessage, [message], "onWebSocketMessage");
     },
 
+    invokeOnSSEMessage(eventJson) {
+      if (!_hooks.onSSEMessage) return JSON.stringify({ action: "forward" });
+      const event = JSON.parse(eventJson);
+      return invokeHook(_hooks.onSSEMessage, [event], "onSSEMessage");
+    },
+
     hasOnRequest() {
       return _hooks.onRequest !== null;
     },
@@ -175,6 +185,9 @@
     },
     hasOnWebSocketMessage() {
       return _hooks.onWebSocketMessage !== null;
+    },
+    hasOnSSEMessage() {
+      return _hooks.onSSEMessage !== null;
     },
 
     // 로그 버퍼를 JSON 배열로 반환하고 비움

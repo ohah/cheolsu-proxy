@@ -7,8 +7,8 @@ use bytes::Bytes;
 use futures_util::stream::StreamExt;
 use http_body_util::{BodyExt, StreamBody};
 use proxy_v2_models::{
-    ProxiedRequest, ProxiedResponse, RequestInfo, WsConnectionEvent, WsDirection, WsMessageInfo,
-    WsMessageType,
+    ProxiedRequest, ProxiedResponse, RequestInfo, SseConnectionEvent, SseEventInfo, SseParser,
+    WsConnectionEvent, WsDirection, WsMessageInfo, WsMessageType,
 };
 use proxyapi_v2::{
     hyper::http::{Method, StatusCode},
@@ -32,6 +32,13 @@ pub use crate::tls_client::{create_hybrid_client_with_cert, validate_client_cert
 pub enum WsEvent {
     Message(WsMessageInfo),
     Connection(WsConnectionEvent),
+}
+
+/// SSE 이벤트 (이벤트 또는 연결 상태)
+#[derive(Clone, Debug)]
+pub enum SseEvent {
+    Event(SseEventInfo),
+    Connection(SseConnectionEvent),
 }
 
 use crate::cert_distribution;
@@ -90,6 +97,13 @@ pub(crate) struct WebSocketState {
     pub(crate) mqtt_versions: Arc<parking_lot::Mutex<std::collections::HashMap<String, u8>>>,
 }
 
+/// SSE 상태 관리
+#[derive(Clone)]
+pub(crate) struct SseState {
+    pub(crate) sse_sender: Option<tokio::sync::mpsc::Sender<SseEvent>>,
+    pub(crate) sse_sequence: Arc<std::sync::atomic::AtomicU64>,
+}
+
 /// HTTP 및 WebSocket 요청/응답을 로깅하는 핸들러
 #[derive(Clone)]
 pub struct LoggingHandler {
@@ -98,6 +112,7 @@ pub struct LoggingHandler {
     pub(crate) config: ProxyConfig,
     pub(crate) intercept: InterceptEngine,
     pub(crate) ws: WebSocketState,
+    pub(crate) sse: SseState,
     pub(crate) breakpoint_manager: Option<BreakpointManager>,
 }
 
@@ -131,6 +146,10 @@ impl LoggingHandler {
                 ws_sequence: Arc::new(std::sync::atomic::AtomicU64::new(0)),
                 mqtt_versions: Arc::new(parking_lot::Mutex::new(std::collections::HashMap::new())),
             },
+            sse: SseState {
+                sse_sender: None,
+                sse_sequence: Arc::new(std::sync::atomic::AtomicU64::new(0)),
+            },
             breakpoint_manager: None,
         }
     }
@@ -143,6 +162,11 @@ impl LoggingHandler {
 
     pub fn with_ws_sender(mut self, ws_sender: tokio::sync::mpsc::Sender<WsEvent>) -> Self {
         self.ws.ws_sender = Some(ws_sender);
+        self
+    }
+
+    pub fn with_sse_sender(mut self, sse_sender: tokio::sync::mpsc::Sender<SseEvent>) -> Self {
+        self.sse.sse_sender = Some(sse_sender);
         self
     }
 
@@ -1008,15 +1032,85 @@ impl LoggingHandler {
 
         let mut handler_clone = self.clone();
 
+        // SSE 연결 ID (타임스탬프 + 시퀀스) 및 URI 추출
+        let connection_id = format!(
+            "sse-{}-{}",
+            chrono::Local::now().timestamp_millis(),
+            self.sse
+                .sse_sequence
+                .fetch_add(1, std::sync::atomic::Ordering::Relaxed)
+        );
+        let connection_uri = self
+            .request
+            .req
+            .as_ref()
+            .map(|r| r.uri().to_string())
+            .unwrap_or_else(|| "unknown".to_string());
+        let sse_sender = self.sse.sse_sender.clone();
+        let sse_sequence = self.sse.sse_sequence.clone();
+        let script_handle = self.intercept.script_handle.clone();
+
+        // SSE Connected 이벤트 전송
+        if let Some(ref sender) = sse_sender {
+            let event = SseConnectionEvent::Connected {
+                connection_id: connection_id.clone(),
+                uri: connection_uri,
+                time: chrono::Local::now()
+                    .timestamp_nanos_opt()
+                    .unwrap_or_default(),
+            };
+            let _ = sender.try_send(SseEvent::Connection(event));
+        }
+
+        let connection_id_clone = connection_id.clone();
         tokio::spawn(async move {
             let mut body_stream = body;
             let mut collected_chunks = Vec::new();
+            let mut sse_parser = SseParser::new();
 
             while let Some(frame_result) = body_stream.frame().await {
                 match frame_result {
                     Ok(frame) => {
                         if let Some(data) = frame.data_ref() {
                             collected_chunks.extend_from_slice(data);
+
+                            // SSE 파서에 청크 전달
+                            if let Ok(chunk_str) = std::str::from_utf8(data) {
+                                let parsed_events = sse_parser.feed(chunk_str);
+                                for parsed in parsed_events {
+                                    // 스크립팅 훅 호출
+                                    let sse_msg = scripting::ScriptSseEvent {
+                                        connection_id: connection_id_clone.clone(),
+                                        event_type: parsed.event_type.clone(),
+                                        data: parsed.data.clone(),
+                                        id: parsed.id.clone(),
+                                    };
+
+                                    if let Ok(scripting::SseAction::Drop) =
+                                        script_handle.invoke_on_sse_event(&sse_msg).await
+                                    {
+                                        continue;
+                                    }
+
+                                    if let Some(ref sender) = sse_sender {
+                                        let seq = sse_sequence
+                                            .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                                        let event_info = SseEventInfo {
+                                            connection_id: connection_id_clone.clone(),
+                                            sequence: seq,
+                                            event_type: parsed.event_type,
+                                            data: parsed.data.clone(),
+                                            id: parsed.id,
+                                            retry: parsed.retry,
+                                            size: parsed.data.len(),
+                                            time: chrono::Local::now()
+                                                .timestamp_nanos_opt()
+                                                .unwrap_or_default(),
+                                        };
+                                        let _ = sender.try_send(SseEvent::Event(event_info));
+                                    }
+                                }
+                            }
                         }
 
                         if tx.send(frame).await.is_err() {
@@ -1028,6 +1122,17 @@ impl LoggingHandler {
                         break;
                     }
                 }
+            }
+
+            // SSE Disconnected 이벤트 전송
+            if let Some(ref sender) = sse_sender {
+                let event = SseConnectionEvent::Disconnected {
+                    connection_id: connection_id_clone.clone(),
+                    time: chrono::Local::now()
+                        .timestamp_nanos_opt()
+                        .unwrap_or_default(),
+                };
+                let _ = sender.try_send(SseEvent::Connection(event));
             }
 
             let proxied_response = ProxiedResponse::new(
@@ -1721,6 +1826,10 @@ mod tests {
                 ws_sequence: Arc::new(std::sync::atomic::AtomicU64::new(0)),
                 mqtt_versions: Arc::new(parking_lot::Mutex::new(std::collections::HashMap::new())),
             },
+            sse: SseState {
+                sse_sender: None,
+                sse_sequence: Arc::new(std::sync::atomic::AtomicU64::new(0)),
+            },
             breakpoint_manager: None,
         };
 
@@ -1776,6 +1885,10 @@ mod tests {
                 ws_sender: Some(ws_sender),
                 ws_sequence: Arc::new(std::sync::atomic::AtomicU64::new(0)),
                 mqtt_versions: Arc::new(parking_lot::Mutex::new(std::collections::HashMap::new())),
+            },
+            sse: SseState {
+                sse_sender: None,
+                sse_sequence: Arc::new(std::sync::atomic::AtomicU64::new(0)),
             },
             breakpoint_manager: None,
         };

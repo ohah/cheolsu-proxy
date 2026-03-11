@@ -9,6 +9,7 @@ pub mod error;
 pub mod handler;
 pub(crate) mod host_mapping;
 pub mod intercept;
+pub mod metrics_aggregator;
 pub mod net_utils;
 pub(crate) mod pattern_utils;
 pub mod protocol;
