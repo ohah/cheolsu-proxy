@@ -348,7 +348,6 @@ function SettingsPageInner() {
     return () => observer.disconnect();
   }, []);
 
-
   const handleSave = useCallback(
     async (data: SettingsFormValues) => {
       setSaveStatus("idle");
