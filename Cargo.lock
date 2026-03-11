@@ -5742,6 +5742,7 @@ dependencies = [
  "scripting",
  "serde",
  "serde_json",
+ "sha2",
  "similar",
  "tempfile",
  "thiserror 2.0.18",
@@ -5752,6 +5753,7 @@ dependencies = [
  "tracing",
  "tracing-appender",
  "tracing-subscriber",
+ "x509-parser 0.17.0",
 ]
 
 [[package]]

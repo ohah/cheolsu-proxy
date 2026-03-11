@@ -642,6 +642,7 @@ impl ClientCertForm {
             cert_path: self.cert_path.clone(),
             key_path: self.key_path.clone(),
             enabled: true,
+            domain_certs: vec![],
         })
     }
 }

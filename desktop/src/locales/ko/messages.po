@@ -83,7 +83,7 @@ msgstr "활성"
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:134
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:169
 #: src/pages/server-replay/ui/server-replay-page.tsx:170
-#: src/pages/settings/ui/settings-page.tsx:238
+#: src/pages/settings/ui/settings-page.tsx:494
 msgid "Add"
 msgstr "추가"
 
@@ -94,6 +94,10 @@ msgstr "HTTP 요청/응답을 검사하기 위해 일시 정지할 Breakpoint �
 #: src/pages/server-replay/ui/server-replay-page.tsx:193
 msgid "Add captured traffic to replay stored responses for matching requests."
 msgstr "캡처된 트래픽을 추가하여 매칭되는 요청에 저장된 응답을 반환합니다."
+
+#: src/pages/settings/ui/settings-page.tsx:378
+msgid "Add Domain Certificate"
+msgstr "도메인 인증서 추가"
 
 #: src/pages/server-replay/ui/server-replay-page.tsx:110
 #: src/pages/server-replay/ui/server-replay-page.tsx:199
@@ -177,7 +181,7 @@ msgstr "모든 엔트리가 삭제되었습니다"
 msgid "All host mappings cleared"
 msgstr "모든 호스트 매핑이 삭제되었습니다"
 
-#: src/pages/settings/ui/settings-page.tsx:219
+#: src/pages/settings/ui/settings-page.tsx:475
 msgid "All HTTPS traffic is being intercepted (no whitelist configured)"
 msgstr "모든 HTTPS 트래픽이 인터셉트됩니다 (화이트리스트 미설정)"
 
@@ -264,8 +268,11 @@ msgid "Breakpoints"
 msgstr "Breakpoints"
 
 #: src/pages/script/ui/script-page.tsx:263
-#: src/pages/settings/ui/settings-page.tsx:135
-#: src/pages/settings/ui/settings-page.tsx:152
+#: src/pages/settings/ui/settings-page.tsx:218
+#: src/pages/settings/ui/settings-page.tsx:235
+#: src/pages/settings/ui/settings-page.tsx:360
+#: src/pages/settings/ui/settings-page.tsx:371
+#: src/pages/settings/ui/settings-page.tsx:609
 msgid "Browse"
 msgstr "찾아보기"
 
@@ -281,6 +288,10 @@ msgstr "바이트 본문"
 msgid "CA Certificate"
 msgstr "CA 인증서"
 
+#: src/pages/settings/ui/settings-page.tsx:599
+msgid "CA Certificate File (optional)"
+msgstr "CA 인증서 파일 (선택사항)"
+
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:474
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:255
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:137
@@ -293,13 +304,33 @@ msgstr "취소"
 msgid "Cannot add: no response data"
 msgstr "추가할 수 없습니다: 응답 데이터 없음"
 
+#: src/pages/settings/ui/settings-page.tsx:249
+msgid "Certificate Details"
+msgstr "인증서 상세 정보"
+
 #: src/pages/settings/ui/components/certificate-settings.tsx:386
 msgid "Certificate Download URL"
 msgstr "인증서 다운로드 URL"
 
-#: src/pages/settings/ui/settings-page.tsx:125
+#: src/pages/settings/ui/settings-page.tsx:321
+msgid "Certificate expired"
+msgstr "인증서 만료됨"
+
+#: src/pages/settings/ui/settings-page.tsx:355
+msgid "Certificate file"
+msgstr "인증서 파일"
+
+#: src/pages/settings/ui/settings-page.tsx:208
 msgid "Certificate File"
 msgstr "인증서 파일"
+
+#: src/pages/settings/ui/settings-page.tsx:643
+msgid "Certificate is optional — clients without one can still connect"
+msgstr "인증서는 선택사항입니다 — 인증서 없이도 연결 가능"
+
+#: src/pages/settings/ui/settings-page.tsx:314
+msgid "Chain Length"
+msgstr "체인 길이"
 
 #: src/pages/settings/ui/components/shortcut-settings.tsx:159
 msgid "Change"
@@ -315,6 +346,7 @@ msgstr "Claude Code (CLI)"
 
 #: src/pages/log-viewer/ui/logs-page.tsx:229
 #: src/pages/script/ui/script-page.tsx:298
+#: src/pages/settings/ui/settings-page.tsx:620
 msgid "Clear"
 msgstr "지우기"
 
@@ -335,13 +367,17 @@ msgstr "전체 삭제"
 msgid "Clear all transactions"
 msgstr "모든 트랜잭션 삭제"
 
-#: src/pages/settings/ui/settings-page.tsx:109
+#: src/pages/settings/ui/settings-page.tsx:192
 msgid "Client Certificate"
 msgstr "클라이언트 인증서"
 
-#: src/pages/settings/ui/settings-page.tsx:374
+#: src/pages/settings/ui/settings-page.tsx:765
 msgid "Clients must provide these credentials via Proxy-Authorization header (HTTP Basic) to use this proxy"
 msgstr "클라이언트는 이 프록시를 사용하기 위해 Proxy-Authorization 헤더(HTTP Basic)를 통해 자격 증명을 제공해야 합니다"
+
+#: src/pages/settings/ui/settings-page.tsx:639
+msgid "Clients without a valid certificate will be rejected"
+msgstr "유효한 인증서가 없는 클라이언트는 거부됩니다"
 
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:381
 #: src/features/transaction-details/ui/sequence-replay-dialog.tsx:252
@@ -488,6 +524,10 @@ msgstr "연결 끊김"
 msgid "Domain"
 msgstr "도메인"
 
+#: src/pages/settings/ui/settings-page.tsx:335
+msgid "Domain-specific Certificates"
+msgstr "도메인별 인증서"
+
 #: src/pages/log-viewer/ui/logs-page.tsx:367
 msgid "Domains that failed TLS handshake are automatically tunneled without MITM decryption. You can remove entries to retry MITM for specific domains."
 msgstr "TLS 핸드셰이크에 실패한 도메인은 MITM 복호화 없이 자동으로 터널링됩니다. 항목을 삭제하면 해당 도메인에 대해 MITM을 다시 시도합니다."
@@ -535,7 +575,7 @@ msgstr "활성"
 msgid "entries"
 msgstr "개 엔트리"
 
-#: src/pages/settings/ui/settings-page.tsx:231
+#: src/pages/settings/ui/settings-page.tsx:487
 msgid "example.com, *.example.com, or example.com:443"
 msgstr "example.com, *.example.com 또는 example.com:443"
 
@@ -560,13 +600,17 @@ msgstr "사이드바 펼치기"
 msgid "Export HAR"
 msgstr "HAR 내보내기"
 
-#: src/pages/settings/ui/settings-page.tsx:174
+#: src/pages/settings/ui/settings-page.tsx:430
 msgid "Failed — check file paths and proxy status"
 msgstr "실패 — 파일 경로와 프록시 상태를 확인하세요"
 
+#: src/pages/settings/ui/settings-page.tsx:664
+msgid "Failed — check proxy status"
+msgstr "실패 — 프록시 상태를 확인하세요"
+
 #: src/pages/settings/ui/components/proxy-settings.tsx:181
 #: src/pages/settings/ui/components/throttle-settings.tsx:226
-#: src/pages/settings/ui/settings-page.tsx:394
+#: src/pages/settings/ui/settings-page.tsx:785
 msgid "Failed — is the proxy running?"
 msgstr "실패 — 프록시가 실행 중인가요?"
 
@@ -710,6 +754,10 @@ msgstr "HTTP 요청 및 응답"
 msgid "HTTPie"
 msgstr "HTTPie"
 
+#: src/pages/settings/ui/settings-page.tsx:625
+msgid "If not specified, any client certificate will be accepted without verification"
+msgstr "지정하지 않으면 모든 클라이언트 인증서가 검증 없이 수락됩니다"
+
 #: src/widgets/network-header/ui/network-controls.tsx:122
 msgid "Import HAR"
 msgstr "HAR 가져오기"
@@ -758,6 +806,10 @@ msgstr "설치 중..."
 msgid "Intercept Rules"
 msgstr "인터셉트 규칙"
 
+#: src/pages/settings/ui/settings-page.tsx:261
+msgid "Issuer"
+msgstr "발급자"
+
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:163
 msgid "Iterations"
 msgstr "반복 횟수"
@@ -770,7 +822,11 @@ msgstr "JavaScript Fetch"
 msgid "JSON Configuration"
 msgstr "JSON 설정"
 
-#: src/pages/settings/ui/settings-page.tsx:142
+#: src/pages/settings/ui/settings-page.tsx:366
+msgid "Key file"
+msgstr "키 파일"
+
+#: src/pages/settings/ui/settings-page.tsx:225
 msgid "Key File"
 msgstr "키 파일"
 
@@ -809,6 +865,10 @@ msgstr "세션 불러오기"
 #: src/pages/network-dashboard/ui/network-dashboard.tsx:149
 msgid "Load transactions"
 msgstr "트랜잭션 불러오기"
+
+#: src/pages/settings/ui/settings-page.tsx:242
+msgid "Loading certificate info..."
+msgstr "인증서 정보 로딩 중..."
 
 #: src/pages/script/ui/script-page.tsx:214
 #: src/pages/script/ui/script-page.tsx:266
@@ -1053,7 +1113,7 @@ msgstr "요청을 전송할 횟수 (1-10000)"
 msgid "Only http:// and https:// URLs are allowed"
 msgstr "http:// 및 https:// URL만 허용됩니다"
 
-#: src/pages/settings/ui/settings-page.tsx:221
+#: src/pages/settings/ui/settings-page.tsx:477
 msgid "Only whitelisted domains ({enabledCount}) will have HTTPS traffic intercepted"
 msgstr "화이트리스트에 등록된 도메인({enabledCount}개)만 HTTPS 트래픽이 인터셉트됩니다"
 
@@ -1086,13 +1146,17 @@ msgstr "Wi-Fi 프록시를 설정한 후 모바일 브라우저에서 이 URL을
 msgid "optional"
 msgstr "선택사항"
 
+#: src/pages/settings/ui/settings-page.tsx:269
+msgid "Organization"
+msgstr "조직"
+
 #: src/features/transaction-details/ui/replay-dialog.tsx:370
 msgid "Original"
 msgstr "원본"
 
 #: src/pages/settings/ui/components/proxy-settings.tsx:141
-#: src/pages/settings/ui/settings-page.tsx:363
-#: src/pages/settings/ui/settings-page.tsx:367
+#: src/pages/settings/ui/settings-page.tsx:754
+#: src/pages/settings/ui/settings-page.tsx:758
 msgid "Password"
 msgstr "비밀번호"
 
@@ -1141,7 +1205,7 @@ msgstr "포트"
 msgid "Port must be between 1 and 65535"
 msgstr "포트는 1에서 65535 사이여야 합니다"
 
-#: src/pages/settings/ui/settings-page.tsx:112
+#: src/pages/settings/ui/settings-page.tsx:195
 msgid "Present a client certificate when connecting to servers that require mTLS authentication"
 msgstr "mTLS 인증이 필요한 서버에 연결할 때 클라이언트 인증서를 제시합니다"
 
@@ -1169,11 +1233,11 @@ msgstr "진행률"
 msgid "Proxy Address"
 msgstr "프록시 주소"
 
-#: src/pages/settings/ui/settings-page.tsx:339
+#: src/pages/settings/ui/settings-page.tsx:730
 msgid "Proxy Authentication"
 msgstr "프록시 인증"
 
-#: src/pages/settings/ui/settings-page.tsx:33
+#: src/pages/settings/ui/settings-page.tsx:37
 msgid "Proxy configuration and preferences"
 msgstr "프록시 설정 및 환경설정"
 
@@ -1237,7 +1301,8 @@ msgstr "리로드"
 msgid "Remote Device Certificate"
 msgstr "외부 기기 인증서"
 
-#: src/pages/settings/ui/settings-page.tsx:271
+#: src/pages/settings/ui/settings-page.tsx:409
+#: src/pages/settings/ui/settings-page.tsx:527
 msgid "Remove"
 msgstr "삭제"
 
@@ -1292,6 +1357,10 @@ msgstr "요청 리플레이"
 msgid "Request"
 msgstr "요청"
 
+#: src/pages/settings/ui/settings-page.tsx:587
+msgid "Request a client certificate from connecting clients (mTLS server-side)"
+msgstr "연결하는 클라이언트에게 인증서를 요청합니다 (mTLS 서버 측)"
+
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:78
 msgid "Request aborted"
 msgstr "요청이 중단되었습니다"
@@ -1302,6 +1371,10 @@ msgstr "요청이 중단되었습니다"
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:418
 msgid "Request Body"
 msgstr "요청 바디"
+
+#: src/pages/settings/ui/settings-page.tsx:584
+msgid "Request Client Certificate"
+msgstr "클라이언트 인증서 요청"
 
 #: src/features/transaction-details/ui/transaction-header.tsx:38
 msgid "Request Details"
@@ -1330,9 +1403,13 @@ msgstr "요청 헤더"
 msgid "Requests/sec"
 msgstr "초당 요청 수"
 
-#: src/pages/settings/ui/settings-page.tsx:342
+#: src/pages/settings/ui/settings-page.tsx:733
 msgid "Require authentication to use this proxy server"
 msgstr "이 프록시 서버 사용 시 인증 필요"
+
+#: src/pages/settings/ui/settings-page.tsx:635
+msgid "Require certificate"
+msgstr "인증서 필수"
 
 #: src/features/transaction-details/ui/replay-dialog.tsx:380
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:196
@@ -1440,8 +1517,9 @@ msgstr "실행 중..."
 #: src/pages/settings/ui/components/proxy-settings.tsx:172
 #: src/pages/settings/ui/components/shortcut-settings.tsx:167
 #: src/pages/settings/ui/components/throttle-settings.tsx:217
-#: src/pages/settings/ui/settings-page.tsx:165
-#: src/pages/settings/ui/settings-page.tsx:385
+#: src/pages/settings/ui/settings-page.tsx:421
+#: src/pages/settings/ui/settings-page.tsx:655
+#: src/pages/settings/ui/settings-page.tsx:776
 msgid "Save"
 msgstr "저장"
 
@@ -1452,15 +1530,17 @@ msgstr "세션 저장"
 #: src/pages/settings/ui/components/proxy-settings.tsx:176
 #: src/pages/settings/ui/components/shortcut-settings.tsx:170
 #: src/pages/settings/ui/components/throttle-settings.tsx:221
-#: src/pages/settings/ui/settings-page.tsx:169
-#: src/pages/settings/ui/settings-page.tsx:389
+#: src/pages/settings/ui/settings-page.tsx:425
+#: src/pages/settings/ui/settings-page.tsx:659
+#: src/pages/settings/ui/settings-page.tsx:780
 msgid "Saved"
 msgstr "저장됨"
 
 #: src/pages/settings/ui/components/proxy-settings.tsx:172
 #: src/pages/settings/ui/components/throttle-settings.tsx:217
-#: src/pages/settings/ui/settings-page.tsx:165
-#: src/pages/settings/ui/settings-page.tsx:385
+#: src/pages/settings/ui/settings-page.tsx:421
+#: src/pages/settings/ui/settings-page.tsx:655
+#: src/pages/settings/ui/settings-page.tsx:776
 msgid "Saving..."
 msgstr "저장 중..."
 
@@ -1497,7 +1577,11 @@ msgstr "스크립트가 언로드되었습니다"
 msgid "Select a log file to view its contents"
 msgstr "로그 파일을 선택하여 내용을 확인하세요"
 
-#: src/pages/settings/ui/settings-page.tsx:130
+#: src/pages/settings/ui/settings-page.tsx:604
+msgid "Select CA certificate to verify clients (.pem, .crt)"
+msgstr "클라이언트 검증용 CA 인증서 선택 (.pem, .crt)"
+
+#: src/pages/settings/ui/settings-page.tsx:213
 msgid "Select certificate file (.pem, .crt)"
 msgstr "인증서 파일 선택 (.pem, .crt)"
 
@@ -1505,7 +1589,7 @@ msgstr "인증서 파일 선택 (.pem, .crt)"
 msgid "Select from captured traffic"
 msgstr "캡처된 트래픽에서 선택"
 
-#: src/pages/settings/ui/settings-page.tsx:147
+#: src/pages/settings/ui/settings-page.tsx:230
 msgid "Select key file (.pem, .key)"
 msgstr "키 파일 선택 (.pem, .key)"
 
@@ -1568,6 +1652,10 @@ msgstr "시퀀스 리플레이 ({0}개 요청)"
 msgid "Sequence replay failed"
 msgstr "시퀀스 리플레이 실패"
 
+#: src/pages/settings/ui/settings-page.tsx:300
+msgid "Serial Number"
+msgstr "시리얼 번호"
+
 #: src/pages/server-replay/ui/server-replay-page.tsx:84
 #: src/shared/app-sidebar/model/consts.ts:51
 msgid "Server Replay"
@@ -1601,7 +1689,7 @@ msgstr "본문 설정 (선택사항)"
 msgid "Set Wi-Fi proxy on your device to <0>{0}:{1}</0>"
 msgstr "기기의 Wi-Fi 프록시를 <0>{0}:{1}</0>로 설정"
 
-#: src/pages/settings/ui/settings-page.tsx:30
+#: src/pages/settings/ui/settings-page.tsx:34
 #: src/shared/app-sidebar/model/consts.ts:79
 msgid "Settings"
 msgstr "설정"
@@ -1635,7 +1723,7 @@ msgstr "소스 호스트와 대상 호스트는 필수입니다"
 msgid "Source Port"
 msgstr "소스 포트"
 
-#: src/pages/settings/ui/settings-page.tsx:215
+#: src/pages/settings/ui/settings-page.tsx:471
 msgid "SSL Proxying"
 msgstr "SSL Proxying"
 
@@ -1668,11 +1756,11 @@ msgstr "상태 코드"
 msgid "Status Code Distribution"
 msgstr "상태 코드 분포"
 
-#: src/pages/settings/ui/settings-page.tsx:243
+#: src/pages/settings/ui/settings-page.tsx:499
 msgid "Supports exact domains (example.com), wildcards (*.example.com), and port-specific patterns (example.com:443). When the list is empty, all domains are intercepted."
 msgstr "정확한 도메인(example.com), 와일드카드(*.example.com), 포트 지정 패턴(example.com:443)을 지원합니다. 목록이 비어있으면 모든 도메인이 인터셉트됩니다."
 
-#: src/pages/settings/ui/settings-page.tsx:158
+#: src/pages/settings/ui/settings-page.tsx:328
 msgid "Supports PEM-encoded certificates and keys (RSA, ECDSA, PKCS#8)"
 msgstr "PEM 인코딩된 인증서 및 키를 지원합니다 (RSA, ECDSA, PKCS#8)"
 
@@ -1830,15 +1918,27 @@ msgstr "URL 패턴"
 msgid "URL pattern (e.g., *api.example.com*)"
 msgstr "URL 패턴 (예: *api.example.com*)"
 
+#: src/pages/settings/ui/settings-page.tsx:338
+msgid "Use different client certificates for specific domains. Supports wildcards (*.example.com)."
+msgstr "특정 도메인에 대해 다른 클라이언트 인증서를 사용합니다. 와일드카드(*.example.com) 지원."
+
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:222
 msgid "Use wildcard patterns: * matches any string, ? matches a single character."
 msgstr "와일드카드 패턴 사용: *는 모든 문자열, ?는 단일 문자를 매칭합니다."
 
 #: src/pages/settings/ui/components/proxy-settings.tsx:133
-#: src/pages/settings/ui/settings-page.tsx:353
-#: src/pages/settings/ui/settings-page.tsx:356
+#: src/pages/settings/ui/settings-page.tsx:744
+#: src/pages/settings/ui/settings-page.tsx:747
 msgid "Username"
 msgstr "사용자 이름"
+
+#: src/pages/settings/ui/settings-page.tsx:288
+msgid "Valid From"
+msgstr "유효 기간 시작"
+
+#: src/pages/settings/ui/settings-page.tsx:294
+msgid "Valid Until"
+msgstr "유효 기간 만료"
 
 #: src/features/intercept-rule-form/ui/headers-fields.tsx:70
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:353

@@ -36,9 +36,10 @@ pub use handler::{
 };
 pub use net_utils::get_local_ips;
 pub use protocol::{
-    BreakpointAction, BreakpointData, BreakpointPhase, BreakpointRule, ClientCertConfig,
-    ClientCommand, DaemonMessage, HostMapping, InterceptAction, InterceptRule, ProxyAuthConfig,
-    ProxyLockInfo, ServerReplayEntry, SslProxyingEntry, TlsPassthroughEntry,
+    BreakpointAction, BreakpointData, BreakpointPhase, BreakpointRule, CertificateInfo,
+    ClientCertConfig, ClientCommand, DaemonMessage, DomainClientCertConfig, HostMapping,
+    InterceptAction, InterceptRule, ProxyAuthConfig, ProxyLockInfo, RequestClientCertConfig,
+    ServerReplayEntry, SslProxyingEntry, TlsPassthroughEntry,
 };
 pub use proxy_v2_models::RequestInfo;
 pub use proxyapi_v2::certificate_authority::{clean_all_cache, clean_old_cache};
@@ -48,3 +49,4 @@ pub use session::{
     ensure_extension, import_har, import_har_file, SessionFile, SessionMetadata, SessionTransaction,
 };
 pub use system_proxy::{get_proxy_status, set_proxy, ProxyStatus};
+pub use tls_client::parse_certificate_info;

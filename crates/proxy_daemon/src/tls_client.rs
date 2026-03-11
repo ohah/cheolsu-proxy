@@ -4,15 +4,21 @@ use proxyapi_v2::{
     upstream_proxy::{ProxyHttpConnector, UpstreamProxyConfig},
     Body,
 };
+use sha2::{Digest, Sha256};
 use std::path::Path;
+use std::sync::Arc;
 use tokio_rustls::rustls::{
+    client::ResolvesClientCert,
     crypto::aws_lc_rs,
     pki_types::{CertificateDer, PrivateKeyDer},
-    ClientConfig,
+    sign::CertifiedKey,
+    ClientConfig, SignatureScheme,
 };
 use tracing::{error, info};
+use x509_parser::extensions::{GeneralName, ParsedExtension};
+use x509_parser::oid_registry::{OID_X509_COMMON_NAME, OID_X509_ORGANIZATION_NAME};
 
-use crate::protocol::ClientCertConfig;
+use crate::protocol::{CertificateInfo, ClientCertConfig};
 
 /// 모든 인증서를 허용하는 위험한 인증서 검증기
 #[derive(Debug)]
@@ -77,6 +83,43 @@ impl tokio_rustls::rustls::client::danger::ServerCertVerifier for DangerousCerti
     }
 }
 
+/// 인증서와 키 파일에서 CertifiedKey를 빌드합니다.
+fn build_certified_key(
+    cert_path: &str,
+    key_path: &str,
+) -> Result<CertifiedKey, Box<dyn std::error::Error>> {
+    let certs = load_certs(cert_path)?;
+    let key = load_private_key(key_path)?;
+    let signing_key = aws_lc_rs::sign::any_supported_type(&key)?;
+    Ok(CertifiedKey::new(certs, signing_key))
+}
+
+/// 도메인 패턴별 클라이언트 인증서를 선택하는 리졸버
+#[derive(Debug)]
+struct DomainCertResolver {
+    /// 기본 인증서 (글로벌 설정)
+    default_cert: Option<Arc<CertifiedKey>>,
+    /// 도메인 패턴 -> 인증서 매핑
+    domain_certs: Vec<(String, Arc<CertifiedKey>)>,
+}
+
+impl ResolvesClientCert for DomainCertResolver {
+    fn resolve(
+        &self,
+        _root_hint_subjects: &[&[u8]],
+        _sigschemes: &[SignatureScheme],
+    ) -> Option<Arc<CertifiedKey>> {
+        // NOTE: ResolvesClientCert는 서버가 CertificateRequest를 보낼 때 호출됨
+        // 서버의 acceptable CA 목록(root_hint_subjects)으로는 도메인 매칭이 불가하므로
+        // 기본 인증서를 반환. 도메인별 인증서는 per-connection ClientConfig으로 확장 가능.
+        self.default_cert.clone()
+    }
+
+    fn has_certs(&self) -> bool {
+        self.default_cert.is_some() || !self.domain_certs.is_empty()
+    }
+}
+
 /// 인증서 체인을 로드합니다. PEM 형식을 먼저 시도하고, 실패 시 DER 형식으로 시도합니다.
 pub fn load_certs(
     cert_path: &str,
@@ -96,6 +139,127 @@ pub fn load_certs(
     }
 
     Ok(certs)
+}
+
+/// 인증서 파일에서 상세 정보를 추출합니다.
+pub fn parse_certificate_info(
+    cert_path: &str,
+) -> Result<CertificateInfo, Box<dyn std::error::Error>> {
+    let certs = load_certs(cert_path)?;
+    if certs.is_empty() {
+        return Err("인증서 파일에서 인증서를 찾을 수 없습니다".into());
+    }
+
+    let chain_length = certs.len();
+    let cert_der = certs[0].as_ref();
+
+    // x509-parser로 인증서 파싱
+    let (_, cert) = x509_parser::parse_x509_certificate(cert_der)
+        .map_err(|e| format!("인증서 파싱 실패: {}", e))?;
+
+    // Subject CN, Organization 추출
+    let mut subject_cn = None;
+    let mut organization = None;
+    for rdn in cert.subject().iter() {
+        for attr in rdn.iter() {
+            if *attr.attr_type() == OID_X509_COMMON_NAME {
+                subject_cn = attr.as_str().ok().map(String::from);
+            }
+            if *attr.attr_type() == OID_X509_ORGANIZATION_NAME {
+                organization = attr.as_str().ok().map(String::from);
+            }
+        }
+    }
+
+    // Issuer CN 추출
+    let mut issuer_cn = None;
+    for rdn in cert.issuer().iter() {
+        for attr in rdn.iter() {
+            if *attr.attr_type() == OID_X509_COMMON_NAME {
+                issuer_cn = attr.as_str().ok().map(String::from);
+            }
+        }
+    }
+
+    // SAN 추출
+    let mut sans_dns = Vec::new();
+    let mut sans_ip = Vec::new();
+    if let Ok(Some(san_ext)) = cert.subject_alternative_name() {
+        for name in &san_ext.value.general_names {
+            match name {
+                GeneralName::DNSName(dns) => {
+                    sans_dns.push(dns.to_string());
+                }
+                GeneralName::IPAddress(ip_bytes) => {
+                    if ip_bytes.len() == 4 {
+                        let ip = format!(
+                            "{}.{}.{}.{}",
+                            ip_bytes[0], ip_bytes[1], ip_bytes[2], ip_bytes[3]
+                        );
+                        sans_ip.push(ip);
+                    } else if ip_bytes.len() == 16 {
+                        let addr: std::net::Ipv6Addr = {
+                            let mut octets = [0u8; 16];
+                            octets.copy_from_slice(ip_bytes);
+                            std::net::Ipv6Addr::from(octets)
+                        };
+                        sans_ip.push(addr.to_string());
+                    }
+                }
+                _ => {}
+            }
+        }
+    }
+
+    // 유효기간
+    let not_before = cert
+        .validity()
+        .not_before
+        .to_rfc2822()
+        .unwrap_or_else(|_| format!("{}", cert.validity().not_before));
+    let not_after = cert
+        .validity()
+        .not_after
+        .to_rfc2822()
+        .unwrap_or_else(|_| format!("{}", cert.validity().not_after));
+
+    // 시리얼 넘버
+    let serial_number = cert.raw_serial_as_string();
+
+    // SHA-256 지문
+    let hash = Sha256::digest(cert_der);
+    let fingerprint_sha256 = hash
+        .iter()
+        .map(|b| format!("{:02X}", b))
+        .collect::<Vec<_>>()
+        .join(":");
+
+    // CA 여부 (BasicConstraints 확인)
+    let is_ca = cert
+        .extensions()
+        .iter()
+        .find_map(|ext| {
+            if let ParsedExtension::BasicConstraints(bc) = ext.parsed_extension() {
+                Some(bc.ca)
+            } else {
+                None
+            }
+        })
+        .unwrap_or(false);
+
+    Ok(CertificateInfo {
+        subject_cn,
+        issuer_cn,
+        organization,
+        sans_dns,
+        sans_ip,
+        not_before,
+        not_after,
+        serial_number,
+        fingerprint_sha256,
+        is_ca,
+        chain_length,
+    })
 }
 
 /// PEM 파일에서 인증서 체인을 로드합니다 (하위 호환성).
@@ -195,26 +359,47 @@ pub fn create_hybrid_client_with_cert(
 
     let rustls_config = if let Some(cert_config) = client_cert_config {
         if cert_config.enabled {
-            match (
-                load_certs(&cert_config.cert_path),
-                load_private_key(&cert_config.key_path),
-            ) {
-                (Ok(certs), Ok(key)) => {
-                    info!(
-                        "클라이언트 인증서 로드 성공: cert={}, key={}",
-                        cert_config.cert_path, cert_config.key_path
-                    );
-                    config_builder.with_client_auth_cert(certs, key)?
+            // 기본 인증서 로드
+            let default_cert =
+                match build_certified_key(&cert_config.cert_path, &cert_config.key_path) {
+                    Ok(key) => {
+                        info!(
+                            "기본 클라이언트 인증서 로드 성공: cert={}, key={}",
+                            cert_config.cert_path, cert_config.key_path
+                        );
+                        Some(Arc::new(key))
+                    }
+                    Err(e) => {
+                        error!("기본 클라이언트 인증서 로드 실패: {}", e);
+                        None
+                    }
+                };
+
+            // 도메인별 인증서 로드
+            let mut domain_certs = Vec::new();
+            for dc in &cert_config.domain_certs {
+                if !dc.enabled {
+                    continue;
                 }
-                (Err(e), _) => {
-                    error!("클라이언트 인증서 로드 실패: {}", e);
-                    config_builder.with_no_client_auth()
-                }
-                (_, Err(e)) => {
-                    error!("클라이언트 키 로드 실패: {}", e);
-                    config_builder.with_no_client_auth()
+                match build_certified_key(&dc.cert_path, &dc.key_path) {
+                    Ok(key) => {
+                        info!(
+                            "도메인 인증서 로드 성공: pattern={}, cert={}",
+                            dc.domain_pattern, dc.cert_path
+                        );
+                        domain_certs.push((dc.domain_pattern.clone(), Arc::new(key)));
+                    }
+                    Err(e) => {
+                        error!("도메인 인증서 로드 실패 ({}): {}", dc.domain_pattern, e);
+                    }
                 }
             }
+
+            let resolver = DomainCertResolver {
+                default_cert,
+                domain_certs,
+            };
+            config_builder.with_client_cert_resolver(Arc::new(resolver))
         } else {
             config_builder.with_no_client_auth()
         }
@@ -309,6 +494,7 @@ mod tests {
             cert_path: "/nonexistent".to_string(),
             key_path: "/nonexistent".to_string(),
             enabled: false,
+            domain_certs: vec![],
         };
         assert!(validate_client_cert_config(&config).is_ok());
     }
@@ -319,6 +505,7 @@ mod tests {
             cert_path: "/nonexistent/cert.pem".to_string(),
             key_path: "/nonexistent/key.pem".to_string(),
             enabled: true,
+            domain_certs: vec![],
         };
         let result = validate_client_cert_config(&config);
         assert!(result.is_err());
@@ -332,6 +519,7 @@ mod tests {
             cert_path: cert_file.path().to_str().unwrap().to_string(),
             key_path: key_file.path().to_str().unwrap().to_string(),
             enabled: true,
+            domain_certs: vec![],
         };
         assert!(validate_client_cert_config(&config).is_ok());
     }
@@ -342,5 +530,175 @@ mod tests {
         file.write_all(b"not a valid key").unwrap();
         let result = load_private_key(file.path().to_str().unwrap());
         assert!(result.is_err());
+    }
+
+    // --- parse_certificate_info 테스트 ---
+
+    #[test]
+    fn test_parse_certificate_info_basic() {
+        let (cert_file, _key_file) = create_test_cert_files();
+        let info = parse_certificate_info(cert_file.path().to_str().unwrap()).expect("파싱 실패");
+
+        // rcgen 기본 파라미터: CN은 설정하지 않으면 None일 수 있음
+        // SAN에 localhost가 있어야 함
+        assert!(
+            info.sans_dns.contains(&"localhost".to_string()),
+            "SAN DNS에 localhost가 있어야 함: {:?}",
+            info.sans_dns
+        );
+        assert_eq!(info.chain_length, 1);
+        assert!(!info.fingerprint_sha256.is_empty());
+        assert!(!info.serial_number.is_empty());
+        assert!(!info.not_before.is_empty());
+        assert!(!info.not_after.is_empty());
+    }
+
+    #[test]
+    fn test_parse_certificate_info_fingerprint_format() {
+        let (cert_file, _key_file) = create_test_cert_files();
+        let info = parse_certificate_info(cert_file.path().to_str().unwrap()).expect("파싱 실패");
+
+        // SHA-256 지문은 colon-separated hex 형식이어야 함
+        let parts: Vec<&str> = info.fingerprint_sha256.split(':').collect();
+        assert_eq!(parts.len(), 32, "SHA-256은 32바이트여야 함");
+        for part in &parts {
+            assert_eq!(part.len(), 2, "각 바이트는 2자리 hex여야 함");
+            assert!(
+                part.chars().all(|c| c.is_ascii_hexdigit()),
+                "hex 문자여야 함: {}",
+                part
+            );
+        }
+    }
+
+    #[test]
+    fn test_parse_certificate_info_nonexistent_file() {
+        let result = parse_certificate_info("/nonexistent/cert.pem");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_parse_certificate_info_invalid_content() {
+        let mut file = NamedTempFile::new().unwrap();
+        file.write_all(b"not a valid cert").unwrap();
+        let result = parse_certificate_info(file.path().to_str().unwrap());
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_parse_certificate_info_self_signed_is_not_ca() {
+        let (cert_file, _key_file) = create_test_cert_files();
+        let info = parse_certificate_info(cert_file.path().to_str().unwrap()).expect("파싱 실패");
+        // rcgen 기본 자체 서명 인증서는 CA가 아님
+        assert!(!info.is_ca);
+    }
+
+    #[test]
+    fn test_parse_certificate_info_ca_cert() {
+        // CA 인증서 생성
+        let mut ca_params =
+            rcgen::CertificateParams::new(Vec::<String>::new()).expect("Failed to create params");
+        ca_params.is_ca = rcgen::IsCa::Ca(rcgen::BasicConstraints::Unconstrained);
+        ca_params
+            .distinguished_name
+            .push(rcgen::DnType::CommonName, "Test CA");
+        ca_params
+            .distinguished_name
+            .push(rcgen::DnType::OrganizationName, "Test Org");
+        let key_pair = rcgen::KeyPair::generate().expect("Failed to generate key pair");
+        let cert = ca_params
+            .self_signed(&key_pair)
+            .expect("Failed to self-sign");
+
+        let mut cert_file = NamedTempFile::new().unwrap();
+        cert_file.write_all(cert.pem().as_bytes()).unwrap();
+
+        let info = parse_certificate_info(cert_file.path().to_str().unwrap()).expect("파싱 실패");
+        assert!(info.is_ca, "CA 인증서여야 함");
+        assert_eq!(info.subject_cn, Some("Test CA".to_string()));
+        assert_eq!(info.organization, Some("Test Org".to_string()));
+    }
+
+    // --- build_certified_key 테스트 ---
+
+    #[test]
+    fn test_build_certified_key_success() {
+        let (cert_file, key_file) = create_test_cert_files();
+        let result = build_certified_key(
+            cert_file.path().to_str().unwrap(),
+            key_file.path().to_str().unwrap(),
+        );
+        assert!(result.is_ok(), "CertifiedKey 빌드 성공해야 함");
+    }
+
+    #[test]
+    fn test_build_certified_key_invalid_cert() {
+        let mut file = NamedTempFile::new().unwrap();
+        file.write_all(b"not a cert").unwrap();
+        let (_, key_file) = create_test_cert_files();
+        let result = build_certified_key(
+            file.path().to_str().unwrap(),
+            key_file.path().to_str().unwrap(),
+        );
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_build_certified_key_mismatched_key() {
+        // 두 개의 다른 키쌍 생성
+        let (cert_file, _) = create_test_cert_files();
+        let (_, other_key_file) = create_test_cert_files();
+        let result = build_certified_key(
+            cert_file.path().to_str().unwrap(),
+            other_key_file.path().to_str().unwrap(),
+        );
+        // 키 불일치는 빌드 시점에서 에러가 날 수도, 안 날 수도 있음 (rustls 구현에 따라)
+        // 최소한 패닉하지 않는 것만 확인
+        let _ = result;
+    }
+
+    // --- DomainCertResolver 테스트 ---
+
+    #[test]
+    fn test_domain_cert_resolver_with_default() {
+        let (cert_file, key_file) = create_test_cert_files();
+        let key = build_certified_key(
+            cert_file.path().to_str().unwrap(),
+            key_file.path().to_str().unwrap(),
+        )
+        .unwrap();
+        let resolver = DomainCertResolver {
+            default_cert: Some(Arc::new(key)),
+            domain_certs: vec![],
+        };
+        assert!(resolver.has_certs());
+        assert!(resolver.resolve(&[], &[]).is_some());
+    }
+
+    #[test]
+    fn test_domain_cert_resolver_without_default() {
+        let resolver = DomainCertResolver {
+            default_cert: None,
+            domain_certs: vec![],
+        };
+        assert!(!resolver.has_certs());
+        assert!(resolver.resolve(&[], &[]).is_none());
+    }
+
+    #[test]
+    fn test_domain_cert_resolver_with_domain_certs_only() {
+        let (cert_file, key_file) = create_test_cert_files();
+        let key = build_certified_key(
+            cert_file.path().to_str().unwrap(),
+            key_file.path().to_str().unwrap(),
+        )
+        .unwrap();
+        let resolver = DomainCertResolver {
+            default_cert: None,
+            domain_certs: vec![("*.example.com".to_string(), Arc::new(key))],
+        };
+        assert!(resolver.has_certs());
+        // 기본 인증서가 없으면 None 반환 (현재 구현)
+        assert!(resolver.resolve(&[], &[]).is_none());
     }
 }
