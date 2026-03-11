@@ -17,17 +17,6 @@ interface SslProxyingStoreState {
   syncToProxy: () => void;
 }
 
-let syncTimer: ReturnType<typeof setTimeout> | null = null;
-
-/** syncToProxy 연속 호출을 방지하기 위한 debounce (300ms) */
-function debouncedSync(fn: () => Promise<void>) {
-  if (syncTimer) clearTimeout(syncTimer);
-  syncTimer = setTimeout(() => {
-    syncTimer = null;
-    fn();
-  }, 300);
-}
-
 export const useSslProxyingStore = create<SslProxyingStoreState>()(
   persist(
     (set, get) => ({
@@ -36,19 +25,16 @@ export const useSslProxyingStore = create<SslProxyingStoreState>()(
 
       setMode: (mode: SslProxyingMode) => {
         set({ mode });
-        get().syncToProxy();
       },
 
       addEntry: (entry: SslProxyingEntry) => {
         set((state) => ({ entries: [...state.entries, entry] }));
-        get().syncToProxy();
       },
 
       removeEntry: (pattern: string) => {
         set((state) => ({
           entries: state.entries.filter((e) => e.pattern !== pattern),
         }));
-        get().syncToProxy();
       },
 
       toggleEntry: (pattern: string) => {
@@ -57,7 +43,6 @@ export const useSslProxyingStore = create<SslProxyingStoreState>()(
             e.pattern === pattern ? { ...e, enabled: !e.enabled } : e,
           ),
         }));
-        get().syncToProxy();
       },
 
       /** 데몬 이벤트로 수신한 상태 반영 전용 -- syncToProxy 호출 안 함 */
@@ -67,18 +52,16 @@ export const useSslProxyingStore = create<SslProxyingStoreState>()(
 
       clearEntries: () => {
         set({ entries: [] });
-        get().syncToProxy();
       },
 
-      syncToProxy: () => {
-        debouncedSync(async () => {
-          try {
-            const { mode, entries } = get();
-            await updateSslProxyingList(mode, entries);
-          } catch (error) {
-            console.error("Failed to sync SSL proxying list:", error);
-          }
-        });
+      syncToProxy: async () => {
+        try {
+          const { mode, entries } = get();
+          await updateSslProxyingList(mode, entries);
+        } catch (error) {
+          console.error("Failed to sync SSL proxying list:", error);
+          throw error;
+        }
       },
     }),
     {

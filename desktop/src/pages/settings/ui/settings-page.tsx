@@ -275,6 +275,19 @@ async function saveAllSettings(
     }
   }
 
+  // SSL Proxying
+  if (dirtyFields.sslProxying) {
+    try {
+      const sslStore = useSslProxyingStore.getState();
+      sslStore.setMode(data.sslProxying.mode);
+      sslStore.setFromDaemon(data.sslProxying.mode, data.sslProxying.entries);
+      await sslStore.syncToProxy();
+      results.push({ section: "sslProxying", success: true });
+    } catch (error) {
+      results.push({ section: "sslProxying", success: false, error });
+    }
+  }
+
   const failures = results.filter((r) => !r.success);
   if (failures.length > 0) {
     console.error("Some sections failed to save:", failures);
@@ -1345,23 +1358,22 @@ function RequestClientCertSection() {
   );
 }
 
-// --- SSL Proxying (auto-save via store, not form) ---
+// --- SSL Proxying (form-integrated, saved via Save button) ---
 function SslProxyingSection() {
   const { t } = useLingui();
-  const mode = useSslProxyingStore((s) => s.mode);
-  const entries = useSslProxyingStore((s) => s.entries);
-  const setMode = useSslProxyingStore((s) => s.setMode);
-  const addEntry = useSslProxyingStore((s) => s.addEntry);
-  const removeEntry = useSslProxyingStore((s) => s.removeEntry);
-  const toggleEntry = useSslProxyingStore((s) => s.toggleEntry);
+  const form = useSettingsForm();
+  const mode = form.watch("sslProxying.mode");
+  const entries = form.watch("sslProxying.entries");
   const [newPattern, setNewPattern] = useState("");
 
   const handleAdd = useCallback(() => {
     const pattern = newPattern.trim();
     if (!pattern || entries.some((e) => e.pattern === pattern)) return;
-    addEntry({ pattern, enabled: true });
+    form.setValue("sslProxying.entries", [...entries, { pattern, enabled: true }], {
+      shouldDirty: true,
+    });
     setNewPattern("");
-  }, [newPattern, entries, addEntry]);
+  }, [newPattern, entries, form]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -1371,6 +1383,35 @@ function SslProxyingSection() {
       }
     },
     [handleAdd],
+  );
+
+  const handleRemove = useCallback(
+    (pattern: string) => {
+      form.setValue(
+        "sslProxying.entries",
+        entries.filter((e) => e.pattern !== pattern),
+        { shouldDirty: true },
+      );
+    },
+    [entries, form],
+  );
+
+  const handleToggle = useCallback(
+    (pattern: string) => {
+      form.setValue(
+        "sslProxying.entries",
+        entries.map((e) => (e.pattern === pattern ? { ...e, enabled: !e.enabled } : e)),
+        { shouldDirty: true },
+      );
+    },
+    [entries, form],
+  );
+
+  const handleModeChange = useCallback(
+    (v: string) => {
+      form.setValue("sslProxying.mode", v as "blacklist" | "whitelist", { shouldDirty: true });
+    },
+    [form],
   );
 
   const enabledCount = entries.filter((e) => e.enabled).length;
@@ -1407,7 +1448,12 @@ function SslProxyingSection() {
         <span className="text-sm font-medium whitespace-nowrap">
           <Trans>Mode</Trans>
         </span>
-        <Select value={mode} onValueChange={(v) => setMode(v as "blacklist" | "whitelist")}>
+        <Select
+          value={mode}
+          onValueChange={(v) => {
+            if (v) handleModeChange(v);
+          }}
+        >
           <SelectTrigger className="w-48">
             <SelectValue />
           </SelectTrigger>
@@ -1453,7 +1499,7 @@ function SslProxyingSection() {
               <div className="flex items-center gap-3">
                 <Switch
                   checked={entry.enabled}
-                  onCheckedChange={() => toggleEntry(entry.pattern)}
+                  onCheckedChange={() => handleToggle(entry.pattern)}
                 />
                 <span
                   className={`font-mono text-sm ${entry.enabled ? "text-foreground" : "text-muted-foreground line-through"}`}
@@ -1465,7 +1511,7 @@ function SslProxyingSection() {
                 type="button"
                 variant="ghost"
                 size="sm"
-                onClick={() => removeEntry(entry.pattern)}
+                onClick={() => handleRemove(entry.pattern)}
                 className="text-muted-foreground hover:text-destructive"
               >
                 <Trans>Remove</Trans>
