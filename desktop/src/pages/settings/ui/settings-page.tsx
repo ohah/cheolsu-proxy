@@ -281,6 +281,40 @@ function SettingsPageInner() {
   const dirtyFieldsRef = useRef(dirtyFields);
   dirtyFieldsRef.current = dirtyFields;
 
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const sectionRefs = useRef<Record<SettingsCategory, HTMLDivElement | null>>({
+    general: null,
+    certificate: null,
+    network: null,
+    security: null,
+    tools: null,
+  });
+
+  // Track which section is visible via IntersectionObserver
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            const cat = entry.target.getAttribute("data-category") as SettingsCategory | null;
+            if (cat) setActiveCategory(cat);
+          }
+        }
+      },
+      { root: container, rootMargin: "-20% 0px -70% 0px", threshold: 0 },
+    );
+
+    for (const cat of CATEGORIES) {
+      const el = sectionRefs.current[cat];
+      if (el) observer.observe(el);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
   // Sync proxy auth to backend when proxy connects
   useEffect(() => {
     if (isProxyConnected) {
@@ -308,8 +342,11 @@ function SettingsPageInner() {
     [form],
   );
 
-  const handleCategoryChange = useCallback((cat: SettingsCategory) => {
-    setActiveCategory(cat);
+  const handleScrollTo = useCallback((cat: SettingsCategory) => {
+    const el = sectionRefs.current[cat];
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
   }, []);
 
   const categoryLabels: Record<SettingsCategory, string> = {
@@ -328,7 +365,7 @@ function SettingsPageInner() {
           <button
             key={cat}
             type="button"
-            onClick={() => handleCategoryChange(cat)}
+            onClick={() => handleScrollTo(cat)}
             className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
               activeCategory === cat
                 ? "bg-accent text-accent-foreground font-medium"
@@ -345,7 +382,9 @@ function SettingsPageInner() {
         {/* Sticky header */}
         <div className="flex items-center justify-between px-6 py-4 border-b flex-shrink-0">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">{categoryLabels[activeCategory]}</h1>
+            <h1 className="text-2xl font-bold text-foreground">
+              <Trans>Settings</Trans>
+            </h1>
             <p className="text-sm text-muted-foreground">
               <Trans>Proxy configuration and preferences</Trans>
             </p>
@@ -369,26 +408,65 @@ function SettingsPageInner() {
           </div>
         </div>
 
-        {/* Scrollable content — all categories always mounted */}
-        <div className="flex-1 overflow-auto p-6">
-          <div className={activeCategory === "general" ? "space-y-6" : "hidden"}>
+        {/* Scrollable content — all sections visible */}
+        <div ref={scrollContainerRef} className="flex-1 overflow-auto p-6 space-y-10">
+          <div
+            ref={(el) => {
+              sectionRefs.current.general = el;
+            }}
+            data-category="general"
+            className="space-y-6"
+          >
+            <h2 className="text-xl font-semibold text-foreground">{categoryLabels.general}</h2>
             <GeneralSettings />
           </div>
-          <div className={activeCategory === "certificate" ? "space-y-6" : "hidden"}>
+
+          <div
+            ref={(el) => {
+              sectionRefs.current.certificate = el;
+            }}
+            data-category="certificate"
+            className="space-y-6"
+          >
+            <h2 className="text-xl font-semibold text-foreground">{categoryLabels.certificate}</h2>
             <CertificateSettings />
             <ClientCertificateSection />
             <RequestClientCertSection />
           </div>
-          <div className={activeCategory === "network" ? "space-y-6" : "hidden"}>
+
+          <div
+            ref={(el) => {
+              sectionRefs.current.network = el;
+            }}
+            data-category="network"
+            className="space-y-6"
+          >
+            <h2 className="text-xl font-semibold text-foreground">{categoryLabels.network}</h2>
             <ThrottleSection />
             <ConnectionStrategySection />
             <SslProxyingSection />
             <UpstreamProxySection />
           </div>
-          <div className={activeCategory === "security" ? "space-y-6" : "hidden"}>
+
+          <div
+            ref={(el) => {
+              sectionRefs.current.security = el;
+            }}
+            data-category="security"
+            className="space-y-6"
+          >
+            <h2 className="text-xl font-semibold text-foreground">{categoryLabels.security}</h2>
             <ProxyAuthSection />
           </div>
-          <div className={activeCategory === "tools" ? "space-y-6" : "hidden"}>
+
+          <div
+            ref={(el) => {
+              sectionRefs.current.tools = el;
+            }}
+            data-category="tools"
+            className="space-y-6"
+          >
+            <h2 className="text-xl font-semibold text-foreground">{categoryLabels.tools}</h2>
             <CliSettings />
             <ShortcutSection />
           </div>

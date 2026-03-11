@@ -1,5 +1,5 @@
-import { createContext, useContext, type ReactNode } from "react";
-import { useForm, type UseFormReturn } from "react-hook-form";
+import { type ReactNode } from "react";
+import { useForm, useFormContext, FormProvider, type UseFormReturn } from "react-hook-form";
 import { useAppSettingsStore } from "@/shared/stores/app-settings-store";
 import type { ConnectionStrategy } from "@/shared/api/proxy";
 import type { DomainClientCertConfig } from "@/shared/api/proxy";
@@ -100,18 +100,14 @@ export function getDefaultValues(): SettingsFormValues {
   };
 }
 
-const SettingsFormContext = createContext<UseFormReturn<SettingsFormValues> | null>(null);
-
 export function SettingsFormProvider({ children }: { children: ReactNode }) {
   const form = useForm<SettingsFormValues>({
     defaultValues: getDefaultValues(),
   });
 
-  return <SettingsFormContext.Provider value={form}>{children}</SettingsFormContext.Provider>;
+  return <FormProvider {...form}>{children}</FormProvider>;
 }
 
 export function useSettingsForm(): UseFormReturn<SettingsFormValues> {
-  const ctx = useContext(SettingsFormContext);
-  if (!ctx) throw new Error("useSettingsForm must be used within SettingsFormProvider");
-  return ctx;
+  return useFormContext<SettingsFormValues>();
 }
