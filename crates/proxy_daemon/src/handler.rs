@@ -985,9 +985,7 @@ impl LoggingHandler {
                 }
                 if let Some(body) = new_body {
                     use http_body_util::Full;
-                    res.headers_mut().remove("content-length");
-                    res.headers_mut().remove("content-encoding");
-                    res.headers_mut().remove("transfer-encoding");
+                    crate::header_utils::clear_content_encoding_headers(res.headers_mut());
                     *res.body_mut() = Body::from(Full::new(bytes::Bytes::from(body)));
                 }
                 res
