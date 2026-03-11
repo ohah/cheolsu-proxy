@@ -1,4 +1,6 @@
-use proxy_v2_models::{RequestInfo, WsConnectionEvent, WsMessageInfo};
+use proxy_v2_models::{
+    RequestInfo, SseConnectionEvent, SseEventInfo, WsConnectionEvent, WsMessageInfo,
+};
 use proxyapi_v2::throttle::ThrottleConfig;
 use proxyapi_v2::upstream_proxy::UpstreamProxyConfig;
 use serde::{Deserialize, Serialize};
@@ -91,6 +93,10 @@ pub enum DaemonMessage {
         success: bool,
         error: Option<String>,
     },
+    #[serde(rename = "sse_event")]
+    SseEvent { data: SseEventInfo },
+    #[serde(rename = "sse_connection")]
+    SseConnection { data: SseConnectionEvent },
     /// 스크립트 로드/언로드 결과
     #[serde(rename = "script_result")]
     ScriptResult {
@@ -154,6 +160,29 @@ pub enum DaemonMessage {
     #[serde(rename = "request_client_cert_updated")]
     RequestClientCertUpdated {
         config: Option<RequestClientCertConfig>,
+    },
+    /// 메트릭 조회 결과
+    #[serde(rename = "metrics_result")]
+    MetricsResult {
+        active_connections: i64,
+        total_requests: u64,
+        total_bytes_sent: u64,
+        total_bytes_received: u64,
+        total_tls_handshakes: u64,
+        total_tls_failures: u64,
+        total_connection_failures: u64,
+        total_timeouts: u64,
+        uptime_secs: u64,
+    },
+    /// 도메인별 통계 조회 결과
+    #[serde(rename = "domain_stats_result")]
+    DomainStatsResult {
+        stats: Vec<crate::metrics_aggregator::DomainStatsEntry>,
+    },
+    /// 최근 에러 조회 결과
+    #[serde(rename = "recent_errors_result")]
+    RecentErrorsResult {
+        errors: Vec<crate::metrics_aggregator::ErrorEntry>,
     },
 }
 
@@ -249,6 +278,21 @@ pub enum ClientCommand {
     /// 연결 전략 업데이트 (Lazy, Eager, EagerWithFallback)
     #[serde(rename = "update_connection_strategy")]
     UpdateConnectionStrategy { strategy: String },
+    /// 메트릭 조회
+    #[serde(rename = "get_metrics")]
+    GetMetrics,
+    /// 도메인별 통계 조회
+    #[serde(rename = "get_domain_stats")]
+    GetDomainStats {
+        #[serde(default)]
+        domain: Option<String>,
+    },
+    /// 최근 에러 조회
+    #[serde(rename = "get_recent_errors")]
+    GetRecentErrors {
+        #[serde(default)]
+        limit: Option<usize>,
+    },
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

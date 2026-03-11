@@ -80,6 +80,27 @@ pub enum WsAction {
     Drop,
 }
 
+/// JS/TS 스크립트에서 사용하는 SSE 이벤트 표현
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ScriptSseEvent {
+    pub connection_id: String,
+    pub event_type: Option<String>,
+    pub data: String,
+    pub id: Option<String>,
+}
+
+/// onSSEMessage 훅의 반환값
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "action")]
+pub enum SseAction {
+    /// 이벤트를 그대로 전달
+    #[serde(rename = "forward")]
+    Forward,
+    /// 이벤트 드롭
+    #[serde(rename = "drop")]
+    Drop,
+}
+
 /// 스크립트 로그 엔트리
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ScriptLogEntry {
