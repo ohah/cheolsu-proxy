@@ -221,8 +221,9 @@ impl LoggingHandler {
                                     rewrite_body_bytes(current_req.body_mut(), &re, replace_with)
                                         .await
                                 {
-                                    current_req.headers_mut().remove("content-length");
-                                    current_req.headers_mut().remove("content-encoding");
+                                    crate::header_utils::clear_content_encoding_headers(
+                                        current_req.headers_mut(),
+                                    );
                                     use http_body_util::Full;
                                     *current_req.body_mut() = Body::from(Full::new(new_bytes));
                                 }
@@ -415,9 +416,7 @@ impl LoggingHandler {
                     use http_body_util::Full;
                     // Content-Length 업데이트
                     let body_bytes = bytes::Bytes::from(new_body.clone());
-                    res.headers_mut().remove("content-length");
-                    res.headers_mut().remove("content-encoding");
-                    res.headers_mut().remove("transfer-encoding");
+                    crate::header_utils::clear_content_encoding_headers(res.headers_mut());
                     *res.body_mut() = Body::from(Full::new(body_bytes));
                 }
 
@@ -461,9 +460,9 @@ impl LoggingHandler {
                                 if let Some(new_bytes) =
                                     rewrite_body_bytes(res.body_mut(), &re, replace_with).await
                                 {
-                                    res.headers_mut().remove("content-length");
-                                    res.headers_mut().remove("content-encoding");
-                                    res.headers_mut().remove("transfer-encoding");
+                                    crate::header_utils::clear_content_encoding_headers(
+                                        res.headers_mut(),
+                                    );
                                     use http_body_util::Full;
                                     *res.body_mut() = Body::from(Full::new(new_bytes));
                                 }
