@@ -102,7 +102,13 @@ pub async fn clear_log_file(path: String) -> Result<(), String> {
 /// 로그 파일 삭제 (파일 자체를 제거)
 #[tauri::command]
 pub async fn delete_log_file(path: String) -> Result<(), String> {
-    std::fs::remove_file(&path).map_err(|e| format!("로그 파일 삭제 실패: {}", e))
+    let path = std::path::Path::new(&path);
+    let app_dir = proxy_daemon::daemon::app_support_dir()
+        .map_err(|e| format!("앱 디렉토리 확인 실패: {}", e))?;
+    if !path.starts_with(&app_dir) {
+        return Err("로그 디렉토리 외부 파일은 삭제할 수 없습니다".to_string());
+    }
+    std::fs::remove_file(path).map_err(|e| format!("로그 파일 삭제 실패: {}", e))
 }
 
 /// 로그 디렉토리 경로 반환
@@ -2256,6 +2262,36 @@ mod tests {
         assert!(std::fs::read_to_string(&log_path).unwrap().is_empty());
 
         std::fs::remove_dir_all(&dir).unwrap();
+    }
+
+    #[test]
+    fn delete_log_file_removes_file() {
+        let dir = std::env::temp_dir().join("cheolsu_log_delete_test");
+        std::fs::create_dir_all(&dir).unwrap();
+        let log_path = dir.join("test_delete.log");
+
+        std::fs::write(&log_path, "some log content\n").unwrap();
+        assert!(log_path.exists());
+
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        rt.block_on(super::delete_log_file(log_path.display().to_string()))
+            .unwrap();
+
+        assert!(!log_path.exists());
+
+        std::fs::remove_dir_all(&dir).unwrap();
+    }
+
+    #[test]
+    fn delete_log_file_nonexistent_returns_error() {
+        let path = std::env::temp_dir()
+            .join("cheolsu_log_delete_nonexistent")
+            .join("no_such_file.log");
+
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        let result = rt.block_on(super::delete_log_file(path.display().to_string()));
+
+        assert!(result.is_err());
     }
 
     #[test]

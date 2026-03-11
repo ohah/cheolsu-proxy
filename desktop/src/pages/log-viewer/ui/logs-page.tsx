@@ -4,7 +4,18 @@ import { useLingui } from "@lingui/react/macro";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { openPath } from "@tauri-apps/plugin-opener";
-import { Button, Badge, Input } from "@/shared/ui";
+import {
+  Button,
+  Badge,
+  Input,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+} from "@/shared/ui";
 import { RefreshCw, Trash2, FolderOpen, Search, X, Shield, FileX2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -49,6 +60,9 @@ export function LogsPage() {
   const [filter, setFilter] = useState("");
   const [loading, setLoading] = useState(false);
   const contentRef = useRef<HTMLPreElement>(null);
+
+  // Delete confirmation dialog state
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   // TLS Passthrough state
   const [tlsEntries, setTlsEntries] = useState<TlsPassthroughEntry[]>([]);
@@ -105,12 +119,13 @@ export function LogsPage() {
     }
   }, [selectedFile, fetchLogFiles]);
 
-  const handleDelete = useCallback(async () => {
+  const handleDeleteConfirm = useCallback(async () => {
     if (!selectedFile) return;
     try {
       await invoke("delete_log_file", { path: selectedFile.path });
       setLogContent("");
       setSelectedFile(null);
+      setDeleteDialogOpen(false);
       await fetchLogFiles();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : String(e));
@@ -240,7 +255,12 @@ export function LogsPage() {
                   <Trash2 className="w-4 h-4 mr-1" />
                   <Trans>Clear</Trans>
                 </Button>
-                <Button variant="outline" size="sm" onClick={handleDelete} disabled={!selectedFile}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setDeleteDialogOpen(true)}
+                  disabled={!selectedFile}
+                >
                   <FileX2 className="w-4 h-4 mr-1" />
                   <Trans>Delete</Trans>
                 </Button>
@@ -432,6 +452,29 @@ export function LogsPage() {
           </div>
         </div>
       )}
+      {/* Delete confirmation dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle>
+              <Trans>Delete Log File</Trans>
+            </DialogTitle>
+            <DialogDescription>
+              <Trans>Delete "{selectedFile?.name}"? This action cannot be undone.</Trans>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose>
+              <Button variant="outline">
+                <Trans>Cancel</Trans>
+              </Button>
+            </DialogClose>
+            <Button variant="destructive" onClick={handleDeleteConfirm}>
+              <Trans>Delete</Trans>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
