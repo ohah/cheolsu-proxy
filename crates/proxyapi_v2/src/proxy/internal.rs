@@ -363,7 +363,7 @@ where
 
                             // Eager 전략: 캐시 미스 시 ClientHello 감지 전에 백그라운드 스니핑 시작
                             let eager_handle = if !self.ca.is_config_cached(&authority).await {
-                                match self.ctx.connection_strategy {
+                                match self.ctx.connection_strategy() {
                                     ConnectionStrategy::Eager
                                     | ConnectionStrategy::EagerWithFallback => {
                                         let authority_clone = authority.clone();
@@ -378,7 +378,7 @@ where
                                         );
 
                                         let start_time = std::time::Instant::now();
-                                        let is_fallback = self.ctx.connection_strategy
+                                        let is_fallback = self.ctx.connection_strategy()
                                             == ConnectionStrategy::EagerWithFallback;
 
                                         Some(tokio::spawn(async move {
@@ -468,7 +468,7 @@ where
                                                         );
                                                         // EagerWithFallback: eager 실패 시 lazy 폴백
                                                         if cert.is_none()
-                                                            && self.ctx.connection_strategy
+                                                            && self.ctx.connection_strategy()
                                                                 == ConnectionStrategy::EagerWithFallback
                                                         {
                                                             debug!(
@@ -491,7 +491,7 @@ where
                                                             authority, e
                                                         );
                                                         // EagerWithFallback: spawn 실패 시 lazy 폴백
-                                                        if self.ctx.connection_strategy
+                                                        if self.ctx.connection_strategy()
                                                             == ConnectionStrategy::EagerWithFallback
                                                         {
                                                             lazy_sniff_upstream(

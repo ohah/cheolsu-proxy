@@ -40,6 +40,7 @@ pub async fn handle_client(
     total_transactions: std::sync::Arc<std::sync::atomic::AtomicU64>,
     client_count: std::sync::Arc<std::sync::atomic::AtomicUsize>,
     tls_passthrough: proxyapi_v2::tls_passthrough::TlsPassthrough,
+    connection_strategy: std::sync::Arc<std::sync::atomic::AtomicU8>,
 ) {
     let (reader, writer) = stream.into_split();
     let mut reader = BufReader::new(reader);
@@ -547,6 +548,16 @@ pub async fn handle_client(
                                 }
                             }
                         }
+                    }
+                    Ok(ClientCommand::UpdateConnectionStrategy { strategy }) => {
+                        let strategy_value = match strategy.as_str() {
+                            "eager" => 1u8,
+                            "eager_with_fallback" => 2u8,
+                            _ => 0u8, // lazy
+                        };
+                        connection_strategy
+                            .store(strategy_value, std::sync::atomic::Ordering::Relaxed);
+                        info!("Connection strategy updated: {}", strategy);
                     }
                     Ok(ClientCommand::Stop) => {
                         break;

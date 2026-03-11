@@ -23,6 +23,7 @@ import {
   CertificateSettings,
   ShortcutSettings,
   CliSettings,
+  ConnectionStrategySettings,
 } from "./components";
 
 export function SettingsPage() {
@@ -43,6 +44,7 @@ export function SettingsPage() {
         <CliSettings />
         <ShortcutSettings />
         <ThrottleSettings />
+        <ConnectionStrategySettings />
         <SslProxyingSection />
         <ProxyAuthSection />
         <ProxySettings />
