@@ -47,6 +47,9 @@ pub struct MetricsAggregator {
 /// 최근 에러 최대 보관 수
 const MAX_RECENT_ERRORS: usize = 100;
 
+/// 도메인 통계 최대 보관 수
+const MAX_DOMAIN_STATS: usize = 1000;
+
 impl MetricsAggregator {
     /// 새로운 MetricsAggregator를 생성합니다.
     pub fn new(collector: Arc<MetricsCollector>) -> Self {
@@ -79,6 +82,16 @@ impl MetricsAggregator {
                         bytes_received,
                     } => {
                         let mut stats = domain_stats.write().await;
+                        // 도메인 수 제한: 최대 수를 초과하면 가장 적은 요청 수의 도메인 제거
+                        if !stats.contains_key(&domain) && stats.len() >= MAX_DOMAIN_STATS {
+                            if let Some(min_domain) = stats
+                                .iter()
+                                .min_by_key(|(_, s)| s.request_count)
+                                .map(|(d, _)| d.clone())
+                            {
+                                stats.remove(&min_domain);
+                            }
+                        }
                         let entry = stats.entry(domain).or_default();
                         entry.request_count += 1;
                         entry.total_response_time_ms += duration_ms;
@@ -126,9 +139,8 @@ impl MetricsAggregator {
                             });
                         }
                     }
-                    MetricEvent::ConnectionOpened | MetricEvent::ConnectionClosed => {
+                    MetricEvent::RequestStarted | MetricEvent::RequestFinished => {
                         // Atomic 카운터는 MetricsCollector에서 직접 관리
-                        debug!("Metric event: {:?}", event);
                     }
                 }
             }

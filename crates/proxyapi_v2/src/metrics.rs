@@ -13,8 +13,8 @@ use tokio::sync::mpsc;
 /// mpsc 채널로 상세 이벤트를 비동기 전송합니다.
 #[derive(Debug)]
 pub struct MetricsCollector {
-    /// 현재 활성 연결 수 (증가/감소 가능하므로 i64)
-    pub active_connections: Arc<AtomicI64>,
+    /// 현재 활성 요청 수 (증가/감소 가능하므로 i64)
+    pub active_requests: Arc<AtomicI64>,
     /// 총 처리된 요청 수
     pub total_requests: Arc<AtomicU64>,
     /// 총 전송 바이트 수
@@ -53,10 +53,10 @@ pub enum MetricEvent {
     },
     /// 연결 실패
     ConnectionFailed { domain: String, error: String },
-    /// 연결 열림
-    ConnectionOpened,
-    /// 연결 닫힘
-    ConnectionClosed,
+    /// HTTP 요청 시작
+    RequestStarted,
+    /// HTTP 요청 종료
+    RequestFinished,
 }
 
 /// 메트릭 이벤트 송신자 타입 alias
@@ -74,7 +74,7 @@ impl MetricsCollector {
     /// 새로운 MetricsCollector를 생성합니다.
     pub fn new(event_tx: mpsc::Sender<MetricEvent>) -> Self {
         Self {
-            active_connections: Arc::new(AtomicI64::new(0)),
+            active_requests: Arc::new(AtomicI64::new(0)),
             total_requests: Arc::new(AtomicU64::new(0)),
             total_bytes_sent: Arc::new(AtomicU64::new(0)),
             total_bytes_received: Arc::new(AtomicU64::new(0)),
@@ -86,16 +86,16 @@ impl MetricsCollector {
         }
     }
 
-    /// 활성 연결 수를 1 증가시킵니다.
-    pub fn connection_opened(&self) {
-        self.active_connections.fetch_add(1, Ordering::Relaxed);
-        let _ = self.event_tx.try_send(MetricEvent::ConnectionOpened);
+    /// 활성 요청 수를 1 증가시킵니다.
+    pub fn request_started(&self) {
+        self.active_requests.fetch_add(1, Ordering::Relaxed);
+        let _ = self.event_tx.try_send(MetricEvent::RequestStarted);
     }
 
-    /// 활성 연결 수를 1 감소시킵니다.
-    pub fn connection_closed(&self) {
-        self.active_connections.fetch_sub(1, Ordering::Relaxed);
-        let _ = self.event_tx.try_send(MetricEvent::ConnectionClosed);
+    /// 활성 요청 수를 1 감소시킵니다.
+    pub fn request_finished(&self) {
+        self.active_requests.fetch_sub(1, Ordering::Relaxed);
+        let _ = self.event_tx.try_send(MetricEvent::RequestFinished);
     }
 
     /// 요청 완료를 기록합니다.
@@ -133,7 +133,7 @@ impl MetricsCollector {
     /// 현재 스냅샷을 반환합니다.
     pub fn snapshot(&self) -> MetricsSnapshot {
         MetricsSnapshot {
-            active_connections: self.active_connections.load(Ordering::Relaxed),
+            active_requests: self.active_requests.load(Ordering::Relaxed),
             total_requests: self.total_requests.load(Ordering::Relaxed),
             total_bytes_sent: self.total_bytes_sent.load(Ordering::Relaxed),
             total_bytes_received: self.total_bytes_received.load(Ordering::Relaxed),
@@ -148,7 +148,7 @@ impl MetricsCollector {
 /// 메트릭 스냅샷 — 특정 시점의 메트릭 값을 담는 구조체
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct MetricsSnapshot {
-    pub active_connections: i64,
+    pub active_requests: i64,
     pub total_requests: u64,
     pub total_bytes_sent: u64,
     pub total_bytes_received: u64,

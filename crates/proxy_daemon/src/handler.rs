@@ -1032,8 +1032,15 @@ impl LoggingHandler {
 
         let mut handler_clone = self.clone();
 
-        // SSE 연결 ID 및 URI 추출
-        let connection_id = self
+        // SSE 연결 ID (타임스탬프 + 시퀀스) 및 URI 추출
+        let connection_id = format!(
+            "sse-{}-{}",
+            chrono::Local::now().timestamp_millis(),
+            self.sse
+                .sse_sequence
+                .fetch_add(1, std::sync::atomic::Ordering::Relaxed)
+        );
+        let connection_uri = self
             .request
             .req
             .as_ref()
@@ -1047,7 +1054,7 @@ impl LoggingHandler {
         if let Some(ref sender) = sse_sender {
             let event = SseConnectionEvent::Connected {
                 connection_id: connection_id.clone(),
-                uri: connection_id.clone(),
+                uri: connection_uri,
                 time: chrono::Local::now()
                     .timestamp_nanos_opt()
                     .unwrap_or_default(),
@@ -1079,11 +1086,10 @@ impl LoggingHandler {
                                         id: parsed.id.clone(),
                                     };
 
-                                    match script_handle.invoke_on_sse_event(&sse_msg).await {
-                                        Ok(scripting::SseAction::Drop) => {
-                                            continue;
-                                        }
-                                        _ => {}
+                                    if let Ok(scripting::SseAction::Drop) =
+                                        script_handle.invoke_on_sse_event(&sse_msg).await
+                                    {
+                                        continue;
                                     }
 
                                     if let Some(ref sender) = sse_sender {

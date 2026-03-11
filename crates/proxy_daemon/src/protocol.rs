@@ -164,7 +164,7 @@ pub enum DaemonMessage {
     /// 메트릭 조회 결과
     #[serde(rename = "metrics_result")]
     MetricsResult {
-        active_connections: i64,
+        active_requests: i64,
         total_requests: u64,
         total_bytes_sent: u64,
         total_bytes_received: u64,

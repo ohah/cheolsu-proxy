@@ -128,9 +128,9 @@ where
     ) -> Result<Response<Body>, Infallible> {
         let ctx = self.context();
 
-        // 메트릭: 활성 연결 증가
+        // 메트릭: 활성 요청 증가
         if let Some(ref metrics) = self.ctx.metrics {
-            metrics.connection_opened();
+            metrics.request_started();
         }
 
         let request_start = std::time::Instant::now();
@@ -143,23 +143,23 @@ where
         {
             RequestOrResponse::Request(req) => req,
             RequestOrResponse::Response(res) => {
-                // 메트릭: 활성 연결 감소
+                // 메트릭: 활성 요청 감소
                 if let Some(ref metrics) = self.ctx.metrics {
-                    metrics.connection_closed();
+                    metrics.request_finished();
                 }
                 return Ok(res);
             }
         };
 
         if req.method() == Method::CONNECT {
-            // CONNECT 요청은 터널링이므로 여기서 활성 연결 감소
+            // CONNECT 요청은 터널링이므로 여기서 활성 요청 감소
             if let Some(ref metrics) = self.ctx.metrics {
-                metrics.connection_closed();
+                metrics.request_finished();
             }
             Ok(self.process_connect(req))
         } else if hyper_tungstenite::is_upgrade_request(&req) {
             if let Some(ref metrics) = self.ctx.metrics {
-                metrics.connection_closed();
+                metrics.request_finished();
             }
             Ok(self.upgrade_websocket(req))
         } else {
@@ -171,6 +171,12 @@ where
             let req_host = normalized_req.headers().get("host").cloned();
             let req_user_agent = normalized_req.headers().get("user-agent").cloned();
             let domain = req_uri.host().unwrap_or("unknown").to_string();
+            let req_content_length = normalized_req
+                .headers()
+                .get("content-length")
+                .and_then(|v| v.to_str().ok())
+                .and_then(|v| v.parse::<u64>().ok())
+                .unwrap_or(0);
 
             let res = self
                 .client
@@ -184,12 +190,18 @@ where
                     if let Some(ref metrics) = self.ctx.metrics {
                         let duration_ms = request_start.elapsed().as_millis() as u64;
                         let status = res.status().as_u16();
+                        let res_content_length = res
+                            .headers()
+                            .get("content-length")
+                            .and_then(|v| v.to_str().ok())
+                            .and_then(|v| v.parse::<u64>().ok())
+                            .unwrap_or(0);
                         metrics.request_completed(
                             domain,
                             status,
                             duration_ms,
-                            0, // 정확한 바이트 수는 스트리밍 특성상 사전 계산 불가
-                            0,
+                            req_content_length,
+                            res_content_length,
                         );
                     }
 
@@ -225,9 +237,9 @@ where
                 }
             };
 
-            // 메트릭: 활성 연결 감소
+            // 메트릭: 활성 요청 감소
             if let Some(ref metrics) = self.ctx.metrics {
-                metrics.connection_closed();
+                metrics.request_finished();
             }
 
             result

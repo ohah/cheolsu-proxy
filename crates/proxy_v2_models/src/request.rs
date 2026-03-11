@@ -29,7 +29,7 @@ pub struct ProxiedRequest {
     data_type: DataType,
     #[serde(skip)]
     body_json: Option<serde_json::Value>,
-    #[serde(skip)]
+    #[serde(skip_serializing_if = "Option::is_none", default)]
     grpc_metadata: Option<GrpcMetadata>,
 }
 
