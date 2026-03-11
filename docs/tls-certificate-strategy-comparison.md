@@ -165,13 +165,13 @@ mitmproxy는 7개의 TLS 이벤트 훅을 제공:
 
 ### 5.1 난이도 및 일정 요약
 
-| 기능 | 난이도 | 예상 일수 | 리스크 | 주요 수정 파일 |
-| --- | --- | --- | --- | --- |
-| 인증서 생성 세부 사항 | 낮음 | 1-2일 | 낮음 | `generator.rs`, `rcgen_authority.rs`, `openssl_authority.rs` | **✅ 완료** |
-| TLS 이벤트 훅 (7개) | 중~상 | 4-5일 | 중~상 | 신규 `tls_event.rs`, `hybrid_tls_handler.rs`, `internal.rs`, `context.rs` | **✅ 완료** |
-| TLS 버전/암호화 세분화 | 중간 | 3-4일 | 중간 | 신규 `tls_config.rs`, `hybrid_tls_handler.rs`, `context.rs` | **✅ 완료** |
-| Eager/Lazy 연결 전략 | 중간 | 2-3일 | 중간 | `internal.rs`, `upstream_cert.rs`, `context.rs` | 미구현 |
-| **합계** | | **10-14일** | | | |
+| 기능                   | 난이도 | 예상 일수   | 리스크 | 주요 수정 파일                                                            |
+| ---------------------- | ------ | ----------- | ------ | ------------------------------------------------------------------------- | ----------- |
+| 인증서 생성 세부 사항  | 낮음   | 1-2일       | 낮음   | `generator.rs`, `rcgen_authority.rs`, `openssl_authority.rs`              | **✅ 완료** |
+| TLS 이벤트 훅 (7개)    | 중~상  | 4-5일       | 중~상  | 신규 `tls_event.rs`, `hybrid_tls_handler.rs`, `internal.rs`, `context.rs` | **✅ 완료** |
+| TLS 버전/암호화 세분화 | 중간   | 3-4일       | 중간   | 신규 `tls_config.rs`, `hybrid_tls_handler.rs`, `context.rs`               | **✅ 완료** |
+| Eager/Lazy 연결 전략   | 중간   | 2-3일       | 중간   | `internal.rs`, `upstream_cert.rs`, `context.rs`                           | 미구현      |
+| **합계**               |        | **10-14일** |        |                                                                           |             |
 
 ### 5.2 권장 구현 순서
 
@@ -187,17 +187,18 @@ mitmproxy는 7개의 TLS 이벤트 훅을 제공:
 
 **구현 항목:**
 
-| 항목 | 이전 | mitmproxy | 변경 내용 | 상태 |
-| --- | --- | --- | --- | --- |
-| CA NOT_BEFORE | -60초 | -2일 (-172800초) | `mod.rs` NOT_BEFORE_OFFSET 변경 | ✅ |
-| 리프 NOT_BEFORE | -60초 | -2일 | 동일하게 변경 | ✅ |
-| CN 길이 제한 | 미적용 | 64자 미만 (RFC 준수) | `truncate_cn()` 헬퍼로 모든 CN 설정에 적용 | ✅ |
-| SAN critical 조건 | 항상 critical | subject 비어있을 때만 critical | OpenSSL: `name.entries().count() == 0` 조건부 설정 | ✅ |
-| Authority Key Identifier | 미포함 | 포함 | OpenSSL: `AuthorityKeyIdentifier` 확장 추가, rcgen: `signed_by()` 자동 생성 | ✅ |
-| Subject Key Identifier | 미포함 | 의도적 생략 (SChannel 호환) | 생략 유지 (mitmproxy와 동일) | ✅ |
-| 파일 권한 | rcgen만 적용 | `umask_secret()` (0o77) | OpenSSL CA 생성 시에도 키 파일 `0o600` 권한 설정 추가 | ✅ |
+| 항목                     | 이전          | mitmproxy                      | 변경 내용                                                                   | 상태 |
+| ------------------------ | ------------- | ------------------------------ | --------------------------------------------------------------------------- | ---- |
+| CA NOT_BEFORE            | -60초         | -2일 (-172800초)               | `mod.rs` NOT_BEFORE_OFFSET 변경                                             | ✅   |
+| 리프 NOT_BEFORE          | -60초         | -2일                           | 동일하게 변경                                                               | ✅   |
+| CN 길이 제한             | 미적용        | 64자 미만 (RFC 준수)           | `truncate_cn()` 헬퍼로 모든 CN 설정에 적용                                  | ✅   |
+| SAN critical 조건        | 항상 critical | subject 비어있을 때만 critical | OpenSSL: `name.entries().count() == 0` 조건부 설정                          | ✅   |
+| Authority Key Identifier | 미포함        | 포함                           | OpenSSL: `AuthorityKeyIdentifier` 확장 추가, rcgen: `signed_by()` 자동 생성 | ✅   |
+| Subject Key Identifier   | 미포함        | 의도적 생략 (SChannel 호환)    | 생략 유지 (mitmproxy와 동일)                                                | ✅   |
+| 파일 권한                | rcgen만 적용  | `umask_secret()` (0o77)        | OpenSSL CA 생성 시에도 키 파일 `0o600` 권한 설정 추가                       | ✅   |
 
 **수정 파일:**
+
 - `crates/proxyapi_v2/src/certificate_authority/mod.rs` — NOT_BEFORE_OFFSET 상수 변경
 - `crates/proxyapi_v2/src/certificate_authority/rcgen_authority.rs` — AKI 추가, CN 길이 제한, SAN critical 조건
 - `crates/proxyapi_v2/src/certificate_authority/openssl_authority.rs` — AKI 추가, CN 길이 제한, SAN critical 조건
@@ -209,15 +210,15 @@ mitmproxy의 7개 TLS 이벤트 훅에 대응하는 channel 기반 이벤트 시
 
 **훅 매핑:**
 
-| mitmproxy 훅 | cheolsu-proxy 대응 | 발생 시점 | 데이터 |
-| --- | --- | --- | --- |
-| `tls_clienthello` | `on_client_hello` | ClientHello 분석 후 | SNI, cipher suites, ALPN, extensions, complexity_score |
-| — | `on_strategy_selected` | 전략 결정 후 (cheolsu 고유) | TlsStrategy (Rustls/OpenSSL), 결정 사유 |
-| `tls_start_server` | `on_server_connection_starting` | 서버 TLS 협상 시작 전 | authority, connection_strategy |
-| `tls_start_client` | `on_fake_cert_generating` | 위조 인증서 생성 전 | authority, upstream_cert_info, cache 여부 |
-| `tls_established_server` | `on_upstream_cert_sniffed` | 상류 인증서 스니핑 후 | UpstreamCertInfo, 소요시간, 성공여부 |
-| `tls_established_client` | `on_handshake_completed` | 클라이언트 핸드셰이크 성공 | authority, TLS 버전, cipher, 소요시간 |
-| `tls_failed_client/server` | `on_handshake_failed` | 핸드셰이크 실패 | authority, 에러 정보, 방향(client/server) |
+| mitmproxy 훅               | cheolsu-proxy 대응              | 발생 시점                   | 데이터                                                 |
+| -------------------------- | ------------------------------- | --------------------------- | ------------------------------------------------------ |
+| `tls_clienthello`          | `on_client_hello`               | ClientHello 분석 후         | SNI, cipher suites, ALPN, extensions, complexity_score |
+| —                          | `on_strategy_selected`          | 전략 결정 후 (cheolsu 고유) | TlsStrategy (Rustls/OpenSSL), 결정 사유                |
+| `tls_start_server`         | `on_server_connection_starting` | 서버 TLS 협상 시작 전       | authority, connection_strategy                         |
+| `tls_start_client`         | `on_fake_cert_generating`       | 위조 인증서 생성 전         | authority, upstream_cert_info, cache 여부              |
+| `tls_established_server`   | `on_upstream_cert_sniffed`      | 상류 인증서 스니핑 후       | UpstreamCertInfo, 소요시간, 성공여부                   |
+| `tls_established_client`   | `on_handshake_completed`        | 클라이언트 핸드셰이크 성공  | authority, TLS 버전, cipher, 소요시간                  |
+| `tls_failed_client/server` | `on_handshake_failed`           | 핸드셰이크 실패             | authority, 에러 정보, 방향(client/server)              |
 
 **구현 방식:** channel 기반 (`tokio::sync::mpsc`)
 
@@ -240,6 +241,7 @@ pub fn emit_tls_event(sender: &Option<TlsEventSender>, event: TlsEvent) { ... }
 ```
 
 **이벤트 emit 위치:**
+
 - `hybrid_tls_handler.rs` — `analyze_tls_connection()` 후 → `ClientHelloAnalyzed`, 전략 결정 후 → `StrategySelected`, 핸드셰이크 성공/실패 → `HandshakeCompleted`/`HandshakeFailed`
 - `hybrid_tls_handler.rs` — `gen_server_config()`/`gen_openssl_context()` 호출 전 → `FakeCertGenerating`
 - `internal.rs` — `sniff_upstream_cert()` 호출 전/후 → `ServerConnectionStarting`, `UpstreamCertSniffed`
@@ -277,16 +279,19 @@ pub struct TlsConfigManager {
 ```
 
 **현재 하드코딩된 부분:**
+
 - `rcgen_authority.rs:301-304` — TLS 1.2/1.3 고정
 - `rcgen_authority.rs:546` — OpenSSL cipher 문자열 `"@SECLEVEL=0:ALL:!aNULL:!eNULL"` 고정
 - `hybrid_tls_handler.rs:429-436` — Apple 서비스 전용 cipher 하드코딩
 
 **변경 포인트:**
+
 - `gen_server_config()` 호출 시 `TlsConfigManager`에서 도메인 매칭 → 방향별 설정 주입
 - OpenSSL `SslContext` 생성 시 cipher 문자열 동적 구성
 - Apple 서비스 특수 처리를 규칙 기반으로 전환 (하드코딩 → 설정)
 
 **제약사항:**
+
 - rustls는 `ServerConfig` 레벨에서만 cipher 선택 가능 (연결별 동적 변경 불가 → 도메인별 ServerConfig 캐시 필요)
 - 설정 변경 시 캐시 무효화 전략 필요
 
@@ -305,6 +310,7 @@ pub enum ConnectionStrategy {
 ```
 
 **Eager 흐름:**
+
 ```
 [클라이언트] → ClientHello → [프록시]
                                 ├→ 백그라운드: 서버 TCP+TLS 연결 시작
@@ -315,12 +321,14 @@ pub enum ConnectionStrategy {
 ```
 
 **수정 파일:**
+
 - `proxy/context.rs` — `ConnectionStrategy` 필드 추가
 - `proxy/builder.rs` — `with_connection_strategy()` 빌더 메서드 추가
 - `proxy/internal.rs` — `process_connect()` 에서 전략 분기, 백그라운드 서버 연결 스폰
 - `upstream_cert.rs` — Eager 연결에서 인증서 스니핑 재사용
 
 **핵심 과제:**
+
 - 연결 수명 관리 (idle timeout, 재연결)
 - Eager 연결 실패 시 에러 핸들링
 - 미사용 연결의 메모리 오버헤드
@@ -381,6 +389,7 @@ if name.entries().count() == 0 {
 #### 설계 결정: channel 기반 (trait object 대신)
 
 기존 `tunnel_event_sender: Option<mpsc::Sender<RequestInfo>>` 패턴과 일관성을 유지하기 위해 channel 기반으로 구현:
+
 - `TlsEventSender = tokio::sync::mpsc::Sender<TlsEvent>` 타입 alias
 - non-blocking 보장 (`try_send` 사용)
 - 수신자 측에서 별도 태스크로 처리 가능
@@ -426,12 +435,12 @@ pub fn emit_tls_event(sender: &Option<TlsEventSender>, event: TlsEvent) {
 
 `HybridTlsHandler`에 `tls_event_sender` 필드 추가 후:
 
-| 위치 | 이벤트 |
-| --- | --- |
+| 위치                            | 이벤트                |
+| ------------------------------- | --------------------- |
 | `analyze_tls_connection()` 직후 | `ClientHelloAnalyzed` |
-| `determine_tls_strategy()` 직후 | `StrategySelected` |
-| 핸드셰이크 성공 | `HandshakeCompleted` |
-| 핸드셰이크 실패 | `HandshakeFailed` |
+| `determine_tls_strategy()` 직후 | `StrategySelected`    |
+| 핸드셰이크 성공                 | `HandshakeCompleted`  |
+| 핸드셰이크 실패                 | `HandshakeFailed`     |
 
 모든 emit은 `try_send`로 non-blocking.
 
