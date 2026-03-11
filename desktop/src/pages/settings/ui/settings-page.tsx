@@ -1,9 +1,10 @@
-import { useState, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
 import { open as openFileDialog } from "@tauri-apps/plugin-dialog";
 import { invoke } from "@tauri-apps/api/core";
 import { useAppSettingsStore } from "@/shared/stores/app-settings-store";
+import { useProxyStore } from "@/shared/stores/proxy-store";
 import { useSslProxyingStore } from "@/shared/stores/ssl-proxying-store";
 import {
   updateProxyAuth,
@@ -62,102 +63,175 @@ type SettingsCategory = "general" | "certificate" | "network" | "security" | "to
 const CATEGORIES: SettingsCategory[] = ["general", "certificate", "network", "security", "tools"];
 
 // =============================================================================
-// Save logic
+// Save logic — only saves dirty sections, collects errors per-section
 // =============================================================================
-async function saveAllSettings(data: SettingsFormValues) {
+interface SaveResult {
+  section: string;
+  success: boolean;
+  error?: unknown;
+}
+
+async function saveAllSettings(
+  data: SettingsFormValues,
+  dirtyFields: Partial<Record<keyof SettingsFormValues, unknown>>,
+) {
   const store = useAppSettingsStore.getState();
+  const results: SaveResult[] = [];
 
   // Throttle
-  let throttleConfig: ThrottleConfig | null = null;
-  if (data.throttle.enabled) {
-    if (data.throttle.preset === "custom") {
-      const dl = Number.parseInt(data.throttle.download, 10);
-      const ul = Number.parseInt(data.throttle.upload, 10);
-      throttleConfig = {
-        enabled: true,
-        download_rate: dl > 0 ? dl * 1024 : null,
-        upload_rate: ul > 0 ? ul * 1024 : null,
-        latency_ms: Number.parseInt(data.throttle.latency, 10) || 0,
-      };
-    } else {
-      const preset = THROTTLE_PRESETS.find((p) => p.value === data.throttle.preset);
-      if (preset?.config) throttleConfig = preset.config;
+  if (dirtyFields.throttle) {
+    try {
+      let throttleConfig: ThrottleConfig | null = null;
+      if (data.throttle.enabled) {
+        if (data.throttle.preset === "custom") {
+          const dl = Number.parseInt(data.throttle.download, 10);
+          const ul = Number.parseInt(data.throttle.upload, 10);
+          throttleConfig = {
+            enabled: true,
+            download_rate: dl > 0 ? dl * 1024 : null,
+            upload_rate: ul > 0 ? ul * 1024 : null,
+            latency_ms: Number.parseInt(data.throttle.latency, 10) || 0,
+          };
+        } else {
+          const preset = THROTTLE_PRESETS.find((p) => p.value === data.throttle.preset);
+          if (preset?.config) throttleConfig = preset.config;
+        }
+      }
+      await updateThrottle(throttleConfig);
+      store.setThrottleConfig(data.throttle);
+      results.push({ section: "throttle", success: true });
+    } catch (error) {
+      results.push({ section: "throttle", success: false, error });
     }
   }
-  await updateThrottle(throttleConfig);
-  store.setThrottleConfig(data.throttle);
 
   // Connection Strategy
-  await updateConnectionStrategy(data.connectionStrategy);
-  store.setConnectionStrategy(data.connectionStrategy);
+  if (dirtyFields.connectionStrategy) {
+    try {
+      await updateConnectionStrategy(data.connectionStrategy);
+      store.setConnectionStrategy(data.connectionStrategy);
+      results.push({ section: "connectionStrategy", success: true });
+    } catch (error) {
+      results.push({ section: "connectionStrategy", success: false, error });
+    }
+  }
 
   // Upstream Proxy
-  const upstreamConfig = data.upstreamProxy.enabled
-    ? {
-        host: data.upstreamProxy.host,
-        port: Number.parseInt(data.upstreamProxy.port, 10) || 8080,
-        auth: data.upstreamProxy.useAuth
-          ? { username: data.upstreamProxy.username, password: data.upstreamProxy.password }
-          : null,
-        bypass: data.upstreamProxy.bypass.split(",").map((s) => s.trim()).filter(Boolean),
-      }
-    : null;
-  await invoke("update_upstream_proxy", { config: upstreamConfig });
-  store.setUpstreamProxyConfig({
-    enabled: data.upstreamProxy.enabled,
-    host: data.upstreamProxy.host,
-    port: Number.parseInt(data.upstreamProxy.port, 10) || 8080,
-    auth: data.upstreamProxy.useAuth
-      ? { username: data.upstreamProxy.username, password: data.upstreamProxy.password }
-      : null,
-    bypass: data.upstreamProxy.bypass.split(",").map((s) => s.trim()).filter(Boolean),
-  });
+  if (dirtyFields.upstreamProxy) {
+    try {
+      const upstreamConfig = data.upstreamProxy.enabled
+        ? {
+            host: data.upstreamProxy.host,
+            port: Number.parseInt(data.upstreamProxy.port, 10) || 8080,
+            auth: data.upstreamProxy.useAuth
+              ? { username: data.upstreamProxy.username, password: data.upstreamProxy.password }
+              : null,
+            bypass: data.upstreamProxy.bypass
+              .split(",")
+              .map((s) => s.trim())
+              .filter(Boolean),
+          }
+        : null;
+      await invoke("update_upstream_proxy", { config: upstreamConfig });
+      store.setUpstreamProxyConfig({
+        enabled: data.upstreamProxy.enabled,
+        ...(upstreamConfig ?? {
+          host: data.upstreamProxy.host,
+          port: Number.parseInt(data.upstreamProxy.port, 10) || 8080,
+          auth: null,
+          bypass: [],
+        }),
+      });
+      results.push({ section: "upstreamProxy", success: true });
+    } catch (error) {
+      results.push({ section: "upstreamProxy", success: false, error });
+    }
+  }
 
   // Proxy Auth
-  const authConfig = {
-    enabled: data.proxyAuth.enabled,
-    username: data.proxyAuth.username,
-    password: data.proxyAuth.password,
-  };
-  await updateProxyAuth(authConfig);
-  store.setProxyAuthConfig(authConfig);
+  if (dirtyFields.proxyAuth) {
+    try {
+      const authConfig = {
+        enabled: data.proxyAuth.enabled,
+        username: data.proxyAuth.username,
+        password: data.proxyAuth.password,
+      };
+      await updateProxyAuth(authConfig);
+      store.setProxyAuthConfig(authConfig);
+      results.push({ section: "proxyAuth", success: true });
+    } catch (error) {
+      results.push({ section: "proxyAuth", success: false, error });
+    }
+  }
 
   // Shortcut
-  setStoredShortcut(data.shortcut.key);
-  setShortcutEnabled(data.shortcut.enabled);
-  store.setProxyToggleShortcut(data.shortcut.key);
-  store.setProxyToggleShortcutEnabled(data.shortcut.enabled);
-  if (data.shortcut.enabled) {
-    await registerShortcut(data.shortcut.key, toggleProxy);
-  } else {
-    await unregisterShortcut();
+  if (dirtyFields.shortcut) {
+    try {
+      setStoredShortcut(data.shortcut.key);
+      setShortcutEnabled(data.shortcut.enabled);
+      store.setProxyToggleShortcut(data.shortcut.key);
+      store.setProxyToggleShortcutEnabled(data.shortcut.enabled);
+      if (data.shortcut.enabled) {
+        await registerShortcut(data.shortcut.key, toggleProxy);
+      } else {
+        await unregisterShortcut();
+      }
+      results.push({ section: "shortcut", success: true });
+    } catch (error) {
+      results.push({ section: "shortcut", success: false, error });
+    }
   }
 
   // Client Certificate
-  if (data.clientCert.enabled && data.clientCert.certPath && data.clientCert.keyPath) {
-    await updateClientCertificate({
-      cert_path: data.clientCert.certPath,
-      key_path: data.clientCert.keyPath,
-      enabled: true,
-      domain_certs: data.clientCert.domainCerts,
-    });
-  } else {
-    await updateClientCertificate(
-      data.clientCert.enabled
-        ? { cert_path: data.clientCert.certPath, key_path: data.clientCert.keyPath, enabled: false, domain_certs: data.clientCert.domainCerts }
-        : null,
-    );
+  if (dirtyFields.clientCert) {
+    try {
+      if (data.clientCert.enabled && data.clientCert.certPath && data.clientCert.keyPath) {
+        await updateClientCertificate({
+          cert_path: data.clientCert.certPath,
+          key_path: data.clientCert.keyPath,
+          enabled: true,
+          domain_certs: data.clientCert.domainCerts,
+        });
+      } else {
+        await updateClientCertificate(
+          data.clientCert.enabled
+            ? {
+                cert_path: data.clientCert.certPath,
+                key_path: data.clientCert.keyPath,
+                enabled: false,
+                domain_certs: data.clientCert.domainCerts,
+              }
+            : null,
+        );
+      }
+      results.push({ section: "clientCert", success: true });
+    } catch (error) {
+      results.push({ section: "clientCert", success: false, error });
+    }
   }
 
   // Request Client Cert
-  if (data.requestClientCert.enabled) {
-    await updateRequestClientCert({
-      enabled: true,
-      ca_cert_path: data.requestClientCert.caCertPath || null,
-      required: data.requestClientCert.required,
-    });
-  } else {
-    await updateRequestClientCert(null);
+  if (dirtyFields.requestClientCert) {
+    try {
+      if (data.requestClientCert.enabled) {
+        await updateRequestClientCert({
+          enabled: true,
+          ca_cert_path: data.requestClientCert.caCertPath || null,
+          required: data.requestClientCert.required,
+        });
+      } else {
+        await updateRequestClientCert(null);
+      }
+      results.push({ section: "requestClientCert", success: true });
+    } catch (error) {
+      results.push({ section: "requestClientCert", success: false, error });
+    }
+  }
+
+  const failures = results.filter((r) => !r.success);
+  if (failures.length > 0) {
+    console.error("Some sections failed to save:", failures);
+    throw new Error(`Failed to save: ${failures.map((f) => f.section).join(", ")}`);
   }
 }
 
@@ -176,14 +250,27 @@ function SettingsPageInner() {
   const { t } = useLingui();
   const [activeCategory, setActiveCategory] = useState<SettingsCategory>("general");
   const form = useSettingsForm();
-  const { isDirty, isSubmitting } = form.formState;
+  const { isDirty, isSubmitting, dirtyFields } = form.formState;
   const [saveStatus, setSaveStatus] = useState<"idle" | "saved" | "error">("idle");
+  const isProxyConnected = useProxyStore((s) => s.isConnected);
+  const dirtyFieldsRef = useRef(dirtyFields);
+  dirtyFieldsRef.current = dirtyFields;
+
+  // Sync proxy auth to backend when proxy connects
+  useEffect(() => {
+    if (isProxyConnected) {
+      const { proxyAuthConfig } = useAppSettingsStore.getState();
+      if (proxyAuthConfig.enabled) {
+        updateProxyAuth(proxyAuthConfig).catch(() => {});
+      }
+    }
+  }, [isProxyConnected]);
 
   const handleSave = useCallback(
     async (data: SettingsFormValues) => {
       setSaveStatus("idle");
       try {
-        await saveAllSettings(data);
+        await saveAllSettings(data, dirtyFieldsRef.current);
         form.reset(data);
         setSaveStatus("saved");
         setTimeout(() => setSaveStatus("idle"), 2000);
@@ -194,6 +281,13 @@ function SettingsPageInner() {
       }
     },
     [form],
+  );
+
+  const handleCategoryChange = useCallback(
+    (cat: SettingsCategory) => {
+      setActiveCategory(cat);
+    },
+    [],
   );
 
   const categoryLabels: Record<SettingsCategory, string> = {
@@ -212,7 +306,7 @@ function SettingsPageInner() {
           <button
             key={cat}
             type="button"
-            onClick={() => setActiveCategory(cat)}
+            onClick={() => handleCategoryChange(cat)}
             className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
               activeCategory === cat
                 ? "bg-accent text-accent-foreground font-medium"
@@ -229,7 +323,9 @@ function SettingsPageInner() {
         {/* Sticky header */}
         <div className="flex items-center justify-between px-6 py-4 border-b flex-shrink-0">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">{categoryLabels[activeCategory]}</h1>
+            <h1 className="text-2xl font-bold text-foreground">
+              {categoryLabels[activeCategory]}
+            </h1>
             <p className="text-sm text-muted-foreground">
               <Trans>Proxy configuration and preferences</Trans>
             </p>
@@ -573,46 +669,100 @@ function ClientCertificateSection() {
 
   const loadCertInfo = useCallback(async (path: string) => {
     setCertInfoLoading(true);
-    try { setCertInfo(await parseCertificateInfo(path)); } catch { setCertInfo(null); } finally { setCertInfoLoading(false); }
+    try {
+      setCertInfo(await parseCertificateInfo(path));
+    } catch {
+      setCertInfo(null);
+    } finally {
+      setCertInfoLoading(false);
+    }
   }, []);
 
   const handleSelectCert = useCallback(async () => {
-    const selected = await openFileDialog({ multiple: false, filters: [{ name: "Certificate", extensions: ["pem", "crt", "cer"] }] });
-    if (selected) { const path = selected as string; setValue("clientCert.certPath", path, { shouldDirty: true }); loadCertInfo(path); }
+    const selected = await openFileDialog({
+      multiple: false,
+      filters: [{ name: "Certificate", extensions: ["pem", "crt", "cer"] }],
+    });
+    if (selected) {
+      const path = selected as string;
+      setValue("clientCert.certPath", path, { shouldDirty: true });
+      loadCertInfo(path);
+    }
   }, [setValue, loadCertInfo]);
 
   const handleSelectKey = useCallback(async () => {
-    const selected = await openFileDialog({ multiple: false, filters: [{ name: "Key", extensions: ["pem", "key"] }] });
-    if (selected) setValue("clientCert.keyPath", selected as string, { shouldDirty: true });
+    const selected = await openFileDialog({
+      multiple: false,
+      filters: [{ name: "Key", extensions: ["pem", "key"] }],
+    });
+    if (selected) {
+      setValue("clientCert.keyPath", selected as string, { shouldDirty: true });
+    }
   }, [setValue]);
 
   const handleSelectDomainCert = useCallback(async () => {
-    const selected = await openFileDialog({ multiple: false, filters: [{ name: "Certificate", extensions: ["pem", "crt", "cer"] }] });
-    if (selected) setNewDomainCertPath(selected as string);
+    const selected = await openFileDialog({
+      multiple: false,
+      filters: [{ name: "Certificate", extensions: ["pem", "crt", "cer"] }],
+    });
+    if (selected) {
+      setNewDomainCertPath(selected as string);
+    }
   }, []);
 
   const handleSelectDomainKey = useCallback(async () => {
-    const selected = await openFileDialog({ multiple: false, filters: [{ name: "Key", extensions: ["pem", "key"] }] });
-    if (selected) setNewDomainKeyPath(selected as string);
+    const selected = await openFileDialog({
+      multiple: false,
+      filters: [{ name: "Key", extensions: ["pem", "key"] }],
+    });
+    if (selected) {
+      setNewDomainKeyPath(selected as string);
+    }
   }, []);
 
   const handleAddDomainCert = useCallback(() => {
     const pattern = newDomainPattern.trim();
     if (!pattern || !newDomainCertPath || !newDomainKeyPath) return;
     if (domainCerts.some((dc) => dc.domain_pattern === pattern)) return;
-    setValue("clientCert.domainCerts", [...domainCerts, { domain_pattern: pattern, cert_path: newDomainCertPath, key_path: newDomainKeyPath, enabled: true }], { shouldDirty: true });
+    setValue(
+      "clientCert.domainCerts",
+      [
+        ...domainCerts,
+        {
+          domain_pattern: pattern,
+          cert_path: newDomainCertPath,
+          key_path: newDomainKeyPath,
+          enabled: true,
+        },
+      ],
+      { shouldDirty: true },
+    );
     setNewDomainPattern("");
     setNewDomainCertPath("");
     setNewDomainKeyPath("");
   }, [newDomainPattern, newDomainCertPath, newDomainKeyPath, domainCerts, setValue]);
 
-  const toggleDomainCert = useCallback((idx: number) => {
-    setValue("clientCert.domainCerts", domainCerts.map((dc, i) => (i === idx ? { ...dc, enabled: !dc.enabled } : dc)), { shouldDirty: true });
-  }, [domainCerts, setValue]);
+  const toggleDomainCert = useCallback(
+    (idx: number) => {
+      setValue(
+        "clientCert.domainCerts",
+        domainCerts.map((dc, i) => (i === idx ? { ...dc, enabled: !dc.enabled } : dc)),
+        { shouldDirty: true },
+      );
+    },
+    [domainCerts, setValue],
+  );
 
-  const removeDomainCert = useCallback((idx: number) => {
-    setValue("clientCert.domainCerts", domainCerts.filter((_, i) => i !== idx), { shouldDirty: true });
-  }, [domainCerts, setValue]);
+  const removeDomainCert = useCallback(
+    (idx: number) => {
+      setValue(
+        "clientCert.domainCerts",
+        domainCerts.filter((_, i) => i !== idx),
+        { shouldDirty: true },
+      );
+    },
+    [domainCerts, setValue],
+  );
 
   return (
     <div className="border rounded-lg p-5 space-y-5">
@@ -725,8 +875,13 @@ function RequestClientCertSection() {
   const required = watch("requestClientCert.required");
 
   const handleSelectCaCert = useCallback(async () => {
-    const selected = await openFileDialog({ multiple: false, filters: [{ name: "Certificate", extensions: ["pem", "crt", "cer"] }] });
-    if (selected) setValue("requestClientCert.caCertPath", selected as string, { shouldDirty: true });
+    const selected = await openFileDialog({
+      multiple: false,
+      filters: [{ name: "Certificate", extensions: ["pem", "crt", "cer"] }],
+    });
+    if (selected) {
+      setValue("requestClientCert.caCertPath", selected as string, { shouldDirty: true });
+    }
   }, [setValue]);
 
   return (
@@ -788,9 +943,15 @@ function SslProxyingSection() {
     setNewPattern("");
   }, [newPattern, entries, addEntry]);
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === "Enter") { e.preventDefault(); handleAdd(); }
-  }, [handleAdd]);
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        handleAdd();
+      }
+    },
+    [handleAdd],
+  );
 
   const enabledCount = entries.filter((e) => e.enabled).length;
 

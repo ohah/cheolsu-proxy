@@ -1,5 +1,5 @@
 import { createContext, useContext, type ReactNode } from "react";
-import { useForm, useFormContext, type UseFormReturn } from "react-hook-form";
+import { useForm, type UseFormReturn } from "react-hook-form";
 import { useAppSettingsStore } from "@/shared/stores/app-settings-store";
 import type { ConnectionStrategy } from "@/shared/api/proxy";
 import type { DomainClientCertConfig } from "@/shared/api/proxy";
@@ -120,5 +120,3 @@ export function useSettingsForm(): UseFormReturn<SettingsFormValues> {
   return ctx;
 }
 
-// Re-export useFormContext for components that prefer it
-export { useFormContext };
