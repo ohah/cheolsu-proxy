@@ -82,7 +82,9 @@ pub(crate) struct InterceptEngine {
     pub(crate) server_replay_entries: Arc<RwLock<Vec<ServerReplayEntry>>>,
     pub(crate) host_mappings: Arc<RwLock<Vec<HostMapping>>>,
     pub(crate) script_handle: scripting::ScriptHandle,
-    /// SSL Proxying 화이트리스트
+    /// SSL Proxying 모드
+    pub(crate) ssl_proxying_mode: Arc<RwLock<crate::protocol::SslProxyingMode>>,
+    /// SSL Proxying 엔트리 목록
     pub(crate) ssl_proxying_entries: Arc<RwLock<Vec<crate::protocol::SslProxyingEntry>>>,
 }
 
@@ -139,6 +141,9 @@ impl LoggingHandler {
                 server_replay_entries: Arc::new(RwLock::new(Vec::new())),
                 host_mappings: Arc::new(RwLock::new(Vec::new())),
                 script_handle: scripting::ScriptHandle::new(),
+                ssl_proxying_mode: Arc::new(RwLock::new(
+                    crate::protocol::SslProxyingMode::default(),
+                )),
                 ssl_proxying_entries: Arc::new(RwLock::new(Vec::new())),
             },
             ws: WebSocketState {
@@ -213,13 +218,21 @@ impl LoggingHandler {
         *mappings_guard = mappings;
     }
 
-    /// SSL Proxying 화이트리스트 업데이트
-    pub async fn update_ssl_proxying_entries(
+    /// SSL Proxying 모드 및 목록 업데이트
+    pub async fn update_ssl_proxying(
         &self,
+        mode: crate::protocol::SslProxyingMode,
         entries: Vec<crate::protocol::SslProxyingEntry>,
     ) {
+        let mut mode_guard = self.intercept.ssl_proxying_mode.write().await;
+        *mode_guard = mode.clone();
+        drop(mode_guard);
         let mut entries_guard = self.intercept.ssl_proxying_entries.write().await;
-        info!("[SSLProxying] 화이트리스트 업데이트: {} 개", entries.len());
+        info!(
+            "[SSLProxying] 업데이트: mode={:?}, {} 개",
+            mode,
+            entries.len()
+        );
         *entries_guard = entries;
     }
 
@@ -1189,8 +1202,9 @@ impl HttpHandler for LoggingHandler {
             let host = authority.host();
             let port = authority.port_u16();
 
+            let mode = self.intercept.ssl_proxying_mode.read().await;
             let entries = self.intercept.ssl_proxying_entries.read().await;
-            let result = crate::ssl_proxying::should_intercept_ssl(&entries, host, port);
+            let result = crate::ssl_proxying::should_intercept_ssl(&mode, &entries, host, port);
 
             if !result {
                 debug!("[SSLProxying] TLS Passthrough 적용: {}", authority);
@@ -1819,6 +1833,9 @@ mod tests {
                 server_replay_entries: Arc::new(RwLock::new(Vec::new())),
                 host_mappings: Arc::new(RwLock::new(Vec::new())),
                 script_handle: scripting::ScriptHandle::new(),
+                ssl_proxying_mode: Arc::new(RwLock::new(
+                    crate::protocol::SslProxyingMode::default(),
+                )),
                 ssl_proxying_entries: Arc::new(RwLock::new(Vec::new())),
             },
             ws: WebSocketState {
@@ -1879,6 +1896,9 @@ mod tests {
                 server_replay_entries: Arc::new(RwLock::new(Vec::new())),
                 host_mappings: Arc::new(RwLock::new(Vec::new())),
                 script_handle: scripting::ScriptHandle::new(),
+                ssl_proxying_mode: Arc::new(RwLock::new(
+                    crate::protocol::SslProxyingMode::default(),
+                )),
                 ssl_proxying_entries: Arc::new(RwLock::new(Vec::new())),
             },
             ws: WebSocketState {

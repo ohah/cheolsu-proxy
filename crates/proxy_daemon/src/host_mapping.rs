@@ -570,6 +570,9 @@ mod tests {
                 server_replay_entries: Arc::new(RwLock::new(Vec::new())),
                 host_mappings: Arc::new(RwLock::new(Vec::new())),
                 script_handle: scripting::ScriptHandle::new(),
+                ssl_proxying_mode: Arc::new(RwLock::new(
+                    crate::protocol::SslProxyingMode::default(),
+                )),
                 ssl_proxying_entries: Arc::new(RwLock::new(Vec::new())),
             },
             ws: WebSocketState {
