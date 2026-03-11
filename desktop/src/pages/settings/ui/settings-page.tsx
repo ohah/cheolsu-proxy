@@ -4,7 +4,6 @@ import { useLingui } from "@lingui/react/macro";
 import { open as openFileDialog } from "@tauri-apps/plugin-dialog";
 import { invoke } from "@tauri-apps/api/core";
 import { useAppSettingsStore } from "@/shared/stores/app-settings-store";
-import { useProxyStore } from "@/shared/stores/proxy-store";
 import { useSslProxyingStore } from "@/shared/stores/ssl-proxying-store";
 import {
   updateProxyAuth,
@@ -312,7 +311,6 @@ function SettingsPageInner() {
   const form = useSettingsForm();
   const { isDirty, isSubmitting, dirtyFields } = form.formState;
   const [saveStatus, setSaveStatus] = useState<"idle" | "saved" | "error">("idle");
-  const isProxyConnected = useProxyStore((s) => s.isConnected);
   const dirtyFieldsRef = useRef(dirtyFields);
   dirtyFieldsRef.current = dirtyFields;
 
@@ -350,22 +348,6 @@ function SettingsPageInner() {
     return () => observer.disconnect();
   }, []);
 
-  // Sync settings to backend when proxy connects
-  useEffect(() => {
-    if (isProxyConnected) {
-      const s = useAppSettingsStore.getState();
-      if (s.proxyAuthConfig.enabled) {
-        updateProxyAuth(s.proxyAuthConfig).catch(() => {});
-      }
-      updateQuickSettings(
-        s.quickSettingsNoCaching,
-        s.quickSettingsBlockCookies,
-        s.quickSettingsNoGzip,
-      ).catch(() => {});
-      // SSL Proxying 설정 동기화
-      useSslProxyingStore.getState().syncToProxy();
-    }
-  }, [isProxyConnected]);
 
   const handleSave = useCallback(
     async (data: SettingsFormValues) => {
