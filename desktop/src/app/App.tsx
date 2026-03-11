@@ -12,6 +12,7 @@ import {
   useHostMappingStore,
 } from "@/shared/stores";
 import { emit, listen } from "@tauri-apps/api/event";
+import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { router } from "./providers/router-provider";
 import type { ProxyEventTuple, HttpTransaction } from "@/entities/proxy";
@@ -30,6 +31,7 @@ const App: React.FC = () => {
   const syncToProxy = useInterceptRuleStore((s) => s.syncToProxy);
   const addTransaction = useTransactionStore((s) => s.addTransaction);
   const paused = useTransactionStore((s) => s.paused);
+  const setPaused = useTransactionStore((s) => s.setPaused);
   const addWsMessage = useWebSocketStore((s) => s.addMessage);
   const updateWsConnection = useWebSocketStore((s) => s.updateConnection);
   const setInterceptRules = useInterceptRuleStore((s) => s.setRules);
@@ -143,6 +145,22 @@ const App: React.FC = () => {
       unlisten.then((f) => f());
     };
   }, [setHostMappings]);
+
+  // 트레이에서 녹화 토글 시 Rust 백엔드를 통해 동기화 수신
+  useEffect(() => {
+    const unlisten = listen<boolean>("recording_paused_changed", (event) => {
+      setPaused(event.payload);
+    });
+
+    return () => {
+      unlisten.then((f) => f());
+    };
+  }, [setPaused]);
+
+  // 메인 윈도우에서 paused 변경 시 Rust 백엔드에 동기화
+  useEffect(() => {
+    invoke("tray_set_recording_paused", { paused }).catch(() => {});
+  }, [paused]);
 
   const setTransactions = useTransactionStore((s) => s.setTransactions);
 

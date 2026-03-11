@@ -214,6 +214,11 @@
 .tray-status-count {
   font-family: "SF Mono", "JetBrains Mono", monospace;
   font-size: 12px;
+  color: var(--tray-text);
+}
+
+.tray-text-secondary {
+  color: var(--tray-text-secondary);
 }
 
 /* 액션 버튼 */
