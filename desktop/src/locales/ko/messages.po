@@ -88,7 +88,7 @@ msgstr "활성 커스텀 CA"
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:134
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:169
 #: src/pages/server-replay/ui/server-replay-page.tsx:170
-#: src/pages/settings/ui/settings-page.tsx:1401
+#: src/pages/settings/ui/settings-page.tsx:1433
 msgid "Add"
 msgstr "추가"
 
@@ -186,9 +186,17 @@ msgstr "모든 엔트리가 삭제되었습니다"
 msgid "All host mappings cleared"
 msgstr "모든 호스트 매핑이 삭제되었습니다"
 
-#: src/pages/settings/ui/settings-page.tsx:1384
+#: src/pages/settings/ui/settings-page.tsx:1398
 msgid "All HTTPS traffic is being intercepted (no whitelist configured)"
 msgstr "모든 HTTPS 트래픽이 인터셉트됩니다 (화이트리스트 미설정)"
+
+#: src/pages/settings/ui/settings-page.tsx:1392
+msgid "All HTTPS traffic is intercepted except {enabledCount} excluded domain(s) and built-in OAuth domains."
+msgstr "모든 HTTPS 트래픽이 인터셉트됩니다. {enabledCount}개의 제외 도메인과 기본 OAuth 도메인은 패스스루됩니다."
+
+#: src/pages/settings/ui/settings-page.tsx:1387
+msgid "All HTTPS traffic is intercepted. OAuth domains (accounts.google.com, etc.) are automatically excluded."
+msgstr "모든 HTTPS 트래픽이 인터셉트됩니다. OAuth 도메인(accounts.google.com 등)은 자동으로 제외됩니다."
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:264
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:264
@@ -230,6 +238,10 @@ msgstr "앱 종료 시 현재 세션을 자동으로 저장하고 다음 실행 
 #: src/pages/server-replay/ui/server-replay-page.tsx:124
 msgid "available"
 msgstr "개 사용 가능"
+
+#: src/pages/settings/ui/settings-page.tsx:1416
+msgid "Blacklist (Exclude)"
+msgstr "블랙리스트 (제외)"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:286
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:286
@@ -322,7 +334,7 @@ msgstr "추가할 수 없습니다: 응답 데이터 없음"
 
 #: src/pages/settings/ui/settings-page.tsx:381
 msgid "Certificate"
-msgstr ""
+msgstr "인증서"
 
 #: src/pages/settings/ui/settings-page.tsx:1075
 msgid "Certificate Details"
@@ -568,6 +580,10 @@ msgstr "도메인"
 msgid "Domain-specific Certificates"
 msgstr "도메인별 인증서"
 
+#: src/pages/settings/ui/settings-page.tsx:1438
+msgid "Domains in this list will NOT be intercepted (pass-through). OAuth domains like accounts.google.com are always excluded by default."
+msgstr "이 목록에 있는 도메인은 인터셉트되지 않습니다(패스스루). accounts.google.com 같은 OAuth 도메인은 기본적으로 항상 제외됩니다."
+
 #: src/pages/log-viewer/ui/logs-page.tsx:367
 msgid "Domains that failed TLS handshake are automatically tunneled without MITM decryption. You can remove entries to retry MITM for specific domains."
 msgstr "TLS 핸드셰이크에 실패한 도메인은 MITM 복호화 없이 자동으로 터널링됩니다. 항목을 삭제하면 해당 도메인에 대해 MITM을 다시 시도합니다."
@@ -615,7 +631,7 @@ msgstr "활성"
 msgid "entries"
 msgstr "개 엔트리"
 
-#: src/pages/settings/ui/settings-page.tsx:1394
+#: src/pages/settings/ui/settings-page.tsx:1426
 msgid "example.com, *.example.com, or example.com:443"
 msgstr "example.com, *.example.com 또는 example.com:443"
 
@@ -697,7 +713,7 @@ msgstr "전체 화면"
 
 #: src/pages/settings/ui/settings-page.tsx:380
 msgid "General"
-msgstr ""
+msgstr "일반"
 
 #: src/pages/settings/ui/settings-page.tsx:845
 msgid "Global Shortcut"
@@ -1038,6 +1054,10 @@ msgstr "메서드"
 msgid "Mobile Certificate Install"
 msgstr "모바일 인증서 설치"
 
+#: src/pages/settings/ui/settings-page.tsx:1408
+msgid "Mode"
+msgstr "모드"
+
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:289
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:290
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:44
@@ -1152,11 +1172,15 @@ msgstr "동시에 전송할 요청 수 (1-100)"
 msgid "Number of times to send the request (1-10000)"
 msgstr "요청을 전송할 횟수 (1-10000)"
 
+#: src/pages/settings/ui/settings-page.tsx:1443
+msgid "Only domains in this list will be intercepted. When the list is empty, all domains are intercepted."
+msgstr "이 목록에 있는 도메인만 가로챕니다. 목록이 비어있으면 모든 도메인을 가로챕니다."
+
 #: src/features/transaction-details/ui/replay-dialog.tsx:301
 msgid "Only http:// and https:// URLs are allowed"
 msgstr "http:// 및 https:// URL만 허용됩니다"
 
-#: src/pages/settings/ui/settings-page.tsx:1386
+#: src/pages/settings/ui/settings-page.tsx:1400
 msgid "Only whitelisted domains ({enabledCount}) will have HTTPS traffic intercepted"
 msgstr "화이트리스트에 등록된 도메인({enabledCount}개)만 HTTPS 트래픽이 인터셉트됩니다"
 
@@ -1363,7 +1387,7 @@ msgid "Remote Device Certificate"
 msgstr "외부 기기 인증서"
 
 #: src/pages/settings/ui/settings-page.tsx:1238
-#: src/pages/settings/ui/settings-page.tsx:1432
+#: src/pages/settings/ui/settings-page.tsx:1471
 msgid "Remove"
 msgstr "삭제"
 
@@ -1593,11 +1617,11 @@ msgstr "실행 중..."
 
 #: src/pages/settings/ui/settings-page.tsx:432
 msgid "Save Changes"
-msgstr ""
+msgstr "변경 사항 저장"
 
 #: src/pages/settings/ui/settings-page.tsx:427
 msgid "Save failed"
-msgstr ""
+msgstr "저장 실패"
 
 #: src/widgets/network-header/ui/network-controls.tsx:82
 msgid "Save Session"
@@ -1642,7 +1666,7 @@ msgstr "스크립트가 언로드되었습니다"
 
 #: src/pages/settings/ui/settings-page.tsx:383
 msgid "Security"
-msgstr ""
+msgstr "보안"
 
 #: src/pages/log-viewer/ui/logs-page.tsx:354
 msgid "Select a log file to view its contents"
@@ -1810,7 +1834,7 @@ msgstr "소스 호스트와 대상 호스트는 필수입니다"
 msgid "Source Port"
 msgstr "소스 포트"
 
-#: src/pages/settings/ui/settings-page.tsx:1380
+#: src/pages/settings/ui/settings-page.tsx:1382
 msgid "SSL Proxying"
 msgstr "SSL Proxying"
 
@@ -1850,10 +1874,6 @@ msgstr "상태 코드 분포"
 #: src/pages/settings/ui/settings-page.tsx:607
 msgid "Strategy"
 msgstr "전략"
-
-#: src/pages/settings/ui/settings-page.tsx:1405
-msgid "Supports exact domains (example.com), wildcards (*.example.com), and port-specific patterns (example.com:443). When the list is empty, all domains are intercepted."
-msgstr "정확한 도메인(example.com), 와일드카드(*.example.com), 포트 지정 패턴(example.com:443)을 지원합니다. 목록이 비어있으면 모든 도메인이 인터셉트됩니다."
 
 #: src/pages/settings/ui/settings-page.tsx:1154
 msgid "Supports PEM-encoded certificates and keys (RSA, ECDSA, PKCS#8)"
@@ -1933,7 +1953,7 @@ msgstr "글로벌 키보드 단축키로 프록시 켜기/끄기"
 
 #: src/pages/settings/ui/settings-page.tsx:384
 msgid "Tools"
-msgstr ""
+msgstr "도구"
 
 #. placeholder {0}: results.reduce((sum, r) => sum + (r.response?.elapsed_ms ?? 0), 0)
 #: src/features/transaction-details/ui/sequence-replay-dialog.tsx:183
@@ -2087,6 +2107,10 @@ msgstr "WebSocket 연결 및 메시지"
 #: src/features/websocket-replay/ui/ws-replay-dialog.tsx:102
 msgid "WebSocket Replay"
 msgstr "WebSocket 리플레이"
+
+#: src/pages/settings/ui/settings-page.tsx:1419
+msgid "Whitelist (Include)"
+msgstr "화이트리스트 (포함)"
 
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:230
 msgid "Wildcard"

@@ -917,16 +917,28 @@ fn draw_ssl_proxying(f: &mut Frame, app: &App, area: Rect) {
     }
 
     let entries = &app.ssl_proxying_entries;
+    let mode_label = match app.ssl_proxying_mode {
+        proxy_daemon::SslProxyingMode::Blacklist => "Blacklist",
+        proxy_daemon::SslProxyingMode::Whitelist => "Whitelist",
+    };
 
     if entries.is_empty() {
+        let mode_desc = match app.ssl_proxying_mode {
+            proxy_daemon::SslProxyingMode::Blacklist => {
+                "  All HTTPS intercepted, OAuth domains auto-excluded"
+            }
+            proxy_daemon::SslProxyingMode::Whitelist => {
+                "  All HTTPS traffic will be intercepted (no whitelist)"
+            }
+        };
         let lines = vec![
             Line::from(""),
             Line::from(Span::styled(
-                "  No SSL Proxying patterns configured",
-                Style::default().fg(Color::DarkGray),
+                format!("  Mode: {} (press 'm' to toggle)", mode_label),
+                Style::default().fg(Color::Cyan),
             )),
             Line::from(Span::styled(
-                "  All HTTPS traffic will be intercepted (MITM)",
+                mode_desc,
                 Style::default().fg(Color::DarkGray),
             )),
             Line::from(""),
@@ -944,7 +956,8 @@ fn draw_ssl_proxying(f: &mut Frame, app: &App, area: Rect) {
             .borders(Borders::ALL)
             .border_style(Style::default().fg(Color::Gray))
             .title(format!(
-                " SSL Proxying Whitelist [{} entries] ",
+                " SSL Proxying [{}] [{} entries] ",
+                mode_label,
                 entries.len()
             ));
 
@@ -986,13 +999,15 @@ fn draw_ssl_proxying(f: &mut Frame, app: &App, area: Rect) {
     let enabled_count = entries.iter().filter(|e| e.enabled).count();
     let title = if enabled_count > 0 {
         format!(
-            " SSL Proxying Whitelist [{}/{} active] ",
+            " SSL Proxying [{}] [{}/{} active] ",
+            mode_label,
             enabled_count,
             entries.len()
         )
     } else {
         format!(
-            " SSL Proxying Whitelist [{} entries, all disabled] ",
+            " SSL Proxying [{}] [{} entries, all disabled] ",
+            mode_label,
             entries.len()
         )
     };
@@ -1169,7 +1184,7 @@ fn draw_keybindings(f: &mut Frame, app: &App, area: Rect) {
     } else if app.settings_section == SettingsSection::SslProxying && !editing {
         vec![
             Line::from(Span::styled(
-                "SSL Proxying Whitelist",
+                "SSL Proxying",
                 Style::default()
                     .fg(Color::Yellow)
                     .add_modifier(Modifier::BOLD),
@@ -1179,6 +1194,7 @@ fn draw_keybindings(f: &mut Frame, app: &App, area: Rect) {
             Line::from("  a                  Add pattern"),
             Line::from("  d / Delete         Delete pattern"),
             Line::from("  t                  Toggle enabled/disabled"),
+            Line::from("  m                  Toggle mode (Blacklist/Whitelist)"),
             Line::from("  h / l              Switch section"),
         ]
     } else if app.settings_section == SettingsSection::HostMapping && !editing {

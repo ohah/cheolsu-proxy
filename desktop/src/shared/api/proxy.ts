@@ -314,13 +314,18 @@ export async function updateHostMappings(mappings: HostMapping[]): Promise<void>
 
 // ─── SSL Proxying ────────────────────────────────────────
 
+export type SslProxyingMode = "blacklist" | "whitelist";
+
 export interface SslProxyingEntry {
   pattern: string;
   enabled: boolean;
 }
 
-export async function updateSslProxyingList(entries: SslProxyingEntry[]): Promise<void> {
-  return invoke("update_ssl_proxying_list", { entries });
+export async function updateSslProxyingList(
+  mode: SslProxyingMode,
+  entries: SslProxyingEntry[],
+): Promise<void> {
+  return invoke("update_ssl_proxying_list", { mode, entries });
 }
 
 // ─── Proxy Authentication ────────────────────────────────

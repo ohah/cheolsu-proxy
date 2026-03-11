@@ -1012,6 +1012,18 @@ impl App {
                     }
                 }
             }
+            // SSL Proxying: m=toggle mode (blacklist/whitelist)
+            KeyCode::Char('m') if self.settings_section == SettingsSection::SslProxying => {
+                self.ssl_proxying_mode = match self.ssl_proxying_mode {
+                    proxy_daemon::SslProxyingMode::Blacklist => {
+                        proxy_daemon::SslProxyingMode::Whitelist
+                    }
+                    proxy_daemon::SslProxyingMode::Whitelist => {
+                        proxy_daemon::SslProxyingMode::Blacklist
+                    }
+                };
+                self.send_ssl_proxying_update().await;
+            }
             KeyCode::Left => {
                 if self.settings_section == SettingsSection::Throttle
                     && self.throttle_form.field == ThrottleField::Preset

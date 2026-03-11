@@ -88,7 +88,7 @@ msgstr "Active Custom CA"
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:134
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:169
 #: src/pages/server-replay/ui/server-replay-page.tsx:170
-#: src/pages/settings/ui/settings-page.tsx:1401
+#: src/pages/settings/ui/settings-page.tsx:1433
 msgid "Add"
 msgstr "Add"
 
@@ -186,9 +186,17 @@ msgstr "All entries cleared"
 msgid "All host mappings cleared"
 msgstr "All host mappings cleared"
 
-#: src/pages/settings/ui/settings-page.tsx:1384
+#: src/pages/settings/ui/settings-page.tsx:1398
 msgid "All HTTPS traffic is being intercepted (no whitelist configured)"
 msgstr "All HTTPS traffic is being intercepted (no whitelist configured)"
+
+#: src/pages/settings/ui/settings-page.tsx:1392
+msgid "All HTTPS traffic is intercepted except {enabledCount} excluded domain(s) and built-in OAuth domains."
+msgstr "All HTTPS traffic is intercepted except {enabledCount} excluded domain(s) and built-in OAuth domains."
+
+#: src/pages/settings/ui/settings-page.tsx:1387
+msgid "All HTTPS traffic is intercepted. OAuth domains (accounts.google.com, etc.) are automatically excluded."
+msgstr "All HTTPS traffic is intercepted. OAuth domains (accounts.google.com, etc.) are automatically excluded."
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:264
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:264
@@ -230,6 +238,10 @@ msgstr "Automatically save the current session when the app closes and restore i
 #: src/pages/server-replay/ui/server-replay-page.tsx:124
 msgid "available"
 msgstr "available"
+
+#: src/pages/settings/ui/settings-page.tsx:1416
+msgid "Blacklist (Exclude)"
+msgstr "Blacklist (Exclude)"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:286
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:286
@@ -568,6 +580,10 @@ msgstr "Domain"
 msgid "Domain-specific Certificates"
 msgstr "Domain-specific Certificates"
 
+#: src/pages/settings/ui/settings-page.tsx:1438
+msgid "Domains in this list will NOT be intercepted (pass-through). OAuth domains like accounts.google.com are always excluded by default."
+msgstr "Domains in this list will NOT be intercepted (pass-through). OAuth domains like accounts.google.com are always excluded by default."
+
 #: src/pages/log-viewer/ui/logs-page.tsx:367
 msgid "Domains that failed TLS handshake are automatically tunneled without MITM decryption. You can remove entries to retry MITM for specific domains."
 msgstr "Domains that failed TLS handshake are automatically tunneled without MITM decryption. You can remove entries to retry MITM for specific domains."
@@ -615,7 +631,7 @@ msgstr "Enabled"
 msgid "entries"
 msgstr "entries"
 
-#: src/pages/settings/ui/settings-page.tsx:1394
+#: src/pages/settings/ui/settings-page.tsx:1426
 msgid "example.com, *.example.com, or example.com:443"
 msgstr "example.com, *.example.com, or example.com:443"
 
@@ -1038,6 +1054,10 @@ msgstr "Method"
 msgid "Mobile Certificate Install"
 msgstr "Mobile Certificate Install"
 
+#: src/pages/settings/ui/settings-page.tsx:1408
+msgid "Mode"
+msgstr "Mode"
+
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:289
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:290
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:44
@@ -1152,11 +1172,15 @@ msgstr "Number of simultaneous requests (1-100)"
 msgid "Number of times to send the request (1-10000)"
 msgstr "Number of times to send the request (1-10000)"
 
+#: src/pages/settings/ui/settings-page.tsx:1443
+msgid "Only domains in this list will be intercepted. When the list is empty, all domains are intercepted."
+msgstr "Only domains in this list will be intercepted. When the list is empty, all domains are intercepted."
+
 #: src/features/transaction-details/ui/replay-dialog.tsx:301
 msgid "Only http:// and https:// URLs are allowed"
 msgstr "Only http:// and https:// URLs are allowed"
 
-#: src/pages/settings/ui/settings-page.tsx:1386
+#: src/pages/settings/ui/settings-page.tsx:1400
 msgid "Only whitelisted domains ({enabledCount}) will have HTTPS traffic intercepted"
 msgstr "Only whitelisted domains ({enabledCount}) will have HTTPS traffic intercepted"
 
@@ -1363,7 +1387,7 @@ msgid "Remote Device Certificate"
 msgstr "Remote Device Certificate"
 
 #: src/pages/settings/ui/settings-page.tsx:1238
-#: src/pages/settings/ui/settings-page.tsx:1432
+#: src/pages/settings/ui/settings-page.tsx:1471
 msgid "Remove"
 msgstr "Remove"
 
@@ -1810,7 +1834,7 @@ msgstr "Source host and target host are required"
 msgid "Source Port"
 msgstr "Source Port"
 
-#: src/pages/settings/ui/settings-page.tsx:1380
+#: src/pages/settings/ui/settings-page.tsx:1382
 msgid "SSL Proxying"
 msgstr "SSL Proxying"
 
@@ -1850,10 +1874,6 @@ msgstr "Status Code Distribution"
 #: src/pages/settings/ui/settings-page.tsx:607
 msgid "Strategy"
 msgstr "Strategy"
-
-#: src/pages/settings/ui/settings-page.tsx:1405
-msgid "Supports exact domains (example.com), wildcards (*.example.com), and port-specific patterns (example.com:443). When the list is empty, all domains are intercepted."
-msgstr "Supports exact domains (example.com), wildcards (*.example.com), and port-specific patterns (example.com:443). When the list is empty, all domains are intercepted."
 
 #: src/pages/settings/ui/settings-page.tsx:1154
 msgid "Supports PEM-encoded certificates and keys (RSA, ECDSA, PKCS#8)"
@@ -2087,6 +2107,10 @@ msgstr "WebSocket connections and messages"
 #: src/features/websocket-replay/ui/ws-replay-dialog.tsx:102
 msgid "WebSocket Replay"
 msgstr "WebSocket Replay"
+
+#: src/pages/settings/ui/settings-page.tsx:1419
+msgid "Whitelist (Include)"
+msgstr "Whitelist (Include)"
 
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:230
 msgid "Wildcard"
