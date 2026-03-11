@@ -246,6 +246,9 @@ pub enum ClientCommand {
     UpdateRequestClientCert {
         config: Option<RequestClientCertConfig>,
     },
+    /// 연결 전략 업데이트 (Lazy, Eager, EagerWithFallback)
+    #[serde(rename = "update_connection_strategy")]
+    UpdateConnectionStrategy { strategy: String },
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

@@ -5,20 +5,45 @@ use crate::tls_passthrough::TlsPassthrough;
 use crate::upstream_proxy::UpstreamProxyConfig;
 use crate::websocket_registry::WebSocketRegistry;
 use proxy_v2_models::RequestInfo;
+use serde::{Deserialize, Serialize};
 use std::sync::Arc;
+use std::sync::atomic::AtomicU8;
 use tokio::sync::{Semaphore, mpsc, watch};
 use tokio_tungstenite::Connector;
 
 /// 서버 연결 전략
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub enum ConnectionStrategy {
     /// 현재 동작: 필요 시 서버 연결 (순차적 스니핑)
     #[default]
+    #[serde(rename = "lazy")]
     Lazy,
     /// ClientHello 직후 서버 연결을 백그라운드에서 시작
+    #[serde(rename = "eager")]
     Eager,
     /// Eager 시도 → 실패 시 Lazy 폴백
+    #[serde(rename = "eager_with_fallback")]
     EagerWithFallback,
+}
+
+impl ConnectionStrategy {
+    /// u8 값에서 ConnectionStrategy로 변환
+    pub fn from_u8(value: u8) -> Self {
+        match value {
+            1 => ConnectionStrategy::Eager,
+            2 => ConnectionStrategy::EagerWithFallback,
+            _ => ConnectionStrategy::Lazy,
+        }
+    }
+
+    /// ConnectionStrategy를 u8 값으로 변환
+    pub fn as_u8(&self) -> u8 {
+        match self {
+            ConnectionStrategy::Lazy => 0,
+            ConnectionStrategy::Eager => 1,
+            ConnectionStrategy::EagerWithFallback => 2,
+        }
+    }
 }
 
 /// 프록시의 공유 상태를 담는 컨텍스트 구조체.
@@ -39,12 +64,21 @@ pub struct ProxyContext {
     /// 도메인별 TLS 버전/암호화 스위트 세분화 설정 (None이면 기존 하드코딩 동작)
     pub tls_config: Option<SharedTlsConfig>,
     /// 서버 연결 전략 (Lazy: 순차적, Eager: 백그라운드 선행 연결)
-    pub connection_strategy: ConnectionStrategy,
+    /// Arc<AtomicU8>로 런타임 변경 지원
+    pub connection_strategy: Option<Arc<AtomicU8>>,
 }
 
 impl ProxyContext {
     pub fn new() -> Self {
         Self::default()
+    }
+
+    /// 현재 연결 전략을 반환합니다. None이면 기본값(Lazy)을 반환합니다.
+    pub fn connection_strategy(&self) -> ConnectionStrategy {
+        self.connection_strategy
+            .as_ref()
+            .map(|s| ConnectionStrategy::from_u8(s.load(std::sync::atomic::Ordering::Relaxed)))
+            .unwrap_or_default()
     }
 }
 
@@ -77,6 +111,60 @@ mod tests {
     #[test]
     fn test_proxy_context_default_strategy_is_lazy() {
         let ctx = ProxyContext::new();
-        assert_eq!(ctx.connection_strategy, ConnectionStrategy::Lazy);
+        assert_eq!(ctx.connection_strategy(), ConnectionStrategy::Lazy);
+    }
+
+    #[test]
+    fn test_connection_strategy_from_u8() {
+        assert_eq!(ConnectionStrategy::from_u8(0), ConnectionStrategy::Lazy);
+        assert_eq!(ConnectionStrategy::from_u8(1), ConnectionStrategy::Eager);
+        assert_eq!(
+            ConnectionStrategy::from_u8(2),
+            ConnectionStrategy::EagerWithFallback
+        );
+        assert_eq!(ConnectionStrategy::from_u8(255), ConnectionStrategy::Lazy);
+    }
+
+    #[test]
+    fn test_connection_strategy_as_u8() {
+        assert_eq!(ConnectionStrategy::Lazy.as_u8(), 0);
+        assert_eq!(ConnectionStrategy::Eager.as_u8(), 1);
+        assert_eq!(ConnectionStrategy::EagerWithFallback.as_u8(), 2);
+    }
+
+    #[test]
+    fn test_connection_strategy_runtime_update() {
+        use std::sync::atomic::AtomicU8;
+        let strategy = Arc::new(AtomicU8::new(0));
+        let ctx = ProxyContext {
+            connection_strategy: Some(strategy.clone()),
+            ..ProxyContext::new()
+        };
+        assert_eq!(ctx.connection_strategy(), ConnectionStrategy::Lazy);
+        strategy.store(1, std::sync::atomic::Ordering::Relaxed);
+        assert_eq!(ctx.connection_strategy(), ConnectionStrategy::Eager);
+        strategy.store(2, std::sync::atomic::Ordering::Relaxed);
+        assert_eq!(
+            ctx.connection_strategy(),
+            ConnectionStrategy::EagerWithFallback
+        );
+    }
+
+    #[test]
+    fn test_connection_strategy_serde() {
+        let json = serde_json::to_string(&ConnectionStrategy::Lazy).unwrap();
+        assert_eq!(json, r#""lazy""#);
+        let json = serde_json::to_string(&ConnectionStrategy::Eager).unwrap();
+        assert_eq!(json, r#""eager""#);
+        let json = serde_json::to_string(&ConnectionStrategy::EagerWithFallback).unwrap();
+        assert_eq!(json, r#""eager_with_fallback""#);
+
+        let strategy: ConnectionStrategy = serde_json::from_str(r#""lazy""#).unwrap();
+        assert_eq!(strategy, ConnectionStrategy::Lazy);
+        let strategy: ConnectionStrategy = serde_json::from_str(r#""eager""#).unwrap();
+        assert_eq!(strategy, ConnectionStrategy::Eager);
+        let strategy: ConnectionStrategy =
+            serde_json::from_str(r#""eager_with_fallback""#).unwrap();
+        assert_eq!(strategy, ConnectionStrategy::EagerWithFallback);
     }
 }

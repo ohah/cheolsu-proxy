@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { Locale } from "@/shared/lib/i18n";
+import type { ConnectionStrategy } from "@/shared/api/proxy";
 
 interface ThrottleConfigState {
   enabled: boolean;
@@ -66,6 +67,10 @@ interface AppSettingsState {
   // Proxy auth config
   proxyAuthConfig: ProxyAuthConfigState;
   setProxyAuthConfig: (config: ProxyAuthConfigState) => void;
+
+  // Connection strategy
+  connectionStrategy: ConnectionStrategy;
+  setConnectionStrategy: (strategy: ConnectionStrategy) => void;
 }
 
 const DEFAULT_THROTTLE_CONFIG: ThrottleConfigState = {
@@ -121,6 +126,9 @@ export const useAppSettingsStore = create<AppSettingsState>()(
 
       proxyAuthConfig: DEFAULT_PROXY_AUTH_CONFIG,
       setProxyAuthConfig: (config) => set({ proxyAuthConfig: config }),
+
+      connectionStrategy: "lazy" as ConnectionStrategy,
+      setConnectionStrategy: (strategy) => set({ connectionStrategy: strategy }),
     }),
     {
       name: "cheolsu-app-settings",

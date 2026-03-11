@@ -408,6 +408,14 @@ export async function getCustomCaStatus(): Promise<CertificateInfo | null> {
   return invoke("get_custom_ca_status");
 }
 
+// ─── Connection Strategy ─────────────────────────────────
+
+export type ConnectionStrategy = "lazy" | "eager" | "eager_with_fallback";
+
+export async function updateConnectionStrategy(strategy: ConnectionStrategy): Promise<void> {
+  return invoke("update_connection_strategy", { strategy });
+}
+
 // ─── Quick Settings ──────────────────────────────────────
 
 export async function updateQuickSettings(

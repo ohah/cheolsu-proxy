@@ -11,7 +11,7 @@ use hyper_util::{
 use std::{
     future::{Pending, pending},
     net::SocketAddr,
-    sync::Arc,
+    sync::{Arc, atomic::AtomicU8},
 };
 use thiserror::Error;
 use tokio::net::TcpListener;
@@ -392,7 +392,7 @@ impl<CA, C, H, W, F> ProxyBuilder<WantsHandlers<CA, C, H, W, F>> {
 
     /// Set the connection strategy (Lazy, Eager, or EagerWithFallback).
     pub fn with_connection_strategy(mut self, strategy: crate::ConnectionStrategy) -> Self {
-        self.0.ctx.connection_strategy = strategy;
+        self.0.ctx.connection_strategy = Some(Arc::new(AtomicU8::new(strategy.as_u8())));
         self
     }
 

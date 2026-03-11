@@ -954,6 +954,21 @@ pub async fn update_throttle(
     Ok(())
 }
 
+/// 연결 전략 업데이트
+#[tauri::command]
+pub async fn update_connection_strategy(
+    proxy: State<'_, ProxyV2State>,
+    strategy: String,
+) -> Result<(), String> {
+    let sender = get_command_sender(&proxy).await?;
+    let cmd = ClientCommand::UpdateConnectionStrategy {
+        strategy: strategy.clone(),
+    };
+    sender.send_command(&cmd).await?;
+    tracing::info!("Daemon에 연결 전략 업데이트 완료: {}", strategy);
+    Ok(())
+}
+
 /// 서버 리플레이 엔트리 업데이트
 #[tauri::command]
 pub async fn update_server_replay(

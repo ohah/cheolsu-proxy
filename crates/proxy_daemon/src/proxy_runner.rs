@@ -37,6 +37,7 @@ pub async fn run_proxy(
     max_body_size: Option<usize>,
     tls_passthrough: proxyapi_v2::tls_passthrough::TlsPassthrough,
     request_client_cert_rx: watch::Receiver<Option<RequestClientCertConfig>>,
+    connection_strategy: std::sync::Arc<std::sync::atomic::AtomicU8>,
 ) -> Result<(), DaemonError> {
     use proxyapi_v2::builder::ProxyBuilder;
     use proxyapi_v2::certificate_authority::{
@@ -222,6 +223,7 @@ pub async fn run_proxy(
         upstream_proxy: initial_upstream,
         throttle_rx: Some(throttle_rx_arc),
         connection_semaphore,
+        connection_strategy: Some(connection_strategy),
         ..Default::default()
     };
 
