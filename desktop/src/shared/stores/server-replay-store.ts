@@ -1,5 +1,6 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { createJSONStorage, persist } from "zustand/middleware";
+import { createTauriStorage } from "@/shared/lib/tauri-store-storage";
 import { updateServerReplay, type ServerReplayEntry } from "@/shared/api/proxy";
 
 interface ServerReplayStoreState {
@@ -57,6 +58,7 @@ export const useServerReplayStore = create<ServerReplayStoreState>()(
     }),
     {
       name: "cheolsu-server-replay",
+      storage: createJSONStorage(() => createTauriStorage()),
     },
   ),
 );

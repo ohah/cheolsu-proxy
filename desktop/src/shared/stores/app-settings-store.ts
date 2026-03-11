@@ -1,5 +1,6 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { createJSONStorage, persist } from "zustand/middleware";
+import { createTauriStorage } from "@/shared/lib/tauri-store-storage";
 import type { Locale } from "@/shared/lib/i18n";
 import type { ConnectionStrategy } from "@/shared/api/proxy";
 
@@ -139,6 +140,7 @@ export const useAppSettingsStore = create<AppSettingsState>()(
     }),
     {
       name: "cheolsu-app-settings",
+      storage: createJSONStorage(() => createTauriStorage()),
     },
   ),
 );

@@ -1,5 +1,6 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { createJSONStorage, persist } from "zustand/middleware";
+import { createTauriStorage } from "@/shared/lib/tauri-store-storage";
 
 import { startProxyV2, cleanOldProxyCache } from "@/shared/api/proxy";
 import { toast } from "sonner";
@@ -52,6 +53,7 @@ export const useProxyStore = create<ProxyState>()(
     }),
     {
       name: "cheolsu-proxy-store",
+      storage: createJSONStorage(() => createTauriStorage()),
       // isInitialized는 persist하지 않음 (앱 재시작 시 다시 초기화되어야 함)
       partialize: (state) => ({
         port: state.port,

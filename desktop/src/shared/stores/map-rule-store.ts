@@ -1,5 +1,6 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { createJSONStorage, persist } from "zustand/middleware";
+import { createTauriStorage } from "@/shared/lib/tauri-store-storage";
 import type { InterceptRule } from "@/entities/intercept-rule";
 import { registerRuleStore, syncAllRulesToProxy } from "./sync-rules";
 
@@ -64,6 +65,7 @@ export const useMapRuleStore = create<MapRuleStoreState>()(
     }),
     {
       name: "cheolsu-map-rules",
+      storage: createJSONStorage(() => createTauriStorage()),
     },
   ),
 );
