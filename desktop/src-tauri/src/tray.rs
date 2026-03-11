@@ -243,11 +243,10 @@ pub fn tray_toggle_recording<R: Runtime>(
     app: AppHandle<R>,
     tray_state: State<'_, Arc<TrayState>>,
 ) -> Result<bool, String> {
-    let prev = tray_state.recording_paused.load(Ordering::Relaxed);
-    let new_paused = !prev;
-    tray_state
+    let prev = tray_state
         .recording_paused
-        .store(new_paused, Ordering::Relaxed);
+        .fetch_xor(true, Ordering::Relaxed);
+    let new_paused = !prev;
 
     // run_on_main_thread로 안전하게 이벤트 전파 (macOS 데드락 방지)
     let _ = app.emit("recording_paused_changed", new_paused);
