@@ -603,4 +603,41 @@ mod tests {
             .unwrap();
         assert_eq!(cn, "Real Server");
     }
+
+    #[test]
+    fn gen_cert_includes_authority_key_identifier() {
+        let ca = build_ca(0);
+        let authority = Authority::from_static("aki-test.example.com");
+
+        let cert_der = ca.gen_cert(&authority, None).unwrap();
+        let (_, cert) = x509_parser::parse_x509_certificate(&cert_der).unwrap();
+
+        // AKI extension (OID 2.5.29.35) 이 존재하는지 확인
+        let aki = cert.extensions().iter().find(|ext| {
+            ext.oid == x509_parser::oid_registry::OID_X509_EXT_AUTHORITY_KEY_IDENTIFIER
+        });
+        assert!(
+            aki.is_some(),
+            "Authority Key Identifier extension이 없습니다"
+        );
+    }
+
+    #[test]
+    fn gen_cert_cn_truncated_to_64_chars() {
+        let ca = build_ca(0);
+        let long_host = format!("{}.example.com", "a".repeat(80));
+        let authority = Authority::try_from(long_host).unwrap();
+
+        let cert_der = ca.gen_cert(&authority, None).unwrap();
+        let (_, cert) = x509_parser::parse_x509_certificate(&cert_der).unwrap();
+
+        let cn = cert
+            .subject()
+            .iter()
+            .flat_map(|rdn| rdn.iter())
+            .find(|attr| *attr.attr_type() == x509_parser::oid_registry::OID_X509_COMMON_NAME)
+            .and_then(|attr| attr.as_str().ok())
+            .unwrap();
+        assert!(cn.len() <= 64, "CN이 64자를 초과합니다: {} chars", cn.len());
+    }
 }

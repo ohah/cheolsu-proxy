@@ -30,10 +30,52 @@ pub(crate) const NOT_BEFORE_OFFSET: i64 = 172_800;
 /// CN(Common Name)을 RFC 5280 제한인 64자로 truncate합니다.
 /// char 경계를 존중하여 안전하게 자릅니다.
 pub(crate) fn truncate_cn(cn: &str) -> String {
-    if cn.len() <= 64 {
+    if cn.chars().count() <= 64 {
         cn.to_string()
     } else {
         cn.chars().take(64).collect()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::truncate_cn;
+
+    #[test]
+    fn truncate_cn_short_ascii() {
+        assert_eq!(truncate_cn("example.com"), "example.com");
+    }
+
+    #[test]
+    fn truncate_cn_exactly_64() {
+        let cn: String = "a".repeat(64);
+        assert_eq!(truncate_cn(&cn), cn);
+    }
+
+    #[test]
+    fn truncate_cn_over_64() {
+        let cn: String = "a".repeat(100);
+        assert_eq!(truncate_cn(&cn).chars().count(), 64);
+    }
+
+    #[test]
+    fn truncate_cn_empty() {
+        assert_eq!(truncate_cn(""), "");
+    }
+
+    #[test]
+    fn truncate_cn_multibyte_under_limit() {
+        // 한글 20자 = 60바이트이지만 문자 수는 20
+        let cn: String = "가".repeat(20);
+        assert_eq!(truncate_cn(&cn), cn);
+    }
+
+    #[test]
+    fn truncate_cn_multibyte_over_limit() {
+        // 한글 70자 → 64자로 truncate
+        let cn: String = "가".repeat(70);
+        let result = truncate_cn(&cn);
+        assert_eq!(result.chars().count(), 64);
     }
 }
 

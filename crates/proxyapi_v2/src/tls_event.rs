@@ -53,9 +53,11 @@ pub enum TlsEvent {
 pub type TlsEventSender = tokio::sync::mpsc::Sender<TlsEvent>;
 
 /// TLS 이벤트 수신자 타입 alias
+#[allow(dead_code)]
 pub type TlsEventReceiver = tokio::sync::mpsc::Receiver<TlsEvent>;
 
 /// TLS 이벤트 채널을 생성합니다.
+#[allow(dead_code)]
 pub fn tls_event_channel(buffer: usize) -> (TlsEventSender, TlsEventReceiver) {
     tokio::sync::mpsc::channel(buffer)
 }
