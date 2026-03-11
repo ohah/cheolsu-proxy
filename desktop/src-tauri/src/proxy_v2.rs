@@ -1068,7 +1068,11 @@ pub async fn import_custom_ca(
             return Err("키 파일이 PEM 형식이 아닙니다".to_string());
         }
 
-        // 4. 저장
+        // 4. 인증서-키 매칭 검증
+        proxy_daemon::validate_cert_key_pair(&cert_data, &key_data)
+            .map_err(|e| format!("인증서-키 검증 실패: {}", e))?;
+
+        // 5. 저장
         proxy_daemon::save_custom_ca(&cert_data, &key_data)
             .map_err(|e| format!("커스텀 CA 저장 실패: {}", e))?;
 
@@ -1089,17 +1093,9 @@ pub async fn import_custom_ca_pkcs12(
         let (cert_pem, key_pem) = proxy_daemon::parse_pkcs12(&p12_path, &password)
             .map_err(|e| format!("PKCS12 파싱 실패: {}", e))?;
 
-        // 2. 임시 파일에 인증서 저장하여 검증
-        let temp_dir = std::env::temp_dir();
-        let temp_cert = temp_dir.join("cheolsu-ca-validate.pem");
-        std::fs::write(&temp_cert, &cert_pem).map_err(|e| format!("임시 파일 쓰기 실패: {}", e))?;
-
-        let info =
-            proxy_daemon::validate_ca_certificate(temp_cert.to_str().unwrap()).map_err(|e| {
-                let _ = std::fs::remove_file(&temp_cert);
-                format!("CA 인증서 검증 실패: {}", e)
-            })?;
-        let _ = std::fs::remove_file(&temp_cert);
+        // 2. 메모리에서 CA 인증서 검증 (임시 파일 불필요)
+        let info = proxy_daemon::validate_ca_certificate_from_bytes(&cert_pem)
+            .map_err(|e| format!("CA 인증서 검증 실패: {}", e))?;
 
         // 3. 저장
         proxy_daemon::save_custom_ca(&cert_pem, &key_pem)

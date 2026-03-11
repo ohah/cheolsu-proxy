@@ -77,7 +77,7 @@ msgstr "활성"
 
 #: src/pages/settings/ui/components/certificate-settings.tsx:542
 msgid "Active Custom CA"
-msgstr ""
+msgstr "활성 커스텀 CA"
 
 #: src/features/intercept-rule-form/ui/headers-fields.tsx:59
 #: src/features/intercept-rule-form/ui/headers-fields.tsx:88
@@ -298,7 +298,7 @@ msgstr "CA 인증서"
 
 #: src/pages/settings/ui/components/certificate-settings.tsx:612
 msgid "CA Certificate File"
-msgstr ""
+msgstr "CA 인증서 파일"
 
 #: src/pages/settings/ui/settings-page.tsx:598
 msgid "CA Certificate File (optional)"
@@ -306,7 +306,7 @@ msgstr "CA 인증서 파일 (선택사항)"
 
 #: src/pages/settings/ui/components/certificate-settings.tsx:628
 msgid "CA Key File"
-msgstr ""
+msgstr "CA 키 파일"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:474
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:255
@@ -492,7 +492,7 @@ msgstr "커스텀 본문"
 
 #: src/pages/settings/ui/components/certificate-settings.tsx:530
 msgid "Custom CA Certificate"
-msgstr ""
+msgstr "커스텀 CA 인증서"
 
 #: src/pages/settings/ui/components/general-settings.tsx:142
 msgid "Dark"
@@ -622,7 +622,7 @@ msgstr "HAR 내보내기"
 
 #: src/pages/settings/ui/components/certificate-settings.tsx:686
 msgid "Failed"
-msgstr ""
+msgstr "실패"
 
 #: src/pages/settings/ui/settings-page.tsx:431
 msgid "Failed — check file paths and proxy status"
@@ -784,7 +784,7 @@ msgstr "지정하지 않으면 모든 클라이언트 인증서가 검증 없이
 
 #: src/pages/settings/ui/components/certificate-settings.tsx:677
 msgid "Import"
-msgstr ""
+msgstr "임포트"
 
 #: src/widgets/network-header/ui/network-controls.tsx:122
 msgid "Import HAR"
@@ -792,11 +792,11 @@ msgstr "HAR 가져오기"
 
 #: src/pages/settings/ui/components/certificate-settings.tsx:681
 msgid "Imported"
-msgstr ""
+msgstr "임포트 완료"
 
 #: src/pages/settings/ui/components/certificate-settings.tsx:677
 msgid "Importing..."
-msgstr ""
+msgstr "임포트 중..."
 
 #: src/pages/script/ui/script-page.tsx:170
 msgid "Inactive"
@@ -1237,19 +1237,19 @@ msgstr "상단에 고정"
 
 #: src/pages/settings/ui/components/certificate-settings.tsx:647
 msgid "PKCS12 File"
-msgstr ""
+msgstr "PKCS12 파일"
 
 #: src/pages/settings/ui/components/certificate-settings.tsx:667
 msgid "PKCS12 password (leave empty if none)"
-msgstr ""
+msgstr "PKCS12 비밀번호 (없으면 비워두세요)"
 
 #: src/pages/settings/ui/components/certificate-settings.tsx:487
 msgid "Please select a PKCS12 file"
-msgstr ""
+msgstr "PKCS12 파일을 선택하세요"
 
 #: src/pages/settings/ui/components/certificate-settings.tsx:479
 msgid "Please select both certificate and key files"
-msgstr ""
+msgstr "인증서와 키 파일을 모두 선택하세요"
 
 #: src/pages/settings/ui/components/proxy-settings.tsx:110
 msgid "Port"
@@ -1370,7 +1370,7 @@ msgstr "요청에서 Cookie 헤더를 제거하고 응답에서 Set-Cookie 헤�
 
 #: src/pages/settings/ui/components/certificate-settings.tsx:576
 msgid "Remove Custom CA"
-msgstr ""
+msgstr "커스텀 CA 제거"
 
 #: src/pages/server-replay/ui/server-replay-page.tsx:238
 msgid "Remove entry"
@@ -1383,7 +1383,7 @@ msgstr "헤더 삭제"
 
 #: src/pages/settings/ui/components/certificate-settings.tsx:708
 msgid "Removed"
-msgstr ""
+msgstr "제거됨"
 
 #. placeholder {0}: transactions.length
 #. placeholder {1}: loaded.length
@@ -1513,11 +1513,11 @@ msgstr "응답 시간"
 
 #: src/pages/settings/ui/components/certificate-settings.tsx:580
 msgid "Restart proxy to apply changes"
-msgstr ""
+msgstr "변경사항을 적용하려면 프록시를 재시작하세요"
 
 #: src/pages/settings/ui/components/certificate-settings.tsx:712
 msgid "Restart proxy to use auto-generated CA"
-msgstr ""
+msgstr "자동 생성 CA를 사용하려면 프록시를 재시작하세요"
 
 #: src/widgets/network-header/ui/network-controls.tsx:40
 msgid "Resume recording"
@@ -1649,7 +1649,7 @@ msgstr "로그 파일을 선택하여 내용을 확인하세요"
 
 #: src/pages/settings/ui/components/certificate-settings.tsx:617
 msgid "Select CA certificate (.pem, .crt, .cer, .der)"
-msgstr ""
+msgstr "CA 인증서 선택 (.pem, .crt, .cer, .der)"
 
 #: src/pages/settings/ui/settings-page.tsx:603
 msgid "Select CA certificate to verify clients (.pem, .crt)"
@@ -1657,7 +1657,7 @@ msgstr "클라이언트 검증용 CA 인증서 선택 (.pem, .crt)"
 
 #: src/pages/settings/ui/components/certificate-settings.tsx:633
 msgid "Select CA key file (.pem, .key)"
-msgstr ""
+msgstr "CA 키 파일 선택 (.pem, .key)"
 
 #: src/pages/settings/ui/settings-page.tsx:213
 msgid "Select certificate file (.pem, .crt)"
@@ -1677,7 +1677,7 @@ msgstr "로컬 파일 선택"
 
 #: src/pages/settings/ui/components/certificate-settings.tsx:652
 msgid "Select PKCS12 file (.p12, .pfx)"
-msgstr ""
+msgstr "PKCS12 파일 선택 (.p12, .pfx)"
 
 #: src/pages/settings/ui/components/certificate-settings.tsx:356
 msgid "Select the downloaded certificate file and confirm"
@@ -1881,7 +1881,7 @@ msgstr "터미널 명령어"
 
 #: src/pages/settings/ui/components/certificate-settings.tsx:696
 msgid "The certificate must be a CA certificate (BasicConstraints CA=true). After importing, restart the proxy to use the new CA. You also need to install this CA on your system and devices."
-msgstr ""
+msgstr "인증서는 CA 인증서여야 합니다 (BasicConstraints CA=true). 임포트 후 프록시를 재시작하여 새 CA를 사용하세요. 시스템과 기기에도 이 CA를 설치해야 합니다."
 
 #: src/pages/settings/ui/components/certificate-settings.tsx:345
 msgid "The DER certificate file will download automatically"
@@ -2014,7 +2014,7 @@ msgstr "와일드카드 패턴 사용: *는 모든 문자열, ?는 단일 문자
 
 #: src/pages/settings/ui/components/certificate-settings.tsx:533
 msgid "Use your own CA certificate instead of the auto-generated one"
-msgstr ""
+msgstr "자동 생성된 CA 대신 직접 CA 인증서를 사용합니다"
 
 #: src/pages/settings/ui/components/proxy-settings.tsx:133
 #: src/pages/settings/ui/settings-page.tsx:739

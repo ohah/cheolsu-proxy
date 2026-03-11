@@ -440,8 +440,8 @@ function CustomCaSection() {
       multiple: false,
       filters: [{ name: "Certificate", extensions: ["pem", "crt", "cer", "der"] }],
     });
-    if (selected) {
-      setCertPath(selected as string);
+    if (typeof selected === "string") {
+      setCertPath(selected);
       setStatus("idle");
     }
   }, []);
@@ -451,8 +451,8 @@ function CustomCaSection() {
       multiple: false,
       filters: [{ name: "Key", extensions: ["pem", "key"] }],
     });
-    if (selected) {
-      setKeyPath(selected as string);
+    if (typeof selected === "string") {
+      setKeyPath(selected);
       setStatus("idle");
     }
   }, []);
@@ -462,8 +462,8 @@ function CustomCaSection() {
       multiple: false,
       filters: [{ name: "PKCS12", extensions: ["p12", "pfx"] }],
     });
-    if (selected) {
-      setP12Path(selected as string);
+    if (typeof selected === "string") {
+      setP12Path(selected);
       setStatus("idle");
     }
   }, []);
