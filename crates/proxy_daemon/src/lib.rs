@@ -1,4 +1,5 @@
 pub(crate) mod breakpoint;
+pub mod breakpoint_handler;
 pub(crate) mod cert_distribution;
 pub mod client;
 pub mod client_handler;
@@ -17,9 +18,11 @@ pub mod protocol;
 pub mod proxy_runner;
 pub mod script_bridge;
 pub(crate) mod session;
+pub mod sse_handler;
 pub(crate) mod ssl_proxying;
 pub mod system_proxy;
 pub mod tls_client;
+pub mod ws_handler;
 
 // Re-exports for convenience
 pub use breakpoint::BreakpointManager;
