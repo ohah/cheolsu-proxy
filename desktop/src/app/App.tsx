@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { ThemeProvider, RouterProvider } from "./providers";
 import { Toaster } from "@/shared/ui";
 import {
@@ -32,6 +32,8 @@ const App: React.FC = () => {
   const addTransaction = useTransactionStore((s) => s.addTransaction);
   const paused = useTransactionStore((s) => s.paused);
   const setPaused = useTransactionStore((s) => s.setPaused);
+  // 트레이에서 받은 이벤트로 paused가 바뀐 경우 Rust 역동기화를 스킵하기 위한 플래그
+  const pausedFromTrayRef = useRef(false);
   const addWsMessage = useWebSocketStore((s) => s.addMessage);
   const updateWsConnection = useWebSocketStore((s) => s.updateConnection);
   const setInterceptRules = useInterceptRuleStore((s) => s.setRules);
@@ -149,6 +151,7 @@ const App: React.FC = () => {
   // 트레이에서 녹화 토글 시 Rust 백엔드를 통해 동기화 수신
   useEffect(() => {
     const unlisten = listen<boolean>("recording_paused_changed", (event) => {
+      pausedFromTrayRef.current = true;
       setPaused(event.payload);
     });
 
@@ -158,7 +161,12 @@ const App: React.FC = () => {
   }, [setPaused]);
 
   // 메인 윈도우에서 paused 변경 시 Rust 백엔드에 동기화
+  // (트레이 이벤트로 인한 변경은 이미 Rust에 반영되어 있으므로 스킵)
   useEffect(() => {
+    if (pausedFromTrayRef.current) {
+      pausedFromTrayRef.current = false;
+      return;
+    }
     invoke("tray_set_recording_paused", { paused }).catch(() => {});
   }, [paused]);
 

@@ -390,13 +390,18 @@ pub async fn start_proxy_v2<R: Runtime>(
 
 /// 프록시 중지: daemon과의 연결 해제
 #[tauri::command]
-pub async fn stop_proxy_v2(proxy: tauri::State<'_, ProxyV2State>) -> Result<(), String> {
+pub async fn stop_proxy_v2(
+    proxy: tauri::State<'_, ProxyV2State>,
+    tray_state: tauri::State<'_, Arc<crate::tray::TrayState>>,
+) -> Result<(), String> {
     let conn = {
         let mut guard = proxy.lock().await;
         guard.take()
     };
     if let Some(conn) = conn {
         conn.disconnect().await;
+        // 프록시 중지 시 트랜잭션 카운터 리셋
+        tray_state.transaction_count.store(0, Ordering::Relaxed);
         println!("Daemon 연결 해제 완료");
     } else {
         return Err("프록시가 실행 중이 아닙니다".to_string());
