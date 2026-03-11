@@ -12,6 +12,37 @@ use tracing::{error, info};
 
 use super::handler::LoggingHandler;
 
+/// 인터셉트 마커 헤더(`x-cheolsu-intercepted`, `x-cheolsu-intercept-rule`)를 삽입하는 헬퍼
+fn insert_intercept_marker(headers: &mut HeaderMap, rule_id: &str) {
+    headers.insert("x-cheolsu-intercepted", HeaderValue::from_static("true"));
+    headers.insert(
+        "x-cheolsu-intercept-rule",
+        rule_id
+            .parse()
+            .unwrap_or_else(|_| HeaderValue::from_static("unknown")),
+    );
+}
+
+/// 헤더 제거 + 추가를 수행하는 공통 헬퍼
+fn apply_header_modifications(
+    headers: &mut HeaderMap,
+    remove_headers: &[String],
+    add_headers: &std::collections::HashMap<String, String>,
+) {
+    for name in remove_headers {
+        if let Ok(header_name) = name.parse::<HeaderName>() {
+            headers.remove(header_name);
+        }
+    }
+    for (name, value) in add_headers {
+        if let (Ok(header_name), Ok(header_value)) =
+            (name.parse::<HeaderName>(), value.parse::<HeaderValue>())
+        {
+            headers.insert(header_name, header_value);
+        }
+    }
+}
+
 /// 헤더 값에 대해 정규식 치환을 수행하는 공통 함수
 fn rewrite_headers(
     headers: &HeaderMap,
@@ -50,6 +81,49 @@ async fn rewrite_body_bytes(
         }
     }
     None
+}
+
+/// Rewrite 액션의 정규식 컴파일 + 헤더/바디 치환 + 마커 헤더 삽입을 수행하는 공통 매크로.
+/// Request와 Response 모두에서 사용 가능하도록 매크로로 구현한다.
+/// `$msg`에 borrow 분리를 위해 `$msg.headers_mut()`, `$msg.body_mut()` 호출을 분리한다.
+macro_rules! apply_rewrite_action {
+    ($msg:expr, $match_pattern:expr, $replace_with:expr, $is_header:expr, $rule_id:expr, $log_label:expr, $method:expr, $url:expr, $rule_name:expr) => {
+        match Regex::new($match_pattern) {
+            Ok(re) => {
+                if $is_header {
+                    info!(
+                        "[Intercept] Rewrite {} 헤더: {} {} (규칙: {})",
+                        $log_label, $method, $url, $rule_name
+                    );
+                    let replacements = rewrite_headers($msg.headers(), &re, $replace_with);
+                    for (name, value) in replacements {
+                        $msg.headers_mut().insert(name, value);
+                    }
+                } else {
+                    info!(
+                        "[Intercept] Rewrite {} 바디: {} {} (규칙: {})",
+                        $log_label, $method, $url, $rule_name
+                    );
+                    if let Some(new_bytes) =
+                        rewrite_body_bytes($msg.body_mut(), &re, $replace_with).await
+                    {
+                        $msg.headers_mut().remove("content-length");
+                        $msg.headers_mut().remove("content-encoding");
+                        $msg.headers_mut().remove("transfer-encoding");
+                        use http_body_util::Full;
+                        *$msg.body_mut() = Body::from(Full::new(new_bytes));
+                    }
+                }
+                insert_intercept_marker($msg.headers_mut(), $rule_id);
+            }
+            Err(e) => {
+                error!(
+                    "[Intercept] Rewrite 정규식 컴파일 실패: {} - {}",
+                    $match_pattern, e
+                );
+            }
+        }
+    };
 }
 
 impl LoggingHandler {
@@ -139,10 +213,9 @@ impl LoggingHandler {
                     );
                     let mut response = Response::builder()
                         .status(StatusCode::from_u16(*status_code).unwrap_or(StatusCode::FORBIDDEN))
-                        .header("x-cheolsu-intercepted", "true")
-                        .header("x-cheolsu-intercept-rule", &rule.id)
                         .body(Body::from(body.clone()))
                         .unwrap_or_else(|_| Response::new(Body::empty()));
+                    insert_intercept_marker(response.headers_mut(), &rule.id);
                     // Content-Type 설정
                     if !body.is_empty() {
                         if body.starts_with('{') || body.starts_with('[') {
@@ -168,20 +241,11 @@ impl LoggingHandler {
                         "[Intercept] 요청 수정: {} {} (규칙: {})",
                         method, url, rule.name
                     );
-                    // 헤더 제거
-                    for name in remove_headers {
-                        if let Ok(header_name) = name.parse::<HeaderName>() {
-                            current_req.headers_mut().remove(header_name);
-                        }
-                    }
-                    // 헤더 추가
-                    for (name, value) in add_headers {
-                        if let (Ok(header_name), Ok(header_value)) =
-                            (name.parse::<HeaderName>(), value.parse::<HeaderValue>())
-                        {
-                            current_req.headers_mut().insert(header_name, header_value);
-                        }
-                    }
+                    apply_header_modifications(
+                        current_req.headers_mut(),
+                        remove_headers,
+                        add_headers,
+                    );
                     // 바디 변경
                     if let Some(new_body) = set_body {
                         use http_body_util::Full;
@@ -199,52 +263,17 @@ impl LoggingHandler {
                 } if *target == RewriteTarget::RequestHeader
                     || *target == RewriteTarget::RequestBody =>
                 {
-                    match Regex::new(match_pattern) {
-                        Ok(re) => {
-                            if *target == RewriteTarget::RequestHeader {
-                                info!(
-                                    "[Intercept] Rewrite 요청 헤더: {} {} (규칙: {})",
-                                    method, url, rule.name
-                                );
-                                let replacements =
-                                    rewrite_headers(current_req.headers(), &re, replace_with);
-                                for (name, value) in replacements {
-                                    current_req.headers_mut().insert(name, value);
-                                }
-                            } else {
-                                // request_body
-                                info!(
-                                    "[Intercept] Rewrite 요청 바디: {} {} (규칙: {})",
-                                    method, url, rule.name
-                                );
-                                if let Some(new_bytes) =
-                                    rewrite_body_bytes(current_req.body_mut(), &re, replace_with)
-                                        .await
-                                {
-                                    crate::header_utils::clear_content_encoding_headers(
-                                        current_req.headers_mut(),
-                                    );
-                                    use http_body_util::Full;
-                                    *current_req.body_mut() = Body::from(Full::new(new_bytes));
-                                }
-                            }
-                            current_req
-                                .headers_mut()
-                                .insert("x-cheolsu-intercepted", HeaderValue::from_static("true"));
-                            current_req.headers_mut().insert(
-                                "x-cheolsu-intercept-rule",
-                                rule.id
-                                    .parse()
-                                    .unwrap_or_else(|_| HeaderValue::from_static("unknown")),
-                            );
-                        }
-                        Err(e) => {
-                            error!(
-                                "[Intercept] Rewrite 정규식 컴파일 실패: {} - {}",
-                                match_pattern, e
-                            );
-                        }
-                    }
+                    apply_rewrite_action!(
+                        current_req,
+                        match_pattern,
+                        replace_with,
+                        *target == RewriteTarget::RequestHeader,
+                        &rule.id,
+                        "요청",
+                        method,
+                        url,
+                        &rule.name
+                    );
                 }
                 InterceptAction::Rewrite { .. } => {
                     // response 대상 rewrite는 apply_response_intercept에서 처리
@@ -265,8 +294,6 @@ impl LoggingHandler {
                                 .status(
                                     StatusCode::from_u16(*status_code).unwrap_or(StatusCode::OK),
                                 )
-                                .header("x-cheolsu-intercepted", "true")
-                                .header("x-cheolsu-intercept-rule", &rule.id)
                                 .header("x-cheolsu-map-local", file_path.as_str());
 
                             // Content-Length 설정
@@ -287,26 +314,29 @@ impl LoggingHandler {
                                 }
                             }
 
-                            return response
+                            let mut resp = response
                                 .body(Body::from(http_body_util::Full::new(file_bytes)))
-                                .unwrap_or_else(|_| Response::new(Body::empty()))
-                                .into();
+                                .unwrap_or_else(|_| Response::new(Body::empty()));
+                            insert_intercept_marker(resp.headers_mut(), &rule.id);
+                            return resp.into();
                         }
                         Err(e) => {
                             error!(
                                 "[Intercept] Map Local 파일 읽기 실패: {} - {}",
                                 file_path, e
                             );
-                            return Response::builder()
+                            let mut err_resp = Response::builder()
                                 .status(StatusCode::NOT_FOUND)
-                                .header("x-cheolsu-intercepted", "true")
                                 .header("x-cheolsu-map-local-error", e.to_string())
                                 .body(Body::from(format!(
                                     "Map Local Error: file not found - {}",
                                     file_path
                                 )))
-                                .unwrap_or_else(|_| Response::new(Body::empty()))
-                                .into();
+                                .unwrap_or_else(|_| Response::new(Body::empty()));
+                            err_resp
+                                .headers_mut()
+                                .insert("x-cheolsu-intercepted", HeaderValue::from_static("true"));
+                            return err_resp.into();
                         }
                     }
                 }
@@ -348,9 +378,7 @@ impl LoggingHandler {
                                     .insert(proxyapi_v2::hyper::header::HOST, host_value);
                             }
                         }
-                        current_req
-                            .headers_mut()
-                            .insert("x-cheolsu-intercepted", HeaderValue::from_static("true"));
+                        insert_intercept_marker(current_req.headers_mut(), &rule.id);
                         current_req.headers_mut().insert(
                             "x-cheolsu-map-remote-original",
                             url.parse()
@@ -395,39 +423,20 @@ impl LoggingHandler {
                     }
                 }
 
-                // 헤더 제거
-                for name in remove_headers {
-                    if let Ok(header_name) = name.parse::<HeaderName>() {
-                        res.headers_mut().remove(header_name);
-                    }
-                }
-
-                // 헤더 추가
-                for (name, value) in add_headers {
-                    if let (Ok(header_name), Ok(header_value)) =
-                        (name.parse::<HeaderName>(), value.parse::<HeaderValue>())
-                    {
-                        res.headers_mut().insert(header_name, header_value);
-                    }
-                }
+                apply_header_modifications(res.headers_mut(), remove_headers, add_headers);
 
                 // 바디 변경
                 if let Some(new_body) = set_body {
                     use http_body_util::Full;
                     // Content-Length 업데이트
                     let body_bytes = bytes::Bytes::from(new_body.clone());
-                    crate::header_utils::clear_content_encoding_headers(res.headers_mut());
+                    res.headers_mut().remove("content-length");
+                    res.headers_mut().remove("content-encoding");
+                    res.headers_mut().remove("transfer-encoding");
                     *res.body_mut() = Body::from(Full::new(body_bytes));
                 }
 
-                res.headers_mut()
-                    .insert("x-cheolsu-intercepted", HeaderValue::from_static("true"));
-                res.headers_mut().insert(
-                    "x-cheolsu-intercept-rule",
-                    rule.id
-                        .parse()
-                        .unwrap_or_else(|_| HeaderValue::from_static("unknown")),
-                );
+                insert_intercept_marker(res.headers_mut(), &rule.id);
             }
 
             if let InterceptAction::Rewrite {
@@ -439,50 +448,17 @@ impl LoggingHandler {
                 if *target == RewriteTarget::ResponseHeader
                     || *target == RewriteTarget::ResponseBody
                 {
-                    match Regex::new(match_pattern) {
-                        Ok(re) => {
-                            if *target == RewriteTarget::ResponseHeader {
-                                info!(
-                                    "[Intercept] Rewrite 응답 헤더: {} {} (규칙: {})",
-                                    method, url, rule.name
-                                );
-                                let replacements =
-                                    rewrite_headers(res.headers(), &re, replace_with);
-                                for (name, value) in replacements {
-                                    res.headers_mut().insert(name, value);
-                                }
-                            } else {
-                                // response_body
-                                info!(
-                                    "[Intercept] Rewrite 응답 바디: {} {} (규칙: {})",
-                                    method, url, rule.name
-                                );
-                                if let Some(new_bytes) =
-                                    rewrite_body_bytes(res.body_mut(), &re, replace_with).await
-                                {
-                                    crate::header_utils::clear_content_encoding_headers(
-                                        res.headers_mut(),
-                                    );
-                                    use http_body_util::Full;
-                                    *res.body_mut() = Body::from(Full::new(new_bytes));
-                                }
-                            }
-                            res.headers_mut()
-                                .insert("x-cheolsu-intercepted", HeaderValue::from_static("true"));
-                            res.headers_mut().insert(
-                                "x-cheolsu-intercept-rule",
-                                rule.id
-                                    .parse()
-                                    .unwrap_or_else(|_| HeaderValue::from_static("unknown")),
-                            );
-                        }
-                        Err(e) => {
-                            error!(
-                                "[Intercept] Rewrite 정규식 컴파일 실패: {} - {}",
-                                match_pattern, e
-                            );
-                        }
-                    }
+                    apply_rewrite_action!(
+                        res,
+                        match_pattern,
+                        replace_with,
+                        *target == RewriteTarget::ResponseHeader,
+                        &rule.id,
+                        "응답",
+                        method,
+                        url,
+                        &rule.name
+                    );
                 }
             }
         }
