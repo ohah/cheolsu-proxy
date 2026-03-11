@@ -47,7 +47,7 @@ export const useTransactionFilters = ({ transactions }: UseTransactionFiltersPro
     appliedQueryString,
     filteredTransactions,
     filteredCount: filteredTransactions.length,
-    totalCount: transactions.length,
+    totalCount: visibleTransactions.length,
     onFilterQueryChange: handleFilterQueryChange,
     onApplyFilter: handleApplyFilter,
   };
