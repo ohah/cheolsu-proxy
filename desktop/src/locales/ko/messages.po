@@ -536,16 +536,16 @@ msgstr "요청 간 딜레이 (ms)"
 #: src/pages/log-viewer/ui/logs-page.tsx:265
 #: src/pages/log-viewer/ui/logs-page.tsx:473
 msgid "Delete"
-msgstr ""
+msgstr "삭제"
 
 #. placeholder {0}: selectedFile?.name
 #: src/pages/log-viewer/ui/logs-page.tsx:463
 msgid "Delete \"{0}\"? This action cannot be undone."
-msgstr ""
+msgstr "\"{0}\"을(를) 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
 
 #: src/pages/log-viewer/ui/logs-page.tsx:460
 msgid "Delete Log File"
-msgstr ""
+msgstr "로그 파일 삭제"
 
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:201
 msgid "Delete mapping"
