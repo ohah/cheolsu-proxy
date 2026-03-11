@@ -106,6 +106,12 @@ impl RcgenAuthority {
         Arc::clone(&self.client_cert_verify)
     }
 
+    /// ServerConfig 캐시 핸들을 반환합니다.
+    /// 외부에서 설정 변경 시 캐시를 무효화할 때 사용합니다.
+    pub fn get_cache_handle(&self) -> Cache<Authority, Arc<ServerConfig>> {
+        self.cache.clone()
+    }
+
     fn gen_cert(
         &self,
         authority: &Authority,

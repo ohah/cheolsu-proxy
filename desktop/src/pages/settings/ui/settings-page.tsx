@@ -337,7 +337,8 @@ function ClientCertificateSection() {
               <p className="text-xs text-muted-foreground mt-1">
                 <Trans>
                   Use different client certificates for specific domains. Supports wildcards
-                  (*.example.com).
+                  (*.example.com). Currently validates certificates only — domain-specific routing
+                  coming soon.
                 </Trans>
               </p>
             </div>
@@ -383,7 +384,10 @@ function ClientCertificateSection() {
             {domainCerts.length > 0 && (
               <div className="border rounded-lg divide-y">
                 {domainCerts.map((dc, idx) => (
-                  <div key={idx} className="flex items-center justify-between px-4 py-2">
+                  <div
+                    key={dc.domain_pattern}
+                    className="flex items-center justify-between px-4 py-2"
+                  >
                     <div className="flex items-center gap-3">
                       <Switch checked={dc.enabled} onCheckedChange={() => toggleDomainCert(idx)} />
                       <div>

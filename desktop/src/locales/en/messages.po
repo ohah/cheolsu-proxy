@@ -83,7 +83,7 @@ msgstr "Active"
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:134
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:169
 #: src/pages/server-replay/ui/server-replay-page.tsx:170
-#: src/pages/settings/ui/settings-page.tsx:494
+#: src/pages/settings/ui/settings-page.tsx:495
 msgid "Add"
 msgstr "Add"
 
@@ -95,7 +95,7 @@ msgstr "Add breakpoint rules to pause HTTP requests/responses for inspection."
 msgid "Add captured traffic to replay stored responses for matching requests."
 msgstr "Add captured traffic to replay stored responses for matching requests."
 
-#: src/pages/settings/ui/settings-page.tsx:378
+#: src/pages/settings/ui/settings-page.tsx:379
 msgid "Add Domain Certificate"
 msgstr "Add Domain Certificate"
 
@@ -181,7 +181,7 @@ msgstr "All entries cleared"
 msgid "All host mappings cleared"
 msgstr "All host mappings cleared"
 
-#: src/pages/settings/ui/settings-page.tsx:475
+#: src/pages/settings/ui/settings-page.tsx:476
 msgid "All HTTPS traffic is being intercepted (no whitelist configured)"
 msgstr "All HTTPS traffic is being intercepted (no whitelist configured)"
 
@@ -270,9 +270,9 @@ msgstr "Breakpoints"
 #: src/pages/script/ui/script-page.tsx:263
 #: src/pages/settings/ui/settings-page.tsx:218
 #: src/pages/settings/ui/settings-page.tsx:235
-#: src/pages/settings/ui/settings-page.tsx:360
-#: src/pages/settings/ui/settings-page.tsx:371
-#: src/pages/settings/ui/settings-page.tsx:609
+#: src/pages/settings/ui/settings-page.tsx:361
+#: src/pages/settings/ui/settings-page.tsx:372
+#: src/pages/settings/ui/settings-page.tsx:608
 msgid "Browse"
 msgstr "Browse"
 
@@ -288,7 +288,7 @@ msgstr "bytes body"
 msgid "CA Certificate"
 msgstr "CA Certificate"
 
-#: src/pages/settings/ui/settings-page.tsx:599
+#: src/pages/settings/ui/settings-page.tsx:598
 msgid "CA Certificate File (optional)"
 msgstr "CA Certificate File (optional)"
 
@@ -316,7 +316,7 @@ msgstr "Certificate Download URL"
 msgid "Certificate expired"
 msgstr "Certificate expired"
 
-#: src/pages/settings/ui/settings-page.tsx:355
+#: src/pages/settings/ui/settings-page.tsx:356
 msgid "Certificate file"
 msgstr "Certificate file"
 
@@ -324,7 +324,7 @@ msgstr "Certificate file"
 msgid "Certificate File"
 msgstr "Certificate File"
 
-#: src/pages/settings/ui/settings-page.tsx:643
+#: src/pages/settings/ui/settings-page.tsx:640
 msgid "Certificate is optional — clients without one can still connect"
 msgstr "Certificate is optional — clients without one can still connect"
 
@@ -346,7 +346,7 @@ msgstr "Claude Code (CLI)"
 
 #: src/pages/log-viewer/ui/logs-page.tsx:229
 #: src/pages/script/ui/script-page.tsx:298
-#: src/pages/settings/ui/settings-page.tsx:620
+#: src/pages/settings/ui/settings-page.tsx:619
 msgid "Clear"
 msgstr "Clear"
 
@@ -371,11 +371,11 @@ msgstr "Clear all transactions"
 msgid "Client Certificate"
 msgstr "Client Certificate"
 
-#: src/pages/settings/ui/settings-page.tsx:765
+#: src/pages/settings/ui/settings-page.tsx:760
 msgid "Clients must provide these credentials via Proxy-Authorization header (HTTP Basic) to use this proxy"
 msgstr "Clients must provide these credentials via Proxy-Authorization header (HTTP Basic) to use this proxy"
 
-#: src/pages/settings/ui/settings-page.tsx:639
+#: src/pages/settings/ui/settings-page.tsx:638
 msgid "Clients without a valid certificate will be rejected"
 msgstr "Clients without a valid certificate will be rejected"
 
@@ -575,7 +575,7 @@ msgstr "Enabled"
 msgid "entries"
 msgstr "entries"
 
-#: src/pages/settings/ui/settings-page.tsx:487
+#: src/pages/settings/ui/settings-page.tsx:488
 msgid "example.com, *.example.com, or example.com:443"
 msgstr "example.com, *.example.com, or example.com:443"
 
@@ -600,17 +600,17 @@ msgstr "Expand sidebar"
 msgid "Export HAR"
 msgstr "Export HAR"
 
-#: src/pages/settings/ui/settings-page.tsx:430
+#: src/pages/settings/ui/settings-page.tsx:431
 msgid "Failed — check file paths and proxy status"
 msgstr "Failed — check file paths and proxy status"
 
-#: src/pages/settings/ui/settings-page.tsx:664
+#: src/pages/settings/ui/settings-page.tsx:659
 msgid "Failed — check proxy status"
 msgstr "Failed — check proxy status"
 
 #: src/pages/settings/ui/components/proxy-settings.tsx:181
 #: src/pages/settings/ui/components/throttle-settings.tsx:226
-#: src/pages/settings/ui/settings-page.tsx:785
+#: src/pages/settings/ui/settings-page.tsx:780
 msgid "Failed — is the proxy running?"
 msgstr "Failed — is the proxy running?"
 
@@ -754,7 +754,7 @@ msgstr "HTTP requests and responses"
 msgid "HTTPie"
 msgstr "HTTPie"
 
-#: src/pages/settings/ui/settings-page.tsx:625
+#: src/pages/settings/ui/settings-page.tsx:624
 msgid "If not specified, any client certificate will be accepted without verification"
 msgstr "If not specified, any client certificate will be accepted without verification"
 
@@ -822,7 +822,7 @@ msgstr "JavaScript Fetch"
 msgid "JSON Configuration"
 msgstr "JSON Configuration"
 
-#: src/pages/settings/ui/settings-page.tsx:366
+#: src/pages/settings/ui/settings-page.tsx:367
 msgid "Key file"
 msgstr "Key file"
 
@@ -1113,7 +1113,7 @@ msgstr "Number of times to send the request (1-10000)"
 msgid "Only http:// and https:// URLs are allowed"
 msgstr "Only http:// and https:// URLs are allowed"
 
-#: src/pages/settings/ui/settings-page.tsx:477
+#: src/pages/settings/ui/settings-page.tsx:478
 msgid "Only whitelisted domains ({enabledCount}) will have HTTPS traffic intercepted"
 msgstr "Only whitelisted domains ({enabledCount}) will have HTTPS traffic intercepted"
 
@@ -1155,8 +1155,8 @@ msgid "Original"
 msgstr "Original"
 
 #: src/pages/settings/ui/components/proxy-settings.tsx:141
-#: src/pages/settings/ui/settings-page.tsx:754
-#: src/pages/settings/ui/settings-page.tsx:758
+#: src/pages/settings/ui/settings-page.tsx:749
+#: src/pages/settings/ui/settings-page.tsx:753
 msgid "Password"
 msgstr "Password"
 
@@ -1233,7 +1233,7 @@ msgstr "Progress"
 msgid "Proxy Address"
 msgstr "Proxy Address"
 
-#: src/pages/settings/ui/settings-page.tsx:730
+#: src/pages/settings/ui/settings-page.tsx:725
 msgid "Proxy Authentication"
 msgstr "Proxy Authentication"
 
@@ -1301,8 +1301,8 @@ msgstr "Reload"
 msgid "Remote Device Certificate"
 msgstr "Remote Device Certificate"
 
-#: src/pages/settings/ui/settings-page.tsx:409
-#: src/pages/settings/ui/settings-page.tsx:527
+#: src/pages/settings/ui/settings-page.tsx:410
+#: src/pages/settings/ui/settings-page.tsx:528
 msgid "Remove"
 msgstr "Remove"
 
@@ -1357,7 +1357,7 @@ msgstr "Replay request"
 msgid "Request"
 msgstr "Request"
 
-#: src/pages/settings/ui/settings-page.tsx:587
+#: src/pages/settings/ui/settings-page.tsx:588
 msgid "Request a client certificate from connecting clients (mTLS server-side)"
 msgstr "Request a client certificate from connecting clients (mTLS server-side)"
 
@@ -1372,7 +1372,7 @@ msgstr "Request aborted"
 msgid "Request Body"
 msgstr "Request Body"
 
-#: src/pages/settings/ui/settings-page.tsx:584
+#: src/pages/settings/ui/settings-page.tsx:585
 msgid "Request Client Certificate"
 msgstr "Request Client Certificate"
 
@@ -1403,11 +1403,11 @@ msgstr "Request Headers"
 msgid "Requests/sec"
 msgstr "Requests/sec"
 
-#: src/pages/settings/ui/settings-page.tsx:733
+#: src/pages/settings/ui/settings-page.tsx:728
 msgid "Require authentication to use this proxy server"
 msgstr "Require authentication to use this proxy server"
 
-#: src/pages/settings/ui/settings-page.tsx:635
+#: src/pages/settings/ui/settings-page.tsx:634
 msgid "Require certificate"
 msgstr "Require certificate"
 
@@ -1517,9 +1517,9 @@ msgstr "Running..."
 #: src/pages/settings/ui/components/proxy-settings.tsx:172
 #: src/pages/settings/ui/components/shortcut-settings.tsx:167
 #: src/pages/settings/ui/components/throttle-settings.tsx:217
-#: src/pages/settings/ui/settings-page.tsx:421
-#: src/pages/settings/ui/settings-page.tsx:655
-#: src/pages/settings/ui/settings-page.tsx:776
+#: src/pages/settings/ui/settings-page.tsx:422
+#: src/pages/settings/ui/settings-page.tsx:650
+#: src/pages/settings/ui/settings-page.tsx:771
 msgid "Save"
 msgstr "Save"
 
@@ -1530,17 +1530,17 @@ msgstr "Save Session"
 #: src/pages/settings/ui/components/proxy-settings.tsx:176
 #: src/pages/settings/ui/components/shortcut-settings.tsx:170
 #: src/pages/settings/ui/components/throttle-settings.tsx:221
-#: src/pages/settings/ui/settings-page.tsx:425
-#: src/pages/settings/ui/settings-page.tsx:659
-#: src/pages/settings/ui/settings-page.tsx:780
+#: src/pages/settings/ui/settings-page.tsx:426
+#: src/pages/settings/ui/settings-page.tsx:654
+#: src/pages/settings/ui/settings-page.tsx:775
 msgid "Saved"
 msgstr "Saved"
 
 #: src/pages/settings/ui/components/proxy-settings.tsx:172
 #: src/pages/settings/ui/components/throttle-settings.tsx:217
-#: src/pages/settings/ui/settings-page.tsx:421
-#: src/pages/settings/ui/settings-page.tsx:655
-#: src/pages/settings/ui/settings-page.tsx:776
+#: src/pages/settings/ui/settings-page.tsx:422
+#: src/pages/settings/ui/settings-page.tsx:650
+#: src/pages/settings/ui/settings-page.tsx:771
 msgid "Saving..."
 msgstr "Saving..."
 
@@ -1577,7 +1577,7 @@ msgstr "Script unloaded"
 msgid "Select a log file to view its contents"
 msgstr "Select a log file to view its contents"
 
-#: src/pages/settings/ui/settings-page.tsx:604
+#: src/pages/settings/ui/settings-page.tsx:603
 msgid "Select CA certificate to verify clients (.pem, .crt)"
 msgstr "Select CA certificate to verify clients (.pem, .crt)"
 
@@ -1723,7 +1723,7 @@ msgstr "Source host and target host are required"
 msgid "Source Port"
 msgstr "Source Port"
 
-#: src/pages/settings/ui/settings-page.tsx:471
+#: src/pages/settings/ui/settings-page.tsx:472
 msgid "SSL Proxying"
 msgstr "SSL Proxying"
 
@@ -1756,7 +1756,7 @@ msgstr "Status Code"
 msgid "Status Code Distribution"
 msgstr "Status Code Distribution"
 
-#: src/pages/settings/ui/settings-page.tsx:499
+#: src/pages/settings/ui/settings-page.tsx:500
 msgid "Supports exact domains (example.com), wildcards (*.example.com), and port-specific patterns (example.com:443). When the list is empty, all domains are intercepted."
 msgstr "Supports exact domains (example.com), wildcards (*.example.com), and port-specific patterns (example.com:443). When the list is empty, all domains are intercepted."
 
@@ -1919,16 +1919,16 @@ msgid "URL pattern (e.g., *api.example.com*)"
 msgstr "URL pattern (e.g., *api.example.com*)"
 
 #: src/pages/settings/ui/settings-page.tsx:338
-msgid "Use different client certificates for specific domains. Supports wildcards (*.example.com)."
-msgstr "Use different client certificates for specific domains. Supports wildcards (*.example.com)."
+msgid "Use different client certificates for specific domains. Supports wildcards (*.example.com). Currently validates certificates only — domain-specific routing coming soon."
+msgstr "Use different client certificates for specific domains. Supports wildcards (*.example.com). Currently validates certificates only — domain-specific routing coming soon."
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:222
 msgid "Use wildcard patterns: * matches any string, ? matches a single character."
 msgstr "Use wildcard patterns: * matches any string, ? matches a single character."
 
 #: src/pages/settings/ui/components/proxy-settings.tsx:133
-#: src/pages/settings/ui/settings-page.tsx:744
-#: src/pages/settings/ui/settings-page.tsx:747
+#: src/pages/settings/ui/settings-page.tsx:739
+#: src/pages/settings/ui/settings-page.tsx:742
 msgid "Username"
 msgstr "Username"
 
