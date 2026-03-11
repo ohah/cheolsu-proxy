@@ -389,7 +389,7 @@ msgstr "Clear all"
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:108
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:98
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:91
-#: src/pages/log-viewer/ui/logs-page.tsx:271
+#: src/pages/log-viewer/ui/logs-page.tsx:266
 #: src/pages/map-rules/ui/map-rules-page.tsx:80
 #: src/pages/server-replay/ui/server-replay-page.tsx:105
 msgid "Clear All"
@@ -534,7 +534,7 @@ msgstr "Data"
 msgid "Delay between requests (ms)"
 msgstr "Delay between requests (ms)"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:250
+#: src/pages/log-viewer/ui/logs-page.tsx:245
 msgid "Delete"
 msgstr "Delete"
 
@@ -576,7 +576,7 @@ msgstr "Disconnected"
 msgid "Display CONNECT tunnel requests in the network list"
 msgstr "Display CONNECT tunnel requests in the network list"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:404
+#: src/pages/log-viewer/ui/logs-page.tsx:399
 msgid "Domain"
 msgstr "Domain"
 
@@ -588,7 +588,7 @@ msgstr "Domain-specific Certificates"
 msgid "Domains in this list will NOT be intercepted (pass-through). OAuth domains like accounts.google.com are always excluded by default."
 msgstr "Domains in this list will NOT be intercepted (pass-through). OAuth domains like accounts.google.com are always excluded by default."
 
-#: src/pages/log-viewer/ui/logs-page.tsx:388
+#: src/pages/log-viewer/ui/logs-page.tsx:383
 msgid "Domains that failed TLS handshake are automatically tunneled without MITM decryption. You can remove entries to retry MITM for specific domains."
 msgstr "Domains that failed TLS handshake are automatically tunneled without MITM decryption. You can remove entries to retry MITM for specific domains."
 
@@ -685,7 +685,7 @@ msgstr "Failed to read file: {0}"
 msgid "Failed to send"
 msgstr "Failed to send"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:407
+#: src/pages/log-viewer/ui/logs-page.tsx:402
 msgid "Failures"
 msgstr "Failures"
 
@@ -693,7 +693,7 @@ msgstr "Failures"
 msgid "File"
 msgstr "File"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:352
+#: src/pages/log-viewer/ui/logs-page.tsx:347
 msgid "Filter log lines..."
 msgstr "Filter log lines..."
 
@@ -904,7 +904,7 @@ msgstr "Latency (ms)"
 msgid "Light"
 msgstr "Light"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:359
+#: src/pages/log-viewer/ui/logs-page.tsx:354
 msgid "lines"
 msgstr "lines"
 
@@ -946,8 +946,8 @@ msgstr "Local File Path"
 msgid "localhost, 127.0.0.1, *.internal.com"
 msgstr "localhost, 127.0.0.1, *.internal.com"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:288
-#: src/pages/log-viewer/ui/logs-page.tsx:315
+#: src/pages/log-viewer/ui/logs-page.tsx:283
+#: src/pages/log-viewer/ui/logs-page.tsx:310
 msgid "Log Files"
 msgstr "Log Files"
 
@@ -1128,7 +1128,7 @@ msgstr "No host mappings"
 msgid "No intercept rules"
 msgstr "No intercept rules"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:320
+#: src/pages/log-viewer/ui/logs-page.tsx:315
 msgid "No log files found"
 msgstr "No log files found"
 
@@ -1148,7 +1148,7 @@ msgstr "No phase selected"
 msgid "No replay entries"
 msgstr "No replay entries"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:396
+#: src/pages/log-viewer/ui/logs-page.tsx:391
 msgid "No TLS passthrough entries"
 msgstr "No TLS passthrough entries"
 
@@ -1200,7 +1200,7 @@ msgstr "Open <0>{CERT_DOWNLOAD_URL}</0> in Safari"
 msgid "Open <0>{CERT_DOWNLOAD_URL}</0> in your device browser"
 msgstr "Open <0>{CERT_DOWNLOAD_URL}</0> in your device browser"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:254
+#: src/pages/log-viewer/ui/logs-page.tsx:249
 msgid "Open Directory"
 msgstr "Open Directory"
 
@@ -1367,7 +1367,7 @@ msgid "Received (Server → Client)"
 msgstr "Received (Server → Client)"
 
 #: src/pages/log-viewer/ui/logs-page.tsx:237
-#: src/pages/log-viewer/ui/logs-page.tsx:262
+#: src/pages/log-viewer/ui/logs-page.tsx:257
 #: src/pages/settings/ui/components/certificate-settings.tsx:402
 msgid "Refresh"
 msgstr "Refresh"
@@ -1672,7 +1672,7 @@ msgstr "Script unloaded"
 msgid "Security"
 msgstr "Security"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:375
+#: src/pages/log-viewer/ui/logs-page.tsx:370
 msgid "Select a log file to view its contents"
 msgstr "Select a log file to view its contents"
 
@@ -1937,7 +1937,7 @@ msgstr "Throughput"
 msgid "Time"
 msgstr "Time"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:299
+#: src/pages/log-viewer/ui/logs-page.tsx:294
 msgid "TLS Passthrough"
 msgstr "TLS Passthrough"
 
