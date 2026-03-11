@@ -227,9 +227,7 @@ export function GeneralSettings() {
                 <Trans>Show CONNECT Requests</Trans>
               </label>
               <p className="text-xs text-muted-foreground">
-                <Trans>
-                  Display CONNECT tunnel requests in the network list
-                </Trans>
+                <Trans>Display CONNECT tunnel requests in the network list</Trans>
               </p>
             </div>
             <Switch checked={showConnectRequests} onCheckedChange={setShowConnectRequests} />
