@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback } from "react";
 import type { HttpTransaction } from "@/entities/proxy";
 import { parseFilterQuery } from "@/shared/lib/query-parser";
 import { getFilteredTransactions } from "../lib";
+import { useAppSettingsStore } from "@/shared/stores/app-settings-store";
 
 interface UseTransactionFiltersProps {
   transactions: HttpTransaction[];
@@ -10,12 +11,18 @@ interface UseTransactionFiltersProps {
 export const useTransactionFilters = ({ transactions }: UseTransactionFiltersProps) => {
   const [filterQueryString, setFilterQueryString] = useState<string>("");
   const [appliedQueryString, setAppliedQueryString] = useState<string>("");
+  const showConnectRequests = useAppSettingsStore((s) => s.showConnectRequests);
 
   const parsedQuery = useMemo(() => parseFilterQuery(appliedQueryString), [appliedQueryString]);
 
+  const visibleTransactions = useMemo(() => {
+    if (showConnectRequests) return transactions;
+    return transactions.filter((t) => t.request?.method !== "CONNECT");
+  }, [transactions, showConnectRequests]);
+
   const filteredTransactions = useMemo(() => {
     return getFilteredTransactions(
-      transactions,
+      visibleTransactions,
       parsedQuery.status,
       parsedQuery.methods,
       parsedQuery.urls,
@@ -24,7 +31,7 @@ export const useTransactionFilters = ({ transactions }: UseTransactionFiltersPro
       parsedQuery.excludeUrls,
       parsedQuery.operator,
     );
-  }, [transactions, parsedQuery]);
+  }, [visibleTransactions, parsedQuery]);
 
   const handleFilterQueryChange = useCallback((query: string) => {
     setFilterQueryString(query);

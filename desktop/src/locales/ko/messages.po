@@ -219,11 +219,11 @@ msgstr "적용:"
 msgid "Authentication"
 msgstr "인증"
 
-#: src/pages/settings/ui/components/general-settings.tsx:210
+#: src/pages/settings/ui/components/general-settings.tsx:212
 msgid "Auto Save Session"
 msgstr "자동 세션 저장"
 
-#: src/pages/settings/ui/components/general-settings.tsx:213
+#: src/pages/settings/ui/components/general-settings.tsx:215
 msgid "Automatically save the current session when the app closes and restore it on next launch"
 msgstr "앱 종료 시 현재 세션을 자동으로 저장하고 다음 실행 시 복원합니다"
 
@@ -237,7 +237,7 @@ msgstr "개 사용 가능"
 msgid "Block"
 msgstr "차단"
 
-#: src/pages/settings/ui/components/general-settings.tsx:182
+#: src/pages/settings/ui/components/general-settings.tsx:184
 msgid "Block Cookies"
 msgstr "쿠키 차단"
 
@@ -506,7 +506,7 @@ msgstr "커스텀 본문"
 msgid "Custom CA Certificate"
 msgstr "커스텀 CA 인증서"
 
-#: src/pages/settings/ui/components/general-settings.tsx:142
+#: src/pages/settings/ui/components/general-settings.tsx:144
 msgid "Dark"
 msgstr "다크"
 
@@ -551,6 +551,10 @@ msgstr "비활성"
 #: src/shared/app-sidebar/ui/sidebar-status.tsx:42
 msgid "Disconnected"
 msgstr "연결 끊김"
+
+#: src/pages/settings/ui/components/general-settings.tsx:230
+msgid "Display CONNECT tunnel requests in the network list"
+msgstr "CONNECT 터널 요청을 네트워크 목록에 표시합니다"
 
 #: src/pages/log-viewer/ui/logs-page.tsx:383
 msgid "Domain"
@@ -879,7 +883,7 @@ msgstr "키 파일"
 msgid "Key File"
 msgstr "키 파일"
 
-#: src/pages/settings/ui/components/general-settings.tsx:106
+#: src/pages/settings/ui/components/general-settings.tsx:108
 msgid "Language"
 msgstr "언어"
 
@@ -887,7 +891,7 @@ msgstr "언어"
 msgid "Latency (ms)"
 msgstr "지연 (ms)"
 
-#: src/pages/settings/ui/components/general-settings.tsx:142
+#: src/pages/settings/ui/components/general-settings.tsx:144
 msgid "Light"
 msgstr "라이트"
 
@@ -1086,7 +1090,7 @@ msgstr "활성 WebSocket 연결 없음"
 msgid "No breakpoint rules"
 msgstr "Breakpoint 규칙 없음"
 
-#: src/pages/settings/ui/components/general-settings.tsx:168
+#: src/pages/settings/ui/components/general-settings.tsx:170
 msgid "No Caching"
 msgstr "캐시 비활성화"
 
@@ -1098,7 +1102,7 @@ msgstr "응답이 있는 캡처된 트래픽이 없습니다. 먼저 트래픽�
 msgid "No console output yet"
 msgstr "콘솔 출력이 아직 없습니다"
 
-#: src/pages/settings/ui/components/general-settings.tsx:196
+#: src/pages/settings/ui/components/general-settings.tsx:198
 msgid "No Gzip"
 msgstr "Gzip 비활성화"
 
@@ -1284,7 +1288,7 @@ msgstr "경로 유지"
 msgid "Press a key combination..."
 msgstr "키 조합을 눌러주세요..."
 
-#: src/pages/settings/ui/components/general-settings.tsx:171
+#: src/pages/settings/ui/components/general-settings.tsx:173
 msgid "Prevent caching by removing conditional headers and adding no-cache directives"
 msgstr "조건부 헤더를 제거하고 no-cache 지시어를 추가하여 캐싱을 방지합니다"
 
@@ -1328,11 +1332,11 @@ msgstr "쿼리 문법 가이드"
 msgid "Query syntax help"
 msgstr "쿼리 문법 도움말"
 
-#: src/pages/settings/ui/components/general-settings.tsx:157
+#: src/pages/settings/ui/components/general-settings.tsx:159
 msgid "Quick Settings"
 msgstr "빠른 설정"
 
-#: src/pages/settings/ui/components/general-settings.tsx:160
+#: src/pages/settings/ui/components/general-settings.tsx:162
 msgid "Quick toggles for common proxy behaviors"
 msgstr "자주 사용하는 프록시 동작을 빠르게 전환합니다"
 
@@ -1373,11 +1377,11 @@ msgstr "외부 기기 인증서"
 msgid "Remove"
 msgstr "삭제"
 
-#: src/pages/settings/ui/components/general-settings.tsx:199
+#: src/pages/settings/ui/components/general-settings.tsx:201
 msgid "Remove Accept-Encoding header from requests to prevent compressed responses"
 msgstr "압축된 응답을 방지하기 위해 요청에서 Accept-Encoding 헤더를 제거합니다"
 
-#: src/pages/settings/ui/components/general-settings.tsx:185
+#: src/pages/settings/ui/components/general-settings.tsx:187
 msgid "Remove Cookie headers from requests and Set-Cookie headers from responses"
 msgstr "요청에서 Cookie 헤더를 제거하고 응답에서 Set-Cookie 헤더를 제거합니다"
 
@@ -1800,6 +1804,10 @@ msgstr "설정 방법:"
 msgid "Shortcut Key"
 msgstr "단축키"
 
+#: src/pages/settings/ui/components/general-settings.tsx:227
+msgid "Show CONNECT Requests"
+msgstr "CONNECT 요청 표시"
+
 #: src/pages/settings/ui/components/throttle-settings.tsx:142
 msgid "Simulate slow network conditions for testing"
 msgstr "테스트를 위한 저속 네트워크 환경 시뮬레이션"
@@ -1870,7 +1878,7 @@ msgstr "정확한 도메인(example.com), 와일드카드(*.example.com), 포트
 msgid "Supports PEM-encoded certificates and keys (RSA, ECDSA, PKCS#8)"
 msgstr "PEM 인코딩된 인증서 및 키를 지원합니다 (RSA, ECDSA, PKCS#8)"
 
-#: src/pages/settings/ui/components/general-settings.tsx:142
+#: src/pages/settings/ui/components/general-settings.tsx:144
 msgid "System"
 msgstr "시스템"
 
@@ -1911,7 +1919,7 @@ msgstr "인증서는 CA 인증서여야 합니다 (BasicConstraints CA=true). �
 msgid "The DER certificate file will download automatically"
 msgstr "DER 인증서 파일이 자동으로 다운로드됩니다"
 
-#: src/pages/settings/ui/components/general-settings.tsx:127
+#: src/pages/settings/ui/components/general-settings.tsx:129
 msgid "Theme"
 msgstr "테마"
 

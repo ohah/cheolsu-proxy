@@ -71,6 +71,10 @@ interface AppSettingsState {
   // Connection strategy
   connectionStrategy: ConnectionStrategy;
   setConnectionStrategy: (strategy: ConnectionStrategy) => void;
+
+  // Show CONNECT tunnel requests
+  showConnectRequests: boolean;
+  setShowConnectRequests: (enabled: boolean) => void;
 }
 
 const DEFAULT_THROTTLE_CONFIG: ThrottleConfigState = {
@@ -129,6 +133,9 @@ export const useAppSettingsStore = create<AppSettingsState>()(
 
       connectionStrategy: "lazy" as ConnectionStrategy,
       setConnectionStrategy: (strategy) => set({ connectionStrategy: strategy }),
+
+      showConnectRequests: false,
+      setShowConnectRequests: (enabled) => set({ showConnectRequests: enabled }),
     }),
     {
       name: "cheolsu-app-settings",

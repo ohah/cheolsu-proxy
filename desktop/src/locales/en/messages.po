@@ -219,11 +219,11 @@ msgstr "Apply:"
 msgid "Authentication"
 msgstr "Authentication"
 
-#: src/pages/settings/ui/components/general-settings.tsx:210
+#: src/pages/settings/ui/components/general-settings.tsx:212
 msgid "Auto Save Session"
 msgstr "Auto Save Session"
 
-#: src/pages/settings/ui/components/general-settings.tsx:213
+#: src/pages/settings/ui/components/general-settings.tsx:215
 msgid "Automatically save the current session when the app closes and restore it on next launch"
 msgstr "Automatically save the current session when the app closes and restore it on next launch"
 
@@ -237,7 +237,7 @@ msgstr "available"
 msgid "Block"
 msgstr "Block"
 
-#: src/pages/settings/ui/components/general-settings.tsx:182
+#: src/pages/settings/ui/components/general-settings.tsx:184
 msgid "Block Cookies"
 msgstr "Block Cookies"
 
@@ -506,7 +506,7 @@ msgstr "Custom body"
 msgid "Custom CA Certificate"
 msgstr "Custom CA Certificate"
 
-#: src/pages/settings/ui/components/general-settings.tsx:142
+#: src/pages/settings/ui/components/general-settings.tsx:144
 msgid "Dark"
 msgstr "Dark"
 
@@ -551,6 +551,10 @@ msgstr "Disabled"
 #: src/shared/app-sidebar/ui/sidebar-status.tsx:42
 msgid "Disconnected"
 msgstr "Disconnected"
+
+#: src/pages/settings/ui/components/general-settings.tsx:230
+msgid "Display CONNECT tunnel requests in the network list"
+msgstr "Display CONNECT tunnel requests in the network list"
 
 #: src/pages/log-viewer/ui/logs-page.tsx:383
 msgid "Domain"
@@ -879,7 +883,7 @@ msgstr "Key file"
 msgid "Key File"
 msgstr "Key File"
 
-#: src/pages/settings/ui/components/general-settings.tsx:106
+#: src/pages/settings/ui/components/general-settings.tsx:108
 msgid "Language"
 msgstr "Language"
 
@@ -887,7 +891,7 @@ msgstr "Language"
 msgid "Latency (ms)"
 msgstr "Latency (ms)"
 
-#: src/pages/settings/ui/components/general-settings.tsx:142
+#: src/pages/settings/ui/components/general-settings.tsx:144
 msgid "Light"
 msgstr "Light"
 
@@ -1086,7 +1090,7 @@ msgstr "No active WebSocket connections"
 msgid "No breakpoint rules"
 msgstr "No breakpoint rules"
 
-#: src/pages/settings/ui/components/general-settings.tsx:168
+#: src/pages/settings/ui/components/general-settings.tsx:170
 msgid "No Caching"
 msgstr "No Caching"
 
@@ -1098,7 +1102,7 @@ msgstr "No captured traffic with responses available. Capture some traffic first
 msgid "No console output yet"
 msgstr "No console output yet"
 
-#: src/pages/settings/ui/components/general-settings.tsx:196
+#: src/pages/settings/ui/components/general-settings.tsx:198
 msgid "No Gzip"
 msgstr "No Gzip"
 
@@ -1284,7 +1288,7 @@ msgstr "Preserve Path"
 msgid "Press a key combination..."
 msgstr "Press a key combination..."
 
-#: src/pages/settings/ui/components/general-settings.tsx:171
+#: src/pages/settings/ui/components/general-settings.tsx:173
 msgid "Prevent caching by removing conditional headers and adding no-cache directives"
 msgstr "Prevent caching by removing conditional headers and adding no-cache directives"
 
@@ -1328,11 +1332,11 @@ msgstr "Query Syntax Guide"
 msgid "Query syntax help"
 msgstr "Query syntax help"
 
-#: src/pages/settings/ui/components/general-settings.tsx:157
+#: src/pages/settings/ui/components/general-settings.tsx:159
 msgid "Quick Settings"
 msgstr "Quick Settings"
 
-#: src/pages/settings/ui/components/general-settings.tsx:160
+#: src/pages/settings/ui/components/general-settings.tsx:162
 msgid "Quick toggles for common proxy behaviors"
 msgstr "Quick toggles for common proxy behaviors"
 
@@ -1373,11 +1377,11 @@ msgstr "Remote Device Certificate"
 msgid "Remove"
 msgstr "Remove"
 
-#: src/pages/settings/ui/components/general-settings.tsx:199
+#: src/pages/settings/ui/components/general-settings.tsx:201
 msgid "Remove Accept-Encoding header from requests to prevent compressed responses"
 msgstr "Remove Accept-Encoding header from requests to prevent compressed responses"
 
-#: src/pages/settings/ui/components/general-settings.tsx:185
+#: src/pages/settings/ui/components/general-settings.tsx:187
 msgid "Remove Cookie headers from requests and Set-Cookie headers from responses"
 msgstr "Remove Cookie headers from requests and Set-Cookie headers from responses"
 
@@ -1800,6 +1804,10 @@ msgstr "Setup Instructions:"
 msgid "Shortcut Key"
 msgstr "Shortcut Key"
 
+#: src/pages/settings/ui/components/general-settings.tsx:227
+msgid "Show CONNECT Requests"
+msgstr "Show CONNECT Requests"
+
 #: src/pages/settings/ui/components/throttle-settings.tsx:142
 msgid "Simulate slow network conditions for testing"
 msgstr "Simulate slow network conditions for testing"
@@ -1870,7 +1878,7 @@ msgstr "Supports exact domains (example.com), wildcards (*.example.com), and por
 msgid "Supports PEM-encoded certificates and keys (RSA, ECDSA, PKCS#8)"
 msgstr "Supports PEM-encoded certificates and keys (RSA, ECDSA, PKCS#8)"
 
-#: src/pages/settings/ui/components/general-settings.tsx:142
+#: src/pages/settings/ui/components/general-settings.tsx:144
 msgid "System"
 msgstr "System"
 
@@ -1911,7 +1919,7 @@ msgstr "The certificate must be a CA certificate (BasicConstraints CA=true). Aft
 msgid "The DER certificate file will download automatically"
 msgstr "The DER certificate file will download automatically"
 
-#: src/pages/settings/ui/components/general-settings.tsx:127
+#: src/pages/settings/ui/components/general-settings.tsx:129
 msgid "Theme"
 msgstr "Theme"
 
