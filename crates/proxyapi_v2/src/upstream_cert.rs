@@ -234,6 +234,23 @@ fn parse_cert_info(cert_der: &[u8]) -> Option<UpstreamCertInfo> {
     Some(info)
 }
 
+/// Eager 연결 전략의 결과를 담는 구조체
+#[derive(Debug, Clone)]
+pub struct EagerConnectionResult {
+    /// 스니핑된 상류 인증서 정보 (실패 시 None)
+    pub cert_info: Option<UpstreamCertInfo>,
+}
+
+/// Eager 전략용: 상류 서버에 연결하여 인증서를 스니핑합니다.
+/// 기존 `sniff_upstream_cert`와 동일한 로직이지만, `EagerConnectionResult`로 래핑합니다.
+pub async fn connect_and_sniff_upstream(
+    authority: &Authority,
+    upstream_proxy: Option<&UpstreamProxyConfig>,
+) -> EagerConnectionResult {
+    let cert_info = sniff_upstream_cert(authority, upstream_proxy).await;
+    EagerConnectionResult { cert_info }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -266,5 +283,30 @@ mod tests {
     fn test_parse_cert_info_invalid_der() {
         let result = parse_cert_info(b"not a valid certificate");
         assert!(result.is_none());
+    }
+
+    #[test]
+    fn test_eager_connection_result_with_cert() {
+        let info = UpstreamCertInfo {
+            common_name: Some("example.com".to_string()),
+            organization: None,
+            sans_dns: vec!["example.com".to_string()],
+            sans_ip: vec![],
+            negotiated_alpn: None,
+        };
+        let result = EagerConnectionResult {
+            cert_info: Some(info),
+        };
+        assert!(result.cert_info.is_some());
+        assert_eq!(
+            result.cert_info.unwrap().common_name,
+            Some("example.com".to_string())
+        );
+    }
+
+    #[test]
+    fn test_eager_connection_result_without_cert() {
+        let result = EagerConnectionResult { cert_info: None };
+        assert!(result.cert_info.is_none());
     }
 }

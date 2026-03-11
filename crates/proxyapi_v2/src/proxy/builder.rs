@@ -390,6 +390,15 @@ impl<CA, C, H, W, F> ProxyBuilder<WantsHandlers<CA, C, H, W, F>> {
         ProxyBuilder(WantsHandlers { ctx, ..self.0 })
     }
 
+    /// Set the connection strategy (Lazy, Eager, or EagerWithFallback).
+    pub fn with_connection_strategy(
+        mut self,
+        strategy: super::context::ConnectionStrategy,
+    ) -> Self {
+        self.0.ctx.connection_strategy = strategy;
+        self
+    }
+
     /// Build the proxy.
     pub fn build(self) -> Result<Proxy<C, CA, H, W, F>, crate::Error> {
         Ok(Proxy {

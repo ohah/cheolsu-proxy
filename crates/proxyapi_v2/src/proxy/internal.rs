@@ -6,11 +6,12 @@ use crate::{
     body::Body,
     certificate_authority::CertificateAuthority,
     hybrid_tls_handler::HybridTlsHandler,
+    proxy::context::ConnectionStrategy,
     rewind::Rewind,
     throttle,
     tls_event::{TlsEvent, emit_tls_event},
     tls_version_detector::TlsVersionDetector,
-    upstream_cert::sniff_upstream_cert,
+    upstream_cert::{connect_and_sniff_upstream, sniff_upstream_cert},
     upstream_proxy::connect_to_target,
 };
 use http::uri::{Authority, Scheme};
@@ -337,6 +338,58 @@ where
                             let mut upgraded =
                                 Rewind::new(upgraded, Bytes::copy_from_slice(&full_buffer));
 
+                            // Eager 전략: 캐시 미스 시 ClientHello 감지 전에 백그라운드 스니핑 시작
+                            let eager_handle = if !self.ca.is_config_cached(&authority).await {
+                                match self.ctx.connection_strategy {
+                                    ConnectionStrategy::Eager
+                                    | ConnectionStrategy::EagerWithFallback => {
+                                        let authority_clone = authority.clone();
+                                        let upstream_proxy_clone = self.ctx.upstream_proxy.clone();
+                                        let tls_event_sender = self.ctx.tls_event_sender.clone();
+
+                                        emit_tls_event(
+                                            &tls_event_sender,
+                                            TlsEvent::EagerSniffingStarted {
+                                                authority: authority_clone.clone(),
+                                            },
+                                        );
+
+                                        let start_time = std::time::Instant::now();
+                                        let is_fallback = self.ctx.connection_strategy
+                                            == ConnectionStrategy::EagerWithFallback;
+
+                                        Some(tokio::spawn(async move {
+                                            let result = connect_and_sniff_upstream(
+                                                &authority_clone,
+                                                upstream_proxy_clone.as_ref(),
+                                            )
+                                            .await;
+                                            let duration = start_time.elapsed();
+                                            let success = result.cert_info.is_some();
+
+                                            emit_tls_event(
+                                                &tls_event_sender,
+                                                TlsEvent::EagerSniffingCompleted {
+                                                    authority: authority_clone,
+                                                    success,
+                                                    duration,
+                                                    fallback_to_lazy: !success && is_fallback,
+                                                },
+                                            );
+
+                                            result
+                                        }))
+                                    }
+                                    ConnectionStrategy::Lazy => None,
+                                }
+                            } else {
+                                debug!(
+                                    "[UPSTREAM-CERT] 캐시 히트 - Eager 스니핑 스킵: {}",
+                                    authority
+                                );
+                                None
+                            };
+
                             if self
                                 .http_handler
                                 .should_intercept(&self.context(), &req)
@@ -368,7 +421,7 @@ where
                                                 "TLS 버전 감지 - 하이브리드 핸들러 사용"
                                             );
 
-                                            // 캐시 히트 시 스니핑 스킵 (불필요한 upstream 연결 방지)
+                                            // 연결 전략에 따라 upstream cert 획득
                                             let upstream_cert = if self
                                                 .ca
                                                 .is_config_cached(&authority)
@@ -379,7 +432,89 @@ where
                                                     authority
                                                 );
                                                 None
+                                            } else if let Some(handle) = eager_handle {
+                                                // Eager 핸들이 있으면 결과를 기다림
+                                                match handle.await {
+                                                    Ok(result) => {
+                                                        let cert = result.cert_info;
+                                                        emit_tls_event(
+                                                            &self.ctx.tls_event_sender,
+                                                            TlsEvent::UpstreamCertSniffed {
+                                                                authority: authority.clone(),
+                                                                cert_info: cert.clone(),
+                                                            },
+                                                        );
+                                                        // EagerWithFallback: eager 실패 시 lazy 폴백
+                                                        if cert.is_none()
+                                                            && self.ctx.connection_strategy
+                                                                == ConnectionStrategy::EagerWithFallback
+                                                        {
+                                                            debug!(
+                                                                "[UPSTREAM-CERT] Eager 실패 → Lazy 폴백: {}",
+                                                                authority
+                                                            );
+                                                            emit_tls_event(
+                                                                &self.ctx.tls_event_sender,
+                                                                TlsEvent::ServerConnectionStarting {
+                                                                    authority: authority.clone(),
+                                                                },
+                                                            );
+                                                            let fallback_cert = sniff_upstream_cert(
+                                                                &authority,
+                                                                self.ctx.upstream_proxy.as_ref(),
+                                                            )
+                                                            .await;
+                                                            emit_tls_event(
+                                                                &self.ctx.tls_event_sender,
+                                                                TlsEvent::UpstreamCertSniffed {
+                                                                    authority: authority.clone(),
+                                                                    cert_info: fallback_cert.clone(),
+                                                                },
+                                                            );
+                                                            fallback_cert
+                                                        } else {
+                                                            cert
+                                                        }
+                                                    }
+                                                    Err(e) => {
+                                                        warn!(
+                                                            "[UPSTREAM-CERT] Eager 태스크 실패: {} - {}",
+                                                            authority, e
+                                                        );
+                                                        // EagerWithFallback: spawn 실패 시 lazy 폴백
+                                                        if self.ctx.connection_strategy
+                                                            == ConnectionStrategy::EagerWithFallback
+                                                        {
+                                                            emit_tls_event(
+                                                                &self.ctx.tls_event_sender,
+                                                                TlsEvent::ServerConnectionStarting {
+                                                                    authority: authority.clone(),
+                                                                },
+                                                            );
+                                                            let fallback_cert =
+                                                                sniff_upstream_cert(
+                                                                    &authority,
+                                                                    self.ctx
+                                                                        .upstream_proxy
+                                                                        .as_ref(),
+                                                                )
+                                                                .await;
+                                                            emit_tls_event(
+                                                                &self.ctx.tls_event_sender,
+                                                                TlsEvent::UpstreamCertSniffed {
+                                                                    authority: authority.clone(),
+                                                                    cert_info: fallback_cert
+                                                                        .clone(),
+                                                                },
+                                                            );
+                                                            fallback_cert
+                                                        } else {
+                                                            None
+                                                        }
+                                                    }
+                                                }
                                             } else {
+                                                // Lazy 전략: 기존 동작
                                                 emit_tls_event(
                                                     &self.ctx.tls_event_sender,
                                                     TlsEvent::ServerConnectionStarting {

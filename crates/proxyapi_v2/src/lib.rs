@@ -59,6 +59,7 @@ pub use decoder::{decode_request, decode_response};
 pub use error::Error;
 pub use hybrid_tls_handler::*;
 pub use noop::*;
+pub use proxy::context::ConnectionStrategy;
 pub use proxy::context::ProxyContext;
 pub use proxy::*;
 pub use tls_version_detector::*;

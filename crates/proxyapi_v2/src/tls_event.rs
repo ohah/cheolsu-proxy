@@ -47,6 +47,15 @@ pub enum TlsEvent {
         error: String,
         duration: Duration,
     },
+    /// Eager 연결 전략으로 백그라운드 스니핑 시작
+    EagerSniffingStarted { authority: Authority },
+    /// Eager 스니핑 완료
+    EagerSniffingCompleted {
+        authority: Authority,
+        success: bool,
+        duration: Duration,
+        fallback_to_lazy: bool,
+    },
 }
 
 /// TLS 이벤트 송신자 타입 alias
