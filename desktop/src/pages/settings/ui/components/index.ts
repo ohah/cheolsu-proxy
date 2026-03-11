@@ -1,3 +1,11 @@
 export { GeneralSettings } from "./general-settings";
 export { CertificateSettings } from "./certificate-settings";
 export { CliSettings } from "./cli-settings";
+export { ThrottleSection } from "./throttle-section";
+export { ConnectionStrategySection } from "./connection-strategy-section";
+export { UpstreamProxySection } from "./upstream-proxy-section";
+export { ProxyAuthSection } from "./proxy-auth-section";
+export { ShortcutSection } from "./shortcut-section";
+export { ClientCertificateSection } from "./client-certificate-section";
+export { RequestClientCertSection } from "./request-client-cert-section";
+export { SslProxyingSection } from "./ssl-proxying-section";

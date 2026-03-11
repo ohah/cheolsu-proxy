@@ -13,7 +13,7 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
-#: src/pages/map-rules/ui/map-rules-page.tsx:116
+#: src/pages/map-rules/ui/map-rules-page.tsx:157
 msgid " (preserve path)"
 msgstr " (preserve path)"
 
@@ -86,9 +86,9 @@ msgstr "Active Custom CA"
 #: src/features/map-rule-form/ui/map-local-fields.tsx:73
 #: src/features/transaction-details/ui/replay-dialog.tsx:427
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:134
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:140
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:169
 #: src/pages/server-replay/ui/server-replay-page.tsx:170
-#: src/pages/settings/ui/settings-page.tsx:1462
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:126
 msgid "Add"
 msgstr "Add"
 
@@ -100,7 +100,7 @@ msgstr "Add breakpoint rules to pause HTTP requests/responses for inspection."
 msgid "Add captured traffic to replay stored responses for matching requests."
 msgstr "Add captured traffic to replay stored responses for matching requests."
 
-#: src/pages/settings/ui/settings-page.tsx:1204
+#: src/pages/settings/ui/components/client-certificate-section.tsx:317
 msgid "Add Domain Certificate"
 msgstr "Add Domain Certificate"
 
@@ -122,11 +122,11 @@ msgstr "Add Intercept Rule"
 msgid "Add Map Rule"
 msgstr "Add Map Rule"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:160
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:103
 msgid "Add Mapping"
 msgstr "Add Mapping"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:157
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:185
 msgid "Add mappings to redirect DNS hostnames to different target hosts for testing."
 msgstr "Add mappings to redirect DNS hostnames to different target hosts for testing."
 
@@ -134,26 +134,26 @@ msgstr "Add mappings to redirect DNS hostnames to different target hosts for tes
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:477
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:258
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:113
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:81
-#: src/pages/map-rules/ui/map-rules-page.tsx:72
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:96
+#: src/pages/map-rules/ui/map-rules-page.tsx:85
 msgid "Add Rule"
 msgstr "Add Rule"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:78
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:109
 msgid "Add rules to intercept, block, or modify HTTP requests and responses."
 msgstr "Add rules to intercept, block, or modify HTTP requests and responses."
 
-#: src/pages/map-rules/ui/map-rules-page.tsx:69
+#: src/pages/map-rules/ui/map-rules-page.tsx:98
 msgid "Add rules to map URLs to local files or redirect to other servers."
 msgstr "Add rules to map URLs to local files or redirect to other servers."
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:159
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:191
 msgid "Add your first mapping"
 msgstr "Add your first mapping"
 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:172
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:80
-#: src/pages/map-rules/ui/map-rules-page.tsx:71
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:115
+#: src/pages/map-rules/ui/map-rules-page.tsx:104
 msgid "Add your first rule"
 msgstr "Add your first rule"
 
@@ -186,15 +186,15 @@ msgstr "All entries cleared"
 msgid "All host mappings cleared"
 msgstr "All host mappings cleared"
 
-#: src/pages/settings/ui/settings-page.tsx:1422
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:86
 msgid "All HTTPS traffic is being intercepted (no whitelist configured)"
 msgstr "All HTTPS traffic is being intercepted (no whitelist configured)"
 
-#: src/pages/settings/ui/settings-page.tsx:1416
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:80
 msgid "All HTTPS traffic is intercepted except {enabledCount} excluded domain(s) and built-in OAuth domains."
 msgstr "All HTTPS traffic is intercepted except {enabledCount} excluded domain(s) and built-in OAuth domains."
 
-#: src/pages/settings/ui/settings-page.tsx:1411
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:75
 msgid "All HTTPS traffic is intercepted. OAuth domains (accounts.google.com, etc.) are automatically excluded."
 msgstr "All HTTPS traffic is intercepted. OAuth domains (accounts.google.com, etc.) are automatically excluded."
 
@@ -223,7 +223,7 @@ msgstr "Append the original request path to the target URL"
 msgid "Apply:"
 msgstr "Apply:"
 
-#: src/pages/settings/ui/settings-page.tsx:686
+#: src/pages/settings/ui/components/upstream-proxy-section.tsx:51
 msgid "Authentication"
 msgstr "Authentication"
 
@@ -239,7 +239,7 @@ msgstr "Automatically save the current session when the app closes and restore i
 msgid "available"
 msgstr "available"
 
-#: src/pages/settings/ui/settings-page.tsx:1445
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:109
 msgid "Blacklist (Exclude)"
 msgstr "Blacklist (Exclude)"
 
@@ -288,15 +288,15 @@ msgstr "Breakpoints"
 #: src/pages/settings/ui/components/certificate-settings.tsx:622
 #: src/pages/settings/ui/components/certificate-settings.tsx:638
 #: src/pages/settings/ui/components/certificate-settings.tsx:657
-#: src/pages/settings/ui/settings-page.tsx:1044
-#: src/pages/settings/ui/settings-page.tsx:1058
-#: src/pages/settings/ui/settings-page.tsx:1184
-#: src/pages/settings/ui/settings-page.tsx:1197
-#: src/pages/settings/ui/settings-page.tsx:1298
+#: src/pages/settings/ui/components/client-certificate-section.tsx:157
+#: src/pages/settings/ui/components/client-certificate-section.tsx:171
+#: src/pages/settings/ui/components/client-certificate-section.tsx:297
+#: src/pages/settings/ui/components/client-certificate-section.tsx:310
+#: src/pages/settings/ui/components/request-client-cert-section.tsx:58
 msgid "Browse"
 msgstr "Browse"
 
-#: src/pages/settings/ui/settings-page.tsx:706
+#: src/pages/settings/ui/components/upstream-proxy-section.tsx:71
 msgid "Bypass List"
 msgstr "Bypass List"
 
@@ -312,7 +312,7 @@ msgstr "CA Certificate"
 msgid "CA Certificate File"
 msgstr "CA Certificate File"
 
-#: src/pages/settings/ui/settings-page.tsx:1285
+#: src/pages/settings/ui/components/request-client-cert-section.tsx:45
 msgid "CA Certificate File (optional)"
 msgstr "CA Certificate File (optional)"
 
@@ -323,9 +323,8 @@ msgstr "CA Key File"
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:474
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:255
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:137
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:137
-#: src/pages/log-viewer/ui/logs-page.tsx:469
-#: src/pages/settings/ui/settings-page.tsx:885
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:166
+#: src/pages/settings/ui/components/shortcut-section.tsx:117
 msgid "Cancel"
 msgstr "Cancel"
 
@@ -333,11 +332,11 @@ msgstr "Cancel"
 msgid "Cannot add: no response data"
 msgstr "Cannot add: no response data"
 
-#: src/pages/settings/ui/settings-page.tsx:377
+#: src/pages/settings/ui/settings-page.tsx:104
 msgid "Certificate"
 msgstr "Certificate"
 
-#: src/pages/settings/ui/settings-page.tsx:1071
+#: src/pages/settings/ui/components/client-certificate-section.tsx:184
 msgid "Certificate Details"
 msgstr "Certificate Details"
 
@@ -345,27 +344,27 @@ msgstr "Certificate Details"
 msgid "Certificate Download URL"
 msgstr "Certificate Download URL"
 
-#: src/pages/settings/ui/settings-page.tsx:1143
+#: src/pages/settings/ui/components/client-certificate-section.tsx:256
 msgid "Certificate expired"
 msgstr "Certificate expired"
 
-#: src/pages/settings/ui/settings-page.tsx:1176
+#: src/pages/settings/ui/components/client-certificate-section.tsx:289
 msgid "Certificate file"
 msgstr "Certificate file"
 
-#: src/pages/settings/ui/settings-page.tsx:1031
+#: src/pages/settings/ui/components/client-certificate-section.tsx:144
 msgid "Certificate File"
 msgstr "Certificate File"
 
-#: src/pages/settings/ui/settings-page.tsx:1333
+#: src/pages/settings/ui/components/request-client-cert-section.tsx:93
 msgid "Certificate is optional — clients without one can still connect"
 msgstr "Certificate is optional — clients without one can still connect"
 
-#: src/pages/settings/ui/settings-page.tsx:1136
+#: src/pages/settings/ui/components/client-certificate-section.tsx:249
 msgid "Chain Length"
 msgstr "Chain Length"
 
-#: src/pages/settings/ui/settings-page.tsx:885
+#: src/pages/settings/ui/components/shortcut-section.tsx:117
 msgid "Change"
 msgstr "Change"
 
@@ -377,9 +376,9 @@ msgstr "Cheolsu Proxy Logo"
 msgid "Claude Code (CLI)"
 msgstr "Claude Code (CLI)"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:256
+#: src/pages/log-viewer/ui/logs-page.tsx:229
 #: src/pages/script/ui/script-page.tsx:298
-#: src/pages/settings/ui/settings-page.tsx:1308
+#: src/pages/settings/ui/components/request-client-cert-section.tsx:68
 msgid "Clear"
 msgstr "Clear"
 
@@ -388,9 +387,11 @@ msgid "Clear all"
 msgstr "Clear all"
 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:108
-#: src/pages/log-viewer/ui/logs-page.tsx:286
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:98
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:91
+#: src/pages/log-viewer/ui/logs-page.tsx:250
+#: src/pages/map-rules/ui/map-rules-page.tsx:80
 #: src/pages/server-replay/ui/server-replay-page.tsx:105
-#: src/shared/ui/rule-list-page.tsx:69
 msgid "Clear All"
 msgstr "Clear All"
 
@@ -398,15 +399,15 @@ msgstr "Clear All"
 msgid "Clear all transactions"
 msgstr "Clear all transactions"
 
-#: src/pages/settings/ui/settings-page.tsx:1012
+#: src/pages/settings/ui/components/client-certificate-section.tsx:125
 msgid "Client Certificate"
 msgstr "Client Certificate"
 
-#: src/pages/settings/ui/settings-page.tsx:766
+#: src/pages/settings/ui/components/proxy-auth-section.tsx:48
 msgid "Clients must provide these credentials via Proxy-Authorization header (HTTP Basic) to use this proxy"
 msgstr "Clients must provide these credentials via Proxy-Authorization header (HTTP Basic) to use this proxy"
 
-#: src/pages/settings/ui/settings-page.tsx:1331
+#: src/pages/settings/ui/components/request-client-cert-section.tsx:91
 msgid "Clients without a valid certificate will be rejected"
 msgstr "Clients without a valid certificate will be rejected"
 
@@ -426,7 +427,7 @@ msgstr "Collapse"
 msgid "Collapse sidebar"
 msgstr "Collapse sidebar"
 
-#: src/pages/settings/ui/settings-page.tsx:713
+#: src/pages/settings/ui/components/upstream-proxy-section.tsx:78
 msgid "Comma-separated list of hosts to connect directly (supports *.domain.com wildcards)"
 msgstr "Comma-separated list of hosts to connect directly (supports *.domain.com wildcards)"
 
@@ -456,7 +457,7 @@ msgstr "Connected"
 msgid "Connection"
 msgstr "Connection"
 
-#: src/pages/settings/ui/settings-page.tsx:592
+#: src/pages/settings/ui/components/connection-strategy-section.tsx:20
 msgid "Connection Strategy"
 msgstr "Connection Strategy"
 
@@ -464,7 +465,7 @@ msgstr "Connection Strategy"
 msgid "connections"
 msgstr "connections"
 
-#: src/pages/settings/ui/settings-page.tsx:625
+#: src/pages/settings/ui/components/connection-strategy-section.tsx:53
 msgid "Connects to the server only when needed (default, sequential sniffing)"
 msgstr "Connects to the server only when needed (default, sequential sniffing)"
 
@@ -472,7 +473,7 @@ msgstr "Connects to the server only when needed (default, sequential sniffing)"
 msgid "Console"
 msgstr "Console"
 
-#: src/pages/settings/ui/settings-page.tsx:595
+#: src/pages/settings/ui/components/connection-strategy-section.tsx:23
 msgid "Controls when the proxy connects to upstream servers for certificate sniffing"
 msgstr "Controls when the proxy connects to upstream servers for certificate sniffing"
 
@@ -513,7 +514,7 @@ msgstr "cURL"
 msgid "Curl command copied to clipboard"
 msgstr "Curl command copied to clipboard"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:134
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:178
 msgid "Custom body"
 msgstr "Custom body"
 
@@ -533,27 +534,13 @@ msgstr "Data"
 msgid "Delay between requests (ms)"
 msgstr "Delay between requests (ms)"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:265
-#: src/pages/log-viewer/ui/logs-page.tsx:473
-msgid "Delete"
-msgstr "Delete"
-
-#. placeholder {0}: selectedFile?.name
-#: src/pages/log-viewer/ui/logs-page.tsx:463
-msgid "Delete \"{0}\"? This action cannot be undone."
-msgstr "Delete \"{0}\"? This action cannot be undone."
-
-#: src/pages/log-viewer/ui/logs-page.tsx:460
-msgid "Delete Log File"
-msgstr "Delete Log File"
-
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:201
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:241
 msgid "Delete mapping"
 msgstr "Delete mapping"
 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:210
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:158
-#: src/pages/map-rules/ui/map-rules-page.tsx:135
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:202
+#: src/pages/map-rules/ui/map-rules-page.tsx:176
 msgid "Delete rule"
 msgstr "Delete rule"
 
@@ -571,7 +558,7 @@ msgstr "Dir"
 msgid "Direction"
 msgstr "Direction"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:186
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:226
 #: src/pages/server-replay/ui/server-replay-page.tsx:96
 msgid "Disabled"
 msgstr "Disabled"
@@ -585,19 +572,19 @@ msgstr "Disconnected"
 msgid "Display CONNECT tunnel requests in the network list"
 msgstr "Display CONNECT tunnel requests in the network list"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:419
+#: src/pages/log-viewer/ui/logs-page.tsx:383
 msgid "Domain"
 msgstr "Domain"
 
-#: src/pages/settings/ui/settings-page.tsx:1157
+#: src/pages/settings/ui/components/client-certificate-section.tsx:270
 msgid "Domain-specific Certificates"
 msgstr "Domain-specific Certificates"
 
-#: src/pages/settings/ui/settings-page.tsx:1467
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:131
 msgid "Domains in this list will NOT be intercepted (pass-through). OAuth domains like accounts.google.com are always excluded by default."
 msgstr "Domains in this list will NOT be intercepted (pass-through). OAuth domains like accounts.google.com are always excluded by default."
 
-#: src/pages/log-viewer/ui/logs-page.tsx:403
+#: src/pages/log-viewer/ui/logs-page.tsx:367
 msgid "Domains that failed TLS handshake are automatically tunneled without MITM decryption. You can remove entries to retry MITM for specific domains."
 msgstr "Domains that failed TLS handshake are automatically tunneled without MITM decryption. You can remove entries to retry MITM for specific domains."
 
@@ -605,7 +592,7 @@ msgstr "Domains that failed TLS handshake are automatically tunneled without MIT
 msgid "Download"
 msgstr "Download"
 
-#: src/pages/settings/ui/settings-page.tsx:556
+#: src/pages/settings/ui/components/throttle-section.tsx:103
 msgid "Download (KB/s)"
 msgstr "Download (KB/s)"
 
@@ -618,8 +605,8 @@ msgstr "Drop"
 msgid "Edit Map Rule"
 msgstr "Edit Map Rule"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:150
-#: src/pages/map-rules/ui/map-rules-page.tsx:127
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:194
+#: src/pages/map-rules/ui/map-rules-page.tsx:168
 msgid "Edit rule"
 msgstr "Edit rule"
 
@@ -635,7 +622,7 @@ msgstr "Editor"
 msgid "Enable full trust for the Cheolsu Proxy CA certificate"
 msgstr "Enable full trust for the Cheolsu Proxy CA certificate"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:186
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:226
 #: src/pages/server-replay/ui/server-replay-page.tsx:96
 msgid "Enabled"
 msgstr "Enabled"
@@ -644,7 +631,7 @@ msgstr "Enabled"
 msgid "entries"
 msgstr "entries"
 
-#: src/pages/settings/ui/settings-page.tsx:1455
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:119
 msgid "example.com, *.example.com, or example.com:443"
 msgstr "example.com, *.example.com, or example.com:443"
 
@@ -694,7 +681,7 @@ msgstr "Failed to read file: {0}"
 msgid "Failed to send"
 msgstr "Failed to send"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:422
+#: src/pages/log-viewer/ui/logs-page.tsx:386
 msgid "Failures"
 msgstr "Failures"
 
@@ -702,7 +689,7 @@ msgstr "Failures"
 msgid "File"
 msgstr "File"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:367
+#: src/pages/log-viewer/ui/logs-page.tsx:331
 msgid "Filter log lines..."
 msgstr "Filter log lines..."
 
@@ -724,11 +711,11 @@ msgstr "Forward"
 msgid "Fullscreen"
 msgstr "Fullscreen"
 
-#: src/pages/settings/ui/settings-page.tsx:376
+#: src/pages/settings/ui/settings-page.tsx:103
 msgid "General"
 msgstr "General"
 
-#: src/pages/settings/ui/settings-page.tsx:841
+#: src/pages/settings/ui/components/shortcut-section.tsx:73
 msgid "Global Shortcut"
 msgstr "Global Shortcut"
 
@@ -772,7 +759,7 @@ msgstr "Header name"
 msgid "Header name to remove"
 msgstr "Header name to remove"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:127
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:171
 #: src/pages/server-replay/ui/server-replay-page.tsx:225
 msgid "headers"
 msgstr "headers"
@@ -784,11 +771,11 @@ msgstr "headers"
 msgid "Headers ({0})"
 msgstr "Headers ({0})"
 
-#: src/pages/settings/ui/settings-page.tsx:668
+#: src/pages/settings/ui/components/upstream-proxy-section.tsx:33
 msgid "Host"
 msgstr "Host"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:150
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:85
 #: src/shared/app-sidebar/model/consts.ts:65
 msgid "Host Mapping"
 msgstr "Host Mapping"
@@ -813,7 +800,7 @@ msgstr "HTTP requests and responses"
 msgid "HTTPie"
 msgstr "HTTPie"
 
-#: src/pages/settings/ui/settings-page.tsx:1313
+#: src/pages/settings/ui/components/request-client-cert-section.tsx:73
 msgid "If not specified, any client certificate will be accepted without verification"
 msgstr "If not specified, any client certificate will be accepted without verification"
 
@@ -872,12 +859,12 @@ msgstr "Installed"
 msgid "Installing..."
 msgstr "Installing..."
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:73
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:78
 #: src/shared/app-sidebar/model/consts.ts:37
 msgid "Intercept Rules"
 msgstr "Intercept Rules"
 
-#: src/pages/settings/ui/settings-page.tsx:1083
+#: src/pages/settings/ui/components/client-certificate-section.tsx:196
 msgid "Issuer"
 msgstr "Issuer"
 
@@ -893,11 +880,11 @@ msgstr "JavaScript Fetch"
 msgid "JSON Configuration"
 msgstr "JSON Configuration"
 
-#: src/pages/settings/ui/settings-page.tsx:1189
+#: src/pages/settings/ui/components/client-certificate-section.tsx:302
 msgid "Key file"
 msgstr "Key file"
 
-#: src/pages/settings/ui/settings-page.tsx:1049
+#: src/pages/settings/ui/components/client-certificate-section.tsx:162
 msgid "Key File"
 msgstr "Key File"
 
@@ -905,7 +892,7 @@ msgstr "Key File"
 msgid "Language"
 msgstr "Language"
 
-#: src/pages/settings/ui/settings-page.tsx:572
+#: src/pages/settings/ui/components/throttle-section.tsx:119
 msgid "Latency (ms)"
 msgstr "Latency (ms)"
 
@@ -913,7 +900,7 @@ msgstr "Latency (ms)"
 msgid "Light"
 msgstr "Light"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:374
+#: src/pages/log-viewer/ui/logs-page.tsx:338
 msgid "lines"
 msgstr "lines"
 
@@ -937,7 +924,7 @@ msgstr "Load Session"
 msgid "Load transactions"
 msgstr "Load transactions"
 
-#: src/pages/settings/ui/settings-page.tsx:1064
+#: src/pages/settings/ui/components/client-certificate-section.tsx:177
 msgid "Loading certificate info..."
 msgstr "Loading certificate info..."
 
@@ -951,12 +938,12 @@ msgstr "Loading..."
 msgid "Local File Path"
 msgstr "Local File Path"
 
-#: src/pages/settings/ui/settings-page.tsx:709
+#: src/pages/settings/ui/components/upstream-proxy-section.tsx:74
 msgid "localhost, 127.0.0.1, *.internal.com"
 msgstr "localhost, 127.0.0.1, *.internal.com"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:303
-#: src/pages/log-viewer/ui/logs-page.tsx:330
+#: src/pages/log-viewer/ui/logs-page.tsx:267
+#: src/pages/log-viewer/ui/logs-page.tsx:294
 msgid "Log Files"
 msgstr "Log Files"
 
@@ -964,7 +951,7 @@ msgstr "Log Files"
 msgid "Logical OR:"
 msgstr "Logical OR:"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:241
+#: src/pages/log-viewer/ui/logs-page.tsx:214
 #: src/shared/app-sidebar/model/consts.ts:86
 msgid "Logs"
 msgstr "Logs"
@@ -973,11 +960,11 @@ msgstr "Logs"
 msgid "Manage request/response intercept rules"
 msgstr "Manage request/response intercept rules"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:74
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:81
 msgid "Manage wildcard-based request/response intercept rules"
 msgstr "Manage wildcard-based request/response intercept rules"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:152
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:88
 msgid "Map DNS hostnames to different target hosts for testing and development"
 msgstr "Map DNS hostnames to different target hosts for testing and development"
 
@@ -1000,7 +987,7 @@ msgstr "Map Local / Map Remote rules"
 msgid "Map Local: respond with a local file. Map Remote: redirect to another URL."
 msgstr "Map Local: respond with a local file. Map Remote: redirect to another URL."
 
-#: src/pages/map-rules/ui/map-rules-page.tsx:62
+#: src/pages/map-rules/ui/map-rules-page.tsx:68
 msgid "Map Local: respond with local files. Map Remote: redirect requests to another URL."
 msgstr "Map Local: respond with local files. Map Remote: redirect requests to another URL."
 
@@ -1011,12 +998,12 @@ msgstr "Map Local: respond with local files. Map Remote: redirect requests to an
 msgid "Map Remote"
 msgstr "Map Remote"
 
-#: src/pages/map-rules/ui/map-rules-page.tsx:60
+#: src/pages/map-rules/ui/map-rules-page.tsx:65
 #: src/shared/app-sidebar/model/consts.ts:44
 msgid "Map Rules"
 msgstr "Map Rules"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:154
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:93
 msgid "mappings"
 msgstr "mappings"
 
@@ -1067,7 +1054,7 @@ msgstr "Method"
 msgid "Mobile Certificate Install"
 msgstr "Mobile Certificate Install"
 
-#: src/pages/settings/ui/settings-page.tsx:1432
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:96
 msgid "Mode"
 msgstr "Mode"
 
@@ -1096,12 +1083,12 @@ msgstr "Multiple conditions:"
 msgid "Name"
 msgstr "Name"
 
-#: src/pages/settings/ui/settings-page.tsx:378
+#: src/pages/settings/ui/settings-page.tsx:105
 #: src/shared/app-sidebar/model/consts.ts:23
 msgid "Network"
 msgstr "Network"
 
-#: src/pages/settings/ui/settings-page.tsx:517
+#: src/pages/settings/ui/components/throttle-section.tsx:64
 msgid "Network Throttling"
 msgstr "Network Throttling"
 
@@ -1129,19 +1116,19 @@ msgstr "No console output yet"
 msgid "No Gzip"
 msgstr "No Gzip"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:155
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:182
 msgid "No host mappings"
 msgstr "No host mappings"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:76
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:106
 msgid "No intercept rules"
 msgstr "No intercept rules"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:335
+#: src/pages/log-viewer/ui/logs-page.tsx:299
 msgid "No log files found"
 msgstr "No log files found"
 
-#: src/pages/map-rules/ui/map-rules-page.tsx:67
+#: src/pages/map-rules/ui/map-rules-page.tsx:95
 msgid "No map rules"
 msgstr "No map rules"
 
@@ -1157,7 +1144,7 @@ msgstr "No phase selected"
 msgid "No replay entries"
 msgstr "No replay entries"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:411
+#: src/pages/log-viewer/ui/logs-page.tsx:375
 msgid "No TLS passthrough entries"
 msgstr "No TLS passthrough entries"
 
@@ -1185,7 +1172,7 @@ msgstr "Number of simultaneous requests (1-100)"
 msgid "Number of times to send the request (1-10000)"
 msgstr "Number of times to send the request (1-10000)"
 
-#: src/pages/settings/ui/settings-page.tsx:1472
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:136
 msgid "Only domains in this list will be intercepted. When the list is empty, all domains are intercepted."
 msgstr "Only domains in this list will be intercepted. When the list is empty, all domains are intercepted."
 
@@ -1193,7 +1180,7 @@ msgstr "Only domains in this list will be intercepted. When the list is empty, a
 msgid "Only http:// and https:// URLs are allowed"
 msgstr "Only http:// and https:// URLs are allowed"
 
-#: src/pages/settings/ui/settings-page.tsx:1424
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:88
 msgid "Only whitelisted domains ({enabledCount}) will have HTTPS traffic intercepted"
 msgstr "Only whitelisted domains ({enabledCount}) will have HTTPS traffic intercepted"
 
@@ -1209,7 +1196,7 @@ msgstr "Open <0>{CERT_DOWNLOAD_URL}</0> in Safari"
 msgid "Open <0>{CERT_DOWNLOAD_URL}</0> in your device browser"
 msgstr "Open <0>{CERT_DOWNLOAD_URL}</0> in your device browser"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:269
+#: src/pages/log-viewer/ui/logs-page.tsx:233
 msgid "Open Directory"
 msgstr "Open Directory"
 
@@ -1221,13 +1208,13 @@ msgstr "Open File"
 msgid "Open this URL in your mobile browser after setting the Wi-Fi proxy. The page automatically detects your device and provides the correct certificate format."
 msgstr "Open this URL in your mobile browser after setting the Wi-Fi proxy. The page automatically detects your device and provides the correct certificate format."
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:98
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:124
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:127
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:153
 msgid "optional"
 msgstr "optional"
 
 #: src/pages/settings/ui/components/certificate-settings.tsx:558
-#: src/pages/settings/ui/settings-page.tsx:1091
+#: src/pages/settings/ui/components/client-certificate-section.tsx:204
 msgid "Organization"
 msgstr "Organization"
 
@@ -1236,9 +1223,9 @@ msgid "Original"
 msgstr "Original"
 
 #: src/pages/settings/ui/components/certificate-settings.tsx:663
-#: src/pages/settings/ui/settings-page.tsx:697
-#: src/pages/settings/ui/settings-page.tsx:756
-#: src/pages/settings/ui/settings-page.tsx:760
+#: src/pages/settings/ui/components/proxy-auth-section.tsx:38
+#: src/pages/settings/ui/components/proxy-auth-section.tsx:42
+#: src/pages/settings/ui/components/upstream-proxy-section.tsx:62
 msgid "Password"
 msgstr "Password"
 
@@ -1295,7 +1282,7 @@ msgstr "Please select a PKCS12 file"
 msgid "Please select both certificate and key files"
 msgstr "Please select both certificate and key files"
 
-#: src/pages/settings/ui/settings-page.tsx:674
+#: src/pages/settings/ui/components/upstream-proxy-section.tsx:39
 msgid "Port"
 msgstr "Port"
 
@@ -1303,7 +1290,7 @@ msgstr "Port"
 msgid "Port must be between 1 and 65535"
 msgstr "Port must be between 1 and 65535"
 
-#: src/pages/settings/ui/settings-page.tsx:1015
+#: src/pages/settings/ui/components/client-certificate-section.tsx:128
 msgid "Present a client certificate when connecting to servers that require mTLS authentication"
 msgstr "Present a client certificate when connecting to servers that require mTLS authentication"
 
@@ -1311,7 +1298,7 @@ msgstr "Present a client certificate when connecting to servers that require mTL
 msgid "Preserve Path"
 msgstr "Preserve Path"
 
-#: src/pages/settings/ui/settings-page.tsx:873
+#: src/pages/settings/ui/components/shortcut-section.tsx:105
 msgid "Press a key combination..."
 msgstr "Press a key combination..."
 
@@ -1319,7 +1306,7 @@ msgstr "Press a key combination..."
 msgid "Prevent caching by removing conditional headers and adding no-cache directives"
 msgstr "Prevent caching by removing conditional headers and adding no-cache directives"
 
-#: src/pages/settings/ui/settings-page.tsx:532
+#: src/pages/settings/ui/components/throttle-section.tsx:79
 msgid "Profile"
 msgstr "Profile"
 
@@ -1331,11 +1318,11 @@ msgstr "Progress"
 msgid "Proxy Address"
 msgstr "Proxy Address"
 
-#: src/pages/settings/ui/settings-page.tsx:734
+#: src/pages/settings/ui/components/proxy-auth-section.tsx:16
 msgid "Proxy Authentication"
 msgstr "Proxy Authentication"
 
-#: src/pages/settings/ui/settings-page.tsx:412
+#: src/pages/settings/ui/settings-page.tsx:139
 msgid "Proxy configuration and preferences"
 msgstr "Proxy configuration and preferences"
 
@@ -1343,7 +1330,7 @@ msgstr "Proxy configuration and preferences"
 msgid "Proxy settings and configuration"
 msgstr "Proxy settings and configuration"
 
-#: src/pages/settings/ui/settings-page.tsx:670
+#: src/pages/settings/ui/components/upstream-proxy-section.tsx:35
 msgid "proxy.company.com"
 msgstr "proxy.company.com"
 
@@ -1375,8 +1362,8 @@ msgstr "Received"
 msgid "Received (Server → Client)"
 msgstr "Received (Server → Client)"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:252
-#: src/pages/log-viewer/ui/logs-page.tsx:277
+#: src/pages/log-viewer/ui/logs-page.tsx:225
+#: src/pages/log-viewer/ui/logs-page.tsx:241
 #: src/pages/settings/ui/components/certificate-settings.tsx:402
 msgid "Refresh"
 msgstr "Refresh"
@@ -1399,8 +1386,8 @@ msgstr "Reload"
 msgid "Remote Device Certificate"
 msgstr "Remote Device Certificate"
 
-#: src/pages/settings/ui/settings-page.tsx:1234
-#: src/pages/settings/ui/settings-page.tsx:1500
+#: src/pages/settings/ui/components/client-certificate-section.tsx:347
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:164
 msgid "Remove"
 msgstr "Remove"
 
@@ -1463,7 +1450,7 @@ msgstr "Replay request"
 msgid "Request"
 msgstr "Request"
 
-#: src/pages/settings/ui/settings-page.tsx:1273
+#: src/pages/settings/ui/components/request-client-cert-section.tsx:33
 msgid "Request a client certificate from connecting clients (mTLS server-side)"
 msgstr "Request a client certificate from connecting clients (mTLS server-side)"
 
@@ -1478,7 +1465,7 @@ msgstr "Request aborted"
 msgid "Request Body"
 msgstr "Request Body"
 
-#: src/pages/settings/ui/settings-page.tsx:1270
+#: src/pages/settings/ui/components/request-client-cert-section.tsx:30
 msgid "Request Client Certificate"
 msgstr "Request Client Certificate"
 
@@ -1509,11 +1496,11 @@ msgstr "Request Headers"
 msgid "Requests/sec"
 msgstr "Requests/sec"
 
-#: src/pages/settings/ui/settings-page.tsx:737
+#: src/pages/settings/ui/components/proxy-auth-section.tsx:19
 msgid "Require authentication to use this proxy server"
 msgstr "Require authentication to use this proxy server"
 
-#: src/pages/settings/ui/settings-page.tsx:1327
+#: src/pages/settings/ui/components/request-client-cert-section.tsx:87
 msgid "Require certificate"
 msgstr "Require certificate"
 
@@ -1585,7 +1572,7 @@ msgstr "Return cached responses for matching requests instead of forwarding to t
 msgid "Rewrite"
 msgstr "Rewrite"
 
-#: src/pages/settings/ui/settings-page.tsx:655
+#: src/pages/settings/ui/components/upstream-proxy-section.tsx:20
 msgid "Route traffic through an external proxy server"
 msgstr "Route traffic through an external proxy server"
 
@@ -1611,8 +1598,8 @@ msgid "Rule updated"
 msgstr "Rule updated"
 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:103
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:75
-#: src/pages/map-rules/ui/map-rules-page.tsx:66
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:86
+#: src/pages/map-rules/ui/map-rules-page.tsx:75
 msgid "rules"
 msgstr "rules"
 
@@ -1628,11 +1615,11 @@ msgstr "Run"
 msgid "Running..."
 msgstr "Running..."
 
-#: src/pages/settings/ui/settings-page.tsx:428
+#: src/pages/settings/ui/settings-page.tsx:155
 msgid "Save Changes"
 msgstr "Save Changes"
 
-#: src/pages/settings/ui/settings-page.tsx:423
+#: src/pages/settings/ui/settings-page.tsx:150
 msgid "Save failed"
 msgstr "Save failed"
 
@@ -1640,11 +1627,11 @@ msgstr "Save failed"
 msgid "Save Session"
 msgstr "Save Session"
 
-#: src/pages/settings/ui/settings-page.tsx:418
+#: src/pages/settings/ui/settings-page.tsx:145
 msgid "Saved"
 msgstr "Saved"
 
-#: src/pages/settings/ui/settings-page.tsx:428
+#: src/pages/settings/ui/settings-page.tsx:155
 msgid "Saving..."
 msgstr "Saving..."
 
@@ -1677,11 +1664,11 @@ msgstr "Script reloaded"
 msgid "Script unloaded"
 msgstr "Script unloaded"
 
-#: src/pages/settings/ui/settings-page.tsx:379
+#: src/pages/settings/ui/settings-page.tsx:106
 msgid "Security"
 msgstr "Security"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:390
+#: src/pages/log-viewer/ui/logs-page.tsx:354
 msgid "Select a log file to view its contents"
 msgstr "Select a log file to view its contents"
 
@@ -1689,7 +1676,7 @@ msgstr "Select a log file to view its contents"
 msgid "Select CA certificate (.pem, .crt, .cer, .der)"
 msgstr "Select CA certificate (.pem, .crt, .cer, .der)"
 
-#: src/pages/settings/ui/settings-page.tsx:1290
+#: src/pages/settings/ui/components/request-client-cert-section.tsx:50
 msgid "Select CA certificate to verify clients (.pem, .crt)"
 msgstr "Select CA certificate to verify clients (.pem, .crt)"
 
@@ -1697,7 +1684,7 @@ msgstr "Select CA certificate to verify clients (.pem, .crt)"
 msgid "Select CA key file (.pem, .key)"
 msgstr "Select CA key file (.pem, .key)"
 
-#: src/pages/settings/ui/settings-page.tsx:1036
+#: src/pages/settings/ui/components/client-certificate-section.tsx:149
 msgid "Select certificate file (.pem, .crt)"
 msgstr "Select certificate file (.pem, .crt)"
 
@@ -1705,7 +1692,7 @@ msgstr "Select certificate file (.pem, .crt)"
 msgid "Select from captured traffic"
 msgstr "Select from captured traffic"
 
-#: src/pages/settings/ui/settings-page.tsx:1054
+#: src/pages/settings/ui/components/client-certificate-section.tsx:167
 msgid "Select key file (.pem, .key)"
 msgstr "Select key file (.pem, .key)"
 
@@ -1772,7 +1759,7 @@ msgstr "Sequence Replay ({0} requests)"
 msgid "Sequence replay failed"
 msgstr "Sequence replay failed"
 
-#: src/pages/settings/ui/settings-page.tsx:1122
+#: src/pages/settings/ui/components/client-certificate-section.tsx:235
 msgid "Serial Number"
 msgstr "Serial Number"
 
@@ -1809,7 +1796,7 @@ msgstr "Set body (optional)"
 msgid "Set Wi-Fi proxy on your device to <0>{0}:{1}</0>"
 msgstr "Set Wi-Fi proxy on your device to <0>{0}:{1}</0>"
 
-#: src/pages/settings/ui/settings-page.tsx:409
+#: src/pages/settings/ui/settings-page.tsx:136
 #: src/shared/app-sidebar/model/consts.ts:79
 msgid "Settings"
 msgstr "Settings"
@@ -1818,7 +1805,7 @@ msgstr "Settings"
 msgid "Setup Instructions:"
 msgstr "Setup Instructions:"
 
-#: src/pages/settings/ui/settings-page.tsx:856
+#: src/pages/settings/ui/components/shortcut-section.tsx:88
 msgid "Shortcut Key"
 msgstr "Shortcut Key"
 
@@ -1826,7 +1813,7 @@ msgstr "Shortcut Key"
 msgid "Show CONNECT Requests"
 msgstr "Show CONNECT Requests"
 
-#: src/pages/settings/ui/settings-page.tsx:520
+#: src/pages/settings/ui/components/throttle-section.tsx:67
 msgid "Simulate slow network conditions for testing"
 msgstr "Simulate slow network conditions for testing"
 
@@ -1835,7 +1822,7 @@ msgstr "Simulate slow network conditions for testing"
 msgid "Size"
 msgstr "Size"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:86
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:115
 msgid "Source Host"
 msgstr "Source Host"
 
@@ -1843,11 +1830,11 @@ msgstr "Source Host"
 msgid "Source host and target host are required"
 msgstr "Source host and target host are required"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:96
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:125
 msgid "Source Port"
 msgstr "Source Port"
 
-#: src/pages/settings/ui/settings-page.tsx:1406
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:70
 msgid "SSL Proxying"
 msgstr "SSL Proxying"
 
@@ -1864,12 +1851,12 @@ msgstr "Start proxy first"
 msgid "Start Replay"
 msgstr "Start Replay"
 
-#: src/pages/settings/ui/settings-page.tsx:628
+#: src/pages/settings/ui/components/connection-strategy-section.tsx:56
 msgid "Starts background server connection immediately after ClientHello detection"
 msgstr "Starts background server connection immediately after ClientHello detection"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:115
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:120
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:158
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:163
 #: src/shared/app-sidebar/ui/sidebar-status.tsx:39
 msgid "Status"
 msgstr "Status"
@@ -1884,11 +1871,11 @@ msgstr "Status Code"
 msgid "Status Code Distribution"
 msgstr "Status Code Distribution"
 
-#: src/pages/settings/ui/settings-page.tsx:603
+#: src/pages/settings/ui/components/connection-strategy-section.tsx:31
 msgid "Strategy"
 msgstr "Strategy"
 
-#: src/pages/settings/ui/settings-page.tsx:1150
+#: src/pages/settings/ui/components/client-certificate-section.tsx:263
 msgid "Supports PEM-encoded certificates and keys (RSA, ECDSA, PKCS#8)"
 msgstr "Supports PEM-encoded certificates and keys (RSA, ECDSA, PKCS#8)"
 
@@ -1909,11 +1896,11 @@ msgstr "Tap \"Install a certificate\" → \"CA certificate\""
 msgid "Target"
 msgstr "Target"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:112
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:141
 msgid "Target Host"
 msgstr "Target Host"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:122
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:151
 msgid "Target Port"
 msgstr "Target Port"
 
@@ -1946,7 +1933,7 @@ msgstr "Throughput"
 msgid "Time"
 msgstr "Time"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:314
+#: src/pages/log-viewer/ui/logs-page.tsx:278
 msgid "TLS Passthrough"
 msgstr "TLS Passthrough"
 
@@ -1960,11 +1947,11 @@ msgstr "To Client (Server → Client)"
 msgid "To Server (Client → Server)"
 msgstr "To Server (Client → Server)"
 
-#: src/pages/settings/ui/settings-page.tsx:844
+#: src/pages/settings/ui/components/shortcut-section.tsx:76
 msgid "Toggle proxy on/off with a global keyboard shortcut"
 msgstr "Toggle proxy on/off with a global keyboard shortcut"
 
-#: src/pages/settings/ui/settings-page.tsx:380
+#: src/pages/settings/ui/settings-page.tsx:107
 msgid "Tools"
 msgstr "Tools"
 
@@ -1993,7 +1980,7 @@ msgstr "Transaction pinned to top"
 msgid "Transaction unpinned"
 msgstr "Transaction unpinned"
 
-#: src/pages/settings/ui/settings-page.tsx:633
+#: src/pages/settings/ui/components/connection-strategy-section.tsx:61
 msgid "Tries Eager first, falls back to Lazy on failure"
 msgstr "Tries Eager first, falls back to Lazy on failure"
 
@@ -2016,8 +2003,8 @@ msgstr "Uninstall"
 msgid "Universal format"
 msgstr "Universal format"
 
-#: src/pages/settings/ui/settings-page.tsx:560
-#: src/pages/settings/ui/settings-page.tsx:568
+#: src/pages/settings/ui/components/throttle-section.tsx:107
+#: src/pages/settings/ui/components/throttle-section.tsx:115
 msgid "Unlimited"
 msgstr "Unlimited"
 
@@ -2034,11 +2021,11 @@ msgstr "Unpin from Top"
 msgid "Update"
 msgstr "Update"
 
-#: src/pages/settings/ui/settings-page.tsx:566
+#: src/pages/settings/ui/components/throttle-section.tsx:113
 msgid "Upload (KB/s)"
 msgstr "Upload (KB/s)"
 
-#: src/pages/settings/ui/settings-page.tsx:652
+#: src/pages/settings/ui/components/upstream-proxy-section.tsx:17
 msgid "Upstream Proxy"
 msgstr "Upstream Proxy"
 
@@ -2058,7 +2045,7 @@ msgstr "URL Pattern"
 msgid "URL pattern (e.g., *api.example.com*)"
 msgstr "URL pattern (e.g., *api.example.com*)"
 
-#: src/pages/settings/ui/settings-page.tsx:1160
+#: src/pages/settings/ui/components/client-certificate-section.tsx:273
 msgid "Use different client certificates for specific domains. Supports wildcards (*.example.com). Currently validates certificates only — domain-specific routing coming soon."
 msgstr "Use different client certificates for specific domains. Supports wildcards (*.example.com). Currently validates certificates only — domain-specific routing coming soon."
 
@@ -2070,18 +2057,18 @@ msgstr "Use wildcard patterns: * matches any string, ? matches a single characte
 msgid "Use your own CA certificate instead of the auto-generated one"
 msgstr "Use your own CA certificate instead of the auto-generated one"
 
-#: src/pages/settings/ui/settings-page.tsx:692
-#: src/pages/settings/ui/settings-page.tsx:750
-#: src/pages/settings/ui/settings-page.tsx:752
+#: src/pages/settings/ui/components/proxy-auth-section.tsx:32
+#: src/pages/settings/ui/components/proxy-auth-section.tsx:34
+#: src/pages/settings/ui/components/upstream-proxy-section.tsx:57
 msgid "Username"
 msgstr "Username"
 
-#: src/pages/settings/ui/settings-page.tsx:1110
+#: src/pages/settings/ui/components/client-certificate-section.tsx:223
 msgid "Valid From"
 msgstr "Valid From"
 
 #: src/pages/settings/ui/components/certificate-settings.tsx:565
-#: src/pages/settings/ui/settings-page.tsx:1116
+#: src/pages/settings/ui/components/client-certificate-section.tsx:229
 msgid "Valid Until"
 msgstr "Valid Until"
 
@@ -2096,7 +2083,7 @@ msgstr "Value"
 msgid "Version"
 msgstr "Version"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:244
+#: src/pages/log-viewer/ui/logs-page.tsx:217
 msgid "View and manage application log files"
 msgstr "View and manage application log files"
 
@@ -2121,11 +2108,11 @@ msgstr "WebSocket connections and messages"
 msgid "WebSocket Replay"
 msgstr "WebSocket Replay"
 
-#: src/pages/settings/ui/settings-page.tsx:1448
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:112
 msgid "Whitelist (Include)"
 msgstr "Whitelist (Include)"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:190
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:230
 msgid "Wildcard"
 msgstr "Wildcard"
 
