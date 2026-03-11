@@ -2,10 +2,7 @@ import { useState, useCallback } from "react";
 import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
 import { useAppSettingsStore } from "@/shared/stores/app-settings-store";
-import {
-  updateConnectionStrategy,
-  type ConnectionStrategy,
-} from "@/shared/api/proxy";
+import { updateConnectionStrategy, type ConnectionStrategy } from "@/shared/api/proxy";
 import {
   Button,
   Badge,
@@ -69,7 +66,9 @@ export function ConnectionStrategySettings() {
           <Trans>Connection Strategy</Trans>
         </h2>
         <p className="text-sm text-muted-foreground">
-          <Trans>Controls when the proxy connects to upstream servers for certificate sniffing</Trans>
+          <Trans>
+            Controls when the proxy connects to upstream servers for certificate sniffing
+          </Trans>
         </p>
       </div>
 
@@ -103,7 +102,9 @@ export function ConnectionStrategySettings() {
               <Trans>Connects to the server only when needed (default, sequential sniffing)</Trans>
             )}
             {currentOption.value === "eager" && (
-              <Trans>Starts background server connection immediately after ClientHello detection</Trans>
+              <Trans>
+                Starts background server connection immediately after ClientHello detection
+              </Trans>
             )}
             {currentOption.value === "eager_with_fallback" && (
               <Trans>Tries Eager first, falls back to Lazy on failure</Trans>
