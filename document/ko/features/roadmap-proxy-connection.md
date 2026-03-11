@@ -4,16 +4,16 @@
 
 ## 현재 구현된 연결 관련 기능
 
-| 기능 | 설명 | 비교 |
-| --- | --- | --- |
-| HTTP/HTTPS 프록시 | MITM 기반 트래픽 가로채기 | Charles/mitmproxy 동등 |
-| SOCKS5 프록시 | RFC 1929 인증 포함 완전 구현 | Charles 동등 |
-| Upstream Proxy | HTTP/HTTPS/SOCKS upstream 지원, 인증 및 바이패스 | Charles 동등 |
-| TLS 1.0/1.1 레거시 | OpenSSL/rustls 하이브리드 핸들러 | **고유 차별화** |
-| WebSocket 캡처 | 양방향 메시지 모니터링/주입, Socket.IO/MQTT 감지 | Charles보다 우위 |
-| 연결 전략 (Eager/Lazy) | ClientHello 분석 후 백그라운드 서버 연결 | **고유 차별화** |
-| 네트워크 스로틀링 | Token Bucket 기반, GPRS~WiFi 프리셋 | Charles 동등 |
-| 동시 연결 제한 | Semaphore 기반 최대 연결 수 제어 | 기본 기능 |
+| 기능                   | 설명                                             | 비교                   |
+| ---------------------- | ------------------------------------------------ | ---------------------- |
+| HTTP/HTTPS 프록시      | MITM 기반 트래픽 가로채기                        | Charles/mitmproxy 동등 |
+| SOCKS5 프록시          | RFC 1929 인증 포함 완전 구현                     | Charles 동등           |
+| Upstream Proxy         | HTTP/HTTPS/SOCKS upstream 지원, 인증 및 바이패스 | Charles 동등           |
+| TLS 1.0/1.1 레거시     | OpenSSL/rustls 하이브리드 핸들러                 | **고유 차별화**        |
+| WebSocket 캡처         | 양방향 메시지 모니터링/주입, Socket.IO/MQTT 감지 | Charles보다 우위       |
+| 연결 전략 (Eager/Lazy) | ClientHello 분석 후 백그라운드 서버 연결         | **고유 차별화**        |
+| 네트워크 스로틀링      | Token Bucket 기반, GPRS~WiFi 프리셋              | Charles 동등           |
+| 동시 연결 제한         | Semaphore 기반 최대 연결 수 제어                 | 기본 기능              |
 
 ---
 
@@ -78,17 +78,17 @@ gRPC는 HTTP/2 위에서 동작하며, Protocol Buffers를 직렬화 형식으�
 
 **gRPC 상태 코드:**
 
-| 코드 | 이름 | 설명 |
-| --- | --- | --- |
-| 0 | OK | 성공 |
-| 1 | CANCELLED | 클라이언트가 취소 |
-| 2 | UNKNOWN | 알 수 없는 오류 |
-| 3 | INVALID_ARGUMENT | 잘못된 인자 |
-| 4 | DEADLINE_EXCEEDED | 타임아웃 |
-| 5 | NOT_FOUND | 리소스 없음 |
-| 12 | UNIMPLEMENTED | 미구현 메서드 |
-| 13 | INTERNAL | 내부 오류 |
-| 14 | UNAVAILABLE | 서비스 불가 |
+| 코드 | 이름              | 설명              |
+| ---- | ----------------- | ----------------- |
+| 0    | OK                | 성공              |
+| 1    | CANCELLED         | 클라이언트가 취소 |
+| 2    | UNKNOWN           | 알 수 없는 오류   |
+| 3    | INVALID_ARGUMENT  | 잘못된 인자       |
+| 4    | DEADLINE_EXCEEDED | 타임아웃          |
+| 5    | NOT_FOUND         | 리소스 없음       |
+| 12   | UNIMPLEMENTED     | 미구현 메서드     |
+| 13   | INTERNAL          | 내부 오류         |
+| 14   | UNAVAILABLE       | 서비스 불가       |
 
 **사용 시나리오:**
 
@@ -194,7 +194,12 @@ pub struct ConnectionMetrics {
       "match": ["*.internal.company.com"],
       "chain": [
         { "type": "http", "host": "proxy1.corp.com", "port": 8080 },
-        { "type": "socks5", "host": "proxy2.corp.com", "port": 1080, "auth": { "username": "user", "password": "pass" } }
+        {
+          "type": "socks5",
+          "host": "proxy2.corp.com",
+          "port": 1080,
+          "auth": { "username": "user", "password": "pass" }
+        }
       ]
     }
   ]
@@ -288,15 +293,15 @@ IPv4/IPv6 동시 연결 시도 후 빠른 쪽을 선택하는 알고리즘을 �
 
 ## 우선순위 요약
 
-| 우선순위 | 기능 | 구현 난이도 | 사용자 영향 | 상태 |
-| --- | --- | --- | --- | --- |
-| **Tier 1-1** | SSE 스트리밍 캡처 | 중 | 매우 높음 | 📋 계획 |
-| **Tier 1-2** | gRPC 트래픽 디코딩 | 중 | 높음 | 📋 계획 |
-| **Tier 1-3** | 연결 상태 모니터링/통계 | 중 | 높음 | 📋 계획 |
-| Tier 2-1 | 프록시 체이닝 | 높음 | 중간 | 📋 계획 |
-| Tier 2-2 | PAC 파일 지원 | 중 | 중간 | 📋 계획 |
-| Tier 2-3 | 커넥션 풀 튜닝 | 낮음 | 낮음 | 📋 계획 |
-| Tier 3-1 | DNS-over-HTTPS | 중 | 낮음 | 📋 계획 |
-| Tier 3-2 | HTTP/2 최적화 | 높음 | 낮음 | 📋 계획 |
-| Tier 3-3 | Happy Eyeballs | 중 | 낮음 | 📋 계획 |
-| Tier 3-4 | 리버스 프록시 모드 | 높음 | 낮음 | 📋 계획 |
+| 우선순위     | 기능                    | 구현 난이도 | 사용자 영향 | 상태    |
+| ------------ | ----------------------- | ----------- | ----------- | ------- |
+| **Tier 1-1** | SSE 스트리밍 캡처       | 중          | 매우 높음   | 📋 계획 |
+| **Tier 1-2** | gRPC 트래픽 디코딩      | 중          | 높음        | 📋 계획 |
+| **Tier 1-3** | 연결 상태 모니터링/통계 | 중          | 높음        | 📋 계획 |
+| Tier 2-1     | 프록시 체이닝           | 높음        | 중간        | 📋 계획 |
+| Tier 2-2     | PAC 파일 지원           | 중          | 중간        | 📋 계획 |
+| Tier 2-3     | 커넥션 풀 튜닝          | 낮음        | 낮음        | 📋 계획 |
+| Tier 3-1     | DNS-over-HTTPS          | 중          | 낮음        | 📋 계획 |
+| Tier 3-2     | HTTP/2 최적화           | 높음        | 낮음        | 📋 계획 |
+| Tier 3-3     | Happy Eyeballs          | 중          | 낮음        | 📋 계획 |
+| Tier 3-4     | 리버스 프록시 모드      | 높음        | 낮음        | 📋 계획 |

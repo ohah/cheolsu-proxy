@@ -4,16 +4,16 @@
 
 ## Currently Implemented Connection Features
 
-| Feature | Description | Comparison |
-| --- | --- | --- |
-| HTTP/HTTPS Proxy | MITM-based traffic interception | On par with Charles/mitmproxy |
-| SOCKS5 Proxy | Full implementation with RFC 1929 auth | On par with Charles |
-| Upstream Proxy | HTTP/HTTPS/SOCKS upstream with auth and bypass | On par with Charles |
-| TLS 1.0/1.1 Legacy | Hybrid OpenSSL/rustls handler | **Unique differentiator** |
-| WebSocket Capture | Bidirectional monitoring/injection, Socket.IO/MQTT detection | Superior to Charles |
-| Connection Strategy (Eager/Lazy) | Background server connection after ClientHello analysis | **Unique differentiator** |
-| Network Throttling | Token Bucket based, GPRS~WiFi presets | On par with Charles |
-| Connection Limit | Semaphore-based max connection control | Basic feature |
+| Feature                          | Description                                                  | Comparison                    |
+| -------------------------------- | ------------------------------------------------------------ | ----------------------------- |
+| HTTP/HTTPS Proxy                 | MITM-based traffic interception                              | On par with Charles/mitmproxy |
+| SOCKS5 Proxy                     | Full implementation with RFC 1929 auth                       | On par with Charles           |
+| Upstream Proxy                   | HTTP/HTTPS/SOCKS upstream with auth and bypass               | On par with Charles           |
+| TLS 1.0/1.1 Legacy               | Hybrid OpenSSL/rustls handler                                | **Unique differentiator**     |
+| WebSocket Capture                | Bidirectional monitoring/injection, Socket.IO/MQTT detection | Superior to Charles           |
+| Connection Strategy (Eager/Lazy) | Background server connection after ClientHello analysis      | **Unique differentiator**     |
+| Network Throttling               | Token Bucket based, GPRS~WiFi presets                        | On par with Charles           |
+| Connection Limit                 | Semaphore-based max connection control                       | Basic feature                 |
 
 ---
 
@@ -78,17 +78,17 @@ gRPC operates over HTTP/2 and uses Protocol Buffers as its serialization format.
 
 **gRPC Status Codes:**
 
-| Code | Name | Description |
-| --- | --- | --- |
-| 0 | OK | Success |
-| 1 | CANCELLED | Cancelled by client |
-| 2 | UNKNOWN | Unknown error |
-| 3 | INVALID_ARGUMENT | Invalid argument |
-| 4 | DEADLINE_EXCEEDED | Timeout |
-| 5 | NOT_FOUND | Resource not found |
-| 12 | UNIMPLEMENTED | Unimplemented method |
-| 13 | INTERNAL | Internal error |
-| 14 | UNAVAILABLE | Service unavailable |
+| Code | Name              | Description          |
+| ---- | ----------------- | -------------------- |
+| 0    | OK                | Success              |
+| 1    | CANCELLED         | Cancelled by client  |
+| 2    | UNKNOWN           | Unknown error        |
+| 3    | INVALID_ARGUMENT  | Invalid argument     |
+| 4    | DEADLINE_EXCEEDED | Timeout              |
+| 5    | NOT_FOUND         | Resource not found   |
+| 12   | UNIMPLEMENTED     | Unimplemented method |
+| 13   | INTERNAL          | Internal error       |
+| 14   | UNAVAILABLE       | Service unavailable  |
 
 **Use Case:**
 
@@ -237,15 +237,15 @@ Operate as a reverse proxy in front of specific backend servers for API developm
 
 ## Priority Summary
 
-| Priority | Feature | Difficulty | User Impact | Status |
-| --- | --- | --- | --- | --- |
-| **Tier 1-1** | SSE Streaming Capture | Medium | Very High | 📋 Planned |
-| **Tier 1-2** | gRPC Traffic Decoding | Medium | High | 📋 Planned |
-| **Tier 1-3** | Connection Monitoring/Stats | Medium | High | 📋 Planned |
-| Tier 2-1 | Proxy Chaining | High | Medium | 📋 Planned |
-| Tier 2-2 | PAC File Support | Medium | Medium | 📋 Planned |
-| Tier 2-3 | Connection Pool Tuning | Low | Low | 📋 Planned |
-| Tier 3-1 | DNS-over-HTTPS | Medium | Low | 📋 Planned |
-| Tier 3-2 | HTTP/2 Optimization | High | Low | 📋 Planned |
-| Tier 3-3 | Happy Eyeballs | Medium | Low | 📋 Planned |
-| Tier 3-4 | Reverse Proxy Mode | High | Low | 📋 Planned |
+| Priority     | Feature                     | Difficulty | User Impact | Status     |
+| ------------ | --------------------------- | ---------- | ----------- | ---------- |
+| **Tier 1-1** | SSE Streaming Capture       | Medium     | Very High   | 📋 Planned |
+| **Tier 1-2** | gRPC Traffic Decoding       | Medium     | High        | 📋 Planned |
+| **Tier 1-3** | Connection Monitoring/Stats | Medium     | High        | 📋 Planned |
+| Tier 2-1     | Proxy Chaining              | High       | Medium      | 📋 Planned |
+| Tier 2-2     | PAC File Support            | Medium     | Medium      | 📋 Planned |
+| Tier 2-3     | Connection Pool Tuning      | Low        | Low         | 📋 Planned |
+| Tier 3-1     | DNS-over-HTTPS              | Medium     | Low         | 📋 Planned |
+| Tier 3-2     | HTTP/2 Optimization         | High       | Low         | 📋 Planned |
+| Tier 3-3     | Happy Eyeballs              | Medium     | Low         | 📋 Planned |
+| Tier 3-4     | Reverse Proxy Mode          | High       | Low         | 📋 Planned |
