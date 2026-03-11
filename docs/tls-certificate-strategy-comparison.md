@@ -169,7 +169,7 @@ mitmproxy는 7개의 TLS 이벤트 훅을 제공:
 | --- | --- | --- | --- | --- |
 | 인증서 생성 세부 사항 | 낮음 | 1-2일 | 낮음 | `generator.rs`, `rcgen_authority.rs`, `openssl_authority.rs` | **✅ 완료** |
 | TLS 이벤트 훅 (7개) | 중~상 | 4-5일 | 중~상 | 신규 `tls_event.rs`, `hybrid_tls_handler.rs`, `internal.rs`, `context.rs` | **✅ 완료** |
-| TLS 버전/암호화 세분화 | 중간 | 3-4일 | 중간 | 신규 `tls_config.rs`, `rcgen_authority.rs`, `openssl_authority.rs` | 미구현 |
+| TLS 버전/암호화 세분화 | 중간 | 3-4일 | 중간 | 신규 `tls_config.rs`, `hybrid_tls_handler.rs`, `context.rs` | **✅ 완료** |
 | Eager/Lazy 연결 전략 | 중간 | 2-3일 | 중간 | `internal.rs`, `upstream_cert.rs`, `context.rs` | 미구현 |
 | **합계** | | **10-14일** | | | |
 
@@ -179,8 +179,9 @@ mitmproxy는 7개의 TLS 이벤트 훅을 제공:
 
 - **라운드 1:** 인증서 생성 세부 사항 + TLS 이벤트 훅 — **✅ 완료**
   - 이유: 인증서 세부 사항은 독립적이고 간단. 이벤트 훅은 인프라성 기능이라 먼저 깔아두면 나머지 기능의 디버깅/관찰이 쉬워짐
-- **라운드 2:** TLS 버전/암호화 세분화 + Eager/Lazy 연결 전략 — 미구현
-  - 이유: 훅 위에 설정 레이어를 추가하고, 가장 복잡한 연결 타이밍 변경은 마지막에 진행
+- **라운드 2:** TLS 버전/암호화 세분화 + Eager/Lazy 연결 전략
+  - TLS 버전/암호화 세분화 — **✅ 완료** (`tls_config.rs`, `hybrid_tls_handler.rs`, `context.rs`)
+  - Eager/Lazy 연결 전략 — 미구현
 
 ### 5.3 인증서 생성 세부 사항 — ✅ 구현 완료
 
@@ -245,7 +246,7 @@ pub fn emit_tls_event(sender: &Option<TlsEventSender>, event: TlsEvent) { ... }
 
 **사용법:** `ProxyContext.tls_event_sender`에 `tls_event_channel(buffer)` 로 생성한 sender를 설정하면 이벤트를 수신할 수 있습니다. 현재는 인프라만 구축된 상태이며, 라운드 2에서 Eager/Lazy 전략 자동 조정 등에 활용 예정.
 
-### 5.5 TLS 버전/암호화 스위트 세분화
+### 5.5 TLS 버전/암호화 스위트 세분화 — ✅ 구현 완료
 
 클라이언트↔프록시, 프록시↔서버 방향별 독립 TLS 설정:
 

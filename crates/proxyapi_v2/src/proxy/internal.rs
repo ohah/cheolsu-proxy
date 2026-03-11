@@ -405,6 +405,7 @@ where
                                             let hybrid_handler = match HybridTlsHandler::new(
                                                 Arc::clone(&self.ca),
                                                 self.ctx.tls_event_sender.clone(),
+                                                self.ctx.tls_config.clone(),
                                             )
                                             .await
                                             {
