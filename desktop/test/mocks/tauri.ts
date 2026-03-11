@@ -39,13 +39,24 @@ mock.module("@tauri-apps/api/event", () => ({
   emitTo: mockEmitTo,
 }));
 
-// @tauri-apps/plugin-store mock
+// @tauri-apps/plugin-store mock (메모리 기반)
+const storeData = new Map<string, Map<string, unknown>>();
+
 mock.module("@tauri-apps/plugin-store", () => ({
-  load: mock(() =>
-    Promise.resolve({
-      get: mock(() => Promise.resolve([])),
-      set: mock(() => Promise.resolve()),
+  load: mock((_name: string) => {
+    if (!storeData.has(_name)) storeData.set(_name, new Map());
+    const data = storeData.get(_name)!;
+    return Promise.resolve({
+      get: mock((key: string) => Promise.resolve(data.get(key) ?? null)),
+      set: mock((key: string, value: unknown) => {
+        data.set(key, value);
+        return Promise.resolve();
+      }),
+      delete: mock((key: string) => {
+        data.delete(key);
+        return Promise.resolve();
+      }),
       save: mock(() => Promise.resolve()),
-    }),
-  ),
+    });
+  }),
 }));
