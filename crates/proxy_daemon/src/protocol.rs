@@ -4,6 +4,59 @@ use proxyapi_v2::upstream_proxy::UpstreamProxyConfig;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
+/// 인증서 파일에서 추출한 상세 정보
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct CertificateInfo {
+    /// Subject CN
+    pub subject_cn: Option<String>,
+    /// Issuer CN
+    pub issuer_cn: Option<String>,
+    /// 조직명
+    pub organization: Option<String>,
+    /// DNS SAN 목록
+    pub sans_dns: Vec<String>,
+    /// IP SAN 목록
+    pub sans_ip: Vec<String>,
+    /// 유효기간 시작 (ISO 8601)
+    pub not_before: String,
+    /// 유효기간 끝 (ISO 8601)
+    pub not_after: String,
+    /// 시리얼 넘버 (hex)
+    pub serial_number: String,
+    /// SHA-256 지문 (hex, colon-separated)
+    pub fingerprint_sha256: String,
+    /// CA 인증서 여부
+    pub is_ca: bool,
+    /// 인증서 체인 길이
+    pub chain_length: usize,
+}
+
+/// 프록시가 클라이언트에게 인증서를 요청하는 설정
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct RequestClientCertConfig {
+    /// 활성화 여부
+    pub enabled: bool,
+    /// 클라이언트 인증서를 검증할 CA 인증서 경로 (None이면 모든 인증서 수락)
+    #[serde(default)]
+    pub ca_cert_path: Option<String>,
+    /// 인증서 필수 여부 (false면 선택적 요청 - 인증서 없어도 연결 허용)
+    #[serde(default)]
+    pub required: bool,
+}
+
+/// 도메인별 클라이언트 인증서 설정
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct DomainClientCertConfig {
+    /// 도메인 패턴 (예: "*.example.com", "api.service.io")
+    pub domain_pattern: String,
+    /// 클라이언트 인증서 파일 경로
+    pub cert_path: String,
+    /// 클라이언트 키 파일 경로
+    pub key_path: String,
+    /// 활성화 여부
+    pub enabled: bool,
+}
+
 /// 클라이언트 인증서 설정 (mTLS)
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ClientCertConfig {
@@ -13,6 +66,9 @@ pub struct ClientCertConfig {
     pub key_path: String,
     /// 활성화 여부
     pub enabled: bool,
+    /// 도메인별 인증서 설정 (선택사항)
+    #[serde(default)]
+    pub domain_certs: Vec<DomainClientCertConfig>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -94,6 +150,11 @@ pub enum DaemonMessage {
     /// 데몬에 재연결되었음을 알리는 메시지
     #[serde(rename = "reconnected")]
     Reconnected,
+    /// 클라이언트 인증서 요청 설정 업데이트됨
+    #[serde(rename = "request_client_cert_updated")]
+    RequestClientCertUpdated {
+        config: Option<RequestClientCertConfig>,
+    },
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -180,6 +241,11 @@ pub enum ClientCommand {
     /// 헬스체크 요청
     #[serde(rename = "health_check")]
     HealthCheck,
+    /// 클라이언트 인증서 요청 설정 업데이트 (프록시 → 클라이언트)
+    #[serde(rename = "update_request_client_cert")]
+    UpdateRequestClientCert {
+        config: Option<RequestClientCertConfig>,
+    },
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -840,6 +906,7 @@ mod tests {
             cert_path: "/path/to/cert.pem".to_string(),
             key_path: "/path/to/key.pem".to_string(),
             enabled: true,
+            domain_certs: vec![],
         };
         let json = serde_json::to_string(&config).unwrap();
         let deserialized: ClientCertConfig = serde_json::from_str(&json).unwrap();
@@ -855,6 +922,7 @@ mod tests {
                 cert_path: "/tmp/client.crt".to_string(),
                 key_path: "/tmp/client.key".to_string(),
                 enabled: true,
+                domain_certs: vec![],
             }),
         };
         let json = serde_json::to_string(&cmd).unwrap();
@@ -895,6 +963,7 @@ mod tests {
                 cert_path: "/path/cert.pem".to_string(),
                 key_path: "/path/key.pem".to_string(),
                 enabled: true,
+                domain_certs: vec![],
             }),
         };
         let json = serde_json::to_string(&msg).unwrap();
@@ -1079,6 +1148,171 @@ mod tests {
                 assert_eq!(mappings[0].target_port, Some(3000));
             }
             _ => panic!("Expected HostMappingsUpdated"),
+        }
+    }
+
+    // --- CertificateInfo 테스트 ---
+
+    #[test]
+    fn test_certificate_info_serde_roundtrip() {
+        let info = CertificateInfo {
+            subject_cn: Some("example.com".to_string()),
+            issuer_cn: Some("My CA".to_string()),
+            organization: Some("Example Inc".to_string()),
+            sans_dns: vec!["example.com".to_string(), "*.example.com".to_string()],
+            sans_ip: vec!["127.0.0.1".to_string()],
+            not_before: "2024-01-01T00:00:00Z".to_string(),
+            not_after: "2025-01-01T00:00:00Z".to_string(),
+            serial_number: "01:02:03".to_string(),
+            fingerprint_sha256: "AA:BB:CC".to_string(),
+            is_ca: false,
+            chain_length: 1,
+        };
+        let json = serde_json::to_string(&info).unwrap();
+        let deserialized: CertificateInfo = serde_json::from_str(&json).unwrap();
+        assert_eq!(deserialized.subject_cn, Some("example.com".to_string()));
+        assert_eq!(deserialized.sans_dns.len(), 2);
+        assert_eq!(deserialized.chain_length, 1);
+        assert!(!deserialized.is_ca);
+    }
+
+    // --- DomainClientCertConfig 테스트 ---
+
+    #[test]
+    fn test_domain_client_cert_config_serde_roundtrip() {
+        let config = DomainClientCertConfig {
+            domain_pattern: "*.example.com".to_string(),
+            cert_path: "/path/to/cert.pem".to_string(),
+            key_path: "/path/to/key.pem".to_string(),
+            enabled: true,
+        };
+        let json = serde_json::to_string(&config).unwrap();
+        let deserialized: DomainClientCertConfig = serde_json::from_str(&json).unwrap();
+        assert_eq!(deserialized.domain_pattern, "*.example.com");
+        assert!(deserialized.enabled);
+    }
+
+    #[test]
+    fn test_client_cert_config_with_domain_certs_serde() {
+        let config = ClientCertConfig {
+            cert_path: "/default/cert.pem".to_string(),
+            key_path: "/default/key.pem".to_string(),
+            enabled: true,
+            domain_certs: vec![
+                DomainClientCertConfig {
+                    domain_pattern: "*.api.com".to_string(),
+                    cert_path: "/api/cert.pem".to_string(),
+                    key_path: "/api/key.pem".to_string(),
+                    enabled: true,
+                },
+                DomainClientCertConfig {
+                    domain_pattern: "internal.corp".to_string(),
+                    cert_path: "/corp/cert.pem".to_string(),
+                    key_path: "/corp/key.pem".to_string(),
+                    enabled: false,
+                },
+            ],
+        };
+        let json = serde_json::to_string(&config).unwrap();
+        let deserialized: ClientCertConfig = serde_json::from_str(&json).unwrap();
+        assert_eq!(deserialized.domain_certs.len(), 2);
+        assert_eq!(deserialized.domain_certs[0].domain_pattern, "*.api.com");
+        assert!(!deserialized.domain_certs[1].enabled);
+    }
+
+    #[test]
+    fn test_client_cert_config_backward_compat_no_domain_certs() {
+        // domain_certs 필드가 없는 JSON (하위 호환성)
+        let json = r#"{"cert_path":"/cert.pem","key_path":"/key.pem","enabled":true}"#;
+        let config: ClientCertConfig = serde_json::from_str(json).unwrap();
+        assert_eq!(config.cert_path, "/cert.pem");
+        assert!(config.domain_certs.is_empty());
+    }
+
+    // --- RequestClientCertConfig 테스트 ---
+
+    #[test]
+    fn test_request_client_cert_config_serde_roundtrip() {
+        let config = RequestClientCertConfig {
+            enabled: true,
+            ca_cert_path: Some("/path/to/ca.pem".to_string()),
+            required: true,
+        };
+        let json = serde_json::to_string(&config).unwrap();
+        let deserialized: RequestClientCertConfig = serde_json::from_str(&json).unwrap();
+        assert!(deserialized.enabled);
+        assert_eq!(
+            deserialized.ca_cert_path,
+            Some("/path/to/ca.pem".to_string())
+        );
+        assert!(deserialized.required);
+    }
+
+    #[test]
+    fn test_request_client_cert_config_defaults() {
+        // ca_cert_path와 required가 없는 JSON (기본값 테스트)
+        let json = r#"{"enabled":true}"#;
+        let config: RequestClientCertConfig = serde_json::from_str(json).unwrap();
+        assert!(config.enabled);
+        assert!(config.ca_cert_path.is_none());
+        assert!(!config.required);
+    }
+
+    #[test]
+    fn test_update_request_client_cert_command_serialize() {
+        let cmd = ClientCommand::UpdateRequestClientCert {
+            config: Some(RequestClientCertConfig {
+                enabled: true,
+                ca_cert_path: None,
+                required: false,
+            }),
+        };
+        let json = serde_json::to_string(&cmd).unwrap();
+        assert!(json.contains("update_request_client_cert"));
+
+        let deserialized: ClientCommand = serde_json::from_str(&json).unwrap();
+        match deserialized {
+            ClientCommand::UpdateRequestClientCert { config } => {
+                let config = config.unwrap();
+                assert!(config.enabled);
+                assert!(!config.required);
+            }
+            _ => panic!("Expected UpdateRequestClientCert"),
+        }
+    }
+
+    #[test]
+    fn test_update_request_client_cert_command_none() {
+        let cmd = ClientCommand::UpdateRequestClientCert { config: None };
+        let json = serde_json::to_string(&cmd).unwrap();
+        let deserialized: ClientCommand = serde_json::from_str(&json).unwrap();
+        match deserialized {
+            ClientCommand::UpdateRequestClientCert { config } => {
+                assert!(config.is_none());
+            }
+            _ => panic!("Expected UpdateRequestClientCert"),
+        }
+    }
+
+    #[test]
+    fn test_request_client_cert_updated_message_serialize() {
+        let msg = DaemonMessage::RequestClientCertUpdated {
+            config: Some(RequestClientCertConfig {
+                enabled: true,
+                ca_cert_path: Some("/ca.pem".to_string()),
+                required: true,
+            }),
+        };
+        let json = serde_json::to_string(&msg).unwrap();
+        assert!(json.contains("request_client_cert_updated"));
+
+        let deserialized: DaemonMessage = serde_json::from_str(&json).unwrap();
+        match deserialized {
+            DaemonMessage::RequestClientCertUpdated { config } => {
+                let config = config.unwrap();
+                assert!(config.required);
+            }
+            _ => panic!("Expected RequestClientCertUpdated"),
         }
     }
 }

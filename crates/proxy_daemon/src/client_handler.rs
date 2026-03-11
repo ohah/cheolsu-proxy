@@ -7,7 +7,8 @@ use tracing::{debug, error, info, warn};
 use crate::breakpoint::BreakpointManager;
 use crate::protocol::{
     BreakpointRule, ClientCertConfig, ClientCommand, DaemonMessage, HostMapping, InterceptRule,
-    ProxyAuthConfig, ServerReplayEntry, SslProxyingEntry, TlsPassthroughEntry,
+    ProxyAuthConfig, RequestClientCertConfig, ServerReplayEntry, SslProxyingEntry,
+    TlsPassthroughEntry,
 };
 use proxyapi_v2::throttle::ThrottleConfig;
 use proxyapi_v2::upstream_proxy::UpstreamProxyConfig;
@@ -28,6 +29,7 @@ pub async fn handle_client(
     host_mapping_tx: watch::Sender<Vec<HostMapping>>,
     ssl_proxying_tx: watch::Sender<Vec<SslProxyingEntry>>,
     client_cert_tx: watch::Sender<Option<ClientCertConfig>>,
+    request_client_cert_tx: watch::Sender<Option<RequestClientCertConfig>>,
     event_tx: broadcast::Sender<String>,
     port: u16,
     ws_registry: WebSocketRegistry,
@@ -528,6 +530,23 @@ pub async fn handle_client(
                     Ok(ClientCommand::ClearTlsPassthrough) => {
                         info!("TLS Passthrough 전체 초기화");
                         tls_passthrough.clear_all().await;
+                    }
+                    Ok(ClientCommand::UpdateRequestClientCert { config }) => {
+                        info!(
+                            "Request client cert config updated: enabled={:?}",
+                            config.as_ref().map(|c| c.enabled)
+                        );
+                        if let Err(e) = request_client_cert_tx.send(config.clone()) {
+                            warn!("클라이언트 인증서 요청 설정 watch 채널 전송 실패: {}", e);
+                        }
+                        let broadcast_msg = DaemonMessage::RequestClientCertUpdated { config };
+                        if let Ok(json) = serde_json::to_string(&broadcast_msg) {
+                            if event_tx.receiver_count() > 0 {
+                                if let Err(e) = event_tx.send(json) {
+                                    warn!("클라이언트 인증서 요청 설정 broadcast 전송 실패: {}", e);
+                                }
+                            }
+                        }
                     }
                     Ok(ClientCommand::Stop) => {
                         break;

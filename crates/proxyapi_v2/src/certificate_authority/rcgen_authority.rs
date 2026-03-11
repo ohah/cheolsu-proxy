@@ -16,6 +16,17 @@ use tokio_rustls::rustls::{
 };
 use tracing::{debug, error, info, warn};
 
+/// 클라이언트 인증서 요청 설정 (프록시 → 클라이언트)
+#[derive(Debug, Clone)]
+pub struct ClientCertVerifyConfig {
+    /// 활성화 여부
+    pub enabled: bool,
+    /// 클라이언트 인증서 검증용 CA 인증서 (DER 형식)
+    pub ca_certs: Vec<CertificateDer<'static>>,
+    /// 인증서 필수 여부
+    pub required: bool,
+}
+
 /// Issues certificates for use when communicating with clients.
 ///
 /// Issues certificates for communicating with clients over TLS. Certificates are cached in memory
@@ -46,6 +57,8 @@ pub struct RcgenAuthority {
     #[cfg(feature = "openssl-ca")]
     openssl_ctx_cache: Cache<Authority, Arc<openssl::ssl::SslContext>>,
     provider: Arc<CryptoProvider>,
+    /// 클라이언트 인증서 요청 설정
+    client_cert_verify: Arc<tokio::sync::RwLock<Option<ClientCertVerifyConfig>>>,
 }
 
 impl RcgenAuthority {
@@ -72,7 +85,25 @@ impl RcgenAuthority {
                 .time_to_live(std::time::Duration::from_secs(CACHE_TTL))
                 .build(),
             provider: Arc::new(provider),
+            client_cert_verify: Arc::new(tokio::sync::RwLock::new(None)),
         }
+    }
+
+    /// 클라이언트 인증서 요청 설정을 업데이트합니다.
+    /// 설정 변경 시 캐시를 무효화하여 새 연결에 반영됩니다.
+    pub async fn set_client_cert_verify(&self, config: Option<ClientCertVerifyConfig>) {
+        *self.client_cert_verify.write().await = config;
+        // 설정 변경 시 캐시를 무효화하여 새로운 ServerConfig가 생성되도록 함
+        self.cache.invalidate_all();
+        info!("클라이언트 인증서 요청 설정 업데이트 완료, 캐시 무효화됨");
+    }
+
+    /// 클라이언트 인증서 검증 설정의 Arc 핸들을 반환합니다.
+    /// 외부에서 비동기적으로 설정을 업데이트할 때 사용합니다.
+    pub fn get_client_cert_verify_handle(
+        &self,
+    ) -> Arc<tokio::sync::RwLock<Option<ClientCertVerifyConfig>>> {
+        Arc::clone(&self.client_cert_verify)
     }
 
     fn gen_cert(
@@ -266,12 +297,70 @@ impl CertificateAuthority for RcgenAuthority {
             &tokio_rustls::rustls::version::TLS13,
         ];
 
-        let mut server_cfg = ServerConfig::builder_with_provider(Arc::clone(&self.provider))
-            .with_protocol_versions(&supported_versions)
-            .expect("Failed to specify protocol versions")
-            .with_no_client_auth()
-            .with_single_cert(certs, self.private_key.clone_key())
-            .expect("Failed to build ServerConfig");
+        let mut server_cfg = {
+            let verify_config_guard = self.client_cert_verify.read().await;
+            if let Some(ref verify_config) = *verify_config_guard {
+                if verify_config.enabled {
+                    if verify_config.ca_certs.is_empty() || !verify_config.required {
+                        // 모든 인증서 수락 (선택적 요청) - 인증서 없어도 연결 허용
+                        let verifier = tokio_rustls::rustls::server::WebPkiClientVerifier::builder(
+                            Arc::new(tokio_rustls::rustls::RootCertStore::empty()),
+                        )
+                        .allow_unauthenticated()
+                        .build()
+                        .expect("Failed to build WebPkiClientVerifier (allow_unauthenticated)");
+
+                        info!("🔧 [SERVER-CONFIG] 클라이언트 인증서 선택적 요청 (required=false)");
+                        ServerConfig::builder_with_provider(Arc::clone(&self.provider))
+                            .with_protocol_versions(&supported_versions)
+                            .expect("Failed to specify protocol versions")
+                            .with_client_cert_verifier(verifier)
+                            .with_single_cert(certs, self.private_key.clone_key())
+                            .expect("Failed to build ServerConfig with client cert verifier")
+                    } else {
+                        // CA 기반 검증 (필수)
+                        let mut root_store = tokio_rustls::rustls::RootCertStore::empty();
+                        for ca_cert in &verify_config.ca_certs {
+                            if let Err(e) = root_store.add(ca_cert.clone()) {
+                                warn!("Failed to add CA cert to root store: {:?}", e);
+                            }
+                        }
+                        let verifier = tokio_rustls::rustls::server::WebPkiClientVerifier::builder(
+                            Arc::new(root_store),
+                        )
+                        .build()
+                        .expect("Failed to build WebPkiClientVerifier (required)");
+
+                        info!(
+                            "🔧 [SERVER-CONFIG] 클라이언트 인증서 필수 요청 (CA 검증, {} CA certs)",
+                            verify_config.ca_certs.len()
+                        );
+                        ServerConfig::builder_with_provider(Arc::clone(&self.provider))
+                            .with_protocol_versions(&supported_versions)
+                            .expect("Failed to specify protocol versions")
+                            .with_client_cert_verifier(verifier)
+                            .with_single_cert(certs, self.private_key.clone_key())
+                            .expect("Failed to build ServerConfig with client cert verifier")
+                    }
+                } else {
+                    // 비활성화 - 기존 동작
+                    ServerConfig::builder_with_provider(Arc::clone(&self.provider))
+                        .with_protocol_versions(&supported_versions)
+                        .expect("Failed to specify protocol versions")
+                        .with_no_client_auth()
+                        .with_single_cert(certs, self.private_key.clone_key())
+                        .expect("Failed to build ServerConfig")
+                }
+            } else {
+                // 설정 없음 - 기존 동작
+                ServerConfig::builder_with_provider(Arc::clone(&self.provider))
+                    .with_protocol_versions(&supported_versions)
+                    .expect("Failed to specify protocol versions")
+                    .with_no_client_auth()
+                    .with_single_cert(certs, self.private_key.clone_key())
+                    .expect("Failed to build ServerConfig")
+            }
+        };
 
         info!("🔧 [SERVER-CONFIG] ServerConfig 빌더 생성 완료");
 

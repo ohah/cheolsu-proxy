@@ -1019,6 +1019,32 @@ pub async fn update_client_certificate(
     Ok(())
 }
 
+/// 클라이언트 인증서 요청 설정 업데이트 (프록시 → 클라이언트)
+#[tauri::command]
+pub async fn update_request_client_cert(
+    proxy: State<'_, ProxyV2State>,
+    config: Option<proxy_daemon::RequestClientCertConfig>,
+) -> Result<(), String> {
+    let sender = get_command_sender(&proxy).await?;
+    let cmd = ClientCommand::UpdateRequestClientCert { config };
+    sender.send_command(&cmd).await?;
+    tracing::info!("Daemon에 클라이언트 인증서 요청 설정 업데이트 완료");
+    Ok(())
+}
+
+/// 인증서 파일에서 상세 정보를 파싱합니다
+#[tauri::command]
+pub async fn parse_certificate_info(
+    cert_path: String,
+) -> Result<proxy_daemon::CertificateInfo, String> {
+    tokio::task::spawn_blocking(move || {
+        proxy_daemon::parse_certificate_info(&cert_path)
+            .map_err(|e| format!("인증서 파싱 실패: {}", e))
+    })
+    .await
+    .map_err(|e| format!("파싱 태스크 실패: {}", e))?
+}
+
 /// 빠른 설정 업데이트 (No Caching, Block Cookies, No Gzip)
 #[tauri::command]
 pub async fn update_quick_settings(

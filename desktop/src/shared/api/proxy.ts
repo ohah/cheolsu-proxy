@@ -337,14 +337,54 @@ export async function updateProxyAuth(config: ProxyAuthConfig): Promise<void> {
 
 // ─── Client Certificate (mTLS) ───────────────────────────
 
-export interface ClientCertConfig {
+export interface DomainClientCertConfig {
+  domain_pattern: string;
   cert_path: string;
   key_path: string;
   enabled: boolean;
 }
 
+export interface ClientCertConfig {
+  cert_path: string;
+  key_path: string;
+  enabled: boolean;
+  domain_certs?: DomainClientCertConfig[];
+}
+
 export async function updateClientCertificate(config: ClientCertConfig | null): Promise<void> {
   return invoke("update_client_certificate", { config });
+}
+
+export interface CertificateInfo {
+  subject_cn: string | null;
+  issuer_cn: string | null;
+  organization: string | null;
+  sans_dns: string[];
+  sans_ip: string[];
+  not_before: string;
+  not_after: string;
+  serial_number: string;
+  fingerprint_sha256: string;
+  is_ca: boolean;
+  chain_length: number;
+}
+
+export async function parseCertificateInfo(certPath: string): Promise<CertificateInfo> {
+  return invoke("parse_certificate_info", { certPath });
+}
+
+// ─── Request Client Certificate (Proxy → Client) ────────
+
+export interface RequestClientCertConfig {
+  enabled: boolean;
+  ca_cert_path?: string | null;
+  required: boolean;
+}
+
+export async function updateRequestClientCert(
+  config: RequestClientCertConfig | null,
+): Promise<void> {
+  return invoke("update_request_client_cert", { config });
 }
 
 // ─── Quick Settings ──────────────────────────────────────

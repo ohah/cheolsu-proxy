@@ -7,11 +7,11 @@ use crate::breakpoint::BreakpointManager;
 use crate::error::DaemonError;
 use crate::handler::{LoggingHandler, QuickSettings, WsEvent};
 use crate::protocol::{
-    BreakpointRule, ClientCertConfig, DaemonMessage, HostMapping, InterceptRule, ServerReplayEntry,
-    SslProxyingEntry,
+    BreakpointRule, ClientCertConfig, DaemonMessage, HostMapping, InterceptRule,
+    RequestClientCertConfig, ServerReplayEntry, SslProxyingEntry,
 };
 use crate::tls_client::create_hybrid_client_with_cert;
-use proxyapi_v2::certificate_authority::CertificateAuthority;
+use proxyapi_v2::certificate_authority::{CertificateAuthority, ClientCertVerifyConfig};
 use proxyapi_v2::throttle::ThrottleConfig;
 use proxyapi_v2::upstream_proxy::UpstreamProxyConfig;
 use proxyapi_v2::websocket_registry::WebSocketRegistry;
@@ -36,6 +36,7 @@ pub async fn run_proxy(
     max_concurrent_connections: Option<usize>,
     max_body_size: Option<usize>,
     tls_passthrough: proxyapi_v2::tls_passthrough::TlsPassthrough,
+    request_client_cert_rx: watch::Receiver<Option<RequestClientCertConfig>>,
 ) -> Result<(), DaemonError> {
     use proxyapi_v2::builder::ProxyBuilder;
     use proxyapi_v2::certificate_authority::{
@@ -44,6 +45,39 @@ pub async fn run_proxy(
     use tokio::net::TcpListener;
 
     let ca = build_ca().map_err(|e| DaemonError::Proxy(format!("CA build failed: {}", e)))?;
+
+    // request_client_cert 초기값 적용
+    {
+        let initial_config = request_client_cert_rx.borrow().clone();
+        if let Some(ref config) = initial_config {
+            let verify_config = convert_request_client_cert_config(config);
+            ca.set_client_cert_verify(Some(verify_config)).await;
+        }
+    }
+
+    // request_client_cert 설정 변경 감시
+    // client_cert_verify는 Arc<RwLock>이므로 내부 핸들만 공유하면 됨
+    let client_cert_verify_handle = ca.get_client_cert_verify_handle();
+    let mut req_cert_rx = request_client_cert_rx;
+    tokio::spawn(async move {
+        while req_cert_rx.changed().await.is_ok() {
+            let config = req_cert_rx.borrow().clone();
+            match config {
+                Some(ref cfg) => {
+                    let verify_config = convert_request_client_cert_config(cfg);
+                    *client_cert_verify_handle.write().await = Some(verify_config);
+                    info!(
+                        "Request client cert 설정 업데이트됨: enabled={}, required={}",
+                        cfg.enabled, cfg.required
+                    );
+                }
+                None => {
+                    *client_cert_verify_handle.write().await = None;
+                    info!("Request client cert 설정 해제됨");
+                }
+            }
+        }
+    });
 
     let session_hash = generate_session_hash();
     let cache_dir = get_cache_storage_dir(&session_hash)
@@ -244,4 +278,47 @@ pub async fn run_proxy(
         .map_err(|e| DaemonError::Proxy(format!("Proxy start failed: {}", e)))?;
 
     Ok(())
+}
+
+/// RequestClientCertConfig (프로토콜 레벨) → ClientCertVerifyConfig (CA 레벨) 변환
+fn convert_request_client_cert_config(config: &RequestClientCertConfig) -> ClientCertVerifyConfig {
+    use tokio_rustls::rustls::pki_types::CertificateDer;
+
+    let mut ca_certs = Vec::new();
+
+    if let Some(ref ca_cert_path) = config.ca_cert_path {
+        match std::fs::read(ca_cert_path) {
+            Ok(pem_data) => {
+                // PEM 형식의 CA 인증서를 DER로 변환
+                let mut reader = std::io::BufReader::new(pem_data.as_slice());
+                let certs = rustls_pemfile::certs(&mut reader);
+                for cert_result in certs {
+                    match cert_result {
+                        Ok(cert) => {
+                            ca_certs.push(CertificateDer::from(cert.to_vec()));
+                        }
+                        Err(e) => {
+                            tracing::warn!("CA 인증서 파싱 실패 ({}): {}", ca_cert_path, e);
+                        }
+                    }
+                }
+                if ca_certs.is_empty() {
+                    // PEM이 아닌 DER 형식일 수 있음
+                    ca_certs.push(CertificateDer::from(pem_data));
+                    tracing::info!("CA 인증서를 DER 형식으로 로드: {}", ca_cert_path);
+                } else {
+                    tracing::info!("CA 인증서 {} 개 로드: {}", ca_certs.len(), ca_cert_path);
+                }
+            }
+            Err(e) => {
+                tracing::error!("CA 인증서 파일 읽기 실패 ({}): {}", ca_cert_path, e);
+            }
+        }
+    }
+
+    ClientCertVerifyConfig {
+        enabled: config.enabled,
+        ca_certs,
+        required: config.required,
+    }
 }
