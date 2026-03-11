@@ -376,6 +376,12 @@ pub async fn start_proxy_v2<R: Runtime>(
     let mut proxy_guard = proxy.lock().await;
     proxy_guard.replace(conn);
 
+    // 저장된 설정을 데몬에 동기화
+    if let Some(ref conn) = *proxy_guard {
+        let sender = conn.command_sender();
+        sync_stored_settings_to_daemon(&app, &sender).await;
+    }
+
     let log_path = proxy_daemon::daemon::app_support_dir()
         .map(|d| d.join("daemon.log").display().to_string())
         .unwrap_or_else(|_| "unknown".to_string());
@@ -389,6 +395,193 @@ pub async fn start_proxy_v2<R: Runtime>(
         status: true,
         message: success_message,
     })
+}
+
+/// tauri-plugin-store의 JSON 파일에서 zustand persist 상태를 읽는 헬퍼
+fn read_store_state<R: Runtime>(app: &AppHandle<R>, store_name: &str) -> Option<serde_json::Value> {
+    let app_data = app.path().app_data_dir().ok()?;
+    let store_path = app_data.join(format!("{}.json", store_name));
+    let content = std::fs::read_to_string(&store_path).ok()?;
+    let store_json: serde_json::Value = serde_json::from_str(&content).ok()?;
+    // tauri-plugin-store: { "state": "<zustand_json_string>" }
+    let state_str = store_json.get("state")?.as_str()?;
+    // zustand persist: { "state": { ... }, "version": 0 }
+    let zustand_wrapper: serde_json::Value = serde_json::from_str(state_str).ok()?;
+    zustand_wrapper.get("state").cloned()
+}
+
+/// 프록시 시작 시 저장된 설정을 데몬에 일괄 동기화
+async fn sync_stored_settings_to_daemon<R: Runtime>(app: &AppHandle<R>, sender: &CommandSender) {
+    // 1. Quick Settings + Proxy Auth (cheolsu-app-settings)
+    if let Some(settings) = read_store_state(app, "cheolsu-app-settings") {
+        // Quick Settings
+        let no_caching = settings
+            .get("quickSettingsNoCaching")
+            .and_then(|v| v.as_bool())
+            .unwrap_or(false);
+        let block_cookies = settings
+            .get("quickSettingsBlockCookies")
+            .and_then(|v| v.as_bool())
+            .unwrap_or(false);
+        let no_gzip = settings
+            .get("quickSettingsNoGzip")
+            .and_then(|v| v.as_bool())
+            .unwrap_or(false);
+        let _ = sender
+            .send_command(&ClientCommand::UpdateQuickSettings {
+                no_caching,
+                block_cookies,
+                no_gzip,
+            })
+            .await;
+
+        // Proxy Auth
+        if let Some(auth) = settings.get("proxyAuthConfig") {
+            if let Ok(config) = serde_json::from_value::<ProxyAuthConfig>(auth.clone()) {
+                if config.enabled {
+                    let _ = sender
+                        .send_command(&ClientCommand::UpdateProxyAuth { config })
+                        .await;
+                }
+            }
+        }
+
+        // Throttle
+        if let Some(throttle_cfg) = settings.get("throttleConfig") {
+            let enabled = throttle_cfg
+                .get("enabled")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false);
+            if enabled {
+                let preset = throttle_cfg
+                    .get("preset")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("none");
+                let throttle_config = if preset == "custom" {
+                    let dl = throttle_cfg
+                        .get("download")
+                        .and_then(|v| v.as_str())
+                        .and_then(|s| s.parse::<u64>().ok())
+                        .unwrap_or(0);
+                    let ul = throttle_cfg
+                        .get("upload")
+                        .and_then(|v| v.as_str())
+                        .and_then(|s| s.parse::<u64>().ok())
+                        .unwrap_or(0);
+                    let latency = throttle_cfg
+                        .get("latency")
+                        .and_then(|v| v.as_str())
+                        .and_then(|s| s.parse::<u64>().ok())
+                        .unwrap_or(0);
+                    Some(ThrottleConfig {
+                        enabled: true,
+                        download_rate: if dl > 0 { Some(dl * 1024) } else { None },
+                        upload_rate: if ul > 0 { Some(ul * 1024) } else { None },
+                        latency_ms: latency,
+                    })
+                } else {
+                    // 프리셋 기반 설정은 프론트엔드가 계산하므로 여기서는 스킵
+                    None
+                };
+                if let Some(config) = throttle_config {
+                    let _ = sender
+                        .send_command(&ClientCommand::UpdateThrottle {
+                            config: Some(config),
+                        })
+                        .await;
+                }
+            }
+        }
+
+        // Connection Strategy
+        if let Some(strategy) = settings.get("connectionStrategy").and_then(|v| v.as_str()) {
+            let _ = sender
+                .send_command(&ClientCommand::UpdateConnectionStrategy {
+                    strategy: strategy.to_string(),
+                })
+                .await;
+        }
+
+        // Upstream Proxy
+        if let Some(upstream) = settings.get("upstreamProxyConfig") {
+            let up_enabled = upstream
+                .get("enabled")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false);
+            if up_enabled {
+                if let Ok(config) = serde_json::from_value::<UpstreamProxyConfig>(upstream.clone())
+                {
+                    let _ = sender
+                        .send_command(&ClientCommand::UpdateUpstreamProxy {
+                            config: Some(config),
+                        })
+                        .await;
+                }
+            }
+        }
+    }
+
+    // 2. SSL Proxying (cheolsu-ssl-proxying)
+    if let Some(ssl) = read_store_state(app, "cheolsu-ssl-proxying") {
+        let mode: SslProxyingMode = ssl
+            .get("mode")
+            .and_then(|v| serde_json::from_value(v.clone()).ok())
+            .unwrap_or_default();
+        let entries: Vec<SslProxyingEntry> = ssl
+            .get("entries")
+            .and_then(|v| serde_json::from_value(v.clone()).ok())
+            .unwrap_or_default();
+        let _ = sender
+            .send_command(&ClientCommand::UpdateSslProxyingList { mode, entries })
+            .await;
+    }
+
+    // 3. Host Mappings (cheolsu-host-mappings)
+    if let Some(hm) = read_store_state(app, "cheolsu-host-mappings") {
+        let mappings: Vec<HostMapping> = hm
+            .get("hostMappings")
+            .and_then(|v| serde_json::from_value(v.clone()).ok())
+            .unwrap_or_default();
+        if !mappings.is_empty() {
+            let _ = sender
+                .send_command(&ClientCommand::UpdateHostMappings { mappings })
+                .await;
+        }
+    }
+
+    // 4. Breakpoint Rules (cheolsu-breakpoint-rules)
+    if let Some(bp) = read_store_state(app, "cheolsu-breakpoint-rules") {
+        let rules: Vec<BreakpointRule> = bp
+            .get("rules")
+            .and_then(|v| serde_json::from_value(v.clone()).ok())
+            .unwrap_or_default();
+        if !rules.is_empty() {
+            let _ = sender
+                .send_command(&ClientCommand::UpdateBreakpointRules { rules })
+                .await;
+        }
+    }
+
+    // 5. Server Replay (cheolsu-server-replay)
+    if let Some(sr) = read_store_state(app, "cheolsu-server-replay") {
+        let is_enabled = sr
+            .get("isEnabled")
+            .and_then(|v| v.as_bool())
+            .unwrap_or(false);
+        if is_enabled {
+            let entries: Vec<ServerReplayEntry> = sr
+                .get("entries")
+                .and_then(|v| serde_json::from_value(v.clone()).ok())
+                .unwrap_or_default();
+            if !entries.is_empty() {
+                let _ = sender
+                    .send_command(&ClientCommand::UpdateServerReplay { entries })
+                    .await;
+            }
+        }
+    }
+
+    tracing::info!("저장된 설정을 데몬에 동기화 완료");
 }
 
 /// 프록시 중지: daemon과의 연결 해제
