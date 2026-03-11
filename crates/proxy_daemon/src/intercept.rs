@@ -12,17 +12,6 @@ use tracing::{error, info};
 
 use super::handler::LoggingHandler;
 
-/// 인터셉트 마커 헤더(`x-cheolsu-intercepted`, `x-cheolsu-intercept-rule`)를 삽입하는 헬퍼
-fn insert_intercept_marker(headers: &mut HeaderMap, rule_id: &str) {
-    headers.insert("x-cheolsu-intercepted", HeaderValue::from_static("true"));
-    headers.insert(
-        "x-cheolsu-intercept-rule",
-        rule_id
-            .parse()
-            .unwrap_or_else(|_| HeaderValue::from_static("unknown")),
-    );
-}
-
 /// 헤더 제거 + 추가를 수행하는 공통 헬퍼
 fn apply_header_modifications(
     headers: &mut HeaderMap,
@@ -83,11 +72,14 @@ async fn rewrite_body_bytes(
     None
 }
 
-/// Rewrite 액션의 정규식 컴파일 + 헤더/바디 치환 + 마커 헤더 삽입을 수행하는 공통 매크로.
+/// Rewrite 액션의 정규식 컴파일 + 헤더/바디 치환을 수행하는 공통 매크로.
 /// Request와 Response 모두에서 사용 가능하도록 매크로로 구현한다.
 /// `$msg`에 borrow 분리를 위해 `$msg.headers_mut()`, `$msg.body_mut()` 호출을 분리한다.
+/// `$remove_transfer_encoding`: 바디 rewrite 시 transfer-encoding 헤더 제거 여부.
+///   - 응답(response) 경로에서는 true (기존 동작 유지)
+///   - 요청(request) 경로에서는 false (기존에 transfer-encoding을 제거하지 않았음)
 macro_rules! apply_rewrite_action {
-    ($msg:expr, $match_pattern:expr, $replace_with:expr, $is_header:expr, $rule_id:expr, $log_label:expr, $method:expr, $url:expr, $rule_name:expr) => {
+    ($msg:expr, $match_pattern:expr, $replace_with:expr, $is_header:expr, $remove_transfer_encoding:expr, $rule_id:expr, $log_label:expr, $method:expr, $url:expr, $rule_name:expr) => {
         match Regex::new($match_pattern) {
             Ok(re) => {
                 if $is_header {
@@ -109,12 +101,13 @@ macro_rules! apply_rewrite_action {
                     {
                         $msg.headers_mut().remove("content-length");
                         $msg.headers_mut().remove("content-encoding");
-                        $msg.headers_mut().remove("transfer-encoding");
+                        if $remove_transfer_encoding {
+                            $msg.headers_mut().remove("transfer-encoding");
+                        }
                         use http_body_util::Full;
                         *$msg.body_mut() = Body::from(Full::new(new_bytes));
                     }
                 }
-                insert_intercept_marker($msg.headers_mut(), $rule_id);
             }
             Err(e) => {
                 error!(
@@ -215,7 +208,6 @@ impl LoggingHandler {
                         .status(StatusCode::from_u16(*status_code).unwrap_or(StatusCode::FORBIDDEN))
                         .body(Body::from(body.clone()))
                         .unwrap_or_else(|_| Response::new(Body::empty()));
-                    insert_intercept_marker(response.headers_mut(), &rule.id);
                     // Content-Type 설정
                     if !body.is_empty() {
                         if body.starts_with('{') || body.starts_with('[') {
@@ -268,6 +260,7 @@ impl LoggingHandler {
                         match_pattern,
                         replace_with,
                         *target == RewriteTarget::RequestHeader,
+                        false,
                         &rule.id,
                         "요청",
                         method,
@@ -314,10 +307,9 @@ impl LoggingHandler {
                                 }
                             }
 
-                            let mut resp = response
+                            let resp = response
                                 .body(Body::from(http_body_util::Full::new(file_bytes)))
                                 .unwrap_or_else(|_| Response::new(Body::empty()));
-                            insert_intercept_marker(resp.headers_mut(), &rule.id);
                             return resp.into();
                         }
                         Err(e) => {
@@ -325,7 +317,7 @@ impl LoggingHandler {
                                 "[Intercept] Map Local 파일 읽기 실패: {} - {}",
                                 file_path, e
                             );
-                            let mut err_resp = Response::builder()
+                            let err_resp = Response::builder()
                                 .status(StatusCode::NOT_FOUND)
                                 .header("x-cheolsu-map-local-error", e.to_string())
                                 .body(Body::from(format!(
@@ -333,9 +325,6 @@ impl LoggingHandler {
                                     file_path
                                 )))
                                 .unwrap_or_else(|_| Response::new(Body::empty()));
-                            err_resp
-                                .headers_mut()
-                                .insert("x-cheolsu-intercepted", HeaderValue::from_static("true"));
                             return err_resp.into();
                         }
                     }
@@ -378,7 +367,6 @@ impl LoggingHandler {
                                     .insert(proxyapi_v2::hyper::header::HOST, host_value);
                             }
                         }
-                        insert_intercept_marker(current_req.headers_mut(), &rule.id);
                         current_req.headers_mut().insert(
                             "x-cheolsu-map-remote-original",
                             url.parse()
@@ -435,8 +423,6 @@ impl LoggingHandler {
                     res.headers_mut().remove("transfer-encoding");
                     *res.body_mut() = Body::from(Full::new(body_bytes));
                 }
-
-                insert_intercept_marker(res.headers_mut(), &rule.id);
             }
 
             if let InterceptAction::Rewrite {
@@ -453,6 +439,7 @@ impl LoggingHandler {
                         match_pattern,
                         replace_with,
                         *target == RewriteTarget::ResponseHeader,
+                        true,
                         &rule.id,
                         "응답",
                         method,
