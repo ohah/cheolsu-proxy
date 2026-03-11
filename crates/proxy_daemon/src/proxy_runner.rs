@@ -50,22 +50,24 @@ pub async fn run_proxy(
     {
         let initial_config = request_client_cert_rx.borrow().clone();
         if let Some(ref config) = initial_config {
-            let verify_config = convert_request_client_cert_config(config);
+            let verify_config = convert_request_client_cert_config(config).await;
             ca.set_client_cert_verify(Some(verify_config)).await;
         }
     }
 
     // request_client_cert 설정 변경 감시
-    // client_cert_verify는 Arc<RwLock>이므로 내부 핸들만 공유하면 됨
+    // client_cert_verify + cache 핸들을 함께 사용하여 캐시 무효화도 수행
     let client_cert_verify_handle = ca.get_client_cert_verify_handle();
+    let cache_handle = ca.get_cache_handle();
     let mut req_cert_rx = request_client_cert_rx;
     tokio::spawn(async move {
         while req_cert_rx.changed().await.is_ok() {
             let config = req_cert_rx.borrow().clone();
             match config {
                 Some(ref cfg) => {
-                    let verify_config = convert_request_client_cert_config(cfg);
+                    let verify_config = convert_request_client_cert_config(cfg).await;
                     *client_cert_verify_handle.write().await = Some(verify_config);
+                    cache_handle.invalidate_all();
                     info!(
                         "Request client cert 설정 업데이트됨: enabled={}, required={}",
                         cfg.enabled, cfg.required
@@ -73,6 +75,7 @@ pub async fn run_proxy(
                 }
                 None => {
                     *client_cert_verify_handle.write().await = None;
+                    cache_handle.invalidate_all();
                     info!("Request client cert 설정 해제됨");
                 }
             }
@@ -281,13 +284,15 @@ pub async fn run_proxy(
 }
 
 /// RequestClientCertConfig (프로토콜 레벨) → ClientCertVerifyConfig (CA 레벨) 변환
-fn convert_request_client_cert_config(config: &RequestClientCertConfig) -> ClientCertVerifyConfig {
+async fn convert_request_client_cert_config(
+    config: &RequestClientCertConfig,
+) -> ClientCertVerifyConfig {
     use tokio_rustls::rustls::pki_types::CertificateDer;
 
     let mut ca_certs = Vec::new();
 
     if let Some(ref ca_cert_path) = config.ca_cert_path {
-        match std::fs::read(ca_cert_path) {
+        match tokio::fs::read(ca_cert_path).await {
             Ok(pem_data) => {
                 // PEM 형식의 CA 인증서를 DER로 변환
                 let mut reader = std::io::BufReader::new(pem_data.as_slice());

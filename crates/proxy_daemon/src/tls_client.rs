@@ -94,29 +94,28 @@ fn build_certified_key(
     Ok(CertifiedKey::new(certs, signing_key))
 }
 
-/// 도메인 패턴별 클라이언트 인증서를 선택하는 리졸버
+/// 클라이언트 인증서 리졸버
+///
+/// NOTE: `ResolvesClientCert` 트레잇은 서버의 CertificateRequest에서 acceptable CA 목록만
+/// 제공하므로 도메인 기반 매칭이 불가합니다. 도메인별 인증서는 향후 per-connection
+/// ClientConfig 방식으로 확장 예정입니다. 현재는 기본 인증서만 반환합니다.
 #[derive(Debug)]
-struct DomainCertResolver {
+struct DefaultCertResolver {
     /// 기본 인증서 (글로벌 설정)
     default_cert: Option<Arc<CertifiedKey>>,
-    /// 도메인 패턴 -> 인증서 매핑
-    domain_certs: Vec<(String, Arc<CertifiedKey>)>,
 }
 
-impl ResolvesClientCert for DomainCertResolver {
+impl ResolvesClientCert for DefaultCertResolver {
     fn resolve(
         &self,
         _root_hint_subjects: &[&[u8]],
         _sigschemes: &[SignatureScheme],
     ) -> Option<Arc<CertifiedKey>> {
-        // NOTE: ResolvesClientCert는 서버가 CertificateRequest를 보낼 때 호출됨
-        // 서버의 acceptable CA 목록(root_hint_subjects)으로는 도메인 매칭이 불가하므로
-        // 기본 인증서를 반환. 도메인별 인증서는 per-connection ClientConfig으로 확장 가능.
         self.default_cert.clone()
     }
 
     fn has_certs(&self) -> bool {
-        self.default_cert.is_some() || !self.domain_certs.is_empty()
+        self.default_cert.is_some()
     }
 }
 
@@ -211,17 +210,16 @@ pub fn parse_certificate_info(
         }
     }
 
-    // 유효기간
-    let not_before = cert
-        .validity()
-        .not_before
-        .to_rfc2822()
-        .unwrap_or_else(|_| format!("{}", cert.validity().not_before));
-    let not_after = cert
-        .validity()
-        .not_after
-        .to_rfc2822()
-        .unwrap_or_else(|_| format!("{}", cert.validity().not_after));
+    // 유효기간 (ISO 8601 형식 - JavaScript Date에서 파싱 가능)
+    let format_asn1_time = |asn1_time: &x509_parser::time::ASN1Time| -> String {
+        // ASN1Time의 Display는 "YYYY-MM-DD HH:MM:SS UTC" 형식
+        // JavaScript Date()가 안전하게 파싱하도록 ISO 8601로 변환
+        let s = format!("{}", asn1_time);
+        // "2026-03-11 00:00:00 UTC" → "2026-03-11T00:00:00Z"
+        s.replace(" UTC", "Z").replacen(' ', "T", 1)
+    };
+    let not_before = format_asn1_time(&cert.validity().not_before);
+    let not_after = format_asn1_time(&cert.validity().not_after);
 
     // 시리얼 넘버
     let serial_number = cert.raw_serial_as_string();
@@ -375,19 +373,19 @@ pub fn create_hybrid_client_with_cert(
                     }
                 };
 
-            // 도메인별 인증서 로드
-            let mut domain_certs = Vec::new();
+            // 도메인별 인증서는 로드하여 로그만 남김 (검증 목적)
+            // NOTE: 실제 도메인 매칭은 ResolvesClientCert 트레잇 한계로 미지원
+            // 향후 per-connection ClientConfig 방식으로 확장 예정
             for dc in &cert_config.domain_certs {
                 if !dc.enabled {
                     continue;
                 }
                 match build_certified_key(&dc.cert_path, &dc.key_path) {
-                    Ok(key) => {
+                    Ok(_) => {
                         info!(
-                            "도메인 인증서 로드 성공: pattern={}, cert={}",
+                            "도메인 인증서 검증 성공: pattern={}, cert={}",
                             dc.domain_pattern, dc.cert_path
                         );
-                        domain_certs.push((dc.domain_pattern.clone(), Arc::new(key)));
                     }
                     Err(e) => {
                         error!("도메인 인증서 로드 실패 ({}): {}", dc.domain_pattern, e);
@@ -395,10 +393,7 @@ pub fn create_hybrid_client_with_cert(
                 }
             }
 
-            let resolver = DomainCertResolver {
-                default_cert,
-                domain_certs,
-            };
+            let resolver = DefaultCertResolver { default_cert };
             config_builder.with_client_cert_resolver(Arc::new(resolver))
         } else {
             config_builder.with_no_client_auth()
@@ -657,48 +652,27 @@ mod tests {
         let _ = result;
     }
 
-    // --- DomainCertResolver 테스트 ---
+    // --- DefaultCertResolver 테스트 ---
 
     #[test]
-    fn test_domain_cert_resolver_with_default() {
+    fn test_default_cert_resolver_with_cert() {
         let (cert_file, key_file) = create_test_cert_files();
         let key = build_certified_key(
             cert_file.path().to_str().unwrap(),
             key_file.path().to_str().unwrap(),
         )
         .unwrap();
-        let resolver = DomainCertResolver {
+        let resolver = DefaultCertResolver {
             default_cert: Some(Arc::new(key)),
-            domain_certs: vec![],
         };
         assert!(resolver.has_certs());
         assert!(resolver.resolve(&[], &[]).is_some());
     }
 
     #[test]
-    fn test_domain_cert_resolver_without_default() {
-        let resolver = DomainCertResolver {
-            default_cert: None,
-            domain_certs: vec![],
-        };
+    fn test_default_cert_resolver_without_cert() {
+        let resolver = DefaultCertResolver { default_cert: None };
         assert!(!resolver.has_certs());
-        assert!(resolver.resolve(&[], &[]).is_none());
-    }
-
-    #[test]
-    fn test_domain_cert_resolver_with_domain_certs_only() {
-        let (cert_file, key_file) = create_test_cert_files();
-        let key = build_certified_key(
-            cert_file.path().to_str().unwrap(),
-            key_file.path().to_str().unwrap(),
-        )
-        .unwrap();
-        let resolver = DomainCertResolver {
-            default_cert: None,
-            domain_certs: vec![("*.example.com".to_string(), Arc::new(key))],
-        };
-        assert!(resolver.has_certs());
-        // 기본 인증서가 없으면 None 반환 (현재 구현)
         assert!(resolver.resolve(&[], &[]).is_none());
     }
 }
