@@ -113,6 +113,7 @@ pub async fn start_https_server(
     let acceptor: tokio_rustls::TlsAcceptor = ca
         .gen_server_config(&"localhost".parse().unwrap(), None)
         .await
+        .map_err(|e| -> Box<dyn std::error::Error> { e })?
         .into();
     let (tx, rx) = tokio::sync::oneshot::channel();
 
