@@ -21,6 +21,7 @@ import {
   ScrollArea,
   Separator,
 } from "@/shared/ui";
+import { sanitizeHopByHopHeaders } from "@/shared/lib/http-headers";
 import { getStatusColor } from "@/entities/transaction";
 import { uint8ArrayToString } from "../lib";
 
@@ -35,22 +36,7 @@ function transactionToReplayParams(transaction: HttpTransaction): ReplayRequestP
   const { request } = transaction;
   if (!request) return null;
 
-  const headers = { ...request.headers };
-  // hop-by-hop 헤더 제거
-  for (const key of [
-    "host",
-    "connection",
-    "keep-alive",
-    "proxy-authenticate",
-    "proxy-authorization",
-    "te",
-    "trailers",
-    "transfer-encoding",
-    "upgrade",
-  ]) {
-    delete headers[key];
-    delete headers[key.charAt(0).toUpperCase() + key.slice(1)];
-  }
+  const headers = sanitizeHopByHopHeaders(request.headers);
 
   let body: string | undefined;
   if (request.body && request.data_type && isTextBasedDataType(request.data_type)) {

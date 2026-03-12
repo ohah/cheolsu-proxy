@@ -18,21 +18,21 @@ msgid " (preserve path)"
 msgstr " (preserve path)"
 
 #. placeholder {0}: result.failure_count
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:270
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:257
 msgid "{0} failed"
 msgstr "{0} failed"
 
 #. placeholder {0}: transactions.length
-#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:130
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:116
 msgid "{0} requests will be sent sequentially."
 msgstr "{0} requests will be sent sequentially."
 
 #. placeholder {0}: result.success_count
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:263
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:250
 msgid "{0} succeeded"
 msgstr "{0} succeeded"
 
-#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:179
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:165
 msgid "{failCount} failed"
 msgstr "{failCount} failed"
 
@@ -44,7 +44,7 @@ msgstr "{filteredCount} of {totalCount} transactions"
 msgid "{label} copied to clipboard"
 msgstr "{label} copied to clipboard"
 
-#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:172
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:158
 msgid "{successCount} succeeded"
 msgstr "{successCount} succeeded"
 
@@ -71,11 +71,11 @@ msgid "Action"
 msgstr "Action"
 
 #: src/pages/script/ui/script-page.tsx:170
-#: src/pages/settings/ui/components/certificate-settings.tsx:545
+#: src/pages/settings/ui/components/custom-ca-section.tsx:147
 msgid "Active"
 msgstr "Active"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:542
+#: src/pages/settings/ui/components/custom-ca-section.tsx:144
 msgid "Active Custom CA"
 msgstr "Active Custom CA"
 
@@ -165,12 +165,12 @@ msgstr "Added"
 msgid "Added to server replay"
 msgstr "Added to server replay"
 
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:148
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:135
 #: src/widgets/network-table/ui/table-row.tsx:156
 msgid "Advanced Repeat"
 msgstr "Advanced Repeat"
 
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:125
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:112
 msgid "Advanced repeat failed"
 msgstr "Advanced repeat failed"
 
@@ -285,13 +285,13 @@ msgid "Breakpoints"
 msgstr "Breakpoints"
 
 #: src/pages/script/ui/script-page.tsx:263
-#: src/pages/settings/ui/components/certificate-settings.tsx:622
-#: src/pages/settings/ui/components/certificate-settings.tsx:638
-#: src/pages/settings/ui/components/certificate-settings.tsx:657
 #: src/pages/settings/ui/components/client-certificate-section.tsx:161
 #: src/pages/settings/ui/components/client-certificate-section.tsx:175
 #: src/pages/settings/ui/components/client-certificate-section.tsx:301
 #: src/pages/settings/ui/components/client-certificate-section.tsx:314
+#: src/pages/settings/ui/components/custom-ca-section.tsx:224
+#: src/pages/settings/ui/components/custom-ca-section.tsx:240
+#: src/pages/settings/ui/components/custom-ca-section.tsx:259
 #: src/pages/settings/ui/components/request-client-cert-section.tsx:58
 msgid "Browse"
 msgstr "Browse"
@@ -304,11 +304,11 @@ msgstr "Bypass List"
 msgid "bytes body"
 msgstr "bytes body"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:112
+#: src/pages/settings/ui/components/certificate-settings.tsx:107
 msgid "CA Certificate"
 msgstr "CA Certificate"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:612
+#: src/pages/settings/ui/components/custom-ca-section.tsx:214
 msgid "CA Certificate File"
 msgstr "CA Certificate File"
 
@@ -316,7 +316,7 @@ msgstr "CA Certificate File"
 msgid "CA Certificate File (optional)"
 msgstr "CA Certificate File (optional)"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:628
+#: src/pages/settings/ui/components/custom-ca-section.tsx:230
 msgid "CA Key File"
 msgstr "CA Key File"
 
@@ -324,7 +324,7 @@ msgstr "CA Key File"
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:255
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:137
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:137
-#: src/pages/log-viewer/ui/logs-page.tsx:469
+#: src/pages/log-viewer/ui/logs-page.tsx:464
 #: src/pages/settings/ui/components/shortcut-section.tsx:117
 msgid "Cancel"
 msgstr "Cancel"
@@ -341,7 +341,7 @@ msgstr "Certificate"
 msgid "Certificate Details"
 msgstr "Certificate Details"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:395
+#: src/pages/settings/ui/components/certificate-settings.tsx:390
 msgid "Certificate Download URL"
 msgstr "Certificate Download URL"
 
@@ -377,7 +377,7 @@ msgstr "Cheolsu Proxy Logo"
 msgid "Claude Code (CLI)"
 msgstr "Claude Code (CLI)"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:256
+#: src/pages/log-viewer/ui/logs-page.tsx:251
 #: src/pages/script/ui/script-page.tsx:298
 #: src/pages/settings/ui/components/request-client-cert-section.tsx:68
 msgid "Clear"
@@ -388,7 +388,7 @@ msgid "Clear all"
 msgstr "Clear all"
 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:108
-#: src/pages/log-viewer/ui/logs-page.tsx:286
+#: src/pages/log-viewer/ui/logs-page.tsx:281
 #: src/pages/server-replay/ui/server-replay-page.tsx:105
 #: src/shared/ui/rule-list-page.tsx:69
 msgid "Clear All"
@@ -410,8 +410,8 @@ msgstr "Clients must provide these credentials via Proxy-Authorization header (H
 msgid "Clients without a valid certificate will be rejected"
 msgstr "Clients without a valid certificate will be rejected"
 
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:383
-#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:254
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:370
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:240
 #: src/features/transaction-details/ui/transaction-header.tsx:63
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:131
 msgid "Close"
@@ -442,7 +442,7 @@ msgstr "Compose request"
 msgid "Compose Request"
 msgstr "Compose Request"
 
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:182
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:169
 msgid "Concurrency"
 msgstr "Concurrency"
 
@@ -476,7 +476,7 @@ msgstr "Console"
 msgid "Controls when the proxy connects to upstream servers for certificate sniffing"
 msgstr "Controls when the proxy connects to upstream servers for certificate sniffing"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:239
+#: src/pages/settings/ui/components/certificate-settings.tsx:234
 msgid "Copied!"
 msgstr "Copied!"
 
@@ -501,7 +501,7 @@ msgstr "Copy Headers"
 msgid "Copy to clipboard"
 msgstr "Copy to clipboard"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:239
+#: src/pages/settings/ui/components/certificate-settings.tsx:234
 msgid "Copy URL"
 msgstr "Copy URL"
 
@@ -517,7 +517,7 @@ msgstr "Curl command copied to clipboard"
 msgid "Custom body"
 msgstr "Custom body"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:530
+#: src/pages/settings/ui/components/custom-ca-section.tsx:132
 msgid "Custom CA Certificate"
 msgstr "Custom CA Certificate"
 
@@ -529,21 +529,21 @@ msgstr "Dark"
 msgid "Data"
 msgstr "Data"
 
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:199
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:186
 msgid "Delay between requests (ms)"
 msgstr "Delay between requests (ms)"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:265
-#: src/pages/log-viewer/ui/logs-page.tsx:473
+#: src/pages/log-viewer/ui/logs-page.tsx:260
+#: src/pages/log-viewer/ui/logs-page.tsx:468
 msgid "Delete"
 msgstr "Delete"
 
 #. placeholder {0}: selectedFile?.name
-#: src/pages/log-viewer/ui/logs-page.tsx:463
+#: src/pages/log-viewer/ui/logs-page.tsx:458
 msgid "Delete \"{0}\"? This action cannot be undone."
 msgstr "Delete \"{0}\"? This action cannot be undone."
 
-#: src/pages/log-viewer/ui/logs-page.tsx:460
+#: src/pages/log-viewer/ui/logs-page.tsx:455
 msgid "Delete Log File"
 msgstr "Delete Log File"
 
@@ -585,7 +585,7 @@ msgstr "Disconnected"
 msgid "Display CONNECT tunnel requests in the network list"
 msgstr "Display CONNECT tunnel requests in the network list"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:419
+#: src/pages/log-viewer/ui/logs-page.tsx:414
 msgid "Domain"
 msgstr "Domain"
 
@@ -597,7 +597,7 @@ msgstr "Domain-specific Certificates"
 msgid "Domains in this list will NOT be intercepted (pass-through). OAuth domains like accounts.google.com are always excluded by default."
 msgstr "Domains in this list will NOT be intercepted (pass-through). OAuth domains like accounts.google.com are always excluded by default."
 
-#: src/pages/log-viewer/ui/logs-page.tsx:403
+#: src/pages/log-viewer/ui/logs-page.tsx:398
 msgid "Domains that failed TLS handshake are automatically tunneled without MITM decryption. You can remove entries to retry MITM for specific domains."
 msgstr "Domains that failed TLS handshake are automatically tunneled without MITM decryption. You can remove entries to retry MITM for specific domains."
 
@@ -631,7 +631,7 @@ msgstr "Edit Rule"
 msgid "Editor"
 msgstr "Editor"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:314
+#: src/pages/settings/ui/components/certificate-settings.tsx:309
 msgid "Enable full trust for the Cheolsu Proxy CA certificate"
 msgstr "Enable full trust for the Cheolsu Proxy CA certificate"
 
@@ -669,7 +669,7 @@ msgstr "Expand sidebar"
 msgid "Export HAR"
 msgstr "Export HAR"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:686
+#: src/pages/settings/ui/components/custom-ca-section.tsx:288
 msgid "Failed"
 msgstr "Failed"
 
@@ -694,7 +694,7 @@ msgstr "Failed to read file: {0}"
 msgid "Failed to send"
 msgstr "Failed to send"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:422
+#: src/pages/log-viewer/ui/logs-page.tsx:417
 msgid "Failures"
 msgstr "Failures"
 
@@ -702,7 +702,7 @@ msgstr "Failures"
 msgid "File"
 msgstr "File"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:367
+#: src/pages/log-viewer/ui/logs-page.tsx:362
 msgid "Filter log lines..."
 msgstr "Filter log lines..."
 
@@ -710,8 +710,8 @@ msgstr "Filter log lines..."
 msgid "For Cursor, Claude Desktop, and other MCP-compatible clients:"
 msgstr "For Cursor, Claude Desktop, and other MCP-compatible clients:"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:257
-#: src/pages/settings/ui/components/certificate-settings.tsx:261
+#: src/pages/settings/ui/components/certificate-settings.tsx:252
+#: src/pages/settings/ui/components/certificate-settings.tsx:256
 msgid "format"
 msgstr "format"
 
@@ -732,15 +732,15 @@ msgstr "General"
 msgid "Global Shortcut"
 msgstr "Global Shortcut"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:308
+#: src/pages/settings/ui/components/certificate-settings.tsx:303
 msgid "Go to <0>Settings → General → About → Certificate Trust Settings</0>"
 msgstr "Go to <0>Settings → General → About → Certificate Trust Settings</0>"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:300
+#: src/pages/settings/ui/components/certificate-settings.tsx:295
 msgid "Go to <0>Settings → General → VPN & Device Management</0>"
 msgstr "Go to <0>Settings → General → VPN & Device Management</0>"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:348
+#: src/pages/settings/ui/components/certificate-settings.tsx:343
 msgid "Go to <0>Settings → Security → Encryption & credentials</0>"
 msgstr "Go to <0>Settings → Security → Encryption & credentials</0>"
 
@@ -817,7 +817,7 @@ msgstr "HTTPie"
 msgid "If not specified, any client certificate will be accepted without verification"
 msgstr "If not specified, any client certificate will be accepted without verification"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:677
+#: src/pages/settings/ui/components/custom-ca-section.tsx:279
 msgid "Import"
 msgstr "Import"
 
@@ -825,11 +825,11 @@ msgstr "Import"
 msgid "Import HAR"
 msgstr "Import HAR"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:681
+#: src/pages/settings/ui/components/custom-ca-section.tsx:283
 msgid "Imported"
 msgstr "Imported"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:677
+#: src/pages/settings/ui/components/custom-ca-section.tsx:279
 msgid "Importing..."
 msgstr "Importing..."
 
@@ -837,17 +837,17 @@ msgstr "Importing..."
 msgid "Inactive"
 msgstr "Inactive"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:125
+#: src/pages/settings/ui/components/certificate-settings.tsx:120
 #: src/pages/settings/ui/components/cli-settings.tsx:61
 msgid "Install"
 msgstr "Install"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:201
+#: src/pages/settings/ui/components/certificate-settings.tsx:196
 msgid "Install and trust the downloaded certificate"
 msgstr "Install and trust the downloaded certificate"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:280
-#: src/pages/settings/ui/components/certificate-settings.tsx:330
+#: src/pages/settings/ui/components/certificate-settings.tsx:275
+#: src/pages/settings/ui/components/certificate-settings.tsx:325
 msgid "Install Guide"
 msgstr "Install Guide"
 
@@ -855,11 +855,11 @@ msgstr "Install Guide"
 msgid "Install the <0>cheolsu</0> command to use the TUI from your terminal"
 msgstr "Install the <0>cheolsu</0> command to use the TUI from your terminal"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:158
+#: src/pages/settings/ui/components/certificate-settings.tsx:153
 msgid "Install the CA certificate on external devices (mobile, tablet) to intercept HTTPS traffic"
 msgstr "Install the CA certificate on external devices (mobile, tablet) to intercept HTTPS traffic"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:115
+#: src/pages/settings/ui/components/certificate-settings.tsx:110
 msgid "Install the CA certificate to trust HTTPS traffic intercepted by the proxy"
 msgstr "Install the CA certificate to trust HTTPS traffic intercepted by the proxy"
 
@@ -867,7 +867,7 @@ msgstr "Install the CA certificate to trust HTTPS traffic intercepted by the pro
 msgid "Installed"
 msgstr "Installed"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:125
+#: src/pages/settings/ui/components/certificate-settings.tsx:120
 #: src/pages/settings/ui/components/cli-settings.tsx:61
 msgid "Installing..."
 msgstr "Installing..."
@@ -881,7 +881,7 @@ msgstr "Intercept Rules"
 msgid "Issuer"
 msgstr "Issuer"
 
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:165
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:152
 msgid "Iterations"
 msgstr "Iterations"
 
@@ -913,7 +913,7 @@ msgstr "Latency (ms)"
 msgid "Light"
 msgstr "Light"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:374
+#: src/pages/log-viewer/ui/logs-page.tsx:369
 msgid "lines"
 msgstr "lines"
 
@@ -943,7 +943,7 @@ msgstr "Loading certificate info..."
 
 #: src/pages/script/ui/script-page.tsx:214
 #: src/pages/script/ui/script-page.tsx:266
-#: src/pages/settings/ui/components/certificate-settings.tsx:173
+#: src/pages/settings/ui/components/certificate-settings.tsx:168
 msgid "Loading..."
 msgstr "Loading..."
 
@@ -955,8 +955,8 @@ msgstr "Local File Path"
 msgid "localhost, 127.0.0.1, *.internal.com"
 msgstr "localhost, 127.0.0.1, *.internal.com"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:303
-#: src/pages/log-viewer/ui/logs-page.tsx:330
+#: src/pages/log-viewer/ui/logs-page.tsx:298
+#: src/pages/log-viewer/ui/logs-page.tsx:325
 msgid "Log Files"
 msgstr "Log Files"
 
@@ -964,7 +964,7 @@ msgstr "Log Files"
 msgid "Logical OR:"
 msgstr "Logical OR:"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:241
+#: src/pages/log-viewer/ui/logs-page.tsx:236
 #: src/shared/app-sidebar/model/consts.ts:86
 msgid "Logs"
 msgstr "Logs"
@@ -1063,7 +1063,7 @@ msgstr "messages"
 msgid "Method"
 msgstr "Method"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:210
+#: src/pages/settings/ui/components/certificate-settings.tsx:205
 msgid "Mobile Certificate Install"
 msgstr "Mobile Certificate Install"
 
@@ -1137,7 +1137,7 @@ msgstr "No host mappings"
 msgid "No intercept rules"
 msgstr "No intercept rules"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:335
+#: src/pages/log-viewer/ui/logs-page.tsx:330
 msgid "No log files found"
 msgstr "No log files found"
 
@@ -1157,7 +1157,7 @@ msgstr "No phase selected"
 msgid "No replay entries"
 msgstr "No replay entries"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:411
+#: src/pages/log-viewer/ui/logs-page.tsx:406
 msgid "No TLS passthrough entries"
 msgstr "No TLS passthrough entries"
 
@@ -1165,23 +1165,23 @@ msgstr "No TLS passthrough entries"
 msgid "No transactions to display"
 msgstr "No transactions to display"
 
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:96
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:83
 msgid "No valid request to replay"
 msgstr "No valid request to replay"
 
-#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:91
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:77
 msgid "No valid requests to replay"
 msgstr "No valid requests to replay"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:139
+#: src/pages/settings/ui/components/certificate-settings.tsx:134
 msgid "Not Trusted"
 msgstr "Not Trusted"
 
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:192
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:179
 msgid "Number of simultaneous requests (1-100)"
 msgstr "Number of simultaneous requests (1-100)"
 
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:175
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:162
 msgid "Number of times to send the request (1-10000)"
 msgstr "Number of times to send the request (1-10000)"
 
@@ -1197,19 +1197,19 @@ msgstr "Only http:// and https:// URLs are allowed"
 msgid "Only whitelisted domains ({enabledCount}) will have HTTPS traffic intercepted"
 msgstr "Only whitelisted domains ({enabledCount}) will have HTTPS traffic intercepted"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:340
+#: src/pages/settings/ui/components/certificate-settings.tsx:335
 msgid "Open <0>{CERT_DOWNLOAD_URL}</0> in Chrome"
 msgstr "Open <0>{CERT_DOWNLOAD_URL}</0> in Chrome"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:290
+#: src/pages/settings/ui/components/certificate-settings.tsx:285
 msgid "Open <0>{CERT_DOWNLOAD_URL}</0> in Safari"
 msgstr "Open <0>{CERT_DOWNLOAD_URL}</0> in Safari"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:192
+#: src/pages/settings/ui/components/certificate-settings.tsx:187
 msgid "Open <0>{CERT_DOWNLOAD_URL}</0> in your device browser"
 msgstr "Open <0>{CERT_DOWNLOAD_URL}</0> in your device browser"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:269
+#: src/pages/log-viewer/ui/logs-page.tsx:264
 msgid "Open Directory"
 msgstr "Open Directory"
 
@@ -1217,7 +1217,7 @@ msgstr "Open Directory"
 msgid "Open File"
 msgstr "Open File"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:248
+#: src/pages/settings/ui/components/certificate-settings.tsx:243
 msgid "Open this URL in your mobile browser after setting the Wi-Fi proxy. The page automatically detects your device and provides the correct certificate format."
 msgstr "Open this URL in your mobile browser after setting the Wi-Fi proxy. The page automatically detects your device and provides the correct certificate format."
 
@@ -1226,8 +1226,8 @@ msgstr "Open this URL in your mobile browser after setting the Wi-Fi proxy. The 
 msgid "optional"
 msgstr "optional"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:558
 #: src/pages/settings/ui/components/client-certificate-section.tsx:208
+#: src/pages/settings/ui/components/custom-ca-section.tsx:160
 msgid "Organization"
 msgstr "Organization"
 
@@ -1235,7 +1235,7 @@ msgstr "Organization"
 msgid "Original"
 msgstr "Original"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:663
+#: src/pages/settings/ui/components/custom-ca-section.tsx:265
 #: src/pages/settings/ui/components/proxy-auth-section.tsx:38
 #: src/pages/settings/ui/components/proxy-auth-section.tsx:42
 #: src/pages/settings/ui/components/upstream-proxy-section.tsx:62
@@ -1279,19 +1279,19 @@ msgstr "Pending Breakpoints"
 msgid "Pin to Top"
 msgstr "Pin to Top"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:647
+#: src/pages/settings/ui/components/custom-ca-section.tsx:249
 msgid "PKCS12 File"
 msgstr "PKCS12 File"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:667
+#: src/pages/settings/ui/components/custom-ca-section.tsx:269
 msgid "PKCS12 password (leave empty if none)"
 msgstr "PKCS12 password (leave empty if none)"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:487
+#: src/pages/settings/ui/components/custom-ca-section.tsx:89
 msgid "Please select a PKCS12 file"
 msgstr "Please select a PKCS12 file"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:479
+#: src/pages/settings/ui/components/custom-ca-section.tsx:81
 msgid "Please select both certificate and key files"
 msgstr "Please select both certificate and key files"
 
@@ -1323,11 +1323,11 @@ msgstr "Prevent caching by removing conditional headers and adding no-cache dire
 msgid "Profile"
 msgstr "Profile"
 
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:224
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:211
 msgid "Progress"
 msgstr "Progress"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:385
+#: src/pages/settings/ui/components/certificate-settings.tsx:380
 msgid "Proxy Address"
 msgstr "Proxy Address"
 
@@ -1375,9 +1375,9 @@ msgstr "Received"
 msgid "Received (Server → Client)"
 msgstr "Received (Server → Client)"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:252
-#: src/pages/log-viewer/ui/logs-page.tsx:277
-#: src/pages/settings/ui/components/certificate-settings.tsx:402
+#: src/pages/log-viewer/ui/logs-page.tsx:247
+#: src/pages/log-viewer/ui/logs-page.tsx:272
+#: src/pages/settings/ui/components/certificate-settings.tsx:397
 msgid "Refresh"
 msgstr "Refresh"
 
@@ -1386,7 +1386,7 @@ msgstr "Refresh"
 msgid "Regex pattern (e.g. old-domain\\.com)"
 msgstr "Regex pattern (e.g. old-domain\\.com)"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:125
+#: src/pages/settings/ui/components/certificate-settings.tsx:120
 #: src/pages/settings/ui/components/cli-settings.tsx:61
 msgid "Reinstall"
 msgstr "Reinstall"
@@ -1395,7 +1395,7 @@ msgstr "Reinstall"
 msgid "Reload"
 msgstr "Reload"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:155
+#: src/pages/settings/ui/components/certificate-settings.tsx:150
 msgid "Remote Device Certificate"
 msgstr "Remote Device Certificate"
 
@@ -1412,7 +1412,7 @@ msgstr "Remove Accept-Encoding header from requests to prevent compressed respon
 msgid "Remove Cookie headers from requests and Set-Cookie headers from responses"
 msgstr "Remove Cookie headers from requests and Set-Cookie headers from responses"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:576
+#: src/pages/settings/ui/components/custom-ca-section.tsx:178
 msgid "Remove Custom CA"
 msgstr "Remove Custom CA"
 
@@ -1425,7 +1425,7 @@ msgstr "Remove entry"
 msgid "Remove Headers"
 msgstr "Remove Headers"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:708
+#: src/pages/settings/ui/components/custom-ca-section.tsx:310
 msgid "Removed"
 msgstr "Removed"
 
@@ -1505,7 +1505,7 @@ msgstr "Request Header"
 msgid "Request Headers"
 msgstr "Request Headers"
 
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:319
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:306
 msgid "Requests/sec"
 msgstr "Requests/sec"
 
@@ -1551,15 +1551,15 @@ msgstr "Response Headers"
 msgid "Response Status Code"
 msgstr "Response Status Code"
 
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:282
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:269
 msgid "Response Time"
 msgstr "Response Time"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:580
+#: src/pages/settings/ui/components/custom-ca-section.tsx:182
 msgid "Restart proxy to apply changes"
 msgstr "Restart proxy to apply changes"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:712
+#: src/pages/settings/ui/components/custom-ca-section.tsx:314
 msgid "Restart proxy to use auto-generated CA"
 msgstr "Restart proxy to use auto-generated CA"
 
@@ -1567,7 +1567,7 @@ msgstr "Restart proxy to use auto-generated CA"
 msgid "Resume recording"
 msgstr "Resume recording"
 
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:380
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:367
 msgid "Retry"
 msgstr "Retry"
 
@@ -1624,7 +1624,7 @@ msgstr "Rules"
 msgid "Run"
 msgstr "Run"
 
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:367
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:354
 msgid "Running..."
 msgstr "Running..."
 
@@ -1648,7 +1648,7 @@ msgstr "Saved"
 msgid "Saving..."
 msgstr "Saving..."
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:377
+#: src/pages/settings/ui/components/certificate-settings.tsx:372
 msgid "Scan for proxy info"
 msgstr "Scan for proxy info"
 
@@ -1681,11 +1681,11 @@ msgstr "Script unloaded"
 msgid "Security"
 msgstr "Security"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:390
+#: src/pages/log-viewer/ui/logs-page.tsx:385
 msgid "Select a log file to view its contents"
 msgstr "Select a log file to view its contents"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:617
+#: src/pages/settings/ui/components/custom-ca-section.tsx:219
 msgid "Select CA certificate (.pem, .crt, .cer, .der)"
 msgstr "Select CA certificate (.pem, .crt, .cer, .der)"
 
@@ -1693,7 +1693,7 @@ msgstr "Select CA certificate (.pem, .crt, .cer, .der)"
 msgid "Select CA certificate to verify clients (.pem, .crt)"
 msgstr "Select CA certificate to verify clients (.pem, .crt)"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:633
+#: src/pages/settings/ui/components/custom-ca-section.tsx:235
 msgid "Select CA key file (.pem, .key)"
 msgstr "Select CA key file (.pem, .key)"
 
@@ -1713,15 +1713,15 @@ msgstr "Select key file (.pem, .key)"
 msgid "Select local file"
 msgstr "Select local file"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:652
+#: src/pages/settings/ui/components/custom-ca-section.tsx:254
 msgid "Select PKCS12 file (.p12, .pfx)"
 msgstr "Select PKCS12 file (.p12, .pfx)"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:356
+#: src/pages/settings/ui/components/certificate-settings.tsx:351
 msgid "Select the downloaded certificate file and confirm"
 msgstr "Select the downloaded certificate file and confirm"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:305
+#: src/pages/settings/ui/components/certificate-settings.tsx:300
 msgid "Select the downloaded profile and tap \"Install\""
 msgstr "Select the downloaded profile and tap \"Install\""
 
@@ -1741,12 +1741,12 @@ msgstr "Send Message"
 msgid "Send Request"
 msgstr "Send Request"
 
-#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:161
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:147
 msgid "Sending requests sequentially..."
 msgstr "Sending requests sequentially..."
 
 #: src/features/transaction-details/ui/replay-dialog.tsx:531
-#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:243
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:229
 #: src/features/websocket-replay/ui/ws-replay-dialog.tsx:190
 msgid "Sending..."
 msgstr "Sending..."
@@ -1764,11 +1764,11 @@ msgid "Sequence"
 msgstr "Sequence"
 
 #. placeholder {0}: transactions.length
-#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:123
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:109
 msgid "Sequence Replay ({0} requests)"
 msgstr "Sequence Replay ({0} requests)"
 
-#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:101
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:87
 msgid "Sequence replay failed"
 msgstr "Sequence replay failed"
 
@@ -1805,7 +1805,7 @@ msgstr "Set body (optional)"
 
 #. placeholder {0}: certDownloadInfo.local_ips[0] || "127.0.0.1"
 #. placeholder {1}: certDownloadInfo.port
-#: src/pages/settings/ui/components/certificate-settings.tsx:184
+#: src/pages/settings/ui/components/certificate-settings.tsx:179
 msgid "Set Wi-Fi proxy on your device to <0>{0}:{1}</0>"
 msgstr "Set Wi-Fi proxy on your device to <0>{0}:{1}</0>"
 
@@ -1814,7 +1814,7 @@ msgstr "Set Wi-Fi proxy on your device to <0>{0}:{1}</0>"
 msgid "Settings"
 msgstr "Settings"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:180
+#: src/pages/settings/ui/components/certificate-settings.tsx:175
 msgid "Setup Instructions:"
 msgstr "Setup Instructions:"
 
@@ -1851,16 +1851,16 @@ msgstr "Source Port"
 msgid "SSL Proxying"
 msgstr "SSL Proxying"
 
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:361
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:348
 msgid "Start"
 msgstr "Start"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:144
-#: src/pages/settings/ui/components/certificate-settings.tsx:168
+#: src/pages/settings/ui/components/certificate-settings.tsx:139
+#: src/pages/settings/ui/components/certificate-settings.tsx:163
 msgid "Start proxy first"
 msgstr "Start proxy first"
 
-#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:248
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:234
 msgid "Start Replay"
 msgstr "Start Replay"
 
@@ -1880,7 +1880,7 @@ msgstr "Status"
 msgid "Status Code"
 msgstr "Status Code"
 
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:334
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:321
 msgid "Status Code Distribution"
 msgstr "Status Code Distribution"
 
@@ -1896,11 +1896,11 @@ msgstr "Supports PEM-encoded certificates and keys (RSA, ECDSA, PKCS#8)"
 msgid "System"
 msgstr "System"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:295
+#: src/pages/settings/ui/components/certificate-settings.tsx:290
 msgid "Tap \"Allow\" when prompted to download the configuration profile"
 msgstr "Tap \"Allow\" when prompted to download the configuration profile"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:353
+#: src/pages/settings/ui/components/certificate-settings.tsx:348
 msgid "Tap \"Install a certificate\" → \"CA certificate\""
 msgstr "Tap \"Install a certificate\" → \"CA certificate\""
 
@@ -1925,11 +1925,11 @@ msgstr "Target URL"
 msgid "Terminal Command"
 msgstr "Terminal Command"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:696
+#: src/pages/settings/ui/components/custom-ca-section.tsx:298
 msgid "The certificate must be a CA certificate (BasicConstraints CA=true). After importing, restart the proxy to use the new CA. You also need to install this CA on your system and devices."
 msgstr "The certificate must be a CA certificate (BasicConstraints CA=true). After importing, restart the proxy to use the new CA. You also need to install this CA on your system and devices."
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:345
+#: src/pages/settings/ui/components/certificate-settings.tsx:340
 msgid "The DER certificate file will download automatically"
 msgstr "The DER certificate file will download automatically"
 
@@ -1937,7 +1937,7 @@ msgstr "The DER certificate file will download automatically"
 msgid "Theme"
 msgstr "Theme"
 
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:308
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:295
 msgid "Throughput"
 msgstr "Throughput"
 
@@ -1946,7 +1946,7 @@ msgstr "Throughput"
 msgid "Time"
 msgstr "Time"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:314
+#: src/pages/log-viewer/ui/logs-page.tsx:309
 msgid "TLS Passthrough"
 msgstr "TLS Passthrough"
 
@@ -1969,11 +1969,11 @@ msgid "Tools"
 msgstr "Tools"
 
 #. placeholder {0}: results.reduce((sum, r) => sum + (r.response?.elapsed_ms ?? 0), 0)
-#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:185
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:171
 msgid "Total {0}ms"
 msgstr "Total {0}ms"
 
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:313
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:300
 msgid "Total Time"
 msgstr "Total Time"
 
@@ -1997,7 +1997,7 @@ msgstr "Transaction unpinned"
 msgid "Tries Eager first, falls back to Lazy on failure"
 msgstr "Tries Eager first, falls back to Lazy on failure"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:134
+#: src/pages/settings/ui/components/certificate-settings.tsx:129
 msgid "Trusted"
 msgstr "Trusted"
 
@@ -2007,12 +2007,12 @@ msgstr "Trusted"
 msgid "Type"
 msgstr "Type"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:129
+#: src/pages/settings/ui/components/certificate-settings.tsx:124
 #: src/pages/settings/ui/components/cli-settings.tsx:65
 msgid "Uninstall"
 msgstr "Uninstall"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:267
+#: src/pages/settings/ui/components/certificate-settings.tsx:262
 msgid "Universal format"
 msgstr "Universal format"
 
@@ -2066,7 +2066,7 @@ msgstr "Use different client certificates for specific domains. Supports wildcar
 msgid "Use wildcard patterns: * matches any string, ? matches a single character."
 msgstr "Use wildcard patterns: * matches any string, ? matches a single character."
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:533
+#: src/pages/settings/ui/components/custom-ca-section.tsx:135
 msgid "Use your own CA certificate instead of the auto-generated one"
 msgstr "Use your own CA certificate instead of the auto-generated one"
 
@@ -2080,8 +2080,8 @@ msgstr "Username"
 msgid "Valid From"
 msgstr "Valid From"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:565
 #: src/pages/settings/ui/components/client-certificate-section.tsx:233
+#: src/pages/settings/ui/components/custom-ca-section.tsx:167
 msgid "Valid Until"
 msgstr "Valid Until"
 
@@ -2096,7 +2096,7 @@ msgstr "Value"
 msgid "Version"
 msgstr "Version"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:244
+#: src/pages/log-viewer/ui/logs-page.tsx:239
 msgid "View and manage application log files"
 msgstr "View and manage application log files"
 
