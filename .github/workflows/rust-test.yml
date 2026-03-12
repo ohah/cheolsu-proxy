@@ -22,8 +22,8 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  rust-test:
-    name: Rust Unit Test
+  rust-test-linux:
+    name: Rust Unit Test (Linux)
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -39,6 +39,41 @@ jobs:
       - name: Generate test CA certificates
         run: |
           mkdir -p crates/proxyapi_v2/examples/ca
+          # cheolsu-proxy CA 설정 파일 생성
+          cat > crates/proxyapi_v2/src/certificate_authority/cheolsu-proxy.cnf << 'CNFEOF'
+          [req]
+          distinguished_name = req_distinguished_name
+          req_extensions = v3_req
+          prompt = no
+
+          [req_distinguished_name]
+          C = KR
+          ST = Seoul
+          L = Seoul
+          O = Cheolsu Proxy
+          OU = Proxy CA
+          CN = Cheolsu Proxy Root CA
+
+          [v3_req]
+          basicConstraints = critical, CA:TRUE, pathlen:0
+          keyUsage = critical, keyCertSign, cRLSign
+          subjectKeyIdentifier = hash
+          authorityKeyIdentifier = keyid:always, issuer:always
+          subjectAltName = @alt_names
+
+          [alt_names]
+          DNS.1 = *.cheolsu-proxy.local
+          DNS.2 = cheolsu-proxy.local
+          DNS.3 = localhost
+          IP.1 = 127.0.0.1
+          IP.2 = ::1
+
+          [v3_ca]
+          basicConstraints = critical, CA:TRUE, pathlen:0
+          keyUsage = critical, keyCertSign, cRLSign, digitalSignature
+          subjectKeyIdentifier = hash
+          authorityKeyIdentifier = keyid:always, issuer:always
+          CNFEOF
           # cheolsu-proxy CA (4096-bit RSA, self-signed)
           openssl req -x509 -newkey rsa:4096 -sha512 -days 3650 -nodes \
             -keyout crates/proxyapi_v2/src/certificate_authority/cheolsu-proxy.key \
@@ -69,4 +104,84 @@ jobs:
         env:
           OPENSSL_LIB_DIR: /usr/lib/x86_64-linux-gnu
           OPENSSL_INCLUDE_DIR: /usr/include/openssl
+        run: cargo test -p proxyapi_v2 --features full
+
+  rust-test-macos:
+    name: Rust Unit Test (macOS)
+    runs-on: macos-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install OpenSSL via Homebrew
+        run: brew install openssl@3
+
+      - name: Generate test CA certificates
+        run: |
+          mkdir -p crates/proxyapi_v2/examples/ca
+          # cheolsu-proxy CA 설정 파일 생성
+          cat > crates/proxyapi_v2/src/certificate_authority/cheolsu-proxy.cnf << 'CNFEOF'
+          [req]
+          distinguished_name = req_distinguished_name
+          req_extensions = v3_req
+          prompt = no
+
+          [req_distinguished_name]
+          C = KR
+          ST = Seoul
+          L = Seoul
+          O = Cheolsu Proxy
+          OU = Proxy CA
+          CN = Cheolsu Proxy Root CA
+
+          [v3_req]
+          basicConstraints = critical, CA:TRUE, pathlen:0
+          keyUsage = critical, keyCertSign, cRLSign
+          subjectKeyIdentifier = hash
+          authorityKeyIdentifier = keyid:always, issuer:always
+          subjectAltName = @alt_names
+
+          [alt_names]
+          DNS.1 = *.cheolsu-proxy.local
+          DNS.2 = cheolsu-proxy.local
+          DNS.3 = localhost
+          IP.1 = 127.0.0.1
+          IP.2 = ::1
+
+          [v3_ca]
+          basicConstraints = critical, CA:TRUE, pathlen:0
+          keyUsage = critical, keyCertSign, cRLSign, digitalSignature
+          subjectKeyIdentifier = hash
+          authorityKeyIdentifier = keyid:always, issuer:always
+          CNFEOF
+          # cheolsu-proxy CA (4096-bit RSA, self-signed)
+          openssl req -x509 -newkey rsa:4096 -sha512 -days 3650 -nodes \
+            -keyout crates/proxyapi_v2/src/certificate_authority/cheolsu-proxy.key \
+            -out crates/proxyapi_v2/src/certificate_authority/cheolsu-proxy.cer \
+            -config crates/proxyapi_v2/src/certificate_authority/cheolsu-proxy.cnf \
+            -extensions v3_ca
+          # hudsucker CA (2048-bit RSA, self-signed)
+          openssl req -x509 -newkey rsa:2048 -sha256 -days 3650 -nodes \
+            -keyout crates/proxyapi_v2/examples/ca/hudsucker.key \
+            -out crates/proxyapi_v2/examples/ca/hudsucker.cer \
+            -subj "/CN=Hudsucker CA/O=Hudsucker"
+
+      - name: Setup Rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: stable
+          cache: true
+          matcher: true
+          rustflags: ""
+
+      - name: Run workspace tests (proxyapi_v2 제외)
+        env:
+          OPENSSL_DIR: /opt/homebrew/opt/openssl@3
+        run: cargo test --workspace --exclude cheolsu-proxy --exclude proxyapi_v2
+
+      - name: Run proxyapi_v2 tests
+        env:
+          OPENSSL_DIR: /opt/homebrew/opt/openssl@3
         run: cargo test -p proxyapi_v2 --features full
