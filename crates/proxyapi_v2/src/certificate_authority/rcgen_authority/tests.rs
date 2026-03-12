@@ -1,10 +1,12 @@
 #[cfg(test)]
 mod tests {
+    #[cfg(feature = "openssl-ca")]
     use crate::certificate_authority::CertificateAuthority;
     use crate::certificate_authority::rcgen_authority::RcgenAuthority;
     use crate::upstream_cert::UpstreamCertInfo;
     use http::uri::Authority;
     use rcgen::{CertificateParams, KeyPair};
+    #[cfg(feature = "openssl-ca")]
     use std::sync::Arc;
     use tokio_rustls::rustls::crypto::aws_lc_rs;
 
@@ -20,6 +22,7 @@ mod tests {
         RcgenAuthority::new(key_pair, ca_cert, cache_size, aws_lc_rs::default_provider())
     }
 
+    #[cfg(feature = "openssl-ca")]
     #[tokio::test]
     async fn gen_openssl_context_returns_valid_context() {
         let ca = build_ca(1_000);
@@ -29,6 +32,7 @@ mod tests {
         assert!(ctx.is_ok(), "OpenSSL 컨텍스트 생성 실패: {:?}", ctx.err());
     }
 
+    #[cfg(feature = "openssl-ca")]
     #[tokio::test]
     async fn gen_openssl_context_cache_hit() {
         let ca = build_ca(1_000);
@@ -43,6 +47,7 @@ mod tests {
         assert_eq!(cert1, cert2);
     }
 
+    #[cfg(feature = "openssl-ca")]
     #[tokio::test]
     async fn gen_openssl_context_concurrent_no_deadlock() {
         let ca = Arc::new(build_ca(1_000));

@@ -1,5 +1,6 @@
 use super::analysis::is_openssl_required_domain;
 use super::*;
+use crate::tls_version_detector::TlsVersion;
 
 /// 최소 유효한 TLS 1.2 ClientHello를 생성하는 헬퍼
 /// 구조: record_hdr(5) + handshake_hdr(4) + client_version(2) + random(32) +
