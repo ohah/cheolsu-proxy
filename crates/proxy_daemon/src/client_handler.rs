@@ -44,7 +44,7 @@ pub(crate) struct ClientHandlerContext {
     pub(crate) metrics_aggregator: Arc<MetricsAggregator>,
 }
 
-pub async fn handle_client(stream: UnixStream, ctx: ClientHandlerContext) {
+pub(crate) async fn handle_client(stream: UnixStream, ctx: ClientHandlerContext) {
     let ClientHandlerContext {
         mut event_rx,
         intercept_tx,
@@ -153,7 +153,21 @@ pub async fn handle_client(stream: UnixStream, ctx: ClientHandlerContext) {
     let subscribed_clone = subscribed.clone();
 
     let event_task = tokio::spawn(async move {
+        // broadcast 채널 lagged 복구 전략:
+        // - broadcast 채널은 고정 크기 버퍼를 사용하므로, 소비자가 생산 속도를 따라잡지 못하면
+        //   오래된 메시지가 덮어씌워지고 Lagged 에러가 발생한다.
+        // - 일시적인 lag는 정상적이며 (예: 클라이언트 처리 지연, 일시적인 이벤트 폭주),
+        //   이 경우 자동으로 최신 위치에서 수신을 재개한다.
+        // - 연속적으로 lag가 발생하면 소비자가 근본적으로 처리량을 감당하지 못하는 것이므로,
+        //   MAX_LAGGED_THRESHOLD를 초과하면 수신자를 재생성하여 최신 위치로 강제 리셋한다.
+        const MAX_LAGGED_THRESHOLD: u64 = 1000;
+        // 로그 출력 최소 간격 (동일한 경고가 반복되는 것을 방지)
+        const LOG_RATE_LIMIT: std::time::Duration = std::time::Duration::from_secs(10);
+
         let mut lagged_count: u64 = 0;
+        let mut total_skipped: u64 = 0;
+        let mut last_lag_log_time = std::time::Instant::now() - LOG_RATE_LIMIT;
+
         loop {
             match event_rx.recv().await {
                 Ok(msg) => {
@@ -173,23 +187,44 @@ pub async fn handle_client(stream: UnixStream, ctx: ClientHandlerContext) {
                     }
                 }
                 Err(broadcast::error::RecvError::Lagged(n)) => {
+                    // Lagged 에러 발생: 버퍼가 가득 차서 n개의 메시지가 스킵됨.
+                    // tokio broadcast는 Lagged 에러 후 자동으로 최신 tail 위치로 이동하므로
+                    // 다음 recv()는 가장 최근 메시지부터 수신한다.
                     lagged_count += 1;
-                    if lagged_count >= 10
-                        && (lagged_count == 10
-                            || lagged_count == 100
-                            || lagged_count == 1000
-                            || lagged_count % 10000 == 0)
-                    {
-                        warn!(
-                            "broadcast 채널 Lagged (연속 {}회, 스킵 {}건)",
-                            lagged_count, n
-                        );
-                    } else {
-                        debug!(
-                            "broadcast 채널 Lagged (연속 {}회, 스킵 {}건)",
-                            lagged_count, n
-                        );
+                    total_skipped += n;
+
+                    // 시간 기반 로그 제한: 짧은 시간에 동일 경고가 반복되는 것을 방지
+                    let now = std::time::Instant::now();
+                    if now.duration_since(last_lag_log_time) >= LOG_RATE_LIMIT {
+                        if lagged_count >= 10 {
+                            warn!(
+                                "broadcast 채널 Lagged (연속 {}회, 누적 스킵 {}건, 이번 스킵 {}건)",
+                                lagged_count, total_skipped, n
+                            );
+                        } else {
+                            debug!(
+                                "broadcast 채널 Lagged (연속 {}회, 누적 스킵 {}건, 이번 스킵 {}건)",
+                                lagged_count, total_skipped, n
+                            );
+                        }
+                        last_lag_log_time = now;
                     }
+
+                    // 연속 lag 횟수가 임계값을 초과하면 수신자를 재생성하여 복구 시도.
+                    // 기존 수신자는 내부 위치가 꼬여 있을 수 있으므로, event_tx에서
+                    // 새 수신자를 구독하여 최신 위치로 강제 리셋한다.
+                    if lagged_count >= MAX_LAGGED_THRESHOLD {
+                        error!(
+                            "broadcast 채널 연속 lag {}회 초과 (누적 스킵 {}건) — 수신자 재생성으로 복구 시도",
+                            lagged_count, total_skipped
+                        );
+                        // event_tx는 move되어 접근 불가하므로, 여기서는 기존 수신자를
+                        // resubscribe()로 최신 tail 위치에 재구독한다.
+                        event_rx = event_rx.resubscribe();
+                        lagged_count = 0;
+                        total_skipped = 0;
+                    }
+
                     continue;
                 }
                 Err(broadcast::error::RecvError::Closed) => break,
