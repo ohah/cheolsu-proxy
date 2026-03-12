@@ -3,7 +3,9 @@ use crate::certificate_authority::{NOT_BEFORE_OFFSET, TTL_SECS, truncate_cn};
 use crate::upstream_cert::UpstreamCertInfo;
 use http::uri::Authority;
 use rand::{Rng, rng};
-use rcgen::{CertificateParams, DistinguishedName, DnType, Ia5String, SanType};
+use rcgen::{
+    CertificateParams, DistinguishedName, DnType, ExtendedKeyUsagePurpose, Ia5String, SanType,
+};
 use std::collections::HashSet;
 use std::net::IpAddr;
 use time::{Duration, OffsetDateTime};
@@ -46,6 +48,7 @@ impl RcgenAuthority {
         }
 
         params.distinguished_name = distinguished_name;
+        params.extended_key_usages = vec![ExtendedKeyUsagePurpose::ServerAuth];
 
         // SAN 엔트리 설정
         if let Some(upstream) = upstream_cert {

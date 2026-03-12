@@ -27,7 +27,7 @@ fn build_ca() -> RcgenAuthority {
 }
 
 #[tokio::test]
-#[ignore] // CI 환경에서 native-tls 프록시에 직접 WebSocket 연결 시 400 반환 — `cargo test -- --ignored`로 수동 실행
+#[cfg_attr(not(target_os = "macos"), ignore)] // Linux CI에서 native-tls 프록시에 직접 WebSocket 연결 시 400 반환
 async fn http() {
     // 실제 Tauri 환경과 동일하게 WebSocket 핸들러 포함해서 테스트
     let (proxy_addr, handler, stop_proxy) = common::start_proxy(
@@ -108,7 +108,6 @@ async fn https_rustls() {
 }
 
 #[tokio::test]
-#[ignore] // macOS CI에서 Security.framework가 테스트 CA의 EKU를 거부 — `cargo test -- --ignored`로 수동 실행
 async fn https_native_tls() {
     let (proxy_addr, handler, stop_proxy) = common::start_proxy(
         build_ca(),
