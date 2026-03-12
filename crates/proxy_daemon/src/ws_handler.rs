@@ -1,6 +1,6 @@
 use proxy_v2_models::{WsConnectionEvent, WsDirection, WsMessageInfo, WsMessageType};
 use proxyapi_v2::{tokio_tungstenite::tungstenite::Message, WebSocketContext, WebSocketHandler};
-use tracing::error;
+use tracing::{debug, error};
 
 use crate::handler::LoggingHandler;
 
@@ -183,7 +183,9 @@ impl LoggingHandler {
             mqtt_version,
         };
 
-        let _ = ws_sender.try_send(WsEvent::Message(info));
+        if let Err(e) = ws_sender.try_send(WsEvent::Message(info)) {
+            debug!("[WS] 메시지 이벤트 전송 실패 (채널 가득 참): {}", e);
+        }
     }
 }
 
@@ -201,7 +203,9 @@ impl WebSocketHandler for LoggingHandler {
                     .timestamp_nanos_opt()
                     .unwrap_or_default(),
             };
-            let _ = ws_sender.try_send(WsEvent::Connection(event));
+            if let Err(e) = ws_sender.try_send(WsEvent::Connection(event)) {
+                debug!("[WS] 연결 이벤트 전송 실패 (채널 가득 참): {}", e);
+            }
         }
     }
 
@@ -217,7 +221,9 @@ impl WebSocketHandler for LoggingHandler {
                     .timestamp_nanos_opt()
                     .unwrap_or_default(),
             };
-            let _ = ws_sender.try_send(WsEvent::Connection(event));
+            if let Err(e) = ws_sender.try_send(WsEvent::Connection(event)) {
+                debug!("[WS] 연결 이벤트 전송 실패 (채널 가득 참): {}", e);
+            }
         }
     }
 
@@ -382,7 +388,7 @@ mod tests {
                 cache_dir: None,
                 ca_cert_der: None,
                 quick_settings: Arc::new(tokio::sync::RwLock::new(QuickSettings::default())),
-                proxy_auth: Arc::new(parking_lot::RwLock::new(None)),
+                proxy_auth: Arc::new(tokio::sync::RwLock::new(None)),
                 max_body_size: None,
             },
             intercept: InterceptEngine {
@@ -445,7 +451,7 @@ mod tests {
                 cache_dir: None,
                 ca_cert_der: None,
                 quick_settings: Arc::new(tokio::sync::RwLock::new(QuickSettings::default())),
-                proxy_auth: Arc::new(parking_lot::RwLock::new(None)),
+                proxy_auth: Arc::new(tokio::sync::RwLock::new(None)),
                 max_body_size: None,
             },
             intercept: InterceptEngine {

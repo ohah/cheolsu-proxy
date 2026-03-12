@@ -96,8 +96,8 @@ export function SequenceReplayDialog({
     try {
       const res = await replaySequence(requests);
       setResults(res);
-    } catch (e: any) {
-      setError(typeof e === "string" ? e : e.message || t`Sequence replay failed`);
+    } catch (e: unknown) {
+      setError(typeof e === "string" ? e : e instanceof Error ? e.message : t`Sequence replay failed`);
     } finally {
       setLoading(false);
     }

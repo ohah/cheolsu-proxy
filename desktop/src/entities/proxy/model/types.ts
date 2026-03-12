@@ -39,7 +39,7 @@ export interface HttpRequest {
   time: number;
   id: string; // 고유 ID 추가
   data_type: DataType; // 데이터 타입 정보 추가
-  body_json?: any; // JSON 파싱된 데이터 (JSON 타입인 경우)
+  body_json?: unknown; // JSON 파싱된 데이터 (JSON 타입인 경우)
   file_path?: string; // body가 저장된 파일 경로
   body_size: number; // 실제 body 크기 (파일 저장 시에도 원본 크기 유지)
 }
@@ -52,7 +52,7 @@ export interface HttpResponse {
   time: number;
   id: string; // ClientRequest의 id와 동일
   data_type: DataType; // 데이터 타입 정보 추가
-  body_json?: any; // JSON 파싱된 데이터 (JSON 타입인 경우)
+  body_json?: unknown; // JSON 파싱된 데이터 (JSON 타입인 경우)
   file_path?: string; // body가 저장된 파일 경로
   body_size: number; // 실제 body 크기 (파일 저장 시에도 원본 크기 유지)
 }

@@ -4,7 +4,7 @@ use http_body_util::{BodyExt, StreamBody};
 use proxy_v2_models::{ProxiedResponse, SseConnectionEvent, SseEventInfo, SseParser};
 use proxyapi_v2::{hyper::Response, Body};
 use tokio_stream::wrappers::ReceiverStream;
-use tracing::error;
+use tracing::{debug, error};
 
 use crate::handler::LoggingHandler;
 
@@ -63,7 +63,9 @@ impl LoggingHandler {
                     .timestamp_nanos_opt()
                     .unwrap_or_default(),
             };
-            let _ = sender.try_send(SseEvent::Connection(event));
+            if let Err(e) = sender.try_send(SseEvent::Connection(event)) {
+                debug!("[SSE] 연결 이벤트 전송 실패 (채널 가득 참): {}", e);
+            }
         }
 
         let connection_id_clone = connection_id.clone();
@@ -111,7 +113,10 @@ impl LoggingHandler {
                                                 .timestamp_nanos_opt()
                                                 .unwrap_or_default(),
                                         };
-                                        let _ = sender.try_send(SseEvent::Event(event_info));
+                                        if let Err(e) = sender.try_send(SseEvent::Event(event_info))
+                                        {
+                                            debug!("[SSE] 이벤트 전송 실패 (채널 가득 참): {}", e);
+                                        }
                                     }
                                 }
                             }
@@ -136,7 +141,9 @@ impl LoggingHandler {
                         .timestamp_nanos_opt()
                         .unwrap_or_default(),
                 };
-                let _ = sender.try_send(SseEvent::Connection(event));
+                if let Err(e) = sender.try_send(SseEvent::Connection(event)) {
+                    debug!("[SSE] 연결 이벤트 전송 실패 (채널 가득 참): {}", e);
+                }
             }
 
             let proxied_response = ProxiedResponse::new(

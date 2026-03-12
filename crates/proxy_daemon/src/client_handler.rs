@@ -15,35 +15,60 @@ use proxyapi_v2::throttle::ThrottleConfig;
 use proxyapi_v2::upstream_proxy::UpstreamProxyConfig;
 use proxyapi_v2::websocket_registry::WebSocketRegistry;
 
-// TODO: handle_client의 파라미터가 과도하게 많음.
-// DaemonContext(daemon.rs)와 유사한 ClientHandlerContext 구조체로 묶어 리팩토링 필요.
-// 현재는 호출부(daemon.rs run_accept_loop)와의 결합도가 높아 단계적 리팩토링을 권장.
-pub async fn handle_client(
-    stream: UnixStream,
-    mut event_rx: broadcast::Receiver<String>,
-    intercept_tx: watch::Sender<Vec<InterceptRule>>,
-    upstream_tx: watch::Sender<Option<UpstreamProxyConfig>>,
-    server_replay_tx: watch::Sender<Vec<ServerReplayEntry>>,
-    throttle_tx: watch::Sender<Option<ThrottleConfig>>,
-    breakpoint_tx: watch::Sender<Vec<BreakpointRule>>,
-    breakpoint_manager: BreakpointManager,
-    host_mapping_tx: watch::Sender<Vec<HostMapping>>,
-    ssl_proxying_tx: watch::Sender<(crate::protocol::SslProxyingMode, Vec<SslProxyingEntry>)>,
-    client_cert_tx: watch::Sender<Option<ClientCertConfig>>,
-    request_client_cert_tx: watch::Sender<Option<RequestClientCertConfig>>,
-    event_tx: broadcast::Sender<String>,
-    port: u16,
-    ws_registry: WebSocketRegistry,
-    script_handle: scripting::ScriptHandle,
-    quick_settings: std::sync::Arc<tokio::sync::RwLock<crate::handler::QuickSettings>>,
-    proxy_auth: std::sync::Arc<parking_lot::RwLock<Option<ProxyAuthConfig>>>,
-    started_at: std::time::Instant,
-    total_transactions: std::sync::Arc<std::sync::atomic::AtomicU64>,
-    client_count: std::sync::Arc<std::sync::atomic::AtomicUsize>,
-    tls_passthrough: proxyapi_v2::tls_passthrough::TlsPassthrough,
-    connection_strategy: std::sync::Arc<std::sync::atomic::AtomicU8>,
-    metrics_aggregator: std::sync::Arc<MetricsAggregator>,
-) {
+/// handle_client에 전달되는 채널/상태를 묶는 컨텍스트 구조체.
+/// DaemonContext와 유사하지만, 클라이언트 핸들러에서 필요한 필드만 포함한다.
+pub struct ClientHandlerContext {
+    pub event_rx: broadcast::Receiver<String>,
+    pub intercept_tx: watch::Sender<Vec<InterceptRule>>,
+    pub upstream_tx: watch::Sender<Option<UpstreamProxyConfig>>,
+    pub server_replay_tx: watch::Sender<Vec<ServerReplayEntry>>,
+    pub throttle_tx: watch::Sender<Option<ThrottleConfig>>,
+    pub breakpoint_tx: watch::Sender<Vec<BreakpointRule>>,
+    pub breakpoint_manager: BreakpointManager,
+    pub host_mapping_tx: watch::Sender<Vec<HostMapping>>,
+    pub ssl_proxying_tx: watch::Sender<(crate::protocol::SslProxyingMode, Vec<SslProxyingEntry>)>,
+    pub client_cert_tx: watch::Sender<Option<ClientCertConfig>>,
+    pub request_client_cert_tx: watch::Sender<Option<RequestClientCertConfig>>,
+    pub event_tx: broadcast::Sender<String>,
+    pub port: u16,
+    pub ws_registry: WebSocketRegistry,
+    pub script_handle: scripting::ScriptHandle,
+    pub quick_settings: Arc<tokio::sync::RwLock<crate::handler::QuickSettings>>,
+    pub proxy_auth: Arc<tokio::sync::RwLock<Option<ProxyAuthConfig>>>,
+    pub started_at: std::time::Instant,
+    pub total_transactions: Arc<std::sync::atomic::AtomicU64>,
+    pub client_count: Arc<std::sync::atomic::AtomicUsize>,
+    pub tls_passthrough: proxyapi_v2::tls_passthrough::TlsPassthrough,
+    pub connection_strategy: Arc<std::sync::atomic::AtomicU8>,
+    pub metrics_aggregator: Arc<MetricsAggregator>,
+}
+
+pub async fn handle_client(stream: UnixStream, ctx: ClientHandlerContext) {
+    let ClientHandlerContext {
+        mut event_rx,
+        intercept_tx,
+        upstream_tx,
+        server_replay_tx,
+        throttle_tx,
+        breakpoint_tx,
+        breakpoint_manager,
+        host_mapping_tx,
+        ssl_proxying_tx,
+        client_cert_tx,
+        request_client_cert_tx,
+        event_tx,
+        port,
+        ws_registry,
+        script_handle,
+        quick_settings,
+        proxy_auth,
+        started_at,
+        total_transactions,
+        client_count,
+        tls_passthrough,
+        connection_strategy,
+        metrics_aggregator,
+    } = ctx;
     let (reader, writer) = stream.into_split();
     let mut reader = BufReader::new(reader);
     let writer = Arc::new(Mutex::new(writer));
@@ -343,7 +368,7 @@ pub async fn handle_client(
                             config.enabled, config.username
                         );
                         {
-                            let mut auth = proxy_auth.write();
+                            let mut auth = proxy_auth.write().await;
                             *auth = Some(config);
                         }
                     }

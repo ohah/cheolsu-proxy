@@ -139,7 +139,7 @@ export const createImageDataUrl = (data: Uint8Array | number[], dataType: DataTy
  * 요청/응답 본문을 포맷팅된 문자열로 변환
  * 러스트에서 이미 데이터 타입 감지와 압축 해제를 완료했으므로 단순한 포맷팅만 수행
  */
-export const formatBodyContent = (body: Uint8Array, dataType: DataType, bodyJson?: any): string => {
+export const formatBodyContent = (body: Uint8Array, dataType: DataType, bodyJson?: unknown): string => {
   if (dataType === "Empty") {
     return "";
   }
@@ -181,7 +181,7 @@ export const formatBodyContent = (body: Uint8Array, dataType: DataType, bodyJson
 /**
  * 요청/응답 본문을 표시용으로 변환 (Monaco Editor용)
  */
-export const getBodyForDisplay = (body: Uint8Array, dataType: DataType, bodyJson?: any): string => {
+export const getBodyForDisplay = (body: Uint8Array, dataType: DataType, bodyJson?: unknown): string => {
   if (dataType === "Empty") {
     return "";
   }
@@ -314,7 +314,22 @@ export const extractBinaryFileInfo = (
 /**
  * GraphQL body를 보기 좋게 포맷팅
  */
-const formatGraphQLBody = (bodyJson: any): string => {
+interface GraphQLBody {
+  operationName?: string;
+  query?: string;
+  variables?: Record<string, unknown>;
+  extensions?: Record<string, unknown>;
+}
+
+const isGraphQLBody = (value: unknown): value is GraphQLBody => {
+  return typeof value === "object" && value !== null;
+};
+
+const formatGraphQLBody = (bodyJson: unknown): string => {
+  if (!isGraphQLBody(bodyJson)) {
+    return String(bodyJson);
+  }
+
   const parts: string[] = [];
 
   if (bodyJson.operationName) {

@@ -48,11 +48,8 @@ pub(crate) struct ProxyConfig {
     pub(crate) ca_cert_der: Option<Bytes>,
     /// 빠른 설정 (No Caching, Block Cookies)
     pub(crate) quick_settings: Arc<tokio::sync::RwLock<QuickSettings>>,
-    // SAFETY: parking_lot::RwLock - async 컨텍스트에서 사용 중이나,
-    // .await를 넘어서 lock을 유지하지 않으므로 안전함.
-    // 리팩토링 시 tokio::sync::RwLock으로 교체 검토 필요.
     /// 프록시 인증 설정
-    pub(crate) proxy_auth: Arc<parking_lot::RwLock<Option<crate::protocol::ProxyAuthConfig>>>,
+    pub(crate) proxy_auth: Arc<tokio::sync::RwLock<Option<crate::protocol::ProxyAuthConfig>>>,
     /// 요청 바디 최대 크기 (None이면 제한 없음)
     pub(crate) max_body_size: Option<usize>,
 }
@@ -97,7 +94,7 @@ impl LoggingHandler {
                 cache_dir: Some(cache_dir),
                 ca_cert_der: None,
                 quick_settings: Arc::new(tokio::sync::RwLock::new(QuickSettings::default())),
-                proxy_auth: Arc::new(parking_lot::RwLock::new(None)),
+                proxy_auth: Arc::new(tokio::sync::RwLock::new(None)),
                 max_body_size: None,
             },
             intercept: InterceptEngine {
@@ -201,9 +198,8 @@ impl LoggingHandler {
     }
 
     /// 프록시 인증 설정 업데이트
-    pub fn update_proxy_auth(&self, config: crate::protocol::ProxyAuthConfig) {
-        // SAFETY: parking_lot write lock - .await 없이 즉시 해제되므로 안전함.
-        let mut auth = self.config.proxy_auth.write();
+    pub async fn update_proxy_auth(&self, config: crate::protocol::ProxyAuthConfig) {
+        let mut auth = self.config.proxy_auth.write().await;
         info!(
             "[ProxyAuth] 설정 업데이트: enabled={}, username={}",
             config.enabled, config.username
@@ -213,7 +209,7 @@ impl LoggingHandler {
 
     pub fn with_proxy_auth(
         mut self,
-        proxy_auth: Arc<parking_lot::RwLock<Option<crate::protocol::ProxyAuthConfig>>>,
+        proxy_auth: Arc<tokio::sync::RwLock<Option<crate::protocol::ProxyAuthConfig>>>,
     ) -> Self {
         self.config.proxy_auth = proxy_auth;
         self
@@ -226,9 +222,8 @@ impl LoggingHandler {
     }
 
     /// 프록시 인증을 확인합니다. 인증 실패 시 407 응답을 반환합니다.
-    fn check_proxy_auth(&self, req: &Request<Body>) -> Option<Response<Body>> {
-        // SAFETY: parking_lot read lock - .await 없이 즉시 해제되므로 안전함.
-        let auth_config = self.config.proxy_auth.read();
+    async fn check_proxy_auth(&self, req: &Request<Body>) -> Option<Response<Body>> {
+        let auth_config = self.config.proxy_auth.read().await;
         let config = match auth_config.as_ref() {
             Some(c) if c.enabled && !c.username.is_empty() => c,
             _ => return None,
@@ -682,8 +677,7 @@ impl HttpHandler for LoggingHandler {
     async fn should_intercept(&mut self, _ctx: &HttpContext, req: &Request<Body>) -> bool {
         // 프록시 인증 체크: 인증 실패 여부를 먼저 판정
         let auth_failed = {
-            // SAFETY: parking_lot read lock - .await 없이 블록 내에서 즉시 해제되므로 안전함.
-            let auth_config = self.config.proxy_auth.read();
+            let auth_config = self.config.proxy_auth.read().await;
             if let Some(config) = auth_config.as_ref() {
                 if config.enabled && !config.username.is_empty() {
                     let auth_header = req
@@ -734,7 +728,7 @@ impl HttpHandler for LoggingHandler {
         mut req: Request<Body>,
     ) -> RequestOrResponse {
         // 프록시 인증 확인
-        if let Some(auth_response) = self.check_proxy_auth(&req) {
+        if let Some(auth_response) = self.check_proxy_auth(&req).await {
             return auth_response.into();
         }
         // 인증 통과 후 Proxy-Authorization 헤더 제거 (upstream에 전달 방지)

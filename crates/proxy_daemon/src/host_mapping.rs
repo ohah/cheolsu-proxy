@@ -562,7 +562,7 @@ mod tests {
                 quick_settings: Arc::new(tokio::sync::RwLock::new(
                     crate::handler::QuickSettings::default(),
                 )),
-                proxy_auth: Arc::new(parking_lot::RwLock::new(None)),
+                proxy_auth: Arc::new(tokio::sync::RwLock::new(None)),
                 max_body_size: None,
             },
             intercept: InterceptEngine {

@@ -8,9 +8,33 @@ use proxyapi_v2::{
     Body, RequestOrResponse,
 };
 use regex::Regex;
+use std::cell::RefCell;
+use std::collections::HashMap;
 use tracing::{error, info};
 
 use super::handler::LoggingHandler;
+
+// 스레드 로컬 정규식 캐시. 동일한 패턴의 반복 컴파일을 방지한다.
+thread_local! {
+    static REGEX_CACHE: RefCell<HashMap<String, Regex>> = RefCell::new(HashMap::new());
+}
+
+/// 캐싱된 정규식 컴파일. 동일 패턴은 스레드 로컬 캐시에서 반환한다.
+fn cached_regex(pattern: &str) -> Result<Regex, regex::Error> {
+    REGEX_CACHE.with(|cache| {
+        let mut cache = cache.borrow_mut();
+        if let Some(re) = cache.get(pattern) {
+            return Ok(re.clone());
+        }
+        let re = Regex::new(pattern)?;
+        // 캐시가 과도하게 커지는 것을 방지 (최대 256개)
+        if cache.len() >= 256 {
+            cache.clear();
+        }
+        cache.insert(pattern.to_string(), re.clone());
+        Ok(re)
+    })
+}
 
 /// 헤더 제거 + 추가를 수행하는 공통 헬퍼
 fn apply_header_modifications(
@@ -77,7 +101,7 @@ async fn rewrite_body_bytes(
 /// `$msg`에 borrow 분리를 위해 `$msg.headers_mut()`, `$msg.body_mut()` 호출을 분리한다.
 macro_rules! apply_rewrite_action {
     ($msg:expr, $match_pattern:expr, $replace_with:expr, $is_header:expr, $log_label:expr, $method:expr, $url:expr, $rule_name:expr) => {
-        match Regex::new($match_pattern) {
+        match cached_regex($match_pattern) {
             Ok(re) => {
                 if $is_header {
                     info!(
