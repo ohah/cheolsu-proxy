@@ -355,6 +355,72 @@ mod tests {
         }
     }
 
+    mod tls_error_hint {
+        use super::super::connect::{detect_tls_backend, tls_error_hint};
+
+        #[test]
+        fn signature_algorithms_extension() {
+            let hint = tls_error_hint("SignatureAlgorithmsExtensionRequired error occurred");
+            assert!(hint.contains("SignatureAlgorithmsExtension"));
+        }
+
+        #[test]
+        fn peer_incompatible() {
+            let hint = tls_error_hint("peer is incompatible with TLS version");
+            assert!(hint.contains("호환성"));
+        }
+
+        #[test]
+        fn certificate_error() {
+            let hint = tls_error_hint("certificate verification failed");
+            assert!(hint.contains("인증서"));
+        }
+
+        #[test]
+        fn handshake_error() {
+            let hint = tls_error_hint("handshake protocol error");
+            assert!(hint.contains("핸드셰이크"));
+        }
+
+        #[test]
+        fn timeout_error() {
+            let hint = tls_error_hint("connection timeout during TLS");
+            assert!(hint.contains("타임아웃"));
+        }
+
+        #[test]
+        fn unknown_error_returns_empty() {
+            let hint = tls_error_hint("some random error");
+            assert!(hint.is_empty());
+        }
+
+        #[test]
+        fn detect_rustls_backend() {
+            assert_eq!(detect_tls_backend("rustls error: invalid cert"), "RUSTLS");
+        }
+
+        #[test]
+        fn detect_native_tls_backend() {
+            assert_eq!(
+                detect_tls_backend("native-tls error: handshake failed"),
+                "NATIVE-TLS"
+            );
+        }
+
+        #[test]
+        fn detect_openssl_backend() {
+            assert_eq!(
+                detect_tls_backend("openssl SSL_ERROR_SYSCALL"),
+                "NATIVE-TLS"
+            );
+        }
+
+        #[test]
+        fn detect_unknown_backend() {
+            assert_eq!(detect_tls_backend("generic TLS failure"), "UNKNOWN");
+        }
+    }
+
     mod process_connect {
         use super::*;
 

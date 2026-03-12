@@ -79,7 +79,7 @@ impl LoggingHandler {
     }
 
     /// Block 액션 처리 → 즉시 응답 반환
-    fn apply_block(
+    pub(crate) fn apply_block(
         status_code: u16,
         body: &str,
         method: &str,
@@ -108,7 +108,7 @@ impl LoggingHandler {
     }
 
     /// MapLocal 액션 처리 → 로컬 파일 응답 반환
-    fn apply_map_local(
+    pub(crate) fn apply_map_local(
         file_path: &str,
         status_code: u16,
         headers: &std::collections::HashMap<String, String>,
@@ -161,7 +161,7 @@ impl LoggingHandler {
     }
 
     /// MapRemote 액션 처리 → 요청 URI를 변경
-    fn apply_map_remote(
+    pub(crate) fn apply_map_remote(
         req: &mut Request<Body>,
         target_url: &str,
         preserve_path: bool,
@@ -198,13 +198,11 @@ impl LoggingHandler {
             return;
         };
 
+        // 파싱된 URI에서 host를 먼저 추출한 뒤 uri_mut에 설정 (이중 파싱 방지)
+        let host_str = new_uri.host().map(|h| h.to_string());
         *req.uri_mut() = new_uri;
 
-        if let Some(host) = new_url
-            .parse::<proxyapi_v2::hyper::Uri>()
-            .ok()
-            .and_then(|u| u.host().map(|h| h.to_string()))
-        {
+        if let Some(host) = host_str {
             if let Ok(host_value) = host.parse::<HeaderValue>() {
                 req.headers_mut()
                     .insert(proxyapi_v2::hyper::header::HOST, host_value);
