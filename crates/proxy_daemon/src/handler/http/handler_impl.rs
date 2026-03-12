@@ -78,7 +78,10 @@ impl HttpHandler for LoggingHandler {
                 .and_then(|v| v.to_str().ok())
                 .and_then(|v| v.parse::<usize>().ok());
 
-            // 2) body size_hint의 lower bound도 확인 (chunked 전송 시 Content-Length 없어도 감지 가능)
+            // 2) body size_hint의 lower bound 확인
+            // NOTE: chunked 전송 시 hyper의 Incoming body는 lower=0, upper=None을 반환하므로
+            // Content-Length 없는 chunked 요청은 이 검사를 우회할 수 있음.
+            // 완전한 스트리밍 제한이 필요하면 body wrapper로 누적 크기를 체크해야 함.
             let body_lower_bound = {
                 use proxyapi_v2::hyper::body::Body as HttpBody;
                 req.body().size_hint().lower() as usize
@@ -186,6 +189,8 @@ impl HttpHandler for LoggingHandler {
         }
 
         // 응답 바디 크기 제한: 업스트림이 과도하게 큰 응답을 보낼 때 OOM 방지
+        // NOTE: Content-Length가 없는 chunked 응답은 size_hint lower=0이므로 이 검사를 우회함.
+        // Content-Length가 있는 대용량 응답(파일 다운로드 등)만 차단됨.
         if let Some(max_size) = self.config.max_body_size {
             let response_size = res
                 .headers()

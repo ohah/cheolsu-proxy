@@ -39,7 +39,7 @@ pub async fn run_proxy(
     request_client_cert_rx: watch::Receiver<Option<RequestClientCertConfig>>,
     connection_strategy: std::sync::Arc<std::sync::atomic::AtomicU8>,
     metrics_collector: std::sync::Arc<proxyapi_v2::metrics::MetricsCollector>,
-    tx_counter_tx: tokio::sync::mpsc::Sender<()>,
+    total_transactions: std::sync::Arc<std::sync::atomic::AtomicU64>,
 ) -> Result<(), DaemonError> {
     use proxyapi_v2::builder::ProxyBuilder;
     use proxyapi_v2::certificate_authority::{
@@ -60,36 +60,29 @@ pub async fn run_proxy(
 
     // request_client_cert 설정 변경 감시
     // client_cert_verify + cache 핸들을 함께 사용하여 캐시 무효화도 수행
-    // 패닉 방지: 개별 설정 업데이트 실패 시 에러를 로깅하고 다음 업데이트를 계속 처리
+    // 변환을 먼저 수행하고 성공 시에만 lock을 획득하여, 변환 실패가 lock 상태를 오염시키지 않도록 함
     let client_cert_verify_handle = ca.get_client_cert_verify_handle();
     let cache_handle = ca.get_cache_handle();
     let mut req_cert_rx = request_client_cert_rx;
     tokio::spawn(async move {
         while req_cert_rx.changed().await.is_ok() {
             let config = req_cert_rx.borrow().clone();
-            let result = std::panic::AssertUnwindSafe(async {
-                match config {
-                    Some(ref cfg) => {
-                        let verify_config = convert_request_client_cert_config(cfg).await;
-                        *client_cert_verify_handle.write().await = Some(verify_config);
-                        cache_handle.invalidate_all();
-                        info!(
-                            "Request client cert 설정 업데이트됨: enabled={}, required={}",
-                            cfg.enabled, cfg.required
-                        );
-                    }
-                    None => {
-                        *client_cert_verify_handle.write().await = None;
-                        cache_handle.invalidate_all();
-                        info!("Request client cert 설정 해제됨");
-                    }
+            match config {
+                Some(ref cfg) => {
+                    // 변환을 먼저 수행 — 파일 읽기/파싱 실패 시 lock은 오염되지 않음
+                    let verify_config = convert_request_client_cert_config(cfg).await;
+                    *client_cert_verify_handle.write().await = Some(verify_config);
+                    cache_handle.invalidate_all();
+                    info!(
+                        "Request client cert 설정 업데이트됨: enabled={}, required={}",
+                        cfg.enabled, cfg.required
+                    );
                 }
-            });
-            if let Err(e) = futures_util::FutureExt::catch_unwind(result).await {
-                tracing::error!(
-                    "Request client cert 설정 업데이트 중 패닉 발생: {:?} — 다음 업데이트를 계속 처리합니다",
-                    e.downcast_ref::<&str>().copied().unwrap_or("unknown panic")
-                );
+                None => {
+                    *client_cert_verify_handle.write().await = None;
+                    cache_handle.invalidate_all();
+                    info!("Request client cert 설정 해제됨");
+                }
             }
         }
     });
@@ -263,23 +256,23 @@ pub async fn run_proxy(
     info!("Proxy listening on {}", addr);
 
     let event_tx_http = event_tx.clone();
-    let tx_counter_http = tx_counter_tx.clone();
+    let tx_counter_http = total_transactions.clone();
     tokio::spawn(async move {
         while let Some(event) = rx.recv().await {
             if let Ok(msg) = serde_json::to_string(&DaemonMessage::Event { data: event }) {
                 let _ = event_tx_http.send(msg);
-                let _ = tx_counter_http.send(()).await;
+                tx_counter_http.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
             }
         }
     });
 
     let event_tx_tunnel = event_tx.clone();
-    let tx_counter_tunnel = tx_counter_tx;
+    let tx_counter_tunnel = total_transactions;
     tokio::spawn(async move {
         while let Some(tunnel_event) = tunnel_rx.recv().await {
             if let Ok(msg) = serde_json::to_string(&DaemonMessage::Event { data: tunnel_event }) {
                 let _ = event_tx_tunnel.send(msg);
-                let _ = tx_counter_tunnel.send(()).await;
+                tx_counter_tunnel.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
             }
         }
     });
