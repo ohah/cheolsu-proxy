@@ -1,4 +1,4 @@
-use super::intercept::default_true;
+use super::default_true;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 

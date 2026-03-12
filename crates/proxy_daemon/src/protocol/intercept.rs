@@ -1,3 +1,4 @@
+use super::default_true;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -111,10 +112,6 @@ pub(crate) fn default_block_status() -> u16 {
 
 pub(crate) fn default_ok_status() -> u16 {
     200
-}
-
-pub(crate) fn default_true() -> bool {
-    true
 }
 
 impl std::fmt::Display for InterceptRule {
