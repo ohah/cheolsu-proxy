@@ -170,15 +170,16 @@ impl LoggingHandler {
         mode: crate::protocol::SslProxyingMode,
         entries: Vec<crate::protocol::SslProxyingEntry>,
     ) {
-        let mut mode_guard = self.intercept.ssl_proxying_mode.write().await;
-        *mode_guard = mode.clone();
-        drop(mode_guard);
-        let mut entries_guard = self.intercept.ssl_proxying_entries.write().await;
+        // 로그를 먼저 출력하여 mode.clone() 제거
         tracing::info!(
             "[SSLProxying] 업데이트: mode={:?}, {} 개",
             mode,
             entries.len()
         );
+        let mut mode_guard = self.intercept.ssl_proxying_mode.write().await;
+        *mode_guard = mode;
+        drop(mode_guard);
+        let mut entries_guard = self.intercept.ssl_proxying_entries.write().await;
         *entries_guard = entries;
     }
 
