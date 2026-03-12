@@ -251,6 +251,10 @@ pub(crate) async fn import_custom_ca_pkcs12(
     password: String,
 ) -> Result<proxy_daemon::CertificateInfo, String> {
     tokio::task::spawn_blocking(move || {
+        let p12_path = std::fs::canonicalize(&p12_path)
+            .map_err(|e| format!("PKCS12 경로 확인 실패: {}", e))?;
+        let p12_path = p12_path.to_string_lossy().to_string();
+
         let (cert_pem, key_pem) = proxy_daemon::parse_pkcs12(&p12_path, &password)
             .map_err(|e| format!("PKCS12 파싱 실패: {}", e))?;
 
