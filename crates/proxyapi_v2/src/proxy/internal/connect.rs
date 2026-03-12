@@ -41,7 +41,7 @@ where
 }
 
 /// TLS 에러 문자열에서 힌트 메시지를 추출하는 헬퍼
-fn tls_error_hint(error_str: &str) -> &'static str {
+pub(super) fn tls_error_hint(error_str: &str) -> &'static str {
     if error_str.contains("SignatureAlgorithmsExtensionRequired") {
         "서버가 SignatureAlgorithmsExtension을 요구함 - TLS 1.2+ 클라이언트 사용 또는 서버 설정 확인"
     } else if error_str.contains("peer is incompatible") {
@@ -58,7 +58,7 @@ fn tls_error_hint(error_str: &str) -> &'static str {
 }
 
 /// TLS 에러 문자열에서 백엔드 종류를 판별하는 헬퍼
-fn detect_tls_backend(error_str: &str) -> &'static str {
+pub(super) fn detect_tls_backend(error_str: &str) -> &'static str {
     if error_str.contains("rustls") {
         "RUSTLS"
     } else if error_str.contains("native-tls") || error_str.contains("openssl") {
