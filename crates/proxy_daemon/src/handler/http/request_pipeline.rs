@@ -1,6 +1,6 @@
 use proxy_v2_models::ProxiedRequest;
 use proxyapi_v2::{
-    hyper::http::StatusCode,
+    hyper::http::{Method, StatusCode},
     hyper::{Request, Response},
     Body,
 };
@@ -14,6 +14,114 @@ use super::super::LoggingHandler;
 impl LoggingHandler {
     pub(in crate::handler) fn serve_ca_cert_download(&self, req: &Request<Body>) -> Response<Body> {
         cert_distribution::handle_cert_request(req, self.config.ca_cert_der.as_ref())
+    }
+
+    /// 요청 바디 크기 제한 확인 (Content-Length 헤더 + body size_hint 기반).
+    /// 크기 초과 시 413 Payload Too Large 응답을 반환합니다.
+    pub(super) fn check_request_body_size_limit(
+        &self,
+        req: &Request<Body>,
+    ) -> Option<Response<Body>> {
+        let max_size = self.config.max_body_size?;
+
+        // 1) Content-Length 헤더 기반 검사
+        let content_length = req
+            .headers()
+            .get(proxyapi_v2::hyper::header::CONTENT_LENGTH)
+            .and_then(|v| v.to_str().ok())
+            .and_then(|v| v.parse::<usize>().ok());
+
+        // 2) body size_hint의 lower bound 확인
+        // NOTE: chunked 전송 시 hyper의 Incoming body는 lower=0, upper=None을 반환하므로
+        // Content-Length 없는 chunked 요청은 이 검사를 우회할 수 있음.
+        // 완전한 스트리밍 제한이 필요하면 body wrapper로 누적 크기를 체크해야 함.
+        let body_lower_bound = {
+            use proxyapi_v2::hyper::body::Body as HttpBody;
+            req.body().size_hint().lower() as usize
+        };
+
+        let effective_size = content_length.unwrap_or(body_lower_bound);
+        if effective_size > max_size {
+            info!(
+                "[BodyLimit] 요청 바디 크기 초과: {} > {} ({})",
+                effective_size,
+                max_size,
+                req.uri()
+            );
+            let response = Response::builder()
+                .status(StatusCode::PAYLOAD_TOO_LARGE)
+                .body(Body::from(format!(
+                    "Request body too large: {} bytes (max: {} bytes)",
+                    effective_size, max_size
+                )))
+                .unwrap_or_else(|_| Response::new(Body::empty()));
+            return Some(response);
+        }
+
+        None
+    }
+
+    /// 응답 바디 크기 제한 확인.
+    /// 업스트림이 과도하게 큰 응답을 보낼 때 OOM 방지를 위해 사용합니다.
+    /// NOTE: Content-Length가 없는 chunked 응답은 size_hint lower=0이므로 이 검사를 우회함.
+    /// Content-Length가 있는 대용량 응답(파일 다운로드 등)만 차단됨.
+    pub(super) fn check_response_body_size_limit(
+        &self,
+        res: &Response<Body>,
+    ) -> Option<Response<Body>> {
+        let max_size = self.config.max_body_size?;
+
+        let response_size = res
+            .headers()
+            .get(proxyapi_v2::hyper::header::CONTENT_LENGTH)
+            .and_then(|v| v.to_str().ok())
+            .and_then(|v| v.parse::<usize>().ok())
+            .unwrap_or_else(|| {
+                use proxyapi_v2::hyper::body::Body as HttpBody;
+                res.body().size_hint().lower() as usize
+            });
+
+        if response_size > max_size {
+            info!(
+                "[BodyLimit] 응답 바디 크기 초과: {} > {} — 바디를 잘라 반환",
+                response_size, max_size
+            );
+            return Some(
+                Response::builder()
+                    .status(StatusCode::BAD_GATEWAY)
+                    .body(Body::from(format!(
+                        "Response body too large: {} bytes (max: {} bytes)",
+                        response_size, max_size
+                    )))
+                    .unwrap_or_else(|_| Response::new(Body::empty())),
+            );
+        }
+
+        None
+    }
+
+    /// WebSocket 업그레이드 요청일 경우 SEC_WEBSOCKET_EXTENSIONS 헤더를 제거합니다.
+    /// 프록시 환경에서 압축 확장(permessage-deflate 등)이 호환성 문제를 일으킬 수 있으므로
+    /// 확장 협상을 방지합니다.
+    pub(super) fn strip_websocket_extensions(req: &mut Request<Body>) {
+        let is_websocket = req
+            .headers()
+            .get(proxyapi_v2::hyper::header::UPGRADE)
+            .and_then(|v| v.to_str().ok())
+            .map_or(false, |s| s.to_lowercase() == "websocket");
+
+        if is_websocket {
+            req.headers_mut()
+                .remove(proxyapi_v2::hyper::header::SEC_WEBSOCKET_EXTENSIONS);
+        }
+    }
+
+    /// CONNECT 터널 요청인지 확인합니다.
+    pub(super) fn is_connect_tunnel(
+        proxied_request: &ProxiedRequest,
+        restored_req: &Request<Body>,
+    ) -> bool {
+        restored_req.method() == Method::CONNECT || proxied_request.method() == "CONNECT"
     }
 
     /// Apply host mapping to the request if a matching rule exists.
