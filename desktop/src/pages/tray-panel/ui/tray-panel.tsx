@@ -96,11 +96,15 @@ export function TrayPanel() {
   };
 
   const handleShowMainWindow = async () => {
-    await invoke("tray_show_main_window").catch(() => {});
+    await invoke("tray_show_main_window").catch((e) => {
+      console.error("Failed to show main window:", e);
+    });
   };
 
   const handleQuit = async () => {
-    await invoke("tray_quit_app").catch(() => {});
+    await invoke("tray_quit_app").catch((e) => {
+      console.error("Failed to quit app:", e);
+    });
   };
 
   const isConnected = info?.is_connected ?? false;

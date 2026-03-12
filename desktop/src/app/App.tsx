@@ -179,7 +179,9 @@ const App: React.FC = () => {
       pausedFromTrayRef.current = false;
       return;
     }
-    invoke("tray_set_recording_paused", { paused }).catch(() => {});
+    invoke("tray_set_recording_paused", { paused }).catch((e) => {
+      console.error("Failed to sync recording paused state:", e);
+    });
   }, [paused]);
 
   const setTransactions = useTransactionStore((s) => s.setTransactions);
