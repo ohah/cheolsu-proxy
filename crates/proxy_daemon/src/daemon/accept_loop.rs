@@ -19,10 +19,10 @@ pub(super) struct ClientCountGuard {
 
 impl Drop for ClientCountGuard {
     fn drop(&mut self) {
-        let prev = self.client_count.fetch_sub(1, Ordering::SeqCst);
+        let prev = self.client_count.fetch_sub(1, Ordering::AcqRel);
         if prev == 0 {
             // 언더플로우 방지: 이미 0이면 복구
-            self.client_count.store(0, Ordering::SeqCst);
+            self.client_count.store(0, Ordering::Release);
             warn!("ClientCountGuard: 언더플로우 감지, 카운트를 0으로 복구");
             return;
         }
@@ -47,7 +47,7 @@ pub(super) async fn run_accept_loop(
             accept_result = uds_listener.accept() => {
                 match accept_result {
                     Ok((stream, _addr)) => {
-                        let count = ctx.client_count.fetch_add(1, Ordering::SeqCst) + 1;
+                        let count = ctx.client_count.fetch_add(1, Ordering::AcqRel) + 1;
                         info!("Client connected (total: {})", count);
 
                         let _guard = ClientCountGuard {

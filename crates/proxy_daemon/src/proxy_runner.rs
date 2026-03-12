@@ -39,6 +39,7 @@ pub async fn run_proxy(
     request_client_cert_rx: watch::Receiver<Option<RequestClientCertConfig>>,
     connection_strategy: std::sync::Arc<std::sync::atomic::AtomicU8>,
     metrics_collector: std::sync::Arc<proxyapi_v2::metrics::MetricsCollector>,
+    tx_counter_tx: tokio::sync::mpsc::Sender<()>,
 ) -> Result<(), DaemonError> {
     use proxyapi_v2::builder::ProxyBuilder;
     use proxyapi_v2::certificate_authority::{
@@ -59,27 +60,36 @@ pub async fn run_proxy(
 
     // request_client_cert 설정 변경 감시
     // client_cert_verify + cache 핸들을 함께 사용하여 캐시 무효화도 수행
+    // 패닉 방지: 개별 설정 업데이트 실패 시 에러를 로깅하고 다음 업데이트를 계속 처리
     let client_cert_verify_handle = ca.get_client_cert_verify_handle();
     let cache_handle = ca.get_cache_handle();
     let mut req_cert_rx = request_client_cert_rx;
     tokio::spawn(async move {
         while req_cert_rx.changed().await.is_ok() {
             let config = req_cert_rx.borrow().clone();
-            match config {
-                Some(ref cfg) => {
-                    let verify_config = convert_request_client_cert_config(cfg).await;
-                    *client_cert_verify_handle.write().await = Some(verify_config);
-                    cache_handle.invalidate_all();
-                    info!(
-                        "Request client cert 설정 업데이트됨: enabled={}, required={}",
-                        cfg.enabled, cfg.required
-                    );
+            let result = std::panic::AssertUnwindSafe(async {
+                match config {
+                    Some(ref cfg) => {
+                        let verify_config = convert_request_client_cert_config(cfg).await;
+                        *client_cert_verify_handle.write().await = Some(verify_config);
+                        cache_handle.invalidate_all();
+                        info!(
+                            "Request client cert 설정 업데이트됨: enabled={}, required={}",
+                            cfg.enabled, cfg.required
+                        );
+                    }
+                    None => {
+                        *client_cert_verify_handle.write().await = None;
+                        cache_handle.invalidate_all();
+                        info!("Request client cert 설정 해제됨");
+                    }
                 }
-                None => {
-                    *client_cert_verify_handle.write().await = None;
-                    cache_handle.invalidate_all();
-                    info!("Request client cert 설정 해제됨");
-                }
+            });
+            if let Err(e) = futures_util::FutureExt::catch_unwind(result).await {
+                tracing::error!(
+                    "Request client cert 설정 업데이트 중 패닉 발생: {:?} — 다음 업데이트를 계속 처리합니다",
+                    e.downcast_ref::<&str>().copied().unwrap_or("unknown panic")
+                );
             }
         }
     });
@@ -219,6 +229,9 @@ pub async fn run_proxy(
     // 동시 연결 수 제한 세마포어 생성
     let connection_semaphore = max_concurrent_connections.map(|max| Arc::new(Semaphore::new(max)));
 
+    // Detached 태스크(passthrough 등)의 graceful shutdown을 위한 채널
+    let (passthrough_shutdown_tx, passthrough_shutdown_rx) = watch::channel(false);
+
     let proxy_ctx = proxyapi_v2::ProxyContext {
         tunnel_event_sender: Some(tunnel_tx),
         tls_passthrough: Some(tls_passthrough),
@@ -228,6 +241,7 @@ pub async fn run_proxy(
         connection_semaphore,
         connection_strategy: Some(connection_strategy),
         metrics: Some(metrics_collector),
+        shutdown_rx: Some(passthrough_shutdown_rx),
         ..Default::default()
     };
 
@@ -237,8 +251,10 @@ pub async fn run_proxy(
         .with_client(hybrid_client)
         .with_http_handler(handler.clone())
         .with_websocket_handler(handler.clone())
-        .with_graceful_shutdown(async {
+        .with_graceful_shutdown(async move {
             let _ = shutdown_signal.await;
+            // 모든 detached passthrough 태스크에 종료 신호 전송
+            let _ = passthrough_shutdown_tx.send(true);
         })
         .with_proxy_context(proxy_ctx)
         .build()
@@ -247,19 +263,23 @@ pub async fn run_proxy(
     info!("Proxy listening on {}", addr);
 
     let event_tx_http = event_tx.clone();
+    let tx_counter_http = tx_counter_tx.clone();
     tokio::spawn(async move {
         while let Some(event) = rx.recv().await {
             if let Ok(msg) = serde_json::to_string(&DaemonMessage::Event { data: event }) {
                 let _ = event_tx_http.send(msg);
+                let _ = tx_counter_http.send(()).await;
             }
         }
     });
 
     let event_tx_tunnel = event_tx.clone();
+    let tx_counter_tunnel = tx_counter_tx;
     tokio::spawn(async move {
         while let Some(tunnel_event) = tunnel_rx.recv().await {
             if let Ok(msg) = serde_json::to_string(&DaemonMessage::Event { data: tunnel_event }) {
                 let _ = event_tx_tunnel.send(msg);
+                let _ = tx_counter_tunnel.send(()).await;
             }
         }
     });

@@ -69,33 +69,37 @@ impl HttpHandler for LoggingHandler {
         // 인증 통과 후 Proxy-Authorization 헤더 제거 (upstream에 전달 방지)
         req.headers_mut().remove("proxy-authorization");
 
-        // 요청 바디 크기 제한 확인 (Content-Length 기반)
-        // NOTE: Content-Length 헤더 기반 검사만 수행하므로, chunked transfer-encoding을 사용하는
-        // 요청은 Content-Length가 없어 이 검사를 우회할 수 있습니다.
-        // 완전한 제한이 필요하면 바디 스트림을 소비하며 누적 크기를 체크하는 방식이 필요합니다.
+        // 요청 바디 크기 제한 확인 (Content-Length 헤더 + body size_hint 기반)
         if let Some(max_size) = self.config.max_body_size {
-            if let Some(content_length) = req
+            // 1) Content-Length 헤더 기반 검사
+            let content_length = req
                 .headers()
                 .get(proxyapi_v2::hyper::header::CONTENT_LENGTH)
                 .and_then(|v| v.to_str().ok())
-                .and_then(|v| v.parse::<usize>().ok())
-            {
-                if content_length > max_size {
-                    info!(
-                        "[BodyLimit] 요청 바디 크기 초과: {} > {} ({})",
-                        content_length,
-                        max_size,
-                        req.uri()
-                    );
-                    let response = Response::builder()
-                        .status(StatusCode::PAYLOAD_TOO_LARGE)
-                        .body(Body::from(format!(
-                            "Request body too large: {} bytes (max: {} bytes)",
-                            content_length, max_size
-                        )))
-                        .unwrap_or_else(|_| Response::new(Body::empty()));
-                    return response.into();
-                }
+                .and_then(|v| v.parse::<usize>().ok());
+
+            // 2) body size_hint의 lower bound도 확인 (chunked 전송 시 Content-Length 없어도 감지 가능)
+            let body_lower_bound = {
+                use proxyapi_v2::hyper::body::Body as HttpBody;
+                req.body().size_hint().lower() as usize
+            };
+
+            let effective_size = content_length.unwrap_or(body_lower_bound);
+            if effective_size > max_size {
+                info!(
+                    "[BodyLimit] 요청 바디 크기 초과: {} > {} ({})",
+                    effective_size,
+                    max_size,
+                    req.uri()
+                );
+                let response = Response::builder()
+                    .status(StatusCode::PAYLOAD_TOO_LARGE)
+                    .body(Body::from(format!(
+                        "Request body too large: {} bytes (max: {} bytes)",
+                        effective_size, max_size
+                    )))
+                    .unwrap_or_else(|_| Response::new(Body::empty()));
+                return response.into();
             }
         }
 
@@ -179,6 +183,32 @@ impl HttpHandler for LoggingHandler {
     async fn handle_response(&mut self, _ctx: &HttpContext, res: Response<Body>) -> Response<Body> {
         if res.status() == StatusCode::SWITCHING_PROTOCOLS {
             return res;
+        }
+
+        // 응답 바디 크기 제한: 업스트림이 과도하게 큰 응답을 보낼 때 OOM 방지
+        if let Some(max_size) = self.config.max_body_size {
+            let response_size = res
+                .headers()
+                .get(proxyapi_v2::hyper::header::CONTENT_LENGTH)
+                .and_then(|v| v.to_str().ok())
+                .and_then(|v| v.parse::<usize>().ok())
+                .unwrap_or_else(|| {
+                    use proxyapi_v2::hyper::body::Body as HttpBody;
+                    res.body().size_hint().lower() as usize
+                });
+            if response_size > max_size {
+                info!(
+                    "[BodyLimit] 응답 바디 크기 초과: {} > {} — 바디를 잘라 반환",
+                    response_size, max_size
+                );
+                return Response::builder()
+                    .status(StatusCode::BAD_GATEWAY)
+                    .body(Body::from(format!(
+                        "Response body too large: {} bytes (max: {} bytes)",
+                        response_size, max_size
+                    )))
+                    .unwrap_or_else(|_| Response::new(Body::empty()));
+            }
         }
 
         let res = self.apply_response_intercept_if_needed(res).await;

@@ -177,6 +177,7 @@ where
         };
 
         let authority = authority.clone();
+        let shutdown_rx = self.ctx.shutdown_rx.clone();
         tokio::spawn(async move {
             let upgraded = match hyper::upgrade::on(&mut req).await {
                 Ok(u) => u,
@@ -208,13 +209,24 @@ where
                 .throttle_rx
                 .as_ref()
                 .and_then(|rx| rx.borrow().clone());
-            if let Err(e) = copy_bidirectional_maybe_throttled(
+            let copy_fut = copy_bidirectional_maybe_throttled(
                 &mut client_stream,
                 &mut server_stream,
                 throttle_config.as_ref(),
-            )
-            .await
-            {
+            );
+            // shutdown 신호 수신 시 양방향 복사를 조기 종료
+            if let Some(mut rx) = shutdown_rx {
+                tokio::select! {
+                    result = copy_fut => {
+                        if let Err(e) = result {
+                            warn!("[TLS-PASSTHROUGH] 양방향 복사 실패: {} - {}", authority, e);
+                        }
+                    }
+                    _ = rx.wait_for(|&v| v) => {
+                        debug!("[TLS-PASSTHROUGH] shutdown 신호 수신, 패스스루 종료: {}", authority);
+                    }
+                }
+            } else if let Err(e) = copy_fut.await {
                 warn!("[TLS-PASSTHROUGH] 양방향 복사 실패: {} - {}", authority, e);
             }
         });
@@ -549,10 +561,24 @@ where
             .throttle_rx
             .as_ref()
             .and_then(|rx| rx.borrow().clone());
-        if let Err(e) =
-            copy_bidirectional_maybe_throttled(&mut upgraded, &mut server, throttle_config.as_ref())
-                .await
-        {
+        let copy_fut = copy_bidirectional_maybe_throttled(
+            &mut upgraded,
+            &mut server,
+            throttle_config.as_ref(),
+        );
+        // shutdown 신호 수신 시 터널링을 조기 종료
+        if let Some(mut rx) = self.ctx.shutdown_rx.clone() {
+            tokio::select! {
+                result = copy_fut => {
+                    if let Err(e) = result {
+                        error!(authority = %authority, error = %e, "터널링 실패");
+                    }
+                }
+                _ = rx.wait_for(|&v| v) => {
+                    debug!(authority = %authority, "shutdown 신호 수신, 터널링 종료");
+                }
+            }
+        } else if let Err(e) = copy_fut.await {
             error!(authority = %authority, error = %e, "터널링 실패");
         }
     }
