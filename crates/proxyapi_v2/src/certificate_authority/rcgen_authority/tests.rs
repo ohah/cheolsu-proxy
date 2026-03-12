@@ -81,10 +81,10 @@ mod tests {
             "https//ad.aceplanet.co.kr/cgi-bin/PelicanC.dll?impr?pageid=06P0&campaignid=01sL&gothrough=nextgrade&out=iframe",
         );
 
-        let c1 = ca.gen_cert(&authority1, None);
-        let c2 = ca.gen_cert(&authority2, None);
-        let c3 = ca.gen_cert(&authority1, None);
-        let c4 = ca.gen_cert(&authority2, None);
+        let c1 = ca.gen_cert(&authority1, None).unwrap();
+        let c2 = ca.gen_cert(&authority2, None).unwrap();
+        let c3 = ca.gen_cert(&authority1, None).unwrap();
+        let c4 = ca.gen_cert(&authority2, None).unwrap();
 
         let (_, cert1) = x509_parser::parse_x509_certificate(&c1).unwrap();
         let (_, cert2) = x509_parser::parse_x509_certificate(&c2).unwrap();
@@ -117,7 +117,7 @@ mod tests {
             negotiated_alpn: Some(b"h2".to_vec()),
         };
 
-        let cert_der = ca.gen_cert(&authority, Some(&upstream));
+        let cert_der = ca.gen_cert(&authority, Some(&upstream)).unwrap();
         let (_, cert) = x509_parser::parse_x509_certificate(&cert_der).unwrap();
 
         // CN이 upstream의 CN인지 확인
@@ -152,7 +152,7 @@ mod tests {
         let ca = build_ca(0);
         let authority = Authority::from_static("fallback.example.com");
 
-        let cert_der = ca.gen_cert(&authority, None);
+        let cert_der = ca.gen_cert(&authority, None).unwrap();
         let (_, cert) = x509_parser::parse_x509_certificate(&cert_der).unwrap();
 
         let cn = cert
@@ -170,7 +170,7 @@ mod tests {
         let ca = build_ca(0);
         let authority = Authority::from_static("aki-test.example.com");
 
-        let cert_der = ca.gen_cert(&authority, None);
+        let cert_der = ca.gen_cert(&authority, None).unwrap();
         let (_, cert) = x509_parser::parse_x509_certificate(&cert_der).unwrap();
 
         // AKI extension (OID 2.5.29.35) 이 존재하는지 확인
@@ -189,7 +189,7 @@ mod tests {
         let long_host = format!("{}.example.com", "a".repeat(80));
         let authority = Authority::try_from(long_host).unwrap();
 
-        let cert_der = ca.gen_cert(&authority, None);
+        let cert_der = ca.gen_cert(&authority, None).unwrap();
         let (_, cert) = x509_parser::parse_x509_certificate(&cert_der).unwrap();
 
         let cn = cert

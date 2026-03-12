@@ -4,7 +4,7 @@ use crate::upstream_cert::UpstreamCertInfo;
 use http::uri::Authority;
 use std::sync::Arc;
 use tokio_rustls::rustls::ServerConfig;
-use tracing::{debug, info};
+use tracing::{debug, error, info};
 
 impl CertificateAuthority for OpensslAuthority {
     async fn gen_server_config(
@@ -18,10 +18,23 @@ impl CertificateAuthority for OpensslAuthority {
         }
         debug!("Generating server config");
 
-        let certs = vec![
-            self.gen_cert(authority, upstream_cert)
-                .unwrap_or_else(|_| panic!("Failed to generate certificate for {}", authority)),
-        ];
+        let cert = match self.gen_cert(authority, upstream_cert) {
+            Ok(cert) => cert,
+            Err(e) => {
+                error!(
+                    "인증서 생성 실패: {} - {:?}. upstream 정보 없이 재시도",
+                    authority, e
+                );
+                // 폴백: upstream 정보 없이 재시도
+                self.gen_cert(authority, None).unwrap_or_else(|e2| {
+                    panic!(
+                        "인증서 생성에 완전히 실패: authority={}, error={:?}",
+                        authority, e2
+                    )
+                })
+            }
+        };
+        let certs = vec![cert];
 
         // TLS 버전 설정: TLS 1.2부터 TLS 1.3까지 허용 (rustls 지원 범위)
         let supported_versions = vec![
