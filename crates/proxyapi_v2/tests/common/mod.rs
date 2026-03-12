@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use async_compression::tokio::bufread::GzipEncoder;
 use futures::{SinkExt, StreamExt};
 use proxyapi_v2::{
