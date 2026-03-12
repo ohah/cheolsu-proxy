@@ -44,8 +44,14 @@ jobs:
           matcher: true
           rustflags: ""
 
-      - name: Run tests
+      - name: Run workspace tests (proxyapi_v2 제외)
         env:
           OPENSSL_LIB_DIR: /usr/lib/x86_64-linux-gnu
           OPENSSL_INCLUDE_DIR: /usr/include/openssl
         run: cargo test --workspace --exclude cheolsu-proxy --exclude proxyapi_v2
+
+      - name: Run proxyapi_v2 tests
+        env:
+          OPENSSL_LIB_DIR: /usr/lib/x86_64-linux-gnu
+          OPENSSL_INCLUDE_DIR: /usr/include/openssl
+        run: cargo test -p proxyapi_v2 --features full
