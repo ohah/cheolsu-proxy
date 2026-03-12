@@ -231,17 +231,6 @@ async fn daemon_main(port: u16, host: String) -> i32 {
     let started_at = std::time::Instant::now();
     let total_transactions = Arc::new(AtomicU64::new(0));
 
-    // 트랜잭션 카운터: 별도 mpsc 채널로 이벤트 포워딩 시점에 직접 카운팅
-    let (tx_counter_tx, mut tx_counter_rx) = tokio::sync::mpsc::channel::<()>(256);
-    {
-        let total_tx_clone = total_transactions.clone();
-        tokio::spawn(async move {
-            while tx_counter_rx.recv().await.is_some() {
-                total_tx_clone.fetch_add(1, Ordering::Relaxed);
-            }
-        });
-    }
-
     // TLS passthrough 변경 시 이벤트 브로드캐스트
     {
         let event_tx_tls = event_tx.clone();
@@ -288,7 +277,7 @@ async fn daemon_main(port: u16, host: String) -> i32 {
         request_client_cert_rx,
         connection_strategy.clone(),
         metrics_collector.clone(),
-        tx_counter_tx,
+        total_transactions.clone(),
     );
 
     let uds_listener = match UnixListener::bind(&uds_path) {

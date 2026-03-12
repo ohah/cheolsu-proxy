@@ -347,7 +347,7 @@ pub(super) async fn handle_command(
         }
         ClientCommand::HealthCheck => {
             let uptime_secs = metrics.started_at.elapsed().as_secs();
-            let active_conns = client_count.load(std::sync::atomic::Ordering::Relaxed) as u32;
+            let active_conns = client_count.load(std::sync::atomic::Ordering::Acquire) as u32;
             let total_txns = metrics
                 .total_transactions
                 .load(std::sync::atomic::Ordering::Relaxed);

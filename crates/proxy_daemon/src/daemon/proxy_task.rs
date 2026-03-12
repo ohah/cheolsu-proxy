@@ -40,7 +40,7 @@ pub(super) fn spawn_proxy_task(
     request_client_cert_rx: watch::Receiver<Option<crate::protocol::RequestClientCertConfig>>,
     connection_strategy: Arc<std::sync::atomic::AtomicU8>,
     metrics_collector: Arc<MetricsCollector>,
-    tx_counter_tx: tokio::sync::mpsc::Sender<()>,
+    total_transactions: std::sync::Arc<std::sync::atomic::AtomicU64>,
 ) -> (
     tokio::task::JoinHandle<()>,
     tokio::sync::oneshot::Sender<()>,
@@ -70,7 +70,7 @@ pub(super) fn spawn_proxy_task(
             request_client_cert_rx,
             connection_strategy,
             metrics_collector,
-            tx_counter_tx,
+            total_transactions,
         )
         .await
         {
