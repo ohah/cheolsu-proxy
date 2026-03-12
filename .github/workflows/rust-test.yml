@@ -36,6 +36,20 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libssl-dev
 
+      - name: Generate test CA certificates
+        run: |
+          # cheolsu-proxy CA (4096-bit RSA, self-signed)
+          openssl req -x509 -newkey rsa:4096 -sha512 -days 3650 -nodes \
+            -keyout crates/proxyapi_v2/src/certificate_authority/cheolsu-proxy.key \
+            -out crates/proxyapi_v2/src/certificate_authority/cheolsu-proxy.cer \
+            -config crates/proxyapi_v2/src/certificate_authority/cheolsu-proxy.cnf \
+            -extensions v3_ca
+          # hudsucker CA (2048-bit RSA, self-signed)
+          openssl req -x509 -newkey rsa:2048 -sha256 -days 3650 -nodes \
+            -keyout crates/proxyapi_v2/examples/ca/hudsucker.key \
+            -out crates/proxyapi_v2/examples/ca/hudsucker.cer \
+            -subj "/CN=Hudsucker CA/O=Hudsucker"
+
       - name: Setup Rust toolchain
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
