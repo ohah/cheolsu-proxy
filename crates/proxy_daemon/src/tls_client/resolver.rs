@@ -1,10 +1,6 @@
 use std::sync::Arc;
 use tokio_rustls::rustls::{
-    client::ResolvesClientCert,
-    crypto::aws_lc_rs,
-    pki_types::{CertificateDer, PrivateKeyDer},
-    sign::CertifiedKey,
-    SignatureScheme,
+    client::ResolvesClientCert, crypto::aws_lc_rs, sign::CertifiedKey, SignatureScheme,
 };
 
 use super::loader::{load_certs, load_private_key};

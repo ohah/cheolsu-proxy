@@ -1,6 +1,4 @@
-use proxyapi_v2::throttle::{
-    ThrottleConfig, ThrottlePreset, ThrottledIo, copy_bidirectional_throttled,
-};
+use proxyapi_v2::throttle::{ThrottleConfig, ThrottlePreset, ThrottledIo};
 use std::time::{Duration, Instant};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::{TcpListener, TcpStream};
@@ -348,13 +346,6 @@ async fn copy_bidirectional_throttled_echo() {
         stream.shutdown().await.unwrap();
     });
 
-    let config = ThrottleConfig {
-        enabled: true,
-        download_rate: Some(10 * 1024),
-        upload_rate: Some(10 * 1024),
-        latency_ms: 0,
-    };
-
     let mut client = TcpStream::connect(format!("127.0.0.1:{}", port))
         .await
         .unwrap();
@@ -388,13 +379,6 @@ async fn copy_bidirectional_throttled_no_double_throttle() {
         }
         total
     });
-
-    let config = ThrottleConfig {
-        enabled: true,
-        download_rate: Some(4096), // 4KB/s
-        upload_rate: Some(4096),   // 4KB/s
-        latency_ms: 0,
-    };
 
     let client = TcpStream::connect(format!("127.0.0.1:{}", port))
         .await
