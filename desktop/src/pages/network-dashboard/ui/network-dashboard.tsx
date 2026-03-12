@@ -92,7 +92,6 @@ export const NetworkDashboard = () => {
   const [editorMode, setEditorMode] = useState<EditorMode>("code");
   const [builderState, setBuilderState] = useState<BuilderState>(() => ({
     conditions: [createEmptyCondition()],
-    logicalOperator: "and",
   }));
 
   const handleModeChange = useCallback(
@@ -381,15 +380,14 @@ export const NetworkDashboard = () => {
         />
 
         {editorMode === "builder" && (
-          <div className="px-2 pb-2">
-            <QueryBuilder
-              builderState={builderState}
-              onBuilderStateChange={handleBuilderStateChange}
-              onApply={handleBuilderApply}
-              totalCount={totalCount}
-              filteredCount={filteredCount}
-            />
-          </div>
+          <QueryBuilder
+            builderState={builderState}
+            onBuilderStateChange={handleBuilderStateChange}
+            onApply={handleBuilderApply}
+            onClose={() => setEditorMode("code")}
+            totalCount={totalCount}
+            filteredCount={filteredCount}
+          />
         )}
 
         <div className="flex-1 flex flex-col overflow-hidden relative">

@@ -219,7 +219,7 @@ msgstr "API 레퍼런스"
 msgid "Append the original request path to the target URL"
 msgstr "원본 요청 경로를 대상 URL에 추가"
 
-#: src/features/query-filter-editor/ui/query-builder.tsx:355
+#: src/features/query-filter-editor/ui/query-builder.tsx:360
 msgid "Apply"
 msgstr "적용"
 
@@ -381,7 +381,7 @@ msgstr "Cheolsu Proxy 로고"
 msgid "Claude Code (CLI)"
 msgstr "Claude Code (CLI)"
 
-#: src/features/query-filter-editor/ui/query-builder.tsx:350
+#: src/features/query-filter-editor/ui/query-builder.tsx:355
 #: src/pages/log-viewer/ui/logs-page.tsx:255
 #: src/pages/script/ui/script-page.tsx:298
 #: src/pages/settings/ui/components/request-client-cert-section.tsx:68
@@ -451,7 +451,7 @@ msgstr "요청 작성"
 msgid "Concurrency"
 msgstr "동시 요청 수"
 
-#: src/features/query-filter-editor/ui/query-builder.tsx:328
+#: src/features/query-filter-editor/ui/query-builder.tsx:344
 msgid "Condition"
 msgstr "조건"
 
@@ -623,7 +623,7 @@ msgstr "다운로드 (KB/s)"
 msgid "Drop"
 msgstr "드롭"
 
-#: src/features/query-filter-editor/ui/query-builder.tsx:206
+#: src/features/query-filter-editor/ui/query-builder.tsx:211
 msgid "e.g. api.example.com, /api/v1"
 msgstr "예: api.example.com, /api/v1"
 
@@ -757,19 +757,19 @@ msgstr "<0>설정 → 일반 → VPN 및 기기 관리</0>로 이동하세요"
 msgid "Go to <0>Settings → Security → Encryption & credentials</0>"
 msgstr "<0>설정 → 보안 → 암호화 및 자격증명</0>으로 이동하세요"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:159
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:158
 msgid "HAR export failed"
 msgstr "HAR 내보내기 실패"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:156
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:155
 msgid "HAR exported successfully"
 msgstr "HAR 내보내기 성공"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:248
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:247
 msgid "HAR import failed"
 msgstr "HAR 가져오기 실패"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:245
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:244
 msgid "HAR imported successfully"
 msgstr "HAR 가져오기 성공"
 
@@ -946,7 +946,7 @@ msgstr "프록시 스크립트 로드 및 관리"
 msgid "Load Session"
 msgstr "세션 불러오기"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:194
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:193
 msgid "Load transactions"
 msgstr "트랜잭션 불러오기"
 
@@ -1448,7 +1448,7 @@ msgstr "제거됨"
 
 #. placeholder {0}: transactions.length
 #. placeholder {1}: loaded.length
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:193
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:192
 msgid "Replace {0} existing transactions with {1} new ones? Cancel to append instead."
 msgstr "기존 {0}개 트랜잭션을 새로운 {1}개로 교체하시겠습니까? 취소하면 추가됩니다."
 
@@ -1798,19 +1798,19 @@ msgstr "시리얼 번호"
 msgid "Server Replay"
 msgstr "서버 리플레이"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:225
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:224
 msgid "Session load failed"
 msgstr "세션 불러오기 실패"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:222
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:221
 msgid "Session loaded successfully"
 msgstr "세션을 성공적으로 불러왔습니다"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:183
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:182
 msgid "Session save failed"
 msgstr "세션 저장 실패"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:180
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:179
 msgid "Session saved successfully"
 msgstr "세션이 성공적으로 저장되었습니다"
 
@@ -1984,6 +1984,10 @@ msgstr "클라이언트로 (서버 → 클라이언트)"
 #: src/features/websocket-replay/ui/ws-replay-dialog.tsx:136
 msgid "To Server (Client → Server)"
 msgstr "서버로 (클라이언트 → 서버)"
+
+#: src/features/query-filter-editor/ui/query-builder.tsx:157
+msgid "Toggle AND/OR"
+msgstr ""
 
 #: src/pages/settings/ui/components/shortcut-section.tsx:76
 msgid "Toggle proxy on/off with a global keyboard shortcut"
