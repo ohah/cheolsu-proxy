@@ -68,20 +68,15 @@ const App: React.FC = () => {
   useEffect(() => {
     if (paused) return;
 
-    let cancelled = false;
-
     const unlistenMsg = listen<WsMessageInfo>("ws_message", (event) => {
-      if (!cancelled) addWsMessage(event.payload);
+      addWsMessage(event.payload);
     });
     const unlistenConn = listen<WsConnectionEvent>("ws_connection", (event) => {
-      if (!cancelled) {
-        const { connection_id, status, uri, time } = event.payload;
-        updateWsConnection(connection_id, status, uri, time);
-      }
+      const { connection_id, status, uri, time } = event.payload;
+      updateWsConnection(connection_id, status, uri, time);
     });
 
     return () => {
-      cancelled = true;
       unlistenMsg.then((f) => f());
       unlistenConn.then((f) => f());
     };
