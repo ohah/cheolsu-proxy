@@ -409,7 +409,7 @@ pub(super) async fn handle_command(
                 "eager_with_fallback" => 2u8,
                 _ => 0u8, // lazy
             };
-            connection_strategy.store(strategy_value, std::sync::atomic::Ordering::Relaxed);
+            connection_strategy.store(strategy_value, std::sync::atomic::Ordering::Release);
             info!("Connection strategy updated: {}", strategy);
         }
         ClientCommand::GetMetrics => {

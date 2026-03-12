@@ -15,7 +15,7 @@ async fn send_command_inner(
     is_connected: &AtomicBool,
     cmd: &ClientCommand,
 ) -> Result<(), DaemonError> {
-    if !is_connected.load(Ordering::SeqCst) {
+    if !is_connected.load(Ordering::Acquire) {
         return Err(DaemonError::Uds(
             "데몬에 연결되어 있지 않습니다".to_string(),
         ));
@@ -72,7 +72,7 @@ impl Drop for DaemonConnection {
 impl DaemonConnection {
     /// 현재 데몬에 연결되어 있는지 확인합니다.
     pub fn is_connected(&self) -> bool {
-        self.is_connected.load(Ordering::SeqCst)
+        self.is_connected.load(Ordering::Acquire)
     }
 
     /// Disconnect from the daemon (does NOT send stop command).
@@ -345,7 +345,7 @@ async fn run_event_loop<F>(
         };
 
         // 연결 끊김 감지
-        is_connected.store(false, Ordering::SeqCst);
+        is_connected.store(false, Ordering::Release);
         {
             let mut w = writer.lock().await;
             *w = None;
@@ -381,7 +381,7 @@ async fn run_event_loop<F>(
                         let mut w = writer.lock().await;
                         *w = Some(new_writer);
                     }
-                    is_connected.store(true, Ordering::SeqCst);
+                    is_connected.store(true, Ordering::Release);
                     on_message(DaemonMessage::Reconnected);
                     eprintln!("Daemon 재연결 성공");
                     break true;

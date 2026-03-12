@@ -228,6 +228,20 @@ async fn daemon_main(port: u16, host: String) -> i32 {
     let tls_passthrough = proxyapi_v2::tls_passthrough::TlsPassthrough::new(passthrough_path)
         .with_change_notifier(tls_change_tx);
 
+    let started_at = std::time::Instant::now();
+    let total_transactions = Arc::new(AtomicU64::new(0));
+
+    // 트랜잭션 카운터: 별도 mpsc 채널로 이벤트 포워딩 시점에 직접 카운팅
+    let (tx_counter_tx, mut tx_counter_rx) = tokio::sync::mpsc::channel::<()>(256);
+    {
+        let total_tx_clone = total_transactions.clone();
+        tokio::spawn(async move {
+            while tx_counter_rx.recv().await.is_some() {
+                total_tx_clone.fetch_add(1, Ordering::Relaxed);
+            }
+        });
+    }
+
     // TLS passthrough 변경 시 이벤트 브로드캐스트
     {
         let event_tx_tls = event_tx.clone();
@@ -274,6 +288,7 @@ async fn daemon_main(port: u16, host: String) -> i32 {
         request_client_cert_rx,
         connection_strategy.clone(),
         metrics_collector.clone(),
+        tx_counter_tx,
     );
 
     let uds_listener = match UnixListener::bind(&uds_path) {
@@ -298,32 +313,6 @@ async fn daemon_main(port: u16, host: String) -> i32 {
     );
 
     let signal_handles = spawn_signal_handlers(shutdown_tx.clone());
-
-    let started_at = std::time::Instant::now();
-    let total_transactions = Arc::new(AtomicU64::new(0));
-
-    // 트랜잭션 카운터: broadcast 채널을 구독하여 Event 메시지를 카운트
-    {
-        let mut counter_rx = event_tx.subscribe();
-        let total_tx_clone = total_transactions.clone();
-        tokio::spawn(async move {
-            loop {
-                match counter_rx.recv().await {
-                    Ok(msg) => {
-                        // WARNING: JSON 문자열 패턴 매칭으로 트랜잭션을 카운팅하고 있음.
-                        // 이 방식은 fragile하며, JSON 직렬화 포맷이 변경되거나(예: 공백 추가,
-                        // 키 순서 변경) 다른 메시지에 동일 패턴이 포함될 경우 오탐/누락이 발생할 수 있음.
-                        // TODO: 구조화된 enum 매칭이나 별도 카운팅 채널로 개선 필요.
-                        if msg.contains(r#""type":"event""#) {
-                            total_tx_clone.fetch_add(1, Ordering::Relaxed);
-                        }
-                    }
-                    Err(broadcast::error::RecvError::Lagged(_)) => continue,
-                    Err(broadcast::error::RecvError::Closed) => break,
-                }
-            }
-        });
-    }
 
     let ctx = DaemonContext {
         event_tx,

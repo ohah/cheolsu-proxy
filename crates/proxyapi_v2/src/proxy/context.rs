@@ -69,6 +69,8 @@ pub struct ProxyContext {
     pub connection_strategy: Option<Arc<AtomicU8>>,
     /// 메트릭 수집기 (None이면 메트릭 미수집)
     pub metrics: Option<Arc<MetricsCollector>>,
+    /// Graceful shutdown 신호 수신기 (detached 태스크 종료용)
+    pub shutdown_rx: Option<watch::Receiver<bool>>,
 }
 
 impl ProxyContext {
@@ -80,7 +82,7 @@ impl ProxyContext {
     pub fn connection_strategy(&self) -> ConnectionStrategy {
         self.connection_strategy
             .as_ref()
-            .map(|s| ConnectionStrategy::from_u8(s.load(std::sync::atomic::Ordering::Relaxed)))
+            .map(|s| ConnectionStrategy::from_u8(s.load(std::sync::atomic::Ordering::Acquire)))
             .unwrap_or_default()
     }
 }
@@ -144,9 +146,9 @@ mod tests {
             ..ProxyContext::new()
         };
         assert_eq!(ctx.connection_strategy(), ConnectionStrategy::Lazy);
-        strategy.store(1, std::sync::atomic::Ordering::Relaxed);
+        strategy.store(1, std::sync::atomic::Ordering::Release);
         assert_eq!(ctx.connection_strategy(), ConnectionStrategy::Eager);
-        strategy.store(2, std::sync::atomic::Ordering::Relaxed);
+        strategy.store(2, std::sync::atomic::Ordering::Release);
         assert_eq!(
             ctx.connection_strategy(),
             ConnectionStrategy::EagerWithFallback
