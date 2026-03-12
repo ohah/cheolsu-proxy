@@ -6,6 +6,8 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 
 // 스레드 로컬 정규식 캐시. 동일한 패턴의 반복 컴파일을 방지한다.
+// 주의: tokio 멀티스레드 런타임에서는 워커 스레드마다 독립된 캐시가 생성된다.
+// 따라서 전역적으로 최대 256 × (워커 스레드 수)개의 패턴이 캐싱될 수 있다.
 thread_local! {
     static REGEX_CACHE: RefCell<HashMap<String, Regex>> = RefCell::new(HashMap::new());
 }

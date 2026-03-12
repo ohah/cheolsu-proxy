@@ -118,6 +118,20 @@ mod tests {
     }
 
     #[test]
+    fn test_gzip_roundtrip_empty_data() {
+        // 빈 문자열도 정상적으로 압축/해제 가능해야 함
+        let tmp = TempDir::new().unwrap();
+        let path = tmp.path().join("empty.gz");
+
+        save_to_file(&path, "").unwrap();
+        let raw = std::fs::read(&path).unwrap();
+        assert!(is_gzip(&raw), "빈 데이터도 gzip 형식이어야 함");
+
+        let decompressed = load_from_file(&raw).unwrap();
+        assert_eq!(decompressed, "");
+    }
+
+    #[test]
     fn test_save_to_file_invalid_path() {
         let result = save_to_file(std::path::Path::new("/nonexistent/dir/file.gz"), "data");
         assert!(result.is_err());
