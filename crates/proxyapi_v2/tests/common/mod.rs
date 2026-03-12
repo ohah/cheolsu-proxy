@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use async_compression::tokio::bufread::GzipEncoder;
 use futures::{SinkExt, StreamExt};
 use proxyapi_v2::{
@@ -343,6 +345,36 @@ where
 
     tokio::spawn(proxy.start());
     Ok((addr, handler, tx))
+}
+
+/// 커스텀 HttpHandler와 클라이언트로 프록시를 시작하는 범용 헬퍼.
+/// graceful shutdown이 자동으로 연결되므로 개별 테스트에서 프록시 시작 로직을 복붙할 필요 없음.
+pub async fn start_proxy_with_custom_handler<H, C>(
+    ca: impl CertificateAuthority,
+    client: Client<C, Body>,
+    handler: H,
+) -> Result<(SocketAddr, Sender<()>), Box<dyn std::error::Error>>
+where
+    H: HttpHandler,
+    C: Connect + Clone + Send + Sync + 'static,
+{
+    let listener = TcpListener::bind(SocketAddr::from(([127, 0, 0, 1], 0))).await?;
+    let addr = listener.local_addr()?;
+    let (tx, rx) = tokio::sync::oneshot::channel();
+
+    let proxy = Proxy::builder()
+        .with_listener(listener)
+        .with_ca(ca)
+        .with_client(client)
+        .with_http_handler(handler)
+        .with_graceful_shutdown(async {
+            rx.await.unwrap_or_default();
+        })
+        .build()
+        .expect("Failed to create proxy");
+
+    tokio::spawn(proxy.start());
+    Ok((addr, tx))
 }
 
 pub fn build_client(proxy: &str) -> reqwest::Client {

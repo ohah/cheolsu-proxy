@@ -108,6 +108,10 @@ required-features = ["decoder", "rcgen-ca", "native-tls-client", "rustls-client"
 name = "websocket"
 required-features = ["decoder", "rcgen-ca", "native-tls-client", "rustls-client"]
 
+[[test]]
+name = "integration_error_handling_tests"
+required-features = ["rcgen-ca", "native-tls-client", "rustls-client"]
+
 [[bench]]
 name = "certificate_authorities"
 harness = false
