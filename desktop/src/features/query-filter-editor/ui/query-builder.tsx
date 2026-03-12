@@ -125,7 +125,9 @@ const ConditionRow = ({
   const handleValueToggle = useCallback(
     (value: string) => {
       const current = condition.values;
-      const next = current.includes(value) ? current.filter((v) => v !== value) : [...current, value];
+      const next = current.includes(value)
+        ? current.filter((v) => v !== value)
+        : [...current, value];
       onUpdate(condition.id, { values: next });
     },
     [condition.id, condition.values, onUpdate],
@@ -316,7 +318,12 @@ export const QueryBuilder = ({
       {/* Footer actions */}
       <div className="px-3 py-2 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={handleAddCondition}>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 text-xs gap-1"
+            onClick={handleAddCondition}
+          >
             <Plus className="w-3.5 h-3.5" />
             <Trans>Condition</Trans>
           </Button>
