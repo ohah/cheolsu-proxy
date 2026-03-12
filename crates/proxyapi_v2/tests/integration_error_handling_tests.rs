@@ -215,7 +215,7 @@ async fn start_proxy_server(
 ) -> Result<(SocketAddr, Sender<()>), Box<dyn std::error::Error>> {
     let listener = TcpListener::bind(SocketAddr::from(([127, 0, 0, 1], 0))).await?;
     let addr = listener.local_addr()?;
-    let (tx, _rx) = tokio::sync::oneshot::channel();
+    let (tx, rx) = tokio::sync::oneshot::channel();
 
     // CA 인증서 생성
     let ca = build_ca()?;
@@ -224,15 +224,18 @@ async fn start_proxy_server(
     let hybrid_client = create_hybrid_client()?;
 
     // 프록시 빌더로 프록시 구성
-    let proxy_builder = ProxyBuilder::new()
+    let proxy = ProxyBuilder::new()
         .with_listener(listener)
         .with_ca(ca)
         .with_client(hybrid_client)
         .with_http_handler(handler)
+        .with_graceful_shutdown(async {
+            rx.await.unwrap_or_default();
+        })
         .build()?;
 
     tokio::spawn(async move {
-        let _ = proxy_builder.start().await;
+        let _ = proxy.start().await;
     });
 
     Ok((addr, tx))
