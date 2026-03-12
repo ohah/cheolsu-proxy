@@ -3,6 +3,7 @@
 *.key
 *.cer
 *.cnf
+!crates/proxyapi_v2/src/certificate_authority/cheolsu-proxy.cnf
 *.pem
 *.srl
 *.csr
