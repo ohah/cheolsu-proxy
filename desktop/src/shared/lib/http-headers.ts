@@ -1,4 +1,4 @@
-const HOP_BY_HOP_HEADERS = [
+const HOP_BY_HOP_HEADERS = new Set([
   "host",
   "connection",
   "keep-alive",
@@ -8,17 +8,18 @@ const HOP_BY_HOP_HEADERS = [
   "trailers",
   "transfer-encoding",
   "upgrade",
-];
+]);
 
 /**
  * hop-by-hop 헤더를 제거한 새 객체를 반환합니다.
- * 대소문자 양쪽 모두 삭제합니다 (예: "host" / "Host").
+ * 대소문자 구분 없이 모든 변형을 처리합니다 (예: "host", "Host", "HOST").
  */
 export function sanitizeHopByHopHeaders(headers: Record<string, string>): Record<string, string> {
-  const result = { ...headers };
-  for (const key of HOP_BY_HOP_HEADERS) {
-    delete result[key];
-    delete result[key.charAt(0).toUpperCase() + key.slice(1)];
+  const result: Record<string, string> = {};
+  for (const [key, value] of Object.entries(headers)) {
+    if (!HOP_BY_HOP_HEADERS.has(key.toLowerCase())) {
+      result[key] = value;
+    }
   }
   return result;
 }
