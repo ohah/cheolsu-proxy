@@ -1,19 +1,42 @@
 use crate::protocol::{SslProxyingEntry, SslProxyingMode};
 
-/// 블랙리스트 모드에서 기본적으로 패스스루할 OAuth/인증 관련 도메인
+/// SSL/TLS 기본 포트 (HTTPS)
+const DEFAULT_SSL_PORT: u16 = 443;
+
+/// 블랙리스트 모드에서 기본적으로 패스스루할 OAuth/인증 관련 도메인 목록.
+///
+/// 이 도메인들은 프록시가 MITM(Man-in-the-Middle) 인터셉트를 하지 않고
+/// 원본 TLS 연결을 그대로 통과(passthrough)시킵니다.
+/// SSL 인터셉트 시 인증서 피닝(certificate pinning)이나 OAuth 토큰 교환이
+/// 실패할 수 있는 도메인들을 보호하기 위한 기본값입니다.
+///
+/// 사용자가 별도로 설정하지 않아도 이 목록의 도메인은 항상 패스스루됩니다.
 pub const DEFAULT_PASSTHROUGH_DOMAINS: &[&str] = &[
-    "accounts.google.com",
-    "*.googleapis.com",
-    "login.microsoftonline.com",
-    "*.live.com",
-    "appleid.apple.com",
-    "*.icloud.com",
-    "github.com",
-    "*.github.com",
-    "auth0.com",
-    "*.auth0.com",
-    "*.okta.com",
-    "*.duosecurity.com",
+    // --- Google: OAuth 로그인 및 API 서비스 ---
+    "accounts.google.com", // Google 계정 로그인/OAuth 인증
+    "*.googleapis.com",    // Google API 서비스 (OAuth 토큰 교환 포함)
+    //
+    // --- Microsoft: Azure AD 및 Microsoft 계정 인증 ---
+    "login.microsoftonline.com", // Azure AD / Microsoft 365 OAuth 로그인
+    "*.live.com",                // Microsoft 계정 (Outlook, OneDrive 등)
+    //
+    // --- Apple: Apple ID 및 iCloud 인증 ---
+    "appleid.apple.com", // Apple ID 로그인 (인증서 피닝 사용)
+    "*.icloud.com",      // iCloud 서비스 인증
+    //
+    // --- GitHub: Git 및 OAuth 인증 ---
+    "github.com",   // GitHub 메인 (Git over HTTPS, OAuth)
+    "*.github.com", // GitHub 서브도메인 (API, 인증 콜백 등)
+    //
+    // --- Auth0: ID 플랫폼 (서드파티 OAuth 위임) ---
+    "auth0.com",   // Auth0 메인 도메인
+    "*.auth0.com", // Auth0 테넌트별 서브도메인 (*.us.auth0.com 등)
+    //
+    // --- Okta: 엔터프라이즈 SSO/MFA ---
+    "*.okta.com", // Okta SSO 로그인 및 MFA 인증
+    //
+    // --- Duo Security: 이중 인증(MFA) ---
+    "*.duosecurity.com", // Duo MFA 푸시 알림 및 인증
 ];
 
 /// SSL Proxying 화이트리스트의 도메인 패턴이 주어진 호스트:포트와 매칭되는지 확인합니다.
@@ -34,7 +57,7 @@ pub fn matches_ssl_pattern(pattern: &str, host: &str, port: Option<u16>) -> bool
 
     // 포트 필터링: 패턴에 포트가 지정되어 있으면 해당 포트만 매칭
     if let Some(p_port) = pattern_port {
-        let actual_port = port.unwrap_or(443);
+        let actual_port = port.unwrap_or(DEFAULT_SSL_PORT);
         if p_port != actual_port {
             return false;
         }
