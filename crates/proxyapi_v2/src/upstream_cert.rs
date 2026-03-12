@@ -9,6 +9,9 @@ use tokio_rustls::rustls::{
 };
 use tracing::{debug, info, warn};
 use x509_parser::extensions::GeneralName;
+
+/// SSL/TLS 기본 포트 (HTTPS)
+const DEFAULT_SSL_PORT: u16 = 443;
 use x509_parser::oid_registry::{OID_X509_COMMON_NAME, OID_X509_ORGANIZATION_NAME};
 
 /// 상류 서버 인증서에서 추출한 정보
@@ -92,7 +95,10 @@ pub async fn sniff_upstream_cert(
     let target_addr = format!(
         "{}:{}",
         authority.host(),
-        authority.port().map(|p| p.as_u16()).unwrap_or(443)
+        authority
+            .port()
+            .map(|p| p.as_u16())
+            .unwrap_or(DEFAULT_SSL_PORT)
     );
 
     debug!("[UPSTREAM-CERT] 상류 인증서 스니핑 시작: {}", target_addr);

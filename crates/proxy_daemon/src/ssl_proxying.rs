@@ -256,7 +256,7 @@ mod tests {
 
     #[test]
     fn test_port_default_443() {
-        // 포트가 None이면 기본 443으로 간주
+        // 포트가 None이면 기본 DEFAULT_SSL_PORT(443)로 간주
         assert!(matches_ssl_pattern("example.com:443", "example.com", None));
     }
 
