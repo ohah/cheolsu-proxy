@@ -38,6 +38,8 @@ pub(crate) async fn replay_request(params: ReplayRequestParams) -> Result<Replay
         .build()
         .map_err(|e| format!("HTTP 클라이언트 생성 실패: {}", e))?;
 
+    tracing::warn!("replay 요청: SSL 인증서 검증 비활성화 (프록시 테스트 목적)");
+
     let method: reqwest::Method = params
         .method
         .parse()
@@ -183,16 +185,22 @@ pub(crate) async fn advanced_repeat<R: Runtime>(
             .map_err(|e| format!("HTTP 클라이언트 생성 실패: {}", e))?,
     );
 
+    tracing::warn!("replay 요청: SSL 인증서 검증 비활성화 (프록시 테스트 목적)");
+
     let method: reqwest::Method = params
         .method
         .parse()
         .map_err(|e| format!("잘못된 HTTP 메서드: {}", e))?;
 
-    let filtered_headers: HashMap<String, String> = params
-        .headers
-        .into_iter()
-        .filter(|(key, _)| !is_hop_by_hop_header(key))
-        .collect();
+    let filtered_headers: Arc<HashMap<String, String>> = Arc::new(
+        params
+            .headers
+            .into_iter()
+            .filter(|(key, _)| !is_hop_by_hop_header(key))
+            .collect(),
+    );
+    let url: Arc<str> = Arc::from(params.url.as_str());
+    let body: Arc<Option<String>> = Arc::new(params.body);
 
     let semaphore = Arc::new(Semaphore::new(concurrency));
     let success_count = Arc::new(AtomicUsize::new(0));
@@ -214,9 +222,9 @@ pub(crate) async fn advanced_repeat<R: Runtime>(
 
         let client = client.clone();
         let method = method.clone();
-        let url = params.url.clone();
-        let headers = filtered_headers.clone();
-        let body = params.body.clone();
+        let url = Arc::clone(&url);
+        let headers = Arc::clone(&filtered_headers);
+        let body = Arc::clone(&body);
         let success_count = success_count.clone();
         let failure_count = failure_count.clone();
         let completed = completed.clone();
@@ -226,14 +234,14 @@ pub(crate) async fn advanced_repeat<R: Runtime>(
         let total = iterations;
 
         let handle = tokio::spawn(async move {
-            let mut request_builder = client.request(method, &url);
+            let mut request_builder = client.request(method, &*url);
 
-            for (key, value) in &headers {
+            for (key, value) in &*headers {
                 request_builder = request_builder.header(key.as_str(), value.as_str());
             }
 
-            if let Some(body) = body {
-                request_builder = request_builder.body(body);
+            if let Some(body) = body.as_ref() {
+                request_builder = request_builder.body(body.clone());
             }
 
             let start = std::time::Instant::now();

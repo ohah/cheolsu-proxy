@@ -51,22 +51,22 @@ pub(crate) async fn start_proxy_v2<R: Runtime>(
                     match msg {
                         DaemonMessage::Event { data } => {
                             if let Err(e) = app.emit("proxy_event", data) {
-                                eprintln!("emit proxy_event 실패: {}", e);
+                                tracing::warn!("emit proxy_event 실패: {}", e);
                             }
                         }
                         DaemonMessage::WsMessage { data } => {
                             if let Err(e) = app.emit("ws_message", data) {
-                                eprintln!("emit ws_message 실패: {}", e);
+                                tracing::warn!("emit ws_message 실패: {}", e);
                             }
                         }
                         DaemonMessage::WsConnection { data } => {
                             if let Err(e) = app.emit("ws_connection", data) {
-                                eprintln!("emit ws_connection 실패: {}", e);
+                                tracing::warn!("emit ws_connection 실패: {}", e);
                             }
                         }
                         DaemonMessage::InterceptRulesUpdated { rules } => {
                             if let Err(e) = app.emit("intercept_rules_updated", rules) {
-                                eprintln!("emit intercept_rules_updated 실패: {}", e);
+                                tracing::warn!("emit intercept_rules_updated 실패: {}", e);
                             }
                         }
                         DaemonMessage::ScriptLog { level, message } => {
@@ -74,7 +74,7 @@ pub(crate) async fn start_proxy_v2<R: Runtime>(
                                 "script_log",
                                 serde_json::json!({ "level": level, "message": message }),
                             ) {
-                                eprintln!("emit script_log 실패: {}", e);
+                                tracing::warn!("emit script_log 실패: {}", e);
                             }
                         }
                         DaemonMessage::ScriptStatus {
@@ -86,7 +86,7 @@ pub(crate) async fn start_proxy_v2<R: Runtime>(
                                 "script_status",
                                 serde_json::json!({ "active": active, "path": path, "message": message }),
                             ) {
-                                eprintln!("emit script_status 실패: {}", e);
+                                tracing::warn!("emit script_status 실패: {}", e);
                             }
                         }
                         DaemonMessage::ScriptResult { success, error } => {
@@ -94,12 +94,12 @@ pub(crate) async fn start_proxy_v2<R: Runtime>(
                                 "script_result",
                                 serde_json::json!({ "success": success, "error": error }),
                             ) {
-                                eprintln!("emit script_result 실패: {}", e);
+                                tracing::warn!("emit script_result 실패: {}", e);
                             }
                         }
                         DaemonMessage::BreakpointRulesUpdated { rules } => {
                             if let Err(e) = app.emit("breakpoint_rules_updated", rules) {
-                                eprintln!("emit breakpoint_rules_updated 실패: {}", e);
+                                tracing::warn!("emit breakpoint_rules_updated 실패: {}", e);
                             }
                         }
                         DaemonMessage::BreakpointHit {
@@ -112,12 +112,12 @@ pub(crate) async fn start_proxy_v2<R: Runtime>(
                                 "breakpoint_hit",
                                 serde_json::json!({ "id": id, "transaction_id": transaction_id, "phase": phase, "data": data }),
                             ) {
-                                eprintln!("emit breakpoint_hit 실패: {}", e);
+                                tracing::warn!("emit breakpoint_hit 실패: {}", e);
                             }
                         }
                         DaemonMessage::HostMappingsUpdated { mappings } => {
                             if let Err(e) = app.emit("host_mappings_updated", mappings) {
-                                eprintln!("emit host_mappings_updated 실패: {}", e);
+                                tracing::warn!("emit host_mappings_updated 실패: {}", e);
                             }
                         }
                         DaemonMessage::SslProxyingListUpdated { mode, entries } => {
@@ -125,27 +125,27 @@ pub(crate) async fn start_proxy_v2<R: Runtime>(
                                 "ssl_proxying_list_updated",
                                 serde_json::json!({ "mode": mode, "entries": entries }),
                             ) {
-                                eprintln!("emit ssl_proxying_list_updated 실패: {}", e);
+                                tracing::warn!("emit ssl_proxying_list_updated 실패: {}", e);
                             }
                         }
                         DaemonMessage::TlsPassthroughUpdated { entries } => {
                             if let Err(e) = app.emit("tls_passthrough_updated", entries) {
-                                eprintln!("emit tls_passthrough_updated 실패: {}", e);
+                                tracing::warn!("emit tls_passthrough_updated 실패: {}", e);
                             }
                         }
                         DaemonMessage::Disconnected { reason } => {
-                            eprintln!("데몬 연결 끊김: {}", reason);
+                            tracing::warn!("데몬 연결 끊김: {}", reason);
                             if let Err(e) = app.emit(
                                 "daemon_disconnected",
                                 serde_json::json!({ "reason": reason }),
                             ) {
-                                eprintln!("emit daemon_disconnected 실패: {}", e);
+                                tracing::warn!("emit daemon_disconnected 실패: {}", e);
                             }
                         }
                         DaemonMessage::Reconnected => {
-                            eprintln!("데몬 재연결 성공");
+                            tracing::info!("데몬 재연결 성공");
                             if let Err(e) = app.emit("daemon_reconnected", ()) {
-                                eprintln!("emit daemon_reconnected 실패: {}", e);
+                                tracing::warn!("emit daemon_reconnected 실패: {}", e);
                             }
                         }
                         _ => {}
@@ -157,7 +157,7 @@ pub(crate) async fn start_proxy_v2<R: Runtime>(
 
     let conn = match proxy_daemon::ensure_daemon(port, &host, move |msg| {
         if let Err(e) = event_tx.try_send(msg) {
-            eprintln!("이벤트 채널 전송 실패 (백프레셔): {}", e);
+            tracing::warn!("이벤트 채널 전송 실패 (백프레셔): {}", e);
         }
     })
     .await
@@ -165,7 +165,7 @@ pub(crate) async fn start_proxy_v2<R: Runtime>(
         Ok(conn) => conn,
         Err(e) => {
             let error_msg = format!("Daemon 연결 실패: {}", e);
-            eprintln!("{}", error_msg);
+            tracing::error!("{}", error_msg);
             return Err(ProxyStartResult {
                 status: false,
                 message: error_msg,
@@ -189,7 +189,7 @@ pub(crate) async fn start_proxy_v2<R: Runtime>(
         port, port, log_path
     );
 
-    println!("{}", success_message);
+    tracing::info!("{}", success_message);
     Ok(ProxyStartResult {
         status: true,
         message: success_message,
@@ -220,20 +220,26 @@ async fn sync_stored_settings_to_daemon<R: Runtime>(app: &AppHandle<R>, sender: 
             .get("quickSettingsNoGzip")
             .and_then(|v| v.as_bool())
             .unwrap_or(false);
-        let _ = sender
+        if let Err(e) = sender
             .send_command(&ClientCommand::UpdateQuickSettings {
                 no_caching,
                 block_cookies,
                 no_gzip,
             })
-            .await;
+            .await
+        {
+            tracing::warn!("설정 동기화 실패 (QuickSettings): {}", e);
+        }
 
         if let Some(auth) = settings.get("proxyAuthConfig") {
             if let Ok(config) = serde_json::from_value::<ProxyAuthConfig>(auth.clone()) {
                 if config.enabled {
-                    let _ = sender
+                    if let Err(e) = sender
                         .send_command(&ClientCommand::UpdateProxyAuth { config })
-                        .await;
+                        .await
+                    {
+                        tracing::warn!("설정 동기화 실패 (ProxyAuth): {}", e);
+                    }
                 }
             }
         }
@@ -274,21 +280,27 @@ async fn sync_stored_settings_to_daemon<R: Runtime>(app: &AppHandle<R>, sender: 
                     None
                 };
                 if let Some(config) = throttle_config {
-                    let _ = sender
+                    if let Err(e) = sender
                         .send_command(&ClientCommand::UpdateThrottle {
                             config: Some(config),
                         })
-                        .await;
+                        .await
+                    {
+                        tracing::warn!("설정 동기화 실패 (Throttle): {}", e);
+                    }
                 }
             }
         }
 
         if let Some(strategy) = settings.get("connectionStrategy").and_then(|v| v.as_str()) {
-            let _ = sender
+            if let Err(e) = sender
                 .send_command(&ClientCommand::UpdateConnectionStrategy {
                     strategy: strategy.to_string(),
                 })
-                .await;
+                .await
+            {
+                tracing::warn!("설정 동기화 실패 (ConnectionStrategy): {}", e);
+            }
         }
 
         if let Some(upstream) = settings.get("upstreamProxyConfig") {
@@ -299,11 +311,14 @@ async fn sync_stored_settings_to_daemon<R: Runtime>(app: &AppHandle<R>, sender: 
             if up_enabled {
                 if let Ok(config) = serde_json::from_value::<UpstreamProxyConfig>(upstream.clone())
                 {
-                    let _ = sender
+                    if let Err(e) = sender
                         .send_command(&ClientCommand::UpdateUpstreamProxy {
                             config: Some(config),
                         })
-                        .await;
+                        .await
+                    {
+                        tracing::warn!("설정 동기화 실패 (UpstreamProxy): {}", e);
+                    }
                 }
             }
         }
@@ -318,9 +333,12 @@ async fn sync_stored_settings_to_daemon<R: Runtime>(app: &AppHandle<R>, sender: 
             .get("entries")
             .and_then(|v| serde_json::from_value(v.clone()).ok())
             .unwrap_or_default();
-        let _ = sender
+        if let Err(e) = sender
             .send_command(&ClientCommand::UpdateSslProxyingList { mode, entries })
-            .await;
+            .await
+        {
+            tracing::warn!("설정 동기화 실패 (SslProxyingList): {}", e);
+        }
     }
 
     if let Some(hm) = read_store_state(app, "cheolsu-host-mappings") {
@@ -329,9 +347,12 @@ async fn sync_stored_settings_to_daemon<R: Runtime>(app: &AppHandle<R>, sender: 
             .and_then(|v| serde_json::from_value(v.clone()).ok())
             .unwrap_or_default();
         if !mappings.is_empty() {
-            let _ = sender
+            if let Err(e) = sender
                 .send_command(&ClientCommand::UpdateHostMappings { mappings })
-                .await;
+                .await
+            {
+                tracing::warn!("설정 동기화 실패 (HostMappings): {}", e);
+            }
         }
     }
 
@@ -341,9 +362,12 @@ async fn sync_stored_settings_to_daemon<R: Runtime>(app: &AppHandle<R>, sender: 
             .and_then(|v| serde_json::from_value(v.clone()).ok())
             .unwrap_or_default();
         if !rules.is_empty() {
-            let _ = sender
+            if let Err(e) = sender
                 .send_command(&ClientCommand::UpdateBreakpointRules { rules })
-                .await;
+                .await
+            {
+                tracing::warn!("설정 동기화 실패 (BreakpointRules): {}", e);
+            }
         }
     }
 
@@ -358,9 +382,12 @@ async fn sync_stored_settings_to_daemon<R: Runtime>(app: &AppHandle<R>, sender: 
                 .and_then(|v| serde_json::from_value(v.clone()).ok())
                 .unwrap_or_default();
             if !entries.is_empty() {
-                let _ = sender
+                if let Err(e) = sender
                     .send_command(&ClientCommand::UpdateServerReplay { entries })
-                    .await;
+                    .await
+                {
+                    tracing::warn!("설정 동기화 실패 (ServerReplay): {}", e);
+                }
             }
         }
     }
@@ -380,7 +407,7 @@ pub(crate) async fn stop_proxy_v2(
     if let Some(conn) = conn {
         conn.disconnect().await;
         tray_state.transaction_count.store(0, Ordering::Relaxed);
-        println!("Daemon 연결 해제 완료");
+        tracing::info!("Daemon 연결 해제 완료");
     } else {
         return Err("프록시가 실행 중이 아닙니다".to_string());
     }

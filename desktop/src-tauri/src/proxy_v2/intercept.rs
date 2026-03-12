@@ -11,7 +11,7 @@ pub(crate) async fn update_intercept_rules_v2(
     let sender = get_command_sender(&proxy).await?;
     let cmd = ClientCommand::UpdateInterceptRules { rules };
     sender.send_command(&cmd).await?;
-    println!("Daemon에 인터셉트 규칙 업데이트 완료");
+    tracing::debug!("Daemon에 인터셉트 규칙 업데이트 완료");
     Ok(())
 }
 
