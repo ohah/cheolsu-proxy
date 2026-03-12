@@ -624,8 +624,8 @@ msgid "Drop"
 msgstr "Drop"
 
 #: src/features/query-filter-editor/ui/query-builder.tsx:211
-msgid "e.g. api.example.com, /api/v1"
-msgstr "e.g. api.example.com, /api/v1"
+msgid "e.g. api.example.com, /api/v1, /users/\\d+"
+msgstr "e.g. api.example.com, /api/v1, /users/\\d+"
 
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:164
 msgid "Edit Map Rule"
@@ -1909,11 +1909,11 @@ msgstr "Strategy"
 msgid "Supports PEM-encoded certificates and keys (RSA, ECDSA, PKCS#8)"
 msgstr "Supports PEM-encoded certificates and keys (RSA, ECDSA, PKCS#8)"
 
-#: src/features/query-filter-editor/ui/query-filter-editor.tsx:175
+#: src/features/query-filter-editor/ui/query-filter-editor.tsx:182
 msgid "Switch to Builder mode"
 msgstr "Switch to Builder mode"
 
-#: src/features/query-filter-editor/ui/query-filter-editor.tsx:84
+#: src/features/query-filter-editor/ui/query-filter-editor.tsx:91
 msgid "Switch to Code mode"
 msgstr "Switch to Code mode"
 
