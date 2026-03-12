@@ -18,21 +18,21 @@ msgid " (preserve path)"
 msgstr " (preserve path)"
 
 #. placeholder {0}: result.failure_count
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:268
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:270
 msgid "{0} failed"
 msgstr "{0} failed"
 
 #. placeholder {0}: transactions.length
-#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:128
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:130
 msgid "{0} requests will be sent sequentially."
 msgstr "{0} requests will be sent sequentially."
 
 #. placeholder {0}: result.success_count
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:261
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:263
 msgid "{0} succeeded"
 msgstr "{0} succeeded"
 
-#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:177
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:179
 msgid "{failCount} failed"
 msgstr "{failCount} failed"
 
@@ -44,7 +44,7 @@ msgstr "{filteredCount} of {totalCount} transactions"
 msgid "{label} copied to clipboard"
 msgstr "{label} copied to clipboard"
 
-#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:170
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:172
 msgid "{successCount} succeeded"
 msgstr "{successCount} succeeded"
 
@@ -165,12 +165,12 @@ msgstr "Added"
 msgid "Added to server replay"
 msgstr "Added to server replay"
 
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:146
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:148
 #: src/widgets/network-table/ui/table-row.tsx:156
 msgid "Advanced Repeat"
 msgstr "Advanced Repeat"
 
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:124
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:125
 msgid "Advanced repeat failed"
 msgstr "Advanced repeat failed"
 
@@ -410,8 +410,8 @@ msgstr "Clients must provide these credentials via Proxy-Authorization header (H
 msgid "Clients without a valid certificate will be rejected"
 msgstr "Clients without a valid certificate will be rejected"
 
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:381
-#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:252
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:383
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:254
 #: src/features/transaction-details/ui/transaction-header.tsx:63
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:131
 msgid "Close"
@@ -442,7 +442,7 @@ msgstr "Compose request"
 msgid "Compose Request"
 msgstr "Compose Request"
 
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:180
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:182
 msgid "Concurrency"
 msgstr "Concurrency"
 
@@ -529,7 +529,7 @@ msgstr "Dark"
 msgid "Data"
 msgstr "Data"
 
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:197
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:199
 msgid "Delay between requests (ms)"
 msgstr "Delay between requests (ms)"
 
@@ -881,7 +881,7 @@ msgstr "Intercept Rules"
 msgid "Issuer"
 msgstr "Issuer"
 
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:163
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:165
 msgid "Iterations"
 msgstr "Iterations"
 
@@ -1177,11 +1177,11 @@ msgstr "No valid requests to replay"
 msgid "Not Trusted"
 msgstr "Not Trusted"
 
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:190
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:192
 msgid "Number of simultaneous requests (1-100)"
 msgstr "Number of simultaneous requests (1-100)"
 
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:173
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:175
 msgid "Number of times to send the request (1-10000)"
 msgstr "Number of times to send the request (1-10000)"
 
@@ -1323,7 +1323,7 @@ msgstr "Prevent caching by removing conditional headers and adding no-cache dire
 msgid "Profile"
 msgstr "Profile"
 
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:222
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:224
 msgid "Progress"
 msgstr "Progress"
 
@@ -1505,7 +1505,7 @@ msgstr "Request Header"
 msgid "Request Headers"
 msgstr "Request Headers"
 
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:317
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:319
 msgid "Requests/sec"
 msgstr "Requests/sec"
 
@@ -1551,7 +1551,7 @@ msgstr "Response Headers"
 msgid "Response Status Code"
 msgstr "Response Status Code"
 
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:280
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:282
 msgid "Response Time"
 msgstr "Response Time"
 
@@ -1567,7 +1567,7 @@ msgstr "Restart proxy to use auto-generated CA"
 msgid "Resume recording"
 msgstr "Resume recording"
 
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:378
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:380
 msgid "Retry"
 msgstr "Retry"
 
@@ -1624,7 +1624,7 @@ msgstr "Rules"
 msgid "Run"
 msgstr "Run"
 
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:365
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:367
 msgid "Running..."
 msgstr "Running..."
 
@@ -1741,12 +1741,12 @@ msgstr "Send Message"
 msgid "Send Request"
 msgstr "Send Request"
 
-#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:159
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:161
 msgid "Sending requests sequentially..."
 msgstr "Sending requests sequentially..."
 
 #: src/features/transaction-details/ui/replay-dialog.tsx:531
-#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:241
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:243
 #: src/features/websocket-replay/ui/ws-replay-dialog.tsx:190
 msgid "Sending..."
 msgstr "Sending..."
@@ -1764,11 +1764,11 @@ msgid "Sequence"
 msgstr "Sequence"
 
 #. placeholder {0}: transactions.length
-#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:121
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:123
 msgid "Sequence Replay ({0} requests)"
 msgstr "Sequence Replay ({0} requests)"
 
-#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:100
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:101
 msgid "Sequence replay failed"
 msgstr "Sequence replay failed"
 
@@ -1851,7 +1851,7 @@ msgstr "Source Port"
 msgid "SSL Proxying"
 msgstr "SSL Proxying"
 
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:359
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:361
 msgid "Start"
 msgstr "Start"
 
@@ -1860,7 +1860,7 @@ msgstr "Start"
 msgid "Start proxy first"
 msgstr "Start proxy first"
 
-#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:246
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:248
 msgid "Start Replay"
 msgstr "Start Replay"
 
@@ -1880,7 +1880,7 @@ msgstr "Status"
 msgid "Status Code"
 msgstr "Status Code"
 
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:332
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:334
 msgid "Status Code Distribution"
 msgstr "Status Code Distribution"
 
@@ -1937,7 +1937,7 @@ msgstr "The DER certificate file will download automatically"
 msgid "Theme"
 msgstr "Theme"
 
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:306
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:308
 msgid "Throughput"
 msgstr "Throughput"
 
@@ -1969,11 +1969,11 @@ msgid "Tools"
 msgstr "Tools"
 
 #. placeholder {0}: results.reduce((sum, r) => sum + (r.response?.elapsed_ms ?? 0), 0)
-#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:183
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:185
 msgid "Total {0}ms"
 msgstr "Total {0}ms"
 
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:311
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:313
 msgid "Total Time"
 msgstr "Total Time"
 
