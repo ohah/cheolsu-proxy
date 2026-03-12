@@ -624,8 +624,8 @@ msgid "Drop"
 msgstr "드롭"
 
 #: src/features/query-filter-editor/ui/query-builder.tsx:211
-msgid "e.g. api.example.com, /api/v1"
-msgstr "예: api.example.com, /api/v1"
+msgid "e.g. api.example.com, /api/v1, /users/\\d+"
+msgstr ""
 
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:164
 msgid "Edit Map Rule"
@@ -1909,11 +1909,11 @@ msgstr "전략"
 msgid "Supports PEM-encoded certificates and keys (RSA, ECDSA, PKCS#8)"
 msgstr "PEM 인코딩된 인증서 및 키를 지원합니다 (RSA, ECDSA, PKCS#8)"
 
-#: src/features/query-filter-editor/ui/query-filter-editor.tsx:175
+#: src/features/query-filter-editor/ui/query-filter-editor.tsx:182
 msgid "Switch to Builder mode"
 msgstr "빌더 모드로 전환"
 
-#: src/features/query-filter-editor/ui/query-filter-editor.tsx:84
+#: src/features/query-filter-editor/ui/query-filter-editor.tsx:91
 msgid "Switch to Code mode"
 msgstr "코드 모드로 전환"
 

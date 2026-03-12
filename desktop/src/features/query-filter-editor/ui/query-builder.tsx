@@ -207,8 +207,8 @@ const ConditionRow = ({
         )}
         {condition.field === "url" && (
           <Input
-            className="h-8 text-xs font-mono"
-            placeholder={t`e.g. api.example.com, /api/v1`}
+            className="h-8 text-xs font-mono placeholder:text-muted-foreground/50"
+            placeholder={t`e.g. api.example.com, /api/v1, /users/\\d+`}
             value={condition.values[0] ?? ""}
             onChange={handleUrlInput}
           />

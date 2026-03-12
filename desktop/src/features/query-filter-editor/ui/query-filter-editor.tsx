@@ -70,7 +70,14 @@ export const QueryFilterEditor = ({
           <div className="w-full h-[36px] flex items-center border rounded-md bg-background">
             <div className="flex items-center gap-1.5 px-2 flex-1 min-w-0">
               <LayoutList className="w-3.5 h-3.5 text-accent shrink-0" />
-              <span className="text-xs font-mono text-muted-foreground truncate">
+              <span
+                className={cn(
+                  "text-xs font-mono truncate",
+                  serializeBuilderState(builderState)
+                    ? "text-muted-foreground"
+                    : "text-muted-foreground/40",
+                )}
+              >
                 {previewText}
               </span>
             </div>
