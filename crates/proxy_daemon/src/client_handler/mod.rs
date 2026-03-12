@@ -14,6 +14,8 @@ use crate::daemon::{DaemonChannels, DaemonMetrics};
 use crate::protocol::{ClientCommand, DaemonMessage, ProxyAuthConfig};
 use proxyapi_v2::websocket_registry::WebSocketRegistry;
 
+use commands::CommandContext;
+
 /// handle_client에 전달되는 채널/상태를 묶는 컨텍스트 구조체.
 /// DaemonContext와 유사하지만, 클라이언트 핸들러에서 필요한 필드만 포함한다.
 pub(crate) struct ClientHandlerContext {
@@ -210,6 +212,24 @@ pub(crate) async fn handle_client(stream: UnixStream, ctx: ClientHandlerContext)
         }
     });
 
+    // CommandContext 생성 — handle_command에서 필요한 모든 상태를 하나로 묶는다.
+    let cmd_ctx = CommandContext {
+        writer: writer.clone(),
+        channels,
+        breakpoint_manager,
+        event_tx,
+        ws_registry,
+        script_handle,
+        quick_settings,
+        proxy_auth,
+        subscribed,
+        metrics,
+        client_count,
+        tls_passthrough,
+        connection_strategy,
+        watched_path,
+    };
+
     let mut line_buf = String::new();
     loop {
         line_buf.clear();
@@ -222,24 +242,7 @@ pub(crate) async fn handle_client(stream: UnixStream, ctx: ClientHandlerContext)
                 }
                 match serde_json::from_str::<ClientCommand>(trimmed) {
                     Ok(cmd) => {
-                        let should_stop = commands::handle_command(
-                            cmd,
-                            &writer,
-                            &channels,
-                            &breakpoint_manager,
-                            &event_tx,
-                            &ws_registry,
-                            &script_handle,
-                            &quick_settings,
-                            &proxy_auth,
-                            &subscribed,
-                            &metrics,
-                            &client_count,
-                            &tls_passthrough,
-                            &connection_strategy,
-                            &watched_path,
-                        )
-                        .await;
+                        let should_stop = commands::handle_command(cmd, &cmd_ctx).await;
                         if should_stop {
                             break;
                         }
