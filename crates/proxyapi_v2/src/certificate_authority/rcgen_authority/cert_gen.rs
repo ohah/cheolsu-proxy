@@ -15,7 +15,7 @@ impl RcgenAuthority {
         &self,
         authority: &Authority,
         upstream_cert: Option<&UpstreamCertInfo>,
-    ) -> CertificateDer<'static> {
+    ) -> Result<CertificateDer<'static>, rcgen::Error> {
         info!("Generating certificate for authority: {}", authority);
 
         let mut params = CertificateParams::default();
@@ -59,11 +59,10 @@ impl RcgenAuthority {
             .map_err(|e| {
                 error!(authority = %authority, error = ?e, "Failed to sign certificate");
                 e
-            })
-            .expect("Failed to sign certificate");
+            })?;
 
         info!("Successfully generated certificate for '{}'", authority);
-        cert.into()
+        Ok(cert.into())
     }
 
     /// 상류 인증서의 SAN 정보를 복제하여 위조 인증서에 추가
