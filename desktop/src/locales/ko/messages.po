@@ -84,7 +84,7 @@ msgstr "활성 커스텀 CA"
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:341
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:372
 #: src/features/map-rule-form/ui/map-local-fields.tsx:73
-#: src/features/transaction-details/ui/replay-dialog.tsx:427
+#: src/features/transaction-details/ui/replay-dialog.tsx:434
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:134
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:140
 #: src/pages/server-replay/ui/server-replay-page.tsx:170
@@ -259,7 +259,7 @@ msgstr "쿠키 차단"
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:457
 #: src/features/transaction-details/ui/replay-dialog.tsx:129
 #: src/features/transaction-details/ui/replay-dialog.tsx:200
-#: src/features/transaction-details/ui/replay-dialog.tsx:476
+#: src/features/transaction-details/ui/replay-dialog.tsx:483
 msgid "Body"
 msgstr "본문"
 
@@ -304,7 +304,7 @@ msgstr "바이패스 목록"
 msgid "bytes body"
 msgstr "바이트 본문"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:107
+#: src/pages/settings/ui/components/certificate-settings.tsx:115
 msgid "CA Certificate"
 msgstr "CA 인증서"
 
@@ -324,7 +324,7 @@ msgstr "CA 키 파일"
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:255
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:137
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:137
-#: src/pages/log-viewer/ui/logs-page.tsx:464
+#: src/pages/log-viewer/ui/logs-page.tsx:468
 #: src/pages/settings/ui/components/shortcut-section.tsx:117
 msgid "Cancel"
 msgstr "취소"
@@ -341,7 +341,7 @@ msgstr "인증서"
 msgid "Certificate Details"
 msgstr "인증서 상세 정보"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:390
+#: src/pages/settings/ui/components/certificate-settings.tsx:398
 msgid "Certificate Download URL"
 msgstr "인증서 다운로드 URL"
 
@@ -373,11 +373,11 @@ msgstr "변경"
 msgid "Cheolsu Proxy Logo"
 msgstr "Cheolsu Proxy 로고"
 
-#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:102
+#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:104
 msgid "Claude Code (CLI)"
 msgstr "Claude Code (CLI)"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:251
+#: src/pages/log-viewer/ui/logs-page.tsx:255
 #: src/pages/script/ui/script-page.tsx:298
 #: src/pages/settings/ui/components/request-client-cert-section.tsx:68
 msgid "Clear"
@@ -388,7 +388,7 @@ msgid "Clear all"
 msgstr "전체 삭제"
 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:108
-#: src/pages/log-viewer/ui/logs-page.tsx:281
+#: src/pages/log-viewer/ui/logs-page.tsx:285
 #: src/pages/server-replay/ui/server-replay-page.tsx:105
 #: src/shared/ui/rule-list-page.tsx:69
 msgid "Clear All"
@@ -418,7 +418,7 @@ msgid "Close"
 msgstr "닫기"
 
 #: src/features/transaction-details/ui/replay-dialog.tsx:133
-#: src/features/transaction-details/ui/replay-dialog.tsx:486
+#: src/features/transaction-details/ui/replay-dialog.tsx:493
 msgid "Collapse"
 msgstr "접기"
 
@@ -430,7 +430,7 @@ msgstr "사이드바 접기"
 msgid "Comma-separated list of hosts to connect directly (supports *.domain.com wildcards)"
 msgstr "직접 연결할 호스트 목록 (쉼표로 구분, *.domain.com 와일드카드 지원)"
 
-#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:61
+#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:63
 msgid "Command copied to clipboard"
 msgstr "명령어가 클립보드에 복사되었습니다"
 
@@ -438,7 +438,7 @@ msgstr "명령어가 클립보드에 복사되었습니다"
 msgid "Compose request"
 msgstr "요청 작성"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:353
+#: src/features/transaction-details/ui/replay-dialog.tsx:360
 msgid "Compose Request"
 msgstr "요청 작성"
 
@@ -476,7 +476,7 @@ msgstr "콘솔"
 msgid "Controls when the proxy connects to upstream servers for certificate sniffing"
 msgstr "프록시가 인증서 스니핑을 위해 상류 서버에 연결하는 시점을 제어합니다"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:234
+#: src/pages/settings/ui/components/certificate-settings.tsx:242
 msgid "Copied!"
 msgstr "복사됨!"
 
@@ -496,12 +496,12 @@ msgstr "다른 형식으로 복사..."
 msgid "Copy Headers"
 msgstr "헤더 복사"
 
-#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:112
-#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:138
+#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:114
+#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:140
 msgid "Copy to clipboard"
 msgstr "클립보드에 복사"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:234
+#: src/pages/settings/ui/components/certificate-settings.tsx:242
 msgid "Copy URL"
 msgstr "URL 복사"
 
@@ -533,17 +533,17 @@ msgstr "데이터"
 msgid "Delay between requests (ms)"
 msgstr "요청 간 딜레이 (ms)"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:260
-#: src/pages/log-viewer/ui/logs-page.tsx:468
+#: src/pages/log-viewer/ui/logs-page.tsx:264
+#: src/pages/log-viewer/ui/logs-page.tsx:472
 msgid "Delete"
 msgstr "삭제"
 
 #. placeholder {0}: selectedFile?.name
-#: src/pages/log-viewer/ui/logs-page.tsx:458
+#: src/pages/log-viewer/ui/logs-page.tsx:462
 msgid "Delete \"{0}\"? This action cannot be undone."
 msgstr "\"{0}\"을(를) 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
 
-#: src/pages/log-viewer/ui/logs-page.tsx:455
+#: src/pages/log-viewer/ui/logs-page.tsx:459
 msgid "Delete Log File"
 msgstr "로그 파일 삭제"
 
@@ -585,7 +585,7 @@ msgstr "연결 끊김"
 msgid "Display CONNECT tunnel requests in the network list"
 msgstr "CONNECT 터널 요청을 네트워크 목록에 표시합니다"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:414
+#: src/pages/log-viewer/ui/logs-page.tsx:418
 msgid "Domain"
 msgstr "도메인"
 
@@ -597,7 +597,7 @@ msgstr "도메인별 인증서"
 msgid "Domains in this list will NOT be intercepted (pass-through). OAuth domains like accounts.google.com are always excluded by default."
 msgstr "이 목록에 있는 도메인은 인터셉트되지 않습니다(패스스루). accounts.google.com 같은 OAuth 도메인은 기본적으로 항상 제외됩니다."
 
-#: src/pages/log-viewer/ui/logs-page.tsx:398
+#: src/pages/log-viewer/ui/logs-page.tsx:402
 msgid "Domains that failed TLS handshake are automatically tunneled without MITM decryption. You can remove entries to retry MITM for specific domains."
 msgstr "TLS 핸드셰이크에 실패한 도메인은 MITM 복호화 없이 자동으로 터널링됩니다. 항목을 삭제하면 해당 도메인에 대해 MITM을 다시 시도합니다."
 
@@ -631,7 +631,7 @@ msgstr "규칙 수정"
 msgid "Editor"
 msgstr "에디터"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:309
+#: src/pages/settings/ui/components/certificate-settings.tsx:317
 msgid "Enable full trust for the Cheolsu Proxy CA certificate"
 msgstr "Cheolsu Proxy CA 인증서에 대한 완전 신뢰를 활성화하세요"
 
@@ -657,7 +657,7 @@ msgid "Exit fullscreen"
 msgstr "전체 화면 종료"
 
 #: src/features/transaction-details/ui/replay-dialog.tsx:204
-#: src/features/transaction-details/ui/replay-dialog.tsx:491
+#: src/features/transaction-details/ui/replay-dialog.tsx:498
 msgid "Expand"
 msgstr "펼치기"
 
@@ -694,7 +694,7 @@ msgstr "파일 읽기 실패: {0}"
 msgid "Failed to send"
 msgstr "전송 실패"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:417
+#: src/pages/log-viewer/ui/logs-page.tsx:421
 msgid "Failures"
 msgstr "실패 횟수"
 
@@ -702,16 +702,16 @@ msgstr "실패 횟수"
 msgid "File"
 msgstr "파일"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:362
+#: src/pages/log-viewer/ui/logs-page.tsx:366
 msgid "Filter log lines..."
 msgstr "로그 라인 필터..."
 
-#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:128
+#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:130
 msgid "For Cursor, Claude Desktop, and other MCP-compatible clients:"
 msgstr "Cursor, Claude Desktop 및 기타 MCP 호환 클라이언트용:"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:252
-#: src/pages/settings/ui/components/certificate-settings.tsx:256
+#: src/pages/settings/ui/components/certificate-settings.tsx:260
+#: src/pages/settings/ui/components/certificate-settings.tsx:264
 msgid "format"
 msgstr "형식"
 
@@ -732,15 +732,15 @@ msgstr "일반"
 msgid "Global Shortcut"
 msgstr "글로벌 단축키"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:303
+#: src/pages/settings/ui/components/certificate-settings.tsx:311
 msgid "Go to <0>Settings → General → About → Certificate Trust Settings</0>"
 msgstr "<0>설정 → 일반 → 정보 → 인증서 신뢰 설정</0>으로 이동하세요"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:295
+#: src/pages/settings/ui/components/certificate-settings.tsx:303
 msgid "Go to <0>Settings → General → VPN & Device Management</0>"
 msgstr "<0>설정 → 일반 → VPN 및 기기 관리</0>로 이동하세요"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:343
+#: src/pages/settings/ui/components/certificate-settings.tsx:351
 msgid "Go to <0>Settings → Security → Encryption & credentials</0>"
 msgstr "<0>설정 → 보안 → 암호화 및 자격증명</0>으로 이동하세요"
 
@@ -763,7 +763,7 @@ msgstr "HAR 가져오기 성공"
 #: src/features/intercept-rule-form/ui/headers-fields.tsx:65
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:347
 #: src/features/map-rule-form/ui/map-local-fields.tsx:79
-#: src/features/transaction-details/ui/replay-dialog.tsx:439
+#: src/features/transaction-details/ui/replay-dialog.tsx:446
 msgid "Header name"
 msgstr "헤더 이름"
 
@@ -780,7 +780,7 @@ msgstr "헤더"
 #. placeholder {0}: headerEntries.length
 #. placeholder {0}: headers.length
 #: src/features/transaction-details/ui/replay-dialog.tsx:176
-#: src/features/transaction-details/ui/replay-dialog.tsx:424
+#: src/features/transaction-details/ui/replay-dialog.tsx:431
 msgid "Headers ({0})"
 msgstr "헤더 ({0})"
 
@@ -837,17 +837,17 @@ msgstr "임포트 중..."
 msgid "Inactive"
 msgstr "비활성"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:120
+#: src/pages/settings/ui/components/certificate-settings.tsx:128
 #: src/pages/settings/ui/components/cli-settings.tsx:61
 msgid "Install"
 msgstr "설치"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:196
+#: src/pages/settings/ui/components/certificate-settings.tsx:204
 msgid "Install and trust the downloaded certificate"
 msgstr "다운로드된 인증서를 설치하고 신뢰"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:275
-#: src/pages/settings/ui/components/certificate-settings.tsx:325
+#: src/pages/settings/ui/components/certificate-settings.tsx:283
+#: src/pages/settings/ui/components/certificate-settings.tsx:333
 msgid "Install Guide"
 msgstr "설치 가이드"
 
@@ -855,11 +855,11 @@ msgstr "설치 가이드"
 msgid "Install the <0>cheolsu</0> command to use the TUI from your terminal"
 msgstr "터미널에서 TUI를 사용하려면 <0>cheolsu</0> 명령어를 설치하세요"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:153
+#: src/pages/settings/ui/components/certificate-settings.tsx:161
 msgid "Install the CA certificate on external devices (mobile, tablet) to intercept HTTPS traffic"
 msgstr "HTTPS 트래픽을 가로채려면 외부 기기(모바일, 태블릿)에 CA 인증서를 설치하세요"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:110
+#: src/pages/settings/ui/components/certificate-settings.tsx:118
 msgid "Install the CA certificate to trust HTTPS traffic intercepted by the proxy"
 msgstr "프록시가 가로채는 HTTPS 트래픽을 신뢰하려면 CA 인증서를 설치하세요"
 
@@ -867,7 +867,7 @@ msgstr "프록시가 가로채는 HTTPS 트래픽을 신뢰하려면 CA 인증�
 msgid "Installed"
 msgstr "설치됨"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:120
+#: src/pages/settings/ui/components/certificate-settings.tsx:128
 #: src/pages/settings/ui/components/cli-settings.tsx:61
 msgid "Installing..."
 msgstr "설치 중..."
@@ -889,7 +889,7 @@ msgstr "반복 횟수"
 msgid "JavaScript Fetch"
 msgstr "JavaScript Fetch"
 
-#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:125
+#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:127
 msgid "JSON Configuration"
 msgstr "JSON 설정"
 
@@ -913,7 +913,7 @@ msgstr "지연 (ms)"
 msgid "Light"
 msgstr "라이트"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:369
+#: src/pages/log-viewer/ui/logs-page.tsx:373
 msgid "lines"
 msgstr "줄"
 
@@ -943,7 +943,7 @@ msgstr "인증서 정보 로딩 중..."
 
 #: src/pages/script/ui/script-page.tsx:214
 #: src/pages/script/ui/script-page.tsx:266
-#: src/pages/settings/ui/components/certificate-settings.tsx:168
+#: src/pages/settings/ui/components/certificate-settings.tsx:176
 msgid "Loading..."
 msgstr "로딩 중..."
 
@@ -955,8 +955,8 @@ msgstr "로컬 파일 경로"
 msgid "localhost, 127.0.0.1, *.internal.com"
 msgstr "localhost, 127.0.0.1, *.internal.com"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:298
-#: src/pages/log-viewer/ui/logs-page.tsx:325
+#: src/pages/log-viewer/ui/logs-page.tsx:302
+#: src/pages/log-viewer/ui/logs-page.tsx:329
 msgid "Log Files"
 msgstr "로그 파일"
 
@@ -964,7 +964,7 @@ msgstr "로그 파일"
 msgid "Logical OR:"
 msgstr "논리 OR:"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:236
+#: src/pages/log-viewer/ui/logs-page.tsx:240
 #: src/shared/app-sidebar/model/consts.ts:86
 msgid "Logs"
 msgstr "로그"
@@ -1037,16 +1037,16 @@ msgstr "매칭 패턴"
 msgid "Match pattern is required"
 msgstr "매치 패턴은 필수입니다"
 
-#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:54
+#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:56
 msgid "MCP configuration copied to clipboard"
 msgstr "MCP 설정이 클립보드에 복사되었습니다"
 
-#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:75
-#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:88
+#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:77
+#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:90
 msgid "MCP Server"
 msgstr "MCP 서버"
 
-#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:97
+#: src/shared/app-sidebar/ui/sidebar-mcp.tsx:99
 msgid "MCP Server Configuration"
 msgstr "MCP 서버 설정"
 
@@ -1063,7 +1063,7 @@ msgstr "메시지"
 msgid "Method"
 msgstr "메서드"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:205
+#: src/pages/settings/ui/components/certificate-settings.tsx:213
 msgid "Mobile Certificate Install"
 msgstr "모바일 인증서 설치"
 
@@ -1137,7 +1137,7 @@ msgstr "호스트 매핑 없음"
 msgid "No intercept rules"
 msgstr "인터셉트 규칙 없음"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:330
+#: src/pages/log-viewer/ui/logs-page.tsx:334
 msgid "No log files found"
 msgstr "로그 파일을 찾을 수 없습니다"
 
@@ -1157,7 +1157,7 @@ msgstr "단계가 선택되지 않음"
 msgid "No replay entries"
 msgstr "리플레이 엔트리 없음"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:406
+#: src/pages/log-viewer/ui/logs-page.tsx:410
 msgid "No TLS passthrough entries"
 msgstr "TLS Passthrough 항목이 없습니다"
 
@@ -1173,7 +1173,7 @@ msgstr "재생할 유효한 요청이 없습니다"
 msgid "No valid requests to replay"
 msgstr "리플레이할 유효한 요청이 없습니다"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:134
+#: src/pages/settings/ui/components/certificate-settings.tsx:142
 msgid "Not Trusted"
 msgstr "신뢰되지 않음"
 
@@ -1189,7 +1189,7 @@ msgstr "요청을 전송할 횟수 (1-10000)"
 msgid "Only domains in this list will be intercepted. When the list is empty, all domains are intercepted."
 msgstr "이 목록에 있는 도메인만 가로챕니다. 목록이 비어있으면 모든 도메인을 가로챕니다."
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:301
+#: src/features/transaction-details/ui/replay-dialog.tsx:306
 msgid "Only http:// and https:// URLs are allowed"
 msgstr "http:// 및 https:// URL만 허용됩니다"
 
@@ -1197,19 +1197,19 @@ msgstr "http:// 및 https:// URL만 허용됩니다"
 msgid "Only whitelisted domains ({enabledCount}) will have HTTPS traffic intercepted"
 msgstr "화이트리스트에 등록된 도메인({enabledCount}개)만 HTTPS 트래픽이 인터셉트됩니다"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:335
+#: src/pages/settings/ui/components/certificate-settings.tsx:343
 msgid "Open <0>{CERT_DOWNLOAD_URL}</0> in Chrome"
 msgstr "Chrome에서 <0>{CERT_DOWNLOAD_URL}</0>을 여세요"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:285
+#: src/pages/settings/ui/components/certificate-settings.tsx:293
 msgid "Open <0>{CERT_DOWNLOAD_URL}</0> in Safari"
 msgstr "Safari에서 <0>{CERT_DOWNLOAD_URL}</0>을 여세요"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:187
+#: src/pages/settings/ui/components/certificate-settings.tsx:195
 msgid "Open <0>{CERT_DOWNLOAD_URL}</0> in your device browser"
 msgstr "기기 브라우저에서 <0>{CERT_DOWNLOAD_URL}</0>을 여세요"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:264
+#: src/pages/log-viewer/ui/logs-page.tsx:268
 msgid "Open Directory"
 msgstr "디렉토리 열기"
 
@@ -1217,7 +1217,7 @@ msgstr "디렉토리 열기"
 msgid "Open File"
 msgstr "파일 열기"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:243
+#: src/pages/settings/ui/components/certificate-settings.tsx:251
 msgid "Open this URL in your mobile browser after setting the Wi-Fi proxy. The page automatically detects your device and provides the correct certificate format."
 msgstr "Wi-Fi 프록시를 설정한 후 모바일 브라우저에서 이 URL을 여세요. 페이지가 자동으로 기기를 감지하고 올바른 인증서 형식을 제공합니다."
 
@@ -1231,7 +1231,7 @@ msgstr "선택사항"
 msgid "Organization"
 msgstr "조직"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:370
+#: src/features/transaction-details/ui/replay-dialog.tsx:377
 msgid "Original"
 msgstr "원본"
 
@@ -1327,7 +1327,7 @@ msgstr "프로파일"
 msgid "Progress"
 msgstr "진행률"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:380
+#: src/pages/settings/ui/components/certificate-settings.tsx:388
 msgid "Proxy Address"
 msgstr "프록시 주소"
 
@@ -1375,9 +1375,9 @@ msgstr "수신"
 msgid "Received (Server → Client)"
 msgstr "수신 (서버 → 클라이언트)"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:247
-#: src/pages/log-viewer/ui/logs-page.tsx:272
-#: src/pages/settings/ui/components/certificate-settings.tsx:397
+#: src/pages/log-viewer/ui/logs-page.tsx:251
+#: src/pages/log-viewer/ui/logs-page.tsx:276
+#: src/pages/settings/ui/components/certificate-settings.tsx:405
 msgid "Refresh"
 msgstr "새로고침"
 
@@ -1386,7 +1386,7 @@ msgstr "새로고침"
 msgid "Regex pattern (e.g. old-domain\\.com)"
 msgstr "정규식 패턴 (예: old-domain\\.com)"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:120
+#: src/pages/settings/ui/components/certificate-settings.tsx:128
 #: src/pages/settings/ui/components/cli-settings.tsx:61
 msgid "Reinstall"
 msgstr "재설치"
@@ -1395,7 +1395,7 @@ msgstr "재설치"
 msgid "Reload"
 msgstr "리로드"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:150
+#: src/pages/settings/ui/components/certificate-settings.tsx:158
 msgid "Remote Device Certificate"
 msgstr "외부 기기 인증서"
 
@@ -1445,7 +1445,7 @@ msgstr "치환 문자열"
 msgid "Replacement string (supports $1, $2 capture groups)"
 msgstr "치환 문자열 ($1, $2 캡처 그룹 지원)"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:380
+#: src/features/transaction-details/ui/replay-dialog.tsx:387
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:122
 msgid "Replay"
 msgstr "리플레이"
@@ -1454,11 +1454,11 @@ msgstr "리플레이"
 msgid "Replay message"
 msgstr "메시지 리플레이"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:344
+#: src/features/transaction-details/ui/replay-dialog.tsx:351
 msgid "Replay request"
 msgstr "요청 리플레이"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:366
+#: src/features/transaction-details/ui/replay-dialog.tsx:373
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:191
 msgid "Request"
 msgstr "요청"
@@ -1490,7 +1490,7 @@ msgstr "요청 상세"
 msgid "Request dropped"
 msgstr "요청이 드롭되었습니다"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:321
+#: src/features/transaction-details/ui/replay-dialog.tsx:328
 msgid "Request failed"
 msgstr "요청 실패"
 
@@ -1517,7 +1517,7 @@ msgstr "이 프록시 서버 사용 시 인증 필요"
 msgid "Require certificate"
 msgstr "인증서 필수"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:380
+#: src/features/transaction-details/ui/replay-dialog.tsx:387
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:196
 msgid "Response"
 msgstr "응답"
@@ -1648,7 +1648,7 @@ msgstr "저장됨"
 msgid "Saving..."
 msgstr "저장 중..."
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:372
+#: src/pages/settings/ui/components/certificate-settings.tsx:380
 msgid "Scan for proxy info"
 msgstr "프록시 정보 스캔"
 
@@ -1681,7 +1681,7 @@ msgstr "스크립트가 언로드되었습니다"
 msgid "Security"
 msgstr "보안"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:385
+#: src/pages/log-viewer/ui/logs-page.tsx:389
 msgid "Select a log file to view its contents"
 msgstr "로그 파일을 선택하여 내용을 확인하세요"
 
@@ -1717,19 +1717,19 @@ msgstr "로컬 파일 선택"
 msgid "Select PKCS12 file (.p12, .pfx)"
 msgstr "PKCS12 파일 선택 (.p12, .pfx)"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:351
+#: src/pages/settings/ui/components/certificate-settings.tsx:359
 msgid "Select the downloaded certificate file and confirm"
 msgstr "다운로드된 인증서 파일을 선택하고 확인하세요"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:300
+#: src/pages/settings/ui/components/certificate-settings.tsx:308
 msgid "Select the downloaded profile and tap \"Install\""
 msgstr "다운로드된 프로필을 선택하고 \"Install\"을 탭하세요"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:568
+#: src/features/transaction-details/ui/replay-dialog.tsx:575
 msgid "Send a request to see the replay response"
 msgstr "리플레이 응답을 보려면 요청을 전송하세요"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:566
+#: src/features/transaction-details/ui/replay-dialog.tsx:573
 msgid "Send a request to see the response"
 msgstr "응답을 보려면 요청을 전송하세요"
 
@@ -1737,7 +1737,7 @@ msgstr "응답을 보려면 요청을 전송하세요"
 msgid "Send Message"
 msgstr "메시지 전송"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:536
+#: src/features/transaction-details/ui/replay-dialog.tsx:543
 msgid "Send Request"
 msgstr "요청 전송"
 
@@ -1745,7 +1745,7 @@ msgstr "요청 전송"
 msgid "Sending requests sequentially..."
 msgstr "요청을 순서대로 전송 중..."
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:531
+#: src/features/transaction-details/ui/replay-dialog.tsx:538
 #: src/features/transaction-details/ui/sequence-replay-dialog.tsx:229
 #: src/features/websocket-replay/ui/ws-replay-dialog.tsx:190
 msgid "Sending..."
@@ -1805,7 +1805,7 @@ msgstr "본문 설정 (선택사항)"
 
 #. placeholder {0}: certDownloadInfo.local_ips[0] || "127.0.0.1"
 #. placeholder {1}: certDownloadInfo.port
-#: src/pages/settings/ui/components/certificate-settings.tsx:179
+#: src/pages/settings/ui/components/certificate-settings.tsx:187
 msgid "Set Wi-Fi proxy on your device to <0>{0}:{1}</0>"
 msgstr "기기의 Wi-Fi 프록시를 <0>{0}:{1}</0>로 설정"
 
@@ -1814,7 +1814,7 @@ msgstr "기기의 Wi-Fi 프록시를 <0>{0}:{1}</0>로 설정"
 msgid "Settings"
 msgstr "설정"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:175
+#: src/pages/settings/ui/components/certificate-settings.tsx:183
 msgid "Setup Instructions:"
 msgstr "설정 방법:"
 
@@ -1855,8 +1855,8 @@ msgstr "SSL Proxying"
 msgid "Start"
 msgstr "시작"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:139
-#: src/pages/settings/ui/components/certificate-settings.tsx:163
+#: src/pages/settings/ui/components/certificate-settings.tsx:147
+#: src/pages/settings/ui/components/certificate-settings.tsx:171
 msgid "Start proxy first"
 msgstr "프록시를 먼저 실행하세요"
 
@@ -1896,11 +1896,11 @@ msgstr "PEM 인코딩된 인증서 및 키를 지원합니다 (RSA, ECDSA, PKCS#
 msgid "System"
 msgstr "시스템"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:290
+#: src/pages/settings/ui/components/certificate-settings.tsx:298
 msgid "Tap \"Allow\" when prompted to download the configuration profile"
 msgstr "구성 프로필 다운로드 프롬프트에서 \"Allow\"를 탭하세요"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:348
+#: src/pages/settings/ui/components/certificate-settings.tsx:356
 msgid "Tap \"Install a certificate\" → \"CA certificate\""
 msgstr "\"Install a certificate\" → \"CA certificate\"를 탭하세요"
 
@@ -1929,7 +1929,7 @@ msgstr "터미널 명령어"
 msgid "The certificate must be a CA certificate (BasicConstraints CA=true). After importing, restart the proxy to use the new CA. You also need to install this CA on your system and devices."
 msgstr "인증서는 CA 인증서여야 합니다 (BasicConstraints CA=true). 임포트 후 프록시를 재시작하여 새 CA를 사용하세요. 시스템과 기기에도 이 CA를 설치해야 합니다."
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:340
+#: src/pages/settings/ui/components/certificate-settings.tsx:348
 msgid "The DER certificate file will download automatically"
 msgstr "DER 인증서 파일이 자동으로 다운로드됩니다"
 
@@ -1946,7 +1946,7 @@ msgstr "처리량"
 msgid "Time"
 msgstr "시간"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:309
+#: src/pages/log-viewer/ui/logs-page.tsx:313
 msgid "TLS Passthrough"
 msgstr "TLS Passthrough"
 
@@ -1977,7 +1977,7 @@ msgstr "총 {0}ms"
 msgid "Total Time"
 msgstr "총 시간"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:353
+#: src/features/transaction-details/ui/replay-dialog.tsx:360
 msgid "Traffic Replay"
 msgstr "트래픽 리플레이"
 
@@ -1997,7 +1997,7 @@ msgstr "트랜잭션 고정이 해제되었습니다"
 msgid "Tries Eager first, falls back to Lazy on failure"
 msgstr "Eager를 먼저 시도하고, 실패 시 Lazy로 폴백합니다"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:129
+#: src/pages/settings/ui/components/certificate-settings.tsx:137
 msgid "Trusted"
 msgstr "신뢰됨"
 
@@ -2007,12 +2007,12 @@ msgstr "신뢰됨"
 msgid "Type"
 msgstr "타입"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:124
+#: src/pages/settings/ui/components/certificate-settings.tsx:132
 #: src/pages/settings/ui/components/cli-settings.tsx:65
 msgid "Uninstall"
 msgstr "제거"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:262
+#: src/pages/settings/ui/components/certificate-settings.tsx:270
 msgid "Universal format"
 msgstr "범용 형식"
 
@@ -2042,7 +2042,7 @@ msgstr "업로드 (KB/s)"
 msgid "Upstream Proxy"
 msgstr "업스트림 프록시"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:417
+#: src/features/transaction-details/ui/replay-dialog.tsx:424
 msgid "URL"
 msgstr "URL"
 
@@ -2088,7 +2088,7 @@ msgstr "유효 기간 만료"
 #: src/features/intercept-rule-form/ui/headers-fields.tsx:70
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:353
 #: src/features/map-rule-form/ui/map-local-fields.tsx:84
-#: src/features/transaction-details/ui/replay-dialog.tsx:447
+#: src/features/transaction-details/ui/replay-dialog.tsx:454
 msgid "Value"
 msgstr "값"
 
@@ -2096,7 +2096,7 @@ msgstr "값"
 msgid "Version"
 msgstr "버전"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:239
+#: src/pages/log-viewer/ui/logs-page.tsx:243
 msgid "View and manage application log files"
 msgstr "애플리케이션 로그 파일 조회 및 관리"
 
