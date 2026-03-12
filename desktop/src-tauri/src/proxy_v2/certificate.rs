@@ -215,6 +215,13 @@ pub(crate) async fn import_custom_ca(
     key_path: String,
 ) -> Result<proxy_daemon::CertificateInfo, String> {
     tokio::task::spawn_blocking(move || {
+        let cert_path = std::fs::canonicalize(&cert_path)
+            .map_err(|e| format!("인증서 경로 확인 실패: {}", e))?;
+        let key_path =
+            std::fs::canonicalize(&key_path).map_err(|e| format!("키 경로 확인 실패: {}", e))?;
+        let cert_path = cert_path.to_string_lossy().to_string();
+        let key_path = key_path.to_string_lossy().to_string();
+
         let info = proxy_daemon::validate_ca_certificate(&cert_path)
             .map_err(|e| format!("CA 인증서 검증 실패: {}", e))?;
 

@@ -10,7 +10,7 @@ pub(crate) async fn update_breakpoint_rules(
     let sender = get_command_sender(&proxy).await?;
     let cmd = ClientCommand::UpdateBreakpointRules { rules };
     sender.send_command(&cmd).await?;
-    println!("Daemon에 breakpoint 규칙 업데이트 완료");
+    tracing::debug!("Daemon에 breakpoint 규칙 업데이트 완료");
     Ok(())
 }
 
@@ -23,6 +23,6 @@ pub(crate) async fn resolve_breakpoint(
     let sender = get_command_sender(&proxy).await?;
     let cmd = ClientCommand::ResolveBreakpoint { id, action };
     sender.send_command(&cmd).await?;
-    println!("Daemon에 breakpoint 해제 완료");
+    tracing::debug!("Daemon에 breakpoint 해제 완료");
     Ok(())
 }
