@@ -2,15 +2,13 @@
 
 use std::sync::Arc;
 
-use tokio::sync::watch;
 use tracing::{error, warn};
 
+use super::WatchReceivers;
 use crate::breakpoint::BreakpointManager;
 use crate::handler::QuickSettings;
 use crate::proxy_runner::run_proxy;
 use proxyapi_v2::metrics::MetricsCollector;
-use proxyapi_v2::throttle::ThrottleConfig;
-use proxyapi_v2::upstream_proxy::UpstreamProxyConfig;
 use proxyapi_v2::websocket_registry::WebSocketRegistry;
 
 /// 프록시 태스크를 스폰합니다.
@@ -18,18 +16,8 @@ use proxyapi_v2::websocket_registry::WebSocketRegistry;
 pub(super) fn spawn_proxy_task(
     addr: std::net::SocketAddr,
     event_tx: tokio::sync::broadcast::Sender<String>,
-    intercept_rx: watch::Receiver<Vec<crate::protocol::InterceptRule>>,
-    upstream_rx: watch::Receiver<Option<UpstreamProxyConfig>>,
-    server_replay_rx: watch::Receiver<Vec<crate::protocol::ServerReplayEntry>>,
-    throttle_rx: watch::Receiver<Option<ThrottleConfig>>,
-    breakpoint_rx: watch::Receiver<Vec<crate::protocol::BreakpointRule>>,
+    watch_receivers: WatchReceivers,
     breakpoint_manager: BreakpointManager,
-    host_mapping_rx: watch::Receiver<Vec<crate::protocol::HostMapping>>,
-    ssl_proxying_rx: watch::Receiver<(
-        crate::protocol::SslProxyingMode,
-        Vec<crate::protocol::SslProxyingEntry>,
-    )>,
-    client_cert_rx: watch::Receiver<Option<crate::protocol::ClientCertConfig>>,
     ws_registry: WebSocketRegistry,
     script_handle: scripting::ScriptHandle,
     quick_settings: Arc<tokio::sync::RwLock<QuickSettings>>,
@@ -37,7 +25,6 @@ pub(super) fn spawn_proxy_task(
     max_concurrent_connections: Option<usize>,
     max_body_size: Option<usize>,
     tls_passthrough: proxyapi_v2::tls_passthrough::TlsPassthrough,
-    request_client_cert_rx: watch::Receiver<Option<crate::protocol::RequestClientCertConfig>>,
     connection_strategy: Arc<std::sync::atomic::AtomicU8>,
     metrics_collector: Arc<MetricsCollector>,
     total_transactions: std::sync::Arc<std::sync::atomic::AtomicU64>,
@@ -46,6 +33,17 @@ pub(super) fn spawn_proxy_task(
     tokio::sync::oneshot::Sender<()>,
 ) {
     let (shutdown_tx, shutdown_rx) = tokio::sync::oneshot::channel::<()>();
+    let WatchReceivers {
+        intercept_rx,
+        upstream_rx,
+        server_replay_rx,
+        throttle_rx,
+        breakpoint_rx,
+        host_mapping_rx,
+        ssl_proxying_rx,
+        client_cert_rx,
+        request_client_cert_rx,
+    } = watch_receivers;
     let handle = tokio::spawn(async move {
         if let Err(code) = run_proxy(
             addr,

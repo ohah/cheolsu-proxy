@@ -63,6 +63,79 @@ pub(crate) struct DaemonChannels {
         watch::Sender<Option<crate::protocol::RequestClientCertConfig>>,
 }
 
+/// 프록시 설정 전파용 watch 채널 수신자 그룹
+///
+/// `DaemonChannels`의 각 송신자에 대응하는 수신자를 묶어 관리합니다.
+/// `spawn_proxy_task`에 일괄 전달하여 매개변수 수를 줄입니다.
+pub(crate) struct WatchReceivers {
+    pub(crate) intercept_rx: watch::Receiver<Vec<crate::protocol::InterceptRule>>,
+    pub(crate) upstream_rx: watch::Receiver<Option<UpstreamProxyConfig>>,
+    pub(crate) server_replay_rx: watch::Receiver<Vec<crate::protocol::ServerReplayEntry>>,
+    pub(crate) throttle_rx: watch::Receiver<Option<ThrottleConfig>>,
+    pub(crate) breakpoint_rx: watch::Receiver<Vec<crate::protocol::BreakpointRule>>,
+    pub(crate) host_mapping_rx: watch::Receiver<Vec<crate::protocol::HostMapping>>,
+    pub(crate) ssl_proxying_rx: watch::Receiver<(
+        crate::protocol::SslProxyingMode,
+        Vec<crate::protocol::SslProxyingEntry>,
+    )>,
+    pub(crate) client_cert_rx: watch::Receiver<Option<crate::protocol::ClientCertConfig>>,
+    pub(crate) request_client_cert_rx:
+        watch::Receiver<Option<crate::protocol::RequestClientCertConfig>>,
+}
+
+impl DaemonChannels {
+    /// 모든 watch 채널을 한 번에 생성하여 (송신자 그룹, 수신자 그룹)을 반환합니다.
+    ///
+    /// 각 채널은 해당 타입의 기본값(빈 Vec 또는 None)으로 초기화됩니다.
+    fn new() -> (Self, WatchReceivers) {
+        let (intercept_tx, intercept_rx) =
+            watch::channel::<Vec<crate::protocol::InterceptRule>>(Vec::new());
+        let (upstream_tx, upstream_rx) = watch::channel::<Option<UpstreamProxyConfig>>(None);
+        let (server_replay_tx, server_replay_rx) =
+            watch::channel::<Vec<crate::protocol::ServerReplayEntry>>(Vec::new());
+        let (throttle_tx, throttle_rx) = watch::channel::<Option<ThrottleConfig>>(None);
+        let (breakpoint_tx, breakpoint_rx) =
+            watch::channel::<Vec<crate::protocol::BreakpointRule>>(Vec::new());
+        let (host_mapping_tx, host_mapping_rx) =
+            watch::channel::<Vec<crate::protocol::HostMapping>>(Vec::new());
+        let (ssl_proxying_tx, ssl_proxying_rx) =
+            watch::channel::<(
+                crate::protocol::SslProxyingMode,
+                Vec<crate::protocol::SslProxyingEntry>,
+            )>((crate::protocol::SslProxyingMode::default(), Vec::new()));
+        let (client_cert_tx, client_cert_rx) =
+            watch::channel::<Option<crate::protocol::ClientCertConfig>>(None);
+        let (request_client_cert_tx, request_client_cert_rx) =
+            watch::channel::<Option<crate::protocol::RequestClientCertConfig>>(None);
+
+        let channels = Self {
+            intercept_tx,
+            upstream_tx,
+            server_replay_tx,
+            throttle_tx,
+            breakpoint_tx,
+            host_mapping_tx,
+            ssl_proxying_tx,
+            client_cert_tx,
+            request_client_cert_tx,
+        };
+
+        let receivers = WatchReceivers {
+            intercept_rx,
+            upstream_rx,
+            server_replay_rx,
+            throttle_rx,
+            breakpoint_rx,
+            host_mapping_rx,
+            ssl_proxying_rx,
+            client_cert_rx,
+            request_client_cert_rx,
+        };
+
+        (channels, receivers)
+    }
+}
+
 /// 데몬 메트릭/통계 정보 그룹
 #[derive(Clone)]
 pub(crate) struct DaemonMetrics {
@@ -167,26 +240,8 @@ async fn daemon_main(port: u16, host: String) -> i32 {
 
     let (event_tx, _) = broadcast::channel::<String>(1024);
     let (shutdown_tx, mut shutdown_rx) = tokio::sync::mpsc::channel::<()>(1);
-    let (intercept_tx, intercept_rx) =
-        watch::channel::<Vec<crate::protocol::InterceptRule>>(Vec::new());
-    let (upstream_tx, upstream_rx) = watch::channel::<Option<UpstreamProxyConfig>>(None);
-    let (server_replay_tx, server_replay_rx) =
-        watch::channel::<Vec<crate::protocol::ServerReplayEntry>>(Vec::new());
-    let (throttle_tx, throttle_rx) = watch::channel::<Option<ThrottleConfig>>(None);
-    let (breakpoint_tx, breakpoint_rx) =
-        watch::channel::<Vec<crate::protocol::BreakpointRule>>(Vec::new());
+    let (channels, watch_receivers) = DaemonChannels::new();
     let breakpoint_manager = BreakpointManager::new(event_tx.clone());
-    let (host_mapping_tx, host_mapping_rx) =
-        watch::channel::<Vec<crate::protocol::HostMapping>>(Vec::new());
-    let (ssl_proxying_tx, ssl_proxying_rx) =
-        watch::channel::<(
-            crate::protocol::SslProxyingMode,
-            Vec<crate::protocol::SslProxyingEntry>,
-        )>((crate::protocol::SslProxyingMode::default(), Vec::new()));
-    let (client_cert_tx, client_cert_rx) =
-        watch::channel::<Option<crate::protocol::ClientCertConfig>>(None);
-    let (request_client_cert_tx, request_client_cert_rx) =
-        watch::channel::<Option<crate::protocol::RequestClientCertConfig>>(None);
 
     let addr: std::net::SocketAddr = match format!("{}:{}", host, port).parse() {
         Ok(addr) => addr,
@@ -258,15 +313,8 @@ async fn daemon_main(port: u16, host: String) -> i32 {
     let (proxy_handle, proxy_shutdown_tx) = spawn_proxy_task(
         addr,
         event_tx.clone(),
-        intercept_rx,
-        upstream_rx,
-        server_replay_rx,
-        throttle_rx,
-        breakpoint_rx,
+        watch_receivers,
         breakpoint_manager.clone(),
-        host_mapping_rx,
-        ssl_proxying_rx,
-        client_cert_rx,
         ws_registry.clone(),
         script_handle.clone(),
         quick_settings.clone(),
@@ -274,7 +322,6 @@ async fn daemon_main(port: u16, host: String) -> i32 {
         max_concurrent_connections,
         max_body_size,
         tls_passthrough.clone(),
-        request_client_cert_rx,
         connection_strategy.clone(),
         metrics_collector.clone(),
         total_transactions.clone(),
@@ -307,17 +354,7 @@ async fn daemon_main(port: u16, host: String) -> i32 {
         event_tx,
         client_count: Arc::new(AtomicUsize::new(0)),
         shutdown_tx,
-        channels: DaemonChannels {
-            intercept_tx,
-            upstream_tx,
-            server_replay_tx,
-            throttle_tx,
-            breakpoint_tx,
-            host_mapping_tx,
-            ssl_proxying_tx,
-            client_cert_tx,
-            request_client_cert_tx,
-        },
+        channels,
         metrics: DaemonMetrics {
             started_at,
             total_transactions,
