@@ -265,6 +265,10 @@ export function ReplayDialog({
   const requestRef = useRef(request);
   requestRef.current = request;
 
+  // 다이얼로그가 닫힌 후 비동기 응답이 도착해도 state 업데이트 방지
+  const openRef = useRef(open);
+  openRef.current = open;
+
   useEffect(() => {
     if (open) {
       const req = requestRef.current;
@@ -293,6 +297,7 @@ export function ReplayDialog({
       setError(null);
       setActiveTab("request");
     }
+    // resetHeaders는 안정적인 참조이므로 deps에서 제외
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
@@ -315,9 +320,11 @@ export function ReplayDialog({
 
     try {
       const res = await replayRequest(params);
+      if (!openRef.current) return;
       setReplayResponse(res);
       setActiveTab("replay");
     } catch (e: unknown) {
+      if (!openRef.current) return;
       setError(typeof e === "string" ? e : e instanceof Error ? e.message : t`Request failed`);
     } finally {
       setLoading(false);
@@ -325,7 +332,7 @@ export function ReplayDialog({
   }, [method, url, headers, body]);
 
   const bodyLanguage = detectLanguage(body);
-  const originalResponseBody = getResponseBody(originalResponse);
+  const originalResponseBody = getResponseBody(originalResponse ?? null);
   const hasOriginalResponse = !!originalResponse;
   const hasReplayResponse = !!replayResponse;
 
