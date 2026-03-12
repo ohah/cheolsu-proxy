@@ -36,6 +36,7 @@ describe("transaction-store", () => {
     store = await getStore();
     store.setState({
       transactions: [],
+      transactionIds: new Set(),
       selectedTransaction: null,
       pinnedTransactionIds: new Set(),
       checkedTransactionIds: new Set(),
