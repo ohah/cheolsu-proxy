@@ -890,4 +890,421 @@ mod tests {
         assert!(extracted[0].0.is_some(), "추출된 request가 없음");
         assert!(extracted[0].1.is_some(), "추출된 response가 없음");
     }
+
+    #[test]
+    fn test_empty_traffic_save_load_roundtrip() {
+        let tmp = TempDir::new().unwrap();
+        let path = tmp.path().join("empty.cheolsu");
+
+        let session = SessionFile::from_traffic(8100, &[], &[], &[], &[], None);
+        session.save(&path).unwrap();
+        let loaded = SessionFile::load(&path).unwrap();
+
+        assert_eq!(loaded.metadata.total_transactions, 0);
+        assert!(loaded.transactions.is_empty());
+        assert!(loaded.websocket_messages.is_empty());
+        assert!(loaded.intercept_rules.is_empty());
+        assert!(loaded.server_replay_entries.is_empty());
+        assert!(loaded.throttle_config.is_none());
+    }
+
+    #[test]
+    fn test_empty_traffic_save_load_roundtrip_gzip() {
+        let tmp = TempDir::new().unwrap();
+        let path = tmp.path().join("empty.cheolsu.gz");
+
+        let session = SessionFile::from_traffic(8100, &[], &[], &[], &[], None);
+        session.save(&path).unwrap();
+        let loaded = SessionFile::load(&path).unwrap();
+
+        assert_eq!(loaded.metadata.total_transactions, 0);
+        assert!(loaded.transactions.is_empty());
+    }
+
+    #[test]
+    fn test_large_transaction_count_save_load() {
+        let tmp = TempDir::new().unwrap();
+        let path = tmp.path().join("large.cheolsu");
+
+        let count = 500;
+        let transactions: Vec<RequestInfo> = (0..count)
+            .map(|_| make_request_info_with_response())
+            .collect();
+
+        let session = SessionFile::from_traffic(8100, &transactions, &[], &[], &[], None);
+        assert_eq!(session.metadata.total_transactions, count);
+        assert_eq!(session.transactions.len(), count);
+
+        session.save(&path).unwrap();
+        let loaded = SessionFile::load(&path).unwrap();
+
+        assert_eq!(loaded.metadata.total_transactions, count);
+        assert_eq!(loaded.transactions.len(), count);
+        for t in &loaded.transactions {
+            assert!(t.info.0.is_some());
+            assert!(t.info.1.is_some());
+        }
+    }
+
+    #[test]
+    fn test_large_transaction_count_save_load_gzip() {
+        let tmp = TempDir::new().unwrap();
+        let path = tmp.path().join("large.cheolsu.gz");
+
+        let count = 500;
+        let transactions: Vec<RequestInfo> = (0..count)
+            .map(|_| make_request_info_with_response())
+            .collect();
+
+        let session = SessionFile::from_traffic(8100, &transactions, &[], &[], &[], None);
+        session.save(&path).unwrap();
+        let loaded = SessionFile::load(&path).unwrap();
+
+        assert_eq!(loaded.transactions.len(), count);
+    }
+
+    #[test]
+    fn test_gzip_save_load_preserves_transaction_data() {
+        let tmp = TempDir::new().unwrap();
+        let path = tmp.path().join("data.cheolsu.gz");
+
+        let info = make_request_info_with_response();
+        let session = SessionFile::from_traffic(8100, &[info], &[], &[], &[], None);
+        session.save(&path).unwrap();
+        let loaded = SessionFile::load(&path).unwrap();
+
+        assert_eq!(loaded.transactions.len(), 1);
+        let loaded_info = &loaded.transactions[0].info;
+        assert!(loaded_info.0.is_some());
+        assert!(loaded_info.1.is_some());
+
+        let req = loaded_info.0.as_ref().unwrap();
+        assert_eq!(req.method().as_str(), "GET");
+        let res = loaded_info.1.as_ref().unwrap();
+        assert_eq!(res.status().as_u16(), 200);
+    }
+
+    #[test]
+    fn test_from_traffic_with_ws_messages() {
+        use proxy_v2_models::{WsContentType, WsDirection, WsMessageInfo, WsMessageType};
+
+        let ws_msgs = vec![WsMessageInfo {
+            connection_id: "ws://example.com/ws".to_string(),
+            sequence: 1,
+            direction: WsDirection::ClientToServer,
+            message_type: WsMessageType::Text,
+            payload: "hello".to_string(),
+            size: 5,
+            time: 1000,
+            is_binary: false,
+            content_type: WsContentType::Plain,
+            mqtt_version: None,
+        }];
+
+        let session = SessionFile::from_traffic(8100, &[], &ws_msgs, &[], &[], None);
+        assert_eq!(session.websocket_messages.len(), 1);
+        assert_eq!(session.websocket_messages[0].payload, "hello");
+        assert_eq!(session.websocket_messages[0].sequence, 1);
+    }
+
+    #[test]
+    fn test_from_traffic_with_server_replay_entries() {
+        use std::collections::HashMap;
+
+        let entries = vec![ServerReplayEntry {
+            id: "replay-1".to_string(),
+            method: "GET".to_string(),
+            url: "https://example.com/api".to_string(),
+            status: 200,
+            headers: HashMap::from([("content-type".to_string(), "text/plain".to_string())]),
+            body: Some("mock response".to_string()),
+        }];
+
+        let session = SessionFile::from_traffic(8100, &[], &[], &[], &entries, None);
+        assert_eq!(session.server_replay_entries.len(), 1);
+        assert_eq!(session.server_replay_entries[0].id, "replay-1");
+        assert_eq!(session.server_replay_entries[0].status, 200);
+        assert_eq!(
+            session.server_replay_entries[0].body,
+            Some("mock response".to_string())
+        );
+    }
+
+    #[test]
+    fn test_from_traffic_with_all_fields_save_load() {
+        use proxy_v2_models::{WsContentType, WsDirection, WsMessageInfo, WsMessageType};
+        use std::collections::HashMap;
+
+        let tmp = TempDir::new().unwrap();
+        let path = tmp.path().join("full.cheolsu");
+
+        let transactions = vec![make_request_info_with_response()];
+        let ws_msgs = vec![WsMessageInfo {
+            connection_id: "ws://example.com/ws".to_string(),
+            sequence: 0,
+            direction: WsDirection::ServerToClient,
+            message_type: WsMessageType::Text,
+            payload: "world".to_string(),
+            size: 5,
+            time: 2000,
+            is_binary: false,
+            content_type: WsContentType::Plain,
+            mqtt_version: None,
+        }];
+        let rules = vec![InterceptRule {
+            id: "r1".to_string(),
+            name: "Rule".to_string(),
+            enabled: true,
+            pattern: "*".to_string(),
+            method: None,
+            action: InterceptAction::Block {
+                status_code: 500,
+                body: "error".to_string(),
+            },
+        }];
+        let replay_entries = vec![ServerReplayEntry {
+            id: "s1".to_string(),
+            method: "POST".to_string(),
+            url: "https://api.test.com".to_string(),
+            status: 201,
+            headers: HashMap::new(),
+            body: None,
+        }];
+        let throttle = ThrottleConfig {
+            enabled: true,
+            download_rate: Some(2048),
+            upload_rate: None,
+            latency_ms: 50,
+        };
+
+        let session = SessionFile::from_traffic(
+            9999,
+            &transactions,
+            &ws_msgs,
+            &rules,
+            &replay_entries,
+            Some(throttle),
+        );
+
+        session.save(&path).unwrap();
+        let loaded = SessionFile::load(&path).unwrap();
+
+        assert_eq!(loaded.metadata.proxy_port, 9999);
+        assert_eq!(loaded.metadata.total_transactions, 1);
+        assert_eq!(loaded.transactions.len(), 1);
+        assert_eq!(loaded.websocket_messages.len(), 1);
+        assert_eq!(loaded.websocket_messages[0].payload, "world");
+        assert_eq!(loaded.intercept_rules.len(), 1);
+        assert_eq!(loaded.intercept_rules[0].id, "r1");
+        assert_eq!(loaded.server_replay_entries.len(), 1);
+        assert_eq!(loaded.server_replay_entries[0].method, "POST");
+        let tc = loaded.throttle_config.unwrap();
+        assert!(tc.enabled);
+        assert_eq!(tc.download_rate, Some(2048));
+        assert!(tc.upload_rate.is_none());
+        assert_eq!(tc.latency_ms, 50);
+    }
+
+    #[test]
+    fn test_import_har_multiple_entries() {
+        let har_json = r#"{
+            "log": {
+                "version": "1.2",
+                "creator": {"name": "test", "version": "1.0"},
+                "entries": [
+                    {
+                        "startedDateTime": "2024-01-01T00:00:00.000Z",
+                        "request": {
+                            "method": "GET",
+                            "url": "https://example.com/1",
+                            "httpVersion": "HTTP/1.1",
+                            "headers": [],
+                            "queryString": [],
+                            "headersSize": -1,
+                            "bodySize": 0
+                        },
+                        "response": {
+                            "status": 200,
+                            "statusText": "OK",
+                            "httpVersion": "HTTP/1.1",
+                            "headers": [],
+                            "content": {"size": 0, "mimeType": "text/plain"},
+                            "redirectURL": "",
+                            "headersSize": -1,
+                            "bodySize": 0
+                        },
+                        "cache": {},
+                        "timings": {"send": 0, "wait": 10, "receive": 0}
+                    },
+                    {
+                        "startedDateTime": "2024-01-01T00:00:01.000Z",
+                        "request": {
+                            "method": "POST",
+                            "url": "https://example.com/2",
+                            "httpVersion": "HTTP/1.1",
+                            "headers": [{"name": "content-type", "value": "application/json"}],
+                            "postData": {"mimeType": "application/json", "text": "{\"a\":1}"},
+                            "queryString": [],
+                            "headersSize": -1,
+                            "bodySize": 6
+                        },
+                        "response": {
+                            "status": 201,
+                            "statusText": "Created",
+                            "httpVersion": "HTTP/1.1",
+                            "headers": [],
+                            "content": {"size": 0, "mimeType": "text/plain"},
+                            "redirectURL": "",
+                            "headersSize": -1,
+                            "bodySize": 0
+                        },
+                        "cache": {},
+                        "timings": {"send": 0, "wait": 10, "receive": 0}
+                    },
+                    {
+                        "startedDateTime": "2024-01-01T00:00:02.000Z",
+                        "request": {
+                            "method": "DELETE",
+                            "url": "https://example.com/3",
+                            "httpVersion": "HTTP/2.0",
+                            "headers": [],
+                            "queryString": [],
+                            "headersSize": -1,
+                            "bodySize": 0
+                        },
+                        "response": {
+                            "status": 204,
+                            "statusText": "No Content",
+                            "httpVersion": "HTTP/2.0",
+                            "headers": [],
+                            "content": {"size": 0, "mimeType": "text/plain"},
+                            "redirectURL": "",
+                            "headersSize": -1,
+                            "bodySize": 0
+                        },
+                        "cache": {},
+                        "timings": {"send": 0, "wait": 10, "receive": 0}
+                    }
+                ]
+            }
+        }"#;
+
+        let transactions = import_har(har_json).unwrap();
+        assert_eq!(transactions.len(), 3);
+
+        let methods: Vec<&str> = transactions
+            .iter()
+            .map(|t| t.0.as_ref().unwrap().method().as_str())
+            .collect();
+        assert_eq!(methods, vec!["GET", "POST", "DELETE"]);
+    }
+
+    #[test]
+    fn test_import_har_request_without_response() {
+        let har_json = r#"{
+            "log": {
+                "version": "1.2",
+                "creator": {"name": "test", "version": "1.0"},
+                "entries": [
+                    {
+                        "startedDateTime": "2024-01-01T00:00:00.000Z",
+                        "request": {
+                            "method": "GET",
+                            "url": "https://example.com/no-response",
+                            "httpVersion": "HTTP/1.1",
+                            "headers": [],
+                            "queryString": [],
+                            "headersSize": -1,
+                            "bodySize": 0
+                        },
+                        "cache": {},
+                        "timings": {"send": 0, "wait": 10, "receive": 0}
+                    }
+                ]
+            }
+        }"#;
+
+        let transactions = import_har(har_json).unwrap();
+        assert_eq!(transactions.len(), 1);
+        assert!(transactions[0].0.is_some());
+        assert!(transactions[0].1.is_none());
+    }
+
+    #[test]
+    fn test_import_har_with_request_headers() {
+        let har_json = r#"{
+            "log": {
+                "version": "1.2",
+                "creator": {"name": "test", "version": "1.0"},
+                "entries": [
+                    {
+                        "startedDateTime": "2024-01-01T00:00:00.000Z",
+                        "request": {
+                            "method": "GET",
+                            "url": "https://example.com/headers",
+                            "httpVersion": "HTTP/1.1",
+                            "headers": [
+                                {"name": "accept", "value": "application/json"},
+                                {"name": "authorization", "value": "Bearer token123"}
+                            ],
+                            "queryString": [],
+                            "headersSize": -1,
+                            "bodySize": 0
+                        },
+                        "response": {
+                            "status": 200,
+                            "statusText": "OK",
+                            "httpVersion": "HTTP/1.1",
+                            "headers": [
+                                {"name": "content-type", "value": "application/json"}
+                            ],
+                            "content": {"size": 2, "mimeType": "application/json", "text": "{}"},
+                            "redirectURL": "",
+                            "headersSize": -1,
+                            "bodySize": 2
+                        },
+                        "cache": {},
+                        "timings": {"send": 0, "wait": 10, "receive": 0}
+                    }
+                ]
+            }
+        }"#;
+
+        let transactions = import_har(har_json).unwrap();
+        assert_eq!(transactions.len(), 1);
+        let req = transactions[0].0.as_ref().unwrap();
+        assert!(req.headers().contains_key("accept"));
+        assert!(req.headers().contains_key("authorization"));
+    }
+
+    #[test]
+    fn test_metadata_defaults() {
+        let session = SessionFile::new(3000);
+        assert!(session.metadata.name.is_none());
+        assert!(session.metadata.description.is_none());
+        assert_eq!(session.metadata.proxy_port, 3000);
+        assert_eq!(session.metadata.total_transactions, 0);
+    }
+
+    #[test]
+    fn test_metadata_save_load_roundtrip() {
+        let tmp = TempDir::new().unwrap();
+        let path = tmp.path().join("meta.cheolsu");
+
+        let mut session = SessionFile::new(4000);
+        session.metadata.name = Some("My Proxy Session".to_string());
+        session.metadata.description = Some("Debugging API calls".to_string());
+        session.metadata.total_transactions = 42;
+
+        session.save(&path).unwrap();
+        let loaded = SessionFile::load(&path).unwrap();
+
+        assert_eq!(loaded.metadata.name, Some("My Proxy Session".to_string()));
+        assert_eq!(
+            loaded.metadata.description,
+            Some("Debugging API calls".to_string())
+        );
+        assert_eq!(loaded.metadata.proxy_port, 4000);
+        assert_eq!(loaded.metadata.total_transactions, 42);
+    }
 }
