@@ -95,13 +95,13 @@ impl HttpHandler for LoggingHandler {
                     max_size,
                     req.uri()
                 );
-                let response = Response::builder()
-                    .status(StatusCode::PAYLOAD_TOO_LARGE)
-                    .body(Body::from(format!(
+                let response = crate::handler::response_helpers::error_response(
+                    StatusCode::PAYLOAD_TOO_LARGE,
+                    Body::from(format!(
                         "Request body too large: {} bytes (max: {} bytes)",
                         effective_size, max_size
-                    )))
-                    .unwrap_or_else(|_| Response::new(Body::empty()));
+                    )),
+                );
                 return response.into();
             }
         }
@@ -206,13 +206,13 @@ impl HttpHandler for LoggingHandler {
                     "[BodyLimit] 응답 바디 크기 초과: {} > {} — 바디를 잘라 반환",
                     response_size, max_size
                 );
-                return Response::builder()
-                    .status(StatusCode::BAD_GATEWAY)
-                    .body(Body::from(format!(
+                return crate::handler::response_helpers::error_response(
+                    StatusCode::BAD_GATEWAY,
+                    Body::from(format!(
                         "Response body too large: {} bytes (max: {} bytes)",
                         response_size, max_size
-                    )))
-                    .unwrap_or_else(|_| Response::new(Body::empty()));
+                    )),
+                );
             }
         }
 
@@ -267,10 +267,7 @@ impl HttpHandler for LoggingHandler {
                 if self.request.res.is_some() {
                     return self.create_response_from_cached_data();
                 } else {
-                    return Response::builder()
-                        .status(StatusCode::OK)
-                        .body(Body::empty())
-                        .unwrap_or_else(|_| Response::new(Body::empty()));
+                    return crate::handler::response_helpers::empty_response(StatusCode::OK);
                 }
             }
         }
@@ -303,9 +300,9 @@ impl HttpHandler for LoggingHandler {
             }
         }
 
-        Response::builder()
-            .status(StatusCode::BAD_GATEWAY)
-            .body(Body::from(format!("Proxy Error: {}", err)))
-            .unwrap_or_else(|_| Response::new(Body::empty()))
+        crate::handler::response_helpers::error_response(
+            StatusCode::BAD_GATEWAY,
+            Body::from(format!("Proxy Error: {}", err)),
+        )
     }
 }
