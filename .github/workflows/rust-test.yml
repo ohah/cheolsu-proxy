@@ -38,6 +38,7 @@ jobs:
 
       - name: Generate test CA certificates
         run: |
+          mkdir -p crates/proxyapi_v2/examples/ca
           # cheolsu-proxy CA (4096-bit RSA, self-signed)
           openssl req -x509 -newkey rsa:4096 -sha512 -days 3650 -nodes \
             -keyout crates/proxyapi_v2/src/certificate_authority/cheolsu-proxy.key \
