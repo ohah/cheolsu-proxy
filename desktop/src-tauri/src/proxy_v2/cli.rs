@@ -71,7 +71,12 @@ fn install_sidecar_binary(
 
 #[tauri::command]
 pub(crate) fn get_mcp_server_path(app: AppHandle<impl Runtime>) -> Result<String, String> {
-    install_sidecar_binary(&app, "cheolsu-proxy-mcp", "cheolsu-proxy-mcp")
+    let path = install_sidecar_binary(&app, "cheolsu-proxy-mcp", "cheolsu-proxy-mcp")?;
+
+    #[cfg(target_os = "macos")]
+    install_frameworks(&app)?;
+
+    Ok(path)
 }
 
 #[cfg(target_os = "macos")]
@@ -98,10 +103,62 @@ fn run_with_admin_privileges(shell_cmd: &str) -> Result<(), String> {
     }
 }
 
+#[cfg(target_os = "macos")]
+fn install_frameworks(app: &AppHandle<impl Runtime>) -> Result<(), String> {
+    use tauri::Manager;
+
+    let current_exe =
+        std::env::current_exe().map_err(|e| format!("Failed to get current exe: {}", e))?;
+    let exe_dir = current_exe
+        .parent()
+        .ok_or_else(|| "실행 파일의 부모 디렉토리를 찾을 수 없습니다".to_string())?;
+
+    // 앱 번들의 Frameworks 디렉토리: Contents/MacOS/../Frameworks
+    let frameworks_src = exe_dir.join("../Frameworks");
+
+    let home = app
+        .path()
+        .home_dir()
+        .map_err(|e| format!("홈 디렉토리를 찾을 수 없습니다: {}", e))?;
+    let frameworks_dest = home.join(".cheolsu").join("Frameworks");
+    std::fs::create_dir_all(&frameworks_dest)
+        .map_err(|e| format!("Frameworks 디렉토리 생성 실패: {}", e))?;
+
+    for dylib_name in &["libssl.3.dylib", "libcrypto.3.dylib"] {
+        let src = frameworks_src.join(dylib_name);
+        let dest = frameworks_dest.join(dylib_name);
+
+        if !src.exists() {
+            continue;
+        }
+
+        let needs_copy = if dest.exists() {
+            let src_meta = std::fs::metadata(&src).ok();
+            let dst_meta = std::fs::metadata(&dest).ok();
+            match (src_meta, dst_meta) {
+                (Some(s), Some(d)) => s.len() != d.len(),
+                _ => true,
+            }
+        } else {
+            true
+        };
+
+        if needs_copy {
+            std::fs::copy(&src, &dest).map_err(|e| format!("{} 복사 실패: {}", dylib_name, e))?;
+        }
+    }
+
+    Ok(())
+}
+
 #[tauri::command]
 pub(crate) async fn install_cli(app: AppHandle<impl Runtime>) -> Result<String, String> {
     tokio::task::spawn_blocking(move || {
         let tui_path = install_sidecar_binary(&app, "cheolsu", "cheolsu")?;
+
+        #[cfg(target_os = "macos")]
+        install_frameworks(&app)?;
+
         let link_path = "/usr/local/bin/cheolsu";
         let link = std::path::Path::new(link_path);
 
