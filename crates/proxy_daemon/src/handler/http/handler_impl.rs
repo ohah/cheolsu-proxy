@@ -1,5 +1,5 @@
 use proxyapi_v2::{
-    hyper::http::{Method, StatusCode},
+    hyper::http::StatusCode,
     hyper::{Request, Response},
     Body, HttpContext, HttpHandler, RequestOrResponse,
 };
@@ -71,61 +71,22 @@ impl HttpHandler for LoggingHandler {
         // 인증 통과 후 Proxy-Authorization 헤더 제거 (upstream에 전달 방지)
         req.headers_mut().remove("proxy-authorization");
 
-        // 요청 바디 크기 제한 확인 (Content-Length 헤더 + body size_hint 기반)
-        if let Some(max_size) = self.config.max_body_size {
-            // 1) Content-Length 헤더 기반 검사
-            let content_length = req
-                .headers()
-                .get(proxyapi_v2::hyper::header::CONTENT_LENGTH)
-                .and_then(|v| v.to_str().ok())
-                .and_then(|v| v.parse::<usize>().ok());
-
-            // 2) body size_hint의 lower bound 확인
-            // NOTE: chunked 전송 시 hyper의 Incoming body는 lower=0, upper=None을 반환하므로
-            // Content-Length 없는 chunked 요청은 이 검사를 우회할 수 있음.
-            // 완전한 스트리밍 제한이 필요하면 body wrapper로 누적 크기를 체크해야 함.
-            let body_lower_bound = {
-                use proxyapi_v2::hyper::body::Body as HttpBody;
-                req.body().size_hint().lower() as usize
-            };
-
-            let effective_size = content_length.unwrap_or(body_lower_bound);
-            if effective_size > max_size {
-                info!(
-                    "[BodyLimit] 요청 바디 크기 초과: {} > {} ({})",
-                    effective_size,
-                    max_size,
-                    req.uri()
-                );
-                let response = response_helpers::error_response(
-                    StatusCode::PAYLOAD_TOO_LARGE,
-                    Body::from(format!(
-                        "Request body too large: {} bytes (max: {} bytes)",
-                        effective_size, max_size
-                    )),
-                );
-                return response.into();
-            }
+        // 요청 바디 크기 제한 확인
+        if let Some(response) = self.check_request_body_size_limit(&req) {
+            return response.into();
         }
 
         if let Some(cert_response) = self.check_cert_download_intercept(&req) {
             return cert_response.into();
         }
 
-        if req
-            .headers()
-            .get(proxyapi_v2::hyper::header::UPGRADE)
-            .and_then(|v| v.to_str().ok())
-            .map_or(false, |s| s.to_lowercase() == "websocket")
-        {
-            req.headers_mut()
-                .remove(proxyapi_v2::hyper::header::SEC_WEBSOCKET_EXTENSIONS);
-        }
+        // WebSocket 업그레이드 시 확장 헤더 제거
+        Self::strip_websocket_extensions(&mut req);
 
         let (proxied_request, restored_req) = self.request_to_proxied_request(req).await;
 
-        if restored_req.method() == Method::CONNECT || proxied_request.method() == "CONNECT" {
-            // CONNECT 터널 요청을 UI에서 볼 수 있도록 로깅
+        // CONNECT 터널 요청: UI에서 볼 수 있도록 로깅 후 원본 요청 반환
+        if Self::is_connect_tunnel(&proxied_request, &restored_req) {
             self.request.req = Some(proxied_request.clone());
             self.send_output().await;
             return restored_req.into();
@@ -190,32 +151,9 @@ impl HttpHandler for LoggingHandler {
             return res;
         }
 
-        // 응답 바디 크기 제한: 업스트림이 과도하게 큰 응답을 보낼 때 OOM 방지
-        // NOTE: Content-Length가 없는 chunked 응답은 size_hint lower=0이므로 이 검사를 우회함.
-        // Content-Length가 있는 대용량 응답(파일 다운로드 등)만 차단됨.
-        if let Some(max_size) = self.config.max_body_size {
-            let response_size = res
-                .headers()
-                .get(proxyapi_v2::hyper::header::CONTENT_LENGTH)
-                .and_then(|v| v.to_str().ok())
-                .and_then(|v| v.parse::<usize>().ok())
-                .unwrap_or_else(|| {
-                    use proxyapi_v2::hyper::body::Body as HttpBody;
-                    res.body().size_hint().lower() as usize
-                });
-            if response_size > max_size {
-                info!(
-                    "[BodyLimit] 응답 바디 크기 초과: {} > {} — 바디를 잘라 반환",
-                    response_size, max_size
-                );
-                return response_helpers::error_response(
-                    StatusCode::BAD_GATEWAY,
-                    Body::from(format!(
-                        "Response body too large: {} bytes (max: {} bytes)",
-                        response_size, max_size
-                    )),
-                );
-            }
+        // 응답 바디 크기 제한 확인
+        if let Some(error_response) = self.check_response_body_size_limit(&res) {
+            return error_response;
         }
 
         let res = self.apply_response_intercept_if_needed(res).await;
