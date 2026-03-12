@@ -22,6 +22,9 @@ use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite};
 use tokio_rustls::TlsAcceptor;
 use tracing::{Instrument, debug, error, info, info_span, warn};
 
+/// TLS 핸드셰이크 타임아웃 (초)
+const TLS_HANDSHAKE_TIMEOUT_SECS: u64 = 30;
+
 /// 스로틀 설정을 적용하여 양방향 복사를 수행하는 헬퍼
 async fn copy_bidirectional_maybe_throttled<A, B>(
     a: &mut A,
@@ -212,7 +215,7 @@ where
             )
             .await
             {
-                error!("[TLS-PASSTHROUGH] 양방향 복사 실패: {} - {}", authority, e);
+                warn!("[TLS-PASSTHROUGH] 양방향 복사 실패: {} - {}", authority, e);
             }
         });
 
@@ -421,7 +424,7 @@ where
                 };
 
                 let tls_result = tokio::time::timeout(
-                    std::time::Duration::from_secs(30),
+                    std::time::Duration::from_secs(TLS_HANDSHAKE_TIMEOUT_SECS),
                     hybrid_handler.handle_tls_connection_upgraded(
                         authority,
                         upgraded,
@@ -435,7 +438,8 @@ where
                     Err(_) => {
                         error!(
                             authority = %authority,
-                            "TLS 핸드셰이크 타임아웃 (30초)"
+                            timeout_secs = TLS_HANDSHAKE_TIMEOUT_SECS,
+                            "TLS 핸드셰이크 타임아웃"
                         );
                         self.record_tls_failure(authority).await;
                         return;

@@ -19,6 +19,7 @@ use hyper_util::{
 };
 use internal::InternalProxy;
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use tokio::net::TcpListener;
 use tokio_graceful::Shutdown;
 use tracing::error;
@@ -124,6 +125,7 @@ where
         let shutdown = Shutdown::new(self.graceful_shutdown);
         let guard = shutdown.guard_weak();
         let semaphore = self.ctx.connection_semaphore.clone();
+        let semaphore_closed_logged = Arc::new(AtomicBool::new(false));
 
         loop {
             tokio::select! {
@@ -141,7 +143,9 @@ where
                         match sem.clone().acquire_owned().await {
                             Ok(permit) => Some(permit),
                             Err(_) => {
-                                error!("Connection semaphore closed, proceeding without rate limit");
+                                if !semaphore_closed_logged.swap(true, Ordering::Relaxed) {
+                                    error!("Connection semaphore closed, proceeding without rate limit");
+                                }
                                 None
                             }
                         }
