@@ -83,18 +83,18 @@ interface ConditionRowProps {
   condition: FilterCondition;
   index: number;
   total: number;
-  logicalOperator: "and" | "or";
   onUpdate: (id: string, updates: Partial<Omit<FilterCondition, "id">>) => void;
   onRemove: (id: string) => void;
+  onToggleLogicalOperator: (id: string) => void;
 }
 
 const ConditionRow = ({
   condition,
   index,
   total,
-  logicalOperator,
   onUpdate,
   onRemove,
+  onToggleLogicalOperator,
 }: ConditionRowProps) => {
   const { t } = useLingui();
   const operators = getOperatorsForField(condition.field);
@@ -150,9 +150,14 @@ const ConditionRow = ({
             <Trans>Where</Trans>
           </span>
         ) : (
-          <span className="text-xs text-accent font-mono font-medium uppercase">
-            {logicalOperator}
-          </span>
+          <button
+            type="button"
+            className="text-xs text-accent font-mono font-medium uppercase hover:bg-accent/10 rounded px-1 py-0.5 transition-colors"
+            onClick={() => onToggleLogicalOperator(condition.id)}
+            title={t`Toggle AND/OR`}
+          >
+            {condition.logicalOperator}
+          </button>
         )}
       </div>
 
@@ -228,6 +233,7 @@ export interface QueryBuilderProps {
   builderState: BuilderState;
   onBuilderStateChange: (state: BuilderState) => void;
   onApply: (query: string) => void;
+  onClose: () => void;
   totalCount: number;
   filteredCount: number;
 }
@@ -236,6 +242,7 @@ export const QueryBuilder = ({
   builderState,
   onBuilderStateChange,
   onApply,
+  onClose,
   totalCount,
   filteredCount,
 }: QueryBuilderProps) => {
@@ -269,13 +276,23 @@ export const QueryBuilder = ({
     onBuilderStateChange(next);
   }, [builderState, onBuilderStateChange]);
 
-  const handleToggleOperator = useCallback(() => {
-    const next = {
-      ...builderState,
-      logicalOperator: (builderState.logicalOperator === "and" ? "or" : "and") as "and" | "or",
-    };
-    onBuilderStateChange(next);
-  }, [builderState, onBuilderStateChange]);
+  const handleToggleLogicalOperator = useCallback(
+    (id: string) => {
+      const next = {
+        ...builderState,
+        conditions: builderState.conditions.map((c) =>
+          c.id === id
+            ? {
+                ...c,
+                logicalOperator: (c.logicalOperator === "and" ? "or" : "and") as "and" | "or",
+              }
+            : c,
+        ),
+      };
+      onBuilderStateChange(next);
+    },
+    [builderState, onBuilderStateChange],
+  );
 
   const handleApply = useCallback(() => {
     const query = serializeBuilderState(builderState);
@@ -285,7 +302,6 @@ export const QueryBuilder = ({
   const handleClear = useCallback(() => {
     const next: BuilderState = {
       conditions: [createEmptyCondition()],
-      logicalOperator: "and",
     };
     onBuilderStateChange(next);
     onApply("");
@@ -306,9 +322,9 @@ export const QueryBuilder = ({
             condition={condition}
             index={index}
             total={builderState.conditions.length}
-            logicalOperator={builderState.logicalOperator}
             onUpdate={handleUpdateCondition}
             onRemove={handleRemoveCondition}
+            onToggleLogicalOperator={handleToggleLogicalOperator}
           />
         ))}
       </div>
@@ -327,17 +343,6 @@ export const QueryBuilder = ({
             <Plus className="w-3.5 h-3.5" />
             <Trans>Condition</Trans>
           </Button>
-
-          {builderState.conditions.length > 1 && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-7 text-xs font-mono px-2"
-              onClick={handleToggleOperator}
-            >
-              {builderState.logicalOperator.toUpperCase()}
-            </Button>
-          )}
         </div>
 
         <div className="flex items-center gap-2">
@@ -353,6 +358,10 @@ export const QueryBuilder = ({
 
           <Button size="sm" className="h-7 text-xs" onClick={handleApply}>
             <Trans>Apply</Trans>
+          </Button>
+
+          <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={onClose}>
+            <X className="w-3.5 h-3.5" />
           </Button>
         </div>
       </div>

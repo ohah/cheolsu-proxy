@@ -219,7 +219,7 @@ msgstr "API Reference"
 msgid "Append the original request path to the target URL"
 msgstr "Append the original request path to the target URL"
 
-#: src/features/query-filter-editor/ui/query-builder.tsx:355
+#: src/features/query-filter-editor/ui/query-builder.tsx:360
 msgid "Apply"
 msgstr "Apply"
 
@@ -381,7 +381,7 @@ msgstr "Cheolsu Proxy Logo"
 msgid "Claude Code (CLI)"
 msgstr "Claude Code (CLI)"
 
-#: src/features/query-filter-editor/ui/query-builder.tsx:350
+#: src/features/query-filter-editor/ui/query-builder.tsx:355
 #: src/pages/log-viewer/ui/logs-page.tsx:255
 #: src/pages/script/ui/script-page.tsx:298
 #: src/pages/settings/ui/components/request-client-cert-section.tsx:68
@@ -451,7 +451,7 @@ msgstr "Compose Request"
 msgid "Concurrency"
 msgstr "Concurrency"
 
-#: src/features/query-filter-editor/ui/query-builder.tsx:328
+#: src/features/query-filter-editor/ui/query-builder.tsx:344
 msgid "Condition"
 msgstr "Condition"
 
@@ -623,7 +623,7 @@ msgstr "Download (KB/s)"
 msgid "Drop"
 msgstr "Drop"
 
-#: src/features/query-filter-editor/ui/query-builder.tsx:206
+#: src/features/query-filter-editor/ui/query-builder.tsx:211
 msgid "e.g. api.example.com, /api/v1"
 msgstr "e.g. api.example.com, /api/v1"
 
@@ -757,19 +757,19 @@ msgstr "Go to <0>Settings → General → VPN & Device Management</0>"
 msgid "Go to <0>Settings → Security → Encryption & credentials</0>"
 msgstr "Go to <0>Settings → Security → Encryption & credentials</0>"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:159
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:158
 msgid "HAR export failed"
 msgstr "HAR export failed"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:156
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:155
 msgid "HAR exported successfully"
 msgstr "HAR exported successfully"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:248
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:247
 msgid "HAR import failed"
 msgstr "HAR import failed"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:245
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:244
 msgid "HAR imported successfully"
 msgstr "HAR imported successfully"
 
@@ -946,7 +946,7 @@ msgstr "Load and manage proxy scripts"
 msgid "Load Session"
 msgstr "Load Session"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:194
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:193
 msgid "Load transactions"
 msgstr "Load transactions"
 
@@ -1448,7 +1448,7 @@ msgstr "Removed"
 
 #. placeholder {0}: transactions.length
 #. placeholder {1}: loaded.length
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:193
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:192
 msgid "Replace {0} existing transactions with {1} new ones? Cancel to append instead."
 msgstr "Replace {0} existing transactions with {1} new ones? Cancel to append instead."
 
@@ -1798,19 +1798,19 @@ msgstr "Serial Number"
 msgid "Server Replay"
 msgstr "Server Replay"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:225
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:224
 msgid "Session load failed"
 msgstr "Session load failed"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:222
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:221
 msgid "Session loaded successfully"
 msgstr "Session loaded successfully"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:183
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:182
 msgid "Session save failed"
 msgstr "Session save failed"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:180
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:179
 msgid "Session saved successfully"
 msgstr "Session saved successfully"
 
@@ -1984,6 +1984,10 @@ msgstr "To Client (Server → Client)"
 #: src/features/websocket-replay/ui/ws-replay-dialog.tsx:136
 msgid "To Server (Client → Server)"
 msgstr "To Server (Client → Server)"
+
+#: src/features/query-filter-editor/ui/query-builder.tsx:157
+msgid "Toggle AND/OR"
+msgstr "Toggle AND/OR"
 
 #: src/pages/settings/ui/components/shortcut-section.tsx:76
 msgid "Toggle proxy on/off with a global keyboard shortcut"

@@ -11,46 +11,55 @@ import { parseFilterQuery } from "../../src/shared/lib/query-parser";
 
 describe("serializeBuilderState", () => {
   test("빈 조건 배열은 빈 문자열 반환", () => {
-    const state: BuilderState = { conditions: [], logicalOperator: "and" };
+    const state: BuilderState = { conditions: [] };
     expect(serializeBuilderState(state)).toBe("");
   });
 
   test("값이 없는 조건은 무시", () => {
     const state: BuilderState = {
-      conditions: [{ id: "1", field: "method", operator: "=", values: [] }],
-      logicalOperator: "and",
+      conditions: [{ id: "1", field: "method", operator: "=", values: [], logicalOperator: "and" }],
     };
     expect(serializeBuilderState(state)).toBe("");
   });
 
   test("단일 method 조건 직렬화", () => {
     const state: BuilderState = {
-      conditions: [{ id: "1", field: "method", operator: "=", values: ["GET"] }],
-      logicalOperator: "and",
+      conditions: [
+        { id: "1", field: "method", operator: "=", values: ["GET"], logicalOperator: "and" },
+      ],
     };
     expect(serializeBuilderState(state)).toBe('method="GET"');
   });
 
   test("복수 값이 있는 method 조건 직렬화", () => {
     const state: BuilderState = {
-      conditions: [{ id: "1", field: "method", operator: "=", values: ["GET", "POST"] }],
-      logicalOperator: "and",
+      conditions: [
+        {
+          id: "1",
+          field: "method",
+          operator: "=",
+          values: ["GET", "POST"],
+          logicalOperator: "and",
+        },
+      ],
     };
     expect(serializeBuilderState(state)).toBe('method="GET,POST"');
   });
 
   test("제외 연산자 직렬화", () => {
     const state: BuilderState = {
-      conditions: [{ id: "1", field: "method", operator: "!=", values: ["OPTIONS"] }],
-      logicalOperator: "and",
+      conditions: [
+        { id: "1", field: "method", operator: "!=", values: ["OPTIONS"], logicalOperator: "and" },
+      ],
     };
     expect(serializeBuilderState(state)).toBe('method!="OPTIONS"');
   });
 
   test("URL contains 연산자 직렬화", () => {
     const state: BuilderState = {
-      conditions: [{ id: "1", field: "url", operator: "|=", values: ["api"] }],
-      logicalOperator: "and",
+      conditions: [
+        { id: "1", field: "url", operator: "|=", values: ["api"], logicalOperator: "and" },
+      ],
     };
     expect(serializeBuilderState(state)).toBe('url|="api"');
   });
@@ -58,10 +67,9 @@ describe("serializeBuilderState", () => {
   test("여러 조건 AND 직렬화", () => {
     const state: BuilderState = {
       conditions: [
-        { id: "1", field: "method", operator: "=", values: ["GET"] },
-        { id: "2", field: "status", operator: "=", values: ["2xx"] },
+        { id: "1", field: "method", operator: "=", values: ["GET"], logicalOperator: "and" },
+        { id: "2", field: "status", operator: "=", values: ["2xx"], logicalOperator: "and" },
       ],
-      logicalOperator: "and",
     };
     expect(serializeBuilderState(state)).toBe('method="GET" status="2xx"');
   });
@@ -69,12 +77,22 @@ describe("serializeBuilderState", () => {
   test("여러 조건 OR 직렬화", () => {
     const state: BuilderState = {
       conditions: [
-        { id: "1", field: "method", operator: "=", values: ["GET"] },
-        { id: "2", field: "status", operator: "=", values: ["5xx"] },
+        { id: "1", field: "method", operator: "=", values: ["GET"], logicalOperator: "and" },
+        { id: "2", field: "status", operator: "=", values: ["5xx"], logicalOperator: "or" },
       ],
-      logicalOperator: "or",
     };
     expect(serializeBuilderState(state)).toBe('method="GET" or status="5xx"');
+  });
+
+  test("행별 혼합 AND/OR 직렬화", () => {
+    const state: BuilderState = {
+      conditions: [
+        { id: "1", field: "method", operator: "=", values: ["GET"], logicalOperator: "and" },
+        { id: "2", field: "status", operator: "=", values: ["2xx"], logicalOperator: "and" },
+        { id: "3", field: "url", operator: "|=", values: ["api"], logicalOperator: "or" },
+      ],
+    };
+    expect(serializeBuilderState(state)).toBe('method="GET" status="2xx" or url|="api"');
   });
 });
 
@@ -83,7 +101,6 @@ describe("parsedQueryToBuilderState", () => {
     const parsed = parseFilterQuery("");
     const state = parsedQueryToBuilderState(parsed);
     expect(state.conditions).toEqual([]);
-    expect(state.logicalOperator).toBe("and");
   });
 
   test("method 포함 필터 변환", () => {
@@ -131,10 +148,17 @@ describe("parsedQueryToBuilderState", () => {
     expect(state.conditions[2].field).toBe("url");
   });
 
-  test("OR 연산자 변환", () => {
+  test("OR 연산자 변환 — 두 번째 이후 조건에 or 설정", () => {
     const parsed = parseFilterQuery('method="GET" or status="5xx"');
     const state = parsedQueryToBuilderState(parsed);
-    expect(state.logicalOperator).toBe("or");
+    expect(state.conditions[0].logicalOperator).toBe("and");
+    expect(state.conditions[1].logicalOperator).toBe("or");
+  });
+
+  test("첫 번째 조건의 logicalOperator는 항상 and", () => {
+    const parsed = parseFilterQuery('method="GET"');
+    const state = parsedQueryToBuilderState(parsed);
+    expect(state.conditions[0].logicalOperator).toBe("and");
   });
 });
 
@@ -168,6 +192,7 @@ describe("createEmptyCondition", () => {
     expect(condition.field).toBe("method");
     expect(condition.operator).toBe("=");
     expect(condition.values).toEqual([]);
+    expect(condition.logicalOperator).toBe("and");
     expect(condition.id).toBeTruthy();
   });
 

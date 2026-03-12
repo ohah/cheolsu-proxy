@@ -5,11 +5,11 @@ export interface FilterCondition {
   field: "method" | "status" | "url";
   operator: "=" | "!=" | "|=";
   values: string[];
+  logicalOperator: "and" | "or";
 }
 
 export interface BuilderState {
   conditions: FilterCondition[];
-  logicalOperator: "and" | "or";
 }
 
 let nextId = 0;
@@ -19,25 +19,39 @@ export function createConditionId(): string {
 }
 
 export function createEmptyCondition(): FilterCondition {
-  return { id: createConditionId(), field: "method", operator: "=", values: [] };
+  return {
+    id: createConditionId(),
+    field: "method",
+    operator: "=",
+    values: [],
+    logicalOperator: "and",
+  };
 }
 
 /**
  * BuilderState → 쿼리 문자열
  */
 export function serializeBuilderState(state: BuilderState): string {
-  const parts: string[] = [];
+  const activeParts: { query: string; logicalOperator: "and" | "or" }[] = [];
 
   for (const condition of state.conditions) {
     if (condition.values.length === 0) continue;
     const valueStr = condition.values.join(",");
-    parts.push(`${condition.field}${condition.operator}"${valueStr}"`);
+    activeParts.push({
+      query: `${condition.field}${condition.operator}"${valueStr}"`,
+      logicalOperator: condition.logicalOperator,
+    });
   }
 
-  if (parts.length === 0) return "";
+  if (activeParts.length === 0) return "";
 
-  const separator = state.logicalOperator === "or" ? " or " : " ";
-  return parts.join(separator);
+  let result = activeParts[0].query;
+  for (let i = 1; i < activeParts.length; i++) {
+    const separator = activeParts[i].logicalOperator === "or" ? " or " : " ";
+    result += separator + activeParts[i].query;
+  }
+
+  return result;
 }
 
 /**
@@ -52,6 +66,7 @@ export function parsedQueryToBuilderState(parsed: ParsedQuery): BuilderState {
       field: "method",
       operator: "=",
       values: parsed.methods,
+      logicalOperator: "and",
     });
   }
   if (parsed.excludeMethods.length > 0) {
@@ -60,6 +75,7 @@ export function parsedQueryToBuilderState(parsed: ParsedQuery): BuilderState {
       field: "method",
       operator: "!=",
       values: parsed.excludeMethods,
+      logicalOperator: parsed.operator,
     });
   }
   if (parsed.status.length > 0) {
@@ -68,6 +84,7 @@ export function parsedQueryToBuilderState(parsed: ParsedQuery): BuilderState {
       field: "status",
       operator: "=",
       values: parsed.status,
+      logicalOperator: parsed.operator,
     });
   }
   if (parsed.excludeStatus.length > 0) {
@@ -76,6 +93,7 @@ export function parsedQueryToBuilderState(parsed: ParsedQuery): BuilderState {
       field: "status",
       operator: "!=",
       values: parsed.excludeStatus,
+      logicalOperator: parsed.operator,
     });
   }
   if (parsed.urls.length > 0) {
@@ -84,6 +102,7 @@ export function parsedQueryToBuilderState(parsed: ParsedQuery): BuilderState {
       field: "url",
       operator: "|=",
       values: parsed.urls,
+      logicalOperator: parsed.operator,
     });
   }
   if (parsed.excludeUrls.length > 0) {
@@ -92,11 +111,14 @@ export function parsedQueryToBuilderState(parsed: ParsedQuery): BuilderState {
       field: "url",
       operator: "!=",
       values: parsed.excludeUrls,
+      logicalOperator: parsed.operator,
     });
   }
 
-  return {
-    conditions,
-    logicalOperator: parsed.operator,
-  };
+  // 첫 번째 조건의 logicalOperator는 의미 없으므로 "and"로 설정
+  if (conditions.length > 0) {
+    conditions[0].logicalOperator = "and";
+  }
+
+  return { conditions };
 }
