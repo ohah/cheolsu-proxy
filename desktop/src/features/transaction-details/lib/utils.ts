@@ -139,7 +139,11 @@ export const createImageDataUrl = (data: Uint8Array | number[], dataType: DataTy
  * 요청/응답 본문을 포맷팅된 문자열로 변환
  * 러스트에서 이미 데이터 타입 감지와 압축 해제를 완료했으므로 단순한 포맷팅만 수행
  */
-export const formatBodyContent = (body: Uint8Array, dataType: DataType, bodyJson?: unknown): string => {
+export const formatBodyContent = (
+  body: Uint8Array,
+  dataType: DataType,
+  bodyJson?: unknown,
+): string => {
   if (dataType === "Empty") {
     return "";
   }
@@ -181,7 +185,11 @@ export const formatBodyContent = (body: Uint8Array, dataType: DataType, bodyJson
 /**
  * 요청/응답 본문을 표시용으로 변환 (Monaco Editor용)
  */
-export const getBodyForDisplay = (body: Uint8Array, dataType: DataType, bodyJson?: unknown): string => {
+export const getBodyForDisplay = (
+  body: Uint8Array,
+  dataType: DataType,
+  bodyJson?: unknown,
+): string => {
   if (dataType === "Empty") {
     return "";
   }
@@ -322,7 +330,9 @@ interface GraphQLBody {
 }
 
 const isGraphQLBody = (value: unknown): value is GraphQLBody => {
-  return typeof value === "object" && value !== null;
+  return (
+    typeof value === "object" && value !== null && ("query" in value || "operationName" in value)
+  );
 };
 
 const formatGraphQLBody = (bodyJson: unknown): string => {
