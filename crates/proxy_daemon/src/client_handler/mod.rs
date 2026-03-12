@@ -6,74 +6,47 @@ mod watcher;
 use std::sync::Arc;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::net::UnixStream;
-use tokio::sync::{broadcast, watch, Mutex};
+use tokio::sync::{broadcast, Mutex};
 use tracing::{debug, error, warn};
 
 use crate::breakpoint::BreakpointManager;
-use crate::metrics_aggregator::MetricsAggregator;
-use crate::protocol::{
-    BreakpointRule, ClientCertConfig, ClientCommand, DaemonMessage, HostMapping, InterceptRule,
-    ProxyAuthConfig, RequestClientCertConfig, ServerReplayEntry, SslProxyingEntry,
-    TlsPassthroughEntry,
-};
-use proxyapi_v2::throttle::ThrottleConfig;
-use proxyapi_v2::upstream_proxy::UpstreamProxyConfig;
+use crate::daemon::{DaemonChannels, DaemonMetrics};
+use crate::protocol::{ClientCommand, DaemonMessage, ProxyAuthConfig};
 use proxyapi_v2::websocket_registry::WebSocketRegistry;
 
 /// handle_client에 전달되는 채널/상태를 묶는 컨텍스트 구조체.
 /// DaemonContext와 유사하지만, 클라이언트 핸들러에서 필요한 필드만 포함한다.
 pub(crate) struct ClientHandlerContext {
     pub(crate) event_rx: broadcast::Receiver<String>,
-    pub(crate) intercept_tx: watch::Sender<Vec<InterceptRule>>,
-    pub(crate) upstream_tx: watch::Sender<Option<UpstreamProxyConfig>>,
-    pub(crate) server_replay_tx: watch::Sender<Vec<ServerReplayEntry>>,
-    pub(crate) throttle_tx: watch::Sender<Option<ThrottleConfig>>,
-    pub(crate) breakpoint_tx: watch::Sender<Vec<BreakpointRule>>,
+    pub(crate) channels: DaemonChannels,
     pub(crate) breakpoint_manager: BreakpointManager,
-    pub(crate) host_mapping_tx: watch::Sender<Vec<HostMapping>>,
-    pub(crate) ssl_proxying_tx:
-        watch::Sender<(crate::protocol::SslProxyingMode, Vec<SslProxyingEntry>)>,
-    pub(crate) client_cert_tx: watch::Sender<Option<ClientCertConfig>>,
-    pub(crate) request_client_cert_tx: watch::Sender<Option<RequestClientCertConfig>>,
     pub(crate) event_tx: broadcast::Sender<String>,
     pub(crate) port: u16,
     pub(crate) ws_registry: WebSocketRegistry,
     pub(crate) script_handle: scripting::ScriptHandle,
     pub(crate) quick_settings: Arc<tokio::sync::RwLock<crate::handler::QuickSettings>>,
     pub(crate) proxy_auth: Arc<tokio::sync::RwLock<Option<ProxyAuthConfig>>>,
-    pub(crate) started_at: std::time::Instant,
-    pub(crate) total_transactions: Arc<std::sync::atomic::AtomicU64>,
+    pub(crate) metrics: DaemonMetrics,
     pub(crate) client_count: Arc<std::sync::atomic::AtomicUsize>,
     pub(crate) tls_passthrough: proxyapi_v2::tls_passthrough::TlsPassthrough,
     pub(crate) connection_strategy: Arc<std::sync::atomic::AtomicU8>,
-    pub(crate) metrics_aggregator: Arc<MetricsAggregator>,
 }
 
 pub(crate) async fn handle_client(stream: UnixStream, ctx: ClientHandlerContext) {
     let ClientHandlerContext {
         mut event_rx,
-        intercept_tx,
-        upstream_tx,
-        server_replay_tx,
-        throttle_tx,
-        breakpoint_tx,
+        channels,
         breakpoint_manager,
-        host_mapping_tx,
-        ssl_proxying_tx,
-        client_cert_tx,
-        request_client_cert_tx,
         event_tx,
         port,
         ws_registry,
         script_handle,
         quick_settings,
         proxy_auth,
-        started_at,
-        total_transactions,
+        metrics,
         client_count,
         tls_passthrough,
         connection_strategy,
-        metrics_aggregator,
     } = ctx;
     let (reader, writer) = stream.into_split();
     let mut reader = BufReader::new(reader);
@@ -91,7 +64,7 @@ pub(crate) async fn handle_client(stream: UnixStream, ctx: ClientHandlerContext)
         let _ = w.flush().await;
 
         // 연결 직후 현재 인터셉트 규칙을 전송 (빈 목록도 유효한 상태)
-        let current_rules = intercept_tx.borrow().clone();
+        let current_rules = channels.intercept_tx.borrow().clone();
         let rules_msg = DaemonMessage::InterceptRulesUpdated {
             rules: current_rules,
         };
@@ -100,7 +73,7 @@ pub(crate) async fn handle_client(stream: UnixStream, ctx: ClientHandlerContext)
         let _ = w.write_all(rules_line.as_bytes()).await;
         let _ = w.flush().await;
 
-        let current_mappings = host_mapping_tx.borrow().clone();
+        let current_mappings = channels.host_mapping_tx.borrow().clone();
         let mappings_msg = DaemonMessage::HostMappingsUpdated {
             mappings: current_mappings,
         };
@@ -109,7 +82,7 @@ pub(crate) async fn handle_client(stream: UnixStream, ctx: ClientHandlerContext)
         let _ = w.write_all(mappings_line.as_bytes()).await;
         let _ = w.flush().await;
 
-        let (current_ssl_mode, current_ssl_entries) = ssl_proxying_tx.borrow().clone();
+        let (current_ssl_mode, current_ssl_entries) = channels.ssl_proxying_tx.borrow().clone();
         let ssl_msg = DaemonMessage::SslProxyingListUpdated {
             mode: current_ssl_mode,
             entries: current_ssl_entries,
@@ -119,7 +92,7 @@ pub(crate) async fn handle_client(stream: UnixStream, ctx: ClientHandlerContext)
         let _ = w.write_all(ssl_line.as_bytes()).await;
         let _ = w.flush().await;
 
-        let current_client_cert = client_cert_tx.borrow().clone();
+        let current_client_cert = channels.client_cert_tx.borrow().clone();
         let cert_msg = DaemonMessage::ClientCertificateUpdated {
             config: current_client_cert,
         };
@@ -252,28 +225,18 @@ pub(crate) async fn handle_client(stream: UnixStream, ctx: ClientHandlerContext)
                         let should_stop = commands::handle_command(
                             cmd,
                             &writer,
-                            &intercept_tx,
-                            &upstream_tx,
-                            &server_replay_tx,
-                            &throttle_tx,
-                            &breakpoint_tx,
+                            &channels,
                             &breakpoint_manager,
-                            &host_mapping_tx,
-                            &ssl_proxying_tx,
-                            &client_cert_tx,
-                            &request_client_cert_tx,
                             &event_tx,
                             &ws_registry,
                             &script_handle,
                             &quick_settings,
                             &proxy_auth,
                             &subscribed,
-                            &started_at,
-                            &total_transactions,
+                            &metrics,
                             &client_count,
                             &tls_passthrough,
                             &connection_strategy,
-                            &metrics_aggregator,
                             &watched_path,
                         )
                         .await;
