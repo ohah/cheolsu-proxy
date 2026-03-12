@@ -389,8 +389,6 @@ async fn test_handle_error_unknown() {
 
 #[tokio::test]
 async fn test_create_response_from_cached_data() {
-    let handler = TestLoggingHandler::new();
-
     // 캐시된 응답 데이터 설정
     let mut cached_response = MockProxiedResponse::new(StatusCode::CREATED);
     cached_response.body = b"Created resource".to_vec();

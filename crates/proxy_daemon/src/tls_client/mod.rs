@@ -11,8 +11,7 @@ mod tests;
 
 pub use custom_ca::{get_custom_ca_info, parse_pkcs12, remove_custom_ca, save_custom_ca};
 pub use loader::{
-    load_certs, load_certs_from_pem, load_private_key, load_private_key_from_pem,
-    parse_certificate_info, parse_certificate_info_from_bytes,
+    load_certs, load_private_key, parse_certificate_info, parse_certificate_info_from_bytes,
 };
 pub use validation::{
     validate_ca_certificate, validate_ca_certificate_from_bytes, validate_cert_key_pair,
@@ -26,7 +25,7 @@ use proxyapi_v2::{
     Body,
 };
 use std::sync::Arc;
-use tokio_rustls::rustls::{client::ResolvesClientCert, crypto::aws_lc_rs, ClientConfig};
+use tokio_rustls::rustls::{crypto::aws_lc_rs, ClientConfig};
 use tracing::{error, info};
 
 use crate::protocol::ClientCertConfig;

@@ -70,14 +70,6 @@ pub fn parse_certificate_info_from_bytes(
     Ok(parse_x509_to_certificate_info(&cert, &der_data, 1))
 }
 
-/// PEM 파일에서 인증서 체인을 로드합니다 (하위 호환성).
-#[deprecated(note = "load_certs를 사용하세요")]
-pub fn load_certs_from_pem(
-    cert_path: &str,
-) -> Result<Vec<CertificateDer<'static>>, Box<dyn std::error::Error>> {
-    load_certs(cert_path)
-}
-
 /// PEM 파일에서 개인 키를 로드합니다. RSA (PKCS#1), PKCS#8, EC (SEC1) 키를 지원합니다.
 /// 현재 DER 형식 키는 지원하지 않습니다.
 pub fn load_private_key(
@@ -104,14 +96,6 @@ pub fn load_private_key(
     }
 
     Err("키 파일에서 유효한 개인 키를 찾을 수 없습니다".into())
-}
-
-/// PEM 파일에서 개인 키를 로드합니다 (하위 호환성).
-#[deprecated(note = "load_private_key를 사용하세요")]
-pub fn load_private_key_from_pem(
-    key_path: &str,
-) -> Result<PrivateKeyDer<'static>, Box<dyn std::error::Error>> {
-    load_private_key(key_path)
 }
 
 /// x509_parser::X509Certificate에서 CertificateInfo를 추출합니다.

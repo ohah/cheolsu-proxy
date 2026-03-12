@@ -32,15 +32,6 @@ impl TestLoggingHandler {
             error_count: Arc::new(Mutex::new(0)),
         }
     }
-
-    /// 캐시된 응답 데이터로부터 Response 생성
-    fn create_response_from_cached_data(&self) -> Response<Body> {
-        // 간단한 캐시된 응답 반환
-        Response::builder()
-            .status(StatusCode::OK)
-            .body(Body::from("Cached response data"))
-            .unwrap()
-    }
 }
 
 impl HttpHandler for TestLoggingHandler {
@@ -150,126 +141,6 @@ impl HttpHandler for TestLoggingHandler {
     }
 }
 
-/// curl을 사용해서 직접 요청을 보내고 응답을 받는 함수
-async fn fallback_with_curl(
-    req: &Request<Body>,
-) -> Result<Response<Body>, Box<dyn std::error::Error>> {
-    use std::process::Command;
-    use std::str;
-
-    let url = req.uri().to_string();
-    let method = req.method().to_string();
-
-    // curl 명령어 구성
-    let mut curl_cmd = Command::new("curl");
-    curl_cmd
-        .arg("-s") // silent mode
-        .arg("-i") // include headers
-        .arg("-X")
-        .arg(&method) // HTTP method
-        .arg("--max-time")
-        .arg("10") // 10초 타임아웃
-        .arg("--connect-timeout")
-        .arg("5") // 5초 연결 타임아웃
-        .arg("--insecure"); // SSL 인증서 검증 무시
-
-    // 헤더 추가
-    for (name, value) in req.headers() {
-        let name_str = name.as_str();
-        if let Ok(value_str) = value.to_str() {
-            // Host 헤더는 URL에서 자동으로 설정되므로 제외
-            if name_str.to_lowercase() != "host" {
-                curl_cmd
-                    .arg("-H")
-                    .arg(format!("{}: {}", name_str, value_str));
-            }
-        }
-    }
-
-    // URL 추가
-    curl_cmd.arg(&url);
-
-    eprintln!("🔧 curl 명령어 실행: {:?}", curl_cmd);
-
-    // curl 실행
-    let output = curl_cmd.output()?;
-
-    if !output.status.success() {
-        return Err(format!("curl 실행 실패: {}", output.status).into());
-    }
-
-    let response_text = str::from_utf8(&output.stdout)?;
-    eprintln!("📥 curl 응답 길이: {} bytes", response_text.len());
-
-    // HTTP 응답 파싱
-    parse_curl_response(response_text)
-}
-
-/// curl 응답을 HTTP Response로 파싱하는 함수
-fn parse_curl_response(response_text: &str) -> Result<Response<Body>, Box<dyn std::error::Error>> {
-    let lines: Vec<&str> = response_text.lines().collect();
-    if lines.is_empty() {
-        return Err("빈 응답".into());
-    }
-
-    // 첫 번째 줄에서 상태 코드 파싱
-    let status_line = lines[0];
-    let parts: Vec<&str> = status_line.split_whitespace().collect();
-    if parts.len() < 2 {
-        return Err("잘못된 상태 라인".into());
-    }
-
-    let status_code = parts[1].parse::<u16>()?;
-    let status = StatusCode::from_u16(status_code)?;
-
-    // 헤더와 본문 분리
-    let mut header_end = 0;
-    for (i, line) in lines.iter().enumerate() {
-        if line.is_empty() {
-            header_end = i;
-            break;
-        }
-    }
-
-    // 헤더 파싱 (content-length 제외)
-    let mut headers = proxyapi_v2::hyper::http::HeaderMap::new();
-    for line in &lines[1..header_end] {
-        if let Some(colon_pos) = line.find(':') {
-            let name = &line[..colon_pos].trim();
-            let value = &line[colon_pos + 1..].trim();
-
-            // content-length 헤더는 제외 (실제 본문 길이에 맞게 자동 설정됨)
-            if name.to_lowercase() == "content-length" {
-                continue;
-            }
-
-            if let (Ok(header_name), Ok(header_value)) = (
-                name.parse::<proxyapi_v2::hyper::http::HeaderName>(),
-                value.parse::<proxyapi_v2::hyper::http::HeaderValue>(),
-            ) {
-                headers.insert(header_name, header_value);
-            }
-        }
-    }
-
-    // 본문 추출
-    let body_text = if header_end + 1 < lines.len() {
-        lines[header_end + 1..].join("\n")
-    } else {
-        String::new()
-    };
-
-    // Response 생성
-    let mut response = Response::builder()
-        .status(status)
-        .body(Body::from(body_text))?;
-
-    // 헤더 추가
-    *response.headers_mut() = headers;
-
-    Ok(response)
-}
-
 /// 테스트용 HTTP 서버 시작
 async fn start_test_server() -> Result<(SocketAddr, Sender<()>), Box<dyn std::error::Error>> {
     let listener = TcpListener::bind(SocketAddr::from(([127, 0, 0, 1], 0))).await?;
@@ -344,7 +215,7 @@ async fn start_proxy_server(
 ) -> Result<(SocketAddr, Sender<()>), Box<dyn std::error::Error>> {
     let listener = TcpListener::bind(SocketAddr::from(([127, 0, 0, 1], 0))).await?;
     let addr = listener.local_addr()?;
-    let (tx, rx) = tokio::sync::oneshot::channel();
+    let (tx, _rx) = tokio::sync::oneshot::channel();
 
     // CA 인증서 생성
     let ca = build_ca()?;

@@ -17,7 +17,7 @@ pub use lifecycle::{
 };
 
 use std::path::Path;
-use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
+use std::sync::atomic::{AtomicU64, AtomicUsize};
 use std::sync::Arc;
 
 use tokio::net::UnixListener;
