@@ -136,20 +136,33 @@ const ROW_HEIGHT = 32; // h-8
 export const WsMessageTable = memo(
   ({ messages, selectedMessage, onSelectMessage }: WsMessageTableProps) => {
     const { t } = useLingui();
-    const scrollAreaRef = useRef<HTMLDivElement>(null);
     const viewportRef = useRef<HTMLDivElement>(null);
     const shouldAutoScroll = useRef(true);
 
-    useEffect(() => {
-      if (scrollAreaRef.current) {
-        const viewport = scrollAreaRef.current.querySelector(
-          '[data-slot="scroll-area-viewport"]',
-        ) as HTMLDivElement;
-        if (viewport) {
-          viewportRef.current = viewport;
-        }
-      }
+    const handleScroll = useCallback(() => {
+      const el = viewportRef.current;
+      if (!el) return;
+      const distFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+      shouldAutoScroll.current = distFromBottom < 50;
     }, []);
+
+    const scrollAreaCallbackRef = useCallback(
+      (node: HTMLDivElement | null) => {
+        if (node) {
+          const viewport = node.querySelector(
+            '[data-slot="scroll-area-viewport"]',
+          ) as HTMLDivElement;
+          if (viewport) {
+            viewportRef.current = viewport;
+            viewport.addEventListener("scroll", handleScroll);
+          }
+        } else if (viewportRef.current) {
+          viewportRef.current.removeEventListener("scroll", handleScroll);
+          viewportRef.current = null;
+        }
+      },
+      [handleScroll],
+    );
 
     const getScrollElement = useCallback(() => viewportRef.current, []);
     const estimateSize = useCallback(() => ROW_HEIGHT, []);
@@ -160,20 +173,6 @@ export const WsMessageTable = memo(
       estimateSize,
       overscan: 20,
     });
-
-    const handleScroll = useCallback(() => {
-      const el = viewportRef.current;
-      if (!el) return;
-      const distFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
-      shouldAutoScroll.current = distFromBottom < 50;
-    }, []);
-
-    useEffect(() => {
-      const viewport = viewportRef.current;
-      if (!viewport) return;
-      viewport.addEventListener("scroll", handleScroll);
-      return () => viewport.removeEventListener("scroll", handleScroll);
-    }, [handleScroll]);
 
     useEffect(() => {
       if (shouldAutoScroll.current && messages.length > 0) {
@@ -205,7 +204,7 @@ export const WsMessageTable = memo(
             <div className="px-2 pr-4 w-24 text-right flex-shrink-0">{t`Time`}</div>
           </div>
         </div>
-        <ScrollArea ref={scrollAreaRef} className="flex-1 h-full min-h-0">
+        <ScrollArea ref={scrollAreaCallbackRef} className="flex-1 h-full min-h-0">
           <div
             style={{
               height: `${virtualizer.getTotalSize()}px`,
