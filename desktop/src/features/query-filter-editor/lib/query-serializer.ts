@@ -14,7 +14,8 @@ export interface BuilderState {
 
 let nextId = 0;
 export function createConditionId(): string {
-  return `cond_${++nextId}_${Date.now()}`;
+  nextId += 1;
+  return `cond_${nextId}_${Date.now()}`;
 }
 
 export function createEmptyCondition(): FilterCondition {
