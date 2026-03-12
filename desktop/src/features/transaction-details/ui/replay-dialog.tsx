@@ -327,7 +327,7 @@ export function ReplayDialog({
       if (!openRef.current) return;
       setError(typeof e === "string" ? e : e instanceof Error ? e.message : t`Request failed`);
     } finally {
-      setLoading(false);
+      if (openRef.current) setLoading(false);
     }
   }, [method, url, headers, body]);
 

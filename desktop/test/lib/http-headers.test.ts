@@ -1,8 +1,8 @@
-import { describe, it, expect } from "vitest";
+import { describe, test, expect } from "bun:test";
 import { sanitizeHopByHopHeaders } from "../../src/shared/lib/http-headers";
 
 describe("sanitizeHopByHopHeaders", () => {
-  it("hop-by-hop 헤더를 제거한다", () => {
+  test("hop-by-hop 헤더를 제거한다", () => {
     const headers = {
       "Content-Type": "application/json",
       Host: "example.com",
@@ -17,7 +17,7 @@ describe("sanitizeHopByHopHeaders", () => {
     });
   });
 
-  it("대소문자를 구분하지 않고 제거한다", () => {
+  test("대소문자를 구분하지 않고 제거한다", () => {
     const headers = {
       HOST: "example.com",
       connection: "close",
@@ -31,7 +31,7 @@ describe("sanitizeHopByHopHeaders", () => {
     });
   });
 
-  it("hop-by-hop 헤더가 없으면 모든 헤더를 유지한다", () => {
+  test("hop-by-hop 헤더가 없으면 모든 헤더를 유지한다", () => {
     const headers = {
       "Content-Type": "text/plain",
       Accept: "*/*",
@@ -41,12 +41,12 @@ describe("sanitizeHopByHopHeaders", () => {
     expect(result).toEqual(headers);
   });
 
-  it("빈 객체를 처리한다", () => {
+  test("빈 객체를 처리한다", () => {
     const result = sanitizeHopByHopHeaders({});
     expect(result).toEqual({});
   });
 
-  it("모든 hop-by-hop 헤더를 제거한다", () => {
+  test("모든 hop-by-hop 헤더를 제거한다", () => {
     const headers = {
       host: "a",
       connection: "b",
@@ -62,7 +62,7 @@ describe("sanitizeHopByHopHeaders", () => {
     expect(result).toEqual({});
   });
 
-  it("원본 객체를 변경하지 않는다", () => {
+  test("원본 객체를 변경하지 않는다", () => {
     const headers = { Host: "example.com", Accept: "text/html" };
     const original = { ...headers };
     sanitizeHopByHopHeaders(headers);

@@ -42,8 +42,8 @@ export const SidebarMcp = ({ collapsed }: SidebarMcpProps) => {
   useEffect(() => {
     getMcpServerPath()
       .then(setMcpPath)
-      .catch((e) => {
-        console.error("Failed to get MCP server path:", e);
+      .catch(() => {
+        // fallback: 기본값 "cheolsu-proxy-mcp" 사용
       });
   }, []);
 

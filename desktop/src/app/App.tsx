@@ -179,8 +179,8 @@ const App: React.FC = () => {
       pausedFromTrayRef.current = false;
       return;
     }
-    invoke("tray_set_recording_paused", { paused }).catch((e) => {
-      console.error("Failed to sync recording paused state:", e);
+    invoke("tray_set_recording_paused", { paused }).catch(() => {
+      // 트레이 윈도우가 없는 경우 정상적으로 실패 — 무시
     });
   }, [paused]);
 
