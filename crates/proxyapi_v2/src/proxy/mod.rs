@@ -141,8 +141,8 @@ where
                         match sem.clone().acquire_owned().await {
                             Ok(permit) => Some(permit),
                             Err(_) => {
-                                error!("Connection semaphore closed");
-                                break;
+                                error!("Connection semaphore closed, proceeding without rate limit");
+                                None
                             }
                         }
                     } else {

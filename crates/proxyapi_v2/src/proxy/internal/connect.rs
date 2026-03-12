@@ -205,12 +205,15 @@ where
                 .throttle_rx
                 .as_ref()
                 .and_then(|rx| rx.borrow().clone());
-            let _ = copy_bidirectional_maybe_throttled(
+            if let Err(e) = copy_bidirectional_maybe_throttled(
                 &mut client_stream,
                 &mut server_stream,
                 throttle_config.as_ref(),
             )
-            .await;
+            .await
+            {
+                error!("[TLS-PASSTHROUGH] 양방향 복사 실패: {} - {}", authority, e);
+            }
         });
 
         response
@@ -268,8 +271,9 @@ where
                 warn!(
                     remaining_bytes_read,
                     remaining_bytes_expected = remaining_bytes,
-                    "전체 ClientHello가 완전히 읽히지 않음"
+                    "전체 ClientHello가 완전히 읽히지 않음 — 실제 수신 크기로 버퍼 절삭"
                 );
+                full_buffer.truncate(5 + remaining_bytes_read);
             }
         }
 
@@ -416,29 +420,27 @@ where
                     }
                 };
 
-                match hybrid_handler
-                    .handle_tls_connection_upgraded(
+                let tls_result = tokio::time::timeout(
+                    std::time::Duration::from_secs(30),
+                    hybrid_handler.handle_tls_connection_upgraded(
                         authority,
                         upgraded,
                         full_buffer,
                         upstream_cert.as_ref(),
-                    )
-                    .await
-                {
-                    Ok(hybrid_stream) => {
-                        info!(%version, "하이브리드 TLS 연결 성공");
-                        if let Err(e) = self
-                            .serve_stream(
-                                TokioIo::new(hybrid_stream),
-                                Scheme::HTTPS,
-                                authority.clone(),
-                            )
-                            .await
-                        {
-                            error!("HTTPS connect error: {}", e);
-                        }
+                    ),
+                )
+                .await;
+
+                match tls_result {
+                    Err(_) => {
+                        error!(
+                            authority = %authority,
+                            "TLS 핸드셰이크 타임아웃 (30초)"
+                        );
+                        self.record_tls_failure(authority).await;
+                        return;
                     }
-                    Err(e) => {
+                    Ok(Err(e)) => {
                         let error_str = e.to_string();
                         error!(
                             authority = %authority,
@@ -450,6 +452,19 @@ where
                             "하이브리드 TLS 연결 실패"
                         );
                         self.record_tls_failure(authority).await;
+                    }
+                    Ok(Ok(hybrid_stream)) => {
+                        info!(%version, "하이브리드 TLS 연결 성공");
+                        if let Err(e) = self
+                            .serve_stream(
+                                TokioIo::new(hybrid_stream),
+                                Scheme::HTTPS,
+                                authority.clone(),
+                            )
+                            .await
+                        {
+                            error!("HTTPS connect error: {}", e);
+                        }
                     }
                 }
             }
