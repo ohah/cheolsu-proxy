@@ -1,6 +1,7 @@
+mod common;
+
 use proxyapi_v2::{
     Body, HttpContext, HttpHandler, RequestOrResponse,
-    builder::ProxyBuilder,
     certificate_authority::build_ca,
     hyper::{Request, Response, StatusCode},
 };
@@ -209,36 +210,13 @@ async fn test_server_handler(
     }
 }
 
-/// 프록시 서버 시작
+/// 프록시 서버 시작 (common 헬퍼 활용)
 async fn start_proxy_server(
     handler: TestLoggingHandler,
 ) -> Result<(SocketAddr, Sender<()>), Box<dyn std::error::Error>> {
-    let listener = TcpListener::bind(SocketAddr::from(([127, 0, 0, 1], 0))).await?;
-    let addr = listener.local_addr()?;
-    let (tx, rx) = tokio::sync::oneshot::channel();
-
-    // CA 인증서 생성
     let ca = build_ca()?;
-
-    // 하이브리드 클라이언트 생성 (모든 인증서 허용)
-    let hybrid_client = create_hybrid_client()?;
-
-    // 프록시 빌더로 프록시 구성
-    let proxy = ProxyBuilder::new()
-        .with_listener(listener)
-        .with_ca(ca)
-        .with_client(hybrid_client)
-        .with_http_handler(handler)
-        .with_graceful_shutdown(async {
-            rx.await.unwrap_or_default();
-        })
-        .build()?;
-
-    tokio::spawn(async move {
-        let _ = proxy.start().await;
-    });
-
-    Ok((addr, tx))
+    let client = create_hybrid_client()?;
+    common::start_proxy_with_custom_handler(ca, client, handler).await
 }
 
 /// 하이브리드 클라이언트 생성 (모든 인증서 허용)
