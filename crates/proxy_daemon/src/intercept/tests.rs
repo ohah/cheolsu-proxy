@@ -1128,7 +1128,7 @@ fn test_apply_map_remote_changes_uri() {
         "map-remote-test",
     );
 
-    assert_eq!(req.uri().to_string(), "http://localhost:3000");
+    assert_eq!(req.uri().to_string(), "http://localhost:3000/");
 }
 
 #[test]
