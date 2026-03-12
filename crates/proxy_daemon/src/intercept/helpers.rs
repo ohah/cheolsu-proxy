@@ -1,18 +1,25 @@
 /// 인터셉트 모듈에서 사용하는 공통 헬퍼 함수 및 정규식 캐시
+use lru::LruCache;
 use proxyapi_v2::hyper::http::{HeaderMap, HeaderName, HeaderValue};
 use proxyapi_v2::Body;
 use regex::Regex;
 use std::cell::RefCell;
-use std::collections::HashMap;
+use std::num::NonZeroUsize;
 
-// 스레드 로컬 정규식 캐시. 동일한 패턴의 반복 컴파일을 방지한다.
-// 주의: tokio 멀티스레드 런타임에서는 워커 스레드마다 독립된 캐시가 생성된다.
-// 따라서 전역적으로 최대 256 × (워커 스레드 수)개의 패턴이 캐싱될 수 있다.
+/// 스레드 로컬 정규식 캐시의 최대 크기.
+/// tokio 멀티스레드 런타임에서는 워커 스레드마다 독립된 캐시가 생성되므로,
+/// 전역적으로 최대 REGEX_CACHE_SIZE × (워커 스레드 수)개의 패턴이 캐싱될 수 있다.
+const REGEX_CACHE_SIZE: usize = 256;
+
+// 스레드 로컬 정규식 LRU 캐시. 동일한 패턴의 반복 컴파일을 방지한다.
+// 캐시가 가득 차면 가장 오래 사용되지 않은 항목부터 제거(LRU eviction)된다.
 thread_local! {
-    static REGEX_CACHE: RefCell<HashMap<String, Regex>> = RefCell::new(HashMap::new());
+    static REGEX_CACHE: RefCell<LruCache<String, Regex>> =
+        RefCell::new(LruCache::new(NonZeroUsize::new(REGEX_CACHE_SIZE).unwrap()));
 }
 
-/// 캐싱된 정규식 컴파일. 동일 패턴은 스레드 로컬 캐시에서 반환한다.
+/// 캐싱된 정규식 컴파일. 동일 패턴은 스레드 로컬 LRU 캐시에서 반환한다.
+/// 캐시가 가득 차면 가장 오래 사용되지 않은 패턴이 자동으로 제거된다.
 pub(crate) fn cached_regex(pattern: &str) -> Result<Regex, regex::Error> {
     REGEX_CACHE.with(|cache| {
         let mut cache = cache.borrow_mut();
@@ -20,11 +27,7 @@ pub(crate) fn cached_regex(pattern: &str) -> Result<Regex, regex::Error> {
             return Ok(re.clone());
         }
         let re = Regex::new(pattern)?;
-        // 캐시가 과도하게 커지는 것을 방지 (최대 256개)
-        if cache.len() >= 256 {
-            cache.clear();
-        }
-        cache.insert(pattern.to_string(), re.clone());
+        cache.put(pattern.to_string(), re.clone());
         Ok(re)
     })
 }
