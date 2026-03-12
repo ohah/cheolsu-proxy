@@ -3,6 +3,7 @@ import { describe, test, expect } from "bun:test";
 import { parseFilterQuery } from "../../src/shared/lib/query-parser";
 
 describe("parseFilterQuery", () => {
+  // --- 기본 ---
   test("빈 쿼리 문자열은 빈 결과 반환", () => {
     const result = parseFilterQuery("");
     expect(result.methods).toEqual([]);
@@ -14,6 +15,13 @@ describe("parseFilterQuery", () => {
     expect(result.operator).toBe("and");
   });
 
+  test("공백만 있는 쿼리는 빈 결과 반환", () => {
+    const result = parseFilterQuery("   ");
+    expect(result.methods).toEqual([]);
+    expect(result.operator).toBe("and");
+  });
+
+  // --- method ---
   test("단일 method 필터 파싱", () => {
     const result = parseFilterQuery('method="GET"');
     expect(result.methods).toEqual(["GET"]);
@@ -40,6 +48,23 @@ describe("parseFilterQuery", () => {
     expect(result.methods).toEqual([]);
   });
 
+  test("method 포함과 제외 동시 사용", () => {
+    const result = parseFilterQuery('method="GET,POST" method!="HEAD"');
+    expect(result.methods).toEqual(["GET", "POST"]);
+    expect(result.excludeMethods).toEqual(["HEAD"]);
+  });
+
+  test("여러 개의 method 포함 필터 병합", () => {
+    const result = parseFilterQuery('method="GET" method="POST"');
+    expect(result.methods).toEqual(["GET", "POST"]);
+  });
+
+  test("모든 HTTP 메서드 파싱", () => {
+    const result = parseFilterQuery('method="GET,POST,PUT,DELETE,PATCH,HEAD,OPTIONS"');
+    expect(result.methods).toEqual(["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"]);
+  });
+
+  // --- status ---
   test("status 필터 파싱", () => {
     const result = parseFilterQuery('status="2xx"');
     expect(result.status).toEqual(["2xx"]);
@@ -55,6 +80,18 @@ describe("parseFilterQuery", () => {
     expect(result.excludeStatus).toEqual(["5xx"]);
   });
 
+  test("status 포함과 제외 동시 사용", () => {
+    const result = parseFilterQuery('status="2xx" status!="5xx"');
+    expect(result.status).toEqual(["2xx"]);
+    expect(result.excludeStatus).toEqual(["5xx"]);
+  });
+
+  test("status 와일드카드 패턴 모두 지원", () => {
+    const result = parseFilterQuery('status="1xx,2xx,3xx,4xx,5xx"');
+    expect(result.status).toEqual(["1xx", "2xx", "3xx", "4xx", "5xx"]);
+  });
+
+  // --- url ---
   test("url 포함 필터 (= 연산자)", () => {
     const result = parseFilterQuery('url="example.com"');
     expect(result.urls).toEqual(["example.com"]);
@@ -80,6 +117,23 @@ describe("parseFilterQuery", () => {
     expect(result.urls).toEqual(["payhere", "hegeg"]);
   });
 
+  test("url 포함과 제외 동시 사용", () => {
+    const result = parseFilterQuery('url|="api" url!="analytics"');
+    expect(result.urls).toEqual(["api"]);
+    expect(result.excludeUrls).toEqual(["analytics"]);
+  });
+
+  test("url 값에 경로 포함", () => {
+    const result = parseFilterQuery('url|="/api/v1/users"');
+    expect(result.urls).toEqual(["/api/v1/users"]);
+  });
+
+  test("url 값에 정규식 패턴 포함", () => {
+    const result = parseFilterQuery('url|="/users/\\d+"');
+    expect(result.urls).toEqual(["/users/\\d+"]);
+  });
+
+  // --- 혼합 필터 ---
   test("혼합 필터 조건", () => {
     const result = parseFilterQuery('method="GET,POST" status="2xx" url|="api"');
     expect(result.methods).toEqual(["GET", "POST"]);
@@ -88,6 +142,26 @@ describe("parseFilterQuery", () => {
     expect(result.operator).toBe("and");
   });
 
+  test("포함과 제외 필터 혼합", () => {
+    const result = parseFilterQuery('method="GET" method!="HEAD" status!="404"');
+    expect(result.methods).toEqual(["GET"]);
+    expect(result.excludeMethods).toEqual(["HEAD"]);
+    expect(result.excludeStatus).toEqual(["404"]);
+  });
+
+  test("모든 필드 포함/제외 혼합", () => {
+    const result = parseFilterQuery(
+      'method="GET" method!="HEAD" status="2xx" status!="500" url|="api" url!="analytics"',
+    );
+    expect(result.methods).toEqual(["GET"]);
+    expect(result.excludeMethods).toEqual(["HEAD"]);
+    expect(result.status).toEqual(["2xx"]);
+    expect(result.excludeStatus).toEqual(["500"]);
+    expect(result.urls).toEqual(["api"]);
+    expect(result.excludeUrls).toEqual(["analytics"]);
+  });
+
+  // --- 연산자 감지 ---
   test("or 연산자 감지", () => {
     const result = parseFilterQuery('method="GET" or status="2xx"');
     expect(result.operator).toBe("or");
@@ -100,25 +174,49 @@ describe("parseFilterQuery", () => {
     expect(result.operator).toBe("and");
   });
 
+  test("OR 대소문자 무관 감지", () => {
+    const result = parseFilterQuery('method="GET" OR status="2xx"');
+    expect(result.operator).toBe("or");
+  });
+
+  test("or이 여러 번 나와도 정상 파싱", () => {
+    const result = parseFilterQuery('method="GET" or status="200" or url|="api"');
+    expect(result.operator).toBe("or");
+    expect(result.methods).toEqual(["GET"]);
+    expect(result.status).toEqual(["200"]);
+    expect(result.urls).toEqual(["api"]);
+  });
+
+  // --- 잘못된 형식 ---
   test("잘못된 형식은 무시", () => {
     const result = parseFilterQuery("method=GET status 200");
     expect(result.methods).toEqual([]);
     expect(result.status).toEqual([]);
   });
 
-  test("포함과 제외 필터 혼합", () => {
-    const result = parseFilterQuery('method="GET" method!="HEAD" status!="404"');
-    expect(result.methods).toEqual(["GET"]);
-    expect(result.excludeMethods).toEqual(["HEAD"]);
-    expect(result.excludeStatus).toEqual(["404"]);
+  test("따옴표 없는 값은 무시", () => {
+    const result = parseFilterQuery("method=GET");
+    expect(result.methods).toEqual([]);
   });
 
+  test("알 수 없는 키는 무시", () => {
+    const result = parseFilterQuery('host="example.com"');
+    expect(result.methods).toEqual([]);
+    expect(result.status).toEqual([]);
+    expect(result.urls).toEqual([]);
+  });
+
+  test("부분적으로 유효한 쿼리는 유효한 부분만 파싱", () => {
+    const result = parseFilterQuery('method="GET" invalid status="200"');
+    expect(result.methods).toEqual(["GET"]);
+    expect(result.status).toEqual(["200"]);
+  });
+
+  // --- 공백 처리 ---
   test("공백이 포함된 값 처리", () => {
     const result = parseFilterQuery('method="GET , POST"');
     expect(result.methods).toEqual(["GET", "POST"]);
   });
-
-  // --- 연산자 공백 재현 테스트 ---
 
   describe("연산자와 키워드 사이 공백 처리", () => {
     test('키워드와 연산자 사이 공백: method ="GET"', () => {
@@ -156,6 +254,20 @@ describe("parseFilterQuery", () => {
       const result = parseFilterQuery('method="GET" status = "2xx"');
       expect(result.methods).toEqual(["GET"]);
       expect(result.status).toEqual(["2xx"]);
+    });
+  });
+
+  // --- 빈 값 ---
+  describe("빈 값 처리", () => {
+    test('빈 따옴표: method=""', () => {
+      const result = parseFilterQuery('method=""');
+      expect(result.methods).toEqual([]);
+    });
+
+    test('빈 따옴표와 유효한 조건 혼합: method="" status="200"', () => {
+      const result = parseFilterQuery('method="" status="200"');
+      expect(result.methods).toEqual([]);
+      expect(result.status).toEqual(["200"]);
     });
   });
 });
