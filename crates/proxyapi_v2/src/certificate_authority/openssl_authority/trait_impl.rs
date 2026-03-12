@@ -11,10 +11,10 @@ impl CertificateAuthority for OpensslAuthority {
         &self,
         authority: &Authority,
         upstream_cert: Option<&UpstreamCertInfo>,
-    ) -> Arc<ServerConfig> {
+    ) -> Result<Arc<ServerConfig>, Box<dyn std::error::Error + Send + Sync>> {
         if let Some(server_cfg) = self.cache.get(authority).await {
             debug!("Using cached server config");
-            return server_cfg;
+            return Ok(server_cfg);
         }
         debug!("Generating server config");
 
@@ -22,16 +22,17 @@ impl CertificateAuthority for OpensslAuthority {
             Ok(cert) => cert,
             Err(e) => {
                 error!(
-                    "인증서 생성 실패: {} - {:?}. upstream 정보 없이 재시도",
+                    "[SERVER-CONFIG] 인증서 생성 실패: {} - {:?}. upstream 정보 없이 재시도",
                     authority, e
                 );
                 // 폴백: upstream 정보 없이 재시도
-                self.gen_cert(authority, None).unwrap_or_else(|e2| {
-                    panic!(
+                self.gen_cert(authority, None).map_err(|e2| {
+                    let msg = format!(
                         "인증서 생성에 완전히 실패: authority={}, error={:?}",
                         authority, e2
-                    )
-                })
+                    );
+                    Box::<dyn std::error::Error + Send + Sync>::from(msg)
+                })?
             }
         };
         let certs = vec![cert];
@@ -43,11 +44,9 @@ impl CertificateAuthority for OpensslAuthority {
         ];
 
         let mut server_cfg = ServerConfig::builder_with_provider(Arc::clone(&self.provider))
-            .with_protocol_versions(&supported_versions)
-            .expect("Failed to specify protocol versions")
+            .with_protocol_versions(&supported_versions)?
             .with_no_client_auth()
-            .with_single_cert(certs, self.private_key.clone_key())
-            .expect("Failed to build ServerConfig");
+            .with_single_cert(certs, self.private_key.clone_key())?;
 
         // ALPN 미러링: 상류 서버의 ALPN 협상 결과를 반영
         server_cfg.alpn_protocols = if let Some(ref upstream) = upstream_cert {
@@ -89,7 +88,7 @@ impl CertificateAuthority for OpensslAuthority {
             .insert(authority.clone(), Arc::clone(&server_cfg))
             .await;
 
-        server_cfg
+        Ok(server_cfg)
     }
 
     fn get_ca_cert_der(&self) -> Option<Vec<u8>> {

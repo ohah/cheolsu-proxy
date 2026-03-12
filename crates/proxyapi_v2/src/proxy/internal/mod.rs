@@ -272,7 +272,7 @@ mod tests {
             &self,
             _authority: &Authority,
             _upstream_cert: Option<&crate::upstream_cert::UpstreamCertInfo>,
-        ) -> Arc<ServerConfig> {
+        ) -> Result<Arc<ServerConfig>, Box<dyn std::error::Error + Send + Sync>> {
             unimplemented!();
         }
 
