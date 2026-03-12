@@ -757,19 +757,19 @@ msgstr "Go to <0>Settings → General → VPN & Device Management</0>"
 msgid "Go to <0>Settings → Security → Encryption & credentials</0>"
 msgstr "Go to <0>Settings → Security → Encryption & credentials</0>"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:158
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:160
 msgid "HAR export failed"
 msgstr "HAR export failed"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:155
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:157
 msgid "HAR exported successfully"
 msgstr "HAR exported successfully"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:247
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:249
 msgid "HAR import failed"
 msgstr "HAR import failed"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:244
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:246
 msgid "HAR imported successfully"
 msgstr "HAR imported successfully"
 
@@ -946,7 +946,7 @@ msgstr "Load and manage proxy scripts"
 msgid "Load Session"
 msgstr "Load Session"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:193
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:195
 msgid "Load transactions"
 msgstr "Load transactions"
 
@@ -1448,7 +1448,7 @@ msgstr "Removed"
 
 #. placeholder {0}: transactions.length
 #. placeholder {1}: loaded.length
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:192
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:194
 msgid "Replace {0} existing transactions with {1} new ones? Cancel to append instead."
 msgstr "Replace {0} existing transactions with {1} new ones? Cancel to append instead."
 
@@ -1798,19 +1798,19 @@ msgstr "Serial Number"
 msgid "Server Replay"
 msgstr "Server Replay"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:224
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:226
 msgid "Session load failed"
 msgstr "Session load failed"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:221
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:223
 msgid "Session loaded successfully"
 msgstr "Session loaded successfully"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:182
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:184
 msgid "Session save failed"
 msgstr "Session save failed"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:179
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:181
 msgid "Session saved successfully"
 msgstr "Session saved successfully"
 
