@@ -11,13 +11,15 @@ import {
   AdvancedRepeatDialog,
 } from "@/features/transaction-details";
 import { buildHarLog } from "@/features/har-export";
-import { QueryFilterEditor, QueryBuilder, type EditorMode } from "@/features/query-filter-editor";
-import type { BuilderState } from "@/features/query-filter-editor/lib/query-serializer";
 import {
+  QueryFilterEditor,
+  QueryBuilder,
+  type EditorMode,
+  type BuilderState,
   createEmptyCondition,
   parsedQueryToBuilderState,
   serializeBuilderState,
-} from "@/features/query-filter-editor/lib/query-serializer";
+} from "@/features/query-filter-editor";
 import { parseFilterQuery } from "@/shared/lib/query-parser";
 import { RuleFormDialog } from "@/features/intercept-rule-form";
 import { DiffView } from "@/features/traffic-diff";
