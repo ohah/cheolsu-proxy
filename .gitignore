@@ -3,10 +3,16 @@
 *.key
 *.cer
 *.cnf
-!crates/proxyapi_v2/src/certificate_authority/cheolsu-proxy.cnf
 *.pem
 *.srl
 *.csr
+
+# 테스트용 CA 인증서는 추적 (include_bytes!/include_str! 컴파일에 필요)
+!crates/proxyapi_v2/src/certificate_authority/cheolsu-proxy.cer
+!crates/proxyapi_v2/src/certificate_authority/cheolsu-proxy.key
+!crates/proxyapi_v2/src/certificate_authority/cheolsu-proxy.cnf
+!crates/proxyapi_v2/examples/ca/hudsucker.cer
+!crates/proxyapi_v2/examples/ca/hudsucker.key
 
 # Android/IntelliJ
 #
