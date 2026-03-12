@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
 import {
@@ -46,16 +46,24 @@ export function CertificateSettings() {
   }, []);
 
   // 프록시 실행 중일 때 인증서 다운로드 정보 로드
+  const loadRequestId = useRef(0);
+
   const loadCertDownloadInfo = useCallback(async () => {
+    loadRequestId.current += 1;
+    const requestId = loadRequestId.current;
     setCertDownloadLoading(true);
     try {
       const info = await getCertDownloadInfo(proxyPort);
+      if (requestId !== loadRequestId.current) return;
       setCertDownloadInfo(info);
     } catch (e) {
+      if (requestId !== loadRequestId.current) return;
       console.error("인증서 다운로드 정보 로드 실패:", e);
       setCertDownloadInfo(null);
     } finally {
-      setCertDownloadLoading(false);
+      if (requestId === loadRequestId.current) {
+        setCertDownloadLoading(false);
+      }
     }
   }, [proxyPort]);
 

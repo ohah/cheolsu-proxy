@@ -63,17 +63,21 @@ export function LogsPage() {
   const [tlsEntries, setTlsEntries] = useState<TlsPassthroughEntry[]>([]);
   const [tlsLoading, setTlsLoading] = useState(false);
 
+  const selectedFileRef = useRef(selectedFile);
+  selectedFileRef.current = selectedFile;
+
   const fetchLogFiles = useCallback(async () => {
     try {
       const files = await invoke<LogFileInfo[]>("get_log_files");
       setLogFiles(files);
+      const current = selectedFileRef.current;
       // Auto-select first file if none selected
-      if (!selectedFile && files.length > 0) {
+      if (!current && files.length > 0) {
         setSelectedFile(files[0]);
       }
       // Update selected file info if it still exists
-      if (selectedFile) {
-        const updated = files.find((f) => f.path === selectedFile.path);
+      if (current) {
+        const updated = files.find((f) => f.path === current.path);
         if (updated) {
           setSelectedFile(updated);
         }
@@ -81,7 +85,7 @@ export function LogsPage() {
     } catch (e) {
       toast.error(e instanceof Error ? e.message : String(e));
     }
-  }, [selectedFile]);
+  }, []);
 
   const fetchLogContent = useCallback(async () => {
     if (!selectedFile) return;
@@ -173,7 +177,7 @@ export function LogsPage() {
   // Fetch log files on mount
   useEffect(() => {
     fetchLogFiles();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [fetchLogFiles]);
 
   // Fetch content when selected file changes
   useEffect(() => {
