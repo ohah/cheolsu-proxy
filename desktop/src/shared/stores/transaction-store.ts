@@ -36,9 +36,9 @@ export const useTransactionStore = create<TransactionStoreState>()((set) => ({
   addTransaction: (transaction) =>
     set((state) => {
       const id = transaction.request?.id;
-      if (!id || state.transactionIds.has(id)) return state;
+      if (id && state.transactionIds.has(id)) return state;
       const transactionIds = new Set(state.transactionIds);
-      transactionIds.add(id);
+      if (id) transactionIds.add(id);
       return {
         transactions: [...state.transactions, transaction],
         transactionIds,
@@ -124,11 +124,15 @@ export const useTransactionStore = create<TransactionStoreState>()((set) => ({
   appendTransactions: (newTransactions) =>
     set((state) => {
       const transactionIds = new Set(state.transactionIds);
-      for (const t of newTransactions) {
-        if (t.request?.id) transactionIds.add(t.request.id);
-      }
+      const filtered = newTransactions.filter((t) => {
+        const id = t.request?.id;
+        if (id && transactionIds.has(id)) return false;
+        if (id) transactionIds.add(id);
+        return true;
+      });
+      if (filtered.length === 0) return state;
       return {
-        transactions: [...state.transactions, ...newTransactions],
+        transactions: [...state.transactions, ...filtered],
         transactionIds,
       };
     }),
