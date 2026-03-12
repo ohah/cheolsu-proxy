@@ -27,9 +27,7 @@ fn build_ca() -> RcgenAuthority {
 }
 
 #[tokio::test]
-#[cfg_attr(not(target_os = "macos"), ignore)] // Linux CI에서 native-tls 프록시에 직접 WebSocket 연결 시 400 반환
 async fn http() {
-    // 실제 Tauri 환경과 동일하게 WebSocket 핸들러 포함해서 테스트
     let (proxy_addr, handler, stop_proxy) = common::start_proxy(
         build_ca(),
         common::native_tls_client(),
@@ -40,31 +38,23 @@ async fn http() {
 
     let (server_addr, stop_server) = common::start_http_server().await.unwrap();
 
-    println!("프록시 주소: {}", proxy_addr);
-    println!("서버 주소: {}", server_addr);
-
-    // WebSocket 연결 시도 (HTTP CONNECT 없이 직접 연결)
-    println!("WebSocket 연결 시도 중...");
-    let ws_result = tokio_tungstenite::client_async(
-        format!("ws://{}", server_addr),
-        TcpStream::connect(proxy_addr).await.unwrap(),
+    let mut stream = TcpStream::connect(proxy_addr).await.unwrap();
+    http_connect_tokio(
+        &mut stream,
+        &server_addr.ip().to_string(),
+        server_addr.port(),
     )
-    .await;
+    .await
+    .unwrap();
 
-    match ws_result {
-        Ok((mut ws, _)) => {
-            println!("WebSocket 연결 성공");
+    let (mut ws, _) = tokio_tungstenite::client_async(format!("ws://{}", server_addr), stream)
+        .await
+        .unwrap();
 
-            ws.send(Message::Text(HELLO)).await.unwrap();
-            let msg = ws.next().await.unwrap().unwrap();
-            assert_eq!(msg.into_text().unwrap(), common::WORLD);
-            assert_eq!(handler.message_counter.load(Ordering::Relaxed), 2);
-        }
-        Err(e) => {
-            eprintln!("WebSocket 연결 실패: {:?}", e);
-            panic!("WebSocket 연결 실패");
-        }
-    }
+    ws.send(Message::Text(HELLO)).await.unwrap();
+    let msg = ws.next().await.unwrap().unwrap();
+    assert_eq!(msg.into_text().unwrap(), common::WORLD);
+    assert_eq!(handler.message_counter.load(Ordering::Relaxed), 2);
 
     stop_server.send(()).unwrap();
     stop_proxy.send(()).unwrap();
