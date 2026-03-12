@@ -86,24 +86,31 @@ impl HttpHandler for LoggingHandler {
         let (proxied_request, restored_req) = self.request_to_proxied_request(req).await;
 
         // CONNECT 터널 요청: UI에서 볼 수 있도록 로깅 후 원본 요청 반환
+        // clone 대신 move: 이후 proxied_request를 사용하지 않으므로 소유권 이전
         if Self::is_connect_tunnel(&proxied_request, &restored_req) {
-            self.request.req = Some(proxied_request.clone());
+            self.request.req = Some(proxied_request);
             self.send_output().await;
             return restored_req.into();
         }
 
-        self.request.req = Some(proxied_request.clone());
-
+        // url, method를 먼저 추출한 뒤 proxied_request를 move하여 불필요한 clone 제거
         let url = proxied_request.uri().to_string();
         let method = proxied_request.method().to_string();
+        self.request.req = Some(proxied_request);
 
         if let Some(replay_response) = self.check_server_replay(&url, &method).await {
             self.send_output().await;
             return replay_response.into();
         }
 
+        // self.request.req에서 참조로 접근하여 clone 제거
         let restored_req = match self
-            .apply_script_on_request(restored_req, &proxied_request, &method, &url)
+            .apply_script_on_request(
+                restored_req,
+                self.request.req.as_ref().unwrap(),
+                &method,
+                &url,
+            )
             .await
         {
             Ok(req) => req,
@@ -113,15 +120,16 @@ impl HttpHandler for LoggingHandler {
             }
         };
 
+        // id()는 &String을 반환 — self에 대한 공유 참조로 직접 전달하여 clone 제거
         let transaction_id = self
             .request
             .req
             .as_ref()
-            .map(|r| r.id().clone())
+            .map(|r| r.id().as_str())
             .unwrap_or_default();
 
         let restored_req = match self
-            .apply_request_breakpoint(restored_req, &url, &method, &transaction_id)
+            .apply_request_breakpoint(restored_req, &url, &method, transaction_id)
             .await
         {
             Ok(req) => req,
@@ -163,8 +171,8 @@ impl HttpHandler for LoggingHandler {
         let res = if let Some(req) = &self.request.req {
             let url = req.uri().to_string();
             let method = req.method().to_string();
-            let transaction_id = req.id().clone();
-            self.apply_response_breakpoint(res, &url, &method, &transaction_id)
+            // id()는 &String을 반환 — 공유 참조로 직접 전달하여 clone 제거
+            self.apply_response_breakpoint(res, &url, &method, req.id())
                 .await
         } else {
             res
