@@ -23,6 +23,7 @@ use reqwest::tls::Certificate;
 use rustls_pemfile as pemfile;
 use std::{
     convert::Infallible,
+    future::Future,
     net::SocketAddr,
     sync::{
         Arc,
@@ -71,6 +72,18 @@ async fn test_server(req: Request<Incoming>) -> Result<Response<Body>, Infallibl
 }
 
 pub async fn start_http_server() -> Result<(SocketAddr, Sender<()>), Box<dyn std::error::Error>> {
+    start_http_server_with_handler(test_server).await
+}
+
+/// 커스텀 핸들러로 HTTP 서버를 시작하는 범용 헬퍼.
+/// `start_http_server`와 동일한 구조이지만 핸들러 함수를 외부에서 주입할 수 있다.
+pub async fn start_http_server_with_handler<F, Fut>(
+    handler: F,
+) -> Result<(SocketAddr, Sender<()>), Box<dyn std::error::Error>>
+where
+    F: Fn(Request<Incoming>) -> Fut + Send + Clone + 'static,
+    Fut: Future<Output = Result<Response<Body>, Infallible>> + Send + 'static,
+{
     let listener = TcpListener::bind(SocketAddr::from(([127, 0, 0, 1], 0))).await?;
     let addr = listener.local_addr()?;
     let (tx, rx) = tokio::sync::oneshot::channel();
@@ -85,10 +98,11 @@ pub async fn start_http_server() -> Result<(SocketAddr, Sender<()>), Box<dyn std
                 res = listener.accept() => {
                     let (tcp, _) = res.unwrap();
                     let server = server.clone();
+                    let handler = handler.clone();
 
                     shutdown.spawn_task(async move {
                         server
-                            .serve_connection_with_upgrades(TokioIo::new(tcp), service_fn(test_server))
+                            .serve_connection_with_upgrades(TokioIo::new(tcp), service_fn(handler))
                             .await
                             .unwrap();
                     });

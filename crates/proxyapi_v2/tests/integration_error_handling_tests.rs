@@ -10,7 +10,6 @@ use std::net::SocketAddr;
 use std::process::Command;
 use std::sync::Arc;
 use std::sync::Mutex;
-use tokio::net::TcpListener;
 use tokio::sync::oneshot::Sender;
 use tokio::time::Duration;
 
@@ -142,46 +141,6 @@ impl HttpHandler for TestLoggingHandler {
     }
 }
 
-/// 테스트용 HTTP 서버 시작
-async fn start_test_server() -> Result<(SocketAddr, Sender<()>), Box<dyn std::error::Error>> {
-    let listener = TcpListener::bind(SocketAddr::from(([127, 0, 0, 1], 0))).await?;
-    let addr = listener.local_addr()?;
-    let (tx, rx) = tokio::sync::oneshot::channel();
-
-    tokio::spawn(async move {
-        let server =
-            hyper_util::server::conn::auto::Builder::new(hyper_util::rt::TokioExecutor::new());
-        let shutdown = tokio_graceful::Shutdown::new(async { rx.await.unwrap_or_default() });
-        let guard = shutdown.guard_weak();
-
-        loop {
-            tokio::select! {
-                res = listener.accept() => {
-                    let (tcp, _) = res.unwrap();
-                    let server = server.clone();
-
-                    shutdown.spawn_task(async move {
-                        server
-                            .serve_connection_with_upgrades(
-                                hyper_util::rt::TokioIo::new(tcp),
-                                hyper::service::service_fn(test_server_handler)
-                            )
-                            .await
-                            .unwrap();
-                    });
-                }
-                _ = guard.cancelled() => {
-                    break;
-                }
-            }
-        }
-
-        shutdown.shutdown().await;
-    });
-
-    Ok((addr, tx))
-}
-
 /// 테스트 서버 핸들러
 async fn test_server_handler(
     req: Request<hyper::body::Incoming>,
@@ -208,6 +167,11 @@ async fn test_server_handler(
             .body(Body::from("Not found"))
             .unwrap()),
     }
+}
+
+/// 테스트용 HTTP 서버 시작 (common 헬퍼 활용)
+async fn start_test_server() -> Result<(SocketAddr, Sender<()>), Box<dyn std::error::Error>> {
+    common::start_http_server_with_handler(test_server_handler).await
 }
 
 /// 프록시 서버 시작 (common 헬퍼 활용)
