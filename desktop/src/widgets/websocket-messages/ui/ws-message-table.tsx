@@ -1,6 +1,7 @@
 import { memo, useCallback, useRef, useEffect, useMemo } from "react";
 import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { ArrowUp, ArrowDown } from "lucide-react";
 import { cn } from "@/shared/lib";
 import { getMqttSummary } from "@/shared/lib/ws-content-view";
@@ -69,18 +70,18 @@ const WsMessageRow = memo(
     );
 
     return (
-      <tr
+      <div
         className={cn(
-          "h-8 cursor-pointer border-b border-border/50 text-xs transition-colors",
+          "h-8 flex items-center cursor-pointer border-b border-border/50 text-xs transition-colors",
           isSelected ? "bg-accent text-accent-foreground" : "hover:bg-muted/50",
           isSent ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400",
         )}
         onClick={onSelect}
       >
-        <td className="px-2 w-8 text-center">
+        <div className="px-2 w-8 text-center flex-shrink-0">
           <DirectionIcon className="w-3 h-3 inline-block" />
-        </td>
-        <td className="px-2 w-16">
+        </div>
+        <div className="px-2 w-16 flex-shrink-0">
           {mqttSummary ? (
             <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-medium bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300">
               {mqttSummary.packetType}
@@ -111,40 +112,53 @@ const WsMessageRow = memo(
               )}
             </>
           )}
-        </td>
-        <td className="px-2 w-20 text-right text-muted-foreground">{formatSize(message.size)}</td>
-        <td className="px-2 flex-1 truncate max-w-0">
+        </div>
+        <div className="px-2 w-20 text-right text-muted-foreground flex-shrink-0">
+          {formatSize(message.size)}
+        </div>
+        <div className="px-2 flex-1 truncate min-w-0">
           <span className="text-foreground truncate block">
             {mqttSummary?.topic ?? message.payload}
           </span>
-        </td>
-        <td className="px-2 pr-4 w-24 text-right text-muted-foreground">
+        </div>
+        <div className="px-2 pr-4 w-24 text-right text-muted-foreground flex-shrink-0">
           {formatTime(message.time)}
-        </td>
-      </tr>
+        </div>
+      </div>
     );
   },
 );
 WsMessageRow.displayName = "WsMessageRow";
 
+const ROW_HEIGHT = 32; // h-8
+
 export const WsMessageTable = memo(
   ({ messages, selectedMessage, onSelectMessage }: WsMessageTableProps) => {
     const { t } = useLingui();
-    const containerRef = useRef<HTMLDivElement>(null);
+    const scrollRef = useRef<HTMLDivElement>(null);
     const shouldAutoScroll = useRef(true);
 
+    const estimateSize = useCallback(() => ROW_HEIGHT, []);
+
+    const virtualizer = useVirtualizer({
+      count: messages.length,
+      getScrollElement: () => scrollRef.current,
+      estimateSize,
+      overscan: 20,
+    });
+
     const handleScroll = useCallback(() => {
-      const el = containerRef.current;
+      const el = scrollRef.current;
       if (!el) return;
       const distFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
       shouldAutoScroll.current = distFromBottom < 50;
     }, []);
 
     useEffect(() => {
-      if (shouldAutoScroll.current && containerRef.current) {
-        containerRef.current.scrollTop = containerRef.current.scrollHeight;
+      if (shouldAutoScroll.current && messages.length > 0) {
+        virtualizer.scrollToIndex(messages.length - 1, { align: "end" });
       }
-    }, [messages.length]);
+    }, [messages.length, virtualizer]);
 
     if (messages.length === 0) {
       return (
@@ -157,34 +171,48 @@ export const WsMessageTable = memo(
     return (
       <div className="flex-1 flex flex-col overflow-hidden">
         <div className="flex-shrink-0 border-b border-border">
-          <table className="w-full table-fixed">
-            <thead>
-              <tr className="h-7 text-xs text-muted-foreground font-medium bg-muted/30">
-                <th className="px-2 w-8 text-center">{t`Dir`}</th>
-                <th className="px-2 w-16 text-left">{t`Type`}</th>
-                <th className="px-2 w-20 text-right">{t`Size`}</th>
-                <th className="px-2 text-left">{t`Data`}</th>
-                <th className="px-2 pr-4 w-24 text-right">{t`Time`}</th>
-              </tr>
-            </thead>
-          </table>
+          <div className="h-7 flex items-center text-xs text-muted-foreground font-medium bg-muted/30">
+            <div className="px-2 w-8 text-center flex-shrink-0">{t`Dir`}</div>
+            <div className="px-2 w-16 text-left flex-shrink-0">{t`Type`}</div>
+            <div className="px-2 w-20 text-right flex-shrink-0">{t`Size`}</div>
+            <div className="px-2 flex-1 text-left min-w-0">{t`Data`}</div>
+            <div className="px-2 pr-4 w-24 text-right flex-shrink-0">{t`Time`}</div>
+          </div>
         </div>
-        <div ref={containerRef} className="flex-1 overflow-y-auto" onScroll={handleScroll}>
-          <table className="w-full table-fixed">
-            <tbody>
-              {messages.map((msg) => (
-                <WsMessageRow
+        <div ref={scrollRef} className="flex-1 overflow-y-auto" onScroll={handleScroll}>
+          <div
+            style={{
+              height: `${virtualizer.getTotalSize()}px`,
+              width: "100%",
+              position: "relative",
+            }}
+          >
+            {virtualizer.getVirtualItems().map((virtualItem) => {
+              const msg = messages[virtualItem.index];
+              return (
+                <div
                   key={`${msg.connection_id}-${msg.sequence}`}
-                  message={msg}
-                  isSelected={
-                    selectedMessage?.sequence === msg.sequence &&
-                    selectedMessage?.connection_id === msg.connection_id
-                  }
-                  onSelect={() => onSelectMessage(msg)}
-                />
-              ))}
-            </tbody>
-          </table>
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    width: "100%",
+                    height: `${virtualItem.size}px`,
+                    transform: `translateY(${virtualItem.start}px)`,
+                  }}
+                >
+                  <WsMessageRow
+                    message={msg}
+                    isSelected={
+                      selectedMessage?.sequence === msg.sequence &&
+                      selectedMessage?.connection_id === msg.connection_id
+                    }
+                    onSelect={() => onSelectMessage(msg)}
+                  />
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     );
