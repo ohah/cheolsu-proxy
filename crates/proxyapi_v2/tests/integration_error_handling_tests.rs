@@ -472,6 +472,7 @@ async fn test_connection_to_nonexistent_server() {
 }
 
 #[tokio::test]
+#[ignore] // macOS 전용(networksetup) + 외부 네트워크 필요 — `cargo test -- --ignored`로 수동 실행
 async fn test_https_request_with_invalid_certificate() {
     // 프록시 서버 시작
     let handler = TestLoggingHandler::new();

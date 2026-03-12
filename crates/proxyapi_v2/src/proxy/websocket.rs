@@ -636,7 +636,8 @@ mod tests {
         let new_uri = Uri::from_parts(parts).unwrap();
 
         assert_eq!(new_uri.scheme_str(), Some("ws"));
-        assert_eq!(new_uri.path(), "");
+        // http://example.com 파싱 시 hyper Uri는 path를 "/"로 정규화
+        assert_eq!(new_uri.path(), "/");
     }
 
     #[test]
