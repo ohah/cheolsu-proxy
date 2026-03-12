@@ -45,21 +45,14 @@ const DEFAULT_MAX_CONCURRENT_CONNECTIONS: usize = 1024;
 /// 요청 바디 크기 기본 제한값 (100MB)
 const DEFAULT_MAX_BODY_SIZE: usize = 100 * 1024 * 1024;
 
-/// 데몬에서 사용하는 채널 및 공유 상태를 묶는 컨텍스트
-pub(crate) struct DaemonContext {
-    pub(crate) event_tx: broadcast::Sender<String>,
-    pub(crate) client_count: Arc<AtomicUsize>,
-    /// 데몬 시작 시각 (헬스체크용 uptime 계산)
-    pub(crate) started_at: std::time::Instant,
-    /// 총 트랜잭션 수 (헬스체크용)
-    pub(crate) total_transactions: Arc<AtomicU64>,
-    pub(crate) shutdown_tx: tokio::sync::mpsc::Sender<()>,
+/// 프록시 설정 전파용 watch 채널 송신자 그룹
+#[derive(Clone)]
+pub(crate) struct DaemonChannels {
     pub(crate) intercept_tx: watch::Sender<Vec<crate::protocol::InterceptRule>>,
     pub(crate) upstream_tx: watch::Sender<Option<UpstreamProxyConfig>>,
     pub(crate) server_replay_tx: watch::Sender<Vec<crate::protocol::ServerReplayEntry>>,
     pub(crate) throttle_tx: watch::Sender<Option<ThrottleConfig>>,
     pub(crate) breakpoint_tx: watch::Sender<Vec<crate::protocol::BreakpointRule>>,
-    pub(crate) breakpoint_manager: BreakpointManager,
     pub(crate) host_mapping_tx: watch::Sender<Vec<crate::protocol::HostMapping>>,
     pub(crate) ssl_proxying_tx: watch::Sender<(
         crate::protocol::SslProxyingMode,
@@ -68,13 +61,32 @@ pub(crate) struct DaemonContext {
     pub(crate) client_cert_tx: watch::Sender<Option<crate::protocol::ClientCertConfig>>,
     pub(crate) request_client_cert_tx:
         watch::Sender<Option<crate::protocol::RequestClientCertConfig>>,
+}
+
+/// 데몬 메트릭/통계 정보 그룹
+#[derive(Clone)]
+pub(crate) struct DaemonMetrics {
+    /// 데몬 시작 시각 (헬스체크용 uptime 계산)
+    pub(crate) started_at: std::time::Instant,
+    /// 총 트랜잭션 수 (헬스체크용)
+    pub(crate) total_transactions: Arc<AtomicU64>,
+    pub(crate) metrics_aggregator: Arc<MetricsAggregator>,
+}
+
+/// 데몬에서 사용하는 채널 및 공유 상태를 묶는 컨텍스트
+pub(crate) struct DaemonContext {
+    pub(crate) event_tx: broadcast::Sender<String>,
+    pub(crate) client_count: Arc<AtomicUsize>,
+    pub(crate) shutdown_tx: tokio::sync::mpsc::Sender<()>,
+    pub(crate) channels: DaemonChannels,
+    pub(crate) metrics: DaemonMetrics,
+    pub(crate) breakpoint_manager: BreakpointManager,
     pub(crate) ws_registry: WebSocketRegistry,
     pub(crate) script_handle: scripting::ScriptHandle,
     pub(crate) quick_settings: Arc<tokio::sync::RwLock<QuickSettings>>,
     pub(crate) proxy_auth: Arc<tokio::sync::RwLock<Option<crate::protocol::ProxyAuthConfig>>>,
     pub(crate) tls_passthrough: proxyapi_v2::tls_passthrough::TlsPassthrough,
     pub(crate) connection_strategy: Arc<std::sync::atomic::AtomicU8>,
-    pub(crate) metrics_aggregator: Arc<MetricsAggregator>,
 }
 
 // --- 데몬 진입점 ---
@@ -316,26 +328,30 @@ async fn daemon_main(port: u16, host: String) -> i32 {
     let ctx = DaemonContext {
         event_tx,
         client_count: Arc::new(AtomicUsize::new(0)),
-        started_at,
-        total_transactions,
         shutdown_tx,
-        intercept_tx,
-        upstream_tx,
-        server_replay_tx,
-        throttle_tx,
-        breakpoint_tx,
+        channels: DaemonChannels {
+            intercept_tx,
+            upstream_tx,
+            server_replay_tx,
+            throttle_tx,
+            breakpoint_tx,
+            host_mapping_tx,
+            ssl_proxying_tx,
+            client_cert_tx,
+            request_client_cert_tx,
+        },
+        metrics: DaemonMetrics {
+            started_at,
+            total_transactions,
+            metrics_aggregator,
+        },
         breakpoint_manager,
-        host_mapping_tx,
-        ssl_proxying_tx,
-        client_cert_tx,
-        request_client_cert_tx,
         ws_registry,
         script_handle,
         quick_settings,
         proxy_auth,
         tls_passthrough,
         connection_strategy,
-        metrics_aggregator,
     };
 
     run_accept_loop(uds_listener, &mut shutdown_rx, &ctx, port).await;

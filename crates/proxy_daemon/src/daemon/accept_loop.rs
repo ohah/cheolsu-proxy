@@ -57,28 +57,18 @@ pub(super) async fn run_accept_loop(
 
                         let handler_ctx = ClientHandlerContext {
                             event_rx: ctx.event_tx.subscribe(),
-                            intercept_tx: ctx.intercept_tx.clone(),
-                            upstream_tx: ctx.upstream_tx.clone(),
-                            server_replay_tx: ctx.server_replay_tx.clone(),
-                            throttle_tx: ctx.throttle_tx.clone(),
-                            breakpoint_tx: ctx.breakpoint_tx.clone(),
+                            channels: ctx.channels.clone(),
                             breakpoint_manager: ctx.breakpoint_manager.clone(),
-                            host_mapping_tx: ctx.host_mapping_tx.clone(),
-                            ssl_proxying_tx: ctx.ssl_proxying_tx.clone(),
-                            client_cert_tx: ctx.client_cert_tx.clone(),
-                            request_client_cert_tx: ctx.request_client_cert_tx.clone(),
                             event_tx: ctx.event_tx.clone(),
                             port,
                             ws_registry: ctx.ws_registry.clone(),
                             script_handle: ctx.script_handle.clone(),
                             quick_settings: ctx.quick_settings.clone(),
                             proxy_auth: ctx.proxy_auth.clone(),
-                            started_at: ctx.started_at,
-                            total_transactions: ctx.total_transactions.clone(),
+                            metrics: ctx.metrics.clone(),
                             client_count: ctx.client_count.clone(),
                             tls_passthrough: ctx.tls_passthrough.clone(),
                             connection_strategy: ctx.connection_strategy.clone(),
-                            metrics_aggregator: ctx.metrics_aggregator.clone(),
                         };
 
                         tokio::spawn(async move {

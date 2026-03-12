@@ -1,17 +1,11 @@
 use std::sync::Arc;
 use tokio::io::AsyncWriteExt;
-use tokio::sync::{broadcast, watch, Mutex};
+use tokio::sync::{broadcast, Mutex};
 use tracing::{error, info, warn};
 
 use crate::breakpoint::BreakpointManager;
-use crate::metrics_aggregator::MetricsAggregator;
-use crate::protocol::{
-    BreakpointRule, ClientCertConfig, ClientCommand, DaemonMessage, HostMapping, InterceptRule,
-    ProxyAuthConfig, RequestClientCertConfig, ServerReplayEntry, SslProxyingEntry,
-    TlsPassthroughEntry,
-};
-use proxyapi_v2::throttle::ThrottleConfig;
-use proxyapi_v2::upstream_proxy::UpstreamProxyConfig;
+use crate::daemon::{DaemonChannels, DaemonMetrics};
+use crate::protocol::{ClientCommand, DaemonMessage, ProxyAuthConfig, TlsPassthroughEntry};
 use proxyapi_v2::websocket_registry::WebSocketRegistry;
 
 use super::watcher::start_file_watcher;
@@ -21,28 +15,18 @@ use super::watcher::start_file_watcher;
 pub(super) async fn handle_command(
     cmd: ClientCommand,
     writer: &Arc<Mutex<tokio::net::unix::OwnedWriteHalf>>,
-    intercept_tx: &watch::Sender<Vec<InterceptRule>>,
-    upstream_tx: &watch::Sender<Option<UpstreamProxyConfig>>,
-    server_replay_tx: &watch::Sender<Vec<ServerReplayEntry>>,
-    throttle_tx: &watch::Sender<Option<ThrottleConfig>>,
-    breakpoint_tx: &watch::Sender<Vec<BreakpointRule>>,
+    channels: &DaemonChannels,
     breakpoint_manager: &BreakpointManager,
-    host_mapping_tx: &watch::Sender<Vec<HostMapping>>,
-    ssl_proxying_tx: &watch::Sender<(crate::protocol::SslProxyingMode, Vec<SslProxyingEntry>)>,
-    client_cert_tx: &watch::Sender<Option<ClientCertConfig>>,
-    request_client_cert_tx: &watch::Sender<Option<RequestClientCertConfig>>,
     event_tx: &broadcast::Sender<String>,
     ws_registry: &WebSocketRegistry,
     script_handle: &scripting::ScriptHandle,
     quick_settings: &Arc<tokio::sync::RwLock<crate::handler::QuickSettings>>,
     proxy_auth: &Arc<tokio::sync::RwLock<Option<ProxyAuthConfig>>>,
     subscribed: &Arc<std::sync::atomic::AtomicBool>,
-    started_at: &std::time::Instant,
-    total_transactions: &Arc<std::sync::atomic::AtomicU64>,
+    metrics: &DaemonMetrics,
     client_count: &Arc<std::sync::atomic::AtomicUsize>,
     tls_passthrough: &proxyapi_v2::tls_passthrough::TlsPassthrough,
     connection_strategy: &Arc<std::sync::atomic::AtomicU8>,
-    metrics_aggregator: &Arc<MetricsAggregator>,
     watched_path: &Arc<Mutex<Option<String>>>,
 ) -> bool {
     match cmd {
@@ -51,7 +35,7 @@ pub(super) async fn handle_command(
         }
         ClientCommand::UpdateInterceptRules { rules } => {
             info!("Intercept rules updated from client: {} rules", rules.len());
-            if let Err(e) = intercept_tx.send(rules.clone()) {
+            if let Err(e) = channels.intercept_tx.send(rules.clone()) {
                 warn!("인터셉트 규칙 watch 채널 전송 실패: {}", e);
             }
             let broadcast_msg = DaemonMessage::InterceptRulesUpdated { rules };
@@ -119,7 +103,7 @@ pub(super) async fn handle_command(
                 "Upstream proxy config updated: {:?}",
                 config.as_ref().map(|c| c.address())
             );
-            if let Err(e) = upstream_tx.send(config) {
+            if let Err(e) = channels.upstream_tx.send(config) {
                 warn!("업스트림 프록시 watch 채널 전송 실패: {}", e);
             }
         }
@@ -128,7 +112,7 @@ pub(super) async fn handle_command(
                 "Throttle config updated: enabled={:?}",
                 config.as_ref().map(|c| c.enabled)
             );
-            if let Err(e) = throttle_tx.send(config) {
+            if let Err(e) = channels.throttle_tx.send(config) {
                 warn!("스로틀 설정 watch 채널 전송 실패: {}", e);
             }
         }
@@ -137,7 +121,7 @@ pub(super) async fn handle_command(
                 "Host mappings updated from client: {} mappings",
                 mappings.len()
             );
-            if let Err(e) = host_mapping_tx.send(mappings.clone()) {
+            if let Err(e) = channels.host_mapping_tx.send(mappings.clone()) {
                 warn!("호스트 매핑 watch 채널 전송 실패: {}", e);
             }
             let broadcast_msg = DaemonMessage::HostMappingsUpdated { mappings };
@@ -155,7 +139,10 @@ pub(super) async fn handle_command(
                 mode,
                 entries.len()
             );
-            if let Err(e) = ssl_proxying_tx.send((mode.clone(), entries.clone())) {
+            if let Err(e) = channels
+                .ssl_proxying_tx
+                .send((mode.clone(), entries.clone()))
+            {
                 warn!("SSL 프록싱 목록 watch 채널 전송 실패: {}", e);
             }
             let broadcast_msg = DaemonMessage::SslProxyingListUpdated { mode, entries };
@@ -172,7 +159,7 @@ pub(super) async fn handle_command(
                 "Client certificate config updated: enabled={:?}",
                 config.as_ref().map(|c| c.enabled)
             );
-            if let Err(e) = client_cert_tx.send(config.clone()) {
+            if let Err(e) = channels.client_cert_tx.send(config.clone()) {
                 warn!("클라이언트 인증서 설정 watch 채널 전송 실패: {}", e);
             }
             let broadcast_msg = DaemonMessage::ClientCertificateUpdated { config };
@@ -212,7 +199,7 @@ pub(super) async fn handle_command(
         }
         ClientCommand::UpdateServerReplay { entries } => {
             info!("Server replay entries updated: {} entries", entries.len());
-            if let Err(e) = server_replay_tx.send(entries) {
+            if let Err(e) = channels.server_replay_tx.send(entries) {
                 warn!("서버 리플레이 watch 채널 전송 실패: {}", e);
             }
         }
@@ -309,7 +296,7 @@ pub(super) async fn handle_command(
                 "Breakpoint rules updated from client: {} rules",
                 rules.len()
             );
-            if let Err(e) = breakpoint_tx.send(rules.clone()) {
+            if let Err(e) = channels.breakpoint_tx.send(rules.clone()) {
                 warn!("브레이크포인트 규칙 watch 채널 전송 실패: {}", e);
             }
             let broadcast_msg = DaemonMessage::BreakpointRulesUpdated { rules };
@@ -359,9 +346,11 @@ pub(super) async fn handle_command(
             let _ = w.flush().await;
         }
         ClientCommand::HealthCheck => {
-            let uptime_secs = started_at.elapsed().as_secs();
+            let uptime_secs = metrics.started_at.elapsed().as_secs();
             let active_conns = client_count.load(std::sync::atomic::Ordering::Relaxed) as u32;
-            let total_txns = total_transactions.load(std::sync::atomic::Ordering::Relaxed);
+            let total_txns = metrics
+                .total_transactions
+                .load(std::sync::atomic::Ordering::Relaxed);
             let response = DaemonMessage::HealthCheckResult {
                 uptime_secs,
                 active_connections: active_conns,
@@ -402,7 +391,7 @@ pub(super) async fn handle_command(
                 "Request client cert config updated: enabled={:?}",
                 config.as_ref().map(|c| c.enabled)
             );
-            if let Err(e) = request_client_cert_tx.send(config.clone()) {
+            if let Err(e) = channels.request_client_cert_tx.send(config.clone()) {
                 warn!("클라이언트 인증서 요청 설정 watch 채널 전송 실패: {}", e);
             }
             let broadcast_msg = DaemonMessage::RequestClientCertUpdated { config };
@@ -424,8 +413,8 @@ pub(super) async fn handle_command(
             info!("Connection strategy updated: {}", strategy);
         }
         ClientCommand::GetMetrics => {
-            let snapshot = metrics_aggregator.get_metrics_snapshot();
-            let uptime = metrics_aggregator.uptime_secs();
+            let snapshot = metrics.metrics_aggregator.get_metrics_snapshot();
+            let uptime = metrics.metrics_aggregator.uptime_secs();
             let response = DaemonMessage::MetricsResult {
                 active_requests: snapshot.active_requests,
                 total_requests: snapshot.total_requests,
@@ -444,7 +433,10 @@ pub(super) async fn handle_command(
             let _ = w.flush().await;
         }
         ClientCommand::GetDomainStats { domain } => {
-            let stats = metrics_aggregator.get_domain_stats(domain.as_deref()).await;
+            let stats = metrics
+                .metrics_aggregator
+                .get_domain_stats(domain.as_deref())
+                .await;
             let response = DaemonMessage::DomainStatsResult { stats };
             let mut line = serde_json::to_string(&response).unwrap_or_default();
             line.push('\n');
@@ -453,7 +445,7 @@ pub(super) async fn handle_command(
             let _ = w.flush().await;
         }
         ClientCommand::GetRecentErrors { limit } => {
-            let errors = metrics_aggregator.get_recent_errors(limit).await;
+            let errors = metrics.metrics_aggregator.get_recent_errors(limit).await;
             let response = DaemonMessage::RecentErrorsResult { errors };
             let mut line = serde_json::to_string(&response).unwrap_or_default();
             line.push('\n');
