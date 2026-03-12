@@ -108,7 +108,7 @@ impl LoggingHandler {
             .headers()
             .get(proxyapi_v2::hyper::header::UPGRADE)
             .and_then(|v| v.to_str().ok())
-            .map_or(false, |s| s.to_lowercase() == "websocket");
+            .is_some_and(|s| s.to_lowercase() == "websocket");
 
         if is_websocket {
             req.headers_mut()
@@ -121,7 +121,9 @@ impl LoggingHandler {
         proxied_request: &ProxiedRequest,
         restored_req: &Request<Body>,
     ) -> bool {
-        restored_req.method() == Method::CONNECT || proxied_request.method() == "CONNECT"
+        // 두 소스 모두 확인: restored_req는 복원된 hyper 요청, proxied_request는
+        // 원본 프록시 요청 모델. 둘 다 Method 타입이므로 Method::CONNECT로 통일.
+        restored_req.method() == Method::CONNECT || proxied_request.method() == Method::CONNECT
     }
 
     /// Apply host mapping to the request if a matching rule exists.
