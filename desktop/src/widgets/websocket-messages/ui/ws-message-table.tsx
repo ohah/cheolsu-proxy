@@ -138,11 +138,12 @@ export const WsMessageTable = memo(
     const scrollRef = useRef<HTMLDivElement>(null);
     const shouldAutoScroll = useRef(true);
 
+    const getScrollElement = useCallback(() => scrollRef.current, []);
     const estimateSize = useCallback(() => ROW_HEIGHT, []);
 
     const virtualizer = useVirtualizer({
       count: messages.length,
-      getScrollElement: () => scrollRef.current,
+      getScrollElement,
       estimateSize,
       overscan: 20,
     });
@@ -158,7 +159,12 @@ export const WsMessageTable = memo(
       if (shouldAutoScroll.current && messages.length > 0) {
         virtualizer.scrollToIndex(messages.length - 1, { align: "end" });
       }
-    }, [messages.length, virtualizer]);
+    }, [messages.length]);
+
+    const selectHandlers = useMemo(
+      () => messages.map((msg) => () => onSelectMessage(msg)),
+      [messages, onSelectMessage],
+    );
 
     if (messages.length === 0) {
       return (
@@ -169,7 +175,7 @@ export const WsMessageTable = memo(
     }
 
     return (
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col h-full overflow-hidden">
         <div className="flex-shrink-0 border-b border-border">
           <div className="h-7 flex items-center text-xs text-muted-foreground font-medium bg-muted/30">
             <div className="px-2 w-8 text-center flex-shrink-0">{t`Dir`}</div>
@@ -179,7 +185,7 @@ export const WsMessageTable = memo(
             <div className="px-2 pr-4 w-24 text-right flex-shrink-0">{t`Time`}</div>
           </div>
         </div>
-        <div ref={scrollRef} className="flex-1 overflow-y-auto" onScroll={handleScroll}>
+        <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto" onScroll={handleScroll}>
           <div
             style={{
               height: `${virtualizer.getTotalSize()}px`,
@@ -207,7 +213,7 @@ export const WsMessageTable = memo(
                       selectedMessage?.sequence === msg.sequence &&
                       selectedMessage?.connection_id === msg.connection_id
                     }
-                    onSelect={() => onSelectMessage(msg)}
+                    onSelect={selectHandlers[virtualItem.index]}
                   />
                 </div>
               );
