@@ -15,7 +15,9 @@ export const setupMonacoLanguage = (monaco: Monaco): void => {
       root: [
         [new RegExp(`\\b(${FILTER_KEYWORDS.join("|")})\\b`), "keyword"],
         [new RegExp(`\\b(${LOGICAL_OPERATORS.join("|")})\\b`, "i"), "keyword.control"],
-        [/"[^"]*"/, "string"],
+        [/"(?:[^"\\]|\\.)*"/, "string"],
+        [/'(?:[^'\\]|\\.)*'/, "string"],
+        [/`(?:[^`\\]|\\.)*`/, "string"],
         [/(\|=|\|~|!=|!~|=)/, "operator"],
         [/,/, "delimiter"],
       ],
@@ -25,8 +27,16 @@ export const setupMonacoLanguage = (monaco: Monaco): void => {
   // 언어 설정
   monaco.languages.setLanguageConfiguration("cheolsu-query", {
     wordPattern: /(-?\d*\.\d\w*)|([^`~!@#%^&*()\-=+[{\]}\\|;:'",.<>/?\s]+)/g,
-    brackets: [['"', '"']],
-    autoClosingPairs: [{ open: '"', close: '"' }],
+    brackets: [
+      ['"', '"'],
+      ["'", "'"],
+      ["`", "`"],
+    ],
+    autoClosingPairs: [
+      { open: '"', close: '"' },
+      { open: "'", close: "'" },
+      { open: "`", close: "`" },
+    ],
   });
 
   // 테마 등록

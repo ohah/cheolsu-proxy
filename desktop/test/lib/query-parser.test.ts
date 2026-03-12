@@ -270,4 +270,106 @@ describe("parseFilterQuery", () => {
       expect(result.status).toEqual(["200"]);
     });
   });
+
+  // --- 따옴표 변형 ---
+  describe("다양한 따옴표 지원", () => {
+    test("작은따옴표: method='GET'", () => {
+      const result = parseFilterQuery("method='GET'");
+      expect(result.methods).toEqual(["GET"]);
+    });
+
+    test("백틱: method=`GET`", () => {
+      const result = parseFilterQuery("method=`GET`");
+      expect(result.methods).toEqual(["GET"]);
+    });
+
+    test("작은따옴표로 복수 값: method='GET,POST'", () => {
+      const result = parseFilterQuery("method='GET,POST'");
+      expect(result.methods).toEqual(["GET", "POST"]);
+    });
+
+    test("백틱으로 복수 값: status=`200,404`", () => {
+      const result = parseFilterQuery("status=`200,404`");
+      expect(result.status).toEqual(["200", "404"]);
+    });
+
+    test("작은따옴표로 URL: url|='api'", () => {
+      const result = parseFilterQuery("url|='api'");
+      expect(result.urls).toEqual(["api"]);
+    });
+
+    test("백틱으로 URL: url|=`api`", () => {
+      const result = parseFilterQuery("url|=`api`");
+      expect(result.urls).toEqual(["api"]);
+    });
+
+    test("작은따옴표 제외 연산자: method!='OPTIONS'", () => {
+      const result = parseFilterQuery("method!='OPTIONS'");
+      expect(result.excludeMethods).toEqual(["OPTIONS"]);
+    });
+
+    test("백틱 제외 연산자: status!=`5xx`", () => {
+      const result = parseFilterQuery("status!=`5xx`");
+      expect(result.excludeStatus).toEqual(["5xx"]);
+    });
+
+    test("서로 다른 따옴표 혼합 사용", () => {
+      const result = parseFilterQuery("method=\"GET\" status='2xx' url|=`api`");
+      expect(result.methods).toEqual(["GET"]);
+      expect(result.status).toEqual(["2xx"]);
+      expect(result.urls).toEqual(["api"]);
+    });
+
+    test("빈 작은따옴표: method=''", () => {
+      const result = parseFilterQuery("method=''");
+      expect(result.methods).toEqual([]);
+    });
+
+    test("빈 백틱: method=``", () => {
+      const result = parseFilterQuery("method=``");
+      expect(result.methods).toEqual([]);
+    });
+
+    test("따옴표 혼합 + OR 연산자", () => {
+      const result = parseFilterQuery("method='GET' or status=\"5xx\"");
+      expect(result.operator).toBe("or");
+      expect(result.methods).toEqual(["GET"]);
+      expect(result.status).toEqual(["5xx"]);
+    });
+
+    test("따옴표 혼합 + 공백 있는 연산자", () => {
+      const result = parseFilterQuery("method = 'GET' status = `2xx`");
+      expect(result.methods).toEqual(["GET"]);
+      expect(result.status).toEqual(["2xx"]);
+    });
+  });
+
+  // --- 이스케이프 따옴표 ---
+  describe("이스케이프 따옴표 처리", () => {
+    test('큰따옴표 이스케이프: url|="path/with\\"quote"', () => {
+      const result = parseFilterQuery('url|="path/with\\"quote"');
+      expect(result.urls).toEqual(['path/with"quote']);
+    });
+
+    test("작은따옴표 이스케이프: url|='it\\'s'", () => {
+      const result = parseFilterQuery("url|='it\\'s'");
+      expect(result.urls).toEqual(["it's"]);
+    });
+
+    test("백틱 이스케이프: url|=`path/with\\`tick`", () => {
+      const result = parseFilterQuery("url|=`path/with\\`tick`");
+      expect(result.urls).toEqual(["path/with`tick"]);
+    });
+
+    test('백슬래시 이스케이프: url|="path\\\\dir"', () => {
+      const result = parseFilterQuery('url|="path\\\\dir"');
+      expect(result.urls).toEqual(["path\\dir"]);
+    });
+
+    test("이스케이프된 값과 일반 값 혼합", () => {
+      const result = parseFilterQuery('method="GET" url|="path/with\\"quote"');
+      expect(result.methods).toEqual(["GET"]);
+      expect(result.urls).toEqual(['path/with"quote']);
+    });
+  });
 });

@@ -16,6 +16,12 @@ export interface ParsedQuery {
  * - url|="payhere" url|="hegeg" (둘 다 포함)
  * - url|="payhere,hegeg" (둘 다 포함, 콤마로 구분)
  *
+ * 따옴표:
+ * - 큰따옴표: method="GET"
+ * - 작은따옴표: method='GET'
+ * - 백틱: method=`GET`
+ * - 이스케이프: url|="path/with\"quote"
+ *
  * 연산자:
  * - = : 포함 (equals/contains)
  * - |= : 포함 (contains)
@@ -39,17 +45,24 @@ export function parseFilterQuery(query: string): ParsedQuery {
     result.operator = "or";
   }
 
-  // key(operator)"value" 패턴 추출
-  const regex = /(\w+)\s*(!?=|\|=)\s*"([^"]*)"/g;
+  // key(operator)quote(value)quote 패턴 추출
+  // 지원 따옴표: " ' `
+  // 이스케이프된 따옴표 지원: \" \' \`
+  const regex =
+    /(\w+)\s*(!?=|\|=)\s*(?:"((?:[^"\\]|\\.)*)"|'((?:[^'\\]|\\.)*)'|`((?:[^`\\]|\\.)*)`)/g;
   let match;
 
   while ((match = regex.exec(query)) !== null) {
-    const [, key, operator, value] = match;
+    const [, key, operator] = match;
+    // 3개 캡처 그룹 중 매칭된 것 사용
+    const rawValue = match[3] ?? match[4] ?? match[5] ?? "";
+    // 이스케이프 처리: \", \', \`, \\ → 원래 문자로
+    const value = rawValue.replace(/\\(["'`\\])/g, "$1");
     const isExclude = operator === "!=";
 
     switch (key.toLowerCase()) {
       case "method":
-      case "methods":
+      case "methods": {
         const methods = value
           .split(",")
           .map((m) => m.trim().toUpperCase())
@@ -61,8 +74,9 @@ export function parseFilterQuery(query: string): ParsedQuery {
           result.methods.push(...methods);
         }
         break;
+      }
 
-      case "status":
+      case "status": {
         const statuses = value
           .split(",")
           .map((s) => s.trim())
@@ -74,8 +88,9 @@ export function parseFilterQuery(query: string): ParsedQuery {
           result.status.push(...statuses);
         }
         break;
+      }
 
-      case "url":
+      case "url": {
         // 콤마로 구분된 여러 URL 조건 지원
         const urlParts = value
           .split(",")
@@ -88,6 +103,7 @@ export function parseFilterQuery(query: string): ParsedQuery {
           result.urls.push(...urlParts);
         }
         break;
+      }
     }
   }
 
