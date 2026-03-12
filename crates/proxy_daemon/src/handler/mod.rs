@@ -1,6 +1,7 @@
 mod auth;
 mod config;
 mod http;
+pub(crate) mod response_helpers;
 
 // Re-export for lib.rs and daemon.rs
 pub use crate::tls_client::create_hybrid_client;

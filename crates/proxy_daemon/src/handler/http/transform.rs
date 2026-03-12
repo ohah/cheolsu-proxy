@@ -106,14 +106,15 @@ impl LoggingHandler {
             }
 
             use http_body_util::Full;
-            response
-                .body(Body::from(Full::new(cached_response.body().clone())))
-                .unwrap_or_else(|_| Response::new(Body::empty()))
+            crate::handler::response_helpers::build_response(
+                response,
+                Body::from(Full::new(cached_response.body().clone())),
+            )
         } else {
-            Response::builder()
-                .status(StatusCode::INTERNAL_SERVER_ERROR)
-                .body(Body::from("No cached response data available"))
-                .unwrap_or_else(|_| Response::new(Body::empty()))
+            crate::handler::response_helpers::error_response(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Body::from("No cached response data available"),
+            )
         }
     }
 }

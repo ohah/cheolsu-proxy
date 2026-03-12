@@ -92,11 +92,10 @@ impl LoggingHandler {
         }
 
         let body_bytes = entry.body.unwrap_or_default();
-        Some(
-            response
-                .body(Body::from(body_bytes))
-                .unwrap_or_else(|_| Response::new(Body::empty())),
-        )
+        Some(crate::handler::response_helpers::build_response(
+            response,
+            Body::from(body_bytes),
+        ))
     }
 
     /// 스크립트 on_request 훅을 적용합니다.

@@ -90,10 +90,10 @@ impl LoggingHandler {
             "[Intercept] 요청 차단: {} {} -> {} (규칙: {})",
             method, url, status_code, rule_name
         );
-        let mut response = Response::builder()
-            .status(StatusCode::from_u16(status_code).unwrap_or(StatusCode::FORBIDDEN))
-            .body(Body::from(body.to_string()))
-            .unwrap_or_else(|_| Response::new(Body::empty()));
+        let mut response = crate::handler::response_helpers::error_response(
+            StatusCode::from_u16(status_code).unwrap_or(StatusCode::FORBIDDEN),
+            Body::from(body.to_string()),
+        );
         if !body.is_empty() {
             let content_type = if body.starts_with('{') || body.starts_with('[') {
                 "application/json"
@@ -127,14 +127,12 @@ impl LoggingHandler {
                     "[Intercept] Map Local 파일 읽기 실패: {} - {}",
                     file_path, e
                 );
-                return Response::builder()
-                    .status(StatusCode::NOT_FOUND)
-                    .header("x-cheolsu-map-local-error", e.to_string())
-                    .body(Body::from(format!(
-                        "Map Local Error: file not found - {}",
-                        file_path
-                    )))
-                    .unwrap_or_else(|_| Response::new(Body::empty()));
+                return crate::handler::response_helpers::build_response(
+                    Response::builder()
+                        .status(StatusCode::NOT_FOUND)
+                        .header("x-cheolsu-map-local-error", e.to_string()),
+                    Body::from(format!("Map Local Error: file not found - {}", file_path)),
+                );
             }
         };
 
@@ -155,9 +153,10 @@ impl LoggingHandler {
             }
         }
 
-        response
-            .body(Body::from(http_body_util::Full::new(file_bytes)))
-            .unwrap_or_else(|_| Response::new(Body::empty()))
+        crate::handler::response_helpers::build_response(
+            response,
+            Body::from(http_body_util::Full::new(file_bytes)),
+        )
     }
 
     /// MapRemote 액션 처리 → 요청 URI를 변경

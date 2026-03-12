@@ -38,13 +38,12 @@ impl LoggingHandler {
                 "[ProxyAuth] 인증 실패: {:?}",
                 req.uri().authority().map(|a| a.to_string())
             );
-            Some(
+            Some(crate::handler::response_helpers::build_response(
                 Response::builder()
                     .status(StatusCode::PROXY_AUTHENTICATION_REQUIRED)
-                    .header("Proxy-Authenticate", "Basic realm=\"Cheolsu Proxy\"")
-                    .body(Body::from("Proxy Authentication Required"))
-                    .unwrap_or_else(|_| Response::new(Body::empty())),
-            )
+                    .header("Proxy-Authenticate", "Basic realm=\"Cheolsu Proxy\""),
+                Body::from("Proxy Authentication Required"),
+            ))
         }
     }
 }
