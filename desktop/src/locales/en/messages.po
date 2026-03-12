@@ -219,7 +219,7 @@ msgstr "API Reference"
 msgid "Append the original request path to the target URL"
 msgstr "Append the original request path to the target URL"
 
-#: src/features/query-filter-editor/ui/query-builder.tsx:348
+#: src/features/query-filter-editor/ui/query-builder.tsx:355
 msgid "Apply"
 msgstr "Apply"
 
@@ -381,7 +381,7 @@ msgstr "Cheolsu Proxy Logo"
 msgid "Claude Code (CLI)"
 msgstr "Claude Code (CLI)"
 
-#: src/features/query-filter-editor/ui/query-builder.tsx:343
+#: src/features/query-filter-editor/ui/query-builder.tsx:350
 #: src/pages/log-viewer/ui/logs-page.tsx:255
 #: src/pages/script/ui/script-page.tsx:298
 #: src/pages/settings/ui/components/request-client-cert-section.tsx:68
@@ -451,7 +451,7 @@ msgstr "Compose Request"
 msgid "Concurrency"
 msgstr "Concurrency"
 
-#: src/features/query-filter-editor/ui/query-builder.tsx:321
+#: src/features/query-filter-editor/ui/query-builder.tsx:328
 msgid "Condition"
 msgstr "Condition"
 
@@ -623,7 +623,7 @@ msgstr "Download (KB/s)"
 msgid "Drop"
 msgstr "Drop"
 
-#: src/features/query-filter-editor/ui/query-builder.tsx:204
+#: src/features/query-filter-editor/ui/query-builder.tsx:206
 msgid "e.g. api.example.com, /api/v1"
 msgstr "e.g. api.example.com, /api/v1"
 
@@ -757,19 +757,19 @@ msgstr "Go to <0>Settings → General → VPN & Device Management</0>"
 msgid "Go to <0>Settings → Security → Encryption & credentials</0>"
 msgstr "Go to <0>Settings → Security → Encryption & credentials</0>"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:114
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:159
 msgid "HAR export failed"
 msgstr "HAR export failed"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:111
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:156
 msgid "HAR exported successfully"
 msgstr "HAR exported successfully"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:203
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:248
 msgid "HAR import failed"
 msgstr "HAR import failed"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:200
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:245
 msgid "HAR imported successfully"
 msgstr "HAR imported successfully"
 
@@ -946,7 +946,7 @@ msgstr "Load and manage proxy scripts"
 msgid "Load Session"
 msgstr "Load Session"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:149
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:194
 msgid "Load transactions"
 msgstr "Load transactions"
 
@@ -1133,6 +1133,10 @@ msgstr "No Caching"
 #: src/pages/server-replay/ui/server-replay-page.tsx:129
 msgid "No captured traffic with responses available. Capture some traffic first."
 msgstr "No captured traffic with responses available. Capture some traffic first."
+
+#: src/features/query-filter-editor/ui/query-filter-editor.tsx:65
+msgid "No conditions"
+msgstr "No conditions"
 
 #: src/pages/script/ui/script-page.tsx:304
 msgid "No console output yet"
@@ -1444,7 +1448,7 @@ msgstr "Removed"
 
 #. placeholder {0}: transactions.length
 #. placeholder {1}: loaded.length
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:148
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:193
 msgid "Replace {0} existing transactions with {1} new ones? Cancel to append instead."
 msgstr "Replace {0} existing transactions with {1} new ones? Cancel to append instead."
 
@@ -1794,19 +1798,19 @@ msgstr "Serial Number"
 msgid "Server Replay"
 msgstr "Server Replay"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:180
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:225
 msgid "Session load failed"
 msgstr "Session load failed"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:177
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:222
 msgid "Session loaded successfully"
 msgstr "Session loaded successfully"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:138
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:183
 msgid "Session save failed"
 msgstr "Session save failed"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:135
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:180
 msgid "Session saved successfully"
 msgstr "Session saved successfully"
 
@@ -1905,11 +1909,11 @@ msgstr "Strategy"
 msgid "Supports PEM-encoded certificates and keys (RSA, ECDSA, PKCS#8)"
 msgstr "Supports PEM-encoded certificates and keys (RSA, ECDSA, PKCS#8)"
 
-#: src/features/query-filter-editor/ui/query-filter-editor.tsx:199
+#: src/features/query-filter-editor/ui/query-filter-editor.tsx:175
 msgid "Switch to Builder mode"
 msgstr "Switch to Builder mode"
 
-#: src/features/query-filter-editor/ui/query-filter-editor.tsx:106
+#: src/features/query-filter-editor/ui/query-filter-editor.tsx:84
 msgid "Switch to Code mode"
 msgstr "Switch to Code mode"
 
@@ -2142,7 +2146,7 @@ msgstr "WebSocket connections and messages"
 msgid "WebSocket Replay"
 msgstr "WebSocket Replay"
 
-#: src/features/query-filter-editor/ui/query-builder.tsx:148
+#: src/features/query-filter-editor/ui/query-builder.tsx:150
 msgid "Where"
 msgstr "Where"
 
