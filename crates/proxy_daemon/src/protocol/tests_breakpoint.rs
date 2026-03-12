@@ -1,4 +1,3 @@
-#[cfg(test)]
 mod tests {
     use crate::protocol::*;
     use std::collections::HashMap;
