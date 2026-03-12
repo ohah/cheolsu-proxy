@@ -1,0 +1,43 @@
+name: Rust macOS Test
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "crates/**"
+      - "desktop/src-tauri/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - ".github/workflows/rust-test-macos.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "crates/**"
+      - "desktop/src-tauri/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - ".github/workflows/rust-test-macos.yml"
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  rust-test-macos:
+    name: Rust macOS Test (ignored tests)
+    runs-on: macos-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: stable
+          cache: true
+          matcher: true
+          rustflags: ""
+
+      - name: Run macOS-only ignored tests
+        run: cargo test -p proxyapi_v2 --features full -- --ignored
