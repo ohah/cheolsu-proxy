@@ -41,7 +41,10 @@ impl ServerCertVerifier for CertCapturingVerifier {
         _ocsp_response: &[u8],
         _now: UnixTime,
     ) -> Result<ServerCertVerified, tokio_rustls::rustls::Error> {
-        *self.captured.lock().unwrap() = Some(end_entity.to_vec());
+        match self.captured.lock() {
+            Ok(mut guard) => *guard = Some(end_entity.to_vec()),
+            Err(poisoned) => *poisoned.into_inner() = Some(end_entity.to_vec()),
+        }
         Ok(ServerCertVerified::assertion())
     }
 
@@ -180,7 +183,10 @@ async fn sniff_upstream_cert_inner(
     };
 
     // 4. 캡처된 인증서 파싱
-    let cert_der = captured.lock().unwrap().take()?;
+    let cert_der = captured
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner())
+        .take()?;
     let mut info = parse_cert_info(&cert_der)?;
     info.negotiated_alpn = negotiated_alpn;
     Some(info)

@@ -152,7 +152,7 @@ pub trait HttpHandler: Clone + Send + Sync + 'static {
             Response::builder()
                 .status(StatusCode::BAD_GATEWAY)
                 .body(Body::empty())
-                .expect("Failed to build response")
+                .unwrap_or_else(|_| Response::new(Body::empty()))
         }
     }
 
