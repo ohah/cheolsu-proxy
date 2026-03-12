@@ -9,7 +9,7 @@ use openssl::{
     rand,
     x509::{
         X509Builder, X509NameBuilder,
-        extension::{AuthorityKeyIdentifier, SubjectAlternativeName},
+        extension::{AuthorityKeyIdentifier, ExtendedKeyUsage, SubjectAlternativeName},
     },
 };
 use std::collections::HashSet;
@@ -61,6 +61,10 @@ impl OpensslAuthority {
             .keyid(true)
             .build(&x509_builder.x509v3_context(Some(&self.ca_cert), None))?;
         x509_builder.append_extension(aki)?;
+
+        // Extended Key Usage (EKU) — macOS Security.framework 등에서 serverAuth 필수
+        let eku = ExtendedKeyUsage::new().server_auth().build()?;
+        x509_builder.append_extension(eku)?;
 
         // SAN 설정 - upstream 인증서 정보 우선 사용
         // RFC 5280 4.2.1.6: subject가 비어있을 때만 SAN을 critical로 설정
