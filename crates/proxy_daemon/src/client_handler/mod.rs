@@ -14,7 +14,7 @@ use crate::daemon::{DaemonChannels, DaemonMetrics};
 use crate::protocol::{ClientCommand, DaemonMessage, ProxyAuthConfig};
 use proxyapi_v2::websocket_registry::WebSocketRegistry;
 
-use commands::CommandContext;
+use commands::CommandState;
 
 /// handle_client에 전달되는 채널/상태를 묶는 컨텍스트 구조체.
 /// DaemonContext와 유사하지만, 클라이언트 핸들러에서 필요한 필드만 포함한다.
@@ -212,8 +212,8 @@ pub(crate) async fn handle_client(stream: UnixStream, ctx: ClientHandlerContext)
         }
     });
 
-    // CommandContext 생성 — handle_command에서 필요한 모든 상태를 하나로 묶는다.
-    let cmd_ctx = CommandContext {
+    // CommandState 생성 — handle_command에서 필요한 모든 공유 상태를 하나로 묶는다.
+    let cmd_state = CommandState {
         writer: writer.clone(),
         channels,
         breakpoint_manager,
@@ -242,7 +242,7 @@ pub(crate) async fn handle_client(stream: UnixStream, ctx: ClientHandlerContext)
                 }
                 match serde_json::from_str::<ClientCommand>(trimmed) {
                     Ok(cmd) => {
-                        let should_stop = commands::handle_command(cmd, &cmd_ctx).await;
+                        let should_stop = commands::handle_command(cmd, &cmd_state).await;
                         if should_stop {
                             break;
                         }

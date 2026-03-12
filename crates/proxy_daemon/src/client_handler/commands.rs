@@ -10,9 +10,11 @@ use proxyapi_v2::websocket_registry::WebSocketRegistry;
 
 use super::watcher::start_file_watcher;
 
-/// `handle_command`에 전달되는 파라미터를 그룹화한 컨텍스트 구조체.
+/// `handle_command`에 전달되는 파라미터를 그룹화한 상태 구조체.
 /// 기존 15개 이상의 개별 파라미터를 하나로 묶어 가독성과 유지보수성을 높인다.
-pub(super) struct CommandContext {
+/// 참고: `ClientHandlerContext`(mod.rs)는 클라이언트 접속 시 일회성으로 전달되는 초기화 컨텍스트이고,
+/// `CommandState`는 커맨드 처리 루프 동안 유지되는 공유 상태를 나타낸다.
+pub(super) struct CommandState {
     pub(super) writer: Arc<Mutex<tokio::net::unix::OwnedWriteHalf>>,
     pub(super) channels: DaemonChannels,
     pub(super) breakpoint_manager: BreakpointManager,
@@ -29,8 +31,20 @@ pub(super) struct CommandContext {
     pub(super) watched_path: Arc<Mutex<Option<String>>>,
 }
 
+impl CommandState {
+    /// writer를 잠그고, 메시지를 JSON 직렬화 후 전송하는 헬퍼.
+    /// 에러는 무시한다 (기존 호출부와 동일한 동작).
+    pub(super) async fn send_message(&self, msg: &DaemonMessage) {
+        let mut line = serde_json::to_string(msg).unwrap_or_default();
+        line.push('\n');
+        let mut w = self.writer.lock().await;
+        let _ = w.write_all(line.as_bytes()).await;
+        let _ = w.flush().await;
+    }
+}
+
 /// 커맨드를 처리하고, Stop 커맨드인 경우 true를 반환합니다.
-pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandContext) -> bool {
+pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bool {
     match cmd {
         ClientCommand::Subscribe => {
             ctx.subscribed
@@ -67,11 +81,7 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandContext) -> 
                             success: false,
                             error: Some(format!("Base64 decode failed: {}", e)),
                         };
-                        let mut line = serde_json::to_string(&result).unwrap_or_default();
-                        line.push('\n');
-                        let mut w = ctx.writer.lock().await;
-                        let _ = w.write_all(line.as_bytes()).await;
-                        let _ = w.flush().await;
+                        ctx.send_message(&result).await;
                         return false;
                     }
                 }
@@ -95,11 +105,7 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandContext) -> 
                     error: Some(e),
                 },
             };
-            let mut line = serde_json::to_string(&response).unwrap_or_default();
-            line.push('\n');
-            let mut w = ctx.writer.lock().await;
-            let _ = w.write_all(line.as_bytes()).await;
-            let _ = w.flush().await;
+            ctx.send_message(&response).await;
         }
         ClientCommand::UpdateUpstreamProxy { config } => {
             info!(
@@ -264,11 +270,7 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandContext) -> 
                     }
                 }
             };
-            let mut line = serde_json::to_string(&response).unwrap_or_default();
-            line.push('\n');
-            let mut w = ctx.writer.lock().await;
-            let _ = w.write_all(line.as_bytes()).await;
-            let _ = w.flush().await;
+            ctx.send_message(&response).await;
         }
         ClientCommand::UnloadScript => {
             ctx.script_handle.unload().await;
@@ -290,11 +292,7 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandContext) -> 
                 success: true,
                 error: None,
             };
-            let mut line = serde_json::to_string(&response).unwrap_or_default();
-            line.push('\n');
-            let mut w = ctx.writer.lock().await;
-            let _ = w.write_all(line.as_bytes()).await;
-            let _ = w.flush().await;
+            ctx.send_message(&response).await;
         }
         ClientCommand::UpdateBreakpointRules { rules } => {
             info!(
@@ -330,11 +328,7 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandContext) -> 
                 path: path.clone(),
                 transaction_count: 0,
             };
-            let mut line = serde_json::to_string(&msg).unwrap_or_default();
-            line.push('\n');
-            let mut w = ctx.writer.lock().await;
-            let _ = w.write_all(line.as_bytes()).await;
-            let _ = w.flush().await;
+            ctx.send_message(&msg).await;
         }
         ClientCommand::LoadSession { path } => {
             info!("LoadSession command received: path={}", path);
@@ -344,11 +338,7 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandContext) -> 
                 path: path.clone(),
                 transaction_count: 0,
             };
-            let mut line = serde_json::to_string(&msg).unwrap_or_default();
-            line.push('\n');
-            let mut w = ctx.writer.lock().await;
-            let _ = w.write_all(line.as_bytes()).await;
-            let _ = w.flush().await;
+            ctx.send_message(&msg).await;
         }
         ClientCommand::HealthCheck => {
             let uptime_secs = ctx.metrics.started_at.elapsed().as_secs();
@@ -362,11 +352,7 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandContext) -> 
                 active_connections: active_conns,
                 total_transactions: total_txns,
             };
-            let mut line = serde_json::to_string(&response).unwrap_or_default();
-            line.push('\n');
-            let mut w = ctx.writer.lock().await;
-            let _ = w.write_all(line.as_bytes()).await;
-            let _ = w.flush().await;
+            ctx.send_message(&response).await;
         }
         ClientCommand::GetTlsPassthroughList => {
             let list = ctx.tls_passthrough.list_bypassed().await;
@@ -378,11 +364,7 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandContext) -> 
                 })
                 .collect();
             let response = DaemonMessage::TlsPassthroughUpdated { entries };
-            let mut line = serde_json::to_string(&response).unwrap_or_default();
-            line.push('\n');
-            let mut w = ctx.writer.lock().await;
-            let _ = w.write_all(line.as_bytes()).await;
-            let _ = w.flush().await;
+            ctx.send_message(&response).await;
         }
         ClientCommand::RemoveTlsPassthrough { host } => {
             info!("TLS Passthrough 바이패스 해제: {}", host);
@@ -433,11 +415,7 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandContext) -> 
                 total_timeouts: snapshot.total_timeouts,
                 uptime_secs: uptime,
             };
-            let mut line = serde_json::to_string(&response).unwrap_or_default();
-            line.push('\n');
-            let mut w = ctx.writer.lock().await;
-            let _ = w.write_all(line.as_bytes()).await;
-            let _ = w.flush().await;
+            ctx.send_message(&response).await;
         }
         ClientCommand::GetDomainStats { domain } => {
             let stats = ctx
@@ -446,11 +424,7 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandContext) -> 
                 .get_domain_stats(domain.as_deref())
                 .await;
             let response = DaemonMessage::DomainStatsResult { stats };
-            let mut line = serde_json::to_string(&response).unwrap_or_default();
-            line.push('\n');
-            let mut w = ctx.writer.lock().await;
-            let _ = w.write_all(line.as_bytes()).await;
-            let _ = w.flush().await;
+            ctx.send_message(&response).await;
         }
         ClientCommand::GetRecentErrors { limit } => {
             let errors = ctx
@@ -459,11 +433,7 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandContext) -> 
                 .get_recent_errors(limit)
                 .await;
             let response = DaemonMessage::RecentErrorsResult { errors };
-            let mut line = serde_json::to_string(&response).unwrap_or_default();
-            line.push('\n');
-            let mut w = ctx.writer.lock().await;
-            let _ = w.write_all(line.as_bytes()).await;
-            let _ = w.flush().await;
+            ctx.send_message(&response).await;
         }
         ClientCommand::Stop => {
             return true;
