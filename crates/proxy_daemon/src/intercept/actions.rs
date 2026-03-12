@@ -1,5 +1,6 @@
 /// 인터셉트 액션 구현 (Block, ModifyRequest, ModifyResponse, Rewrite, MapLocal, MapRemote)
 use super::helpers::{apply_header_modifications, apply_rewrite_action};
+use crate::handler::response_helpers;
 use crate::handler::LoggingHandler;
 use crate::protocol::{InterceptAction, InterceptRule, RewriteTarget, ServerReplayEntry};
 use bytes::Bytes;
@@ -90,7 +91,7 @@ impl LoggingHandler {
             "[Intercept] 요청 차단: {} {} -> {} (규칙: {})",
             method, url, status_code, rule_name
         );
-        let mut response = crate::handler::response_helpers::error_response(
+        let mut response = response_helpers::error_response(
             StatusCode::from_u16(status_code).unwrap_or(StatusCode::FORBIDDEN),
             Body::from(body.to_string()),
         );
@@ -127,7 +128,7 @@ impl LoggingHandler {
                     "[Intercept] Map Local 파일 읽기 실패: {} - {}",
                     file_path, e
                 );
-                return crate::handler::response_helpers::build_response(
+                return response_helpers::build_response(
                     Response::builder()
                         .status(StatusCode::NOT_FOUND)
                         .header("x-cheolsu-map-local-error", e.to_string()),
@@ -153,7 +154,7 @@ impl LoggingHandler {
             }
         }
 
-        crate::handler::response_helpers::build_response(
+        response_helpers::build_response(
             response,
             Body::from(http_body_util::Full::new(file_bytes)),
         )

@@ -5,6 +5,8 @@ use tracing::error;
 
 use proxyapi_v2::hyper::Request;
 
+use crate::handler::response_helpers;
+
 use super::super::LoggingHandler;
 
 impl LoggingHandler {
@@ -106,12 +108,12 @@ impl LoggingHandler {
             }
 
             use http_body_util::Full;
-            crate::handler::response_helpers::build_response(
+            response_helpers::build_response(
                 response,
                 Body::from(Full::new(cached_response.body().clone())),
             )
         } else {
-            crate::handler::response_helpers::error_response(
+            response_helpers::error_response(
                 StatusCode::INTERNAL_SERVER_ERROR,
                 Body::from("No cached response data available"),
             )
