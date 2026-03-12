@@ -1,25 +1,19 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 import Editor from "@monaco-editor/react";
 import { useTheme } from "next-themes";
 import { Code, LayoutList } from "lucide-react";
 import { useLingui } from "@lingui/react/macro";
 
 import { cn } from "@/shared/lib";
-import { parseFilterQuery } from "@/shared/lib/query-parser";
-import { Badge, Button, TooltipProvider } from "@/shared/ui";
+import { Badge, TooltipProvider } from "@/shared/ui";
 
 import { useMonacoEditor } from "../hooks";
 import { FilterHelpTooltip } from "./filter-help-tooltip";
-import { QueryBuilder } from "./query-builder";
 import { Separator } from "@/shared/ui/separator";
-import {
-  type BuilderState,
-  createEmptyCondition,
-  parsedQueryToBuilderState,
-  serializeBuilderState,
-} from "../lib/query-serializer";
+import { serializeBuilderState } from "../lib/query-serializer";
+import type { BuilderState } from "../lib/query-serializer";
 
-type EditorMode = "code" | "builder";
+export type EditorMode = "code" | "builder";
 
 export interface QueryFilterEditorProps {
   value: string;
@@ -28,6 +22,9 @@ export interface QueryFilterEditorProps {
   onApply: (value: string) => void;
   totalCount: number;
   filteredCount: number;
+  mode: EditorMode;
+  onModeChange: (mode: EditorMode) => void;
+  builderState: BuilderState;
 }
 
 export const QueryFilterEditor = ({
@@ -37,13 +34,10 @@ export const QueryFilterEditor = ({
   onApply,
   totalCount,
   filteredCount,
+  mode,
+  onModeChange,
+  builderState,
 }: QueryFilterEditorProps) => {
-  const [mode, setMode] = useState<EditorMode>("code");
-  const [builderState, setBuilderState] = useState<BuilderState>(() => ({
-    conditions: [createEmptyCondition()],
-    logicalOperator: "and",
-  }));
-
   const isDirty = value !== appliedValue;
   const { resolvedTheme } = useTheme();
   const { t } = useLingui();
@@ -61,61 +55,43 @@ export const QueryFilterEditor = ({
     return `${totalCount}`;
   }, [totalCount, filteredCount]);
 
-  const handleSwitchToBuilder = useCallback(() => {
-    const parsed = parseFilterQuery(value);
-    const state = parsedQueryToBuilderState(parsed);
-    if (state.conditions.length === 0) {
-      state.conditions = [createEmptyCondition()];
-    }
-    setBuilderState(state);
-    setMode("builder");
-  }, [value]);
-
   const handleSwitchToCode = useCallback(() => {
     const query = serializeBuilderState(builderState);
     onChange(query);
-    setMode("code");
-  }, [builderState, onChange]);
-
-  const handleBuilderStateChange = useCallback(
-    (state: BuilderState) => {
-      setBuilderState(state);
-      const query = serializeBuilderState(state);
-      onChange(query);
-    },
-    [onChange],
-  );
-
-  const handleBuilderApply = useCallback(
-    (query: string) => {
-      onChange(query);
-      onApply(query);
-    },
-    [onChange, onApply],
-  );
+    onModeChange("code");
+  }, [builderState, onChange, onModeChange]);
 
   if (mode === "builder") {
+    const previewText = serializeBuilderState(builderState) || t`No conditions`;
+
     return (
-      <div className="relative w-full min-w-0">
-        <div className="flex items-center gap-1 mb-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-6 px-2 text-[10px] gap-1 text-muted-foreground"
-            onClick={handleSwitchToCode}
-            title={t`Switch to Code mode`}
-          >
-            <Code className="w-3 h-3" />
-            Code
-          </Button>
+      <div className="relative w-full h-[36px] min-w-0 flex items-center">
+        <div className="absolute w-full flex-1 min-w-0 right-0">
+          <div className="w-full h-[36px] flex items-center border rounded-md bg-background">
+            <div className="flex items-center gap-1.5 px-2 flex-1 min-w-0">
+              <LayoutList className="w-3.5 h-3.5 text-accent shrink-0" />
+              <span className="text-xs font-mono text-muted-foreground truncate">
+                {previewText}
+              </span>
+            </div>
+
+            <Separator orientation="vertical" />
+
+            <button
+              type="button"
+              className="mx-1 p-1.5 hover:bg-accent/10 rounded-md transition-colors"
+              onClick={handleSwitchToCode}
+              title={t`Switch to Code mode`}
+            >
+              <Code className="w-3.5 h-3.5 text-muted-foreground" />
+            </button>
+
+            <Separator orientation="vertical" />
+            <Badge className="mx-2 text-[10px] font-mono shrink-0 bg-accent text-accent-foreground">
+              {statsText}
+            </Badge>
+          </div>
         </div>
-        <QueryBuilder
-          builderState={builderState}
-          onBuilderStateChange={handleBuilderStateChange}
-          onApply={handleBuilderApply}
-          totalCount={totalCount}
-          filteredCount={filteredCount}
-        />
       </div>
     );
   }
@@ -195,7 +171,7 @@ export const QueryFilterEditor = ({
           <button
             type="button"
             className="mx-1 p-1.5 hover:bg-accent/10 rounded-md transition-colors"
-            onClick={handleSwitchToBuilder}
+            onClick={() => onModeChange("builder")}
             title={t`Switch to Builder mode`}
           >
             <LayoutList className="w-3.5 h-3.5 text-muted-foreground" />

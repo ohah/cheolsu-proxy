@@ -11,7 +11,14 @@ import {
   AdvancedRepeatDialog,
 } from "@/features/transaction-details";
 import { buildHarLog } from "@/features/har-export";
-import { QueryFilterEditor } from "@/features/query-filter-editor";
+import { QueryFilterEditor, QueryBuilder, type EditorMode } from "@/features/query-filter-editor";
+import type { BuilderState } from "@/features/query-filter-editor/lib/query-serializer";
+import {
+  createEmptyCondition,
+  parsedQueryToBuilderState,
+  serializeBuilderState,
+} from "@/features/query-filter-editor/lib/query-serializer";
+import { parseFilterQuery } from "@/shared/lib/query-parser";
 import { RuleFormDialog } from "@/features/intercept-rule-form";
 import { DiffView } from "@/features/traffic-diff";
 
@@ -81,6 +88,44 @@ export const NetworkDashboard = () => {
   });
 
   const { t } = useLingui();
+
+  const [editorMode, setEditorMode] = useState<EditorMode>("code");
+  const [builderState, setBuilderState] = useState<BuilderState>(() => ({
+    conditions: [createEmptyCondition()],
+    logicalOperator: "and",
+  }));
+
+  const handleModeChange = useCallback(
+    (newMode: EditorMode) => {
+      if (newMode === "builder") {
+        const parsed = parseFilterQuery(filterQueryString);
+        const state = parsedQueryToBuilderState(parsed);
+        if (state.conditions.length === 0) {
+          state.conditions = [createEmptyCondition()];
+        }
+        setBuilderState(state);
+      }
+      setEditorMode(newMode);
+    },
+    [filterQueryString],
+  );
+
+  const handleBuilderStateChange = useCallback(
+    (state: BuilderState) => {
+      setBuilderState(state);
+      const query = serializeBuilderState(state);
+      onFilterQueryChange(query);
+    },
+    [onFilterQueryChange],
+  );
+
+  const handleBuilderApply = useCallback(
+    (query: string) => {
+      onFilterQueryChange(query);
+      onApplyFilter(query);
+    },
+    [onFilterQueryChange, onApplyFilter],
+  );
 
   const [sequenceReplayOpen, setSequenceReplayOpen] = useState(false);
   const [composeOpen, setComposeOpen] = useState(false);
@@ -328,9 +373,24 @@ export const NetworkDashboard = () => {
               appliedValue={appliedQueryString}
               onChange={onFilterQueryChange}
               onApply={onApplyFilter}
+              mode={editorMode}
+              onModeChange={handleModeChange}
+              builderState={builderState}
             />
           }
         />
+
+        {editorMode === "builder" && (
+          <div className="px-2 pb-2">
+            <QueryBuilder
+              builderState={builderState}
+              onBuilderStateChange={handleBuilderStateChange}
+              onApply={handleBuilderApply}
+              totalCount={totalCount}
+              filteredCount={filteredCount}
+            />
+          </div>
+        )}
 
         <div className="flex-1 flex flex-col overflow-hidden relative">
           <ResizablePanelGroup
