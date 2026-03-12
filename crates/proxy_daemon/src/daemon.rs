@@ -3,11 +3,11 @@ use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
 use std::sync::Arc;
 use tokio::net::UnixListener;
 use tokio::sync::{broadcast, watch};
-use tracing::{error, info, warn};
+use tracing::{debug, error, info, warn};
 use tracing_subscriber::prelude::*;
 
 use crate::breakpoint::BreakpointManager;
-use crate::client_handler::handle_client;
+use crate::client_handler::{handle_client, ClientHandlerContext};
 use crate::error::DaemonError;
 use crate::handler::QuickSettings;
 use crate::metrics_aggregator::MetricsAggregator;
@@ -53,12 +53,20 @@ fn write_lock_file(port: u16, uds_path: &str) -> Result<(), DaemonError> {
 
 fn remove_lock_file() {
     if let Ok(path) = lock_file_path() {
-        let _ = std::fs::remove_file(path);
+        if let Err(e) = std::fs::remove_file(&path) {
+            debug!("락 파일 삭제 실패 (무시 가능): {} - {}", path.display(), e);
+        }
     }
 }
 
 fn remove_uds_socket(path: &Path) {
-    let _ = std::fs::remove_file(path);
+    if let Err(e) = std::fs::remove_file(path) {
+        debug!(
+            "UDS 소켓 파일 삭제 실패 (무시 가능): {} - {}",
+            path.display(),
+            e
+        );
+    }
 }
 
 /// Checks if a stale lock file exists and cleans it up.
@@ -75,7 +83,9 @@ pub fn check_and_cleanup_stale_lock() -> bool {
     let contents = match std::fs::read_to_string(&lock_path) {
         Ok(c) => c,
         Err(_) => {
-            let _ = std::fs::remove_file(&lock_path);
+            if let Err(e) = std::fs::remove_file(&lock_path) {
+                debug!("stale 락 파일 삭제 실패: {}", e);
+            }
             return true;
         }
     };
@@ -83,7 +93,9 @@ pub fn check_and_cleanup_stale_lock() -> bool {
     let info: ProxyLockInfo = match serde_json::from_str(&contents) {
         Ok(i) => i,
         Err(_) => {
-            let _ = std::fs::remove_file(&lock_path);
+            if let Err(e) = std::fs::remove_file(&lock_path) {
+                debug!("잘못된 형식의 락 파일 삭제 실패: {}", e);
+            }
             return true;
         }
     };
@@ -96,8 +108,12 @@ pub fn check_and_cleanup_stale_lock() -> bool {
             "Stale lock file detected (PID {} is dead), cleaning up",
             info.pid
         );
-        let _ = std::fs::remove_file(&lock_path);
-        let _ = std::fs::remove_file(&info.uds_path);
+        if let Err(e) = std::fs::remove_file(&lock_path) {
+            debug!("dead 프로세스 락 파일 삭제 실패: {}", e);
+        }
+        if let Err(e) = std::fs::remove_file(&info.uds_path) {
+            debug!("dead 프로세스 UDS 소켓 삭제 실패: {}", e);
+        }
         return true;
     }
 
@@ -193,7 +209,13 @@ fn init_filesystem(port: u16) -> Result<(PathBuf, String), i32> {
     remove_uds_socket(&uds_path);
 
     if let Some(parent) = uds_path.parent() {
-        let _ = std::fs::create_dir_all(parent);
+        if let Err(e) = std::fs::create_dir_all(parent) {
+            debug!(
+                "UDS 소켓 상위 디렉토리 생성 실패: {} - {}",
+                parent.display(),
+                e
+            );
+        }
     }
 
     if let Err(e) = write_lock_file(port, &uds_path_str) {
@@ -229,10 +251,7 @@ struct DaemonContext {
     ws_registry: WebSocketRegistry,
     script_handle: scripting::ScriptHandle,
     quick_settings: Arc<tokio::sync::RwLock<QuickSettings>>,
-    // SAFETY: parking_lot::RwLock - async 컨텍스트에서 사용 중이나,
-    // .await를 넘어서 lock을 유지하지 않으므로 안전함.
-    // 리팩토링 시 tokio::sync::RwLock으로 교체 검토 필요.
-    proxy_auth: Arc<parking_lot::RwLock<Option<crate::protocol::ProxyAuthConfig>>>,
+    proxy_auth: Arc<tokio::sync::RwLock<Option<crate::protocol::ProxyAuthConfig>>>,
     tls_passthrough: proxyapi_v2::tls_passthrough::TlsPassthrough,
     connection_strategy: Arc<std::sync::atomic::AtomicU8>,
     metrics_aggregator: Arc<MetricsAggregator>,
@@ -258,10 +277,7 @@ fn spawn_proxy_task(
     ws_registry: WebSocketRegistry,
     script_handle: scripting::ScriptHandle,
     quick_settings: Arc<tokio::sync::RwLock<QuickSettings>>,
-    // SAFETY: parking_lot::RwLock - async 컨텍스트에서 사용 중이나,
-    // .await를 넘어서 lock을 유지하지 않으므로 안전함.
-    // 리팩토링 시 tokio::sync::RwLock으로 교체 검토 필요.
-    proxy_auth: Arc<parking_lot::RwLock<Option<crate::protocol::ProxyAuthConfig>>>,
+    proxy_auth: Arc<tokio::sync::RwLock<Option<crate::protocol::ProxyAuthConfig>>>,
     max_concurrent_connections: Option<usize>,
     max_body_size: Option<usize>,
     tls_passthrough: proxyapi_v2::tls_passthrough::TlsPassthrough,
@@ -382,35 +398,37 @@ async fn run_accept_loop(
                             shutdown_tx: ctx.shutdown_tx.clone(),
                         };
 
-                        let event_rx = ctx.event_tx.subscribe();
-                        let event_tx_clone = ctx.event_tx.clone();
-                        let intercept_tx_clone = ctx.intercept_tx.clone();
-                        let upstream_tx_clone = ctx.upstream_tx.clone();
-                        let server_replay_tx_clone = ctx.server_replay_tx.clone();
-                        let throttle_tx_clone = ctx.throttle_tx.clone();
-                        let breakpoint_tx_clone = ctx.breakpoint_tx.clone();
-                        let breakpoint_mgr_clone = ctx.breakpoint_manager.clone();
-                        let host_mapping_tx_clone = ctx.host_mapping_tx.clone();
-                        let ssl_proxying_tx_clone = ctx.ssl_proxying_tx.clone();
-                        let client_cert_tx_clone = ctx.client_cert_tx.clone();
-                        let request_client_cert_tx_clone = ctx.request_client_cert_tx.clone();
-                        let registry_clone = ctx.ws_registry.clone();
-                        let script_handle_clone = ctx.script_handle.clone();
-                        let quick_settings_clone = ctx.quick_settings.clone();
-                        let proxy_auth_clone = ctx.proxy_auth.clone();
-                        let started_at = ctx.started_at;
-                        let total_transactions_clone = ctx.total_transactions.clone();
-                        let client_count_for_health = ctx.client_count.clone();
-                        let tls_passthrough_clone = ctx.tls_passthrough.clone();
-                        let connection_strategy_clone = ctx.connection_strategy.clone();
-                        let metrics_aggregator_clone = ctx.metrics_aggregator.clone();
+                        let handler_ctx = ClientHandlerContext {
+                            event_rx: ctx.event_tx.subscribe(),
+                            intercept_tx: ctx.intercept_tx.clone(),
+                            upstream_tx: ctx.upstream_tx.clone(),
+                            server_replay_tx: ctx.server_replay_tx.clone(),
+                            throttle_tx: ctx.throttle_tx.clone(),
+                            breakpoint_tx: ctx.breakpoint_tx.clone(),
+                            breakpoint_manager: ctx.breakpoint_manager.clone(),
+                            host_mapping_tx: ctx.host_mapping_tx.clone(),
+                            ssl_proxying_tx: ctx.ssl_proxying_tx.clone(),
+                            client_cert_tx: ctx.client_cert_tx.clone(),
+                            request_client_cert_tx: ctx.request_client_cert_tx.clone(),
+                            event_tx: ctx.event_tx.clone(),
+                            port,
+                            ws_registry: ctx.ws_registry.clone(),
+                            script_handle: ctx.script_handle.clone(),
+                            quick_settings: ctx.quick_settings.clone(),
+                            proxy_auth: ctx.proxy_auth.clone(),
+                            started_at: ctx.started_at,
+                            total_transactions: ctx.total_transactions.clone(),
+                            client_count: ctx.client_count.clone(),
+                            tls_passthrough: ctx.tls_passthrough.clone(),
+                            connection_strategy: ctx.connection_strategy.clone(),
+                            metrics_aggregator: ctx.metrics_aggregator.clone(),
+                        };
 
                         tokio::spawn(async move {
                             // guard가 이 태스크 스코프에 소유되므로, 태스크가 어떤 방식으로
                             // 종료되든 (정상, 패닉, abort) Drop이 호출되어 카운트가 감소됩니다.
                             let _guard = _guard;
-                            handle_client(stream, event_rx, intercept_tx_clone, upstream_tx_clone, server_replay_tx_clone, throttle_tx_clone, breakpoint_tx_clone, breakpoint_mgr_clone, host_mapping_tx_clone, ssl_proxying_tx_clone, client_cert_tx_clone, request_client_cert_tx_clone, event_tx_clone, port, registry_clone, script_handle_clone, quick_settings_clone, proxy_auth_clone, started_at, total_transactions_clone, client_count_for_health, tls_passthrough_clone, connection_strategy_clone, metrics_aggregator_clone)
-                                .await;
+                            handle_client(stream, handler_ctx).await;
                         });
                     }
                     Err(e) => {
@@ -471,10 +489,7 @@ async fn daemon_main(port: u16, host: String) -> i32 {
     let ws_registry = WebSocketRegistry::new();
     let script_handle = scripting::ScriptHandle::new();
     let quick_settings = Arc::new(tokio::sync::RwLock::new(QuickSettings::default()));
-    // SAFETY: parking_lot::RwLock - async 컨텍스트에서 사용 중이나,
-    // .await를 넘어서 lock을 유지하지 않으므로 안전함.
-    // 리팩토링 시 tokio::sync::RwLock으로 교체 검토 필요.
-    let proxy_auth = Arc::new(parking_lot::RwLock::new(
+    let proxy_auth = Arc::new(tokio::sync::RwLock::new(
         None::<crate::protocol::ProxyAuthConfig>,
     ));
 

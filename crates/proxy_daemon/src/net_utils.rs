@@ -76,9 +76,9 @@ mod tests {
             let parts: Vec<&str> = ip.split('.').collect();
             assert_eq!(parts.len(), 4, "IPv4 형식이 아님: {}", ip);
             for part in parts {
-                let num: u8 = part
-                    .parse()
-                    .unwrap_or_else(|_| panic!("유효한 숫자가 아님: {}", ip));
+                let num: u8 = part.parse().unwrap_or_else(|_| {
+                    unreachable!("u8 파싱 실패는 assert_eq에서 걸러짐: {}", ip)
+                });
                 let _ = num; // 0-255 범위는 u8 파싱으로 보장
             }
         }

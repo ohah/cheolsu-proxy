@@ -1,5 +1,5 @@
 import { useRef, useEffect } from "react";
-import type { editor } from "monaco-editor";
+import type { editor, IDisposable } from "monaco-editor";
 import type { Monaco } from "@monaco-editor/react";
 import {
   setupMonacoLanguage,
@@ -17,7 +17,7 @@ interface UseMonacoEditorProps {
 export const useMonacoEditor = ({ onApply, onChange, appliedValue }: UseMonacoEditorProps) => {
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<Monaco | null>(null);
-  const disposablesRef = useRef<any[]>([]);
+  const disposablesRef = useRef<IDisposable[]>([]);
 
   const handleEditorDidMount = (editor: editor.IStandaloneCodeEditor, monaco: Monaco) => {
     editorRef.current = editor;

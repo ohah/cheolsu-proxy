@@ -403,13 +403,11 @@ mod tests {
             body: None,
         };
         let result = block_on(engine.invoke_on_request(&req)).unwrap();
-        match result {
-            RequestAction::Respond { response } => {
-                assert_eq!(response.status, 403);
-                assert_eq!(response.body.unwrap(), "Blocked");
-            }
-            _ => panic!("Expected Respond"),
-        }
+        let RequestAction::Respond { response } = result else {
+            unreachable!("Respond 액션을 기대했지만 다른 값이 반환됨: {:?}", result);
+        };
+        assert_eq!(response.status, 403);
+        assert_eq!(response.body.unwrap(), "Blocked");
     }
 
     #[test]
@@ -433,12 +431,13 @@ mod tests {
             body: None,
         };
         let result = block_on(engine.invoke_on_request(&req)).unwrap();
-        match result {
-            RequestAction::ModifyRequest { request } => {
-                assert_eq!(request.headers.get("X-Custom").unwrap(), "injected");
-            }
-            _ => panic!("Expected ModifyRequest"),
-        }
+        let RequestAction::ModifyRequest { request } = result else {
+            unreachable!(
+                "ModifyRequest 액션을 기대했지만 다른 값이 반환됨: {:?}",
+                result
+            );
+        };
+        assert_eq!(request.headers.get("X-Custom").unwrap(), "injected");
     }
 
     #[test]
@@ -468,12 +467,13 @@ mod tests {
             body: Some("OK".to_string()),
         };
         let result = block_on(engine.invoke_on_response(&req, &res)).unwrap();
-        match result {
-            ResponseAction::ModifyResponse { response } => {
-                assert_eq!(response.headers.get("X-Proxy").unwrap(), "cheolsu");
-            }
-            _ => panic!("Expected ModifyResponse"),
-        }
+        let ResponseAction::ModifyResponse { response } = result else {
+            unreachable!(
+                "ModifyResponse 액션을 기대했지만 다른 값이 반환됨: {:?}",
+                result
+            );
+        };
+        assert_eq!(response.headers.get("X-Proxy").unwrap(), "cheolsu");
     }
 
     #[test]
@@ -565,12 +565,13 @@ mod tests {
             body: None,
         };
         let result = block_on(engine.invoke_on_request(&req)).unwrap();
-        match result {
-            RequestAction::ModifyRequest { request } => {
-                assert_eq!(request.headers.get("X-Async").unwrap(), "true");
-            }
-            _ => panic!("Expected ModifyRequest from async hook"),
-        }
+        let RequestAction::ModifyRequest { request } = result else {
+            unreachable!(
+                "비동기 훅에서 ModifyRequest 액션을 기대했지만 다른 값이 반환됨: {:?}",
+                result
+            );
+        };
+        assert_eq!(request.headers.get("X-Async").unwrap(), "true");
     }
 
     #[test]
@@ -600,12 +601,13 @@ mod tests {
             body: None,
         };
         let result = block_on(engine.invoke_on_response(&req, &res)).unwrap();
-        match result {
-            ResponseAction::ModifyResponse { response } => {
-                assert_eq!(response.headers.get("X-Async").unwrap(), "response");
-            }
-            _ => panic!("Expected ModifyResponse from async hook"),
-        }
+        let ResponseAction::ModifyResponse { response } = result else {
+            unreachable!(
+                "비동기 훅에서 ModifyResponse 액션을 기대했지만 다른 값이 반환됨: {:?}",
+                result
+            );
+        };
+        assert_eq!(response.headers.get("X-Async").unwrap(), "response");
     }
 
     #[test]
@@ -659,13 +661,11 @@ mod tests {
                 body: None,
             };
             let result = engine.invoke_on_request(&req).await.unwrap();
-            match result {
-                RequestAction::Respond { response } => {
-                    // counter가 0이어야 함 (타이머가 정리되어 콜백이 실행되지 않음)
-                    assert_eq!(response.body.unwrap(), "0");
-                }
-                _ => panic!("Expected Respond"),
-            }
+            let RequestAction::Respond { response } = result else {
+                unreachable!("Respond 액션을 기대했지만 다른 값이 반환됨: {:?}", result);
+            };
+            // counter가 0이어야 함 (타이머가 정리되어 콜백이 실행되지 않음)
+            assert_eq!(response.body.unwrap(), "0");
         });
     }
 
@@ -710,12 +710,13 @@ mod tests {
                 body: None,
             };
             let result = engine2.invoke_on_request(&req).await.unwrap();
-            match result {
-                RequestAction::Respond { response } => {
-                    assert_eq!(response.body.unwrap(), "v2");
-                }
-                _ => panic!("Expected Respond with v2"),
-            }
+            let RequestAction::Respond { response } = result else {
+                unreachable!(
+                    "v2 Respond 액션을 기대했지만 다른 값이 반환됨: {:?}",
+                    result
+                );
+            };
+            assert_eq!(response.body.unwrap(), "v2");
         });
     }
 
@@ -783,11 +784,12 @@ mod tests {
             body: None,
         };
         let result = block_on(engine.invoke_on_request(&req)).unwrap();
-        match result {
-            RequestAction::Respond { response } => {
-                assert_eq!(response.body.unwrap(), "timer works");
-            }
-            _ => panic!("Expected Respond with timer result"),
-        }
+        let RequestAction::Respond { response } = result else {
+            unreachable!(
+                "타이머 결과로 Respond 액션을 기대했지만 다른 값이 반환됨: {:?}",
+                result
+            );
+        };
+        assert_eq!(response.body.unwrap(), "timer works");
     }
 }

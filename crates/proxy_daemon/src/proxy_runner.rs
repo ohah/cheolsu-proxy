@@ -31,7 +31,7 @@ pub async fn run_proxy(
     ws_registry: WebSocketRegistry,
     script_handle: scripting::ScriptHandle,
     quick_settings: std::sync::Arc<tokio::sync::RwLock<QuickSettings>>,
-    proxy_auth: std::sync::Arc<parking_lot::RwLock<Option<crate::protocol::ProxyAuthConfig>>>,
+    proxy_auth: std::sync::Arc<tokio::sync::RwLock<Option<crate::protocol::ProxyAuthConfig>>>,
     shutdown_signal: tokio::sync::oneshot::Receiver<()>,
     max_concurrent_connections: Option<usize>,
     max_body_size: Option<usize>,

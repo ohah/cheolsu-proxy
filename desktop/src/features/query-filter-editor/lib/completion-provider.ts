@@ -1,11 +1,11 @@
 import type { Monaco } from "@monaco-editor/react";
-import type { languages, IRange, IDisposable } from "monaco-editor";
+import type { languages, IRange, IDisposable, editor, Position } from "monaco-editor";
 import { HTTP_METHODS, STATUS_CODES } from "../model";
 
 export const createCompletionProvider = (monaco: Monaco): IDisposable => {
   return monaco.languages.registerCompletionItemProvider("cheolsu-query", {
     triggerCharacters: ['"', ",", " ", "|", "!", "="],
-    provideCompletionItems: (model: any, position: any) => {
+    provideCompletionItems: (model: editor.ITextModel, position: Position) => {
       const textUntilPosition = model.getValueInRange({
         startLineNumber: 1,
         startColumn: 1,

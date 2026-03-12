@@ -317,8 +317,8 @@ export function ReplayDialog({
       const res = await replayRequest(params);
       setReplayResponse(res);
       setActiveTab("replay");
-    } catch (e: any) {
-      setError(typeof e === "string" ? e : e.message || t`Request failed`);
+    } catch (e: unknown) {
+      setError(typeof e === "string" ? e : e instanceof Error ? e.message : t`Request failed`);
     } finally {
       setLoading(false);
     }

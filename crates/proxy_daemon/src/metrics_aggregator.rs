@@ -6,7 +6,7 @@ use std::collections::{HashMap, VecDeque};
 use std::sync::Arc;
 use std::time::Instant;
 use tokio::sync::{Mutex, RwLock};
-use tracing::debug;
+
 
 /// 도메인별 트래픽 통계
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]

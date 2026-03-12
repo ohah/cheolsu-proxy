@@ -120,8 +120,8 @@ export function AdvancedRepeatDialog({
     try {
       const res = await advancedRepeat(params);
       setResult(res);
-    } catch (e: any) {
-      setError(typeof e === "string" ? e : e.message || t`Advanced repeat failed`);
+    } catch (e: unknown) {
+      setError(typeof e === "string" ? e : e instanceof Error ? e.message : t`Advanced repeat failed`);
     } finally {
       unlisten?.();
       unlisten = null;
