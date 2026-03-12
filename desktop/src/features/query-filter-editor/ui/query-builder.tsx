@@ -163,7 +163,7 @@ const ConditionRow = ({
 
       {/* Field select */}
       <Select value={condition.field} onValueChange={handleFieldChange}>
-        <SelectTrigger size="sm" className="w-24 shrink-0">
+        <SelectTrigger size="sm" className="w-28 shrink-0">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
