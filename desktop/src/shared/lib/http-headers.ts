@@ -14,9 +14,7 @@ const HOP_BY_HOP_HEADERS = [
  * hop-by-hop 헤더를 제거한 새 객체를 반환합니다.
  * 대소문자 양쪽 모두 삭제합니다 (예: "host" / "Host").
  */
-export function sanitizeHopByHopHeaders(
-  headers: Record<string, string>,
-): Record<string, string> {
+export function sanitizeHopByHopHeaders(headers: Record<string, string>): Record<string, string> {
   const result = { ...headers };
   for (const key of HOP_BY_HOP_HEADERS) {
     delete result[key];
