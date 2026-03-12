@@ -45,6 +45,19 @@ const DEFAULT_MAX_CONCURRENT_CONNECTIONS: usize = 1024;
 /// 요청 바디 크기 기본 제한값 (100MB)
 const DEFAULT_MAX_BODY_SIZE: usize = 100 * 1024 * 1024;
 
+/// 이벤트 브로드캐스트 채널 용량
+/// 클라이언트에게 실시간 이벤트를 전송하는 broadcast 채널의 버퍼 크기
+const EVENT_BROADCAST_CHANNEL_CAPACITY: usize = 1024;
+
+/// 메트릭 이벤트 채널 용량
+const METRIC_EVENT_CHANNEL_CAPACITY: usize = 1024;
+
+/// TLS passthrough 변경 알림 채널 용량
+const TLS_CHANGE_CHANNEL_CAPACITY: usize = 64;
+
+/// 프록시 태스크 graceful shutdown 대기 시간 (초)
+const PROXY_SHUTDOWN_TIMEOUT_SECS: u64 = 5;
+
 /// 프록시 설정 전파용 watch 채널 송신자 그룹
 #[derive(Clone)]
 pub(crate) struct DaemonChannels {
@@ -165,7 +178,7 @@ async fn daemon_main(port: u16, host: String) -> i32 {
         Err(code) => return code,
     };
 
-    let (event_tx, _) = broadcast::channel::<String>(1024);
+    let (event_tx, _) = broadcast::channel::<String>(EVENT_BROADCAST_CHANNEL_CAPACITY);
     let (shutdown_tx, mut shutdown_rx) = tokio::sync::mpsc::channel::<()>(1);
     let (intercept_tx, intercept_rx) =
         watch::channel::<Vec<crate::protocol::InterceptRule>>(Vec::new());
@@ -215,13 +228,15 @@ async fn daemon_main(port: u16, host: String) -> i32 {
     let connection_strategy = Arc::new(std::sync::atomic::AtomicU8::new(0));
 
     // 메트릭 수집기 초기화
-    let (metric_event_tx, metric_event_rx) = proxyapi_v2::metrics::metric_event_channel(1024);
+    let (metric_event_tx, metric_event_rx) =
+        proxyapi_v2::metrics::metric_event_channel(METRIC_EVENT_CHANNEL_CAPACITY);
     let metrics_collector = Arc::new(MetricsCollector::new(metric_event_tx));
     let metrics_aggregator = Arc::new(MetricsAggregator::new(metrics_collector.clone()));
     let _metrics_handle = metrics_aggregator.spawn_aggregation_loop(metric_event_rx);
 
     // TLS 자동 학습 바이패스 초기화 (변경 알림 채널 포함)
-    let (tls_change_tx, mut tls_change_rx) = tokio::sync::mpsc::channel::<Vec<(String, u32)>>(64);
+    let (tls_change_tx, mut tls_change_rx) =
+        tokio::sync::mpsc::channel::<Vec<(String, u32)>>(TLS_CHANGE_CHANNEL_CAPACITY);
     let passthrough_path = app_support_dir()
         .ok()
         .map(|dir| dir.join("tls_passthrough.json"));
@@ -346,8 +361,8 @@ async fn daemon_main(port: u16, host: String) -> i32 {
                 Err(e) => warn!("Proxy task panicked during shutdown: {}", e),
             }
         }
-        _ = tokio::time::sleep(std::time::Duration::from_secs(5)) => {
-            warn!("Proxy task did not shut down within 5 seconds");
+        _ = tokio::time::sleep(std::time::Duration::from_secs(PROXY_SHUTDOWN_TIMEOUT_SECS)) => {
+            warn!("Proxy task did not shut down within {} seconds", PROXY_SHUTDOWN_TIMEOUT_SECS);
             // select! 분기에서 다른 future(proxy_handle)는 자동으로 drop되어 abort됨
         }
     }

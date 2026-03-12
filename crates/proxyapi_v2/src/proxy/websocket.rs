@@ -16,6 +16,20 @@ use tokio_tungstenite::{
 };
 use tracing::{debug, error, info, info_span, instrument, warn};
 
+/// WebSocket 최대 프레임 크기 (16MB)
+/// 단일 WebSocket 프레임이 허용되는 최대 바이트 수
+const MAX_FRAME_SIZE: usize = 16 * 1024 * 1024;
+
+/// WebSocket 최대 메시지 크기 (64MB)
+/// 여러 프레임으로 구성된 하나의 메시지가 허용되는 최대 바이트 수
+const MAX_MESSAGE_SIZE: usize = 64 * 1024 * 1024;
+
+/// WebSocket 읽기/쓰기 버퍼 크기 (256KB)
+const WS_BUFFER_SIZE: usize = 256 * 1024;
+
+/// WebSocket 메시지 주입 채널 용량
+const WS_INJECT_CHANNEL_CAPACITY: usize = 32;
+
 impl<C, CA, H, W> InternalProxy<C, CA, H, W>
 where
     C: Connect + Clone + Send + Sync + 'static,
@@ -63,8 +77,8 @@ where
         let mut config = WebSocketConfig::default();
         // WebSocket 설정
         config.accept_unmasked_frames = true;
-        config.max_frame_size = Some(16777216); // 16MB
-        config.max_message_size = Some(67108864); // 64MB
+        config.max_frame_size = Some(MAX_FRAME_SIZE);
+        config.max_message_size = Some(MAX_MESSAGE_SIZE);
 
         match hyper_tungstenite::upgrade(&mut req, Some(config)) {
             Ok((mut res, websocket)) => {
@@ -129,10 +143,10 @@ where
             debug!("TLS 클라이언트 기능 활성화됨");
             let mut ws_config = WebSocketConfig::default();
             ws_config.accept_unmasked_frames = true;
-            ws_config.max_frame_size = Some(16777216); // 16MB
-            ws_config.max_message_size = Some(67108864); // 64MB
-            ws_config.read_buffer_size = 262144; // 256KB
-            ws_config.write_buffer_size = 262144; // 256KB
+            ws_config.max_frame_size = Some(MAX_FRAME_SIZE);
+            ws_config.max_message_size = Some(MAX_MESSAGE_SIZE);
+            ws_config.read_buffer_size = WS_BUFFER_SIZE;
+            ws_config.write_buffer_size = WS_BUFFER_SIZE;
 
             debug!(config = ?ws_config, "서버 연결용 WebSocket 설정");
 
@@ -166,10 +180,10 @@ where
             debug!("일반 WebSocket 연결 (TLS 기능 비활성화)");
             let mut ws_config = WebSocketConfig::default();
             ws_config.accept_unmasked_frames = true;
-            ws_config.max_frame_size = Some(16777216); // 16MB
-            ws_config.max_message_size = Some(67108864); // 64MB
-            ws_config.read_buffer_size = 262144; // 256KB
-            ws_config.write_buffer_size = 262144; // 256KB
+            ws_config.max_frame_size = Some(MAX_FRAME_SIZE);
+            ws_config.max_message_size = Some(MAX_MESSAGE_SIZE);
+            ws_config.read_buffer_size = WS_BUFFER_SIZE;
+            ws_config.write_buffer_size = WS_BUFFER_SIZE;
 
             debug!(config = ?ws_config, "일반 연결용 WebSocket 설정");
 
@@ -205,8 +219,10 @@ where
         let (client_sink, client_stream) = client_socket.split();
 
         // 주입 채널 생성
-        let (inject_to_client_tx, inject_to_client_rx) = mpsc::channel::<Message>(32);
-        let (inject_to_server_tx, inject_to_server_rx) = mpsc::channel::<Message>(32);
+        let (inject_to_client_tx, inject_to_client_rx) =
+            mpsc::channel::<Message>(WS_INJECT_CHANNEL_CAPACITY);
+        let (inject_to_server_tx, inject_to_server_rx) =
+            mpsc::channel::<Message>(WS_INJECT_CHANNEL_CAPACITY);
 
         // 레지스트리에 등록
         let conn_id = uri.to_string();
@@ -555,8 +571,8 @@ mod tests {
         // WebSocket 설정 값이 코드에서 사용하는 값과 일치하는지 확인
         let mut config = WebSocketConfig::default();
         config.accept_unmasked_frames = true;
-        config.max_frame_size = Some(16777216);
-        config.max_message_size = Some(67108864);
+        config.max_frame_size = Some(MAX_FRAME_SIZE);
+        config.max_message_size = Some(MAX_MESSAGE_SIZE);
 
         assert!(config.accept_unmasked_frames);
         assert_eq!(config.max_frame_size, Some(16 * 1024 * 1024));
