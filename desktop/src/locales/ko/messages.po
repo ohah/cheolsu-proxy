@@ -219,6 +219,10 @@ msgstr "API 레퍼런스"
 msgid "Append the original request path to the target URL"
 msgstr "원본 요청 경로를 대상 URL에 추가"
 
+#: src/features/query-filter-editor/ui/query-builder.tsx:348
+msgid "Apply"
+msgstr "적용"
+
 #: src/features/query-filter-editor/ui/filter-help-tooltip.tsx:83
 msgid "Apply:"
 msgstr "적용:"
@@ -377,6 +381,7 @@ msgstr "Cheolsu Proxy 로고"
 msgid "Claude Code (CLI)"
 msgstr "Claude Code (CLI)"
 
+#: src/features/query-filter-editor/ui/query-builder.tsx:343
 #: src/pages/log-viewer/ui/logs-page.tsx:255
 #: src/pages/script/ui/script-page.tsx:298
 #: src/pages/settings/ui/components/request-client-cert-section.tsx:68
@@ -445,6 +450,10 @@ msgstr "요청 작성"
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:169
 msgid "Concurrency"
 msgstr "동시 요청 수"
+
+#: src/features/query-filter-editor/ui/query-builder.tsx:321
+msgid "Condition"
+msgstr "조건"
 
 #: src/shared/app-sidebar/ui/sidebar-status.tsx:27
 #: src/shared/app-sidebar/ui/sidebar-status.tsx:42
@@ -613,6 +622,10 @@ msgstr "다운로드 (KB/s)"
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:283
 msgid "Drop"
 msgstr "드롭"
+
+#: src/features/query-filter-editor/ui/query-builder.tsx:204
+msgid "e.g. api.example.com, /api/v1"
+msgstr "예: api.example.com, /api/v1"
 
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:164
 msgid "Edit Map Rule"
@@ -1892,6 +1905,14 @@ msgstr "전략"
 msgid "Supports PEM-encoded certificates and keys (RSA, ECDSA, PKCS#8)"
 msgstr "PEM 인코딩된 인증서 및 키를 지원합니다 (RSA, ECDSA, PKCS#8)"
 
+#: src/features/query-filter-editor/ui/query-filter-editor.tsx:199
+msgid "Switch to Builder mode"
+msgstr "빌더 모드로 전환"
+
+#: src/features/query-filter-editor/ui/query-filter-editor.tsx:106
+msgid "Switch to Code mode"
+msgstr "코드 모드로 전환"
+
 #: src/pages/settings/ui/components/general-settings.tsx:82
 msgid "System"
 msgstr "시스템"
@@ -2120,6 +2141,10 @@ msgstr "WebSocket 연결 및 메시지"
 #: src/features/websocket-replay/ui/ws-replay-dialog.tsx:102
 msgid "WebSocket Replay"
 msgstr "WebSocket 리플레이"
+
+#: src/features/query-filter-editor/ui/query-builder.tsx:148
+msgid "Where"
+msgstr "조건"
 
 #: src/pages/settings/ui/components/ssl-proxying-section.tsx:112
 msgid "Whitelist (Include)"
