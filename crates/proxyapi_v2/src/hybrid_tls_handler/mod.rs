@@ -2,14 +2,8 @@ mod analysis;
 mod stream;
 mod types;
 
-pub use types::{TlsConnectionInfo, TlsExtension, TlsStrategy};
-// 테스트 및 크레이트 내부에서 순수 함수에 직접 접근할 수 있도록 re-export
-#[allow(unused_imports)]
-pub(crate) use analysis::{
-    analyze_tls_connection, calculate_complexity_score, determine_tls_strategy, get_extension_name,
-    is_openssl_required_domain,
-};
 pub(crate) use stream::HybridTlsStream;
+pub use types::{TlsConnectionInfo, TlsExtension, TlsStrategy};
 
 use crate::certificate_authority::CertificateAuthority;
 use crate::rewind::Rewind;
@@ -658,7 +652,12 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::analysis::{
+        analyze_tls_connection, determine_tls_strategy, is_openssl_required_domain,
+    };
+    use super::types::{TlsConnectionInfo, TlsStrategy};
+    use crate::tls_version_detector::TlsVersion;
+    use http::uri::Authority;
 
     /// 최소 유효한 TLS 1.2 ClientHello를 생성하는 헬퍼
     /// 구조: record_hdr(5) + handshake_hdr(4) + client_version(2) + random(32) +
