@@ -42,7 +42,9 @@ export const SidebarMcp = ({ collapsed }: SidebarMcpProps) => {
   useEffect(() => {
     getMcpServerPath()
       .then(setMcpPath)
-      .catch(() => {});
+      .catch((e) => {
+        console.error("Failed to get MCP server path:", e);
+      });
   }, []);
 
   const mcpConfig = buildMcpConfig(mcpPath);
