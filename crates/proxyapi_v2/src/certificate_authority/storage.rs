@@ -43,9 +43,22 @@ pub fn get_ca_storage_dir() -> Result<PathBuf, String> {
         Ok(dir)
     }
 
-    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+    #[cfg(target_os = "linux")]
     {
-        Err("Currently only macOS and Windows are supported".to_string())
+        let home = std::env::var("HOME").map_err(|_| "Could not find HOME environment variable")?;
+
+        let identifier = "com.cheolsu-proxy";
+
+        let dir = PathBuf::from(home).join(".config").join(identifier);
+
+        fs::create_dir_all(&dir).map_err(|e| format!("Failed to create directory: {}", e))?;
+
+        Ok(dir)
+    }
+
+    #[cfg(not(any(target_os = "macos", target_os = "windows", target_os = "linux")))]
+    {
+        Err("Unsupported platform".to_string())
     }
 }
 
@@ -96,9 +109,26 @@ pub fn get_cache_storage_dir(session_hash: &str) -> Result<PathBuf, String> {
         Ok(dir)
     }
 
-    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+    #[cfg(target_os = "linux")]
     {
-        Err("Currently only macOS and Windows are supported".to_string())
+        let home = std::env::var("HOME").map_err(|_| "Could not find HOME environment variable")?;
+
+        let identifier = "com.cheolsu-proxy";
+
+        let dir = PathBuf::from(home)
+            .join(".cache")
+            .join(identifier)
+            .join("data")
+            .join(session_hash);
+
+        fs::create_dir_all(&dir).map_err(|e| format!("Failed to create cache directory: {}", e))?;
+
+        Ok(dir)
+    }
+
+    #[cfg(not(any(target_os = "macos", target_os = "windows", target_os = "linux")))]
+    {
+        Err("Unsupported platform".to_string())
     }
 }
 
@@ -211,9 +241,20 @@ pub fn get_base_cache_dir() -> Result<PathBuf, String> {
             .join("data"))
     }
 
-    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+    #[cfg(target_os = "linux")]
     {
-        Err("Currently only macOS and Windows are supported".to_string())
+        let home = std::env::var("HOME").map_err(|_| "Could not find HOME environment variable")?;
+        let identifier = "com.cheolsu-proxy";
+
+        Ok(PathBuf::from(home)
+            .join(".cache")
+            .join(identifier)
+            .join("data"))
+    }
+
+    #[cfg(not(any(target_os = "macos", target_os = "windows", target_os = "linux")))]
+    {
+        Err("Unsupported platform".to_string())
     }
 }
 
