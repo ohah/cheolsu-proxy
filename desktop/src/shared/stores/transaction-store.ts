@@ -4,6 +4,7 @@ import type { HttpTransaction } from "@/entities/proxy";
 
 interface TransactionStoreState {
   transactions: HttpTransaction[];
+  transactionIds: Set<string>;
   selectedTransaction: HttpTransaction | null;
   pinnedTransactionIds: Set<string>;
   checkedTransactionIds: Set<string>;
@@ -26,6 +27,7 @@ interface TransactionStoreState {
 
 export const useTransactionStore = create<TransactionStoreState>()((set) => ({
   transactions: [],
+  transactionIds: new Set(),
   selectedTransaction: null,
   pinnedTransactionIds: new Set(),
   checkedTransactionIds: new Set(),
@@ -33,15 +35,20 @@ export const useTransactionStore = create<TransactionStoreState>()((set) => ({
 
   addTransaction: (transaction) =>
     set((state) => {
-      if (state.transactions.some((t) => t.request?.id === transaction.request?.id)) {
-        return state;
-      }
-      return { transactions: [...state.transactions, transaction] };
+      const id = transaction.request?.id;
+      if (!id || state.transactionIds.has(id)) return state;
+      const transactionIds = new Set(state.transactionIds);
+      transactionIds.add(id);
+      return {
+        transactions: [...state.transactions, transaction],
+        transactionIds,
+      };
     }),
 
   clearTransactions: () =>
     set({
       transactions: [],
+      transactionIds: new Set(),
       selectedTransaction: null,
       pinnedTransactionIds: new Set(),
       checkedTransactionIds: new Set(),
@@ -49,12 +56,15 @@ export const useTransactionStore = create<TransactionStoreState>()((set) => ({
 
   deleteTransaction: (id) =>
     set((state) => {
+      const transactionIds = new Set(state.transactionIds);
+      transactionIds.delete(id);
       const pinnedTransactionIds = new Set(state.pinnedTransactionIds);
       pinnedTransactionIds.delete(id);
       const checkedTransactionIds = new Set(state.checkedTransactionIds);
       checkedTransactionIds.delete(id);
       return {
         transactions: state.transactions.filter((t) => t.request?.id !== id),
+        transactionIds,
         pinnedTransactionIds,
         checkedTransactionIds,
       };
@@ -103,15 +113,25 @@ export const useTransactionStore = create<TransactionStoreState>()((set) => ({
   setTransactions: (transactions) =>
     set({
       transactions,
+      transactionIds: new Set(
+        transactions.map((t) => t.request?.id).filter((id): id is string => !!id),
+      ),
       selectedTransaction: null,
       pinnedTransactionIds: new Set(),
       checkedTransactionIds: new Set(),
     }),
 
   appendTransactions: (newTransactions) =>
-    set((state) => ({
-      transactions: [...state.transactions, ...newTransactions],
-    })),
+    set((state) => {
+      const transactionIds = new Set(state.transactionIds);
+      for (const t of newTransactions) {
+        if (t.request?.id) transactionIds.add(t.request.id);
+      }
+      return {
+        transactions: [...state.transactions, ...newTransactions],
+        transactionIds,
+      };
+    }),
 
   togglePause: () => set((state) => ({ paused: !state.paused })),
   setPaused: (paused: boolean) => set({ paused }),

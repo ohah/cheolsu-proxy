@@ -16,6 +16,7 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/shared/ui";
+import { formatBytes } from "@/shared/lib/format-bytes";
 import { RefreshCw, Trash2, FolderOpen, Search, X, Shield, FileX2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -29,12 +30,6 @@ interface LogFileInfo {
 interface TlsPassthroughEntry {
   host: string;
   failure_count: number;
-}
-
-function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 function formatDate(timestamp: number): string {
@@ -347,7 +342,7 @@ export function LogsPage() {
                     <div className="text-sm font-medium truncate">{file.name}</div>
                     <div className="flex items-center gap-2 mt-1">
                       <Badge variant="outline" className="text-xs">
-                        {formatFileSize(file.size)}
+                        {formatBytes(file.size)}
                       </Badge>
                     </div>
                     <div className="text-xs text-muted-foreground mt-1">

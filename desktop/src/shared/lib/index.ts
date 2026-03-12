@@ -4,3 +4,4 @@ export * from "./curl";
 export * from "./fetch";
 export * from "./httpie";
 export * from "./python-requests";
+export * from "./http-headers";
