@@ -7,6 +7,7 @@ use proxyapi_v2::{
 use tracing::{error, info};
 
 use crate::cert_distribution;
+use crate::handler::response_helpers;
 
 use super::super::LoggingHandler;
 
@@ -92,7 +93,7 @@ impl LoggingHandler {
         }
 
         let body_bytes = entry.body.unwrap_or_default();
-        Some(crate::handler::response_helpers::build_response(
+        Some(response_helpers::build_response(
             response,
             Body::from(body_bytes),
         ))

@@ -6,6 +6,8 @@ use proxyapi_v2::{
 use std::error::Error;
 use tracing::{debug, error, info};
 
+use crate::handler::response_helpers;
+
 use super::super::LoggingHandler;
 
 impl HttpHandler for LoggingHandler {
@@ -95,7 +97,7 @@ impl HttpHandler for LoggingHandler {
                     max_size,
                     req.uri()
                 );
-                let response = crate::handler::response_helpers::error_response(
+                let response = response_helpers::error_response(
                     StatusCode::PAYLOAD_TOO_LARGE,
                     Body::from(format!(
                         "Request body too large: {} bytes (max: {} bytes)",
@@ -206,7 +208,7 @@ impl HttpHandler for LoggingHandler {
                     "[BodyLimit] 응답 바디 크기 초과: {} > {} — 바디를 잘라 반환",
                     response_size, max_size
                 );
-                return crate::handler::response_helpers::error_response(
+                return response_helpers::error_response(
                     StatusCode::BAD_GATEWAY,
                     Body::from(format!(
                         "Response body too large: {} bytes (max: {} bytes)",
@@ -267,7 +269,7 @@ impl HttpHandler for LoggingHandler {
                 if self.request.res.is_some() {
                     return self.create_response_from_cached_data();
                 } else {
-                    return crate::handler::response_helpers::empty_response(StatusCode::OK);
+                    return response_helpers::empty_response(StatusCode::OK);
                 }
             }
         }
@@ -300,7 +302,7 @@ impl HttpHandler for LoggingHandler {
             }
         }
 
-        crate::handler::response_helpers::error_response(
+        response_helpers::error_response(
             StatusCode::BAD_GATEWAY,
             Body::from(format!("Proxy Error: {}", err)),
         )

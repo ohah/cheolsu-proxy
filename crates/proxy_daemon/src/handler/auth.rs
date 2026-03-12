@@ -5,6 +5,7 @@ use proxyapi_v2::{
 };
 use tracing::info;
 
+use super::response_helpers;
 use super::LoggingHandler;
 
 impl LoggingHandler {
@@ -38,7 +39,7 @@ impl LoggingHandler {
                 "[ProxyAuth] 인증 실패: {:?}",
                 req.uri().authority().map(|a| a.to_string())
             );
-            Some(crate::handler::response_helpers::build_response(
+            Some(response_helpers::build_response(
                 Response::builder()
                     .status(StatusCode::PROXY_AUTHENTICATION_REQUIRED)
                     .header("Proxy-Authenticate", "Basic realm=\"Cheolsu Proxy\""),
