@@ -91,7 +91,7 @@ pub trait CertificateAuthority: Send + Sync + 'static {
         &self,
         authority: &Authority,
         upstream_cert: Option<&UpstreamCertInfo>,
-    ) -> impl Future<Output = Arc<ServerConfig>> + Send;
+    ) -> impl Future<Output = Result<Arc<ServerConfig>, Box<dyn std::error::Error + Send + Sync>>> + Send;
 
     /// Get the CA certificate in DER format for adding to client trust store.
     /// Returns None if the CA certificate is not available in DER format.

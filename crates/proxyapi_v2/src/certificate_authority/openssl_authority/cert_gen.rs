@@ -44,9 +44,10 @@ impl OpensslAuthority {
         x509_builder.set_subject_name(&name)?;
         x509_builder.set_version(2)?;
 
+        // 실질적으로 발생할 수 없는 경로이지만, expect 대신 안전하게 처리
         let not_before = SystemTime::now()
             .duration_since(SystemTime::UNIX_EPOCH)
-            .expect("Failed to determine current UNIX time")
+            .map_err(|_| openssl::error::ErrorStack::get())?
             .as_secs() as i64
             - NOT_BEFORE_OFFSET;
         x509_builder.set_not_before(Asn1Time::from_unix(not_before)?.as_ref())?;

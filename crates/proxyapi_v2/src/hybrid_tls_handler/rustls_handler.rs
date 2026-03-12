@@ -41,7 +41,7 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
             Rewind::new(client_read, hyper::body::Bytes::from(initial_data.to_vec()));
 
         // 서버 설정 생성
-        let server_config = self.ca.gen_server_config(authority, None).await;
+        let server_config = self.ca.gen_server_config(authority, None).await?;
         let acceptor = TlsAcceptor::from(server_config);
 
         // TLS 핸드셰이크 수행
@@ -75,7 +75,7 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
             },
         );
         info!("🔧 [RUSTLS] 서버 설정 생성 시작: {}", authority);
-        let server_config = self.ca.gen_server_config(authority, upstream_cert).await;
+        let server_config = self.ca.gen_server_config(authority, upstream_cert).await?;
         let acceptor = TlsAcceptor::from(server_config);
         info!("🔧 [RUSTLS] TlsAcceptor 생성 완료: {}", authority);
 

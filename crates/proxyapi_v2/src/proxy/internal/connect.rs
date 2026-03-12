@@ -457,11 +457,22 @@ where
                                             warn!("TLS 버전을 감지할 수 없음, 기존 rustls로 시도");
 
                                             // 기존 rustls 로직 사용
-                                            let server_config = self
+                                            let server_config = match self
                                                 .ca
                                                 .gen_server_config(&authority, None)
                                                 .instrument(info_span!("gen_server_config"))
-                                                .await;
+                                                .await
+                                            {
+                                                Ok(cfg) => cfg,
+                                                Err(e) => {
+                                                    error!(
+                                                        authority = %authority,
+                                                        error = %e,
+                                                        "서버 설정 생성 실패"
+                                                    );
+                                                    return;
+                                                }
+                                            };
 
                                             let stream = match TlsAcceptor::from(server_config)
                                                 .accept(upgraded)
