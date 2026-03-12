@@ -5,6 +5,10 @@ mod host_mapping;
 mod intercept;
 mod ssl;
 
+pub(crate) fn default_true() -> bool {
+    true
+}
+
 pub use auth::ProxyAuthConfig;
 pub use breakpoint_types::{BreakpointAction, BreakpointData, BreakpointPhase, BreakpointRule};
 pub use command::{ClientCommand, DaemonMessage, ProxyLockInfo};
