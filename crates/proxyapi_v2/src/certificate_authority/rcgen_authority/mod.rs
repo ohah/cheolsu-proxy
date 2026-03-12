@@ -1,0 +1,115 @@
+mod cert_gen;
+#[cfg(feature = "openssl-ca")]
+mod openssl_context;
+#[cfg(test)]
+mod tests;
+mod trait_impl;
+
+use crate::certificate_authority::CACHE_TTL;
+use http::uri::Authority;
+use moka::future::Cache;
+use rcgen::{Certificate, KeyPair};
+use std::sync::Arc;
+use tokio_rustls::rustls::{
+    ServerConfig,
+    crypto::CryptoProvider,
+    pki_types::{PrivateKeyDer, PrivatePkcs8KeyDer},
+};
+use tracing::info;
+
+/// 클라이언트 인증서 요청 설정 (프록시 → 클라이언트)
+#[derive(Debug, Clone)]
+pub struct ClientCertVerifyConfig {
+    /// 활성화 여부
+    pub enabled: bool,
+    /// 클라이언트 인증서 검증용 CA 인증서 (DER 형식)
+    pub ca_certs: Vec<tokio_rustls::rustls::pki_types::CertificateDer<'static>>,
+    /// 인증서 필수 여부
+    pub required: bool,
+}
+
+/// Issues certificates for use when communicating with clients.
+///
+/// Issues certificates for communicating with clients over TLS. Certificates are cached in memory
+/// up to a max size that is provided when creating the authority. Certificates are generated using
+/// the `rcgen` crate.
+///
+/// # Examples
+///
+/// ```rust
+/// use proxyapi_v2::{certificate_authority::RcgenAuthority, rustls::crypto::aws_lc_rs};
+/// use rcgen::{CertificateParams, KeyPair};
+///
+/// let key_pair = include_str!("../../../examples/ca/hudsucker.key");
+/// let ca_cert = include_str!("../../../examples/ca/hudsucker.cer");
+/// let key_pair = KeyPair::from_pem(key_pair).expect("Failed to parse private key");
+/// let ca_cert = CertificateParams::from_ca_cert_pem(ca_cert)
+///     .expect("Failed to parse CA certificate")
+///     .self_signed(&key_pair)
+///     .expect("Failed to sign CA certificate");
+///
+/// let ca = RcgenAuthority::new(key_pair, ca_cert, 1_000, aws_lc_rs::default_provider());
+/// ```
+pub struct RcgenAuthority {
+    pub(super) key_pair: KeyPair,
+    pub(super) ca_cert: Certificate,
+    pub(super) private_key: PrivateKeyDer<'static>,
+    pub(super) cache: Cache<Authority, Arc<ServerConfig>>,
+    #[cfg(feature = "openssl-ca")]
+    pub(super) openssl_ctx_cache: Cache<Authority, Arc<openssl::ssl::SslContext>>,
+    pub(super) provider: Arc<CryptoProvider>,
+    /// 클라이언트 인증서 요청 설정
+    pub(super) client_cert_verify: Arc<tokio::sync::RwLock<Option<ClientCertVerifyConfig>>>,
+}
+
+impl RcgenAuthority {
+    /// Creates a new rcgen authority.
+    pub fn new(
+        key_pair: KeyPair,
+        ca_cert: Certificate,
+        cache_size: u64,
+        provider: CryptoProvider,
+    ) -> Self {
+        let private_key = PrivateKeyDer::from(PrivatePkcs8KeyDer::from(key_pair.serialize_der()));
+
+        Self {
+            key_pair,
+            ca_cert,
+            private_key,
+            cache: Cache::builder()
+                .max_capacity(cache_size)
+                .time_to_live(std::time::Duration::from_secs(CACHE_TTL))
+                .build(),
+            #[cfg(feature = "openssl-ca")]
+            openssl_ctx_cache: Cache::builder()
+                .max_capacity(cache_size)
+                .time_to_live(std::time::Duration::from_secs(CACHE_TTL))
+                .build(),
+            provider: Arc::new(provider),
+            client_cert_verify: Arc::new(tokio::sync::RwLock::new(None)),
+        }
+    }
+
+    /// 클라이언트 인증서 요청 설정을 업데이트합니다.
+    /// 설정 변경 시 캐시를 무효화하여 새 연결에 반영됩니다.
+    pub async fn set_client_cert_verify(&self, config: Option<ClientCertVerifyConfig>) {
+        *self.client_cert_verify.write().await = config;
+        // 설정 변경 시 캐시를 무효화하여 새로운 ServerConfig가 생성되도록 함
+        self.cache.invalidate_all();
+        info!("클라이언트 인증서 요청 설정 업데이트 완료, 캐시 무효화됨");
+    }
+
+    /// 클라이언트 인증서 검증 설정의 Arc 핸들을 반환합니다.
+    /// 외부에서 비동기적으로 설정을 업데이트할 때 사용합니다.
+    pub fn get_client_cert_verify_handle(
+        &self,
+    ) -> Arc<tokio::sync::RwLock<Option<ClientCertVerifyConfig>>> {
+        Arc::clone(&self.client_cert_verify)
+    }
+
+    /// ServerConfig 캐시 핸들을 반환합니다.
+    /// 외부에서 설정 변경 시 캐시를 무효화할 때 사용합니다.
+    pub fn get_cache_handle(&self) -> Cache<Authority, Arc<ServerConfig>> {
+        self.cache.clone()
+    }
+}
