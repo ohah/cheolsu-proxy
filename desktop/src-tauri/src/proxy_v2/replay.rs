@@ -38,7 +38,7 @@ pub(crate) async fn replay_request(params: ReplayRequestParams) -> Result<Replay
         .build()
         .map_err(|e| format!("HTTP 클라이언트 생성 실패: {}", e))?;
 
-    tracing::warn!("replay 요청: SSL 인증서 검증 비활성화 (프록시 테스트 목적)");
+    tracing::debug!("replay 요청: SSL 인증서 검증 비활성화 (프록시 테스트 목적)");
 
     let method: reqwest::Method = params
         .method
