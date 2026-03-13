@@ -133,8 +133,11 @@ impl ProxyAuthForm {
     pub fn to_config(&self) -> proxy_daemon::ProxyAuthConfig {
         proxy_daemon::ProxyAuthConfig {
             enabled: self.enabled,
+            method: proxy_daemon::AuthMethod::default(),
             username: self.username.clone(),
             password: self.password.clone(),
+            token: None,
+            header_name: None,
         }
     }
 }

@@ -16,14 +16,25 @@ impl HttpHandler for LoggingHandler {
         let auth_failed = {
             let auth_config = self.config.proxy_auth.read().await;
             if let Some(config) = auth_config.as_ref() {
-                if config.enabled && !config.username.is_empty() {
-                    let auth_header = req
-                        .headers()
-                        .get("proxy-authorization")
-                        .and_then(|v| v.to_str().ok());
-                    !config.validate_proxy_auth(auth_header)
-                } else {
+                if !config.enabled {
                     false
+                } else if config.method == crate::protocol::AuthMethod::Basic
+                    && config.username.is_empty()
+                {
+                    false
+                } else {
+                    let auth_value = match config.method {
+                        crate::protocol::AuthMethod::Basic
+                        | crate::protocol::AuthMethod::Bearer => req
+                            .headers()
+                            .get("proxy-authorization")
+                            .and_then(|v| v.to_str().ok()),
+                        crate::protocol::AuthMethod::ApiKey => {
+                            let header_name = config.api_key_header_name();
+                            req.headers().get(header_name).and_then(|v| v.to_str().ok())
+                        }
+                    };
+                    !config.validate_proxy_auth(auth_value)
                 }
             } else {
                 false
@@ -64,24 +75,17 @@ impl HttpHandler for LoggingHandler {
         _ctx: &HttpContext,
         mut req: Request<Body>,
     ) -> RequestOrResponse {
-        // 프록시 인증 확인
-        if let Some(auth_response) = self.check_proxy_auth(&req).await {
-            return auth_response.into();
-        }
-        // 인증 통과 후 Proxy-Authorization 헤더 제거 (upstream에 전달 방지)
-        req.headers_mut().remove("proxy-authorization");
+        use super::request_pipeline::PipelineAction;
 
-        // 요청 바디 크기 제한 확인
-        if let Some(response) = self.check_request_body_size_limit(&req) {
-            return response.into();
+        // 초기 파이프라인: 인증, 바디 크기 제한, 인증서 다운로드, WebSocket 확장 제거
+        if let Some(action) = self.run_early_pipeline(&mut req).await {
+            return match action {
+                PipelineAction::Respond(response) | PipelineAction::RespondWithOutput(response) => {
+                    response.into()
+                }
+                PipelineAction::Continue(_) => unreachable!(),
+            };
         }
-
-        if let Some(cert_response) = self.check_cert_download_intercept(&req) {
-            return cert_response.into();
-        }
-
-        // WebSocket 업그레이드 시 확장 헤더 제거
-        Self::strip_websocket_extensions(&mut req);
 
         let (proxied_request, restored_req) = self.request_to_proxied_request(req).await;
 
