@@ -6,26 +6,40 @@ import { TransactionHeader } from "./transaction-header";
 import { TransactionHeaders } from "./transaction-headers";
 import { TransactionBody } from "./transaction-body";
 import { TransactionResponse } from "./transaction-response";
+import { TransactionBodySideBySide } from "./transaction-body-side-by-side";
 
 import { useTransactionTabs } from "../hooks";
-import { TRANSACTION_DETAILS_TAB_LABELS, TRANSACTION_DETAILS_TABS } from "../model";
+import {
+  TRANSACTION_DETAILS_TAB_LABELS,
+  TRANSACTION_DETAILS_TABS,
+  TRANSACTION_DETAILS_BOTTOM_TAB_LABELS,
+  TRANSACTION_DETAILS_BOTTOM_TABS,
+} from "../model";
+import type { DetailsPanelLayout } from "@/shared/stores/app-settings-store";
 
 interface TransactionDetailsProps {
   transaction: HttpTransaction;
   clearSelectedTransaction: () => void;
+  layout?: DetailsPanelLayout;
 }
 
 export function TransactionDetails({
   transaction,
   clearSelectedTransaction,
+  layout = "right",
 }: TransactionDetailsProps) {
   const { request, response } = transaction;
 
-  const { activeTab, tabs, onTabChange } = useTransactionTabs();
+  const { activeTab, tabs, onTabChange } = useTransactionTabs(layout);
 
   if (!request || !response) {
     return null;
   }
+
+  const isBottom = layout === "bottom";
+  const tabLabels = isBottom
+    ? TRANSACTION_DETAILS_BOTTOM_TAB_LABELS
+    : TRANSACTION_DETAILS_TAB_LABELS;
 
   return (
     <div className="h-full bg-card flex flex-col select-text">
@@ -43,22 +57,39 @@ export function TransactionDetails({
             >
               {tabs.map((tab) => (
                 <TabsTrigger key={tab} value={tab}>
-                  {TRANSACTION_DETAILS_TAB_LABELS[tab]}
+                  {tabLabels[tab as keyof typeof tabLabels]}
                 </TabsTrigger>
               ))}
             </TabsList>
 
-            <TabsContent value={TRANSACTION_DETAILS_TABS.HEADERS} className="flex-1 mt-4">
-              <TransactionHeaders transaction={transaction} />
-            </TabsContent>
+            {isBottom ? (
+              <>
+                <TabsContent
+                  value={TRANSACTION_DETAILS_BOTTOM_TABS.HEADERS}
+                  className="flex-1 mt-4"
+                >
+                  <TransactionHeaders transaction={transaction} sideBySide />
+                </TabsContent>
 
-            <TabsContent value={TRANSACTION_DETAILS_TABS.BODY} className="flex-1 mt-4">
-              <TransactionBody transaction={transaction} />
-            </TabsContent>
+                <TabsContent value={TRANSACTION_DETAILS_BOTTOM_TABS.BODY} className="flex-1 mt-4">
+                  <TransactionBodySideBySide transaction={transaction} />
+                </TabsContent>
+              </>
+            ) : (
+              <>
+                <TabsContent value={TRANSACTION_DETAILS_TABS.HEADERS} className="flex-1 mt-4">
+                  <TransactionHeaders transaction={transaction} />
+                </TabsContent>
 
-            <TabsContent value={TRANSACTION_DETAILS_TABS.RESPONSE} className="flex-1 mt-4">
-              <TransactionResponse transaction={transaction} />
-            </TabsContent>
+                <TabsContent value={TRANSACTION_DETAILS_TABS.BODY} className="flex-1 mt-4">
+                  <TransactionBody transaction={transaction} />
+                </TabsContent>
+
+                <TabsContent value={TRANSACTION_DETAILS_TABS.RESPONSE} className="flex-1 mt-4">
+                  <TransactionResponse transaction={transaction} />
+                </TabsContent>
+              </>
+            )}
           </Tabs>
         </div>
       </ScrollArea>

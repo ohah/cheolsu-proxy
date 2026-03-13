@@ -43,7 +43,7 @@ import {
 } from "@/shared/api/proxy";
 
 import { useTransactionFilters, useResizablePanelController } from "../hooks";
-import { useInterceptRuleDialogStore } from "@/shared/stores";
+import { useInterceptRuleDialogStore, useAppSettingsStore } from "@/shared/stores";
 import {
   useTransactionData,
   useTransactionActions,
@@ -81,6 +81,9 @@ export const NetworkDashboard = () => {
     filteredCount,
     totalCount,
   } = useTransactionFilters({ transactions });
+
+  const detailsLayout = useAppSettingsStore((s) => s.detailsPanelLayout);
+  const isBottomLayout = detailsLayout === "bottom";
 
   const detailsPanelRef = useResizablePanelController({ isExpanded: !!selectedTransaction });
 
@@ -393,67 +396,138 @@ export const NetworkDashboard = () => {
         )}
 
         <div className="flex-1 flex flex-col overflow-hidden relative">
-          <ResizablePanelGroup
-            orientation="horizontal"
-            defaultLayout={
-              defaultLayout ?? {
-                "host-path-tree": 25,
-                "network-table": 75,
-                "transaction-details": 0,
+          {isBottomLayout ? (
+            <ResizablePanelGroup
+              orientation="horizontal"
+              defaultLayout={
+                defaultLayout ?? {
+                  "host-path-tree": 25,
+                  "network-table-wrapper": 75,
+                }
               }
-            }
-            onLayoutChanged={onLayoutChanged}
-            className="flex-1 flex border border-b-0 shadow-[0_0_10px_0_rgba(0,0,0,0.05)] bg-background"
-          >
-            <ResizablePanel
-              id="host-path-tree"
-              className="h-full overflow-hidden"
-              maxSize="40%"
-              minSize="10%"
-              collapsible
+              onLayoutChanged={onLayoutChanged}
+              className="flex-1 flex border border-b-0 shadow-[0_0_10px_0_rgba(0,0,0,0.05)] bg-background"
             >
-              <HostPathTree
-                transactions={filteredTransactions}
-                selectedTransaction={selectedTransaction}
-                createTransactionSelectHandler={createTransactionSelectHandler}
-              />
-            </ResizablePanel>
-
-            <ResizableHandle withHandle />
-
-            <ResizablePanel id="network-table" className="flex flex-1 h-full overflow-hidden">
-              <NetworkTable
-                transactions={filteredTransactions}
-                pinnedTransactionIds={pinnedTransactionIds}
-                checkedTransactionIds={checkedTransactionIds}
-                selectedTransaction={selectedTransaction}
-                createTransactionSelectHandler={createTransactionToggleHandler}
-                createTransactionDeleteHandler={createTransactionDeleteHandler}
-                createTransactionPinHandler={createTransactionPinHandler}
-                createTransactionCheckHandler={createTransactionCheckHandler}
-                onAdvancedRepeat={setAdvancedRepeatTarget}
-                onToggleCheckAll={handleToggleCheckAll}
-              />
-            </ResizablePanel>
-
-            <ResizableHandle withHandle={!!selectedTransaction} />
-            <ResizablePanel
-              panelRef={detailsPanelRef}
-              id="transaction-details"
-              maxSize="50%"
-              minSize="25%"
-              collapsible
-              collapsedSize="0%"
-              className="w-96 h-full overflow-y-auto"
-            >
-              {selectedTransaction && (
-                <TransactionDetails
-                  transaction={selectedTransaction}
-                  clearSelectedTransaction={clearSelectedTransaction}
+              <ResizablePanel
+                id="host-path-tree"
+                className="h-full overflow-hidden"
+                maxSize="40%"
+                minSize="10%"
+                collapsible
+              >
+                <HostPathTree
+                  transactions={filteredTransactions}
+                  selectedTransaction={selectedTransaction}
+                  createTransactionSelectHandler={createTransactionSelectHandler}
                 />
-              )}
-            </ResizablePanel>
-          </ResizablePanelGroup>
+              </ResizablePanel>
+
+              <ResizableHandle withHandle />
+
+              <ResizablePanel
+                id="network-table-wrapper"
+                className="flex flex-1 h-full overflow-hidden"
+              >
+                <ResizablePanelGroup orientation="vertical" className="flex-1">
+                  <ResizablePanel id="network-table-bottom" className="flex flex-1 overflow-hidden">
+                    <NetworkTable
+                      transactions={filteredTransactions}
+                      pinnedTransactionIds={pinnedTransactionIds}
+                      checkedTransactionIds={checkedTransactionIds}
+                      selectedTransaction={selectedTransaction}
+                      createTransactionSelectHandler={createTransactionToggleHandler}
+                      createTransactionDeleteHandler={createTransactionDeleteHandler}
+                      createTransactionPinHandler={createTransactionPinHandler}
+                      createTransactionCheckHandler={createTransactionCheckHandler}
+                      onAdvancedRepeat={setAdvancedRepeatTarget}
+                      onToggleCheckAll={handleToggleCheckAll}
+                    />
+                  </ResizablePanel>
+
+                  <ResizableHandle withHandle={!!selectedTransaction} />
+                  <ResizablePanel
+                    panelRef={detailsPanelRef}
+                    id="transaction-details-bottom"
+                    maxSize="70%"
+                    minSize="20%"
+                    collapsible
+                    collapsedSize="0%"
+                    className="h-full overflow-y-auto"
+                  >
+                    {selectedTransaction && (
+                      <TransactionDetails
+                        transaction={selectedTransaction}
+                        clearSelectedTransaction={clearSelectedTransaction}
+                        layout="bottom"
+                      />
+                    )}
+                  </ResizablePanel>
+                </ResizablePanelGroup>
+              </ResizablePanel>
+            </ResizablePanelGroup>
+          ) : (
+            <ResizablePanelGroup
+              orientation="horizontal"
+              defaultLayout={
+                defaultLayout ?? {
+                  "host-path-tree": 25,
+                  "network-table": 75,
+                  "transaction-details": 0,
+                }
+              }
+              onLayoutChanged={onLayoutChanged}
+              className="flex-1 flex border border-b-0 shadow-[0_0_10px_0_rgba(0,0,0,0.05)] bg-background"
+            >
+              <ResizablePanel
+                id="host-path-tree"
+                className="h-full overflow-hidden"
+                maxSize="40%"
+                minSize="10%"
+                collapsible
+              >
+                <HostPathTree
+                  transactions={filteredTransactions}
+                  selectedTransaction={selectedTransaction}
+                  createTransactionSelectHandler={createTransactionSelectHandler}
+                />
+              </ResizablePanel>
+
+              <ResizableHandle withHandle />
+
+              <ResizablePanel id="network-table" className="flex flex-1 h-full overflow-hidden">
+                <NetworkTable
+                  transactions={filteredTransactions}
+                  pinnedTransactionIds={pinnedTransactionIds}
+                  checkedTransactionIds={checkedTransactionIds}
+                  selectedTransaction={selectedTransaction}
+                  createTransactionSelectHandler={createTransactionToggleHandler}
+                  createTransactionDeleteHandler={createTransactionDeleteHandler}
+                  createTransactionPinHandler={createTransactionPinHandler}
+                  createTransactionCheckHandler={createTransactionCheckHandler}
+                  onAdvancedRepeat={setAdvancedRepeatTarget}
+                  onToggleCheckAll={handleToggleCheckAll}
+                />
+              </ResizablePanel>
+
+              <ResizableHandle withHandle={!!selectedTransaction} />
+              <ResizablePanel
+                panelRef={detailsPanelRef}
+                id="transaction-details"
+                maxSize="50%"
+                minSize="25%"
+                collapsible
+                collapsedSize="0%"
+                className="w-96 h-full overflow-y-auto"
+              >
+                {selectedTransaction && (
+                  <TransactionDetails
+                    transaction={selectedTransaction}
+                    clearSelectedTransaction={clearSelectedTransaction}
+                  />
+                )}
+              </ResizablePanel>
+            </ResizablePanelGroup>
+          )}
 
           {checkedTransactionIds.size > 0 && (
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-3 bg-primary text-primary-foreground px-4 py-2.5 rounded-lg shadow-lg z-10">
