@@ -1,9 +1,7 @@
 import { defineConfig } from "@rspress/core";
-import pluginMermaid from "rspress-plugin-mermaid";
 
 export default defineConfig({
   root: ".",
-  plugins: [pluginMermaid()],
   ssg: {
     experimentalExcludeRoutePaths: ["/rspress.config"],
   },

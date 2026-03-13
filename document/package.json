@@ -18,8 +18,7 @@
   },
   "dependencies": {
     "react": "^19.2.0",
-    "react-dom": "^19.2.0",
-    "rspress-plugin-mermaid": "^1.0.1"
+    "react-dom": "^19.2.0"
   },
   "devDependencies": {
     "@rspress/core": "2.0.3",
