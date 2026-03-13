@@ -9,9 +9,9 @@ pub(crate) fn default_true() -> bool {
     true
 }
 
-pub use auth::ProxyAuthConfig;
+pub use auth::{AuthMethod, ProxyAuthConfig};
 pub use breakpoint_types::{BreakpointAction, BreakpointData, BreakpointPhase, BreakpointRule};
-pub use command::{ClientCommand, DaemonMessage, ProxyLockInfo};
+pub use command::{ClientCommand, DaemonMessage, ProxyLockInfo, PROTOCOL_VERSION};
 pub use host_mapping::HostMapping;
 pub use intercept::{InterceptAction, InterceptRule, RewriteTarget, ServerReplayEntry};
 pub use ssl::{
