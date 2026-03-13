@@ -94,6 +94,18 @@ pub(crate) async fn update_ssl_proxying_list(
 }
 
 #[tauri::command]
+pub(crate) async fn update_default_passthrough_domains(
+    proxy: State<'_, ProxyV2State>,
+    entries: Vec<SslProxyingEntry>,
+) -> Result<(), String> {
+    let sender = get_command_sender(&proxy).await?;
+    let cmd = ClientCommand::UpdateDefaultPassthroughDomains { entries };
+    sender.send_command(&cmd).await?;
+    tracing::info!("Daemon에 기본 패스스루 도메인 목록 업데이트 완료");
+    Ok(())
+}
+
+#[tauri::command]
 pub(crate) async fn update_client_certificate(
     proxy: State<'_, ProxyV2State>,
     config: Option<proxy_daemon::ClientCertConfig>,

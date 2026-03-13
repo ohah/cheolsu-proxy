@@ -128,6 +128,17 @@ pub(crate) async fn start_proxy_v2<R: Runtime>(
                                 tracing::warn!("emit ssl_proxying_list_updated 실패: {}", e);
                             }
                         }
+                        DaemonMessage::DefaultPassthroughDomainsUpdated { entries } => {
+                            if let Err(e) = app.emit(
+                                "default_passthrough_domains_updated",
+                                serde_json::json!({ "entries": entries }),
+                            ) {
+                                tracing::warn!(
+                                    "emit default_passthrough_domains_updated 실패: {}",
+                                    e
+                                );
+                            }
+                        }
                         DaemonMessage::TlsPassthroughUpdated { entries } => {
                             if let Err(e) = app.emit("tls_passthrough_updated", entries) {
                                 tracing::warn!("emit tls_passthrough_updated 실패: {}", e);
@@ -338,6 +349,22 @@ async fn sync_stored_settings_to_daemon<R: Runtime>(app: &AppHandle<R>, sender: 
             .await
         {
             tracing::warn!("설정 동기화 실패 (SslProxyingList): {}", e);
+        }
+
+        // 기본 패스스루 도메인 동기화
+        let default_passthrough: Vec<SslProxyingEntry> = ssl
+            .get("defaultPassthroughEntries")
+            .and_then(|v| serde_json::from_value(v.clone()).ok())
+            .unwrap_or_default();
+        if !default_passthrough.is_empty() {
+            if let Err(e) = sender
+                .send_command(&ClientCommand::UpdateDefaultPassthroughDomains {
+                    entries: default_passthrough,
+                })
+                .await
+            {
+                tracing::warn!("설정 동기화 실패 (DefaultPassthroughDomains): {}", e);
+            }
         }
     }
 

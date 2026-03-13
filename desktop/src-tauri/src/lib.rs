@@ -15,8 +15,8 @@ use proxy_v2::{
     proxy_v2_status, read_body_file, read_log_file, remove_custom_ca, remove_tls_passthrough,
     replay_request, replay_sequence, resolve_breakpoint, save_session, start_proxy_v2,
     stop_proxy_v2, uninstall_ca_cert, uninstall_cli, unload_script, update_breakpoint_rules,
-    update_client_certificate, update_connection_strategy, update_host_mappings,
-    update_intercept_rules_v2, update_proxy_auth, update_quick_settings,
+    update_client_certificate, update_connection_strategy, update_default_passthrough_domains,
+    update_host_mappings, update_intercept_rules_v2, update_proxy_auth, update_quick_settings,
     update_request_client_cert, update_server_replay, update_ssl_proxying_list, update_throttle,
     update_upstream_proxy, ws_inject_message, ProxyV2State,
 };
@@ -238,6 +238,7 @@ pub fn run() {
                 diff_transaction_pairs,
                 update_breakpoint_rules,
                 update_ssl_proxying_list,
+                update_default_passthrough_domains,
                 update_client_certificate,
                 update_request_client_cert,
                 parse_certificate_info,
