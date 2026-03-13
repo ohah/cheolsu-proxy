@@ -46,9 +46,7 @@ const App: React.FC = () => {
   const addPendingBreakpoint = useBreakpointStore((s) => s.addPendingBreakpoint);
   const setHostMappings = useHostMappingStore((s) => s.setMappings);
   const setSslFromDaemon = useSslProxyingStore((s) => s.setFromDaemon);
-  const setDefaultPassthroughEntries = useSslProxyingStore(
-    (s) => s.setDefaultPassthroughEntries,
-  );
+  const setDefaultPassthroughEntries = useSslProxyingStore((s) => s.setDefaultPassthroughEntries);
   const initDefaultPassthrough = useSslProxyingStore((s) => s.initDefaultPassthrough);
 
   // 앱 시작 시 프록시 초기화 → 데몬 규칙 수신 대기 → 저장된 규칙 동기화
