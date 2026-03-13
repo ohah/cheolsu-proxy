@@ -139,21 +139,6 @@ The assistant uses `get_websocket_messages` with a URI filter to retrieve the re
 
 ## Architecture
 
-```
-AI Assistant (Claude Code / Cursor)
-        |
-        | MCP Protocol (stdio)
-        v
-+---------------------+
-|  cheolsu-proxy-mcp  |  MCP server binary
-+----------+----------+
-           | Unix Domain Socket
-           v
-+---------------------+
-|    Proxy Daemon     |
-+---------------------+
-```
-
 ```mermaid
 graph TB
     A[AI Assistant<br/>Claude Code / Cursor] -->|MCP Protocol<br/>stdio| B[cheolsu-proxy-mcp<br/>MCP Server Binary]
