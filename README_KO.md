@@ -7,9 +7,9 @@
 
 </div>
 
-![GitHub](https://img.shields.io/github/license/ohah/cheolsu-proxy/)
-![GitHub last commit](https://img.shields.io/github/last-commit/ohah/cheolsu-proxy/)
-![GitHub top language](https://img.shields.io/github/languages/top/ohah/cheolsu-proxy/)
+![GitHub](https://img.shields.io/github/license/ohah/cheolsu-proxy)
+![GitHub last commit](https://img.shields.io/github/last-commit/ohah/cheolsu-proxy)
+![GitHub top language](https://img.shields.io/github/languages/top/ohah/cheolsu-proxy)
 
 ## 소개
 
@@ -81,7 +81,7 @@ Cheolsu Proxy는 첫 실행 시 자동으로 고유한 CA 인증서를 생성합
 
 로컬 시스템 프록시를 `127.0.0.1:8100`으로 설정하세요.
 
-- [macOS 가이드](https://support.apple.com/it-it/guide/mac-help/mchlp2591/mac)
+- [macOS 가이드](https://support.apple.com/ko-kr/guide/mac-help/mchlp2591/mac)
 - [Ubuntu 가이드](https://help.ubuntu.com/stable/ubuntu-help/net-proxy.html.en)
 - [Windows 가이드](https://support.microsoft.com/en-us/windows/use-a-proxy-server-in-windows-03096c53-0554-4ffe-b6ab-8b1deee8dae1)
 
@@ -200,12 +200,6 @@ PKG_CONFIG_PATH="/opt/homebrew/opt/openssl@3/lib/pkgconfig" cargo test -p proxya
 - **프로덕션 (macOS)**: `~/Library/Application Support/com.cheolsu-proxy/`
 - **프로덕션 (Windows)**: `%APPDATA%/com.cheolsu-proxy/` (향후 지원)
 - **프로덕션 (Linux)**: `~/.config/com.cheolsu-proxy/` (향후 지원)
-
-## 도움말 및 토론
-
-사용법에 대한 질문이 있으시면 [GitHub Discussions](https://github.com/ohah/cheolsu-proxy/discussions)를 이용해 주세요!
-
-![GitHub Discussions](https://img.shields.io/github/discussions/ohah/cheolsu-proxy)
 
 ## 기여하기
 
