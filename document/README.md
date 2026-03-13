@@ -1,56 +1,40 @@
 # Cheolsu Proxy 문서
 
-이 디렉토리는 Cheolsu Proxy 프로젝트의 모든 문서를 포함합니다.
+이 디렉토리는 Cheolsu Proxy 프로젝트의 문서 사이트 소스입니다.
+[Rspress](https://rspress.dev/)로 빌드되며 GitHub Pages에 배포됩니다.
 
-## 📚 문서 목차
+## 문서 구조
 
-### 🚀 기능 문서 (Features)
+```
+document/
+├── ko/              # 한국어 문서 (기본 언어)
+│   ├── features/    # 기능 문서
+│   ├── guide/       # 사용자 가이드
+│   ├── contributing/ # 기여 가이드
+│   └── releases/    # 릴리즈 노트
+├── en/              # 영문 문서
+│   ├── features/
+│   ├── guide/
+│   ├── contributing/
+│   └── releases/
+├── public/          # 정적 에셋 (이미지 등)
+└── rspress.config.ts # Rspress 설정
+```
 
-- [TLS 1.0/1.1 Native-TLS 지원](features/TLS_1_0_1_1_SUPPORT.md)
-  - TLS 1.0/1.1 레거시 클라이언트 지원 구현
-  - 하이브리드 TLS 핸들러 아키텍처
-  - PKCS12 인증서 생성 및 native-tls 통합
+## 로컬 개발
 
-### 🏗️ 아키텍처 (Architecture)
+```bash
+bun run --filter cheolsu-proxy-document dev
+```
 
-- (향후 추가 예정)
-  - 전체 시스템 아키텍처
-  - 컴포넌트 간 상호작용
-  - 데이터 플로우
+## 빌드
 
-### 📖 가이드 (Guides)
+```bash
+bun run --filter cheolsu-proxy-document build
+```
 
-- (향후 추가 예정)
-  - 설치 및 설정 가이드
-  - 사용법 및 예제
-  - 개발자 가이드
+## 배포
 
-### 🔧 API 문서 (API Documentation)
+`main` 브랜치에 `document/**` 변경이 푸시되면 CI가 자동으로 GitHub Pages에 배포합니다.
 
-- (향후 추가 예정)
-  - Rust API 레퍼런스
-  - TypeScript/React API 문서
-
-## 📝 문서 작성 가이드
-
-새로운 기능이나 문서를 추가할 때는 다음 구조를 따르세요:
-
-1. **기능 문서**: `document/features/` 디렉토리에 추가
-2. **아키텍처 문서**: `document/architecture/` 디렉토리에 추가
-3. **가이드**: `document/guides/` 디렉토리에 추가
-4. **이 인덱스 업데이트**: 새로운 문서를 목차에 추가
-
-## 🌐 GitHub Pages 배포
-
-문서는 main 브랜치에 `document/**` 변경이 푸시되면 CI가 빌드 후 GitHub Pages에 배포합니다.
-
-**저장소 설정**: Settings → Pages → Build and deployment → Source: **GitHub Actions**
-
-## 🔗 관련 링크
-
-- [프로젝트 메인 README](https://github.com/ohah/cheolsu-proxy/blob/main/README.md)
-- [GitHub 저장소](https://github.com/ohah/cheolsu-proxy)
-
----
-
-**마지막 업데이트**: 2025-10-10
+**저장소 설정**: Settings > Pages > Source: **GitHub Actions**
