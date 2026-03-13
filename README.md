@@ -17,16 +17,24 @@ Rust-based **Man in the Middle proxy** for inspecting and manipulating HTTP/HTTP
 
 ## Screenshots
 
-데스크톱 앱 동작 화면입니다.
+### Desktop (Tauri + React)
 
-| | | |
-|---|---|---|
-| [![Settings - Certificate](screenshots/01.png)](screenshots/01.png) | [![Screenshot 02](screenshots/02.png)](screenshots/02.png) | [![Screenshot 03](screenshots/03.png)](screenshots/03.png) |
-| [![Screenshot 04](screenshots/04.png)](screenshots/04.png) | [![Screenshot 05](screenshots/05.png)](screenshots/05.png) | [![Screenshot 06](screenshots/06.png)](screenshots/06.png) |
-| [![Screenshot 07](screenshots/07.png)](screenshots/07.png) | [![Screenshot 08](screenshots/08.png)](screenshots/08.png) | [![Screenshot 09](screenshots/09.png)](screenshots/09.png) |
-| [![Screenshot 10](screenshots/10.png)](screenshots/10.png) | [![Screenshot 11](screenshots/11.png)](screenshots/11.png) | [![Screenshot 12](screenshots/12.png)](screenshots/12.png) |
-| [![Screenshot 13](screenshots/13.png)](screenshots/13.png) | [![Screenshot 14](screenshots/14.png)](screenshots/14.png) | [![Screenshot 15](screenshots/15.png)](screenshots/15.png) |
-| [![Screenshot 16](screenshots/16.png)](screenshots/16.png) | [![Screenshot 17](screenshots/17.png)](screenshots/17.png) | |
+| | |
+|---|---|
+| [![Settings - Certificate](screenshots/desktop/01.png)](screenshots/desktop/01.png) | [![Logs](screenshots/desktop/09.png)](screenshots/desktop/09.png) |
+| [![Logs](screenshots/desktop/10.png)](screenshots/desktop/10.png) | [![Script](screenshots/desktop/11.png)](screenshots/desktop/11.png) |
+| [![Breakpoints](screenshots/desktop/12.png)](screenshots/desktop/12.png) | [![Server Replay](screenshots/desktop/13.png)](screenshots/desktop/13.png) |
+| [![Map Rules](screenshots/desktop/14.png)](screenshots/desktop/14.png) | [![Intercept Rules](screenshots/desktop/15.png)](screenshots/desktop/15.png) |
+| [![WebSocket](screenshots/desktop/16.png)](screenshots/desktop/16.png) | [![Network](screenshots/desktop/17.png)](screenshots/desktop/17.png) |
+
+### TUI (Ratatui)
+
+| | |
+|---|---|
+| [![TUI Logs](screenshots/tui/02.png)](screenshots/tui/02.png) | [![TUI Settings](screenshots/tui/03.png)](screenshots/tui/03.png) |
+| [![TUI Breakpoint](screenshots/tui/04.png)](screenshots/tui/04.png) | [![TUI Script](screenshots/tui/05.png)](screenshots/tui/05.png) |
+| [![TUI Rules](screenshots/tui/06.png)](screenshots/tui/06.png) | [![TUI WebSocket](screenshots/tui/07.png)](screenshots/tui/07.png) |
+| [![TUI Network](screenshots/tui/08.png)](screenshots/tui/08.png) | |
 
 > 이미지를 클릭하면 원본 크기로 볼 수 있습니다.
 
