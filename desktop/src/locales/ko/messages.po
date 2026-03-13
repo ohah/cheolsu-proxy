@@ -534,7 +534,7 @@ msgstr "커스텀 CA 인증서"
 msgid "Dark"
 msgstr "다크"
 
-#: src/widgets/websocket-messages/ui/ws-message-table.tsx:166
+#: src/widgets/websocket-messages/ui/ws-message-table.tsx:203
 msgid "Data"
 msgstr "데이터"
 
@@ -571,7 +571,7 @@ msgstr "규칙 삭제"
 msgid "Delete Transaction"
 msgstr "트랜잭션 삭제"
 
-#: src/widgets/websocket-messages/ui/ws-message-table.tsx:163
+#: src/widgets/websocket-messages/ui/ws-message-table.tsx:200
 msgid "Dir"
 msgstr "방향"
 
@@ -1848,7 +1848,7 @@ msgid "Simulate slow network conditions for testing"
 msgstr "테스트를 위한 저속 네트워크 환경 시뮬레이션"
 
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:62
-#: src/widgets/websocket-messages/ui/ws-message-table.tsx:165
+#: src/widgets/websocket-messages/ui/ws-message-table.tsx:202
 msgid "Size"
 msgstr "크기"
 
@@ -1967,7 +1967,7 @@ msgid "Throughput"
 msgstr "처리량"
 
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:63
-#: src/widgets/websocket-messages/ui/ws-message-table.tsx:167
+#: src/widgets/websocket-messages/ui/ws-message-table.tsx:204
 msgid "Time"
 msgstr "시간"
 
@@ -2032,7 +2032,7 @@ msgstr "신뢰됨"
 
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:229
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:59
-#: src/widgets/websocket-messages/ui/ws-message-table.tsx:164
+#: src/widgets/websocket-messages/ui/ws-message-table.tsx:201
 msgid "Type"
 msgstr "타입"
 
@@ -2133,7 +2133,7 @@ msgstr "애플리케이션 로그 파일 조회 및 관리"
 msgid "View application log files"
 msgstr "애플리케이션 로그 파일 조회"
 
-#: src/widgets/websocket-messages/ui/ws-message-table.tsx:152
+#: src/widgets/websocket-messages/ui/ws-message-table.tsx:191
 msgid "Waiting for WebSocket messages..."
 msgstr "WebSocket 메시지 대기 중..."
 

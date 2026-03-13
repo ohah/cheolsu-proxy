@@ -534,7 +534,7 @@ msgstr "Custom CA Certificate"
 msgid "Dark"
 msgstr "Dark"
 
-#: src/widgets/websocket-messages/ui/ws-message-table.tsx:166
+#: src/widgets/websocket-messages/ui/ws-message-table.tsx:203
 msgid "Data"
 msgstr "Data"
 
@@ -571,7 +571,7 @@ msgstr "Delete rule"
 msgid "Delete Transaction"
 msgstr "Delete Transaction"
 
-#: src/widgets/websocket-messages/ui/ws-message-table.tsx:163
+#: src/widgets/websocket-messages/ui/ws-message-table.tsx:200
 msgid "Dir"
 msgstr "Dir"
 
@@ -1848,7 +1848,7 @@ msgid "Simulate slow network conditions for testing"
 msgstr "Simulate slow network conditions for testing"
 
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:62
-#: src/widgets/websocket-messages/ui/ws-message-table.tsx:165
+#: src/widgets/websocket-messages/ui/ws-message-table.tsx:202
 msgid "Size"
 msgstr "Size"
 
@@ -1967,7 +1967,7 @@ msgid "Throughput"
 msgstr "Throughput"
 
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:63
-#: src/widgets/websocket-messages/ui/ws-message-table.tsx:167
+#: src/widgets/websocket-messages/ui/ws-message-table.tsx:204
 msgid "Time"
 msgstr "Time"
 
@@ -2032,7 +2032,7 @@ msgstr "Trusted"
 
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:229
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:59
-#: src/widgets/websocket-messages/ui/ws-message-table.tsx:164
+#: src/widgets/websocket-messages/ui/ws-message-table.tsx:201
 msgid "Type"
 msgstr "Type"
 
@@ -2133,7 +2133,7 @@ msgstr "View and manage application log files"
 msgid "View application log files"
 msgstr "View application log files"
 
-#: src/widgets/websocket-messages/ui/ws-message-table.tsx:152
+#: src/widgets/websocket-messages/ui/ws-message-table.tsx:191
 msgid "Waiting for WebSocket messages..."
 msgstr "Waiting for WebSocket messages..."
 
