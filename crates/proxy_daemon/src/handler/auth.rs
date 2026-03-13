@@ -20,33 +20,17 @@ impl LoggingHandler {
         *auth = Some(config);
     }
 
-    /// 인증 방식에 따라 요청에서 적절한 헤더 값을 추출합니다.
-    fn extract_auth_value<'a>(
-        req: &'a Request<Body>,
-        config: &crate::protocol::ProxyAuthConfig,
-    ) -> Option<&'a str> {
-        match config.method {
-            AuthMethod::Basic | AuthMethod::Bearer => req
-                .headers()
-                .get("proxy-authorization")
-                .and_then(|v| v.to_str().ok()),
-            AuthMethod::ApiKey => {
-                let header_name = config.api_key_header_name();
-                req.headers().get(header_name).and_then(|v| v.to_str().ok())
-            }
-        }
-    }
-
     /// Proxy-Authenticate 응답 헤더를 인증 방식에 맞게 생성합니다.
     fn proxy_authenticate_header(config: &crate::protocol::ProxyAuthConfig) -> &'static str {
         match config.method {
             AuthMethod::Basic => "Basic realm=\"Cheolsu Proxy\"",
             AuthMethod::Bearer => "Bearer realm=\"Cheolsu Proxy\"",
-            AuthMethod::ApiKey => "ApiKey",
+            AuthMethod::ApiKey => "ApiKey realm=\"Cheolsu Proxy\"",
         }
     }
 
     /// 프록시 인증을 확인합니다. 인증 실패 시 407 응답을 반환합니다.
+    /// 모든 인증 방식은 Proxy-Authorization 헤더를 사용합니다.
     pub(crate) async fn check_proxy_auth(&self, req: &Request<Body>) -> Option<Response<Body>> {
         let auth_config = self.config.proxy_auth.read().await;
         let config = match auth_config.as_ref() {
@@ -59,9 +43,12 @@ impl LoggingHandler {
             return None;
         }
 
-        let auth_value = Self::extract_auth_value(req, config);
+        let auth_header = req
+            .headers()
+            .get("proxy-authorization")
+            .and_then(|v| v.to_str().ok());
 
-        if config.validate_proxy_auth(auth_value) {
+        if config.validate_proxy_auth(auth_header) {
             None
         } else {
             info!(
