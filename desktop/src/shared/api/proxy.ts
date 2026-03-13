@@ -328,9 +328,7 @@ export async function updateSslProxyingList(
   return invoke("update_ssl_proxying_list", { mode, entries });
 }
 
-export async function updateDefaultPassthroughDomains(
-  entries: SslProxyingEntry[],
-): Promise<void> {
+export async function updateDefaultPassthroughDomains(entries: SslProxyingEntry[]): Promise<void> {
   return invoke("update_default_passthrough_domains", { entries });
 }
 

@@ -241,9 +241,7 @@ export function SslProxyingSection() {
               <span className={`transition-transform ${showDefaultDomains ? "rotate-90" : ""}`}>
                 ▶
               </span>
-              <Trans>
-                Built-in Passthrough Domains ({defaultPassthroughEntries.length})
-              </Trans>
+              <Trans>Built-in Passthrough Domains ({defaultPassthroughEntries.length})</Trans>
             </button>
             <Button type="button" variant="outline" size="sm" onClick={handleRestoreDefaults}>
               <Trans>Restore Defaults</Trans>
@@ -251,7 +249,8 @@ export function SslProxyingSection() {
           </div>
           <p className="text-xs text-muted-foreground">
             <Trans>
-              These domains are automatically excluded from HTTPS interception to prevent OAuth/authentication failures. You can toggle, add, or remove domains.
+              These domains are automatically excluded from HTTPS interception to prevent
+              OAuth/authentication failures. You can toggle, add, or remove domains.
             </Trans>
           </p>
           {showDefaultDomains && (
