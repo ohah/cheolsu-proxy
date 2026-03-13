@@ -43,6 +43,7 @@ pub(super) fn spawn_proxy_task(
         ssl_proxying_rx,
         client_cert_rx,
         request_client_cert_rx,
+        default_passthrough_rx,
     } = watch_receivers;
     let handle = tokio::spawn(async move {
         if let Err(code) = run_proxy(
@@ -69,6 +70,7 @@ pub(super) fn spawn_proxy_task(
             connection_strategy,
             metrics_collector,
             total_transactions,
+            default_passthrough_rx,
         )
         .await
         {

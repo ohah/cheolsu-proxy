@@ -475,6 +475,9 @@ async fn create_test_handler() -> LoggingHandler {
             script_handle: scripting::ScriptHandle::new(),
             ssl_proxying_mode: Arc::new(RwLock::new(crate::protocol::SslProxyingMode::default())),
             ssl_proxying_entries: Arc::new(RwLock::new(Vec::new())),
+            default_passthrough_entries: Arc::new(RwLock::new(
+                crate::ssl_proxying::default_passthrough_entries(),
+            )),
         },
         ws: WebSocketState {
             ws_sender: None,

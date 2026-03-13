@@ -153,6 +153,23 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bo
                 }
             }
         }
+        ClientCommand::UpdateDefaultPassthroughDomains { entries } => {
+            info!(
+                "Default passthrough domains updated from client: {} entries",
+                entries.len()
+            );
+            if let Err(e) = s.channels.default_passthrough_tx.send(entries.clone()) {
+                warn!("기본 패스스루 도메인 watch 채널 전송 실패: {}", e);
+            }
+            let broadcast_msg = DaemonMessage::DefaultPassthroughDomainsUpdated { entries };
+            if let Ok(json) = serde_json::to_string(&broadcast_msg) {
+                if s.event_tx.receiver_count() > 0 {
+                    if let Err(e) = s.event_tx.send(json) {
+                        warn!("기본 패스스루 도메인 broadcast 전송 실패: {}", e);
+                    }
+                }
+            }
+        }
         ClientCommand::UpdateClientCertificate { config } => {
             info!(
                 "Client certificate config updated: enabled={:?}",

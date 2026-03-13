@@ -51,7 +51,14 @@ impl HttpHandler for LoggingHandler {
 
             let mode = self.intercept.ssl_proxying_mode.read().await;
             let entries = self.intercept.ssl_proxying_entries.read().await;
-            let result = crate::ssl_proxying::should_intercept_ssl(&mode, &entries, host, port);
+            let default_passthrough = self.intercept.default_passthrough_entries.read().await;
+            let result = crate::ssl_proxying::should_intercept_ssl(
+                &mode,
+                &entries,
+                &default_passthrough,
+                host,
+                port,
+            );
 
             if !result {
                 debug!("[SSLProxying] TLS Passthrough 적용: {}", authority);

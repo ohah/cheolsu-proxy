@@ -40,6 +40,7 @@ pub async fn run_proxy(
     connection_strategy: std::sync::Arc<std::sync::atomic::AtomicU8>,
     metrics_collector: std::sync::Arc<proxyapi_v2::metrics::MetricsCollector>,
     total_transactions: std::sync::Arc<std::sync::atomic::AtomicU64>,
+    mut default_passthrough_rx: watch::Receiver<Vec<SslProxyingEntry>>,
 ) -> Result<(), DaemonError> {
     use proxyapi_v2::builder::ProxyBuilder;
     use proxyapi_v2::certificate_authority::{
@@ -183,6 +184,22 @@ pub async fn run_proxy(
             let (mode, entries) = ssl_proxying_rx.borrow().clone();
             handler_for_ssl_updates
                 .update_ssl_proxying(mode, entries)
+                .await;
+        }
+    });
+
+    // 기본 패스스루 도메인 초기값 로드 및 감시
+    {
+        let entries = default_passthrough_rx.borrow().clone();
+        handler.update_default_passthrough(entries).await;
+    }
+
+    let handler_for_passthrough_updates = handler.clone();
+    tokio::spawn(async move {
+        while default_passthrough_rx.changed().await.is_ok() {
+            let entries = default_passthrough_rx.borrow().clone();
+            handler_for_passthrough_updates
+                .update_default_passthrough(entries)
                 .await;
         }
     });
