@@ -1,7 +1,7 @@
 use proxy_daemon::HostMapping;
 use rmcp::{handler::server::wrapper::Parameters, model::*, tool, ErrorData as McpError};
 
-use crate::helpers::{next_mapping_id, tool_error, tool_ok};
+use crate::helpers::{add_and_sync, list_items, next_mapping_id, remove_and_sync};
 use crate::params::*;
 use crate::server::CheolsuMcpServer;
 
@@ -10,16 +10,11 @@ impl CheolsuMcpServer {
         description = "List all host mappings (DNS spoofing / remote host mapping rules). Maps source hosts to target hosts/IPs for testing without modifying hosts file."
     )]
     pub(crate) async fn list_host_mappings(&self) -> Result<CallToolResult, McpError> {
-        let mappings = self.store.host_mappings.lock();
-        if mappings.is_empty() {
-            return tool_ok("No host mappings configured.");
-        }
-        let list: Vec<String> = mappings.iter().map(|m| format!("  {}", m)).collect();
-        tool_ok(format!(
-            "{} host mappings:\n\n{}",
-            mappings.len(),
-            list.join("\n")
-        ))
+        list_items(
+            &self.store.host_mappings,
+            "host mappings",
+            "No host mappings configured.",
+        )
     }
 
     #[tool(
@@ -39,15 +34,14 @@ impl CheolsuMcpServer {
             enabled: true,
         };
 
-        self.store.host_mappings.lock().push(mapping);
-
-        match self.send_host_mappings().await {
-            Ok(()) => tool_ok(format!("Host mapping '{}' added successfully.", id)),
-            Err(e) => tool_error(format!(
-                "Host mapping added locally but failed to sync with daemon: {}",
-                e
-            )),
-        }
+        add_and_sync(
+            &self.store.host_mappings,
+            mapping,
+            &id,
+            "Host mapping",
+            || self.send_host_mappings(),
+        )
+        .await
     }
 
     #[tool(description = "Remove a host mapping rule by its ID.")]
@@ -55,23 +49,13 @@ impl CheolsuMcpServer {
         &self,
         Parameters(p): Parameters<RemoveHostMappingParams>,
     ) -> Result<CallToolResult, McpError> {
-        let removed = {
-            let mut mappings = self.store.host_mappings.lock();
-            let before = mappings.len();
-            mappings.retain(|m| m.id != p.id);
-            mappings.len() < before
-        };
-
-        if !removed {
-            return tool_error(format!("Host mapping '{}' not found.", p.id));
-        }
-
-        match self.send_host_mappings().await {
-            Ok(()) => tool_ok(format!("Host mapping '{}' removed.", p.id)),
-            Err(e) => tool_error(format!(
-                "Host mapping removed locally but failed to sync with daemon: {}",
-                e
-            )),
-        }
+        remove_and_sync(
+            &self.store.host_mappings,
+            &p.id,
+            |m| &m.id,
+            "Host mapping",
+            || self.send_host_mappings(),
+        )
+        .await
     }
 }

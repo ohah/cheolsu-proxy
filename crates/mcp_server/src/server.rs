@@ -64,45 +64,33 @@ impl CheolsuMcpServer {
     }
 
     pub(crate) async fn send_rules(&self) -> Result<(), String> {
-        let conn_guard = self.daemon_conn.lock().await;
-        let Some(conn) = conn_guard.as_ref() else {
-            return Err("Not connected to proxy daemon".to_string());
-        };
         let cmd = {
             let rules = self.store.rules.lock();
             proxy_daemon::ClientCommand::UpdateInterceptRules {
                 rules: rules.clone(),
             }
         };
-        conn.send_command(&cmd).await.map_err(|e| e.to_string())
+        crate::helpers::with_daemon_conn(&self.daemon_conn, &cmd).await
     }
 
     pub(crate) async fn send_host_mappings(&self) -> Result<(), String> {
-        let conn_guard = self.daemon_conn.lock().await;
-        let Some(conn) = conn_guard.as_ref() else {
-            return Err("Not connected to proxy daemon".to_string());
-        };
         let cmd = {
             let mappings = self.store.host_mappings.lock();
             proxy_daemon::ClientCommand::UpdateHostMappings {
                 mappings: mappings.clone(),
             }
         };
-        conn.send_command(&cmd).await.map_err(|e| e.to_string())
+        crate::helpers::with_daemon_conn(&self.daemon_conn, &cmd).await
     }
 
     pub(crate) async fn send_breakpoint_rules(&self) -> Result<(), String> {
-        let conn_guard = self.daemon_conn.lock().await;
-        let Some(conn) = conn_guard.as_ref() else {
-            return Err("Not connected to proxy daemon".to_string());
-        };
         let cmd = {
             let rules = self.store.breakpoint_rules.lock();
             proxy_daemon::ClientCommand::UpdateBreakpointRules {
                 rules: rules.clone(),
             }
         };
-        conn.send_command(&cmd).await.map_err(|e| e.to_string())
+        crate::helpers::with_daemon_conn(&self.daemon_conn, &cmd).await
     }
 }
 
