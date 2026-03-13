@@ -7,9 +7,9 @@
 
 </div>
 
-![GitHub](https://img.shields.io/github/license/ohah/cheolsu-proxy/)
-![GitHub last commit](https://img.shields.io/github/last-commit/ohah/cheolsu-proxy/)
-![GitHub top language](https://img.shields.io/github/languages/top/ohah/cheolsu-proxy/)
+![GitHub](https://img.shields.io/github/license/ohah/cheolsu-proxy)
+![GitHub last commit](https://img.shields.io/github/last-commit/ohah/cheolsu-proxy)
+![GitHub top language](https://img.shields.io/github/languages/top/ohah/cheolsu-proxy)
 
 ## Description
 
@@ -81,7 +81,7 @@ Cheolsu Proxy automatically generates a unique CA certificate on first launch.
 
 Set your local system proxy to `127.0.0.1:8100`.
 
-- [macOS guide](https://support.apple.com/it-it/guide/mac-help/mchlp2591/mac)
+- [macOS guide](https://support.apple.com/en-us/guide/mac-help/mchlp2591/mac)
 - [Ubuntu guide](https://help.ubuntu.com/stable/ubuntu-help/net-proxy.html.en)
 - [Windows guide](https://support.microsoft.com/en-us/windows/use-a-proxy-server-in-windows-03096c53-0554-4ffe-b6ab-8b1deee8dae1)
 
@@ -200,12 +200,6 @@ PKG_CONFIG_PATH="/opt/homebrew/opt/openssl@3/lib/pkgconfig" cargo test -p proxya
 - **Production (macOS)**: `~/Library/Application Support/com.cheolsu-proxy/`
 - **Production (Windows)**: `%APPDATA%/com.cheolsu-proxy/` (planned)
 - **Production (Linux)**: `~/.config/com.cheolsu-proxy/` (planned)
-
-## Help & Discussion
-
-If you have questions on how to use Cheolsu Proxy, please use [GitHub Discussions](https://github.com/ohah/cheolsu-proxy/discussions)!
-
-![GitHub Discussions](https://img.shields.io/github/discussions/ohah/cheolsu-proxy)
 
 ## Contributing
 
