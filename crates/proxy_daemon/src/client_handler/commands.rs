@@ -209,15 +209,10 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bo
                     .await
                     .map_err(|e| e.to_string())
             } else if let Some(script_code) = &code {
-                // JS로 먼저 시도, 실패 시 TS로 트랜스파일
-                match s.script_handle.load_code(script_code).await {
-                    Ok(()) => Ok(()),
-                    Err(_) => s
-                        .script_handle
-                        .load_ts_code(script_code)
-                        .await
-                        .map_err(|e| e.to_string()),
-                }
+                s.script_handle
+                    .load_ts_code(script_code)
+                    .await
+                    .map_err(|e| e.to_string())
             } else {
                 Err("path 또는 code 중 하나가 필요합니다".to_string())
             };
