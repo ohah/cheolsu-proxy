@@ -1,10 +1,87 @@
 import { useState, useCallback } from "react";
 import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
-import { type SslProxyingEntry, DEFAULT_PASSTHROUGH_DOMAINS } from "@/shared/api/proxy";
+import { type SslProxyingEntry, getDefaultPassthroughDomains } from "@/shared/api/proxy";
 import { Button, Input, Switch } from "@/shared/ui";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/shared/ui";
 import { useSettingsForm } from "../settings-form";
+
+type FormFieldPath = "sslProxying.entries" | "sslProxying.defaultPassthroughEntries";
+
+function useEntryListHandlers(fieldPath: FormFieldPath, entries: SslProxyingEntry[]) {
+  const form = useSettingsForm();
+
+  const handleToggle = useCallback(
+    (pattern: string) => {
+      form.setValue(
+        fieldPath,
+        entries.map((e) => (e.pattern === pattern ? { ...e, enabled: !e.enabled } : e)),
+        { shouldDirty: true },
+      );
+    },
+    [entries, form, fieldPath],
+  );
+
+  const handleRemove = useCallback(
+    (pattern: string) => {
+      form.setValue(
+        fieldPath,
+        entries.filter((e) => e.pattern !== pattern),
+        { shouldDirty: true },
+      );
+    },
+    [entries, form, fieldPath],
+  );
+
+  const handleAdd = useCallback(
+    (pattern: string) => {
+      if (!pattern || entries.some((e) => e.pattern === pattern)) return;
+      form.setValue(fieldPath, [...entries, { pattern, enabled: true }], { shouldDirty: true });
+    },
+    [entries, form, fieldPath],
+  );
+
+  return { handleToggle, handleRemove, handleAdd };
+}
+
+function EntryList({
+  entries,
+  onToggle,
+  onRemove,
+  className,
+}: {
+  entries: SslProxyingEntry[];
+  onToggle: (pattern: string) => void;
+  onRemove: (pattern: string) => void;
+  className?: string;
+}) {
+  if (entries.length === 0) return null;
+  return (
+    <div className={`border rounded-lg divide-y ${className ?? ""}`}>
+      {entries.map((entry) => (
+        <div key={entry.pattern} className="flex items-center justify-between px-4 py-2">
+          <div className="flex items-center gap-3">
+            <Switch checked={entry.enabled} onCheckedChange={() => onToggle(entry.pattern)} />
+            <span
+              className={`font-mono text-sm ${entry.enabled ? "text-foreground" : "text-muted-foreground line-through"}`}
+            >
+              {entry.pattern}
+            </span>
+          </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => onRemove(entry.pattern)}
+            className="text-muted-foreground hover:text-destructive"
+          >
+            <Trans>Remove</Trans>
+          </Button>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export function SslProxyingSection() {
   const { t } = useLingui();
@@ -18,45 +95,40 @@ export function SslProxyingSection() {
   const [showDefaultDomains, setShowDefaultDomains] = useState(false);
   const [newDefaultPattern, setNewDefaultPattern] = useState("");
 
-  const handleAdd = useCallback(() => {
-    const pattern = newPattern.trim();
-    if (!pattern || entries.some((e) => e.pattern === pattern)) return;
-    form.setValue("sslProxying.entries", [...entries, { pattern, enabled: true }], {
-      shouldDirty: true,
-    });
+  const entryHandlers = useEntryListHandlers("sslProxying.entries", entries);
+  const defaultHandlers = useEntryListHandlers(
+    "sslProxying.defaultPassthroughEntries",
+    defaultPassthroughEntries,
+  );
+
+  const handleAddEntry = useCallback(() => {
+    entryHandlers.handleAdd(newPattern.trim());
     setNewPattern("");
-  }, [newPattern, entries, form]);
+  }, [newPattern, entryHandlers]);
+
+  const handleAddDefault = useCallback(() => {
+    defaultHandlers.handleAdd(newDefaultPattern.trim());
+    setNewDefaultPattern("");
+  }, [newDefaultPattern, defaultHandlers]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (e.key === "Enter") {
         e.preventDefault();
-        handleAdd();
+        handleAddEntry();
       }
     },
-    [handleAdd],
+    [handleAddEntry],
   );
 
-  const handleRemove = useCallback(
-    (pattern: string) => {
-      form.setValue(
-        "sslProxying.entries",
-        entries.filter((e) => e.pattern !== pattern),
-        { shouldDirty: true },
-      );
+  const handleDefaultKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        handleAddDefault();
+      }
     },
-    [entries, form],
-  );
-
-  const handleToggle = useCallback(
-    (pattern: string) => {
-      form.setValue(
-        "sslProxying.entries",
-        entries.map((e) => (e.pattern === pattern ? { ...e, enabled: !e.enabled } : e)),
-        { shouldDirty: true },
-      );
-    },
-    [entries, form],
+    [handleAddDefault],
   );
 
   const handleModeChange = useCallback(
@@ -66,59 +138,9 @@ export function SslProxyingSection() {
     [form],
   );
 
-  // --- 기본 패스스루 도메인 핸들러 ---
-
-  const handleDefaultToggle = useCallback(
-    (pattern: string) => {
-      form.setValue(
-        "sslProxying.defaultPassthroughEntries",
-        defaultPassthroughEntries.map((e) =>
-          e.pattern === pattern ? { ...e, enabled: !e.enabled } : e,
-        ),
-        { shouldDirty: true },
-      );
-    },
-    [defaultPassthroughEntries, form],
-  );
-
-  const handleDefaultRemove = useCallback(
-    (pattern: string) => {
-      form.setValue(
-        "sslProxying.defaultPassthroughEntries",
-        defaultPassthroughEntries.filter((e) => e.pattern !== pattern),
-        { shouldDirty: true },
-      );
-    },
-    [defaultPassthroughEntries, form],
-  );
-
-  const handleDefaultAdd = useCallback(() => {
-    const pattern = newDefaultPattern.trim();
-    if (!pattern || defaultPassthroughEntries.some((e) => e.pattern === pattern)) return;
-    form.setValue(
-      "sslProxying.defaultPassthroughEntries",
-      [...defaultPassthroughEntries, { pattern, enabled: true }],
-      { shouldDirty: true },
-    );
-    setNewDefaultPattern("");
-  }, [newDefaultPattern, defaultPassthroughEntries, form]);
-
-  const handleDefaultKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        handleDefaultAdd();
-      }
-    },
-    [handleDefaultAdd],
-  );
-
-  const handleRestoreDefaults = useCallback(() => {
-    form.setValue(
-      "sslProxying.defaultPassthroughEntries",
-      DEFAULT_PASSTHROUGH_DOMAINS.map((e) => ({ ...e })),
-      { shouldDirty: true },
-    );
+  const handleRestoreDefaults = useCallback(async () => {
+    const defaults = await getDefaultPassthroughDomains();
+    form.setValue("sslProxying.defaultPassthroughEntries", defaults, { shouldDirty: true });
   }, [form]);
 
   const enabledCount = entries.filter((e) => e.enabled).length;
@@ -183,7 +205,7 @@ export function SslProxyingSection() {
           onKeyDown={handleKeyDown}
           className="flex-1"
         />
-        <Button type="button" onClick={handleAdd} disabled={!newPattern.trim()}>
+        <Button type="button" onClick={handleAddEntry} disabled={!newPattern.trim()}>
           <Trans>Add</Trans>
         </Button>
       </div>
@@ -200,34 +222,11 @@ export function SslProxyingSection() {
           </Trans>
         )}
       </p>
-      {entries.length > 0 && (
-        <div className="border rounded-lg divide-y">
-          {entries.map((entry) => (
-            <div key={entry.pattern} className="flex items-center justify-between px-4 py-2">
-              <div className="flex items-center gap-3">
-                <Switch
-                  checked={entry.enabled}
-                  onCheckedChange={() => handleToggle(entry.pattern)}
-                />
-                <span
-                  className={`font-mono text-sm ${entry.enabled ? "text-foreground" : "text-muted-foreground line-through"}`}
-                >
-                  {entry.pattern}
-                </span>
-              </div>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => handleRemove(entry.pattern)}
-                className="text-muted-foreground hover:text-destructive"
-              >
-                <Trans>Remove</Trans>
-              </Button>
-            </div>
-          ))}
-        </div>
-      )}
+      <EntryList
+        entries={entries}
+        onToggle={entryHandlers.handleToggle}
+        onRemove={entryHandlers.handleRemove}
+      />
 
       {/* 기본 패스스루 도메인 섹션 */}
       {mode === "blacklist" && (
@@ -267,43 +266,18 @@ export function SslProxyingSection() {
                 <Button
                   type="button"
                   variant="secondary"
-                  onClick={handleDefaultAdd}
+                  onClick={handleAddDefault}
                   disabled={!newDefaultPattern.trim()}
                 >
                   <Trans>Add</Trans>
                 </Button>
               </div>
-              {defaultPassthroughEntries.length > 0 && (
-                <div className="border rounded-lg divide-y bg-background">
-                  {defaultPassthroughEntries.map((entry) => (
-                    <div
-                      key={entry.pattern}
-                      className="flex items-center justify-between px-4 py-2"
-                    >
-                      <div className="flex items-center gap-3">
-                        <Switch
-                          checked={entry.enabled}
-                          onCheckedChange={() => handleDefaultToggle(entry.pattern)}
-                        />
-                        <span
-                          className={`font-mono text-sm ${entry.enabled ? "text-foreground" : "text-muted-foreground line-through"}`}
-                        >
-                          {entry.pattern}
-                        </span>
-                      </div>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDefaultRemove(entry.pattern)}
-                        className="text-muted-foreground hover:text-destructive"
-                      >
-                        <Trans>Remove</Trans>
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <EntryList
+                entries={defaultPassthroughEntries}
+                onToggle={defaultHandlers.handleToggle}
+                onRemove={defaultHandlers.handleRemove}
+                className="bg-background"
+              />
             </>
           )}
         </div>

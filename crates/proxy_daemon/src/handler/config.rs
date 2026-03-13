@@ -36,6 +36,14 @@ pub(crate) struct ProxyConfig {
     pub(crate) max_body_size: Option<usize>,
 }
 
+/// SSL Proxying 관련 설정을 하나의 lock으로 묶어 일관된 스냅샷을 보장합니다.
+#[derive(Clone)]
+pub(crate) struct SslProxyingConfig {
+    pub(crate) mode: crate::protocol::SslProxyingMode,
+    pub(crate) entries: Vec<crate::protocol::SslProxyingEntry>,
+    pub(crate) default_passthrough: Vec<crate::protocol::SslProxyingEntry>,
+}
+
 /// 인터셉트 규칙 및 스크립트 엔진
 #[derive(Clone)]
 pub(crate) struct InterceptEngine {
@@ -43,12 +51,8 @@ pub(crate) struct InterceptEngine {
     pub(crate) server_replay_entries: Arc<RwLock<Vec<ServerReplayEntry>>>,
     pub(crate) host_mappings: Arc<RwLock<Vec<HostMapping>>>,
     pub(crate) script_handle: scripting::ScriptHandle,
-    /// SSL Proxying 모드
-    pub(crate) ssl_proxying_mode: Arc<RwLock<crate::protocol::SslProxyingMode>>,
-    /// SSL Proxying 엔트리 목록
-    pub(crate) ssl_proxying_entries: Arc<RwLock<Vec<crate::protocol::SslProxyingEntry>>>,
-    /// 기본 패스스루 도메인 목록 (블랙리스트 모드에서 사용)
-    pub(crate) default_passthrough_entries: Arc<RwLock<Vec<crate::protocol::SslProxyingEntry>>>,
+    /// SSL Proxying 설정 (모드 + 엔트리 + 기본 패스스루를 단일 lock으로 관리)
+    pub(crate) ssl_proxying: Arc<RwLock<SslProxyingConfig>>,
 }
 
 /// HTTP 및 WebSocket 요청/응답을 로깅하는 핸들러
@@ -86,13 +90,11 @@ impl LoggingHandler {
                 server_replay_entries: Arc::new(RwLock::new(Vec::new())),
                 host_mappings: Arc::new(RwLock::new(Vec::new())),
                 script_handle: scripting::ScriptHandle::new(),
-                ssl_proxying_mode: Arc::new(RwLock::new(
-                    crate::protocol::SslProxyingMode::default(),
-                )),
-                ssl_proxying_entries: Arc::new(RwLock::new(Vec::new())),
-                default_passthrough_entries: Arc::new(RwLock::new(
-                    crate::ssl_proxying::default_passthrough_entries(),
-                )),
+                ssl_proxying: Arc::new(RwLock::new(SslProxyingConfig {
+                    mode: crate::protocol::SslProxyingMode::default(),
+                    entries: Vec::new(),
+                    default_passthrough: crate::ssl_proxying::default_passthrough_entries(),
+                })),
             },
             ws: WebSocketState {
                 ws_sender: None,
@@ -175,17 +177,14 @@ impl LoggingHandler {
         mode: crate::protocol::SslProxyingMode,
         entries: Vec<crate::protocol::SslProxyingEntry>,
     ) {
-        // 로그를 먼저 출력하여 mode.clone() 제거
         tracing::info!(
             "[SSLProxying] 업데이트: mode={:?}, {} 개",
             mode,
             entries.len()
         );
-        let mut mode_guard = self.intercept.ssl_proxying_mode.write().await;
-        *mode_guard = mode;
-        drop(mode_guard);
-        let mut entries_guard = self.intercept.ssl_proxying_entries.write().await;
-        *entries_guard = entries;
+        let mut ssl = self.intercept.ssl_proxying.write().await;
+        ssl.mode = mode;
+        ssl.entries = entries;
     }
 
     /// 기본 패스스루 도메인 목록 업데이트
@@ -197,8 +196,8 @@ impl LoggingHandler {
             "[SSLProxying] 기본 패스스루 도메인 업데이트: {} 개",
             entries.len()
         );
-        let mut guard = self.intercept.default_passthrough_entries.write().await;
-        *guard = entries;
+        let mut ssl = self.intercept.ssl_proxying.write().await;
+        ssl.default_passthrough = entries;
     }
 
     /// 스크립트 핸들 반환

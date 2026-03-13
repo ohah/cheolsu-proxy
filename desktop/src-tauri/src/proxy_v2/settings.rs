@@ -94,6 +94,11 @@ pub(crate) async fn update_ssl_proxying_list(
 }
 
 #[tauri::command]
+pub(crate) async fn get_default_passthrough_domains() -> Vec<SslProxyingEntry> {
+    proxy_daemon::default_passthrough_entries()
+}
+
+#[tauri::command]
 pub(crate) async fn update_default_passthrough_domains(
     proxy: State<'_, ProxyV2State>,
     entries: Vec<SslProxyingEntry>,

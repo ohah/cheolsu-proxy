@@ -49,13 +49,11 @@ impl HttpHandler for LoggingHandler {
             let host = authority.host();
             let port = authority.port_u16();
 
-            let mode = self.intercept.ssl_proxying_mode.read().await;
-            let entries = self.intercept.ssl_proxying_entries.read().await;
-            let default_passthrough = self.intercept.default_passthrough_entries.read().await;
+            let ssl = self.intercept.ssl_proxying.read().await;
             let result = crate::ssl_proxying::should_intercept_ssl(
-                &mode,
-                &entries,
-                &default_passthrough,
+                &ssl.mode,
+                &ssl.entries,
+                &ssl.default_passthrough,
                 host,
                 port,
             );
