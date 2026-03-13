@@ -11,7 +11,48 @@ use crate::handler::response_helpers;
 
 use super::super::LoggingHandler;
 
+/// 요청/응답 파이프라인의 각 단계가 반환하는 결과.
+/// 파이프라인을 일관된 흐름으로 처리할 수 있게 해준다.
+#[allow(dead_code)]
+pub(crate) enum PipelineAction {
+    /// 다음 파이프라인 단계로 진행 (요청을 계속 전달)
+    Continue(Request<Body>),
+    /// 즉시 응답을 반환 (인증 실패, 크기 초과 등)
+    Respond(Response<Body>),
+    /// 응답 반환 + 클라이언트에 출력 (server replay, script respond 등)
+    RespondWithOutput(Response<Body>),
+}
+
 impl LoggingHandler {
+    /// 요청 파이프라인 초기 단계: 인증 확인, 바디 크기 제한, 인증서 다운로드 인터셉트.
+    /// 모든 "즉시 응답" 패턴을 하나의 메서드로 통합합니다.
+    pub(super) async fn run_early_pipeline(
+        &self,
+        req: &mut Request<Body>,
+    ) -> Option<PipelineAction> {
+        // 프록시 인증 확인
+        if let Some(auth_response) = self.check_proxy_auth(req).await {
+            return Some(PipelineAction::Respond(auth_response));
+        }
+        // 인증 통과 후 Proxy-Authorization 헤더 제거 (upstream에 전달 방지)
+        req.headers_mut().remove("proxy-authorization");
+
+        // 요청 바디 크기 제한 확인
+        if let Some(response) = self.check_request_body_size_limit(req) {
+            return Some(PipelineAction::Respond(response));
+        }
+
+        // 인증서 다운로드 인터셉트
+        if let Some(cert_response) = self.check_cert_download_intercept(req) {
+            return Some(PipelineAction::Respond(cert_response));
+        }
+
+        // WebSocket 업그레이드 시 확장 헤더 제거
+        Self::strip_websocket_extensions(req);
+
+        None
+    }
+
     pub(in crate::handler) fn serve_ca_cert_download(&self, req: &Request<Body>) -> Response<Body> {
         cert_distribution::handle_cert_request(req, self.config.ca_cert_der.as_ref())
     }
