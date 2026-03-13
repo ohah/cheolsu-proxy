@@ -419,56 +419,56 @@ export const NetworkDashboard = () => {
         <div className="flex-1 flex flex-col overflow-hidden relative">
           {isBottomLayout ? (
             <ResizablePanelGroup
-              orientation="horizontal"
+              orientation="vertical"
               defaultLayout={
                 defaultLayout ?? {
-                  "host-path-tree": 25,
-                  "network-table-wrapper": 75,
+                  "network-top": 60,
+                  "transaction-details-bottom": 0,
                 }
               }
               onLayoutChanged={onLayoutChanged}
               className="flex-1 flex border border-b-0 shadow-[0_0_10px_0_rgba(0,0,0,0.05)] bg-background"
             >
-              <ResizablePanel
-                id="host-path-tree"
-                className="h-full overflow-hidden"
-                maxSize="40%"
-                minSize="10%"
-                collapsible
-              >
-                <HostPathTree {...hostPathTreeProps} />
-              </ResizablePanel>
+              <ResizablePanel id="network-top" className="flex overflow-hidden">
+                <ResizablePanelGroup orientation="horizontal" className="flex-1">
+                  <ResizablePanel
+                    id="host-path-tree-bottom"
+                    className="h-full overflow-hidden"
+                    maxSize="40%"
+                    minSize="10%"
+                    collapsible
+                  >
+                    <HostPathTree {...hostPathTreeProps} />
+                  </ResizablePanel>
 
-              <ResizableHandle withHandle />
+                  <ResizableHandle withHandle />
 
-              <ResizablePanel
-                id="network-table-wrapper"
-                className="flex flex-1 h-full overflow-hidden"
-              >
-                <ResizablePanelGroup orientation="vertical" className="flex-1">
-                  <ResizablePanel id="network-table-bottom" className="flex flex-1 overflow-hidden">
+                  <ResizablePanel
+                    id="network-table-bottom"
+                    className="flex flex-1 h-full overflow-hidden"
+                  >
                     <NetworkTable {...networkTableProps} />
                   </ResizablePanel>
-
-                  <ResizableHandle withHandle={!!selectedTransaction} />
-                  <ResizablePanel
-                    panelRef={detailsPanelRef}
-                    id="transaction-details-bottom"
-                    maxSize="70%"
-                    minSize="20%"
-                    collapsible
-                    collapsedSize="0%"
-                    className="h-full overflow-y-auto"
-                  >
-                    {selectedTransaction && (
-                      <TransactionDetails
-                        transaction={selectedTransaction}
-                        clearSelectedTransaction={clearSelectedTransaction}
-                        layout="bottom"
-                      />
-                    )}
-                  </ResizablePanel>
                 </ResizablePanelGroup>
+              </ResizablePanel>
+
+              <ResizableHandle withHandle={!!selectedTransaction} />
+              <ResizablePanel
+                panelRef={detailsPanelRef}
+                id="transaction-details-bottom"
+                maxSize="70%"
+                minSize="20%"
+                collapsible
+                collapsedSize="0%"
+                className="h-full overflow-y-auto"
+              >
+                {selectedTransaction && (
+                  <TransactionDetails
+                    transaction={selectedTransaction}
+                    clearSelectedTransaction={clearSelectedTransaction}
+                    layout="bottom"
+                  />
+                )}
               </ResizablePanel>
             </ResizablePanelGroup>
           ) : (
