@@ -89,6 +89,9 @@ pub enum DaemonMessage {
         mode: SslProxyingMode,
         entries: Vec<SslProxyingEntry>,
     },
+    /// 기본 패스스루 도메인 목록 업데이트됨
+    #[serde(rename = "default_passthrough_domains_updated")]
+    DefaultPassthroughDomainsUpdated { entries: Vec<SslProxyingEntry> },
     /// 클라이언트 인증서 설정 업데이트됨
     #[serde(rename = "client_certificate_updated")]
     ClientCertificateUpdated { config: Option<ClientCertConfig> },
@@ -208,6 +211,9 @@ pub enum ClientCommand {
         mode: SslProxyingMode,
         entries: Vec<SslProxyingEntry>,
     },
+    /// 기본 패스스루 도메인 목록 업데이트
+    #[serde(rename = "update_default_passthrough_domains")]
+    UpdateDefaultPassthroughDomains { entries: Vec<SslProxyingEntry> },
     /// 프록시 인증 설정 업데이트
     #[serde(rename = "update_proxy_auth")]
     UpdateProxyAuth { config: ProxyAuthConfig },

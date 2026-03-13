@@ -74,6 +74,7 @@ pub(crate) struct DaemonChannels {
     pub(crate) client_cert_tx: watch::Sender<Option<crate::protocol::ClientCertConfig>>,
     pub(crate) request_client_cert_tx:
         watch::Sender<Option<crate::protocol::RequestClientCertConfig>>,
+    pub(crate) default_passthrough_tx: watch::Sender<Vec<crate::protocol::SslProxyingEntry>>,
 }
 
 /// 프록시 설정 전파용 watch 채널 수신자 그룹
@@ -94,6 +95,7 @@ pub(crate) struct WatchReceivers {
     pub(crate) client_cert_rx: watch::Receiver<Option<crate::protocol::ClientCertConfig>>,
     pub(crate) request_client_cert_rx:
         watch::Receiver<Option<crate::protocol::RequestClientCertConfig>>,
+    pub(crate) default_passthrough_rx: watch::Receiver<Vec<crate::protocol::SslProxyingEntry>>,
 }
 
 impl DaemonChannels {
@@ -120,6 +122,10 @@ impl DaemonChannels {
             watch::channel::<Option<crate::protocol::ClientCertConfig>>(None);
         let (request_client_cert_tx, request_client_cert_rx) =
             watch::channel::<Option<crate::protocol::RequestClientCertConfig>>(None);
+        let (default_passthrough_tx, default_passthrough_rx) =
+            watch::channel::<Vec<crate::protocol::SslProxyingEntry>>(
+                crate::ssl_proxying::default_passthrough_entries(),
+            );
 
         let channels = Self {
             intercept_tx,
@@ -131,6 +137,7 @@ impl DaemonChannels {
             ssl_proxying_tx,
             client_cert_tx,
             request_client_cert_tx,
+            default_passthrough_tx,
         };
 
         let receivers = WatchReceivers {
@@ -143,6 +150,7 @@ impl DaemonChannels {
             ssl_proxying_rx,
             client_cert_rx,
             request_client_cert_rx,
+            default_passthrough_rx,
         };
 
         (channels, receivers)

@@ -47,6 +47,8 @@ pub(crate) struct InterceptEngine {
     pub(crate) ssl_proxying_mode: Arc<RwLock<crate::protocol::SslProxyingMode>>,
     /// SSL Proxying 엔트리 목록
     pub(crate) ssl_proxying_entries: Arc<RwLock<Vec<crate::protocol::SslProxyingEntry>>>,
+    /// 기본 패스스루 도메인 목록 (블랙리스트 모드에서 사용)
+    pub(crate) default_passthrough_entries: Arc<RwLock<Vec<crate::protocol::SslProxyingEntry>>>,
 }
 
 /// HTTP 및 WebSocket 요청/응답을 로깅하는 핸들러
@@ -88,6 +90,9 @@ impl LoggingHandler {
                     crate::protocol::SslProxyingMode::default(),
                 )),
                 ssl_proxying_entries: Arc::new(RwLock::new(Vec::new())),
+                default_passthrough_entries: Arc::new(RwLock::new(
+                    crate::ssl_proxying::default_passthrough_entries(),
+                )),
             },
             ws: WebSocketState {
                 ws_sender: None,
@@ -181,6 +186,19 @@ impl LoggingHandler {
         drop(mode_guard);
         let mut entries_guard = self.intercept.ssl_proxying_entries.write().await;
         *entries_guard = entries;
+    }
+
+    /// 기본 패스스루 도메인 목록 업데이트
+    pub async fn update_default_passthrough(
+        &self,
+        entries: Vec<crate::protocol::SslProxyingEntry>,
+    ) {
+        tracing::info!(
+            "[SSLProxying] 기본 패스스루 도메인 업데이트: {} 개",
+            entries.len()
+        );
+        let mut guard = self.intercept.default_passthrough_entries.write().await;
+        *guard = entries;
     }
 
     /// 스크립트 핸들 반환

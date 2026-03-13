@@ -115,11 +115,23 @@ fn match_host_pattern(pattern: &str, host: &str) -> bool {
     false
 }
 
+/// 기본 패스스루 도메인 목록을 `SslProxyingEntry` 벡터로 변환합니다.
+/// 초기화 시 사용되며, "기본값 복원" 기능의 소스 역할을 합니다.
+pub fn default_passthrough_entries() -> Vec<SslProxyingEntry> {
+    DEFAULT_PASSTHROUGH_DOMAINS
+        .iter()
+        .map(|&pattern| SslProxyingEntry {
+            pattern: pattern.to_string(),
+            enabled: true,
+        })
+        .collect()
+}
+
 /// SSL Proxying 모드와 목록을 기반으로 해당 호스트를 인터셉트해야 하는지 확인합니다.
 ///
 /// ## Blacklist 모드 (기본)
 /// - 모든 도메인을 인터셉트하되, 목록에 매칭되는 도메인은 패스스루
-/// - 기본 OAuth 도메인(DEFAULT_PASSTHROUGH_DOMAINS)도 항상 패스스루
+/// - 기본 패스스루 도메인(`default_passthrough`)도 패스스루
 ///
 /// ## Whitelist 모드
 /// - 목록이 비어있으면 모든 도메인 인터셉트
@@ -127,6 +139,7 @@ fn match_host_pattern(pattern: &str, host: &str) -> bool {
 pub fn should_intercept_ssl(
     mode: &SslProxyingMode,
     entries: &[SslProxyingEntry],
+    default_passthrough: &[SslProxyingEntry],
     host: &str,
     port: Option<u16>,
 ) -> bool {
@@ -134,9 +147,9 @@ pub fn should_intercept_ssl(
 
     match mode {
         SslProxyingMode::Blacklist => {
-            // 기본 OAuth 도메인 체크
-            for pattern in DEFAULT_PASSTHROUGH_DOMAINS {
-                if matches_ssl_pattern(pattern, host, port) {
+            // 기본 패스스루 도메인 체크 (활성화된 항목만)
+            for entry in default_passthrough.iter().filter(|e| e.enabled) {
+                if matches_ssl_pattern(&entry.pattern, host, port) {
                     return false;
                 }
             }
@@ -287,12 +300,17 @@ mod tests {
 
     // --- should_intercept_ssl 테스트 (Whitelist 모드) ---
 
+    fn defaults() -> Vec<SslProxyingEntry> {
+        default_passthrough_entries()
+    }
+
     #[test]
     fn test_whitelist_empty_intercepts_all() {
         let entries: Vec<SslProxyingEntry> = vec![];
         assert!(should_intercept_ssl(
             &SslProxyingMode::Whitelist,
             &entries,
+            &defaults(),
             "any.domain.com",
             Some(443)
         ));
@@ -307,6 +325,7 @@ mod tests {
         assert!(should_intercept_ssl(
             &SslProxyingMode::Whitelist,
             &entries,
+            &defaults(),
             "any.domain.com",
             Some(443)
         ));
@@ -321,6 +340,7 @@ mod tests {
         assert!(should_intercept_ssl(
             &SslProxyingMode::Whitelist,
             &entries,
+            &defaults(),
             "example.com",
             Some(443)
         ));
@@ -335,6 +355,7 @@ mod tests {
         assert!(!should_intercept_ssl(
             &SslProxyingMode::Whitelist,
             &entries,
+            &defaults(),
             "other.com",
             Some(443)
         ));
@@ -355,18 +376,21 @@ mod tests {
         assert!(should_intercept_ssl(
             &SslProxyingMode::Whitelist,
             &entries,
+            &defaults(),
             "example.com",
             Some(443)
         ));
         assert!(should_intercept_ssl(
             &SslProxyingMode::Whitelist,
             &entries,
+            &defaults(),
             "v1.api.io",
             Some(443)
         ));
         assert!(!should_intercept_ssl(
             &SslProxyingMode::Whitelist,
             &entries,
+            &defaults(),
             "other.com",
             Some(443)
         ));
@@ -387,12 +411,14 @@ mod tests {
         assert!(should_intercept_ssl(
             &SslProxyingMode::Whitelist,
             &entries,
+            &defaults(),
             "example.com",
             Some(443)
         ));
         assert!(!should_intercept_ssl(
             &SslProxyingMode::Whitelist,
             &entries,
+            &defaults(),
             "disabled.com",
             Some(443)
         ));
@@ -407,12 +433,14 @@ mod tests {
         assert!(should_intercept_ssl(
             &SslProxyingMode::Whitelist,
             &entries,
+            &defaults(),
             "example.com",
             Some(8443)
         ));
         assert!(!should_intercept_ssl(
             &SslProxyingMode::Whitelist,
             &entries,
+            &defaults(),
             "example.com",
             Some(443)
         ));
@@ -453,6 +481,7 @@ mod tests {
         assert!(!should_intercept_ssl(
             &SslProxyingMode::Whitelist,
             &entries,
+            &defaults(),
             "example.com",
             Some(443)
         ));
@@ -473,12 +502,14 @@ mod tests {
         assert!(should_intercept_ssl(
             &SslProxyingMode::Whitelist,
             &entries,
+            &defaults(),
             "example.com",
             Some(443)
         ));
         assert!(!should_intercept_ssl(
             &SslProxyingMode::Whitelist,
             &entries,
+            &defaults(),
             "other.com",
             Some(443)
         ));
@@ -492,6 +523,7 @@ mod tests {
         assert!(should_intercept_ssl(
             &SslProxyingMode::Blacklist,
             &entries,
+            &defaults(),
             "any.domain.com",
             Some(443)
         ));
@@ -507,6 +539,7 @@ mod tests {
         assert!(!should_intercept_ssl(
             &SslProxyingMode::Blacklist,
             &entries,
+            &defaults(),
             "example.com",
             Some(443)
         ));
@@ -522,6 +555,7 @@ mod tests {
         assert!(should_intercept_ssl(
             &SslProxyingMode::Blacklist,
             &entries,
+            &defaults(),
             "other.com",
             Some(443)
         ));
@@ -534,18 +568,21 @@ mod tests {
         assert!(!should_intercept_ssl(
             &SslProxyingMode::Blacklist,
             &entries,
+            &defaults(),
             "accounts.google.com",
             Some(443)
         ));
         assert!(!should_intercept_ssl(
             &SslProxyingMode::Blacklist,
             &entries,
+            &defaults(),
             "login.microsoftonline.com",
             Some(443)
         ));
         assert!(!should_intercept_ssl(
             &SslProxyingMode::Blacklist,
             &entries,
+            &defaults(),
             "api.googleapis.com",
             Some(443)
         ));
@@ -561,6 +598,7 @@ mod tests {
         assert!(should_intercept_ssl(
             &SslProxyingMode::Blacklist,
             &entries,
+            &defaults(),
             "example.com",
             Some(443)
         ));
@@ -575,13 +613,45 @@ mod tests {
         assert!(!should_intercept_ssl(
             &SslProxyingMode::Blacklist,
             &entries,
+            &defaults(),
             "api.example.com",
             Some(443)
         ));
         assert!(should_intercept_ssl(
             &SslProxyingMode::Blacklist,
             &entries,
+            &defaults(),
             "other.com",
+            Some(443)
+        ));
+    }
+
+    // --- 기본 패스스루 도메인 비활성화 테스트 ---
+
+    #[test]
+    fn test_blacklist_disabled_default_passthrough_allows_intercept() {
+        let entries: Vec<SslProxyingEntry> = vec![];
+        // accounts.google.com을 비활성화한 기본 패스스루 목록
+        let mut custom_defaults = defaults();
+        for entry in &mut custom_defaults {
+            if entry.pattern == "accounts.google.com" {
+                entry.enabled = false;
+            }
+        }
+        // 비활성화된 기본 패스스루 도메인은 인터셉트됨
+        assert!(should_intercept_ssl(
+            &SslProxyingMode::Blacklist,
+            &entries,
+            &custom_defaults,
+            "accounts.google.com",
+            Some(443)
+        ));
+        // 다른 기본 패스스루 도메인은 여전히 패스스루
+        assert!(!should_intercept_ssl(
+            &SslProxyingMode::Blacklist,
+            &entries,
+            &custom_defaults,
+            "login.microsoftonline.com",
             Some(443)
         ));
     }
