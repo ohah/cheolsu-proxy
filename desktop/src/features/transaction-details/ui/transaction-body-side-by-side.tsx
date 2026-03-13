@@ -16,7 +16,7 @@ export const TransactionBodySideBySide = ({ transaction }: TransactionBodySideBy
           <Trans>Request</Trans>
         </h3>
         <div className="flex-1 min-h-0">
-          <TransactionBody transaction={transaction} />
+          <TransactionBody transaction={transaction} compact />
         </div>
       </div>
       <div className="flex flex-col min-h-0">
@@ -24,7 +24,7 @@ export const TransactionBodySideBySide = ({ transaction }: TransactionBodySideBy
           <Trans>Response</Trans>
         </h3>
         <div className="flex-1 min-h-0">
-          <TransactionResponse transaction={transaction} />
+          <TransactionResponse transaction={transaction} compact />
         </div>
       </div>
     </div>

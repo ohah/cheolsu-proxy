@@ -26,11 +26,13 @@ import { useBodyFile } from "@/hooks/use-body-file";
 
 interface TransactionBodyProps {
   transaction: HttpTransaction;
+  compact?: boolean;
 }
 
-export const TransactionBody = ({ transaction }: TransactionBodyProps) => {
+export const TransactionBody = ({ transaction, compact }: TransactionBodyProps) => {
   const { resolvedTheme } = useTheme();
   const { request } = transaction;
+  const heightClass = compact ? "h-full" : "h-[calc(100vh-300px)]";
 
   if (!request) return null;
 
@@ -160,7 +162,7 @@ export const TransactionBody = ({ transaction }: TransactionBodyProps) => {
         isMediaDataType(request.data_type) &&
         !fileLoading &&
         !fileError ? (
-          <div className="h-[calc(100vh-300px)] border rounded-md overflow-auto p-4">
+          <div className={`${heightClass} border rounded-md overflow-auto p-4`}>
             <MediaPreview
               data={request.file_path ? undefined : actualBody}
               dataType={request.data_type}
@@ -196,9 +198,9 @@ export const TransactionBody = ({ transaction }: TransactionBodyProps) => {
             filePath={request.file_path}
           />
         ) : (
-          <div className="h-[calc(100vh-300px)] border rounded-md overflow-hidden">
+          <div className={`${heightClass} border rounded-md overflow-hidden`}>
             <Editor
-              height="calc(100vh - 300px)"
+              height={compact ? "100%" : "calc(100vh - 300px)"}
               language={dataTypeToMonacoLanguage(request.data_type)}
               value={requestText}
               theme={resolvedTheme === "dark" ? "vs-dark" : "vs"}

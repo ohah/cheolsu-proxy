@@ -87,8 +87,10 @@ export const NetworkDashboard = () => {
 
   const detailsPanelRef = useResizablePanelController({ isExpanded: !!selectedTransaction });
 
+  const layoutId = isBottomLayout ? "network-dashboard-layout-bottom" : "network-dashboard-layout";
+
   const { defaultLayout, onLayoutChanged } = useDefaultLayout({
-    id: "network-dashboard-layout",
+    id: layoutId,
     storage: localStorage,
   });
 
@@ -355,6 +357,25 @@ export const NetworkDashboard = () => {
     }
   }, [canCompare, diffLoading, checkedTransactions]);
 
+  const networkTableProps = {
+    transactions: filteredTransactions,
+    pinnedTransactionIds,
+    checkedTransactionIds,
+    selectedTransaction,
+    createTransactionSelectHandler: createTransactionToggleHandler,
+    createTransactionDeleteHandler,
+    createTransactionPinHandler,
+    createTransactionCheckHandler,
+    onAdvancedRepeat: setAdvancedRepeatTarget,
+    onToggleCheckAll: handleToggleCheckAll,
+  } as const;
+
+  const hostPathTreeProps = {
+    transactions: filteredTransactions,
+    selectedTransaction,
+    createTransactionSelectHandler,
+  } as const;
+
   return (
     <>
       <div className="flex-1 flex flex-col h-full overflow-x-hidden">
@@ -415,11 +436,7 @@ export const NetworkDashboard = () => {
                 minSize="10%"
                 collapsible
               >
-                <HostPathTree
-                  transactions={filteredTransactions}
-                  selectedTransaction={selectedTransaction}
-                  createTransactionSelectHandler={createTransactionSelectHandler}
-                />
+                <HostPathTree {...hostPathTreeProps} />
               </ResizablePanel>
 
               <ResizableHandle withHandle />
@@ -430,18 +447,7 @@ export const NetworkDashboard = () => {
               >
                 <ResizablePanelGroup orientation="vertical" className="flex-1">
                   <ResizablePanel id="network-table-bottom" className="flex flex-1 overflow-hidden">
-                    <NetworkTable
-                      transactions={filteredTransactions}
-                      pinnedTransactionIds={pinnedTransactionIds}
-                      checkedTransactionIds={checkedTransactionIds}
-                      selectedTransaction={selectedTransaction}
-                      createTransactionSelectHandler={createTransactionToggleHandler}
-                      createTransactionDeleteHandler={createTransactionDeleteHandler}
-                      createTransactionPinHandler={createTransactionPinHandler}
-                      createTransactionCheckHandler={createTransactionCheckHandler}
-                      onAdvancedRepeat={setAdvancedRepeatTarget}
-                      onToggleCheckAll={handleToggleCheckAll}
-                    />
+                    <NetworkTable {...networkTableProps} />
                   </ResizablePanel>
 
                   <ResizableHandle withHandle={!!selectedTransaction} />
@@ -485,28 +491,13 @@ export const NetworkDashboard = () => {
                 minSize="10%"
                 collapsible
               >
-                <HostPathTree
-                  transactions={filteredTransactions}
-                  selectedTransaction={selectedTransaction}
-                  createTransactionSelectHandler={createTransactionSelectHandler}
-                />
+                <HostPathTree {...hostPathTreeProps} />
               </ResizablePanel>
 
               <ResizableHandle withHandle />
 
               <ResizablePanel id="network-table" className="flex flex-1 h-full overflow-hidden">
-                <NetworkTable
-                  transactions={filteredTransactions}
-                  pinnedTransactionIds={pinnedTransactionIds}
-                  checkedTransactionIds={checkedTransactionIds}
-                  selectedTransaction={selectedTransaction}
-                  createTransactionSelectHandler={createTransactionToggleHandler}
-                  createTransactionDeleteHandler={createTransactionDeleteHandler}
-                  createTransactionPinHandler={createTransactionPinHandler}
-                  createTransactionCheckHandler={createTransactionCheckHandler}
-                  onAdvancedRepeat={setAdvancedRepeatTarget}
-                  onToggleCheckAll={handleToggleCheckAll}
-                />
+                <NetworkTable {...networkTableProps} />
               </ResizablePanel>
 
               <ResizableHandle withHandle={!!selectedTransaction} />

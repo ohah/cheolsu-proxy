@@ -35,11 +35,13 @@ import { useBodyFile } from "@/hooks/use-body-file";
 
 interface TransactionResponseProps {
   transaction: HttpTransaction;
+  compact?: boolean;
 }
 
-export const TransactionResponse = ({ transaction }: TransactionResponseProps) => {
+export const TransactionResponse = ({ transaction, compact }: TransactionResponseProps) => {
   const { resolvedTheme } = useTheme();
   const { response } = transaction;
+  const heightClass = compact ? "h-full" : "h-[calc(100vh-300px)]";
 
   if (!response) return null;
 
@@ -171,7 +173,7 @@ export const TransactionResponse = ({ transaction }: TransactionResponseProps) =
         isMediaDataType(response.data_type) &&
         !fileLoading &&
         !fileError ? (
-          <div className="h-[calc(100vh-300px)] border rounded-md overflow-auto p-4">
+          <div className={`${heightClass} border rounded-md overflow-auto p-4`}>
             <MediaPreview
               data={actualBody}
               dataType={response.data_type}
@@ -206,9 +208,9 @@ export const TransactionResponse = ({ transaction }: TransactionResponseProps) =
             filePath={response.file_path}
           />
         ) : (
-          <div className="h-[calc(100vh-300px)] border rounded-md overflow-hidden">
+          <div className={`${heightClass} border rounded-md overflow-hidden`}>
             <Editor
-              height="calc(100vh - 300px)"
+              height={compact ? "100%" : "calc(100vh - 300px)"}
               language={dataTypeToMonacoLanguage(response.data_type)}
               value={responseText}
               theme={resolvedTheme === "dark" ? "vs-dark" : "vs"}
