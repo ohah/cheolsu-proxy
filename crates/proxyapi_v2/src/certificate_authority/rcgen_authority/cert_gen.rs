@@ -49,6 +49,9 @@ impl RcgenAuthority {
 
         params.distinguished_name = distinguished_name;
         params.extended_key_usages = vec![ExtendedKeyUsagePurpose::ServerAuth];
+        // AuthorityKeyIdentifier 추가: Windows SChannel 호환성 개선
+        // (mitmproxy #6494: CA와 leaf cert의 SKI가 같으면 SChannel이 오동작)
+        params.use_authority_key_identifier_extension = true;
 
         // SAN 엔트리 설정
         if let Some(upstream) = upstream_cert {

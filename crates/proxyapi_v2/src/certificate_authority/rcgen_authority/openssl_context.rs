@@ -63,6 +63,9 @@ pub(super) async fn gen_openssl_context(
                 distinguished_name.push(DnType::CommonName, &truncate_cn(&host));
             }
             params.distinguished_name = distinguished_name;
+            // AuthorityKeyIdentifier 추가: Windows SChannel 호환성 개선
+            params.use_authority_key_identifier_extension = true;
+            params.extended_key_usages = vec![rcgen::ExtendedKeyUsagePurpose::ServerAuth];
 
             // SAN 엔트리 추가
             if let Some(ref upstream) = upstream_cert {
