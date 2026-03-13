@@ -11,19 +11,18 @@ use tracing::{debug, error, warn};
 
 use crate::breakpoint::BreakpointManager;
 use crate::daemon::{DaemonChannels, DaemonMetrics};
-use crate::protocol::{ClientCommand, DaemonMessage, ProxyAuthConfig};
+use crate::protocol::{ClientCommand, DaemonMessage, ProxyAuthConfig, PROTOCOL_VERSION};
 use proxyapi_v2::websocket_registry::WebSocketRegistry;
 
 use commands::CommandState;
 
-/// handle_client에 전달되는 채널/상태를 묶는 컨텍스트 구조체.
-/// DaemonContext와 유사하지만, 클라이언트 핸들러에서 필요한 필드만 포함한다.
-pub(crate) struct ClientHandlerContext {
-    pub(crate) event_rx: broadcast::Receiver<String>,
+/// ClientHandlerContext와 CommandState에서 공유하는 데몬 상태.
+/// 두 구조체 모두 이 필드들을 동일하게 사용하므로 중복을 제거한다.
+#[derive(Clone)]
+pub(crate) struct SharedDaemonState {
     pub(crate) channels: DaemonChannels,
     pub(crate) breakpoint_manager: BreakpointManager,
     pub(crate) event_tx: broadcast::Sender<String>,
-    pub(crate) port: u16,
     pub(crate) ws_registry: WebSocketRegistry,
     pub(crate) script_handle: scripting::ScriptHandle,
     pub(crate) quick_settings: Arc<tokio::sync::RwLock<crate::handler::QuickSettings>>,
@@ -34,21 +33,19 @@ pub(crate) struct ClientHandlerContext {
     pub(crate) connection_strategy: Arc<std::sync::atomic::AtomicU8>,
 }
 
+/// handle_client에 전달되는 채널/상태를 묶는 컨텍스트 구조체.
+/// DaemonContext와 유사하지만, 클라이언트 핸들러에서 필요한 필드만 포함한다.
+pub(crate) struct ClientHandlerContext {
+    pub(crate) event_rx: broadcast::Receiver<String>,
+    pub(crate) port: u16,
+    pub(crate) shared: SharedDaemonState,
+}
+
 pub(crate) async fn handle_client(stream: UnixStream, ctx: ClientHandlerContext) {
     let ClientHandlerContext {
         mut event_rx,
-        channels,
-        breakpoint_manager,
-        event_tx,
         port,
-        ws_registry,
-        script_handle,
-        quick_settings,
-        proxy_auth,
-        metrics,
-        client_count,
-        tls_passthrough,
-        connection_strategy,
+        shared,
     } = ctx;
     let (reader, writer) = stream.into_split();
     let mut reader = BufReader::new(reader);
@@ -58,6 +55,7 @@ pub(crate) async fn handle_client(stream: UnixStream, ctx: ClientHandlerContext)
         let status_msg = DaemonMessage::Status {
             running: true,
             port,
+            protocol_version: PROTOCOL_VERSION,
         };
         let mut line = serde_json::to_string(&status_msg).unwrap_or_default();
         line.push('\n');
@@ -66,7 +64,7 @@ pub(crate) async fn handle_client(stream: UnixStream, ctx: ClientHandlerContext)
         let _ = w.flush().await;
 
         // 연결 직후 현재 인터셉트 규칙을 전송 (빈 목록도 유효한 상태)
-        let current_rules = channels.intercept_tx.borrow().clone();
+        let current_rules = shared.channels.intercept_tx.borrow().clone();
         let rules_msg = DaemonMessage::InterceptRulesUpdated {
             rules: current_rules,
         };
@@ -75,7 +73,7 @@ pub(crate) async fn handle_client(stream: UnixStream, ctx: ClientHandlerContext)
         let _ = w.write_all(rules_line.as_bytes()).await;
         let _ = w.flush().await;
 
-        let current_mappings = channels.host_mapping_tx.borrow().clone();
+        let current_mappings = shared.channels.host_mapping_tx.borrow().clone();
         let mappings_msg = DaemonMessage::HostMappingsUpdated {
             mappings: current_mappings,
         };
@@ -84,7 +82,8 @@ pub(crate) async fn handle_client(stream: UnixStream, ctx: ClientHandlerContext)
         let _ = w.write_all(mappings_line.as_bytes()).await;
         let _ = w.flush().await;
 
-        let (current_ssl_mode, current_ssl_entries) = channels.ssl_proxying_tx.borrow().clone();
+        let (current_ssl_mode, current_ssl_entries) =
+            shared.channels.ssl_proxying_tx.borrow().clone();
         let ssl_msg = DaemonMessage::SslProxyingListUpdated {
             mode: current_ssl_mode,
             entries: current_ssl_entries,
@@ -94,7 +93,7 @@ pub(crate) async fn handle_client(stream: UnixStream, ctx: ClientHandlerContext)
         let _ = w.write_all(ssl_line.as_bytes()).await;
         let _ = w.flush().await;
 
-        let current_client_cert = channels.client_cert_tx.borrow().clone();
+        let current_client_cert = shared.channels.client_cert_tx.borrow().clone();
         let cert_msg = DaemonMessage::ClientCertificateUpdated {
             config: current_client_cert,
         };
@@ -106,7 +105,7 @@ pub(crate) async fn handle_client(stream: UnixStream, ctx: ClientHandlerContext)
 
     // 스크립트 로그 전달 태스크
     let writer_logs = writer.clone();
-    let mut log_rx = script_handle.subscribe_logs();
+    let mut log_rx = shared.script_handle.subscribe_logs();
     let log_task = tokio::spawn(async move {
         while let Ok(entry) = log_rx.recv().await {
             let msg = DaemonMessage::ScriptLog {
@@ -215,18 +214,8 @@ pub(crate) async fn handle_client(stream: UnixStream, ctx: ClientHandlerContext)
     // CommandState 생성 — handle_command에서 필요한 모든 공유 상태를 하나로 묶는다.
     let cmd_state = CommandState {
         writer: writer.clone(),
-        channels,
-        breakpoint_manager,
-        event_tx,
-        ws_registry,
-        script_handle,
-        quick_settings,
-        proxy_auth,
+        shared,
         subscribed,
-        metrics,
-        client_count,
-        tls_passthrough,
-        connection_strategy,
         watched_path,
     };
 

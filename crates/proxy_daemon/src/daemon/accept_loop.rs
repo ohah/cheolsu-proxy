@@ -6,7 +6,7 @@ use std::sync::Arc;
 use tokio::net::UnixListener;
 use tracing::{error, info, warn};
 
-use crate::client_handler::{handle_client, ClientHandlerContext};
+use crate::client_handler::{handle_client, ClientHandlerContext, SharedDaemonState};
 
 use super::DaemonContext;
 
@@ -57,18 +57,20 @@ pub(super) async fn run_accept_loop(
 
                         let handler_ctx = ClientHandlerContext {
                             event_rx: ctx.event_tx.subscribe(),
-                            channels: ctx.channels.clone(),
-                            breakpoint_manager: ctx.breakpoint_manager.clone(),
-                            event_tx: ctx.event_tx.clone(),
                             port,
-                            ws_registry: ctx.ws_registry.clone(),
-                            script_handle: ctx.script_handle.clone(),
-                            quick_settings: ctx.quick_settings.clone(),
-                            proxy_auth: ctx.proxy_auth.clone(),
-                            metrics: ctx.metrics.clone(),
-                            client_count: ctx.client_count.clone(),
-                            tls_passthrough: ctx.tls_passthrough.clone(),
-                            connection_strategy: ctx.connection_strategy.clone(),
+                            shared: SharedDaemonState {
+                                channels: ctx.channels.clone(),
+                                breakpoint_manager: ctx.breakpoint_manager.clone(),
+                                event_tx: ctx.event_tx.clone(),
+                                ws_registry: ctx.ws_registry.clone(),
+                                script_handle: ctx.script_handle.clone(),
+                                quick_settings: ctx.quick_settings.clone(),
+                                proxy_auth: ctx.proxy_auth.clone(),
+                                metrics: ctx.metrics.clone(),
+                                client_count: ctx.client_count.clone(),
+                                tls_passthrough: ctx.tls_passthrough.clone(),
+                                connection_strategy: ctx.connection_strategy.clone(),
+                            },
                         };
 
                         tokio::spawn(async move {

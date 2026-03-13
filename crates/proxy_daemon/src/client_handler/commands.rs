@@ -1,14 +1,12 @@
 use std::sync::Arc;
 use tokio::io::AsyncWriteExt;
-use tokio::sync::{broadcast, Mutex};
+use tokio::sync::Mutex;
 use tracing::{error, info, warn};
 
-use crate::breakpoint::BreakpointManager;
-use crate::daemon::{DaemonChannels, DaemonMetrics};
-use crate::protocol::{ClientCommand, DaemonMessage, ProxyAuthConfig, TlsPassthroughEntry};
-use proxyapi_v2::websocket_registry::WebSocketRegistry;
+use crate::protocol::{ClientCommand, DaemonMessage, TlsPassthroughEntry};
 
 use super::watcher::start_file_watcher;
+use super::SharedDaemonState;
 
 /// `handle_command`에 전달되는 파라미터를 그룹화한 상태 구조체.
 /// 기존 15개 이상의 개별 파라미터를 하나로 묶어 가독성과 유지보수성을 높인다.
@@ -16,18 +14,8 @@ use super::watcher::start_file_watcher;
 /// `CommandState`는 커맨드 처리 루프 동안 유지되는 공유 상태를 나타낸다.
 pub(super) struct CommandState {
     pub(super) writer: Arc<Mutex<tokio::net::unix::OwnedWriteHalf>>,
-    pub(super) channels: DaemonChannels,
-    pub(super) breakpoint_manager: BreakpointManager,
-    pub(super) event_tx: broadcast::Sender<String>,
-    pub(super) ws_registry: WebSocketRegistry,
-    pub(super) script_handle: scripting::ScriptHandle,
-    pub(super) quick_settings: Arc<tokio::sync::RwLock<crate::handler::QuickSettings>>,
-    pub(super) proxy_auth: Arc<tokio::sync::RwLock<Option<ProxyAuthConfig>>>,
+    pub(super) shared: SharedDaemonState,
     pub(super) subscribed: Arc<std::sync::atomic::AtomicBool>,
-    pub(super) metrics: DaemonMetrics,
-    pub(super) client_count: Arc<std::sync::atomic::AtomicUsize>,
-    pub(super) tls_passthrough: proxyapi_v2::tls_passthrough::TlsPassthrough,
-    pub(super) connection_strategy: Arc<std::sync::atomic::AtomicU8>,
     pub(super) watched_path: Arc<Mutex<Option<String>>>,
 }
 
@@ -45,6 +33,7 @@ impl CommandState {
 
 /// 커맨드를 처리하고, Stop 커맨드인 경우 true를 반환합니다.
 pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bool {
+    let s = &ctx.shared;
     match cmd {
         ClientCommand::Subscribe => {
             ctx.subscribed
@@ -52,13 +41,13 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bo
         }
         ClientCommand::UpdateInterceptRules { rules } => {
             info!("Intercept rules updated from client: {} rules", rules.len());
-            if let Err(e) = ctx.channels.intercept_tx.send(rules.clone()) {
+            if let Err(e) = s.channels.intercept_tx.send(rules.clone()) {
                 warn!("인터셉트 규칙 watch 채널 전송 실패: {}", e);
             }
             let broadcast_msg = DaemonMessage::InterceptRulesUpdated { rules };
             if let Ok(json) = serde_json::to_string(&broadcast_msg) {
-                if ctx.event_tx.receiver_count() > 0 {
-                    if let Err(e) = ctx.event_tx.send(json) {
+                if s.event_tx.receiver_count() > 0 {
+                    if let Err(e) = s.event_tx.send(json) {
                         warn!("인터셉트 규칙 broadcast 전송 실패: {}", e);
                     }
                 }
@@ -90,8 +79,8 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bo
             };
 
             let result = match direction.as_str() {
-                "to_client" => ctx.ws_registry.inject_to_client(&connection_id, msg).await,
-                "to_server" => ctx.ws_registry.inject_to_server(&connection_id, msg).await,
+                "to_client" => s.ws_registry.inject_to_client(&connection_id, msg).await,
+                "to_server" => s.ws_registry.inject_to_server(&connection_id, msg).await,
                 _ => Err(format!("Invalid direction: {}", direction)),
             };
 
@@ -112,7 +101,7 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bo
                 "Upstream proxy config updated: {:?}",
                 config.as_ref().map(|c| c.address())
             );
-            if let Err(e) = ctx.channels.upstream_tx.send(config) {
+            if let Err(e) = s.channels.upstream_tx.send(config) {
                 warn!("업스트림 프록시 watch 채널 전송 실패: {}", e);
             }
         }
@@ -121,7 +110,7 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bo
                 "Throttle config updated: enabled={:?}",
                 config.as_ref().map(|c| c.enabled)
             );
-            if let Err(e) = ctx.channels.throttle_tx.send(config) {
+            if let Err(e) = s.channels.throttle_tx.send(config) {
                 warn!("스로틀 설정 watch 채널 전송 실패: {}", e);
             }
         }
@@ -130,13 +119,13 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bo
                 "Host mappings updated from client: {} mappings",
                 mappings.len()
             );
-            if let Err(e) = ctx.channels.host_mapping_tx.send(mappings.clone()) {
+            if let Err(e) = s.channels.host_mapping_tx.send(mappings.clone()) {
                 warn!("호스트 매핑 watch 채널 전송 실패: {}", e);
             }
             let broadcast_msg = DaemonMessage::HostMappingsUpdated { mappings };
             if let Ok(json) = serde_json::to_string(&broadcast_msg) {
-                if ctx.event_tx.receiver_count() > 0 {
-                    if let Err(e) = ctx.event_tx.send(json) {
+                if s.event_tx.receiver_count() > 0 {
+                    if let Err(e) = s.event_tx.send(json) {
                         warn!("호스트 매핑 broadcast 전송 실패: {}", e);
                     }
                 }
@@ -148,7 +137,7 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bo
                 mode,
                 entries.len()
             );
-            if let Err(e) = ctx
+            if let Err(e) = s
                 .channels
                 .ssl_proxying_tx
                 .send((mode.clone(), entries.clone()))
@@ -157,8 +146,8 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bo
             }
             let broadcast_msg = DaemonMessage::SslProxyingListUpdated { mode, entries };
             if let Ok(json) = serde_json::to_string(&broadcast_msg) {
-                if ctx.event_tx.receiver_count() > 0 {
-                    if let Err(e) = ctx.event_tx.send(json) {
+                if s.event_tx.receiver_count() > 0 {
+                    if let Err(e) = s.event_tx.send(json) {
                         warn!("SSL 프록싱 목록 broadcast 전송 실패: {}", e);
                     }
                 }
@@ -169,13 +158,13 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bo
                 "Client certificate config updated: enabled={:?}",
                 config.as_ref().map(|c| c.enabled)
             );
-            if let Err(e) = ctx.channels.client_cert_tx.send(config.clone()) {
+            if let Err(e) = s.channels.client_cert_tx.send(config.clone()) {
                 warn!("클라이언트 인증서 설정 watch 채널 전송 실패: {}", e);
             }
             let broadcast_msg = DaemonMessage::ClientCertificateUpdated { config };
             if let Ok(json) = serde_json::to_string(&broadcast_msg) {
-                if ctx.event_tx.receiver_count() > 0 {
-                    if let Err(e) = ctx.event_tx.send(json) {
+                if s.event_tx.receiver_count() > 0 {
+                    if let Err(e) = s.event_tx.send(json) {
                         warn!("클라이언트 인증서 설정 broadcast 전송 실패: {}", e);
                     }
                 }
@@ -191,7 +180,7 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bo
                 no_caching, block_cookies, no_gzip
             );
             {
-                let mut settings = ctx.quick_settings.write().await;
+                let mut settings = s.quick_settings.write().await;
                 settings.no_caching = no_caching;
                 settings.block_cookies = block_cookies;
                 settings.no_gzip = no_gzip;
@@ -203,27 +192,27 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bo
                 config.enabled, config.username
             );
             {
-                let mut auth = ctx.proxy_auth.write().await;
+                let mut auth = s.proxy_auth.write().await;
                 *auth = Some(config);
             }
         }
         ClientCommand::UpdateServerReplay { entries } => {
             info!("Server replay entries updated: {} entries", entries.len());
-            if let Err(e) = ctx.channels.server_replay_tx.send(entries) {
+            if let Err(e) = s.channels.server_replay_tx.send(entries) {
                 warn!("서버 리플레이 watch 채널 전송 실패: {}", e);
             }
         }
         ClientCommand::LoadScript { path, code } => {
             let result: Result<(), String> = if let Some(file_path) = &path {
-                ctx.script_handle
+                s.script_handle
                     .load_file(file_path)
                     .await
                     .map_err(|e| e.to_string())
             } else if let Some(script_code) = &code {
                 // JS로 먼저 시도, 실패 시 TS로 트랜스파일
-                match ctx.script_handle.load_code(script_code).await {
+                match s.script_handle.load_code(script_code).await {
                     Ok(()) => Ok(()),
-                    Err(_) => ctx
+                    Err(_) => s
                         .script_handle
                         .load_ts_code(script_code)
                         .await
@@ -242,10 +231,10 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bo
                         *wp = Some(file_path.clone());
                         start_file_watcher(
                             file_path.clone(),
-                            ctx.script_handle.clone(),
+                            s.script_handle.clone(),
                             ctx.writer.clone(),
                             ctx.watched_path.clone(),
-                            ctx.event_tx.clone(),
+                            s.event_tx.clone(),
                         );
                     }
                     // 스크립트 상태 브로드캐스트
@@ -255,7 +244,7 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bo
                         message: "스크립트 로드 완료".to_string(),
                     };
                     if let Ok(json) = serde_json::to_string(&status_msg) {
-                        let _ = ctx.event_tx.send(json);
+                        let _ = s.event_tx.send(json);
                     }
                     DaemonMessage::ScriptResult {
                         success: true,
@@ -273,7 +262,7 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bo
             ctx.send_message(&response).await;
         }
         ClientCommand::UnloadScript => {
-            ctx.script_handle.unload().await;
+            s.script_handle.unload().await;
             {
                 let mut wp = ctx.watched_path.lock().await;
                 *wp = None;
@@ -286,7 +275,7 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bo
                 message: "스크립트 언로드됨".to_string(),
             };
             if let Ok(json) = serde_json::to_string(&status_msg) {
-                let _ = ctx.event_tx.send(json);
+                let _ = s.event_tx.send(json);
             }
             let response = DaemonMessage::ScriptResult {
                 success: true,
@@ -299,13 +288,13 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bo
                 "Breakpoint rules updated from client: {} rules",
                 rules.len()
             );
-            if let Err(e) = ctx.channels.breakpoint_tx.send(rules.clone()) {
+            if let Err(e) = s.channels.breakpoint_tx.send(rules.clone()) {
                 warn!("브레이크포인트 규칙 watch 채널 전송 실패: {}", e);
             }
             let broadcast_msg = DaemonMessage::BreakpointRulesUpdated { rules };
             if let Ok(json) = serde_json::to_string(&broadcast_msg) {
-                if ctx.event_tx.receiver_count() > 0 {
-                    if let Err(e) = ctx.event_tx.send(json) {
+                if s.event_tx.receiver_count() > 0 {
+                    if let Err(e) = s.event_tx.send(json) {
                         warn!("브레이크포인트 규칙 broadcast 전송 실패: {}", e);
                     }
                 }
@@ -313,7 +302,7 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bo
         }
         ClientCommand::ResolveBreakpoint { id, action } => {
             info!("Resolving breakpoint: {} -> {:?}", id, action);
-            if let Err(e) = ctx.breakpoint_manager.resolve(&id, action).await {
+            if let Err(e) = s.breakpoint_manager.resolve(&id, action).await {
                 warn!("Failed to resolve breakpoint: {}", e);
             }
         }
@@ -341,9 +330,9 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bo
             ctx.send_message(&msg).await;
         }
         ClientCommand::HealthCheck => {
-            let uptime_secs = ctx.metrics.started_at.elapsed().as_secs();
-            let active_conns = ctx.client_count.load(std::sync::atomic::Ordering::Acquire) as u32;
-            let total_txns = ctx
+            let uptime_secs = s.metrics.started_at.elapsed().as_secs();
+            let active_conns = s.client_count.load(std::sync::atomic::Ordering::Acquire) as u32;
+            let total_txns = s
                 .metrics
                 .total_transactions
                 .load(std::sync::atomic::Ordering::Relaxed);
@@ -355,7 +344,7 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bo
             ctx.send_message(&response).await;
         }
         ClientCommand::GetTlsPassthroughList => {
-            let list = ctx.tls_passthrough.list_bypassed().await;
+            let list = s.tls_passthrough.list_bypassed().await;
             let entries: Vec<TlsPassthroughEntry> = list
                 .into_iter()
                 .map(|(host, failure_count)| TlsPassthroughEntry {
@@ -368,24 +357,24 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bo
         }
         ClientCommand::RemoveTlsPassthrough { host } => {
             info!("TLS Passthrough 바이패스 해제: {}", host);
-            ctx.tls_passthrough.clear_domain(&host).await;
+            s.tls_passthrough.clear_domain(&host).await;
         }
         ClientCommand::ClearTlsPassthrough => {
             info!("TLS Passthrough 전체 초기화");
-            ctx.tls_passthrough.clear_all().await;
+            s.tls_passthrough.clear_all().await;
         }
         ClientCommand::UpdateRequestClientCert { config } => {
             info!(
                 "Request client cert config updated: enabled={:?}",
                 config.as_ref().map(|c| c.enabled)
             );
-            if let Err(e) = ctx.channels.request_client_cert_tx.send(config.clone()) {
+            if let Err(e) = s.channels.request_client_cert_tx.send(config.clone()) {
                 warn!("클라이언트 인증서 요청 설정 watch 채널 전송 실패: {}", e);
             }
             let broadcast_msg = DaemonMessage::RequestClientCertUpdated { config };
             if let Ok(json) = serde_json::to_string(&broadcast_msg) {
-                if ctx.event_tx.receiver_count() > 0 {
-                    if let Err(e) = ctx.event_tx.send(json) {
+                if s.event_tx.receiver_count() > 0 {
+                    if let Err(e) = s.event_tx.send(json) {
                         warn!("클라이언트 인증서 요청 설정 broadcast 전송 실패: {}", e);
                     }
                 }
@@ -397,13 +386,13 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bo
                 "eager_with_fallback" => 2u8,
                 _ => 0u8, // lazy
             };
-            ctx.connection_strategy
+            s.connection_strategy
                 .store(strategy_value, std::sync::atomic::Ordering::Release);
             info!("Connection strategy updated: {}", strategy);
         }
         ClientCommand::GetMetrics => {
-            let snapshot = ctx.metrics.metrics_aggregator.get_metrics_snapshot();
-            let uptime = ctx.metrics.metrics_aggregator.uptime_secs();
+            let snapshot = s.metrics.metrics_aggregator.get_metrics_snapshot();
+            let uptime = s.metrics.metrics_aggregator.uptime_secs();
             let response = DaemonMessage::MetricsResult {
                 active_requests: snapshot.active_requests,
                 total_requests: snapshot.total_requests,
@@ -418,7 +407,7 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bo
             ctx.send_message(&response).await;
         }
         ClientCommand::GetDomainStats { domain } => {
-            let stats = ctx
+            let stats = s
                 .metrics
                 .metrics_aggregator
                 .get_domain_stats(domain.as_deref())
@@ -427,11 +416,7 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bo
             ctx.send_message(&response).await;
         }
         ClientCommand::GetRecentErrors { limit } => {
-            let errors = ctx
-                .metrics
-                .metrics_aggregator
-                .get_recent_errors(limit)
-                .await;
+            let errors = s.metrics.metrics_aggregator.get_recent_errors(limit).await;
             let response = DaemonMessage::RecentErrorsResult { errors };
             ctx.send_message(&response).await;
         }
