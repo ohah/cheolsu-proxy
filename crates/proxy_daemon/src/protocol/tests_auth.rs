@@ -73,7 +73,6 @@ mod tests {
         let config: ProxyAuthConfig = serde_json::from_str(json).unwrap();
         assert_eq!(config.method, AuthMethod::Basic);
         assert!(config.token.is_none());
-        assert!(config.token.is_none());
     }
 
     #[test]
@@ -252,7 +251,6 @@ mod tests {
         match deserialized {
             ClientCommand::UpdateProxyAuth { config } => {
                 assert_eq!(config.method, AuthMethod::ApiKey);
-                assert_eq!(config.token.unwrap(), "my-api-key-123");
                 assert_eq!(config.token.unwrap(), "my-api-key-123");
             }
             _ => panic!("Expected UpdateProxyAuth"),
