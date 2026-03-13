@@ -210,6 +210,85 @@ fn test_unknown_tls_version_returns_error() {
     );
 }
 
+// ─── supported_versions 파싱 테스트 ───
+
+#[test]
+fn test_tls13_detected_via_supported_versions() {
+    // client_version은 TLS 1.2(0x0303)이지만
+    // supported_versions extension(0x002b)에 TLS 1.3(0x0304)이 포함됨
+    // → TLS 1.3으로 감지되어야 함
+    let sni_data = b"\x00\x00\x0eexample.com";
+    // supported_versions extension: list_len(1) + versions
+    // [0x03, 0x04, 0x03, 0x03] = TLS 1.3, TLS 1.2
+    let sv_data: &[u8] = &[0x04, 0x03, 0x04, 0x03, 0x03];
+    let buf = build_client_hello(
+        [0x03, 0x03], // client_version = TLS 1.2
+        &[0x1301, 0x1302, 0xc02c],
+        &[(0x0000, sni_data), (0x002b, sv_data)],
+    );
+    let info = analyze_tls_connection(&buf).unwrap();
+    assert_eq!(
+        info.version,
+        TlsVersion::Tls13,
+        "supported_versions에 0x0304가 있으면 TLS 1.3으로 감지해야 함"
+    );
+}
+
+#[test]
+fn test_tls12_only_in_supported_versions() {
+    // supported_versions에 TLS 1.2만 있으면 TLS 1.2로 유지
+    let sni_data = b"\x00\x00\x0eexample.com";
+    let sv_data: &[u8] = &[0x02, 0x03, 0x03]; // list_len=2, TLS 1.2 only
+    let buf = build_client_hello(
+        [0x03, 0x03],
+        &[0x1301],
+        &[(0x0000, sni_data), (0x002b, sv_data)],
+    );
+    let info = analyze_tls_connection(&buf).unwrap();
+    assert_eq!(
+        info.version,
+        TlsVersion::Tls12,
+        "supported_versions에 TLS 1.3이 없으면 client_version 기반으로 유지"
+    );
+}
+
+#[test]
+fn test_malformed_supported_versions_odd_length() {
+    // list_len이 홀수(3) → malformed → 무시하고 client_version 사용
+    let sni_data = b"\x00\x00\x0eexample.com";
+    let sv_data: &[u8] = &[0x03, 0x03, 0x04, 0x03]; // list_len=3 (홀수!)
+    let buf = build_client_hello(
+        [0x03, 0x03],
+        &[0x1301],
+        &[(0x0000, sni_data), (0x002b, sv_data)],
+    );
+    let info = analyze_tls_connection(&buf).unwrap();
+    assert_eq!(
+        info.version,
+        TlsVersion::Tls12,
+        "홀수 list_len은 무시하고 client_version(TLS 1.2) 유지"
+    );
+}
+
+#[test]
+fn test_tls13_with_apple_cipher_routes_to_openssl() {
+    // TLS 1.3 + Apple cipher → OpenSSL 경로로 가되 버전은 정확히 1.3
+    let sni_data = b"\x00\x00\x0eexample.com";
+    let sv_data: &[u8] = &[0x04, 0x03, 0x04, 0x03, 0x03];
+    let buf = build_client_hello(
+        [0x03, 0x03],
+        &[0xcaca, 0x1301, 0x1302], // 0xcaca = Apple GREASE cipher
+        &[(0x0000, sni_data), (0x002b, sv_data)],
+    );
+    let info = analyze_tls_connection(&buf).unwrap();
+    assert_eq!(info.version, TlsVersion::Tls13);
+    assert!(info.has_apple_cipher);
+
+    let authority: Authority = "example.com:443".parse().unwrap();
+    let strategy = determine_tls_strategy(&authority, &info, None);
+    assert_eq!(strategy, TlsStrategy::OpenSslOnly);
+}
+
 #[test]
 fn test_openssl_required_domain() {
     let auth: Authority = "api2.cursor.sh:443".parse().unwrap();
