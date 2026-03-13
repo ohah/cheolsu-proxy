@@ -13,44 +13,26 @@ use binary_signature::{
 };
 use content_type_header::detect_by_content_type_header;
 
-/// GZIP 압축된 데이터의 실제 내용 타입 감지
-fn detect_gzip_content_type(data: &[u8]) -> DataType {
-    match decompress_gzip(data) {
-        Ok(decompressed) => {
-            let headers = HeaderMap::new();
-            detect_data_type(&headers, &Bytes::from(decompressed))
-        }
-        Err(_) => DataType::Archive,
-    }
-}
+/// Content-Encoding 헤더 기반으로 전송 압축 해제
+fn decompress_by_content_encoding(headers: &HeaderMap, body: &Bytes) -> Option<Bytes> {
+    let content_encoding = headers.get("content-encoding")?;
+    let encoding = content_encoding.to_str().ok()?;
+    let encoding_lower = encoding.to_lowercase();
 
-/// Brotli 압축된 데이터의 실제 내용 타입 감지
-fn detect_brotli_content_type(data: &[u8]) -> DataType {
-    match decompress_brotli(data) {
-        Ok(decompressed) => {
-            let headers = HeaderMap::new();
-            detect_data_type(&headers, &Bytes::from(decompressed))
-        }
-        Err(_) => DataType::Binary,
+    if encoding_lower.contains("br") {
+        return decompress_brotli(body).ok().map(Bytes::from);
     }
+    if encoding_lower.contains("gzip") {
+        return decompress_gzip(body).ok().map(Bytes::from);
+    }
+
+    None
 }
 
 /// 데이터 타입 감지 유틸리티 함수 (MITM 프록시에 최적화)
 pub fn detect_data_type(headers: &HeaderMap, body: &Bytes) -> DataType {
-    // 0. Content-Encoding 헤더 확인 (가장 우선순위 높음)
-    if let Some(content_encoding) = headers.get("content-encoding") {
-        if let Ok(encoding) = content_encoding.to_str() {
-            let encoding_lower = encoding.to_lowercase();
-            // Brotli 압축 감지
-            if encoding_lower.contains("br") {
-                return detect_brotli_content_type(body);
-            }
-            // GZIP 압축 감지 (헤더로 확인)
-            if encoding_lower.contains("gzip") {
-                return detect_gzip_content_type(body);
-            }
-        }
-    }
+    // 0. Content-Encoding 기반 전송 압축 해제
+    let body = &decompress_by_content_encoding(headers, body).unwrap_or_else(|| body.clone());
 
     // 1. 내용 분석 (JSON 감지 포함)
     if !body.is_empty() {
@@ -74,9 +56,16 @@ pub fn detect_data_type(headers: &HeaderMap, body: &Bytes) -> DataType {
             }
         }
 
-        // GZIP 압축 파일 감지 및 내용 분석 (magic number로 확인)
+        // GZIP magic number 감지 (파일 자체가 gzip인 경우)
         if body.len() >= 2 && body[0] == 0x1f && body[1] == 0x8b {
-            return detect_gzip_content_type(body);
+            // 압축 해제 성공 시 내용 기반 감지, 실패 시 Archive
+            return match decompress_gzip(body) {
+                Ok(decompressed) => {
+                    let empty_headers = HeaderMap::new();
+                    detect_data_type(&empty_headers, &Bytes::from(decompressed))
+                }
+                Err(_) => DataType::Archive,
+            };
         }
 
         // SVG 감지 (XML보다 우선)
