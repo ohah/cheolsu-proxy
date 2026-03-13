@@ -44,9 +44,9 @@ describe("websocket-store", () => {
     expect(state.selectedMessage).toBeNull();
   });
 
-  test("addMessage: 새 연결 자동 생성", () => {
+  test("addMessages: 새 연결 자동 생성", () => {
     const msg = createMessage("conn-1");
-    store.getState().addMessage(msg);
+    store.getState().addMessages([msg]);
 
     const state = store.getState();
     expect(state.messages).toHaveLength(1);
@@ -56,19 +56,30 @@ describe("websocket-store", () => {
     expect(conn.messageCount).toBe(1);
   });
 
-  test("addMessage: 기존 연결에 메시지 추가", () => {
-    store.getState().addMessage(createMessage("conn-1"));
-    store.getState().addMessage(createMessage("conn-1"));
-    store.getState().addMessage(createMessage("conn-1"));
+  test("addMessages: 기존 연결에 메시지 추가", () => {
+    store.getState().addMessages([createMessage("conn-1")]);
+    store.getState().addMessages([createMessage("conn-1")]);
+    store.getState().addMessages([createMessage("conn-1")]);
 
     const conn = store.getState().connections.get("conn-1")!;
     expect(conn.messageCount).toBe(3);
     expect(store.getState().messages).toHaveLength(3);
   });
 
-  test("addMessage: 여러 연결 동시 관리", () => {
-    store.getState().addMessage(createMessage("conn-1"));
-    store.getState().addMessage(createMessage("conn-2"));
+  test("addMessages: 배치로 여러 메시지 한번에 추가", () => {
+    store
+      .getState()
+      .addMessages([createMessage("conn-1"), createMessage("conn-1"), createMessage("conn-2")]);
+
+    expect(store.getState().messages).toHaveLength(3);
+    expect(store.getState().connections.size).toBe(2);
+    expect(store.getState().connections.get("conn-1")!.messageCount).toBe(2);
+    expect(store.getState().connections.get("conn-2")!.messageCount).toBe(1);
+  });
+
+  test("addMessages: 여러 연결 동시 관리", () => {
+    store.getState().addMessages([createMessage("conn-1")]);
+    store.getState().addMessages([createMessage("conn-2")]);
 
     expect(store.getState().connections.size).toBe(2);
     expect(store.getState().connections.get("conn-1")!.messageCount).toBe(1);
@@ -102,7 +113,7 @@ describe("websocket-store", () => {
 
   test("setSelectedConnectionId: 선택 시 메시지 선택 초기화", () => {
     const msg = createMessage("conn-1");
-    store.getState().addMessage(msg);
+    store.getState().addMessages([msg]);
     store.getState().setSelectedMessage(msg);
     expect(store.getState().selectedMessage).not.toBeNull();
 
@@ -121,7 +132,7 @@ describe("websocket-store", () => {
   });
 
   test("clearAll: 전체 초기화", () => {
-    store.getState().addMessage(createMessage("conn-1"));
+    store.getState().addMessages([createMessage("conn-1")]);
     store.getState().setSelectedConnectionId("conn-1");
 
     store.getState().clearAll();
