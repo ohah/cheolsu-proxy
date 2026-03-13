@@ -377,6 +377,7 @@ async fn stress_broadcast_high_volume_messages() {
         let msg = DaemonMessage::Status {
             running: true,
             port: 8100,
+            protocol_version: proxy_daemon::PROTOCOL_VERSION,
         };
         let json = serde_json::to_string(&msg).expect("DaemonMessage 직렬화 실패");
         tx.send(format!("{}:{}", i, json))
@@ -507,6 +508,7 @@ async fn stress_broadcast_daemon_messages_serialization() {
         DaemonMessage::Status {
             running: true,
             port: 8100,
+            protocol_version: proxy_daemon::PROTOCOL_VERSION,
         },
         DaemonMessage::ScriptResult {
             success: true,
@@ -604,6 +606,7 @@ async fn stress_serialization_deserialization_loop() {
         DaemonMessage::Status {
             running: true,
             port: 8100,
+            protocol_version: proxy_daemon::PROTOCOL_VERSION,
         },
         DaemonMessage::ScriptResult {
             success: true,

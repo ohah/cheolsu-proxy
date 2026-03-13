@@ -1,3 +1,6 @@
+/// 프로토콜 버전. 클라이언트-데몬 간 호환성 확인에 사용됩니다.
+pub const PROTOCOL_VERSION: u32 = 1;
+
 use super::auth::ProxyAuthConfig;
 use super::breakpoint_types::{BreakpointAction, BreakpointData, BreakpointPhase, BreakpointRule};
 use super::host_mapping::HostMapping;
@@ -19,7 +22,12 @@ pub enum DaemonMessage {
     #[serde(rename = "event")]
     Event { data: RequestInfo },
     #[serde(rename = "status")]
-    Status { running: bool, port: u16 },
+    Status {
+        running: bool,
+        port: u16,
+        #[serde(default)]
+        protocol_version: u32,
+    },
     #[serde(rename = "intercept_rules_updated")]
     InterceptRulesUpdated { rules: Vec<InterceptRule> },
     #[serde(rename = "host_mappings_updated")]
