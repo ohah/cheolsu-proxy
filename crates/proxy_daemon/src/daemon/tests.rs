@@ -42,12 +42,17 @@ mod tests {
         let msg = DaemonMessage::Status {
             running: true,
             port: 8100,
+            protocol_version: crate::protocol::PROTOCOL_VERSION,
         };
         let json = serde_json::to_string(&msg).unwrap();
         let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
         assert_eq!(parsed["type"], "status");
         assert_eq!(parsed["running"], true);
         assert_eq!(parsed["port"], 8100);
+        assert_eq!(
+            parsed["protocol_version"],
+            crate::protocol::PROTOCOL_VERSION
+        );
     }
 
     #[test]
@@ -55,9 +60,14 @@ mod tests {
         let json = r#"{"type":"status","running":true,"port":8100}"#;
         let msg: DaemonMessage = serde_json::from_str(json).unwrap();
         match msg {
-            DaemonMessage::Status { running, port } => {
+            DaemonMessage::Status {
+                running,
+                port,
+                protocol_version,
+            } => {
                 assert!(running);
                 assert_eq!(port, 8100);
+                assert_eq!(protocol_version, 0); // default when not present
             }
             _ => panic!("Expected Status"),
         }
@@ -161,10 +171,12 @@ mod tests {
             DaemonMessage::Status {
                 running: true,
                 port: 8100,
+                protocol_version: crate::protocol::PROTOCOL_VERSION,
             },
             DaemonMessage::Status {
                 running: false,
                 port: 8100,
+                protocol_version: crate::protocol::PROTOCOL_VERSION,
             },
         ];
 
@@ -182,14 +194,14 @@ mod tests {
 
         assert_eq!(parsed.len(), 2);
         match &parsed[0] {
-            DaemonMessage::Status { running, port } => {
+            DaemonMessage::Status { running, port, .. } => {
                 assert!(*running);
                 assert_eq!(*port, 8100);
             }
             _ => panic!("Expected Status"),
         }
         match &parsed[1] {
-            DaemonMessage::Status { running, port } => {
+            DaemonMessage::Status { running, port, .. } => {
                 assert!(!*running);
                 assert_eq!(*port, 8100);
             }

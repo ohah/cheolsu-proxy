@@ -177,14 +177,20 @@ fn daemon_message_status_roundtrip() {
     let msg = DaemonMessage::Status {
         running: true,
         port: 8100,
+        protocol_version: proxy_daemon::PROTOCOL_VERSION,
     };
     let json = serde_json::to_string(&msg).unwrap();
     assert!(json.contains("status"));
     let parsed: DaemonMessage = serde_json::from_str(&json).unwrap();
     match parsed {
-        DaemonMessage::Status { running, port } => {
+        DaemonMessage::Status {
+            running,
+            port,
+            protocol_version,
+        } => {
             assert!(running);
             assert_eq!(port, 8100);
+            assert_eq!(protocol_version, proxy_daemon::PROTOCOL_VERSION);
         }
         _ => panic!("Expected Status"),
     }
@@ -315,6 +321,7 @@ fn newline_protocol_mixed_messages() {
         DaemonMessage::Status {
             running: true,
             port: 8100,
+            protocol_version: proxy_daemon::PROTOCOL_VERSION,
         },
         DaemonMessage::ScriptResult {
             success: true,
