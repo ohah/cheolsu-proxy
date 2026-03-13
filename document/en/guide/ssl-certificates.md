@@ -36,31 +36,16 @@ sequenceDiagram
 
 ## macOS Certificate Installation
 
-### Automatic Installation (Recommended)
-
 1. Open Cheolsu Proxy
 2. Go to **Settings** then **Certificates**
 3. Click the **Install Certificate** button
-4. The certificate is added to your macOS Keychain, but it is not yet trusted
+4. Enter your macOS password to authorize the installation
 
-### Trust the Certificate
+The app automatically installs the certificate and configures trust settings. Restart your browser after installation.
 
-After installation, you must explicitly trust it:
+## Windows Certificate Installation
 
-1. Open **Keychain Access** (search for it in Spotlight)
-2. In the **System** keychain (or **login** keychain, depending on where it was installed), find the Cheolsu Proxy certificate
-3. Double-click the certificate to open its details
-4. Expand the **Trust** section
-5. Set **When using this certificate** to **Always Trust**
-6. Close the dialog — you will be prompted for your macOS password to confirm the change
-
-> After trusting the certificate, restart your browser to ensure it picks up the change.
-
-### Verify It Works
-
-1. Make sure the proxy is running
-2. Visit any HTTPS site (e.g., `https://httpbin.org`)
-3. You should see the request in Cheolsu Proxy **without** any browser security warnings
+> Windows support is coming soon.
 
 ## Mobile Device Certificate Installation
 
@@ -114,14 +99,14 @@ If your certificate expires, becomes compromised, or you simply want a fresh one
 
 ### "Your connection is not secure" warnings
 
-- Verify the certificate is installed **and** trusted (installation alone is not enough)
-- Restart your browser after trusting the certificate
+- Check that the certificate status shows **Trusted** in **Settings** > **Certificates**
+- Restart your browser after installing the certificate
 - Check that the proxy is actually running and your traffic is routed through it
 
 ### Certificate installation fails
 
 - Ensure you are running Cheolsu Proxy with sufficient permissions
-- Try the manual installation method: export the certificate file from Settings and double-click it to add to Keychain
+- Try reinstalling the certificate from **Settings** > **Certificates**
 
 ### HTTPS works in Chrome but not Firefox
 
