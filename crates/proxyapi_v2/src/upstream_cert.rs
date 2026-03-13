@@ -165,7 +165,23 @@ async fn sniff_upstream_cert_inner(
 
     let connector = tokio_rustls::TlsConnector::from(Arc::new(config));
 
-    let server_name = ServerName::try_from(authority.host().to_string()).ok()?;
+    // IPv6 대괄호 제거 및 IP 주소 처리 (RFC 6066: IP literal은 SNI에 불허)
+    let host = authority.host();
+    let stripped_host = host
+        .strip_prefix('[')
+        .and_then(|h| h.strip_suffix(']'))
+        .unwrap_or(host);
+
+    let server_name = if let Ok(ip_addr) = stripped_host.parse::<std::net::IpAddr>() {
+        // IP 주소인 경우 ServerName::IpAddress 사용 → rustls가 SNI를 전송하지 않음
+        debug!(
+            "[UPSTREAM-CERT] IP 주소 감지, SNI 미전송 (RFC 6066): {}",
+            ip_addr
+        );
+        ServerName::from(ip_addr)
+    } else {
+        ServerName::try_from(stripped_host.to_string()).ok()?
+    };
 
     // 3. TLS 핸드셰이크 (인증서 + ALPN 캡처)
     let negotiated_alpn = match connector.connect(server_name, tcp_stream).await {
