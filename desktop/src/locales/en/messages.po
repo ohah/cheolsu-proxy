@@ -88,8 +88,8 @@ msgstr "Active Custom CA"
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:134
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:140
 #: src/pages/server-replay/ui/server-replay-page.tsx:170
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:187
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:273
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:209
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:272
 msgid "Add"
 msgstr "Add"
 
@@ -97,7 +97,7 @@ msgstr "Add"
 msgid "Add breakpoint rules to pause HTTP requests/responses for inspection."
 msgstr "Add breakpoint rules to pause HTTP requests/responses for inspection."
 
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:260
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:259
 msgid "Add built-in domain pattern..."
 msgstr "Add built-in domain pattern..."
 
@@ -191,15 +191,15 @@ msgstr "All entries cleared"
 msgid "All host mappings cleared"
 msgstr "All host mappings cleared"
 
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:147
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:169
 msgid "All HTTPS traffic is being intercepted (no whitelist configured)"
 msgstr "All HTTPS traffic is being intercepted (no whitelist configured)"
 
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:141
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:163
 msgid "All HTTPS traffic is intercepted except {enabledCount} excluded domain(s) and {defaultEnabledCount} built-in domain(s)."
 msgstr "All HTTPS traffic is intercepted except {enabledCount} excluded domain(s) and {defaultEnabledCount} built-in domain(s)."
 
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:136
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:158
 msgid "All HTTPS traffic is intercepted. {defaultEnabledCount} built-in domain(s) are automatically excluded."
 msgstr "All HTTPS traffic is intercepted. {defaultEnabledCount} built-in domain(s) are automatically excluded."
 
@@ -248,7 +248,7 @@ msgstr "Automatically save the current session when the app closes and restore i
 msgid "available"
 msgstr "available"
 
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:170
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:192
 msgid "Blacklist (Exclude)"
 msgstr "Blacklist (Exclude)"
 
@@ -306,7 +306,7 @@ msgid "Browse"
 msgstr "Browse"
 
 #. placeholder {0}: defaultPassthroughEntries.length
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:244
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:243
 msgid "Built-in Passthrough Domains ({0})"
 msgstr "Built-in Passthrough Domains ({0})"
 
@@ -612,7 +612,7 @@ msgstr "Domain"
 msgid "Domain-specific Certificates"
 msgstr "Domain-specific Certificates"
 
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:192
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:214
 msgid "Domains in this list will NOT be intercepted (pass-through). Built-in domains can be managed below."
 msgstr "Domains in this list will NOT be intercepted (pass-through). Built-in domains can be managed below."
 
@@ -667,7 +667,7 @@ msgstr "Enabled"
 msgid "entries"
 msgstr "entries"
 
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:180
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:202
 msgid "example.com, *.example.com, or example.com:443"
 msgstr "example.com, *.example.com, or example.com:443"
 
@@ -1090,7 +1090,7 @@ msgstr "Method"
 msgid "Mobile Certificate Install"
 msgstr "Mobile Certificate Install"
 
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:157
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:179
 msgid "Mode"
 msgstr "Mode"
 
@@ -1212,7 +1212,7 @@ msgstr "Number of simultaneous requests (1-100)"
 msgid "Number of times to send the request (1-10000)"
 msgstr "Number of times to send the request (1-10000)"
 
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:197
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:219
 msgid "Only domains in this list will be intercepted. When the list is empty, all domains are intercepted."
 msgstr "Only domains in this list will be intercepted. When the list is empty, all domains are intercepted."
 
@@ -1220,7 +1220,7 @@ msgstr "Only domains in this list will be intercepted. When the list is empty, a
 msgid "Only http:// and https:// URLs are allowed"
 msgstr "Only http:// and https:// URLs are allowed"
 
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:149
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:171
 msgid "Only whitelisted domains ({enabledCount}) will have HTTPS traffic intercepted"
 msgstr "Only whitelisted domains ({enabledCount}) will have HTTPS traffic intercepted"
 
@@ -1427,8 +1427,7 @@ msgid "Remote Device Certificate"
 msgstr "Remote Device Certificate"
 
 #: src/pages/settings/ui/components/client-certificate-section.tsx:351
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:225
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:301
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:78
 msgid "Remove"
 msgstr "Remove"
 
@@ -1591,7 +1590,7 @@ msgstr "Restart proxy to apply changes"
 msgid "Restart proxy to use auto-generated CA"
 msgstr "Restart proxy to use auto-generated CA"
 
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:247
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:246
 msgid "Restore Defaults"
 msgstr "Restore Defaults"
 
@@ -1879,7 +1878,7 @@ msgstr "Source host and target host are required"
 msgid "Source Port"
 msgstr "Source Port"
 
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:131
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:153
 msgid "SSL Proxying"
 msgstr "SSL Proxying"
 
@@ -1977,7 +1976,7 @@ msgstr "The DER certificate file will download automatically"
 msgid "Theme"
 msgstr "Theme"
 
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:251
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:250
 msgid "These domains are automatically excluded from HTTPS interception to prevent OAuth/authentication failures. You can toggle, add, or remove domains."
 msgstr "These domains are automatically excluded from HTTPS interception to prevent OAuth/authentication failures. You can toggle, add, or remove domains."
 
@@ -2173,7 +2172,7 @@ msgstr "WebSocket Replay"
 msgid "Where"
 msgstr "Where"
 
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:173
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:195
 msgid "Whitelist (Include)"
 msgstr "Whitelist (Include)"
 

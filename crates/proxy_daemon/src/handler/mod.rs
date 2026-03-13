@@ -17,7 +17,7 @@ pub use crate::ws_handler::WsEvent;
 pub use config::{LoggingHandler, QuickSettings};
 // 외부 모듈의 테스트 코드에서 직접 LoggingHandler를 구성할 때 사용
 #[allow(unused_imports)]
-pub(crate) use config::{InterceptEngine, ProxyConfig, RequestState};
+pub(crate) use config::{InterceptEngine, ProxyConfig, RequestState, SslProxyingConfig};
 
 #[cfg(test)]
 mod tests {

@@ -352,19 +352,22 @@ async fn sync_stored_settings_to_daemon<R: Runtime>(app: &AppHandle<R>, sender: 
         }
 
         // 기본 패스스루 도메인 동기화
-        let default_passthrough: Vec<SslProxyingEntry> = ssl
+        // None = 저장된 적 없음(첫 실행) → Rust 기본값 사용
+        // Some([]) = 사용자가 의도적으로 모든 도메인 삭제 → 빈 목록 그대로 전달
+        let default_passthrough: Vec<SslProxyingEntry> = match ssl
             .get("defaultPassthroughEntries")
             .and_then(|v| serde_json::from_value(v.clone()).ok())
-            .unwrap_or_default();
-        if !default_passthrough.is_empty() {
-            if let Err(e) = sender
-                .send_command(&ClientCommand::UpdateDefaultPassthroughDomains {
-                    entries: default_passthrough,
-                })
-                .await
-            {
-                tracing::warn!("설정 동기화 실패 (DefaultPassthroughDomains): {}", e);
-            }
+        {
+            Some(entries) => entries,
+            None => proxy_daemon::default_passthrough_entries(),
+        };
+        if let Err(e) = sender
+            .send_command(&ClientCommand::UpdateDefaultPassthroughDomains {
+                entries: default_passthrough,
+            })
+            .await
+        {
+            tracing::warn!("설정 동기화 실패 (DefaultPassthroughDomains): {}", e);
         }
     }
 

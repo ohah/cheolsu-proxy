@@ -11,6 +11,7 @@ import {
   useBreakpointStore,
   useHostMappingStore,
 } from "@/shared/stores";
+import { useSslProxyingStore } from "@/shared/stores/ssl-proxying-store";
 import { bufferWsMessage } from "@/shared/stores/websocket-store";
 import { emit, listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
@@ -22,7 +23,7 @@ import { useAppSettingsStore } from "@/shared/stores/app-settings-store";
 import type { WsMessageInfo, WsConnectionEvent } from "@/entities/websocket";
 import type { InterceptRule } from "@/entities/intercept-rule";
 import type { BreakpointRule, PendingBreakpoint } from "@/entities/breakpoint";
-import type { HostMapping } from "@/shared/api/proxy";
+import type { HostMapping, SslProxyingMode, SslProxyingEntry } from "@/shared/api/proxy";
 import { useGlobalShortcut } from "@/features/proxy-toggle";
 import { updateDaemonRules, waitForDaemonRules } from "@/shared/stores/sync-rules";
 
@@ -44,6 +45,11 @@ const App: React.FC = () => {
   const setBreakpointRules = useBreakpointStore((s) => s.setRules);
   const addPendingBreakpoint = useBreakpointStore((s) => s.addPendingBreakpoint);
   const setHostMappings = useHostMappingStore((s) => s.setMappings);
+  const setSslFromDaemon = useSslProxyingStore((s) => s.setFromDaemon);
+  const setDefaultPassthroughEntries = useSslProxyingStore(
+    (s) => s.setDefaultPassthroughEntries,
+  );
+  const initDefaultPassthrough = useSslProxyingStore((s) => s.initDefaultPassthrough);
 
   // 앱 시작 시 프록시 초기화 → 데몬 규칙 수신 대기 → 저장된 규칙 동기화
   useEffect(() => {
@@ -148,6 +154,39 @@ const App: React.FC = () => {
       unlisten.then((f) => f());
     };
   }, [setHostMappings]);
+
+  // 데몬에서 SSL Proxying 목록 변경 수신
+  useEffect(() => {
+    const unlisten = listen<{ mode: SslProxyingMode; entries: SslProxyingEntry[] }>(
+      "ssl_proxying_list_updated",
+      (event) => {
+        setSslFromDaemon(event.payload.mode, event.payload.entries);
+      },
+    );
+
+    return () => {
+      unlisten.then((f) => f());
+    };
+  }, [setSslFromDaemon]);
+
+  // 데몬에서 기본 패스스루 도메인 변경 수신
+  useEffect(() => {
+    const unlisten = listen<{ entries: SslProxyingEntry[] }>(
+      "default_passthrough_domains_updated",
+      (event) => {
+        setDefaultPassthroughEntries(event.payload.entries);
+      },
+    );
+
+    return () => {
+      unlisten.then((f) => f());
+    };
+  }, [setDefaultPassthroughEntries]);
+
+  // persist에서 복원된 기본 패스스루 도메인이 없으면 Rust 백엔드에서 기본값 로딩
+  useEffect(() => {
+    initDefaultPassthrough();
+  }, [initDefaultPassthrough]);
 
   // 트레이에서 프록시 시작/중지 시 메인 윈도우 상태 동기화
   useEffect(() => {

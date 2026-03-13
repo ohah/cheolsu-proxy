@@ -332,28 +332,10 @@ export async function updateDefaultPassthroughDomains(entries: SslProxyingEntry[
   return invoke("update_default_passthrough_domains", { entries });
 }
 
-/** 기본 패스스루 도메인 목록 (하드코딩된 기본값) */
-export const DEFAULT_PASSTHROUGH_DOMAINS: SslProxyingEntry[] = [
-  // Google OAuth & APIs
-  { pattern: "accounts.google.com", enabled: true },
-  { pattern: "*.googleapis.com", enabled: true },
-  // Microsoft Authentication
-  { pattern: "login.microsoftonline.com", enabled: true },
-  { pattern: "*.live.com", enabled: true },
-  // Apple ID & iCloud
-  { pattern: "appleid.apple.com", enabled: true },
-  { pattern: "*.icloud.com", enabled: true },
-  // GitHub
-  { pattern: "github.com", enabled: true },
-  { pattern: "*.github.com", enabled: true },
-  // Auth0
-  { pattern: "auth0.com", enabled: true },
-  { pattern: "*.auth0.com", enabled: true },
-  // Okta
-  { pattern: "*.okta.com", enabled: true },
-  // Duo Security
-  { pattern: "*.duosecurity.com", enabled: true },
-];
+/** Rust 백엔드에서 기본 패스스루 도메인 목록을 가져옵니다 (Single Source of Truth) */
+export async function getDefaultPassthroughDomains(): Promise<SslProxyingEntry[]> {
+  return invoke("get_default_passthrough_domains");
+}
 
 // ─── Proxy Authentication ────────────────────────────────
 

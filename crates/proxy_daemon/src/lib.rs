@@ -53,6 +53,7 @@ pub use proxyapi_v2::upstream_proxy::{UpstreamProxyAuth, UpstreamProxyConfig};
 pub use session::{
     ensure_extension, import_har, import_har_file, SessionFile, SessionMetadata, SessionTransaction,
 };
+pub use ssl_proxying::default_passthrough_entries;
 pub use system_proxy::{get_proxy_status, set_proxy, ProxyStatus};
 pub use tls_client::{
     get_custom_ca_info, parse_certificate_info, parse_certificate_info_from_bytes, parse_pkcs12,

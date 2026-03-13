@@ -135,11 +135,11 @@ fn emit_ws_event_sends_to_channel() {
             server_replay_entries: Arc::new(RwLock::new(Vec::new())),
             host_mappings: Arc::new(RwLock::new(Vec::new())),
             script_handle: scripting::ScriptHandle::new(),
-            ssl_proxying_mode: Arc::new(RwLock::new(crate::protocol::SslProxyingMode::default())),
-            ssl_proxying_entries: Arc::new(RwLock::new(Vec::new())),
-            default_passthrough_entries: Arc::new(RwLock::new(
-                crate::ssl_proxying::default_passthrough_entries(),
-            )),
+            ssl_proxying: Arc::new(RwLock::new(crate::handler::SslProxyingConfig {
+                mode: crate::protocol::SslProxyingMode::default(),
+                entries: Vec::new(),
+                default_passthrough: crate::ssl_proxying::default_passthrough_entries(),
+            })),
         },
         ws: WebSocketState {
             ws_sender: Some(ws_sender),
@@ -199,11 +199,11 @@ fn emit_ws_event_increments_sequence() {
             server_replay_entries: Arc::new(RwLock::new(Vec::new())),
             host_mappings: Arc::new(RwLock::new(Vec::new())),
             script_handle: scripting::ScriptHandle::new(),
-            ssl_proxying_mode: Arc::new(RwLock::new(crate::protocol::SslProxyingMode::default())),
-            ssl_proxying_entries: Arc::new(RwLock::new(Vec::new())),
-            default_passthrough_entries: Arc::new(RwLock::new(
-                crate::ssl_proxying::default_passthrough_entries(),
-            )),
+            ssl_proxying: Arc::new(RwLock::new(crate::handler::SslProxyingConfig {
+                mode: crate::protocol::SslProxyingMode::default(),
+                entries: Vec::new(),
+                default_passthrough: crate::ssl_proxying::default_passthrough_entries(),
+            })),
         },
         ws: WebSocketState {
             ws_sender: Some(ws_sender),

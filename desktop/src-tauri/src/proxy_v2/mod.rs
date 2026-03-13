@@ -32,9 +32,10 @@ pub(crate) use session::{
     save_session,
 };
 pub(crate) use settings::{
-    update_client_certificate, update_connection_strategy, update_default_passthrough_domains,
-    update_host_mappings, update_proxy_auth, update_quick_settings, update_request_client_cert,
-    update_server_replay, update_ssl_proxying_list, update_throttle, update_upstream_proxy,
+    get_default_passthrough_domains, update_client_certificate, update_connection_strategy,
+    update_default_passthrough_domains, update_host_mappings, update_proxy_auth,
+    update_quick_settings, update_request_client_cert, update_server_replay,
+    update_ssl_proxying_list, update_throttle, update_upstream_proxy,
 };
 pub(crate) use state::ProxyV2State;
 pub(crate) use tls_passthrough::{
