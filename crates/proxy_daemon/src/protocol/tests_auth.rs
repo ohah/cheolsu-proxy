@@ -8,7 +8,6 @@ mod tests {
             username: "admin".to_string(),
             password: "secret".to_string(),
             token: None,
-            header_name: None,
         }
     }
 
@@ -19,7 +18,6 @@ mod tests {
             username: String::new(),
             password: String::new(),
             token: Some("my-bearer-token".to_string()),
-            header_name: None,
         }
     }
 
@@ -30,7 +28,6 @@ mod tests {
             username: String::new(),
             password: String::new(),
             token: Some("my-api-key-123".to_string()),
-            header_name: Some("x-custom-api-key".to_string()),
         }
     }
 
@@ -42,7 +39,6 @@ mod tests {
             username: "admin".to_string(),
             password: "super_secret_password".to_string(),
             token: Some("secret_token".to_string()),
-            header_name: None,
         };
         let debug_output = format!("{:?}", config);
         assert!(
@@ -77,7 +73,7 @@ mod tests {
         let config: ProxyAuthConfig = serde_json::from_str(json).unwrap();
         assert_eq!(config.method, AuthMethod::Basic);
         assert!(config.token.is_none());
-        assert!(config.header_name.is_none());
+        assert!(config.token.is_none());
     }
 
     #[test]
@@ -167,32 +163,19 @@ mod tests {
     #[test]
     fn test_api_key_validate_success() {
         let config = api_key_config();
-        assert!(config.validate_proxy_auth(Some("my-api-key-123")));
+        assert!(config.validate_proxy_auth(Some("ApiKey my-api-key-123")));
     }
 
     #[test]
     fn test_api_key_validate_failure_wrong_key() {
         let config = api_key_config();
-        assert!(!config.validate_proxy_auth(Some("wrong-key")));
+        assert!(!config.validate_proxy_auth(Some("ApiKey wrong-key")));
     }
 
     #[test]
     fn test_api_key_validate_failure_no_header() {
         let config = api_key_config();
         assert!(!config.validate_proxy_auth(None));
-    }
-
-    #[test]
-    fn test_api_key_header_name_custom() {
-        let config = api_key_config();
-        assert_eq!(config.api_key_header_name(), "x-custom-api-key");
-    }
-
-    #[test]
-    fn test_api_key_header_name_default() {
-        let mut config = api_key_config();
-        config.header_name = None;
-        assert_eq!(config.api_key_header_name(), "x-api-key");
     }
 
     #[test]
@@ -270,7 +253,7 @@ mod tests {
             ClientCommand::UpdateProxyAuth { config } => {
                 assert_eq!(config.method, AuthMethod::ApiKey);
                 assert_eq!(config.token.unwrap(), "my-api-key-123");
-                assert_eq!(config.header_name.unwrap(), "x-custom-api-key");
+                assert_eq!(config.token.unwrap(), "my-api-key-123");
             }
             _ => panic!("Expected UpdateProxyAuth"),
         }

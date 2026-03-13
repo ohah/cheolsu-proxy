@@ -137,7 +137,6 @@ impl ProxyAuthForm {
             username: self.username.clone(),
             password: self.password.clone(),
             token: None,
-            header_name: None,
         }
     }
 }

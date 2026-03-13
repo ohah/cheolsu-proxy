@@ -23,17 +23,10 @@ impl HttpHandler for LoggingHandler {
                 {
                     false
                 } else {
-                    let auth_value = match config.method {
-                        crate::protocol::AuthMethod::Basic
-                        | crate::protocol::AuthMethod::Bearer => req
-                            .headers()
-                            .get("proxy-authorization")
-                            .and_then(|v| v.to_str().ok()),
-                        crate::protocol::AuthMethod::ApiKey => {
-                            let header_name = config.api_key_header_name();
-                            req.headers().get(header_name).and_then(|v| v.to_str().ok())
-                        }
-                    };
+                    let auth_value = req
+                        .headers()
+                        .get("proxy-authorization")
+                        .and_then(|v| v.to_str().ok());
                     !config.validate_proxy_auth(auth_value)
                 }
             } else {
