@@ -236,11 +236,11 @@ msgstr "Apply:"
 msgid "Authentication"
 msgstr "Authentication"
 
-#: src/pages/settings/ui/components/general-settings.tsx:161
+#: src/pages/settings/ui/components/general-settings.tsx:193
 msgid "Auto Save Session"
 msgstr "Auto Save Session"
 
-#: src/pages/settings/ui/components/general-settings.tsx:164
+#: src/pages/settings/ui/components/general-settings.tsx:196
 msgid "Automatically save the current session when the app closes and restore it on next launch"
 msgstr "Automatically save the current session when the app closes and restore it on next launch"
 
@@ -258,7 +258,7 @@ msgstr "Blacklist (Exclude)"
 msgid "Block"
 msgstr "Block"
 
-#: src/pages/settings/ui/components/general-settings.tsx:125
+#: src/pages/settings/ui/components/general-settings.tsx:157
 msgid "Block Cookies"
 msgstr "Block Cookies"
 
@@ -271,6 +271,11 @@ msgstr "Block Cookies"
 #: src/features/transaction-details/ui/replay-dialog.tsx:483
 msgid "Body"
 msgstr "Body"
+
+#: src/pages/settings/ui/components/general-settings.tsx:118
+#: src/pages/settings/ui/components/general-settings.tsx:119
+msgid "Bottom"
+msgstr "Bottom"
 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:143
 msgid "Break on Request"
@@ -386,6 +391,10 @@ msgstr "Change"
 #: src/shared/app-sidebar/ui/sidebar-header.tsx:38
 msgid "Cheolsu Proxy Logo"
 msgstr "Cheolsu Proxy Logo"
+
+#: src/pages/settings/ui/components/general-settings.tsx:102
+msgid "Choose where the transaction details panel appears"
+msgstr "Choose where the transaction details panel appears"
 
 #: src/shared/app-sidebar/ui/sidebar-mcp.tsx:104
 msgid "Claude Code (CLI)"
@@ -511,7 +520,7 @@ msgstr "Copy as cURL"
 msgid "Copy as..."
 msgstr "Copy as..."
 
-#: src/features/transaction-details/ui/transaction-headers.tsx:49
+#: src/features/transaction-details/ui/transaction-headers.tsx:50
 msgid "Copy Headers"
 msgstr "Copy Headers"
 
@@ -540,7 +549,7 @@ msgstr "Custom body"
 msgid "Custom CA Certificate"
 msgstr "Custom CA Certificate"
 
-#: src/pages/settings/ui/components/general-settings.tsx:82
+#: src/pages/settings/ui/components/general-settings.tsx:84
 msgid "Dark"
 msgstr "Dark"
 
@@ -581,6 +590,10 @@ msgstr "Delete rule"
 msgid "Delete Transaction"
 msgstr "Delete Transaction"
 
+#: src/pages/settings/ui/components/general-settings.tsx:99
+msgid "Details Panel Layout"
+msgstr "Details Panel Layout"
+
 #: src/widgets/websocket-messages/ui/ws-message-table.tsx:200
 msgid "Dir"
 msgstr "Dir"
@@ -600,7 +613,7 @@ msgstr "Disabled"
 msgid "Disconnected"
 msgstr "Disconnected"
 
-#: src/pages/settings/ui/components/general-settings.tsx:184
+#: src/pages/settings/ui/components/general-settings.tsx:216
 msgid "Display CONNECT tunnel requests in the network list"
 msgstr "Display CONNECT tunnel requests in the network list"
 
@@ -767,19 +780,19 @@ msgstr "Go to <0>Settings → General → VPN & Device Management</0>"
 msgid "Go to <0>Settings → Security → Encryption & credentials</0>"
 msgstr "Go to <0>Settings → Security → Encryption & credentials</0>"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:160
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:163
 msgid "HAR export failed"
 msgstr "HAR export failed"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:157
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:160
 msgid "HAR exported successfully"
 msgstr "HAR exported successfully"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:249
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:252
 msgid "HAR import failed"
 msgstr "HAR import failed"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:246
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:249
 msgid "HAR imported successfully"
 msgstr "HAR imported successfully"
 
@@ -924,7 +937,7 @@ msgstr "Key file"
 msgid "Key File"
 msgstr "Key File"
 
-#: src/pages/settings/ui/components/general-settings.tsx:46
+#: src/pages/settings/ui/components/general-settings.tsx:48
 msgid "Language"
 msgstr "Language"
 
@@ -932,7 +945,7 @@ msgstr "Language"
 msgid "Latency (ms)"
 msgstr "Latency (ms)"
 
-#: src/pages/settings/ui/components/general-settings.tsx:82
+#: src/pages/settings/ui/components/general-settings.tsx:84
 msgid "Light"
 msgstr "Light"
 
@@ -956,7 +969,7 @@ msgstr "Load and manage proxy scripts"
 msgid "Load Session"
 msgstr "Load Session"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:195
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:198
 msgid "Load transactions"
 msgstr "Load transactions"
 
@@ -1136,7 +1149,7 @@ msgstr "No active WebSocket connections"
 msgid "No breakpoint rules"
 msgstr "No breakpoint rules"
 
-#: src/pages/settings/ui/components/general-settings.tsx:108
+#: src/pages/settings/ui/components/general-settings.tsx:140
 msgid "No Caching"
 msgstr "No Caching"
 
@@ -1152,7 +1165,7 @@ msgstr "No conditions"
 msgid "No console output yet"
 msgstr "No console output yet"
 
-#: src/pages/settings/ui/components/general-settings.tsx:144
+#: src/pages/settings/ui/components/general-settings.tsx:176
 msgid "No Gzip"
 msgstr "No Gzip"
 
@@ -1342,7 +1355,7 @@ msgstr "Preserve Path"
 msgid "Press a key combination..."
 msgstr "Press a key combination..."
 
-#: src/pages/settings/ui/components/general-settings.tsx:111
+#: src/pages/settings/ui/components/general-settings.tsx:143
 msgid "Prevent caching by removing conditional headers and adding no-cache directives"
 msgstr "Prevent caching by removing conditional headers and adding no-cache directives"
 
@@ -1386,11 +1399,11 @@ msgstr "Query Syntax Guide"
 msgid "Query syntax help"
 msgstr "Query syntax help"
 
-#: src/pages/settings/ui/components/general-settings.tsx:97
+#: src/pages/settings/ui/components/general-settings.tsx:129
 msgid "Quick Settings"
 msgstr "Quick Settings"
 
-#: src/pages/settings/ui/components/general-settings.tsx:100
+#: src/pages/settings/ui/components/general-settings.tsx:132
 msgid "Quick toggles for common proxy behaviors"
 msgstr "Quick toggles for common proxy behaviors"
 
@@ -1431,11 +1444,11 @@ msgstr "Remote Device Certificate"
 msgid "Remove"
 msgstr "Remove"
 
-#: src/pages/settings/ui/components/general-settings.tsx:147
+#: src/pages/settings/ui/components/general-settings.tsx:179
 msgid "Remove Accept-Encoding header from requests to prevent compressed responses"
 msgstr "Remove Accept-Encoding header from requests to prevent compressed responses"
 
-#: src/pages/settings/ui/components/general-settings.tsx:128
+#: src/pages/settings/ui/components/general-settings.tsx:160
 msgid "Remove Cookie headers from requests and Set-Cookie headers from responses"
 msgstr "Remove Cookie headers from requests and Set-Cookie headers from responses"
 
@@ -1458,7 +1471,7 @@ msgstr "Removed"
 
 #. placeholder {0}: transactions.length
 #. placeholder {1}: loaded.length
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:194
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:197
 msgid "Replace {0} existing transactions with {1} new ones? Cancel to append instead."
 msgstr "Replace {0} existing transactions with {1} new ones? Cancel to append instead."
 
@@ -1486,6 +1499,7 @@ msgid "Replay request"
 msgstr "Replay request"
 
 #: src/features/transaction-details/ui/replay-dialog.tsx:373
+#: src/features/transaction-details/ui/transaction-body-side-by-side.tsx:16
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:191
 msgid "Request"
 msgstr "Request"
@@ -1528,7 +1542,8 @@ msgstr "Request failed"
 msgid "Request Header"
 msgstr "Request Header"
 
-#: src/features/transaction-details/ui/transaction-headers.tsx:77
+#: src/features/transaction-details/ui/transaction-headers.tsx:80
+#: src/features/transaction-details/ui/transaction-headers.tsx:103
 msgid "Request Headers"
 msgstr "Request Headers"
 
@@ -1545,6 +1560,7 @@ msgid "Require certificate"
 msgstr "Require certificate"
 
 #: src/features/transaction-details/ui/replay-dialog.tsx:387
+#: src/features/transaction-details/ui/transaction-body-side-by-side.tsx:24
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:196
 msgid "Response"
 msgstr "Response"
@@ -1569,7 +1585,8 @@ msgid "Response Header"
 msgstr "Response Header"
 
 #: src/features/map-rule-form/ui/map-local-fields.tsx:64
-#: src/features/transaction-details/ui/transaction-headers.tsx:84
+#: src/features/transaction-details/ui/transaction-headers.tsx:89
+#: src/features/transaction-details/ui/transaction-headers.tsx:110
 msgid "Response Headers"
 msgstr "Response Headers"
 
@@ -1615,6 +1632,11 @@ msgstr "Return cached responses for matching requests instead of forwarding to t
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:48
 msgid "Rewrite"
 msgstr "Rewrite"
+
+#: src/pages/settings/ui/components/general-settings.tsx:115
+#: src/pages/settings/ui/components/general-settings.tsx:116
+msgid "Right"
+msgstr "Right"
 
 #: src/pages/settings/ui/components/upstream-proxy-section.tsx:20
 msgid "Route traffic through an external proxy server"
@@ -1812,19 +1834,19 @@ msgstr "Serial Number"
 msgid "Server Replay"
 msgstr "Server Replay"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:226
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:229
 msgid "Session load failed"
 msgstr "Session load failed"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:223
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:226
 msgid "Session loaded successfully"
 msgstr "Session loaded successfully"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:184
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:187
 msgid "Session save failed"
 msgstr "Session save failed"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:181
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:184
 msgid "Session saved successfully"
 msgstr "Session saved successfully"
 
@@ -1853,7 +1875,7 @@ msgstr "Setup Instructions:"
 msgid "Shortcut Key"
 msgstr "Shortcut Key"
 
-#: src/pages/settings/ui/components/general-settings.tsx:181
+#: src/pages/settings/ui/components/general-settings.tsx:213
 msgid "Show CONNECT Requests"
 msgstr "Show CONNECT Requests"
 
@@ -1931,7 +1953,7 @@ msgstr "Switch to Builder mode"
 msgid "Switch to Code mode"
 msgstr "Switch to Code mode"
 
-#: src/pages/settings/ui/components/general-settings.tsx:82
+#: src/pages/settings/ui/components/general-settings.tsx:84
 msgid "System"
 msgstr "System"
 
@@ -1972,7 +1994,7 @@ msgstr "The certificate must be a CA certificate (BasicConstraints CA=true). Aft
 msgid "The DER certificate file will download automatically"
 msgstr "The DER certificate file will download automatically"
 
-#: src/pages/settings/ui/components/general-settings.tsx:67
+#: src/pages/settings/ui/components/general-settings.tsx:69
 msgid "Theme"
 msgstr "Theme"
 
