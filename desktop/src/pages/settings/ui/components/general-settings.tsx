@@ -3,7 +3,7 @@ import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
 import { useTheme } from "next-themes";
 import { loadCatalog, locales, type Locale } from "@/shared/lib/i18n";
-import { useAppSettingsStore } from "@/shared/stores/app-settings-store";
+import { useAppSettingsStore, type DetailsPanelLayout } from "@/shared/stores/app-settings-store";
 import { Switch, Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/shared/ui";
 import { useSettingsForm } from "../settings-form";
 
@@ -19,6 +19,8 @@ export function GeneralSettings() {
 
   const locale = useAppSettingsStore((s) => s.locale);
   const setLocale = useAppSettingsStore((s) => s.setLocale);
+  const detailsPanelLayout = useAppSettingsStore((s) => s.detailsPanelLayout);
+  const setDetailsPanelLayout = useAppSettingsStore((s) => s.setDetailsPanelLayout);
 
   const { watch, setValue } = useSettingsForm();
   const noCaching = watch("quickSettings.noCaching");
@@ -86,6 +88,36 @@ export function GeneralSettings() {
                 </SelectItem>
               );
             })}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Details Panel Layout Section */}
+      <div className="border rounded-lg p-5 space-y-5">
+        <div>
+          <h2 className="text-lg font-semibold">
+            <Trans>Details Panel Layout</Trans>
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            <Trans>Choose where the transaction details panel appears</Trans>
+          </p>
+        </div>
+        <Select
+          value={detailsPanelLayout}
+          onValueChange={(v) => {
+            if (v) setDetailsPanelLayout(v as DetailsPanelLayout);
+          }}
+        >
+          <SelectTrigger className="w-48">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="right" label={t`Right`}>
+              {t`Right`}
+            </SelectItem>
+            <SelectItem value="bottom" label={t`Bottom`}>
+              {t`Bottom`}
+            </SelectItem>
           </SelectContent>
         </Select>
       </div>

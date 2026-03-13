@@ -26,6 +26,8 @@ interface ProxyAuthConfigState {
   password: string;
 }
 
+export type DetailsPanelLayout = "right" | "bottom";
+
 interface AppSettingsState {
   // Locale
   locale: Locale;
@@ -76,6 +78,10 @@ interface AppSettingsState {
   // Show CONNECT tunnel requests
   showConnectRequests: boolean;
   setShowConnectRequests: (enabled: boolean) => void;
+
+  // Details panel layout
+  detailsPanelLayout: DetailsPanelLayout;
+  setDetailsPanelLayout: (layout: DetailsPanelLayout) => void;
 }
 
 const DEFAULT_THROTTLE_CONFIG: ThrottleConfigState = {
@@ -137,6 +143,9 @@ export const useAppSettingsStore = create<AppSettingsState>()(
 
       showConnectRequests: false,
       setShowConnectRequests: (enabled) => set({ showConnectRequests: enabled }),
+
+      detailsPanelLayout: "right" as DetailsPanelLayout,
+      setDetailsPanelLayout: (layout) => set({ detailsPanelLayout: layout }),
     }),
     {
       name: "cheolsu-app-settings",

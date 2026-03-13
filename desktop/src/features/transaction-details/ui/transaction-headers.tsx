@@ -17,6 +17,7 @@ import { toast } from "sonner";
 
 interface TransactionHeadersProps {
   transaction: HttpTransaction;
+  sideBySide?: boolean;
 }
 
 interface HeaderSectionProps {
@@ -65,10 +66,35 @@ const HeaderSection = ({ title, headers, copyLabel }: HeaderSectionProps) => {
   );
 };
 
-export const TransactionHeaders = ({ transaction }: TransactionHeadersProps) => {
+export const TransactionHeaders = ({ transaction, sideBySide }: TransactionHeadersProps) => {
   const { request, response } = transaction;
 
   if (!request?.headers && !response?.headers) return null;
+
+  if (sideBySide) {
+    return (
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          {request?.headers && (
+            <HeaderSection
+              title={<Trans>Request Headers</Trans>}
+              headers={request.headers}
+              copyLabel="Request headers"
+            />
+          )}
+        </div>
+        <div>
+          {response?.headers && (
+            <HeaderSection
+              title={<Trans>Response Headers</Trans>}
+              headers={response.headers}
+              copyLabel="Response headers"
+            />
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
