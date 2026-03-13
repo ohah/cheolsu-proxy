@@ -63,16 +63,16 @@ pub(crate) fn get_extension_name(extension_type: u16) -> String {
         0x0025 => "TLMSP_proxying".to_string(),
         0x0026 => "TLMSP_delegate".to_string(),
         0x0027 => "supported_ekt_ciphers".to_string(),
-        0x0028 => "pre_shared_key".to_string(),
-        0x0029 => "early_data".to_string(),
-        0x002a => "supported_versions".to_string(),
-        0x002b => "cookie".to_string(),
-        0x002c => "psk_key_exchange_modes".to_string(),
-        0x002d => "certificate_authorities".to_string(),
-        0x002e => "oid_filters".to_string(),
-        0x002f => "post_handshake_auth".to_string(),
-        0x0030 => "signature_algorithms_cert".to_string(),
-        0x0031 => "key_share".to_string(),
+        0x0029 => "pre_shared_key".to_string(),
+        0x002a => "early_data".to_string(),
+        0x002b => "supported_versions".to_string(),
+        0x002c => "cookie".to_string(),
+        0x002d => "psk_key_exchange_modes".to_string(),
+        0x002e => "certificate_authorities".to_string(),
+        0x002f => "oid_filters".to_string(),
+        0x0030 => "post_handshake_auth".to_string(),
+        0x0031 => "signature_algorithms_cert".to_string(),
+        0x0033 => "key_share".to_string(),
         _ => format!("unknown_0x{:04x}", extension_type),
     }
 }
@@ -171,6 +171,7 @@ pub(crate) fn analyze_tls_connection(
     let mut extensions = Vec::new();
     let mut has_sni = false;
     let mut has_apple_cipher = false;
+    let mut supported_versions_max: Option<TlsVersion> = None;
 
     if initial_buffer.len() >= 43 {
         let session_id_length = initial_buffer[43] as usize;
@@ -235,12 +236,49 @@ pub(crate) fn analyze_tls_connection(
                             info!("  - ✅ SNI Extension 감지됨");
                         }
 
+                        // supported_versions Extension 파싱 (0x002b)
+                        // TLS 1.3 클라이언트는 client_version을 0x0303(TLS 1.2)으로 설정하고
+                        // 실제 지원 버전은 이 확장에 넣음 (RFC 8446)
+                        if extension_type == 0x002b && extension_length > 0 {
+                            let ext_data_start = pos + 4;
+                            if ext_data_start < initial_buffer.len() {
+                                let list_len = initial_buffer[ext_data_start] as usize;
+                                let list_start = ext_data_start + 1;
+                                if list_start + list_len <= initial_buffer.len() {
+                                    for vi in (0..list_len).step_by(2) {
+                                        if list_start + vi + 1 < initial_buffer.len() {
+                                            let ver = [
+                                                initial_buffer[list_start + vi],
+                                                initial_buffer[list_start + vi + 1],
+                                            ];
+                                            if ver == [0x03, 0x04] {
+                                                supported_versions_max = Some(TlsVersion::Tls13);
+                                                info!("  - ✅ supported_versions에서 TLS 1.3 감지");
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
                         pos += 4 + extension_length;
                     }
                 }
             }
         }
     }
+
+    // supported_versions 확장에서 감지된 실제 TLS 버전으로 업데이트
+    // client_version 필드(바이트 9-10)보다 supported_versions 확장이 우선 (RFC 8446)
+    let version = if let Some(sv) = supported_versions_max {
+        info!(
+            "📊 [TLS-ANALYSIS] supported_versions 확장에 의해 버전 업데이트: {} → {}",
+            version, sv
+        );
+        sv
+    } else {
+        version
+    };
 
     // 복잡도 점수 계산
     let complexity_score = calculate_complexity_score(
