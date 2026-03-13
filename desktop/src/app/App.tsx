@@ -11,6 +11,7 @@ import {
   useBreakpointStore,
   useHostMappingStore,
 } from "@/shared/stores";
+import { bufferWsMessage } from "@/shared/stores/websocket-store";
 import { emit, listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
@@ -35,7 +36,6 @@ const App: React.FC = () => {
   const setPaused = useTransactionStore((s) => s.setPaused);
   // 트레이에서 받은 이벤트로 paused가 바뀐 경우 Rust 역동기화를 스킵하기 위한 플래그
   const pausedFromTrayRef = useRef(false);
-  const addWsMessage = useWebSocketStore((s) => s.addMessage);
   const updateWsConnection = useWebSocketStore((s) => s.updateConnection);
   const setInterceptRules = useInterceptRuleStore((s) => s.setRules);
   const setMapRules = useMapRuleStore((s) => s.setRules);
@@ -69,7 +69,7 @@ const App: React.FC = () => {
     if (paused) return;
 
     const unlistenMsg = listen<WsMessageInfo>("ws_message", (event) => {
-      addWsMessage(event.payload);
+      bufferWsMessage(event.payload);
     });
     const unlistenConn = listen<WsConnectionEvent>("ws_connection", (event) => {
       const { connection_id, status, uri, time } = event.payload;
@@ -80,7 +80,7 @@ const App: React.FC = () => {
       unlistenMsg.then((f) => f());
       unlistenConn.then((f) => f());
     };
-  }, [addWsMessage, updateWsConnection, paused]);
+  }, [updateWsConnection, paused]);
 
   // 데몬에서 인터셉트 규칙 변경 수신 (MCP 등 외부 클라이언트에서 변경 시 동기화)
   useEffect(() => {
