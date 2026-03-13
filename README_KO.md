@@ -15,6 +15,21 @@
 
 Rust 기반 **Man in the Middle 프록시**로, HTTP/HTTPS/WebSocket 트래픽을 검사하고 조작할 수 있습니다. 데스크톱 GUI (Tauri + React), 터미널 UI (Ratatui), headless CLI 모드를 제공하며, 스크립트 기반 트래픽 조작과 인터셉트 규칙을 지원합니다. MCP를 통해 AI 어시스턴트와도 연동됩니다.
 
+## 스크린샷
+
+데스크톱 앱 동작 화면입니다.
+
+| | | |
+|---|---|---|
+| [![Settings - Certificate](screenshots/01.png)](screenshots/01.png) | [![Screenshot 02](screenshots/02.png)](screenshots/02.png) | [![Screenshot 03](screenshots/03.png)](screenshots/03.png) |
+| [![Screenshot 04](screenshots/04.png)](screenshots/04.png) | [![Screenshot 05](screenshots/05.png)](screenshots/05.png) | [![Screenshot 06](screenshots/06.png)](screenshots/06.png) |
+| [![Screenshot 07](screenshots/07.png)](screenshots/07.png) | [![Screenshot 08](screenshots/08.png)](screenshots/08.png) | [![Screenshot 09](screenshots/09.png)](screenshots/09.png) |
+| [![Screenshot 10](screenshots/10.png)](screenshots/10.png) | [![Screenshot 11](screenshots/11.png)](screenshots/11.png) | [![Screenshot 12](screenshots/12.png)](screenshots/12.png) |
+| [![Screenshot 13](screenshots/13.png)](screenshots/13.png) | [![Screenshot 14](screenshots/14.png)](screenshots/14.png) | [![Screenshot 15](screenshots/15.png)](screenshots/15.png) |
+| [![Screenshot 16](screenshots/16.png)](screenshots/16.png) | [![Screenshot 17](screenshots/17.png)](screenshots/17.png) | |
+
+> 이미지를 클릭하면 원본 크기로 볼 수 있습니다.
+
 ## 기능
 
 ### 핵심
