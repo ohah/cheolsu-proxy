@@ -32,6 +32,7 @@ pub fn run() {
     // #[cfg(debug_assertions)]
     // let devtools = tauri_plugin_devtools::init();
     {
+        #[allow(unused_mut)]
         let mut builder = tauri::Builder::default()
             .plugin(tauri_plugin_http::init())
             .plugin(tauri_plugin_opener::init())
