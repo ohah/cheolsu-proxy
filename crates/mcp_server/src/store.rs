@@ -8,6 +8,21 @@ use proxy_v2_models::{RequestInfo, WsConnectionEvent, WsMessageInfo};
 pub const MAX_TRANSACTIONS: usize = 1000;
 pub const MAX_WS_MESSAGES: usize = 5000;
 
+/// Store의 용량 설정
+pub struct StoreConfig {
+    pub max_transactions: usize,
+    pub max_ws_messages: usize,
+}
+
+impl Default for StoreConfig {
+    fn default() -> Self {
+        Self {
+            max_transactions: MAX_TRANSACTIONS,
+            max_ws_messages: MAX_WS_MESSAGES,
+        }
+    }
+}
+
 #[derive(Clone)]
 pub struct Store {
     pub transactions: Arc<Mutex<VecDeque<RequestInfo>>>,
@@ -16,23 +31,31 @@ pub struct Store {
     pub rules: Arc<Mutex<Vec<InterceptRule>>>,
     pub breakpoint_rules: Arc<Mutex<Vec<BreakpointRule>>>,
     pub host_mappings: Arc<Mutex<Vec<HostMapping>>>,
+    max_transactions: usize,
+    max_ws_messages: usize,
 }
 
 impl Store {
     pub fn new() -> Self {
+        Self::with_config(StoreConfig::default())
+    }
+
+    pub fn with_config(config: StoreConfig) -> Self {
         Self {
-            transactions: Arc::new(Mutex::new(VecDeque::with_capacity(MAX_TRANSACTIONS))),
-            ws_messages: Arc::new(Mutex::new(VecDeque::with_capacity(MAX_WS_MESSAGES))),
+            transactions: Arc::new(Mutex::new(VecDeque::with_capacity(config.max_transactions))),
+            ws_messages: Arc::new(Mutex::new(VecDeque::with_capacity(config.max_ws_messages))),
             ws_connections: Arc::new(Mutex::new(Vec::new())),
             rules: Arc::new(Mutex::new(Vec::new())),
             breakpoint_rules: Arc::new(Mutex::new(Vec::new())),
             host_mappings: Arc::new(Mutex::new(Vec::new())),
+            max_transactions: config.max_transactions,
+            max_ws_messages: config.max_ws_messages,
         }
     }
 
     pub fn push_transaction(&self, info: RequestInfo) {
         let mut txns = self.transactions.lock();
-        if txns.len() >= MAX_TRANSACTIONS {
+        if txns.len() >= self.max_transactions {
             txns.pop_front();
         }
         txns.push_back(info);
@@ -40,7 +63,7 @@ impl Store {
 
     pub fn push_ws_message(&self, msg: WsMessageInfo) {
         let mut msgs = self.ws_messages.lock();
-        if msgs.len() >= MAX_WS_MESSAGES {
+        if msgs.len() >= self.max_ws_messages {
             msgs.pop_front();
         }
         msgs.push_back(msg);
@@ -55,6 +78,20 @@ impl Store {
 mod tests {
     use super::*;
     use proxy_v2_models::{WsContentType, WsDirection, WsMessageType};
+
+    #[test]
+    fn with_config_custom_limits() {
+        let store = Store::with_config(StoreConfig {
+            max_transactions: 5,
+            max_ws_messages: 10,
+        });
+        for _ in 0..20 {
+            store.push_transaction(make_request_info());
+            store.push_ws_message(make_ws_message(0));
+        }
+        assert_eq!(store.transactions.lock().len(), 5);
+        assert_eq!(store.ws_messages.lock().len(), 10);
+    }
 
     fn make_request_info() -> RequestInfo {
         RequestInfo(None, None)
