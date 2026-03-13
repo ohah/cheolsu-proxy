@@ -452,7 +452,7 @@ export const NetworkDashboard = () => {
                 </ResizablePanelGroup>
               </ResizablePanel>
 
-              <ResizableHandle withHandle={!!selectedTransaction} />
+              <ResizableHandle withHandle={!!selectedTransaction} orientation="vertical" />
               <ResizablePanel
                 panelRef={detailsPanelRef}
                 id="transaction-details-bottom"
