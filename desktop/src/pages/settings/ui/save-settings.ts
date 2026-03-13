@@ -218,7 +218,9 @@ export async function saveAllSettings(
       const sslStore = useSslProxyingStore.getState();
       sslStore.setMode(data.sslProxying.mode);
       sslStore.setFromDaemon(data.sslProxying.mode, data.sslProxying.entries);
+      sslStore.setDefaultPassthroughEntries(data.sslProxying.defaultPassthroughEntries);
       await sslStore.syncToProxy();
+      await sslStore.syncDefaultPassthroughToProxy();
       results.push({ section: "sslProxying", success: true });
     } catch (error) {
       results.push({ section: "sslProxying", success: false, error });
