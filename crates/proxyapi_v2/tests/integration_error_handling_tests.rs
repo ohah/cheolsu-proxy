@@ -2,8 +2,10 @@ mod common;
 
 use proxyapi_v2::{
     Body, HttpContext, HttpHandler, RequestOrResponse,
-    certificate_authority::build_ca,
+    certificate_authority::RcgenAuthority,
     hyper::{Request, Response, StatusCode},
+    rcgen::{CertificateParams, KeyPair},
+    rustls::crypto::aws_lc_rs,
 };
 use std::error::Error;
 use std::net::SocketAddr;
@@ -174,11 +176,24 @@ async fn start_test_server() -> Result<(SocketAddr, Sender<()>), Box<dyn std::er
     common::start_http_server_with_handler(test_server_handler).await
 }
 
+/// 테스트용 CA 빌드 (번들된 인증서 사용, 파일시스템 비의존)
+fn build_test_ca() -> RcgenAuthority {
+    let key_pair = include_str!("../src/certificate_authority/cheolsu-proxy.key");
+    let ca_cert = include_str!("../src/certificate_authority/cheolsu-proxy.cer");
+    let key_pair = KeyPair::from_pem(key_pair).expect("Failed to parse private key");
+    let ca_cert = CertificateParams::from_ca_cert_pem(ca_cert)
+        .expect("Failed to parse CA certificate")
+        .self_signed(&key_pair)
+        .expect("Failed to sign CA certificate");
+
+    RcgenAuthority::new(key_pair, ca_cert, 1_000, aws_lc_rs::default_provider())
+}
+
 /// 프록시 서버 시작 (common 헬퍼 활용)
 async fn start_proxy_server(
     handler: TestLoggingHandler,
 ) -> Result<(SocketAddr, Sender<()>), Box<dyn std::error::Error>> {
-    let ca = build_ca()?;
+    let ca = build_test_ca();
     let client = create_hybrid_client()?;
     common::start_proxy_with_custom_handler(ca, client, handler).await
 }
