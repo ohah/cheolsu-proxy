@@ -68,10 +68,10 @@ pub(crate) fn get_extension_name(extension_type: u16) -> String {
         0x002b => "supported_versions".to_string(),
         0x002c => "cookie".to_string(),
         0x002d => "psk_key_exchange_modes".to_string(),
-        0x002e => "certificate_authorities".to_string(),
-        0x002f => "oid_filters".to_string(),
-        0x0030 => "post_handshake_auth".to_string(),
-        0x0031 => "signature_algorithms_cert".to_string(),
+        0x002f => "certificate_authorities".to_string(),
+        0x0030 => "oid_filters".to_string(),
+        0x0031 => "post_handshake_auth".to_string(),
+        0x0032 => "signature_algorithms_cert".to_string(),
         0x0033 => "key_share".to_string(),
         _ => format!("unknown_0x{:04x}", extension_type),
     }
@@ -244,7 +244,10 @@ pub(crate) fn analyze_tls_connection(
                             if ext_data_start < initial_buffer.len() {
                                 let list_len = initial_buffer[ext_data_start] as usize;
                                 let list_start = ext_data_start + 1;
-                                if list_start + list_len <= initial_buffer.len() {
+                                // list_len은 반드시 짝수 (각 버전이 2바이트)
+                                if list_len % 2 == 0
+                                    && list_start + list_len <= initial_buffer.len()
+                                {
                                     for vi in (0..list_len).step_by(2) {
                                         if list_start + vi + 1 < initial_buffer.len() {
                                             let ver = [
