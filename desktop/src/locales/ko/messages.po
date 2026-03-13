@@ -88,13 +88,18 @@ msgstr "활성 커스텀 CA"
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:134
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:140
 #: src/pages/server-replay/ui/server-replay-page.tsx:170
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:126
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:187
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:274
 msgid "Add"
 msgstr "추가"
 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:168
 msgid "Add breakpoint rules to pause HTTP requests/responses for inspection."
 msgstr "HTTP 요청/응답을 검사하기 위해 일시 정지할 Breakpoint 규칙을 추가하세요."
+
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:261
+msgid "Add built-in domain pattern..."
+msgstr "기본 제외 도메인 패턴 추가..."
 
 #: src/pages/server-replay/ui/server-replay-page.tsx:193
 msgid "Add captured traffic to replay stored responses for matching requests."
@@ -186,17 +191,17 @@ msgstr "모든 엔트리가 삭제되었습니다"
 msgid "All host mappings cleared"
 msgstr "모든 호스트 매핑이 삭제되었습니다"
 
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:86
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:147
 msgid "All HTTPS traffic is being intercepted (no whitelist configured)"
 msgstr "모든 HTTPS 트래픽이 인터셉트됩니다 (화이트리스트 미설정)"
 
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:80
-msgid "All HTTPS traffic is intercepted except {enabledCount} excluded domain(s) and built-in OAuth domains."
-msgstr "모든 HTTPS 트래픽이 인터셉트됩니다. {enabledCount}개의 제외 도메인과 기본 OAuth 도메인은 패스스루됩니다."
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:141
+msgid "All HTTPS traffic is intercepted except {enabledCount} excluded domain(s) and {defaultEnabledCount} built-in domain(s)."
+msgstr "모든 HTTPS 트래픽이 인터셉트됩니다. {enabledCount}개 제외 도메인과 {defaultEnabledCount}개 기본 제외 도메인은 제외됩니다."
 
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:75
-msgid "All HTTPS traffic is intercepted. OAuth domains (accounts.google.com, etc.) are automatically excluded."
-msgstr "모든 HTTPS 트래픽이 인터셉트됩니다. OAuth 도메인(accounts.google.com 등)은 자동으로 제외됩니다."
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:136
+msgid "All HTTPS traffic is intercepted. {defaultEnabledCount} built-in domain(s) are automatically excluded."
+msgstr "모든 HTTPS 트래픽이 인터셉트됩니다. {defaultEnabledCount}개 기본 도메인은 자동으로 제외됩니다."
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:264
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:264
@@ -243,7 +248,7 @@ msgstr "앱 종료 시 현재 세션을 자동으로 저장하고 다음 실행 
 msgid "available"
 msgstr "개 사용 가능"
 
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:109
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:170
 msgid "Blacklist (Exclude)"
 msgstr "블랙리스트 (제외)"
 
@@ -299,6 +304,11 @@ msgstr "Breakpoints"
 #: src/pages/settings/ui/components/request-client-cert-section.tsx:58
 msgid "Browse"
 msgstr "찾아보기"
+
+#. placeholder {0}: defaultPassthroughEntries.length
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:244
+msgid "Built-in Passthrough Domains ({0})"
+msgstr "기본 제외 도메인 ({0})"
 
 #: src/pages/settings/ui/components/upstream-proxy-section.tsx:71
 msgid "Bypass List"
@@ -602,9 +612,9 @@ msgstr "도메인"
 msgid "Domain-specific Certificates"
 msgstr "도메인별 인증서"
 
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:131
-msgid "Domains in this list will NOT be intercepted (pass-through). OAuth domains like accounts.google.com are always excluded by default."
-msgstr "이 목록에 있는 도메인은 인터셉트되지 않습니다(패스스루). accounts.google.com 같은 OAuth 도메인은 기본적으로 항상 제외됩니다."
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:192
+msgid "Domains in this list will NOT be intercepted (pass-through). Built-in domains can be managed below."
+msgstr "이 목록의 도메인은 인터셉트하지 않습니다 (패스스루). 기본 제외 도메인은 아래에서 관리할 수 있습니다."
 
 #: src/pages/log-viewer/ui/logs-page.tsx:402
 msgid "Domains that failed TLS handshake are automatically tunneled without MITM decryption. You can remove entries to retry MITM for specific domains."
@@ -657,7 +667,7 @@ msgstr "활성"
 msgid "entries"
 msgstr "개 엔트리"
 
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:119
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:180
 msgid "example.com, *.example.com, or example.com:443"
 msgstr "example.com, *.example.com 또는 example.com:443"
 
@@ -1080,7 +1090,7 @@ msgstr "메서드"
 msgid "Mobile Certificate Install"
 msgstr "모바일 인증서 설치"
 
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:96
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:157
 msgid "Mode"
 msgstr "모드"
 
@@ -1202,7 +1212,7 @@ msgstr "동시에 전송할 요청 수 (1-100)"
 msgid "Number of times to send the request (1-10000)"
 msgstr "요청을 전송할 횟수 (1-10000)"
 
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:136
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:197
 msgid "Only domains in this list will be intercepted. When the list is empty, all domains are intercepted."
 msgstr "이 목록에 있는 도메인만 가로챕니다. 목록이 비어있으면 모든 도메인을 가로챕니다."
 
@@ -1210,7 +1220,7 @@ msgstr "이 목록에 있는 도메인만 가로챕니다. 목록이 비어있�
 msgid "Only http:// and https:// URLs are allowed"
 msgstr "http:// 및 https:// URL만 허용됩니다"
 
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:88
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:149
 msgid "Only whitelisted domains ({enabledCount}) will have HTTPS traffic intercepted"
 msgstr "화이트리스트에 등록된 도메인({enabledCount}개)만 HTTPS 트래픽이 인터셉트됩니다"
 
@@ -1417,7 +1427,8 @@ msgid "Remote Device Certificate"
 msgstr "외부 기기 인증서"
 
 #: src/pages/settings/ui/components/client-certificate-section.tsx:351
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:164
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:225
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:302
 msgid "Remove"
 msgstr "삭제"
 
@@ -1579,6 +1590,10 @@ msgstr "변경사항을 적용하려면 프록시를 재시작하세요"
 #: src/pages/settings/ui/components/custom-ca-section.tsx:314
 msgid "Restart proxy to use auto-generated CA"
 msgstr "자동 생성 CA를 사용하려면 프록시를 재시작하세요"
+
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:249
+msgid "Restore Defaults"
+msgstr "기본값 복원"
 
 #: src/widgets/network-header/ui/network-controls.tsx:40
 msgid "Resume recording"
@@ -1864,7 +1879,7 @@ msgstr "소스 호스트와 대상 호스트는 필수입니다"
 msgid "Source Port"
 msgstr "소스 포트"
 
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:70
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:131
 msgid "SSL Proxying"
 msgstr "SSL Proxying"
 
@@ -1961,6 +1976,10 @@ msgstr "DER 인증서 파일이 자동으로 다운로드됩니다"
 #: src/pages/settings/ui/components/general-settings.tsx:67
 msgid "Theme"
 msgstr "테마"
+
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:253
+msgid "These domains are automatically excluded from HTTPS interception to prevent OAuth/authentication failures. You can toggle, add, or remove domains."
+msgstr "OAuth/인증 실패를 방지하기 위해 HTTPS 인터셉트에서 자동으로 제외되는 도메인입니다. 토글, 추가, 삭제가 가능합니다."
 
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:295
 msgid "Throughput"
@@ -2154,7 +2173,7 @@ msgstr "WebSocket 리플레이"
 msgid "Where"
 msgstr "조건"
 
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:112
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:173
 msgid "Whitelist (Include)"
 msgstr "화이트리스트 (포함)"
 
