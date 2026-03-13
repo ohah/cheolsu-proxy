@@ -498,7 +498,7 @@ msgstr "프록시가 인증서 스니핑을 위해 상류 서버에 연결하는
 msgid "Copied!"
 msgstr "복사됨!"
 
-#: src/features/transaction-details/ui/transaction-response.tsx:163
+#: src/features/transaction-details/ui/transaction-response.tsx:165
 msgid "Copy"
 msgstr "복사"
 
@@ -770,19 +770,19 @@ msgstr "<0>설정 → 일반 → VPN 및 기기 관리</0>로 이동하세요"
 msgid "Go to <0>Settings → Security → Encryption & credentials</0>"
 msgstr "<0>설정 → 보안 → 암호화 및 자격증명</0>으로 이동하세요"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:163
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:165
 msgid "HAR export failed"
 msgstr "HAR 내보내기 실패"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:160
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:162
 msgid "HAR exported successfully"
 msgstr "HAR 내보내기 성공"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:252
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:254
 msgid "HAR import failed"
 msgstr "HAR 가져오기 실패"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:249
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:251
 msgid "HAR imported successfully"
 msgstr "HAR 가져오기 성공"
 
@@ -959,7 +959,7 @@ msgstr "프록시 스크립트 로드 및 관리"
 msgid "Load Session"
 msgstr "세션 불러오기"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:198
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:200
 msgid "Load transactions"
 msgstr "트랜잭션 불러오기"
 
@@ -1461,7 +1461,7 @@ msgstr "제거됨"
 
 #. placeholder {0}: transactions.length
 #. placeholder {1}: loaded.length
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:197
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:199
 msgid "Replace {0} existing transactions with {1} new ones? Cancel to append instead."
 msgstr "기존 {0}개 트랜잭션을 새로운 {1}개로 교체하시겠습니까? 취소하면 추가됩니다."
 
@@ -1820,19 +1820,19 @@ msgstr "시리얼 번호"
 msgid "Server Replay"
 msgstr "서버 리플레이"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:229
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:231
 msgid "Session load failed"
 msgstr "세션 불러오기 실패"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:226
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:228
 msgid "Session loaded successfully"
 msgstr "세션을 성공적으로 불러왔습니다"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:187
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:189
 msgid "Session save failed"
 msgstr "세션 저장 실패"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:184
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:186
 msgid "Session saved successfully"
 msgstr "세션이 성공적으로 저장되었습니다"
 

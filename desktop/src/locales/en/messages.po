@@ -498,7 +498,7 @@ msgstr "Controls when the proxy connects to upstream servers for certificate sni
 msgid "Copied!"
 msgstr "Copied!"
 
-#: src/features/transaction-details/ui/transaction-response.tsx:163
+#: src/features/transaction-details/ui/transaction-response.tsx:165
 msgid "Copy"
 msgstr "Copy"
 
@@ -770,19 +770,19 @@ msgstr "Go to <0>Settings → General → VPN & Device Management</0>"
 msgid "Go to <0>Settings → Security → Encryption & credentials</0>"
 msgstr "Go to <0>Settings → Security → Encryption & credentials</0>"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:163
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:165
 msgid "HAR export failed"
 msgstr "HAR export failed"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:160
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:162
 msgid "HAR exported successfully"
 msgstr "HAR exported successfully"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:252
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:254
 msgid "HAR import failed"
 msgstr "HAR import failed"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:249
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:251
 msgid "HAR imported successfully"
 msgstr "HAR imported successfully"
 
@@ -959,7 +959,7 @@ msgstr "Load and manage proxy scripts"
 msgid "Load Session"
 msgstr "Load Session"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:198
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:200
 msgid "Load transactions"
 msgstr "Load transactions"
 
@@ -1461,7 +1461,7 @@ msgstr "Removed"
 
 #. placeholder {0}: transactions.length
 #. placeholder {1}: loaded.length
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:197
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:199
 msgid "Replace {0} existing transactions with {1} new ones? Cancel to append instead."
 msgstr "Replace {0} existing transactions with {1} new ones? Cancel to append instead."
 
@@ -1820,19 +1820,19 @@ msgstr "Serial Number"
 msgid "Server Replay"
 msgstr "Server Replay"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:229
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:231
 msgid "Session load failed"
 msgstr "Session load failed"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:226
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:228
 msgid "Session loaded successfully"
 msgstr "Session loaded successfully"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:187
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:189
 msgid "Session save failed"
 msgstr "Session save failed"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:184
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:186
 msgid "Session saved successfully"
 msgstr "Session saved successfully"
 
