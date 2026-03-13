@@ -89,7 +89,7 @@ msgstr "Active Custom CA"
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:140
 #: src/pages/server-replay/ui/server-replay-page.tsx:170
 #: src/pages/settings/ui/components/ssl-proxying-section.tsx:187
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:274
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:273
 msgid "Add"
 msgstr "Add"
 
@@ -97,7 +97,7 @@ msgstr "Add"
 msgid "Add breakpoint rules to pause HTTP requests/responses for inspection."
 msgstr "Add breakpoint rules to pause HTTP requests/responses for inspection."
 
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:261
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:260
 msgid "Add built-in domain pattern..."
 msgstr "Add built-in domain pattern..."
 
@@ -1428,7 +1428,7 @@ msgstr "Remote Device Certificate"
 
 #: src/pages/settings/ui/components/client-certificate-section.tsx:351
 #: src/pages/settings/ui/components/ssl-proxying-section.tsx:225
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:302
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:301
 msgid "Remove"
 msgstr "Remove"
 
@@ -1591,7 +1591,7 @@ msgstr "Restart proxy to apply changes"
 msgid "Restart proxy to use auto-generated CA"
 msgstr "Restart proxy to use auto-generated CA"
 
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:249
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:247
 msgid "Restore Defaults"
 msgstr "Restore Defaults"
 
@@ -1977,7 +1977,7 @@ msgstr "The DER certificate file will download automatically"
 msgid "Theme"
 msgstr "Theme"
 
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:253
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:251
 msgid "These domains are automatically excluded from HTTPS interception to prevent OAuth/authentication failures. You can toggle, add, or remove domains."
 msgstr "These domains are automatically excluded from HTTPS interception to prevent OAuth/authentication failures. You can toggle, add, or remove domains."
 

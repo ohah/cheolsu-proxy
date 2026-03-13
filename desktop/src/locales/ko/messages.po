@@ -89,7 +89,7 @@ msgstr "활성 커스텀 CA"
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:140
 #: src/pages/server-replay/ui/server-replay-page.tsx:170
 #: src/pages/settings/ui/components/ssl-proxying-section.tsx:187
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:274
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:273
 msgid "Add"
 msgstr "추가"
 
@@ -97,7 +97,7 @@ msgstr "추가"
 msgid "Add breakpoint rules to pause HTTP requests/responses for inspection."
 msgstr "HTTP 요청/응답을 검사하기 위해 일시 정지할 Breakpoint 규칙을 추가하세요."
 
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:261
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:260
 msgid "Add built-in domain pattern..."
 msgstr "기본 제외 도메인 패턴 추가..."
 
@@ -1428,7 +1428,7 @@ msgstr "외부 기기 인증서"
 
 #: src/pages/settings/ui/components/client-certificate-section.tsx:351
 #: src/pages/settings/ui/components/ssl-proxying-section.tsx:225
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:302
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:301
 msgid "Remove"
 msgstr "삭제"
 
@@ -1591,7 +1591,7 @@ msgstr "변경사항을 적용하려면 프록시를 재시작하세요"
 msgid "Restart proxy to use auto-generated CA"
 msgstr "자동 생성 CA를 사용하려면 프록시를 재시작하세요"
 
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:249
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:247
 msgid "Restore Defaults"
 msgstr "기본값 복원"
 
@@ -1977,7 +1977,7 @@ msgstr "DER 인증서 파일이 자동으로 다운로드됩니다"
 msgid "Theme"
 msgstr "테마"
 
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:253
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:251
 msgid "These domains are automatically excluded from HTTPS interception to prevent OAuth/authentication failures. You can toggle, add, or remove domains."
 msgstr "OAuth/인증 실패를 방지하기 위해 HTTPS 인터셉트에서 자동으로 제외되는 도메인입니다. 토글, 추가, 삭제가 가능합니다."
 
