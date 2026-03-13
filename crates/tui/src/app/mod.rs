@@ -126,6 +126,12 @@ pub struct App {
     pub ws_conn_table_state: TableState,
     pub rules_table_state: TableState,
 
+    // 렌더링 상태 추적 (레이아웃 전환 시 화면 클리어 용도)
+    prev_tab: Option<Tab>,
+    prev_show_detail: bool,
+    prev_show_diff: bool,
+    prev_settings_section: Option<SettingsSection>,
+
     // Script
     pub script_active: bool,
     pub script_path: Option<String>,
@@ -229,6 +235,10 @@ impl App {
             network_table_state: TableState::default(),
             ws_conn_table_state: TableState::default(),
             rules_table_state: TableState::default(),
+            prev_tab: None,
+            prev_show_detail: false,
+            prev_show_diff: false,
+            prev_settings_section: None,
             script_active: false,
             script_path: None,
             script_path_input: String::new(),
@@ -369,6 +379,19 @@ impl App {
 
         // Main loop
         while self.running {
+            // 레이아웃 전환 시 화면 전체를 클리어하여 렌더링 잔상 방지
+            let layout_changed = self.prev_tab != Some(self.tab)
+                || self.prev_show_detail != self.show_detail
+                || self.prev_show_diff != self.show_diff
+                || self.prev_settings_section != Some(self.settings_section);
+            if layout_changed {
+                terminal.clear()?;
+                self.prev_tab = Some(self.tab);
+                self.prev_show_detail = self.show_detail;
+                self.prev_show_diff = self.show_diff;
+                self.prev_settings_section = Some(self.settings_section);
+            }
+
             // Sync table states for scroll
             self.network_table_state.select(self.selected_transaction);
             self.ws_conn_table_state.select(self.selected_ws_conn);
