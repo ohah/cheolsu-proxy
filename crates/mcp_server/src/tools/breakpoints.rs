@@ -1,7 +1,10 @@
 use proxy_daemon::{BreakpointAction, BreakpointRule, ClientCommand};
 use rmcp::{handler::server::wrapper::Parameters, model::*, tool, ErrorData as McpError};
 
-use crate::helpers::{next_breakpoint_id, tool_error, tool_ok};
+use crate::helpers::{
+    add_and_sync, list_items, next_breakpoint_id, remove_and_sync, tool_error, tool_ok,
+    with_daemon_conn,
+};
 use crate::params::*;
 use crate::server::CheolsuMcpServer;
 
@@ -10,16 +13,11 @@ impl CheolsuMcpServer {
         description = "List all current breakpoint rules. Breakpoints pause matching requests/responses for manual inspection and editing."
     )]
     pub(crate) async fn list_breakpoints(&self) -> Result<CallToolResult, McpError> {
-        let rules = self.store.breakpoint_rules.lock();
-        if rules.is_empty() {
-            return tool_ok("No breakpoint rules configured.");
-        }
-        let list: Vec<String> = rules.iter().map(|r| format!("  {}", r)).collect();
-        tool_ok(format!(
-            "{} breakpoint rules:\n\n{}",
-            rules.len(),
-            list.join("\n")
-        ))
+        list_items(
+            &self.store.breakpoint_rules,
+            "breakpoint rules",
+            "No breakpoint rules configured.",
+        )
     }
 
     #[tool(
@@ -38,15 +36,14 @@ impl CheolsuMcpServer {
             enabled: true,
         };
 
-        self.store.breakpoint_rules.lock().push(rule);
-
-        match self.send_breakpoint_rules().await {
-            Ok(()) => tool_ok(format!("Breakpoint '{}' added successfully.", id)),
-            Err(e) => tool_error(format!(
-                "Breakpoint added locally but failed to sync with daemon: {}",
-                e
-            )),
-        }
+        add_and_sync(
+            &self.store.breakpoint_rules,
+            rule,
+            &id,
+            "Breakpoint",
+            || self.send_breakpoint_rules(),
+        )
+        .await
     }
 
     #[tool(description = "Remove a breakpoint rule by its ID.")]
@@ -54,24 +51,14 @@ impl CheolsuMcpServer {
         &self,
         Parameters(p): Parameters<RemoveBreakpointParams>,
     ) -> Result<CallToolResult, McpError> {
-        let removed = {
-            let mut rules = self.store.breakpoint_rules.lock();
-            let before = rules.len();
-            rules.retain(|r| r.id != p.id);
-            rules.len() < before
-        };
-
-        if !removed {
-            return tool_error(format!("Breakpoint '{}' not found.", p.id));
-        }
-
-        match self.send_breakpoint_rules().await {
-            Ok(()) => tool_ok(format!("Breakpoint '{}' removed.", p.id)),
-            Err(e) => tool_error(format!(
-                "Breakpoint removed locally but failed to sync with daemon: {}",
-                e
-            )),
-        }
+        remove_and_sync(
+            &self.store.breakpoint_rules,
+            &p.id,
+            |r| &r.id,
+            "Breakpoint",
+            || self.send_breakpoint_rules(),
+        )
+        .await
     }
 
     #[tool(
@@ -109,15 +96,11 @@ impl CheolsuMcpServer {
             }
         };
 
-        let conn_guard = self.daemon_conn.lock().await;
-        let Some(conn) = conn_guard.as_ref() else {
-            return tool_error("Not connected to proxy daemon.");
-        };
         let cmd = ClientCommand::ResolveBreakpoint {
             id: p.id.clone(),
             action,
         };
-        match conn.send_command(&cmd).await {
+        match with_daemon_conn(&self.daemon_conn, &cmd).await {
             Ok(()) => tool_ok(format!("Breakpoint '{}' resolved.", p.id)),
             Err(e) => tool_error(format!("Failed to resolve breakpoint: {}", e)),
         }

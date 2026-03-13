@@ -1,19 +1,14 @@
 use proxy_daemon::{InterceptAction, InterceptRule};
 use rmcp::{handler::server::wrapper::Parameters, model::*, tool, ErrorData as McpError};
 
-use crate::helpers::{next_rule_id, tool_error, tool_ok};
+use crate::helpers::{add_and_sync, list_items, next_rule_id, remove_and_sync, tool_error};
 use crate::params::*;
 use crate::server::CheolsuMcpServer;
 
 impl CheolsuMcpServer {
     #[tool(description = "List all current intercept rules (block, modify, map local/remote).")]
     pub(crate) async fn list_rules(&self) -> Result<CallToolResult, McpError> {
-        let rules = self.store.rules.lock();
-        if rules.is_empty() {
-            return tool_ok("No intercept rules configured.");
-        }
-        let list: Vec<String> = rules.iter().map(|r| format!("  {}", r)).collect();
-        tool_ok(format!("{} rules:\n\n{}", rules.len(), list.join("\n")))
+        list_items(&self.store.rules, "rules", "No intercept rules configured.")
     }
 
     #[tool(
@@ -76,15 +71,7 @@ impl CheolsuMcpServer {
             action,
         };
 
-        self.store.rules.lock().push(rule);
-
-        match self.send_rules().await {
-            Ok(()) => tool_ok(format!("Rule '{}' added successfully.", id)),
-            Err(e) => tool_error(format!(
-                "Rule added locally but failed to sync with daemon: {}",
-                e
-            )),
-        }
+        add_and_sync(&self.store.rules, rule, &id, "Rule", || self.send_rules()).await
     }
 
     #[tool(description = "Remove an intercept rule by its ID.")]
@@ -92,23 +79,13 @@ impl CheolsuMcpServer {
         &self,
         Parameters(p): Parameters<RemoveRuleParams>,
     ) -> Result<CallToolResult, McpError> {
-        let removed = {
-            let mut rules = self.store.rules.lock();
-            let before = rules.len();
-            rules.retain(|r| r.id != p.id);
-            rules.len() < before
-        };
-
-        if !removed {
-            return tool_error(format!("Rule '{}' not found.", p.id));
-        }
-
-        match self.send_rules().await {
-            Ok(()) => tool_ok(format!("Rule '{}' removed.", p.id)),
-            Err(e) => tool_error(format!(
-                "Rule removed locally but failed to sync with daemon: {}",
-                e
-            )),
-        }
+        remove_and_sync(
+            &self.store.rules,
+            &p.id,
+            |r| &r.id,
+            "Rule",
+            || self.send_rules(),
+        )
+        .await
     }
 }
