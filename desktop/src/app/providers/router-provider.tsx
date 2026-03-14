@@ -24,6 +24,11 @@ const WebSocketDashboard = lazy(() =>
     default: m.WebSocketDashboard,
   })),
 );
+const SseDashboard = lazy(() =>
+  import("@/pages/sse-dashboard").then((m) => ({
+    default: m.SseDashboard,
+  })),
+);
 const SettingsPage = lazy(() =>
   import("@/pages/settings").then((m) => ({ default: m.SettingsPage })),
 );
@@ -77,6 +82,10 @@ export const router = createBrowserRouter([
       {
         path: "/websocket",
         element: <WebSocketDashboard />,
+      },
+      {
+        path: "/sse",
+        element: <SseDashboard />,
       },
       {
         path: "/server-replay",

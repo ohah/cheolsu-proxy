@@ -31,6 +31,8 @@ pub struct ProxiedRequest {
     body_json: Option<serde_json::Value>,
     #[serde(skip_serializing_if = "Option::is_none", default)]
     grpc_metadata: Option<GrpcMetadata>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    client_addr: Option<String>,
 }
 
 impl ProxiedRequest {
@@ -101,6 +103,7 @@ impl ProxiedRequest {
             data_type,
             body_json,
             grpc_metadata,
+            client_addr: None,
         }
     }
 
@@ -156,6 +159,16 @@ impl ProxiedRequest {
         &self.grpc_metadata
     }
 
+    /// 클라이언트 주소 설정
+    pub fn set_client_addr(&mut self, addr: String) {
+        self.client_addr = Some(addr);
+    }
+
+    /// 클라이언트 주소 반환
+    pub fn client_addr(&self) -> Option<&str> {
+        self.client_addr.as_deref()
+    }
+
     /// 클라이언트(타우리 UI)용으로 변환
     pub fn for_client(self, cache_dir: Option<&Path>) -> ClientRequest {
         let original_body_size = self.body.len();
@@ -198,6 +211,7 @@ impl ProxiedRequest {
             grpc_metadata: self.grpc_metadata,
             file_path,
             body_size: original_body_size, // 원본 크기 유지
+            client_addr: self.client_addr,
         }
     }
 }
@@ -221,6 +235,8 @@ pub struct ClientRequest {
     grpc_metadata: Option<GrpcMetadata>,
     file_path: Option<String>, // body가 저장된 파일 경로
     body_size: usize,          // 실제 body 크기 (파일 저장 시에도 원본 크기 유지)
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    client_addr: Option<String>,
 }
 
 impl ClientRequest {
@@ -284,6 +300,11 @@ impl ClientRequest {
     /// 실제 body 크기 반환
     pub fn body_size(&self) -> usize {
         self.body_size
+    }
+
+    /// 클라이언트 주소 반환
+    pub fn client_addr(&self) -> Option<&str> {
+        self.client_addr.as_deref()
     }
 }
 

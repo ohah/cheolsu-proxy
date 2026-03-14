@@ -4,4 +4,5 @@ export * from "./method-cell";
 export * from "./path-cell";
 export * from "./action-cell";
 export * from "./time-cell";
+export * from "./client-cell";
 export * from "./waterfall-cell";

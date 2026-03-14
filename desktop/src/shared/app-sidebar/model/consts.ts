@@ -3,6 +3,7 @@ import {
   Shield,
   Route,
   Plug,
+  Radio,
   Settings,
   Database,
   FileCode,
@@ -30,6 +31,13 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
     label: msg`WebSocket`,
     icon: Plug,
     description: msg`WebSocket connections and messages`,
+  },
+  {
+    id: "sse",
+    path: "/sse",
+    label: msg`SSE`,
+    icon: Radio,
+    description: msg`Server-Sent Events streams`,
   },
   {
     id: "intercept-rules",

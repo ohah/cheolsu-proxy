@@ -42,6 +42,7 @@ export interface HttpRequest {
   body_json?: unknown; // JSON 파싱된 데이터 (JSON 타입인 경우)
   file_path?: string; // body가 저장된 파일 경로
   body_size: number; // 실제 body 크기 (파일 저장 시에도 원본 크기 유지)
+  client_addr?: string;
 }
 
 export interface TimingWaterfall {

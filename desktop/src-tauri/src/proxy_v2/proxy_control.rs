@@ -159,6 +159,16 @@ pub(crate) async fn start_proxy_v2<R: Runtime>(
                                 tracing::warn!("emit daemon_reconnected 실패: {}", e);
                             }
                         }
+                        DaemonMessage::SseEvent { data } => {
+                            if let Err(e) = app.emit("sse_event", data) {
+                                tracing::warn!("emit sse_event 실패: {}", e);
+                            }
+                        }
+                        DaemonMessage::SseConnection { data } => {
+                            if let Err(e) = app.emit("sse_connection", data) {
+                                tracing::warn!("emit sse_connection 실패: {}", e);
+                            }
+                        }
                         _ => {}
                     }
                 });
