@@ -14,6 +14,7 @@ pub mod intercept;
 pub mod metrics_aggregator;
 pub mod net_utils;
 pub(crate) mod pattern_utils;
+pub mod proto_registry;
 pub mod protocol;
 pub mod proxy_runner;
 pub mod script_bridge;
