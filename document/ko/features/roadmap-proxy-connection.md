@@ -12,163 +12,71 @@
 | TLS 1.0/1.1 레거시     | OpenSSL/rustls 하이브리드 핸들러                 | **고유 차별화**        |
 | WebSocket 캡처         | 양방향 메시지 모니터링/주입, Socket.IO/MQTT 감지 | Charles보다 우위       |
 | 연결 전략 (Eager/Lazy) | ClientHello 분석 후 백그라운드 서버 연결         | **고유 차별화**        |
-| 네트워크 스로틀링      | Token Bucket 기반, GPRS~WiFi 프리셋              | Charles 동등           |
-| 동시 연결 제한         | Semaphore 기반 최대 연결 수 제어                 | 기본 기능              |
+| 네트워크 스로틀링      | Token Bucket 기반, GPRS~WiFi 프리셋, 조건부 Throttle    | Charles보다 우위       |
+| 동시 연결 제한         | Semaphore 기반 최대 연결 수 제어                         | 기본 기능              |
+| SSE 스트리밍 캡처      | 백엔드 완성 (파싱/스크립팅 훅/프로토콜), GUI 뷰어 미구현 | mitmproxy 동등         |
+| gRPC 트래픽 디코딩     | 프레임 파싱, 메타데이터, 상태 코드, .proto 필드명 매핑   | mitmproxy 동등         |
+| 연결 상태 모니터링     | 백엔드 메트릭 수집/집계/조회 완성, GUI 대시보드 미구현   | Charles 동등           |
 
 ---
 
-## Tier 1 — 즉시 구현 (높은 수요 + 기존 인프라 활용)
+## 구현 완료 항목
 
-### 1. SSE (Server-Sent Events) 스트리밍 캡처
+### 1. SSE (Server-Sent Events) 스트리밍 캡처 — ⚠️ 백엔드 완성, GUI 미구현
 
-LLM API(Claude, ChatGPT, Gemini 등)를 포함한 대부분의 AI 스트리밍 API가 SSE를 사용합니다. AI 시대에 프록시 디버깅 도구로서 핵심 기능입니다.
+**백엔드 구현 완료:**
 
-**배경:**
+- ✅ `text/event-stream` Content-Type 자동 감지
+- ✅ SSE 이벤트 실시간 파싱 (`event`, `data`, `id`, `retry` 필드)
+- ✅ 스크립팅 훅: `cheolsu.onSSEMessage` (이벤트 수정/차단)
+- ✅ SSE 연결 상태 이벤트 (Connected/Disconnected)
+- ✅ DaemonMessage 프로토콜을 통한 GUI 통신 준비
 
-SSE는 HTTP 응답으로 `text/event-stream` Content-Type을 사용하여 서버에서 클라이언트로 이벤트를 스트리밍하는 단방향 프로토콜입니다. WebSocket과 달리 일반 HTTP 위에서 동작하므로 프록시에서 가로채기는 쉽지만, 이벤트 단위로 파싱하여 실시간으로 표시하는 기능은 별도로 구현해야 합니다.
+**GUI 미구현:**
 
-**구현 범위:**
-
-- `text/event-stream` Content-Type 자동 감지
-- SSE 이벤트 실시간 파싱 (`event`, `data`, `id`, `retry` 필드)
-- 이벤트별 시간순 목록 표시 (WebSocket 메시지 뷰와 유사한 UX)
-- JSON `data` 필드 자동 포맷팅 (LLM 스트리밍 응답 디코딩)
-- 이벤트 타입별 필터링
-- 스크립팅 훅: `cheolsu.onSSEMessage` (이벤트 수정/차단)
-- SSE 연결 목록 관리 (활성/종료 상태 구분)
-- 스트리밍 중 이벤트 카운트 실시간 업데이트
-
-**사용 시나리오:**
-
-```
-# Claude API 스트리밍 응답 디버깅
-POST https://api.anthropic.com/v1/messages
-Content-Type: application/json
-→ Response: text/event-stream
-
-event: content_block_delta
-data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"Hello"}}
-
-event: message_stop
-data: {"type":"message_stop"}
-```
-
-**참고:** WebSocket 캡처 인프라(WebSocketRegistry, 메시지 뷰어)를 재활용하여 구현 비용을 최소화합니다.
+- ❌ 이벤트별 시간순 목록 표시 (WebSocket 메시지 뷰와 유사한 UX)
+- ❌ JSON `data` 필드 자동 포맷팅
+- ❌ 이벤트 타입별 필터링
+- ❌ SSE 연결 목록 관리 UI
 
 ---
 
-### 2. gRPC 트래픽 디코딩
+### 2. gRPC 트래픽 디코딩 — ✅ 대부분 구현
 
-마이크로서비스 아키텍처에서 gRPC는 사실상의 표준 통신 프로토콜입니다. 기존의 HTTP/2 feature와 Protobuf 디코더를 조합하여 gRPC 트래픽을 구조화된 형태로 표시합니다.
+**구현 완료:**
 
-**배경:**
+- ✅ `application/grpc`, `application/grpc+proto` Content-Type 감지
+- ✅ gRPC 프레임 파싱 (Compressed-Flag + Message-Length + Message 구조)
+- ✅ gRPC 메타데이터 표시 (서비스명, 메서드명, 상태 코드)
+- ✅ gRPC 상태 코드 매핑 (0-16번 전체, `grpc-status` 헤더)
+- ✅ Protobuf 메시지 자동 디코딩 (Wire format 트리뷰)
+- ✅ `.proto` 파일 로드 시 필드명 매핑 (prost_reflect + protox 기반)
 
-gRPC는 HTTP/2 위에서 동작하며, Protocol Buffers를 직렬화 형식으로 사용합니다. 현재 Cheolsu Proxy는 HTTP/2 feature(`http2`)와 Protobuf wire-type 기반 디코더를 이미 갖추고 있으므로, 이를 gRPC 문맥에 맞게 조합하는 것이 핵심입니다.
+**미구현:**
 
-**구현 범위:**
-
-- `application/grpc`, `application/grpc+proto`, `application/grpc-web` Content-Type 감지
-- gRPC 프레임 파싱 (Compressed-Flag + Message-Length + Message 구조)
-- gRPC 메타데이터 표시 (서비스명, 메서드명, 상태 코드)
-- gRPC 상태 코드 매핑 (`grpc-status` 헤더 → 사람이 읽을 수 있는 이름)
-- Unary / Server Streaming / Client Streaming / Bidirectional Streaming 구분
-- Protobuf 메시지 자동 디코딩 (기존 디코더 활용)
-- gRPC-Web 지원 (브라우저 기반 gRPC 클라이언트)
-- `.proto` 파일 로드 시 필드명 매핑 (선택적 기능)
-
-**gRPC 상태 코드:**
-
-| 코드 | 이름              | 설명              |
-| ---- | ----------------- | ----------------- |
-| 0    | OK                | 성공              |
-| 1    | CANCELLED         | 클라이언트가 취소 |
-| 2    | UNKNOWN           | 알 수 없는 오류   |
-| 3    | INVALID_ARGUMENT  | 잘못된 인자       |
-| 4    | DEADLINE_EXCEEDED | 타임아웃          |
-| 5    | NOT_FOUND         | 리소스 없음       |
-| 12   | UNIMPLEMENTED     | 미구현 메서드     |
-| 13   | INTERNAL          | 내부 오류         |
-| 14   | UNAVAILABLE       | 서비스 불가       |
-
-**사용 시나리오:**
-
-```
-# gRPC Unary 호출
-POST /grpc.health.v1.Health/Check HTTP/2
-Content-Type: application/grpc
-
-# 디코딩된 표시:
-Service: grpc.health.v1.Health
-Method: Check
-Status: 0 (OK)
-Request:  { 1: "my-service" }
-Response: { 1: 1 }  # SERVING
-
-# .proto 파일 로드 시:
-Request:  { service: "my-service" }
-Response: { status: SERVING }
-```
+- ❌ gRPC-Web 지원 (브라우저 기반 gRPC 클라이언트)
+- ❌ Streaming 타입 런타임 분류 (Unary/Server/Client/Bidirectional — 열거형만 정의됨)
 
 ---
 
-### 3. 연결 상태 모니터링 / 통계
+### 3. 연결 상태 모니터링 / 통계 — ⚠️ 백엔드 완성, GUI 미구현
 
-프록시를 통과하는 네트워크 연결의 실시간 상태와 통계를 제공합니다. 디버깅 도구로서 "지금 무슨 일이 일어나고 있는가"에 대한 가시성을 확보합니다.
+**백엔드 구현 완료:**
 
-**구현 범위:**
+- ✅ MetricsCollector: Atomic 카운터 기반 실시간 메트릭 (활성 요청, 총 요청, 바이트 송수신, TLS 성공/실패, 연결 실패, 타임아웃)
+- ✅ MetricsAggregator: 도메인별 통계 수집 (요청 수, 에러 수, 응답 시간, 바이트), 최근 에러 목록 (최대 100개)
+- ✅ 프로토콜 명령: `GetMetrics`, `GetDomainStats`, `GetRecentErrors`
 
-#### 실시간 메트릭
+**미구현:**
 
-- 활성 연결 수 (HTTP, WebSocket, SSE, 터널)
-- 연결 풀 상태 (idle / in-use / waiting)
-- TLS 핸드셰이크 시간 분포
-- 초당 요청/응답 처리량 (RPS)
-- 전송 바이트 수 (업로드/다운로드)
-
-#### 도메인별 통계
-
-- 도메인별 요청 수, 평균 응답 시간, 에러율
-- 도메인별 연결 재사용율 (Keep-Alive 효율)
-- 가장 느린 도메인 Top N
-- 가장 많은 트래픽을 생성하는 도메인 Top N
-
-#### 에러 추적
-
-- 연결 실패 (TCP, TLS 핸드셰이크, 타임아웃)
-- TLS 인증서 오류 상세 (만료, 호스트 불일치 등)
-- upstream proxy 연결 실패
-- 클라이언트/서버 연결 끊김
-
-#### 시계열 차트
-
-- 시간대별 트래픽 추이 (요청 수, 바이트 수)
-- 응답 시간 추이 (평균, p95, p99)
-- 에러율 추이
-
-**데이터 수집 포인트:**
-
-```rust
-// ProxyContext에 메트릭 수집기 추가
-pub struct ConnectionMetrics {
-    pub active_connections: AtomicU64,
-    pub total_requests: AtomicU64,
-    pub total_bytes_sent: AtomicU64,
-    pub total_bytes_received: AtomicU64,
-    pub tls_handshake_duration: Histogram,
-    pub response_duration: Histogram,
-    pub domain_stats: DashMap<String, DomainMetrics>,
-    pub error_counts: DashMap<ErrorCategory, AtomicU64>,
-}
-```
-
-**인터페이스:**
-
-- **GUI**: 대시보드 탭 (실시간 차트 + 요약 테이블)
-- **TUI**: 상단 상태 바 + 통계 탭
-- **MCP**: AI 어시스턴트에게 "가장 느린 API는?" 같은 질의 가능
-- **CLI**: `--stats` 플래그로 주기적 출력
+- ❌ GUI 대시보드 탭 (시계열 차트 + 요약 테이블)
+- ❌ Histogram (TLS 핸드셰이크 시간 분포, 응답 시간 분포)
+- ❌ 연결 풀 상태 세분화 (idle / in-use / waiting)
+- ❌ 연결 재사용율 (Keep-Alive 효율)
 
 ---
+
+## 미구현 기능 목록
 
 ## Tier 2 — 중기 (기업 환경 지원 강화)
 
@@ -293,15 +201,15 @@ IPv4/IPv6 동시 연결 시도 후 빠른 쪽을 선택하는 알고리즘을 �
 
 ## 우선순위 요약
 
-| 우선순위     | 기능                    | 구현 난이도 | 사용자 영향 | 상태    |
-| ------------ | ----------------------- | ----------- | ----------- | ------- |
-| **Tier 1-1** | SSE 스트리밍 캡처       | 중          | 매우 높음   | 📋 계획 |
-| **Tier 1-2** | gRPC 트래픽 디코딩      | 중          | 높음        | 📋 계획 |
-| **Tier 1-3** | 연결 상태 모니터링/통계 | 중          | 높음        | 📋 계획 |
-| Tier 2-1     | 프록시 체이닝           | 높음        | 중간        | 📋 계획 |
-| Tier 2-2     | PAC 파일 지원           | 중          | 중간        | 📋 계획 |
-| Tier 2-3     | 커넥션 풀 튜닝          | 낮음        | 낮음        | 📋 계획 |
-| Tier 3-1     | DNS-over-HTTPS          | 중          | 낮음        | 📋 계획 |
-| Tier 3-2     | HTTP/2 최적화           | 높음        | 낮음        | 📋 계획 |
-| Tier 3-3     | Happy Eyeballs          | 중          | 낮음        | 📋 계획 |
-| Tier 3-4     | 리버스 프록시 모드      | 높음        | 낮음        | 📋 계획 |
+| 우선순위     | 기능                    | 구현 난이도 | 사용자 영향 | 상태                        |
+| ------------ | ----------------------- | ----------- | ----------- | --------------------------- |
+| ~~Tier 1-1~~ | ~~SSE 스트리밍 캡처~~   | 중          | 매우 높음   | ⚠️ 백엔드 완성, GUI 미구현 |
+| ~~Tier 1-2~~ | ~~gRPC 트래픽 디코딩~~  | 중          | 높음        | ✅ 대부분 구현              |
+| ~~Tier 1-3~~ | ~~연결 상태 모니터링~~  | 중          | 높음        | ⚠️ 백엔드 완성, GUI 미구현 |
+| Tier 2-1     | 프록시 체이닝           | 높음        | 중간        | 📋 계획                    |
+| Tier 2-2     | PAC 파일 지원           | 중          | 중간        | 📋 계획                    |
+| Tier 2-3     | 커넥션 풀 튜닝          | 낮음        | 낮음        | 📋 계획                    |
+| Tier 3-1     | DNS-over-HTTPS          | 중          | 낮음        | 📋 계획                    |
+| Tier 3-2     | HTTP/2 최적화           | 높음        | 낮음        | 📋 계획                    |
+| Tier 3-3     | Happy Eyeballs          | 중          | 낮음        | 📋 계획                    |
+| Tier 3-4     | 리버스 프록시 모드      | 높음        | 낮음        | 📋 계획                    |

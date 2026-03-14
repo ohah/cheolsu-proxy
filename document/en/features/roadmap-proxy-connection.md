@@ -12,163 +12,71 @@
 | TLS 1.0/1.1 Legacy               | Hybrid OpenSSL/rustls handler                                | **Unique differentiator**     |
 | WebSocket Capture                | Bidirectional monitoring/injection, Socket.IO/MQTT detection | Superior to Charles           |
 | Connection Strategy (Eager/Lazy) | Background server connection after ClientHello analysis      | **Unique differentiator**     |
-| Network Throttling               | Token Bucket based, GPRS~WiFi presets                        | On par with Charles           |
+| Network Throttling               | Token Bucket based, GPRS~WiFi presets, conditional throttle  | Superior to Charles           |
 | Connection Limit                 | Semaphore-based max connection control                       | Basic feature                 |
+| SSE Streaming Capture            | Backend complete (parsing/scripting hooks/protocol), GUI pending | On par with mitmproxy      |
+| gRPC Traffic Decoding            | Frame parsing, metadata, status codes, .proto field mapping  | On par with mitmproxy         |
+| Connection Monitoring            | Backend metrics collection/aggregation/query complete, GUI pending | On par with Charles       |
 
 ---
 
-## Tier 1 — Immediate (High Demand + Leverages Existing Infrastructure)
+## Implemented Features
 
-### 1. SSE (Server-Sent Events) Streaming Capture
+### 1. SSE (Server-Sent Events) Streaming Capture — Backend Complete, GUI Pending
 
-Most AI streaming APIs, including LLM APIs (Claude, ChatGPT, Gemini, etc.), use SSE. This is a core feature for proxy debugging tools in the AI era.
-
-**Background:**
-
-SSE is a unidirectional protocol that streams events from server to client using the `text/event-stream` Content-Type over standard HTTP responses. Unlike WebSocket, it operates over plain HTTP, making interception straightforward. However, parsing events in real-time and displaying them individually requires dedicated implementation.
-
-**Scope:**
+**Backend (Complete):**
 
 - Auto-detect `text/event-stream` Content-Type
 - Real-time SSE event parsing (`event`, `data`, `id`, `retry` fields)
-- Chronological event list display (UX similar to WebSocket message view)
-- Auto-format JSON `data` fields (LLM streaming response decoding)
-- Filter by event type
 - Scripting hook: `cheolsu.onSSEMessage` (modify/block events)
-- SSE connection list management (active/closed status)
-- Real-time event count updates during streaming
+- SSE connection state events (Connected/Disconnected)
+- DaemonMessage protocol ready for GUI communication
 
-**Use Case:**
+**GUI (Not Implemented):**
 
-```
-# Debugging Claude API streaming response
-POST https://api.anthropic.com/v1/messages
-Content-Type: application/json
-→ Response: text/event-stream
-
-event: content_block_delta
-data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"Hello"}}
-
-event: message_stop
-data: {"type":"message_stop"}
-```
-
-**Note:** Implementation cost is minimized by reusing WebSocket capture infrastructure (WebSocketRegistry, message viewer).
+- Chronological event list display (WebSocket message view-like UX)
+- JSON `data` field auto-formatting
+- Event type filtering
+- SSE connection list management UI
 
 ---
 
-### 2. gRPC Traffic Decoding
+### 2. gRPC Traffic Decoding — Mostly Implemented
 
-gRPC is the de facto standard communication protocol in microservice architectures. By combining the existing HTTP/2 feature with the Protobuf decoder, gRPC traffic can be displayed in a structured format.
+**Implemented:**
 
-**Background:**
-
-gRPC operates over HTTP/2 and uses Protocol Buffers as its serialization format. Cheolsu Proxy already has an HTTP/2 feature (`http2`) and a Protobuf wire-type based decoder, so the key is combining them in the gRPC context.
-
-**Scope:**
-
-- Detect `application/grpc`, `application/grpc+proto`, `application/grpc-web` Content-Types
+- Detect `application/grpc`, `application/grpc+proto` Content-Types
 - Parse gRPC frames (Compressed-Flag + Message-Length + Message structure)
 - Display gRPC metadata (service name, method name, status code)
-- Map gRPC status codes (`grpc-status` header → human-readable names)
-- Distinguish Unary / Server Streaming / Client Streaming / Bidirectional Streaming
-- Auto-decode Protobuf messages (using existing decoder)
+- Map gRPC status codes (0-16 complete, `grpc-status` header)
+- Auto-decode Protobuf messages (wire format tree view)
+- `.proto` file loading for field name mapping (prost_reflect + protox based)
+
+**Not Implemented:**
+
 - gRPC-Web support (browser-based gRPC clients)
-- Optional `.proto` file loading for field name mapping
-
-**gRPC Status Codes:**
-
-| Code | Name              | Description          |
-| ---- | ----------------- | -------------------- |
-| 0    | OK                | Success              |
-| 1    | CANCELLED         | Cancelled by client  |
-| 2    | UNKNOWN           | Unknown error        |
-| 3    | INVALID_ARGUMENT  | Invalid argument     |
-| 4    | DEADLINE_EXCEEDED | Timeout              |
-| 5    | NOT_FOUND         | Resource not found   |
-| 12   | UNIMPLEMENTED     | Unimplemented method |
-| 13   | INTERNAL          | Internal error       |
-| 14   | UNAVAILABLE       | Service unavailable  |
-
-**Use Case:**
-
-```
-# gRPC Unary call
-POST /grpc.health.v1.Health/Check HTTP/2
-Content-Type: application/grpc
-
-# Decoded display:
-Service: grpc.health.v1.Health
-Method: Check
-Status: 0 (OK)
-Request:  { 1: "my-service" }
-Response: { 1: 1 }  # SERVING
-
-# With .proto file loaded:
-Request:  { service: "my-service" }
-Response: { status: SERVING }
-```
+- Streaming type runtime classification (Unary/Server/Client/Bidirectional — enum defined only)
 
 ---
 
-### 3. Connection Status Monitoring / Statistics
+### 3. Connection Status Monitoring / Statistics — Backend Complete, GUI Pending
 
-Provides real-time status and statistics for network connections passing through the proxy. Gives visibility into "what is happening right now" as a debugging tool.
+**Backend (Complete):**
 
-**Scope:**
+- MetricsCollector: Atomic counter-based real-time metrics (active requests, total requests, bytes sent/received, TLS success/failure, connection failures, timeouts)
+- MetricsAggregator: Per-domain statistics (request count, error count, response time, bytes), recent error list (max 100)
+- Protocol commands: `GetMetrics`, `GetDomainStats`, `GetRecentErrors`
 
-#### Real-time Metrics
+**Not Implemented:**
 
-- Active connection count (HTTP, WebSocket, SSE, tunnels)
-- Connection pool status (idle / in-use / waiting)
-- TLS handshake time distribution
-- Requests/responses per second (RPS)
-- Bytes transferred (upload/download)
-
-#### Per-Domain Statistics
-
-- Request count, average response time, error rate per domain
-- Connection reuse rate per domain (Keep-Alive efficiency)
-- Top N slowest domains
-- Top N highest traffic domains
-
-#### Error Tracking
-
-- Connection failures (TCP, TLS handshake, timeout)
-- TLS certificate error details (expired, host mismatch, etc.)
-- Upstream proxy connection failures
-- Client/server disconnections
-
-#### Time-Series Charts
-
-- Traffic trends over time (request count, bytes)
-- Response time trends (average, p95, p99)
-- Error rate trends
-
-**Data Collection Points:**
-
-```rust
-// Add metrics collector to ProxyContext
-pub struct ConnectionMetrics {
-    pub active_connections: AtomicU64,
-    pub total_requests: AtomicU64,
-    pub total_bytes_sent: AtomicU64,
-    pub total_bytes_received: AtomicU64,
-    pub tls_handshake_duration: Histogram,
-    pub response_duration: Histogram,
-    pub domain_stats: DashMap<String, DomainMetrics>,
-    pub error_counts: DashMap<ErrorCategory, AtomicU64>,
-}
-```
-
-**Interfaces:**
-
-- **GUI**: Dashboard tab (real-time charts + summary tables)
-- **TUI**: Top status bar + statistics tab
-- **MCP**: Query AI assistant with "What's the slowest API?"
-- **CLI**: Periodic output with `--stats` flag
+- GUI dashboard tab (time-series charts + summary tables)
+- Histogram (TLS handshake time distribution, response time distribution)
+- Connection pool status breakdown (idle / in-use / waiting)
+- Connection reuse rate (Keep-Alive efficiency)
 
 ---
+
+## Planned Features
 
 ## Tier 2 — Medium-term (Enterprise Environment Support)
 
@@ -237,15 +145,15 @@ Operate as a reverse proxy in front of specific backend servers for API developm
 
 ## Priority Summary
 
-| Priority     | Feature                     | Difficulty | User Impact | Status     |
-| ------------ | --------------------------- | ---------- | ----------- | ---------- |
-| **Tier 1-1** | SSE Streaming Capture       | Medium     | Very High   | 📋 Planned |
-| **Tier 1-2** | gRPC Traffic Decoding       | Medium     | High        | 📋 Planned |
-| **Tier 1-3** | Connection Monitoring/Stats | Medium     | High        | 📋 Planned |
-| Tier 2-1     | Proxy Chaining              | High       | Medium      | 📋 Planned |
-| Tier 2-2     | PAC File Support            | Medium     | Medium      | 📋 Planned |
-| Tier 2-3     | Connection Pool Tuning      | Low        | Low         | 📋 Planned |
-| Tier 3-1     | DNS-over-HTTPS              | Medium     | Low         | 📋 Planned |
-| Tier 3-2     | HTTP/2 Optimization         | High       | Low         | 📋 Planned |
-| Tier 3-3     | Happy Eyeballs              | Medium     | Low         | 📋 Planned |
-| Tier 3-4     | Reverse Proxy Mode          | High       | Low         | 📋 Planned |
+| Priority     | Feature                     | Difficulty | User Impact | Status                           |
+| ------------ | --------------------------- | ---------- | ----------- | -------------------------------- |
+| ~~Tier 1-1~~ | ~~SSE Streaming Capture~~   | Medium     | Very High   | ⚠️ Backend complete, GUI pending |
+| ~~Tier 1-2~~ | ~~gRPC Traffic Decoding~~   | Medium     | High        | ✅ Mostly implemented            |
+| ~~Tier 1-3~~ | ~~Connection Monitoring~~   | Medium     | High        | ⚠️ Backend complete, GUI pending |
+| Tier 2-1     | Proxy Chaining              | High       | Medium      | 📋 Planned                      |
+| Tier 2-2     | PAC File Support            | Medium     | Medium      | 📋 Planned                      |
+| Tier 2-3     | Connection Pool Tuning      | Low        | Low         | 📋 Planned                      |
+| Tier 3-1     | DNS-over-HTTPS              | Medium     | Low         | 📋 Planned                      |
+| Tier 3-2     | HTTP/2 Optimization         | High       | Low         | 📋 Planned                      |
+| Tier 3-3     | Happy Eyeballs              | Medium     | Low         | 📋 Planned                      |
+| Tier 3-4     | Reverse Proxy Mode          | High       | Low         | 📋 Planned                      |

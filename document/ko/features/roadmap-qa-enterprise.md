@@ -24,6 +24,10 @@
 | 트래픽 비교 (Diff)    | 헤더/바디/JSON 구조적 diff                               | Charles 동등                               |
 | SOCKS5 Proxy          | RFC 1929 인증 포함 완전 구현                             | Charles 동등                               |
 | Protobuf 디코딩       | Wire type 기반 자동 디코딩, gRPC Content-Type 감지       | mitmproxy 동등                             |
+| Waterfall 타이밍 분석 | 크롬 DevTools 스타일 시간축 차트, 응답 시간별 색상 코딩  | Charles 동등                               |
+| 본문 뷰어 강화        | Hex 뷰어, 이미지 미리보기, Protobuf 트리뷰, Multipart   | Charles 동등                               |
+| 조건부 Throttle       | 인터셉트 규칙별 조건부 응답 스트림 속도 제한             | Charles보다 우위                           |
+| OpenAPI 스펙 생성     | 캡처된 트래픽에서 OpenAPI 3.0 스펙 자동 생성/내보내기    | **고유 차별화**                            |
 
 ---
 
@@ -31,18 +35,15 @@
 
 ### 우선순위: 중간
 
-#### 1. 요청 타이밍 분석 (Waterfall)
+#### 1. Waterfall 개별 단계 타이밍 측정
 
-요청별 네트워크 타이밍을 분해하여 병목 지점을 식별하는 기능. 성능 QA에 필수.
+현재 Waterfall 차트 시각화(시간축 기반 바 차트, 응답 시간별 색상 코딩)는 구현되었으나, 개별 네트워크 단계별 타이밍 분해는 미구현.
 
-**구현 범위:**
+**미구현 범위:**
 
-- 요청별 타이밍 분해: DNS Lookup, TCP Connect, TLS Handshake, TTFB (Time to First Byte), Content Transfer
-- Waterfall 차트 시각화 (GUI)
+- 개별 단계 타이밍 측정: DNS Lookup, TCP Connect, TLS Handshake, TTFB, Content Transfer (데이터 구조만 정의됨)
 - 느린 요청 자동 하이라이트 (임계값 설정 가능)
 - 통계 요약: 평균/p95/p99 응답 시간, 도메인별 집계
-
-**참고:** Chrome DevTools의 Network 타이밍, Charles의 Timing 탭
 
 ---
 
@@ -63,29 +64,14 @@
 
 #### 3. 자동 응답 검증 (Contract Testing)
 
-API 응답이 정의된 스펙과 일치하는지 실시간으로 검증하는 기능.
+API 응답이 정의된 스펙과 일치하는지 실시간으로 검증하는 기능. 현재 OpenAPI 스펙 자동 생성/내보내기는 구현되었으나, 실시간 검증은 미구현.
 
-**구현 범위:**
+**미구현 범위:**
 
-- OpenAPI/Swagger 스펙 파일 로드
+- 외부 OpenAPI/Swagger 스펙 파일 로드
 - 실시간 요청/응답을 스펙과 대조
 - 불일치 항목 경고 (누락된 필드, 타입 불일치, 예상 외 상태 코드 등)
 - 검증 결과 리포트 생성
-
----
-
-#### 4. 요청/응답 본문 뷰어 강화
-
-다양한 콘텐츠 타입에 대한 풍부한 뷰어 제공.
-
-**구현 범위:**
-
-- JSON 트리 뷰어 (접기/펼치기, 경로 복사)
-- 이미지 미리보기 (JPEG, PNG, GIF, WebP, SVG)
-- 폼 데이터 파싱 (multipart/form-data, application/x-www-form-urlencoded)
-- XML/HTML 구문 강조 및 포맷팅
-- Brotli/gzip 자동 디코딩 표시
-- 바이너리 데이터 hex 뷰어
 
 ---
 
@@ -96,10 +82,10 @@ API 응답이 정의된 스펙과 일치하는지 실시간으로 검증하는 �
 | ~~높음~~ | ~~Breakpoint (실시간 편집)~~    | ✅ 구현 완료     |
 | ~~높음~~ | ~~세션 저장/불러오기~~          | ✅ 구현 완료     |
 | ~~높음~~ | ~~모바일 CA 인증서 배포~~       | ✅ 구현 완료     |
-| 중간     | 타이밍 분석 (Waterfall)         | 성능 QA에 필수   |
+| ~~중간~~ | ~~타이밍 분석 (Waterfall)~~     | ✅ 부분 구현 (차트 완료, 단계별 타이밍 미구현) |
 | ~~중간~~ | ~~DNS Spoofing / Host Mapping~~ | ✅ 구현 완료     |
 | ~~중간~~ | ~~트래픽 비교 (Diff)~~          | ✅ 구현 완료     |
 | 중간     | 클라이언트별 트래픽 분리        | 팀 환경에서 필수 |
 | ~~낮음~~ | ~~gRPC / Protobuf~~             | ✅ 구현 완료     |
-| 낮음     | 자동 응답 검증                  | 차별화 포인트    |
-| 낮음     | 본문 뷰어 강화                  | 사용성 개선      |
+| ~~낮음~~ | ~~본문 뷰어 강화~~              | ✅ 구현 완료     |
+| 낮음     | 자동 응답 검증                  | 부분 구현 (스펙 생성만) |
