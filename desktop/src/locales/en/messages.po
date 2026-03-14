@@ -135,6 +135,10 @@ msgstr "Add Mapping"
 msgid "Add mappings to redirect DNS hostnames to different target hosts for testing."
 msgstr "Add mappings to redirect DNS hostnames to different target hosts for testing."
 
+#: src/pages/settings/ui/components/proto-files-section.tsx:77
+msgid "Add Proto Files"
+msgstr "Add Proto Files"
+
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:251
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:602
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:258
@@ -352,7 +356,7 @@ msgstr "Cancel"
 msgid "Cannot add: no response data"
 msgstr "Cannot add: no response data"
 
-#: src/pages/settings/ui/settings-page.tsx:110
+#: src/pages/settings/ui/settings-page.tsx:111
 msgid "Certificate"
 msgstr "Certificate"
 
@@ -418,7 +422,7 @@ msgstr "Clear all"
 msgid "Clear All"
 msgstr "Clear All"
 
-#: src/widgets/network-header/ui/network-controls.tsx:51
+#: src/widgets/network-header/ui/network-controls.tsx:53
 msgid "Clear all transactions"
 msgstr "Clear all transactions"
 
@@ -458,7 +462,7 @@ msgstr "Comma-separated list of hosts to connect directly (supports *.domain.com
 msgid "Command copied to clipboard"
 msgstr "Command copied to clipboard"
 
-#: src/widgets/network-header/ui/network-controls.tsx:64
+#: src/widgets/network-header/ui/network-controls.tsx:66
 msgid "Compose request"
 msgstr "Compose request"
 
@@ -714,9 +718,13 @@ msgstr "Expand"
 msgid "Expand sidebar"
 msgstr "Expand sidebar"
 
-#: src/widgets/network-header/ui/network-controls.tsx:111
+#: src/widgets/network-header/ui/network-controls.tsx:113
 msgid "Export HAR"
 msgstr "Export HAR"
+
+#: src/widgets/network-header/ui/network-controls.tsx:130
+msgid "Export OpenAPI Spec"
+msgstr "Export OpenAPI Spec"
 
 #: src/pages/settings/ui/components/custom-ca-section.tsx:288
 msgid "Failed"
@@ -773,7 +781,7 @@ msgstr "Forward"
 msgid "Fullscreen"
 msgstr "Fullscreen"
 
-#: src/pages/settings/ui/settings-page.tsx:109
+#: src/pages/settings/ui/settings-page.tsx:110
 msgid "General"
 msgstr "General"
 
@@ -793,19 +801,23 @@ msgstr "Go to <0>Settings → General → VPN & Device Management</0>"
 msgid "Go to <0>Settings → Security → Encryption & credentials</0>"
 msgstr "Go to <0>Settings → Security → Encryption & credentials</0>"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:165
+#: src/pages/settings/ui/components/proto-files-section.tsx:65
+msgid "gRPC Proto Files"
+msgstr "gRPC Proto Files"
+
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:191
 msgid "HAR export failed"
 msgstr "HAR export failed"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:162
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:188
 msgid "HAR exported successfully"
 msgstr "HAR exported successfully"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:254
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:280
 msgid "HAR import failed"
 msgstr "HAR import failed"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:251
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:277
 msgid "HAR imported successfully"
 msgstr "HAR imported successfully"
 
@@ -870,7 +882,7 @@ msgstr "If not specified, any client certificate will be accepted without verifi
 msgid "Import"
 msgstr "Import"
 
-#: src/widgets/network-header/ui/network-controls.tsx:122
+#: src/widgets/network-header/ui/network-controls.tsx:142
 msgid "Import HAR"
 msgstr "Import HAR"
 
@@ -979,13 +991,17 @@ msgstr "Load a script file from disk. The file will be watched for changes and a
 msgid "Load and manage proxy scripts"
 msgstr "Load and manage proxy scripts"
 
-#: src/widgets/network-header/ui/network-controls.tsx:93
+#: src/widgets/network-header/ui/network-controls.tsx:95
 msgid "Load Session"
 msgstr "Load Session"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:200
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:226
 msgid "Load transactions"
 msgstr "Load transactions"
+
+#: src/pages/settings/ui/components/proto-files-section.tsx:39
+msgid "Loaded {count} service(s) from proto files"
+msgstr "Loaded {count} service(s) from proto files"
 
 #: src/pages/settings/ui/components/client-certificate-section.tsx:181
 msgid "Loading certificate info..."
@@ -994,6 +1010,7 @@ msgstr "Loading certificate info..."
 #: src/pages/script/ui/script-page.tsx:214
 #: src/pages/script/ui/script-page.tsx:266
 #: src/pages/settings/ui/components/certificate-settings.tsx:176
+#: src/pages/settings/ui/components/proto-files-section.tsx:77
 msgid "Loading..."
 msgstr "Loading..."
 
@@ -1146,7 +1163,7 @@ msgstr "Multiple conditions:"
 msgid "Name"
 msgstr "Name"
 
-#: src/pages/settings/ui/settings-page.tsx:111
+#: src/pages/settings/ui/settings-page.tsx:112
 #: src/shared/app-sidebar/model/consts.ts:23
 msgid "Network"
 msgstr "Network"
@@ -1206,6 +1223,10 @@ msgstr "No pending breakpoints. Matched requests will appear here."
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:201
 msgid "No phase selected"
 msgstr "No phase selected"
+
+#: src/pages/settings/ui/components/proto-files-section.tsx:98
+msgid "No proto files registered. gRPC messages will be decoded using wire format heuristics."
+msgstr "No proto files registered. gRPC messages will be decoded using wire format heuristics."
 
 #: src/pages/server-replay/ui/server-replay-page.tsx:190
 msgid "No replay entries"
@@ -1275,6 +1296,14 @@ msgstr "Open File"
 msgid "Open this URL in your mobile browser after setting the Wi-Fi proxy. The page automatically detects your device and provides the correct certificate format."
 msgstr "Open this URL in your mobile browser after setting the Wi-Fi proxy. The page automatically detects your device and provides the correct certificate format."
 
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:167
+msgid "OpenAPI export failed"
+msgstr "OpenAPI export failed"
+
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:165
+msgid "OpenAPI spec exported successfully"
+msgstr "OpenAPI spec exported successfully"
+
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:98
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:124
 msgid "optional"
@@ -1313,7 +1342,7 @@ msgstr "Pause and inspect HTTP requests/responses in real-time"
 msgid "Pause and inspect requests/responses"
 msgstr "Pause and inspect requests/responses"
 
-#: src/widgets/network-header/ui/network-controls.tsx:40
+#: src/widgets/network-header/ui/network-controls.tsx:42
 msgid "Pause recording"
 msgstr "Pause recording"
 
@@ -1385,6 +1414,10 @@ msgstr "Profile"
 msgid "Progress"
 msgstr "Progress"
 
+#: src/pages/settings/ui/components/proto-files-section.tsx:52
+msgid "Proto file removed"
+msgstr "Proto file removed"
+
 #: src/pages/settings/ui/components/certificate-settings.tsx:388
 msgid "Proxy Address"
 msgstr "Proxy Address"
@@ -1393,7 +1426,7 @@ msgstr "Proxy Address"
 msgid "Proxy Authentication"
 msgstr "Proxy Authentication"
 
-#: src/pages/settings/ui/settings-page.tsx:145
+#: src/pages/settings/ui/settings-page.tsx:146
 msgid "Proxy configuration and preferences"
 msgstr "Proxy configuration and preferences"
 
@@ -1444,6 +1477,10 @@ msgstr "Refresh"
 msgid "Regex pattern (e.g. old-domain\\.com)"
 msgstr "Regex pattern (e.g. old-domain\\.com)"
 
+#: src/pages/settings/ui/components/proto-files-section.tsx:68
+msgid "Register .proto files to decode gRPC traffic with actual field names instead of field numbers."
+msgstr "Register .proto files to decode gRPC traffic with actual field names instead of field numbers."
+
 #: src/pages/settings/ui/components/certificate-settings.tsx:128
 #: src/pages/settings/ui/components/cli-settings.tsx:61
 msgid "Reinstall"
@@ -1489,7 +1526,7 @@ msgstr "Removed"
 
 #. placeholder {0}: transactions.length
 #. placeholder {1}: loaded.length
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:199
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:225
 msgid "Replace {0} existing transactions with {1} new ones? Cancel to append instead."
 msgstr "Replace {0} existing transactions with {1} new ones? Cancel to append instead."
 
@@ -1629,7 +1666,7 @@ msgstr "Restart proxy to use auto-generated CA"
 msgid "Restore Defaults"
 msgstr "Restore Defaults"
 
-#: src/widgets/network-header/ui/network-controls.tsx:40
+#: src/widgets/network-header/ui/network-controls.tsx:42
 msgid "Resume recording"
 msgstr "Resume recording"
 
@@ -1699,23 +1736,23 @@ msgstr "Run"
 msgid "Running..."
 msgstr "Running..."
 
-#: src/pages/settings/ui/settings-page.tsx:161
+#: src/pages/settings/ui/settings-page.tsx:162
 msgid "Save Changes"
 msgstr "Save Changes"
 
-#: src/pages/settings/ui/settings-page.tsx:156
+#: src/pages/settings/ui/settings-page.tsx:157
 msgid "Save failed"
 msgstr "Save failed"
 
-#: src/widgets/network-header/ui/network-controls.tsx:82
+#: src/widgets/network-header/ui/network-controls.tsx:84
 msgid "Save Session"
 msgstr "Save Session"
 
-#: src/pages/settings/ui/settings-page.tsx:151
+#: src/pages/settings/ui/settings-page.tsx:152
 msgid "Saved"
 msgstr "Saved"
 
-#: src/pages/settings/ui/settings-page.tsx:161
+#: src/pages/settings/ui/settings-page.tsx:162
 msgid "Saving..."
 msgstr "Saving..."
 
@@ -1748,7 +1785,7 @@ msgstr "Script reloaded"
 msgid "Script unloaded"
 msgstr "Script unloaded"
 
-#: src/pages/settings/ui/settings-page.tsx:112
+#: src/pages/settings/ui/settings-page.tsx:113
 msgid "Security"
 msgstr "Security"
 
@@ -1856,19 +1893,19 @@ msgstr "Serial Number"
 msgid "Server Replay"
 msgstr "Server Replay"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:231
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:257
 msgid "Session load failed"
 msgstr "Session load failed"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:228
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:254
 msgid "Session loaded successfully"
 msgstr "Session loaded successfully"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:189
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:215
 msgid "Session save failed"
 msgstr "Session save failed"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:186
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:212
 msgid "Session saved successfully"
 msgstr "Session saved successfully"
 
@@ -1884,7 +1921,7 @@ msgstr "Set body (optional)"
 msgid "Set Wi-Fi proxy on your device to <0>{0}:{1}</0>"
 msgstr "Set Wi-Fi proxy on your device to <0>{0}:{1}</0>"
 
-#: src/pages/settings/ui/settings-page.tsx:142
+#: src/pages/settings/ui/settings-page.tsx:143
 #: src/shared/app-sidebar/model/consts.ts:79
 msgid "Settings"
 msgstr "Settings"
@@ -2060,7 +2097,7 @@ msgstr "Toggle AND/OR"
 msgid "Toggle proxy on/off with a global keyboard shortcut"
 msgstr "Toggle proxy on/off with a global keyboard shortcut"
 
-#: src/pages/settings/ui/settings-page.tsx:113
+#: src/pages/settings/ui/settings-page.tsx:114
 msgid "Tools"
 msgstr "Tools"
 

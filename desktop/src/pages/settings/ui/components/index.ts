@@ -9,3 +9,4 @@ export { ShortcutSection } from "./shortcut-section";
 export { ClientCertificateSection } from "./client-certificate-section";
 export { RequestClientCertSection } from "./request-client-cert-section";
 export { SslProxyingSection } from "./ssl-proxying-section";
+export { ProtoFilesSection } from "./proto-files-section";
