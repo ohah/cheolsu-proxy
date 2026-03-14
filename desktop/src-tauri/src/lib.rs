@@ -8,8 +8,8 @@ mod tray;
 use proxy_v2::{
     advanced_repeat, autoload_session, autosave_session, check_ca_installed, check_cli_installed,
     clean_old_proxy_cache, clear_log_file, clear_tls_passthrough, create_proto_file_state,
-    delete_log_file, diff_transaction_pairs, diff_transactions, export_har_file,
-    generate_openapi_from_transactions, get_ca_cert_path, get_cert_download_info,
+    decode_grpc_message, delete_log_file, diff_transaction_pairs, diff_transactions,
+    export_har_file, generate_openapi_from_transactions, get_ca_cert_path, get_cert_download_info,
     get_custom_ca_status, get_default_passthrough_domains, get_log_dir, get_log_files,
     get_mcp_server_path, get_tls_passthrough_list, import_custom_ca, import_custom_ca_pkcs12,
     import_har_file_cmd, install_ca_cert, install_cli, list_proto_files, load_proto_files,
@@ -237,6 +237,7 @@ pub fn run() {
                 load_proto_files,
                 list_proto_files,
                 remove_proto_file,
+                decode_grpc_message,
                 save_session,
                 load_session,
                 autosave_session,

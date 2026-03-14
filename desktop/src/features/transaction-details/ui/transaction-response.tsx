@@ -188,6 +188,17 @@ export const TransactionResponse = ({ transaction, compact }: TransactionRespons
             bodySize={response.body_size}
             contentType={response.headers["content-type"] || ""}
             filePath={response.file_path}
+            grpcService={(() => {
+              const uri = transaction.request?.uri || "";
+              const match = uri.match(/\/([^/]+)\/[^/]+$/);
+              return match?.[1];
+            })()}
+            grpcMethod={(() => {
+              const uri = transaction.request?.uri || "";
+              const match = uri.match(/\/[^/]+\/([^/]+)$/);
+              return match?.[1];
+            })()}
+            isRequest={false}
           />
         ) : isMultipart && actualBody && actualBody.length > 0 && !fileLoading && !fileError ? (
           <MultipartPreview data={actualBody} contentType={contentTypeHeader} />
