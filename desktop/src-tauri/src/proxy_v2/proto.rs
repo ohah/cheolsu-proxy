@@ -57,3 +57,40 @@ pub(crate) async fn remove_proto_file(
     s.files.retain(|p| p != &path);
     Ok(())
 }
+
+/// 등록된 .proto 파일을 사용하여 gRPC 바이너리 데이터를 JSON으로 디코딩합니다.
+#[tauri::command]
+pub(crate) async fn decode_grpc_message(
+    state: tauri::State<'_, ProtoFileStateHandle>,
+    service: String,
+    method: String,
+    data: Vec<u8>,
+    is_request: bool,
+) -> Result<Option<serde_json::Value>, String> {
+    let files = {
+        let s = state.lock().await;
+        s.files.clone()
+    };
+
+    if files.is_empty() {
+        return Ok(None);
+    }
+
+    let result = tokio::task::spawn_blocking(move || {
+        use proxy_daemon::proto_registry::ProtoRegistry;
+        let rt = tokio::runtime::Handle::current();
+        let registry = ProtoRegistry::new();
+
+        // proto 파일 로드
+        if rt.block_on(registry.load_proto_files(&files)).is_err() {
+            return None;
+        }
+
+        // 메시지 디코딩
+        rt.block_on(registry.decode_to_json(&service, &method, &data, is_request))
+    })
+    .await
+    .map_err(|e| format!("gRPC 디코딩 태스크 실패: {}", e))?;
+
+    Ok(result)
+}

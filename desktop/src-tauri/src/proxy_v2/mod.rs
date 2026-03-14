@@ -24,7 +24,8 @@ pub(crate) use diff::{diff_transaction_pairs, diff_transactions};
 pub(crate) use intercept::{update_intercept_rules_v2, ws_inject_message};
 pub(crate) use log::{clear_log_file, delete_log_file, get_log_dir, get_log_files, read_log_file};
 pub(crate) use proto::{
-    create_proto_file_state, list_proto_files, load_proto_files, remove_proto_file,
+    create_proto_file_state, decode_grpc_message, list_proto_files, load_proto_files,
+    remove_proto_file,
 };
 pub(crate) use proxy_control::{
     clean_old_proxy_cache, proxy_v2_status, read_body_file, start_proxy_v2, stop_proxy_v2,

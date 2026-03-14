@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { ChevronRight, ChevronDown, AlertTriangle, Download } from "lucide-react";
 import { readFile, BaseDirectory } from "@tauri-apps/plugin-fs";
+import { invoke } from "@tauri-apps/api/core";
 
 import type { DataType } from "@/entities/proxy/model/data-type";
 import { Button } from "@/shared/ui";
@@ -19,6 +20,12 @@ interface ProtobufPreviewProps {
   bodySize: number;
   contentType: string;
   filePath?: string;
+  /** gRPC 서비스명 (예: "package.ServiceName") */
+  grpcService?: string;
+  /** gRPC 메서드명 (예: "MethodName") */
+  grpcMethod?: string;
+  /** 요청인지 응답인지 */
+  isRequest?: boolean;
 }
 
 const FieldNode = ({ field, depth = 0 }: { field: ProtobufField; depth?: number }) => {
@@ -125,10 +132,14 @@ export const ProtobufPreview = ({
   bodySize,
   contentType,
   filePath,
+  grpcService,
+  grpcMethod,
+  isRequest,
 }: ProtobufPreviewProps) => {
   const [fileData, setFileData] = useState<Uint8Array | null>(null);
   const [loading, setLoading] = useState(false);
   const [showAll, setShowAll] = useState(false);
+  const [protoDecoded, setProtoDecoded] = useState<Record<string, unknown> | null>(null);
 
   const actualData = data || fileData;
 
@@ -155,6 +166,22 @@ export const ProtobufPreview = ({
       loadFileData();
     }
   }, [filePath, actualData, loading]);
+
+  // .proto 파일이 등록되어 있으면 Tauri를 통해 디코딩 시도
+  useEffect(() => {
+    if (!actualData || actualData.length === 0 || !grpcService || !grpcMethod) {
+      setProtoDecoded(null);
+      return;
+    }
+    invoke<Record<string, unknown> | null>("decode_grpc_message", {
+      service: grpcService,
+      method: grpcMethod,
+      data: Array.from(actualData),
+      isRequest: isRequest ?? false,
+    })
+      .then((result) => setProtoDecoded(result ?? null))
+      .catch(() => setProtoDecoded(null));
+  }, [actualData, grpcService, grpcMethod, isRequest]);
 
   const decoded = useMemo(() => {
     if (!actualData || actualData.length === 0) return null;
@@ -233,7 +260,22 @@ export const ProtobufPreview = ({
         </Button>
       </div>
 
-      {/* 트리 뷰 */}
+      {/* Proto 디코딩 결과 (필드명 포함 JSON) */}
+      {protoDecoded && (
+        <div className="border-b">
+          <div className="px-3 py-1.5 bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-300 text-xs font-medium flex items-center gap-1.5">
+            <span className="px-1 py-0.5 rounded bg-green-100 dark:bg-green-900 text-[10px]">
+              .proto
+            </span>
+            Decoded with registered proto file
+          </div>
+          <pre className="p-3 text-sm font-mono overflow-auto max-h-96">
+            {JSON.stringify(protoDecoded, null, 2)}
+          </pre>
+        </div>
+      )}
+
+      {/* Wire format 트리 뷰 */}
       <div className="p-3">
         {(showAll ? decoded.fields : decoded.fields.slice(0, INITIAL_FIELDS_LIMIT)).map(
           (field, i) => (
