@@ -63,6 +63,9 @@ export const RuleFormDialog = ({
   const [rewriteTarget, setRewriteTarget] = useState<RewriteTarget>("request_header");
   const [matchPattern, setMatchPattern] = useState("");
   const [replaceWith, setReplaceWith] = useState("");
+  const [throttleLatency, setThrottleLatency] = useState("0");
+  const [throttleDownload, setThrottleDownload] = useState("");
+  const [throttleUpload, setThrottleUpload] = useState("");
 
   useEffect(() => {
     if (!open) return;
@@ -102,6 +105,19 @@ export const RuleFormDialog = ({
         setResponseStatus("");
         resetHeaders([]);
         setRemoveHeaders([]);
+      } else if (editingRule.action.type === "throttle") {
+        setThrottleLatency(String(editingRule.action.latency_ms));
+        setThrottleDownload(
+          editingRule.action.download_rate ? String(editingRule.action.download_rate / 1024) : "",
+        );
+        setThrottleUpload(
+          editingRule.action.upload_rate ? String(editingRule.action.upload_rate / 1024) : "",
+        );
+        setStatusCode("403");
+        setBody("");
+        setResponseStatus("");
+        resetHeaders([]);
+        setRemoveHeaders([]);
       }
     } else if (initialValues) {
       setName("");
@@ -116,6 +132,9 @@ export const RuleFormDialog = ({
       setRewriteTarget("request_header");
       setMatchPattern("");
       setReplaceWith("");
+      setThrottleLatency("0");
+      setThrottleDownload("");
+      setThrottleUpload("");
     } else {
       setName("");
       setPattern("");
@@ -129,6 +148,9 @@ export const RuleFormDialog = ({
       setRewriteTarget("request_header");
       setMatchPattern("");
       setReplaceWith("");
+      setThrottleLatency("0");
+      setThrottleDownload("");
+      setThrottleUpload("");
     }
   }, [open, editingRule, initialValues]);
 
@@ -162,6 +184,16 @@ export const RuleFormDialog = ({
           match_pattern: matchPattern,
           replace_with: replaceWith,
         };
+      case "throttle": {
+        const dlRate = throttleDownload ? parseInt(throttleDownload) * 1024 : null;
+        const ulRate = throttleUpload ? parseInt(throttleUpload) * 1024 : null;
+        return {
+          type: "throttle",
+          download_rate: dlRate && dlRate > 0 ? dlRate : null,
+          upload_rate: ulRate && ulRate > 0 ? ulRate : null,
+          latency_ms: parseInt(throttleLatency) || 0,
+        };
+      }
       default:
         return {
           type: "block",
@@ -293,6 +325,7 @@ export const RuleFormDialog = ({
                     label={t`Modify Response`}
                   >{t`Modify Response`}</SelectItem>
                   <SelectItem value="rewrite" label={t`Rewrite`}>{t`Rewrite`}</SelectItem>
+                  <SelectItem value="throttle" label={t`Throttle`}>{t`Throttle`}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -450,8 +483,100 @@ export const RuleFormDialog = ({
             </>
           )}
 
+          {/* Throttle fields */}
+          {actionType === "throttle" && (
+            <>
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium">
+                  <Trans>Latency (ms)</Trans>
+                </label>
+                <Input
+                  type="number"
+                  placeholder="0"
+                  value={throttleLatency}
+                  onChange={(e) => setThrottleLatency(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  <Trans>Delay before forwarding the request (milliseconds)</Trans>
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium">
+                    <Trans>Download Speed (KB/s)</Trans>
+                  </label>
+                  <Input
+                    type="number"
+                    placeholder={t`Unlimited`}
+                    value={throttleDownload}
+                    onChange={(e) => setThrottleDownload(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium">
+                    <Trans>Upload Speed (KB/s)</Trans>
+                  </label>
+                  <Input
+                    type="number"
+                    placeholder={t`Unlimited`}
+                    value={throttleUpload}
+                    onChange={(e) => setThrottleUpload(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium">
+                  <Trans>Preset</Trans>
+                </label>
+                <Select
+                  value="custom"
+                  onValueChange={(v) => {
+                    if (!v || v === "custom") return;
+                    const presets: Record<string, { dl: string; ul: string; lat: string }> = {
+                      gprs: { dl: "50", ul: "20", lat: "500" },
+                      slow3g: { dl: "500", ul: "500", lat: "400" },
+                      fast3g: { dl: "1600", ul: "768", lat: "150" },
+                      lte: { dl: "4096", ul: "3072", lat: "50" },
+                      wifi: { dl: "30720", ul: "15360", lat: "2" },
+                    };
+                    const p = presets[v];
+                    if (p) {
+                      setThrottleDownload(p.dl);
+                      setThrottleUpload(p.ul);
+                      setThrottleLatency(p.lat);
+                    }
+                  }}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder={t`Select preset...`} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="custom" label={t`Custom`}>{t`Custom`}</SelectItem>
+                    <SelectItem value="gprs" label="GPRS (50KB/s)">
+                      GPRS (50KB/s, 500ms)
+                    </SelectItem>
+                    <SelectItem value="slow3g" label="Slow 3G (500KB/s)">
+                      Slow 3G (500KB/s, 400ms)
+                    </SelectItem>
+                    <SelectItem value="fast3g" label="Fast 3G (1.6MB/s)">
+                      Fast 3G (1.6MB/s, 150ms)
+                    </SelectItem>
+                    <SelectItem value="lte" label="LTE (4MB/s)">
+                      LTE (4MB/s, 50ms)
+                    </SelectItem>
+                    <SelectItem value="wifi" label="WiFi (30MB/s)">
+                      WiFi (30MB/s, 2ms)
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </>
+          )}
+
           {/* Body */}
-          {actionType !== "rewrite" && (
+          {actionType !== "rewrite" && actionType !== "throttle" && (
             <div className="space-y-1.5">
               <label className="text-sm font-medium">
                 <Trans>Body</Trans>
