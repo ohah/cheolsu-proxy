@@ -194,9 +194,25 @@ impl HttpHandler for LoggingHandler {
             return self.handle_sse_streaming(res);
         }
 
-        let (proxied_response, restored_res) = self.response_to_proxied_response(res).await;
+        let (proxied_response, mut restored_res) = self.response_to_proxied_response(res).await;
         self.request.res = Some(proxied_response);
         self.send_output().await;
+
+        // 조건부 Throttle: 응답 body 스트리밍에 속도 제한 적용
+        if let Some(req) = &self.request.req {
+            let url = req.uri().to_string();
+            let method = req.method().to_string();
+            if let Some(config) = self.find_response_throttle_config(&url, &method).await {
+                tracing::info!(
+                    "[Intercept] 응답 Throttle 적용: {} {} (dl={:?})",
+                    method,
+                    url,
+                    config.download_rate
+                );
+                restored_res = Self::apply_response_throttle(restored_res, &config);
+            }
+        }
+
         restored_res
     }
 
