@@ -5,9 +5,13 @@ use crate::handler::LoggingHandler;
 use crate::protocol::{InterceptAction, InterceptRule, RewriteTarget, ServerReplayEntry};
 use bytes::Bytes;
 use proxyapi_v2::hyper::Request;
+use proxyapi_v2::throttle::ThrottleConfig;
 use proxyapi_v2::{
-    hyper::http::{HeaderValue, StatusCode},
-    hyper::Response,
+    hyper::{
+        self,
+        http::{HeaderValue, StatusCode},
+        Response,
+    },
     Body, RequestOrResponse,
 };
 use tracing::{error, info};
@@ -388,5 +392,88 @@ impl LoggingHandler {
         }
 
         res
+    }
+
+    /// Throttle 규칙에 매칭되는 경우 ThrottleConfig를 반환합니다.
+    pub(crate) async fn find_response_throttle_config(
+        &self,
+        url: &str,
+        method: &str,
+    ) -> Option<ThrottleConfig> {
+        let rules = self.find_matching_intercept_rules(url, method).await;
+        for rule in &rules {
+            if let InterceptAction::Throttle {
+                download_rate,
+                upload_rate,
+                latency_ms,
+            } = &rule.action
+            {
+                if download_rate.is_some() || upload_rate.is_some() {
+                    return Some(ThrottleConfig {
+                        enabled: true,
+                        download_rate: *download_rate,
+                        upload_rate: *upload_rate,
+                        latency_ms: *latency_ms,
+                    });
+                }
+            }
+        }
+        None
+    }
+
+    /// 응답 body에 속도 제한을 적용합니다.
+    pub(crate) fn apply_response_throttle(
+        res: Response<Body>,
+        config: &ThrottleConfig,
+    ) -> Response<Body> {
+        let (parts, body) = res.into_parts();
+
+        let rate = match config.download_rate {
+            Some(r) if r > 0 => r,
+            _ => return Response::from_parts(parts, body),
+        };
+
+        // body를 Frame 스트림으로 변환하고, 각 청크마다 rate에 맞춰 지연
+        let throttled_stream = async_stream::stream! {
+            let mut body = body;
+            let mut tokens: f64 = rate as f64; // 시작 시 1초분 토큰
+            let mut last_refill = std::time::Instant::now();
+
+            loop {
+                use http_body_util::BodyExt;
+                match body.frame().await {
+                    Some(Ok(frame)) => {
+                        if let Some(data) = frame.data_ref() {
+                            let chunk_size = data.len() as f64;
+
+                            // 토큰 리필
+                            let now = std::time::Instant::now();
+                            let elapsed = now.duration_since(last_refill).as_secs_f64();
+                            last_refill = now;
+                            tokens = (tokens + elapsed * rate as f64).min(rate as f64);
+
+                            // 토큰이 부족하면 대기
+                            if tokens < chunk_size {
+                                let wait_secs = (chunk_size - tokens) / rate as f64;
+                                tokio::time::sleep(std::time::Duration::from_secs_f64(wait_secs)).await;
+                                tokens = 0.0;
+                            } else {
+                                tokens -= chunk_size;
+                            }
+
+                            yield Ok::<Bytes, proxyapi_v2::Error>(data.clone());
+                        }
+                    }
+                    Some(Err(e)) => {
+                        yield Err(e);
+                        break;
+                    }
+                    None => break,
+                }
+            }
+        };
+
+        let throttled_body = Body::from_stream(throttled_stream);
+        Response::from_parts(parts, throttled_body)
     }
 }
