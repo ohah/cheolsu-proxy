@@ -3,7 +3,10 @@ use proxy_v2_models::WsDirection;
 use rmcp::{handler::server::wrapper::Parameters, model::*, tool, ErrorData as McpError};
 
 use crate::helpers::{format_size, read_body_text, tool_error, tool_ok};
-use crate::params::*;
+use crate::params::{
+    DiffTransactionsParams, GenerateOpenApiParams, GetTransactionParams, GetWsMessagesParams,
+    SearchTrafficParams,
+};
 use crate::server::CheolsuMcpServer;
 use crate::tools::diff_part;
 
@@ -354,5 +357,66 @@ impl CheolsuMcpServer {
         self.store.ws_messages.lock().clear();
         self.store.ws_connections.lock().clear();
         tool_ok("All captured traffic cleared.")
+    }
+
+    #[tool(
+        description = "Generate an OpenAPI 3.0 specification from captured HTTP traffic. Automatically infers path parameters, request/response schemas from JSON bodies, and groups endpoints by method. Useful for documenting undocumented APIs."
+    )]
+    pub(crate) async fn generate_openapi_spec(
+        &self,
+        Parameters(p): Parameters<GenerateOpenApiParams>,
+    ) -> Result<CallToolResult, McpError> {
+        let txns = self.store.transactions.lock();
+
+        // 필터링
+        let filtered: Vec<proxy_v2_models::RequestInfo> = txns
+            .iter()
+            .filter(|info| {
+                let Some(req) = &info.0 else { return false };
+                let uri = req.uri().to_string();
+
+                if let Some(ref host) = p.host {
+                    if !uri.to_lowercase().contains(&host.to_lowercase()) {
+                        return false;
+                    }
+                }
+                if let Some(ref prefix) = p.path_prefix {
+                    let path = uri
+                        .parse::<http::Uri>()
+                        .ok()
+                        .and_then(|u| u.path_and_query().map(|pq| pq.path().to_string()))
+                        .unwrap_or_default();
+                    if !path.starts_with(prefix) {
+                        return false;
+                    }
+                }
+                true
+            })
+            .cloned()
+            .collect();
+
+        if filtered.is_empty() {
+            return tool_ok("No matching transactions found. Capture some HTTP traffic first.");
+        }
+
+        let mut spec = proxy_v2_models::openapi::build_openapi_spec(&filtered);
+
+        // 사용자 지정 제목
+        if let Some(title) = p.title {
+            spec.info.title = title;
+        }
+
+        let output = match p.format.as_deref() {
+            Some("yaml") => serde_json::to_string_pretty(&spec)
+                .unwrap_or_else(|e| format!("Serialization error: {}", e)),
+            _ => serde_json::to_string_pretty(&spec)
+                .unwrap_or_else(|e| format!("Serialization error: {}", e)),
+        };
+
+        tool_ok(format!(
+            "Generated OpenAPI 3.0 spec from {} transactions:\n\n```json\n{}\n```",
+            filtered.len(),
+            output
+        ))
     }
 }
