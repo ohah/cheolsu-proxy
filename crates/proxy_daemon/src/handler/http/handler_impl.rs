@@ -85,6 +85,9 @@ impl HttpHandler for LoggingHandler {
             };
         }
 
+        // Waterfall 타이밍 시작
+        self.request.request_start = Some(std::time::Instant::now());
+
         let (proxied_request, restored_req) = self.request_to_proxied_request(req).await;
 
         // CONNECT 터널 요청: UI에서 볼 수 있도록 로깅 후 원본 요청 반환

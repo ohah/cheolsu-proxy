@@ -1,6 +1,6 @@
 import { memo, useCallback, useMemo } from "react";
 
-import { PathCell, MethodCell, StatusCell, SizeCell, TimeCell } from "./cells";
+import { PathCell, MethodCell, StatusCell, SizeCell, TimeCell, WaterfallCell } from "./cells";
 
 import {
   ROW_BASE_CLASSES,
@@ -122,6 +122,7 @@ export const TableRow = memo(function TableRow({
           <StatusCell data={data} />
           <SizeCell data={data} />
           <TimeCell data={data} />
+          <WaterfallCell data={data} />
         </div>
       </ContextMenuTrigger>
       <ContextMenuContent className="w-3xs">
