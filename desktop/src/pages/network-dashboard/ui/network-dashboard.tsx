@@ -144,6 +144,32 @@ export const NetworkDashboard = () => {
 
   const busy = exporting || saving || loading;
 
+  const handleExportOpenApi = useCallback(async () => {
+    if (filteredTransactions.length === 0 || busy) return;
+
+    try {
+      setExporting(true);
+
+      const filePath = await save({
+        defaultPath: "openapi.json",
+        filters: [{ name: "OpenAPI Spec", extensions: ["json", "yaml"] }],
+      });
+      if (!filePath) return;
+
+      const content = await invoke<string>("generate_openapi_from_transactions", {
+        transactionsJson: JSON.stringify(
+          filteredTransactions.map((tx) => [tx.request, tx.response]),
+        ),
+      });
+      await invoke("export_har_file", { path: filePath, content });
+      toast.success(t`OpenAPI spec exported successfully`);
+    } catch (err) {
+      toast.error(t`OpenAPI export failed`);
+    } finally {
+      setExporting(false);
+    }
+  }, [filteredTransactions, busy, t]);
+
   const handleExportHar = useCallback(async () => {
     if (filteredTransactions.length === 0 || busy) return;
 
@@ -386,6 +412,7 @@ export const NetworkDashboard = () => {
           togglePause={togglePause}
           clearTransactions={clearTransactions}
           onExportHar={handleExportHar}
+          onExportOpenApi={handleExportOpenApi}
           onSaveSession={handleSaveSession}
           onLoadSession={handleLoadSession}
           onImportHar={handleImportHar}

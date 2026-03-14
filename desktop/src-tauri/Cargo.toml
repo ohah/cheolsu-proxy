@@ -27,6 +27,7 @@ tauri-plugin-devtools = "2.0.1"
 tauri-plugin-clipboard-manager = "2.3.2"
 tokio = { version = "1", features = ["full"] }
 proxy_daemon = { path = "../../crates/proxy_daemon" }
+proxy_v2_models = { path = "../../crates/proxy_v2_models" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0.142"
 tauri-plugin-fs = "2.4.5"

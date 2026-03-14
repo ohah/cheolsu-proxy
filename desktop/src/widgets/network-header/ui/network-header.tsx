@@ -10,6 +10,7 @@ interface NetworkHeaderProps {
   togglePause: () => void;
   clearTransactions: () => void;
   onExportHar: () => void;
+  onExportOpenApi?: () => void;
   onSaveSession: () => void;
   onLoadSession: () => void;
   onImportHar: () => void;
@@ -24,6 +25,7 @@ export function NetworkHeader({
   togglePause,
   clearTransactions,
   onExportHar,
+  onExportOpenApi,
   onSaveSession,
   onLoadSession,
   onImportHar,
@@ -41,6 +43,7 @@ export function NetworkHeader({
             onTogglePause={togglePause}
             onClearTransactions={clearTransactions}
             onExportHar={onExportHar}
+            onExportOpenApi={onExportOpenApi}
             onSaveSession={onSaveSession}
             onLoadSession={onLoadSession}
             onImportHar={onImportHar}

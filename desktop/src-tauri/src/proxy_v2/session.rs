@@ -158,6 +158,23 @@ pub(crate) async fn autoload_session(
     .map_err(|e| format!("세션 복원 태스크 실패: {}", e))?
 }
 
+#[tauri::command]
+pub(crate) async fn generate_openapi_from_transactions(
+    transactions_json: String,
+) -> Result<String, String> {
+    tokio::task::spawn_blocking(move || {
+        use proxy_daemon::RequestInfo;
+
+        let transactions: Vec<RequestInfo> = serde_json::from_str(&transactions_json)
+            .map_err(|e| format!("트랜잭션 역직렬화 실패: {}", e))?;
+
+        proxy_v2_models::openapi::build_openapi_json(&transactions)
+            .map_err(|e| format!("OpenAPI 스펙 생성 실패: {}", e))
+    })
+    .await
+    .map_err(|e| format!("OpenAPI 생성 태스크 실패: {}", e))?
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
