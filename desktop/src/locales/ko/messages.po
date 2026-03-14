@@ -805,19 +805,19 @@ msgstr "<0>설정 → 보안 → 암호화 및 자격증명</0>으로 이동하�
 msgid "gRPC Proto Files"
 msgstr "gRPC Proto 파일"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:191
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:165
 msgid "HAR export failed"
 msgstr "HAR 내보내기 실패"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:188
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:162
 msgid "HAR exported successfully"
 msgstr "HAR 내보내기 성공"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:280
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:254
 msgid "HAR import failed"
 msgstr "HAR 가져오기 실패"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:277
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:251
 msgid "HAR imported successfully"
 msgstr "HAR 가져오기 성공"
 
@@ -995,13 +995,13 @@ msgstr "프록시 스크립트 로드 및 관리"
 msgid "Load Session"
 msgstr "세션 불러오기"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:226
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:200
 msgid "Load transactions"
 msgstr "트랜잭션 불러오기"
 
 #: src/pages/settings/ui/components/proto-files-section.tsx:39
 msgid "Loaded {count} service(s) from proto files"
-msgstr ""
+msgstr "{count}개 서비스를 proto 파일에서 로드했습니다"
 
 #: src/pages/settings/ui/components/client-certificate-section.tsx:181
 msgid "Loading certificate info..."
@@ -1296,13 +1296,14 @@ msgstr "파일 열기"
 msgid "Open this URL in your mobile browser after setting the Wi-Fi proxy. The page automatically detects your device and provides the correct certificate format."
 msgstr "Wi-Fi 프록시를 설정한 후 모바일 브라우저에서 이 URL을 여세요. 페이지가 자동으로 기기를 감지하고 올바른 인증서 형식을 제공합니다."
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:167
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:345
 msgid "OpenAPI export failed"
 msgstr "OpenAPI 내보내기 실패"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:165
-msgid "OpenAPI spec exported successfully"
-msgstr "OpenAPI 스펙 내보내기 성공"
+#. placeholder {0}: targetTransactions.length
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:342
+msgid "OpenAPI spec exported successfully ({0} transactions)"
+msgstr "OpenAPI 스펙 내보내기 성공 ({0}개 트랜잭션)"
 
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:98
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:124
@@ -1526,7 +1527,7 @@ msgstr "제거됨"
 
 #. placeholder {0}: transactions.length
 #. placeholder {1}: loaded.length
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:225
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:199
 msgid "Replace {0} existing transactions with {1} new ones? Cancel to append instead."
 msgstr "기존 {0}개 트랜잭션을 새로운 {1}개로 교체하시겠습니까? 취소하면 추가됩니다."
 
@@ -1893,19 +1894,19 @@ msgstr "시리얼 번호"
 msgid "Server Replay"
 msgstr "서버 리플레이"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:257
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:231
 msgid "Session load failed"
 msgstr "세션 불러오기 실패"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:254
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:228
 msgid "Session loaded successfully"
 msgstr "세션을 성공적으로 불러왔습니다"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:215
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:189
 msgid "Session save failed"
 msgstr "세션 저장 실패"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:212
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:186
 msgid "Session saved successfully"
 msgstr "세션이 성공적으로 저장되었습니다"
 
