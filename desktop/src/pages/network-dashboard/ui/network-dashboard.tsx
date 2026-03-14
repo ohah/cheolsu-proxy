@@ -144,42 +144,6 @@ export const NetworkDashboard = () => {
 
   const busy = exporting || saving || loading;
 
-  const handleExportOpenApi = useCallback(async () => {
-    if (transactions.length === 0 || busy) return;
-
-    // 우선순위: 체크된 것 > 필터된 것 > 전체
-    const targetTransactions =
-      checkedTransactions.length > 0
-        ? checkedTransactions
-        : appliedQueryString
-          ? filteredTransactions
-          : transactions;
-
-    if (targetTransactions.length === 0) return;
-
-    try {
-      setExporting(true);
-
-      const filePath = await save({
-        defaultPath: "openapi.json",
-        filters: [{ name: "OpenAPI Spec", extensions: ["json", "yaml"] }],
-      });
-      if (!filePath) return;
-
-      const content = await invoke<string>("generate_openapi_from_transactions", {
-        transactionsJson: JSON.stringify(targetTransactions.map((tx) => [tx.request, tx.response])),
-      });
-      await invoke("export_har_file", { path: filePath, content });
-      toast.success(
-        t`OpenAPI spec exported successfully (${targetTransactions.length} transactions)`,
-      );
-    } catch (err) {
-      toast.error(t`OpenAPI export failed`);
-    } finally {
-      setExporting(false);
-    }
-  }, [transactions, filteredTransactions, checkedTransactions, appliedQueryString, busy, t]);
-
   const handleExportHar = useCallback(async () => {
     if (filteredTransactions.length === 0 || busy) return;
 
@@ -347,6 +311,42 @@ export const NetworkDashboard = () => {
     () => transactions.filter((t) => t.request?.id && checkedTransactionIds.has(t.request.id)),
     [transactions, checkedTransactionIds],
   );
+
+  const handleExportOpenApi = useCallback(async () => {
+    if (transactions.length === 0 || busy) return;
+
+    // 우선순위: 체크된 것 > 필터된 것 > 전체
+    const targetTransactions =
+      checkedTransactions.length > 0
+        ? checkedTransactions
+        : appliedQueryString
+          ? filteredTransactions
+          : transactions;
+
+    if (targetTransactions.length === 0) return;
+
+    try {
+      setExporting(true);
+
+      const filePath = await save({
+        defaultPath: "openapi.json",
+        filters: [{ name: "OpenAPI Spec", extensions: ["json", "yaml"] }],
+      });
+      if (!filePath) return;
+
+      const content = await invoke<string>("generate_openapi_from_transactions", {
+        transactionsJson: JSON.stringify(targetTransactions.map((tx) => [tx.request, tx.response])),
+      });
+      await invoke("export_har_file", { path: filePath, content });
+      toast.success(
+        t`OpenAPI spec exported successfully (${targetTransactions.length} transactions)`,
+      );
+    } catch (err) {
+      toast.error(t`OpenAPI export failed`);
+    } finally {
+      setExporting(false);
+    }
+  }, [transactions, filteredTransactions, checkedTransactions, appliedQueryString, busy, t]);
 
   const canCompare = checkedTransactionIds.size === 2;
 
