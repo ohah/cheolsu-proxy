@@ -918,6 +918,7 @@ dependencies = [
  "image",
  "nix 0.29.0",
  "proxy_daemon",
+ "proxy_v2_models",
  "qrcode",
  "reqwest 0.12.28",
  "serde",

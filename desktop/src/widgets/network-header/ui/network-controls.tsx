@@ -10,6 +10,7 @@ interface NetworkControlsProps {
   onTogglePause: () => void;
   onClearTransactions: () => void;
   onExportHar: () => void;
+  onExportOpenApi?: () => void;
   onSaveSession: () => void;
   onLoadSession: () => void;
   onImportHar: () => void;
@@ -23,6 +24,7 @@ export const NetworkControls = ({
   onTogglePause,
   onClearTransactions,
   onExportHar,
+  onExportOpenApi,
   onSaveSession,
   onLoadSession,
   onImportHar,
@@ -111,6 +113,24 @@ export const NetworkControls = ({
           <Trans>Export HAR</Trans>
         </TooltipContent>
       </Tooltip>
+
+      {onExportOpenApi && (
+        <Tooltip>
+          <TooltipTrigger render={<div />}>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={onExportOpenApi}
+              disabled={!hasTransactions || exporting}
+            >
+              <span className="text-[10px] font-bold leading-none">API</span>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent sideOffset={4}>
+            <Trans>Export OpenAPI Spec</Trans>
+          </TooltipContent>
+        </Tooltip>
+      )}
 
       <Tooltip>
         <TooltipTrigger render={<div />}>

@@ -4,6 +4,7 @@ mod cli;
 mod diff;
 mod intercept;
 mod log;
+mod proto;
 mod proxy_control;
 mod replay;
 mod script;
@@ -22,14 +23,17 @@ pub(crate) use cli::{check_cli_installed, get_mcp_server_path, install_cli, unin
 pub(crate) use diff::{diff_transaction_pairs, diff_transactions};
 pub(crate) use intercept::{update_intercept_rules_v2, ws_inject_message};
 pub(crate) use log::{clear_log_file, delete_log_file, get_log_dir, get_log_files, read_log_file};
+pub(crate) use proto::{
+    create_proto_file_state, list_proto_files, load_proto_files, remove_proto_file,
+};
 pub(crate) use proxy_control::{
     clean_old_proxy_cache, proxy_v2_status, read_body_file, start_proxy_v2, stop_proxy_v2,
 };
 pub(crate) use replay::{advanced_repeat, replay_request, replay_sequence};
 pub(crate) use script::{load_script, unload_script};
 pub(crate) use session::{
-    autoload_session, autosave_session, export_har_file, import_har_file_cmd, load_session,
-    save_session,
+    autoload_session, autosave_session, export_har_file, generate_openapi_from_transactions,
+    import_har_file_cmd, load_session, save_session,
 };
 pub(crate) use settings::{
     get_default_passthrough_domains, update_client_certificate, update_connection_strategy,
