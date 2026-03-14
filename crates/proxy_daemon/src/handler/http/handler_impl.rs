@@ -70,7 +70,7 @@ impl HttpHandler for LoggingHandler {
 
     async fn handle_request(
         &mut self,
-        _ctx: &HttpContext,
+        ctx: &HttpContext,
         mut req: Request<Body>,
     ) -> RequestOrResponse {
         use super::request_pipeline::PipelineAction;
@@ -88,7 +88,8 @@ impl HttpHandler for LoggingHandler {
         // Waterfall 타이밍 시작
         self.request.request_start = Some(std::time::Instant::now());
 
-        let (proxied_request, restored_req) = self.request_to_proxied_request(req).await;
+        let (mut proxied_request, restored_req) = self.request_to_proxied_request(req).await;
+        proxied_request.set_client_addr(ctx.client_addr.to_string());
 
         // CONNECT 터널 요청: UI에서 볼 수 있도록 로깅 후 원본 요청 반환
         // clone 대신 move: 이후 proxied_request를 사용하지 않으므로 소유권 이전

@@ -6,6 +6,7 @@ import {
   useInterceptRuleStore,
   useTransactionStore,
   useWebSocketStore,
+  useSseStore,
   useMapRuleStore,
   useScriptStore,
   useBreakpointStore,
@@ -13,6 +14,7 @@ import {
 } from "@/shared/stores";
 import { useSslProxyingStore } from "@/shared/stores/ssl-proxying-store";
 import { bufferWsMessage } from "@/shared/stores/websocket-store";
+import { bufferSseEvent } from "@/shared/stores/sse-store";
 import { emit, listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
@@ -21,6 +23,7 @@ import type { ProxyEventTuple, HttpTransaction } from "@/entities/proxy";
 import { autosaveSession, autoloadSession } from "@/shared/api/proxy";
 import { useAppSettingsStore } from "@/shared/stores/app-settings-store";
 import type { WsMessageInfo, WsConnectionEvent } from "@/entities/websocket";
+import type { SseEventInfo, SseConnectionEvent } from "@/entities/sse";
 import type { InterceptRule } from "@/entities/intercept-rule";
 import type { BreakpointRule, PendingBreakpoint } from "@/entities/breakpoint";
 import type { HostMapping, SslProxyingMode, SslProxyingEntry } from "@/shared/api/proxy";
@@ -38,6 +41,7 @@ const App: React.FC = () => {
   // 트레이에서 받은 이벤트로 paused가 바뀐 경우 Rust 역동기화를 스킵하기 위한 플래그
   const pausedFromTrayRef = useRef(false);
   const updateWsConnection = useWebSocketStore((s) => s.updateConnection);
+  const updateSseConnection = useSseStore((s) => s.updateConnection);
   const setInterceptRules = useInterceptRuleStore((s) => s.setRules);
   const setMapRules = useMapRuleStore((s) => s.setRules);
   const setScriptStatus = useScriptStore((s) => s.setStatus);
@@ -85,6 +89,28 @@ const App: React.FC = () => {
       unlistenConn.then((f) => f());
     };
   }, [updateWsConnection, paused]);
+
+  // SSE 이벤트 수신
+  useEffect(() => {
+    if (paused) return;
+
+    const unlistenEvent = listen<SseEventInfo>("sse_event", (event) => {
+      bufferSseEvent(event.payload);
+    });
+    const unlistenConn = listen<SseConnectionEvent>("sse_connection", (event) => {
+      const payload = event.payload;
+      if (payload.status === "connected") {
+        updateSseConnection(payload.connection_id, "connected", payload.uri, payload.time);
+      } else {
+        updateSseConnection(payload.connection_id, "disconnected", undefined, payload.time);
+      }
+    });
+
+    return () => {
+      unlistenEvent.then((f) => f());
+      unlistenConn.then((f) => f());
+    };
+  }, [updateSseConnection, paused]);
 
   // 데몬에서 인터셉트 규칙 변경 수신 (MCP 등 외부 클라이언트에서 변경 시 동기화)
   useEffect(() => {

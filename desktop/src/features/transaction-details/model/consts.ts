@@ -2,12 +2,14 @@ export const TRANSACTION_DETAILS_TABS = {
   HEADERS: "headers",
   BODY: "body",
   RESPONSE: "response",
+  TIMING: "timing",
 } as const;
 
 export const TRANSACTION_DETAILS_TAB_LABELS = {
   [TRANSACTION_DETAILS_TABS.HEADERS]: "Headers",
   [TRANSACTION_DETAILS_TABS.BODY]: "Body",
   [TRANSACTION_DETAILS_TABS.RESPONSE]: "Response",
+  [TRANSACTION_DETAILS_TABS.TIMING]: "Timing",
 } as const;
 
 export const TRANSACTION_DETAILS_BOTTOM_TABS = {
