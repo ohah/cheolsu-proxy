@@ -1,4 +1,4 @@
-/// 인터셉트 액션 구현 (Block, ModifyRequest, ModifyResponse, Rewrite, MapLocal, MapRemote)
+/// 인터셉트 액션 구현 (Block, ModifyRequest, ModifyResponse, Rewrite, MapLocal, MapRemote, Throttle)
 use super::helpers::{apply_header_modifications, apply_rewrite_action};
 use crate::handler::response_helpers;
 use crate::handler::LoggingHandler;
@@ -303,6 +303,19 @@ impl LoggingHandler {
                         method,
                         &rule.name,
                     );
+                }
+                InterceptAction::Throttle {
+                    latency_ms,
+                    download_rate,
+                    upload_rate,
+                } => {
+                    info!(
+                        "[Intercept] Throttle 적용: {} {} (규칙: {}, latency={}ms, dl={:?}, ul={:?})",
+                        method, url, rule.name, latency_ms, download_rate, upload_rate
+                    );
+                    if *latency_ms > 0 {
+                        tokio::time::sleep(std::time::Duration::from_millis(*latency_ms)).await;
+                    }
                 }
             }
         }

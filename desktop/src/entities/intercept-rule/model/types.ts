@@ -4,7 +4,8 @@ export type InterceptActionType =
   | "modify_response"
   | "map_local"
   | "map_remote"
-  | "rewrite";
+  | "rewrite"
+  | "throttle";
 
 export interface BlockAction {
   type: "block";
@@ -49,13 +50,21 @@ export interface RewriteAction {
   replace_with: string;
 }
 
+export interface ThrottleAction {
+  type: "throttle";
+  download_rate: number | null;
+  upload_rate: number | null;
+  latency_ms: number;
+}
+
 export type InterceptAction =
   | BlockAction
   | ModifyRequestAction
   | ModifyResponseAction
   | MapLocalAction
   | MapRemoteAction
-  | RewriteAction;
+  | RewriteAction
+  | ThrottleAction;
 
 export interface InterceptRule {
   id: string;

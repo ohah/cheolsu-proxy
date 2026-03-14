@@ -93,6 +93,19 @@ pub enum InterceptAction {
         /// 치환 문자열 ($1, $2 등 캡처 그룹 지원)
         replace_with: String,
     },
+    /// 특정 URL 패턴에 대해 네트워크 지연/속도 제한 적용 (조건부 Throttle)
+    #[serde(rename = "throttle")]
+    Throttle {
+        /// 다운로드 속도 제한 (bytes/sec), None이면 무제한
+        #[serde(default)]
+        download_rate: Option<u64>,
+        /// 업로드 속도 제한 (bytes/sec), None이면 무제한
+        #[serde(default)]
+        upload_rate: Option<u64>,
+        /// 추가 지연 시간 (밀리초)
+        #[serde(default)]
+        latency_ms: u64,
+    },
 }
 
 /// 서버 리플레이 엔트리: 캡처된 응답을 저장하여 동일 요청 시 재사용
@@ -112,6 +125,92 @@ pub(crate) fn default_block_status() -> u16 {
 
 pub(crate) fn default_ok_status() -> u16 {
     200
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_throttle_serialization_roundtrip() {
+        let action = InterceptAction::Throttle {
+            download_rate: Some(512 * 1024),
+            upload_rate: None,
+            latency_ms: 200,
+        };
+        let json = serde_json::to_string(&action).unwrap();
+        assert!(json.contains("\"type\":\"throttle\""));
+        assert!(json.contains("\"latency_ms\":200"));
+
+        let deserialized: InterceptAction = serde_json::from_str(&json).unwrap();
+        match deserialized {
+            InterceptAction::Throttle {
+                download_rate,
+                upload_rate,
+                latency_ms,
+            } => {
+                assert_eq!(download_rate, Some(512 * 1024));
+                assert!(upload_rate.is_none());
+                assert_eq!(latency_ms, 200);
+            }
+            _ => panic!("Expected Throttle action"),
+        }
+    }
+
+    #[test]
+    fn test_throttle_defaults() {
+        let json = r#"{"type":"throttle"}"#;
+        let action: InterceptAction = serde_json::from_str(json).unwrap();
+        match action {
+            InterceptAction::Throttle {
+                download_rate,
+                upload_rate,
+                latency_ms,
+            } => {
+                assert!(download_rate.is_none());
+                assert!(upload_rate.is_none());
+                assert_eq!(latency_ms, 0);
+            }
+            _ => panic!("Expected Throttle action"),
+        }
+    }
+
+    #[test]
+    fn test_throttle_rule_display() {
+        let rule = InterceptRule {
+            id: "r1".to_string(),
+            name: "Slow API".to_string(),
+            enabled: true,
+            pattern: "*.api.com/*".to_string(),
+            method: None,
+            action: InterceptAction::Throttle {
+                download_rate: Some(1024 * 1024),
+                upload_rate: Some(512 * 1024),
+                latency_ms: 300,
+            },
+        };
+        let display = format!("{}", rule);
+        assert!(display.contains("Throttle"));
+        assert!(display.contains("1024KB/s"));
+        assert!(display.contains("300ms"));
+    }
+
+    #[test]
+    fn test_all_action_types_deserialize() {
+        let cases = vec![
+            r#"{"type":"block","status_code":403,"body":"blocked"}"#,
+            r#"{"type":"modify_request","add_headers":{},"remove_headers":[]}"#,
+            r#"{"type":"modify_response","add_headers":{},"remove_headers":[]}"#,
+            r#"{"type":"map_local","file_path":"/tmp/test.json"}"#,
+            r#"{"type":"map_remote","target_url":"http://localhost:3000"}"#,
+            r#"{"type":"rewrite","target":"request_header","match_pattern":"foo","replace_with":"bar"}"#,
+            r#"{"type":"throttle","latency_ms":500}"#,
+        ];
+        for json in cases {
+            let _: InterceptAction =
+                serde_json::from_str(json).unwrap_or_else(|e| panic!("{}: {}", json, e));
+        }
+    }
 }
 
 impl std::fmt::Display for InterceptRule {
@@ -148,6 +247,19 @@ impl std::fmt::Display for InterceptRule {
                 ..
             } => {
                 format!("Rewrite({:?}, pattern={})", target, match_pattern)
+            }
+            InterceptAction::Throttle {
+                download_rate,
+                upload_rate,
+                latency_ms,
+            } => {
+                let dl = download_rate
+                    .map(|r| format!("{}KB/s", r / 1024))
+                    .unwrap_or_else(|| "∞".to_string());
+                let ul = upload_rate
+                    .map(|r| format!("{}KB/s", r / 1024))
+                    .unwrap_or_else(|| "∞".to_string());
+                format!("Throttle(↓{}, ↑{}, latency={}ms)", dl, ul, latency_ms)
             }
         };
         let method_str = self.method.as_deref().unwrap_or("*");

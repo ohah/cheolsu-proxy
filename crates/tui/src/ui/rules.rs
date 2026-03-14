@@ -65,6 +65,9 @@ fn draw_rules_list(f: &mut Frame, app: &mut App, area: Rect) {
                     format!("MapRemote({})", truncate(target_url, 20))
                 }
                 InterceptAction::Rewrite { .. } => "Rewrite".to_string(),
+                InterceptAction::Throttle { latency_ms, .. } => {
+                    format!("Throttle({}ms)", latency_ms)
+                }
             };
 
             let method = rule.method.as_deref().unwrap_or("*");
