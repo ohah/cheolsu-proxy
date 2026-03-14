@@ -162,3 +162,15 @@ pub struct RemoveHostMappingParams {
     /// Host mapping ID to remove
     pub id: String,
 }
+
+#[derive(Debug, Deserialize, schemars::JsonSchema)]
+pub struct GenerateOpenApiParams {
+    /// Filter by hostname or URL substring (optional)
+    pub host: Option<String>,
+    /// Filter by URL path prefix (optional)
+    pub path_prefix: Option<String>,
+    /// Output format: "json" or "yaml" (default: "json")
+    pub format: Option<String>,
+    /// API title (default: "Auto-generated API Spec")
+    pub title: Option<String>,
+}
