@@ -135,6 +135,10 @@ msgstr "매핑 추가"
 msgid "Add mappings to redirect DNS hostnames to different target hosts for testing."
 msgstr "테스트를 위해 DNS 호스트명을 다른 대상 호스트로 리디렉션하는 매핑을 추가하세요."
 
+#: src/pages/settings/ui/components/proto-files-section.tsx:77
+msgid "Add Proto Files"
+msgstr "Proto 파일 추가"
+
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:251
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:602
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:258
@@ -352,7 +356,7 @@ msgstr "취소"
 msgid "Cannot add: no response data"
 msgstr "추가할 수 없습니다: 응답 데이터 없음"
 
-#: src/pages/settings/ui/settings-page.tsx:110
+#: src/pages/settings/ui/settings-page.tsx:111
 msgid "Certificate"
 msgstr "인증서"
 
@@ -418,7 +422,7 @@ msgstr "전체 삭제"
 msgid "Clear All"
 msgstr "전체 삭제"
 
-#: src/widgets/network-header/ui/network-controls.tsx:51
+#: src/widgets/network-header/ui/network-controls.tsx:53
 msgid "Clear all transactions"
 msgstr "모든 트랜잭션 삭제"
 
@@ -458,7 +462,7 @@ msgstr "직접 연결할 호스트 목록 (쉼표로 구분, *.domain.com 와일
 msgid "Command copied to clipboard"
 msgstr "명령어가 클립보드에 복사되었습니다"
 
-#: src/widgets/network-header/ui/network-controls.tsx:64
+#: src/widgets/network-header/ui/network-controls.tsx:66
 msgid "Compose request"
 msgstr "요청 작성"
 
@@ -714,9 +718,13 @@ msgstr "펼치기"
 msgid "Expand sidebar"
 msgstr "사이드바 펼치기"
 
-#: src/widgets/network-header/ui/network-controls.tsx:111
+#: src/widgets/network-header/ui/network-controls.tsx:113
 msgid "Export HAR"
 msgstr "HAR 내보내기"
+
+#: src/widgets/network-header/ui/network-controls.tsx:130
+msgid "Export OpenAPI Spec"
+msgstr "OpenAPI 스펙 내보내기"
 
 #: src/pages/settings/ui/components/custom-ca-section.tsx:288
 msgid "Failed"
@@ -773,7 +781,7 @@ msgstr "전달"
 msgid "Fullscreen"
 msgstr "전체 화면"
 
-#: src/pages/settings/ui/settings-page.tsx:109
+#: src/pages/settings/ui/settings-page.tsx:110
 msgid "General"
 msgstr "일반"
 
@@ -793,19 +801,23 @@ msgstr "<0>설정 → 일반 → VPN 및 기기 관리</0>로 이동하세요"
 msgid "Go to <0>Settings → Security → Encryption & credentials</0>"
 msgstr "<0>설정 → 보안 → 암호화 및 자격증명</0>으로 이동하세요"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:165
+#: src/pages/settings/ui/components/proto-files-section.tsx:65
+msgid "gRPC Proto Files"
+msgstr "gRPC Proto 파일"
+
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:191
 msgid "HAR export failed"
 msgstr "HAR 내보내기 실패"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:162
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:188
 msgid "HAR exported successfully"
 msgstr "HAR 내보내기 성공"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:254
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:280
 msgid "HAR import failed"
 msgstr "HAR 가져오기 실패"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:251
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:277
 msgid "HAR imported successfully"
 msgstr "HAR 가져오기 성공"
 
@@ -870,7 +882,7 @@ msgstr "지정하지 않으면 모든 클라이언트 인증서가 검증 없이
 msgid "Import"
 msgstr "임포트"
 
-#: src/widgets/network-header/ui/network-controls.tsx:122
+#: src/widgets/network-header/ui/network-controls.tsx:142
 msgid "Import HAR"
 msgstr "HAR 가져오기"
 
@@ -979,13 +991,17 @@ msgstr "디스크에서 스크립트 파일을 로드합니다. 파일 변경 �
 msgid "Load and manage proxy scripts"
 msgstr "프록시 스크립트 로드 및 관리"
 
-#: src/widgets/network-header/ui/network-controls.tsx:93
+#: src/widgets/network-header/ui/network-controls.tsx:95
 msgid "Load Session"
 msgstr "세션 불러오기"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:200
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:226
 msgid "Load transactions"
 msgstr "트랜잭션 불러오기"
+
+#: src/pages/settings/ui/components/proto-files-section.tsx:39
+msgid "Loaded {count} service(s) from proto files"
+msgstr ""
 
 #: src/pages/settings/ui/components/client-certificate-section.tsx:181
 msgid "Loading certificate info..."
@@ -994,6 +1010,7 @@ msgstr "인증서 정보 로딩 중..."
 #: src/pages/script/ui/script-page.tsx:214
 #: src/pages/script/ui/script-page.tsx:266
 #: src/pages/settings/ui/components/certificate-settings.tsx:176
+#: src/pages/settings/ui/components/proto-files-section.tsx:77
 msgid "Loading..."
 msgstr "로딩 중..."
 
@@ -1146,7 +1163,7 @@ msgstr "복합 조건:"
 msgid "Name"
 msgstr "이름"
 
-#: src/pages/settings/ui/settings-page.tsx:111
+#: src/pages/settings/ui/settings-page.tsx:112
 #: src/shared/app-sidebar/model/consts.ts:23
 msgid "Network"
 msgstr "네트워크"
@@ -1206,6 +1223,10 @@ msgstr "대기 중인 Breakpoint가 없습니다. 매칭된 요청이 여기에 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:201
 msgid "No phase selected"
 msgstr "단계가 선택되지 않음"
+
+#: src/pages/settings/ui/components/proto-files-section.tsx:98
+msgid "No proto files registered. gRPC messages will be decoded using wire format heuristics."
+msgstr "등록된 proto 파일이 없습니다. gRPC 메시지는 wire format 휴리스틱으로 디코딩됩니다."
 
 #: src/pages/server-replay/ui/server-replay-page.tsx:190
 msgid "No replay entries"
@@ -1275,6 +1296,14 @@ msgstr "파일 열기"
 msgid "Open this URL in your mobile browser after setting the Wi-Fi proxy. The page automatically detects your device and provides the correct certificate format."
 msgstr "Wi-Fi 프록시를 설정한 후 모바일 브라우저에서 이 URL을 여세요. 페이지가 자동으로 기기를 감지하고 올바른 인증서 형식을 제공합니다."
 
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:167
+msgid "OpenAPI export failed"
+msgstr "OpenAPI 내보내기 실패"
+
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:165
+msgid "OpenAPI spec exported successfully"
+msgstr "OpenAPI 스펙 내보내기 성공"
+
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:98
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:124
 msgid "optional"
@@ -1313,7 +1342,7 @@ msgstr "실시간으로 HTTP 요청/응답을 일시 정지하고 검사"
 msgid "Pause and inspect requests/responses"
 msgstr "요청/응답 일시 정지 및 검사"
 
-#: src/widgets/network-header/ui/network-controls.tsx:40
+#: src/widgets/network-header/ui/network-controls.tsx:42
 msgid "Pause recording"
 msgstr "기록 일시정지"
 
@@ -1385,6 +1414,10 @@ msgstr "프로파일"
 msgid "Progress"
 msgstr "진행률"
 
+#: src/pages/settings/ui/components/proto-files-section.tsx:52
+msgid "Proto file removed"
+msgstr "Proto 파일 제거됨"
+
 #: src/pages/settings/ui/components/certificate-settings.tsx:388
 msgid "Proxy Address"
 msgstr "프록시 주소"
@@ -1393,7 +1426,7 @@ msgstr "프록시 주소"
 msgid "Proxy Authentication"
 msgstr "프록시 인증"
 
-#: src/pages/settings/ui/settings-page.tsx:145
+#: src/pages/settings/ui/settings-page.tsx:146
 msgid "Proxy configuration and preferences"
 msgstr "프록시 설정 및 환경설정"
 
@@ -1444,6 +1477,10 @@ msgstr "새로고침"
 msgid "Regex pattern (e.g. old-domain\\.com)"
 msgstr "정규식 패턴 (예: old-domain\\.com)"
 
+#: src/pages/settings/ui/components/proto-files-section.tsx:68
+msgid "Register .proto files to decode gRPC traffic with actual field names instead of field numbers."
+msgstr "gRPC 트래픽의 필드 번호 대신 실제 필드명으로 디코딩하려면 .proto 파일을 등록하세요."
+
 #: src/pages/settings/ui/components/certificate-settings.tsx:128
 #: src/pages/settings/ui/components/cli-settings.tsx:61
 msgid "Reinstall"
@@ -1489,7 +1526,7 @@ msgstr "제거됨"
 
 #. placeholder {0}: transactions.length
 #. placeholder {1}: loaded.length
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:199
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:225
 msgid "Replace {0} existing transactions with {1} new ones? Cancel to append instead."
 msgstr "기존 {0}개 트랜잭션을 새로운 {1}개로 교체하시겠습니까? 취소하면 추가됩니다."
 
@@ -1629,7 +1666,7 @@ msgstr "자동 생성 CA를 사용하려면 프록시를 재시작하세요"
 msgid "Restore Defaults"
 msgstr "기본값 복원"
 
-#: src/widgets/network-header/ui/network-controls.tsx:40
+#: src/widgets/network-header/ui/network-controls.tsx:42
 msgid "Resume recording"
 msgstr "기록 재개"
 
@@ -1699,23 +1736,23 @@ msgstr "실행"
 msgid "Running..."
 msgstr "실행 중..."
 
-#: src/pages/settings/ui/settings-page.tsx:161
+#: src/pages/settings/ui/settings-page.tsx:162
 msgid "Save Changes"
 msgstr "변경 사항 저장"
 
-#: src/pages/settings/ui/settings-page.tsx:156
+#: src/pages/settings/ui/settings-page.tsx:157
 msgid "Save failed"
 msgstr "저장 실패"
 
-#: src/widgets/network-header/ui/network-controls.tsx:82
+#: src/widgets/network-header/ui/network-controls.tsx:84
 msgid "Save Session"
 msgstr "세션 저장"
 
-#: src/pages/settings/ui/settings-page.tsx:151
+#: src/pages/settings/ui/settings-page.tsx:152
 msgid "Saved"
 msgstr "저장됨"
 
-#: src/pages/settings/ui/settings-page.tsx:161
+#: src/pages/settings/ui/settings-page.tsx:162
 msgid "Saving..."
 msgstr "저장 중..."
 
@@ -1748,7 +1785,7 @@ msgstr "스크립트가 리로드되었습니다"
 msgid "Script unloaded"
 msgstr "스크립트가 언로드되었습니다"
 
-#: src/pages/settings/ui/settings-page.tsx:112
+#: src/pages/settings/ui/settings-page.tsx:113
 msgid "Security"
 msgstr "보안"
 
@@ -1856,19 +1893,19 @@ msgstr "시리얼 번호"
 msgid "Server Replay"
 msgstr "서버 리플레이"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:231
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:257
 msgid "Session load failed"
 msgstr "세션 불러오기 실패"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:228
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:254
 msgid "Session loaded successfully"
 msgstr "세션을 성공적으로 불러왔습니다"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:189
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:215
 msgid "Session save failed"
 msgstr "세션 저장 실패"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:186
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:212
 msgid "Session saved successfully"
 msgstr "세션이 성공적으로 저장되었습니다"
 
@@ -1884,7 +1921,7 @@ msgstr "본문 설정 (선택사항)"
 msgid "Set Wi-Fi proxy on your device to <0>{0}:{1}</0>"
 msgstr "기기의 Wi-Fi 프록시를 <0>{0}:{1}</0>로 설정"
 
-#: src/pages/settings/ui/settings-page.tsx:142
+#: src/pages/settings/ui/settings-page.tsx:143
 #: src/shared/app-sidebar/model/consts.ts:79
 msgid "Settings"
 msgstr "설정"
@@ -2060,7 +2097,7 @@ msgstr ""
 msgid "Toggle proxy on/off with a global keyboard shortcut"
 msgstr "글로벌 키보드 단축키로 프록시 켜기/끄기"
 
-#: src/pages/settings/ui/settings-page.tsx:113
+#: src/pages/settings/ui/settings-page.tsx:114
 msgid "Tools"
 msgstr "도구"
 

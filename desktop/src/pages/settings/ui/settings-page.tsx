@@ -14,6 +14,7 @@ import {
   ClientCertificateSection,
   RequestClientCertSection,
   SslProxyingSection,
+  ProtoFilesSection,
 } from "./components";
 import { SettingsFormProvider, useSettingsForm, type SettingsFormValues } from "./settings-form";
 import { saveAllSettings } from "./save-settings";
@@ -225,6 +226,7 @@ function SettingsPageInner() {
             <h2 className="text-xl font-semibold text-foreground">{categoryLabels.tools}</h2>
             <CliSettings />
             <ShortcutSection />
+            <ProtoFilesSection />
           </div>
         </div>
       </div>
