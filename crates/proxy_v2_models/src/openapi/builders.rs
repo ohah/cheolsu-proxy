@@ -204,7 +204,7 @@ pub fn build_openapi_json(transactions: &[RequestInfo]) -> Result<String, serde_
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{ClientRequest, ClientResponse, ProxiedRequest, ProxiedResponse};
+    use crate::{ProxiedRequest, ProxiedResponse};
     use bytes::Bytes;
     use http::{HeaderMap, HeaderValue, Method, StatusCode, Uri, Version};
 

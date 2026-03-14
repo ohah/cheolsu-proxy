@@ -122,6 +122,7 @@ fn emit_ws_event_sends_to_channel() {
         request: RequestState {
             req: None,
             res: None,
+            request_start: None,
         },
         config: ProxyConfig {
             cache_dir: None,
@@ -186,6 +187,7 @@ fn emit_ws_event_increments_sequence() {
         request: RequestState {
             req: None,
             res: None,
+            request_start: None,
         },
         config: ProxyConfig {
             cache_dir: None,
