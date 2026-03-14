@@ -4,9 +4,10 @@ export const TABLE_COLUMNS = [
   { key: "status", label: "Status" },
   { key: "size", label: "Size" },
   { key: "time", label: "Time" },
+  { key: "waterfall", label: "Waterfall" },
 ] as const;
 
-export const GRID_COLS_CLASS = "grid-cols-[24px_5fr_1fr_1fr_1fr_1fr]";
+export const GRID_COLS_CLASS = "grid-cols-[24px_5fr_1fr_1fr_1fr_1fr_2fr]";
 
 export const ROW_BASE_CLASSES =
   "grid gap-4 p-3 border-b border-border cursor-pointer hover:bg-muted/50 transition-colors";

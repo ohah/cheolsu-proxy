@@ -44,6 +44,15 @@ export interface HttpRequest {
   body_size: number; // 실제 body 크기 (파일 저장 시에도 원본 크기 유지)
 }
 
+export interface TimingWaterfall {
+  dns_lookup_ms?: number;
+  tcp_connection_ms?: number;
+  tls_handshake_ms?: number;
+  ttfb_ms?: number;
+  content_download_ms?: number;
+  total_ms: number;
+}
+
 export interface HttpResponse {
   status: number;
   version: string;
@@ -55,6 +64,7 @@ export interface HttpResponse {
   body_json?: unknown; // JSON 파싱된 데이터 (JSON 타입인 경우)
   file_path?: string; // body가 저장된 파일 경로
   body_size: number; // 실제 body 크기 (파일 저장 시에도 원본 크기 유지)
+  timing?: TimingWaterfall; // 요청/응답 각 단계별 타이밍 정보
 }
 
 export interface HttpTransaction {

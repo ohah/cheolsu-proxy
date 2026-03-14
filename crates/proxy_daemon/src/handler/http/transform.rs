@@ -1,5 +1,5 @@
 use bytes::Bytes;
-use proxy_v2_models::{ProxiedRequest, ProxiedResponse, RequestInfo};
+use proxy_v2_models::{ProxiedRequest, ProxiedResponse, RequestInfo, TimingWaterfall};
 use proxyapi_v2::{hyper::http::StatusCode, hyper::Response, Body};
 use tracing::error;
 
@@ -17,6 +17,17 @@ impl LoggingHandler {
             .req
             .as_ref()
             .map(|req| req.clone().for_client(self.config.cache_dir.as_deref()));
+
+        // Waterfall 타이밍 계산
+        let timing = self.request.request_start.map(|start| {
+            let total_ms = start.elapsed().as_millis() as u64;
+            TimingWaterfall {
+                total_ms,
+                ttfb_ms: Some(total_ms),
+                ..Default::default()
+            }
+        });
+
         let client_response = self.request.res.as_ref().map(|res| {
             // id()는 &String을 반환 — 공유 참조로 직접 전달하여 clone 제거
             let request_id = self
@@ -26,7 +37,7 @@ impl LoggingHandler {
                 .map(|r| r.id().as_str())
                 .unwrap_or_default();
             res.clone()
-                .for_client(request_id, self.config.cache_dir.as_deref())
+                .for_client_with_timing(request_id, self.config.cache_dir.as_deref(), timing)
         });
         let request_info = RequestInfo(client_request, client_response);
         if let Err(e) = self.sender.send(request_info).await {

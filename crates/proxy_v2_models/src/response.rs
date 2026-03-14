@@ -10,6 +10,7 @@ use crate::grpc::{
 };
 use crate::mime_utils::is_media_data_type;
 use crate::request::ClientRequest;
+use crate::timing::TimingWaterfall;
 use crate::BODY_FILE_THRESHOLD;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -168,6 +169,16 @@ impl ProxiedResponse {
 
     /// 클라이언트(타우리 UI)용으로 변환
     pub fn for_client(self, request_id: &str, cache_dir: Option<&Path>) -> ClientResponse {
+        self.for_client_with_timing(request_id, cache_dir, None)
+    }
+
+    /// 타이밍 정보와 함께 클라이언트용으로 변환
+    pub fn for_client_with_timing(
+        self,
+        request_id: &str,
+        cache_dir: Option<&Path>,
+        timing: Option<TimingWaterfall>,
+    ) -> ClientResponse {
         let body_to_save = self.decompressed_body.unwrap_or(self.body);
         let original_body_size = body_to_save.len();
         #[allow(clippy::absurd_extreme_comparisons)]
@@ -208,6 +219,7 @@ impl ProxiedResponse {
             grpc_metadata: self.grpc_metadata,
             file_path,
             body_size: original_body_size, // 원본 크기 유지
+            timing,
         }
     }
 }
@@ -229,6 +241,9 @@ pub struct ClientResponse {
     grpc_metadata: Option<GrpcMetadata>,
     file_path: Option<String>, // body가 저장된 파일 경로
     body_size: usize,          // 실제 body 크기 (파일 저장 시에도 원본 크기 유지)
+    /// 요청/응답 각 단계별 타이밍 정보
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    timing: Option<TimingWaterfall>,
 }
 
 impl ClientResponse {
@@ -289,6 +304,11 @@ impl ClientResponse {
     /// 실제 body 크기 반환
     pub fn body_size(&self) -> usize {
         self.body_size
+    }
+
+    /// 타이밍 정보 반환
+    pub fn timing(&self) -> &Option<TimingWaterfall> {
+        &self.timing
     }
 }
 
