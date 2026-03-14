@@ -54,12 +54,34 @@ export const useTableData = ({ transactions, selectedTransaction }: UseTableData
     });
   }, [transactions]);
 
+  // Waterfall 시간축 범위 계산
+  const { timelineStart, timelineEnd } = useMemo(() => {
+    let minStart = Infinity;
+    let maxEnd = -Infinity;
+
+    for (const { transaction } of processedTransactions) {
+      const reqTime = transaction.request?.time;
+      const resTime = transaction.response?.time;
+      if (reqTime != null && reqTime < minStart) minStart = reqTime;
+      if (resTime != null && resTime > maxEnd) maxEnd = resTime;
+      // 응답이 없으면 요청 시각을 끝으로 간주
+      if (reqTime != null && resTime == null && reqTime > maxEnd) maxEnd = reqTime;
+    }
+
+    if (!isFinite(minStart)) return { timelineStart: 0, timelineEnd: 0 };
+    // 최소 범위 100ms (너무 짧으면 바가 안 보임)
+    if (maxEnd - minStart < 100_000_000) maxEnd = minStart + 100_000_000;
+    return { timelineStart: minStart, timelineEnd: maxEnd };
+  }, [processedTransactions]);
+
   const tableData = useMemo<TableRowData[]>(() => {
     return processedTransactions.map((item) => ({
       ...item,
       isSelected: selectedTime === item.requestTime,
+      timelineStart,
+      timelineEnd,
     }));
-  }, [processedTransactions, selectedTime]);
+  }, [processedTransactions, selectedTime, timelineStart, timelineEnd]);
 
   return { tableData };
 };
