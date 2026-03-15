@@ -104,6 +104,19 @@ mod tests {
     use super::*;
     use proxy_v2_models::{WsContentType, WsDirection, WsMessageType};
 
+    fn make_sse_event(seq: u64) -> SseEventInfo {
+        SseEventInfo {
+            connection_id: "sse://localhost".to_string(),
+            sequence: seq,
+            event_type: Some("message".to_string()),
+            data: "hello".to_string(),
+            id: None,
+            retry: None,
+            size: 5,
+            time: 0,
+        }
+    }
+
     #[test]
     fn with_config_custom_limits() {
         let store = Store::with_config(StoreConfig {
@@ -114,9 +127,11 @@ mod tests {
         for _ in 0..20 {
             store.push_transaction(make_request_info());
             store.push_ws_message(make_ws_message(0));
+            store.push_sse_event(make_sse_event(0));
         }
         assert_eq!(store.transactions.lock().len(), 5);
         assert_eq!(store.ws_messages.lock().len(), 10);
+        assert_eq!(store.sse_events.lock().len(), 10);
     }
 
     fn make_request_info() -> RequestInfo {
@@ -253,6 +268,35 @@ mod tests {
         let cloned = store.clone();
         store.push_transaction(make_request_info());
         assert_eq!(cloned.transactions.lock().len(), 1);
+    }
+
+    #[test]
+    fn push_sse_event_adds_entry() {
+        let store = Store::new();
+        store.push_sse_event(make_sse_event(1));
+        assert_eq!(store.sse_events.lock().len(), 1);
+    }
+
+    #[test]
+    fn push_sse_event_evicts_oldest_at_capacity() {
+        let store = Store::new();
+        for i in 0..(MAX_SSE_EVENTS + 10) as u64 {
+            store.push_sse_event(make_sse_event(i));
+        }
+        let events = store.sse_events.lock();
+        assert_eq!(events.len(), MAX_SSE_EVENTS);
+        assert_eq!(events.front().unwrap().sequence, 10);
+    }
+
+    #[test]
+    fn push_sse_connection_adds_entry() {
+        let store = Store::new();
+        store.push_sse_connection(SseConnectionEvent::Connected {
+            connection_id: "sse1".to_string(),
+            uri: "https://example.com/events".to_string(),
+            time: 0,
+        });
+        assert_eq!(store.sse_connections.lock().len(), 1);
     }
 
     #[test]
