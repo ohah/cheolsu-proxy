@@ -228,30 +228,39 @@ impl LoggingHandler {
             rule.backend_scheme, rule.backend_host, rule.backend_port, path_and_query
         );
 
-        if let Ok(new_uri) = new_uri_str.parse::<proxyapi_v2::hyper::Uri>() {
-            info!(
-                "[ReverseProxy] {} -> {}://{}:{} (host: {})",
-                req.uri(),
-                rule.backend_scheme,
-                rule.backend_host,
-                rule.backend_port,
-                host
-            );
-            *req.uri_mut() = new_uri;
+        match new_uri_str.parse::<proxyapi_v2::hyper::Uri>() {
+            Ok(new_uri) => {
+                info!(
+                    "[ReverseProxy] {} -> {}://{}:{} (host: {})",
+                    req.uri(),
+                    rule.backend_scheme,
+                    rule.backend_host,
+                    rule.backend_port,
+                    host
+                );
+                *req.uri_mut() = new_uri;
 
-            if rule.rewrite_host {
-                let backend_host_value = format!("{}:{}", rule.backend_host, rule.backend_port);
-                if let Ok(hv) = proxyapi_v2::hyper::http::HeaderValue::from_str(&backend_host_value)
-                {
-                    req.headers_mut()
-                        .insert(proxyapi_v2::hyper::header::HOST, hv);
+                if rule.rewrite_host {
+                    let backend_host_value = format!("{}:{}", rule.backend_host, rule.backend_port);
+                    if let Ok(hv) =
+                        proxyapi_v2::hyper::http::HeaderValue::from_str(&backend_host_value)
+                    {
+                        req.headers_mut()
+                            .insert(proxyapi_v2::hyper::header::HOST, hv);
+                    }
                 }
-            }
 
-            req.headers_mut().insert(
-                "x-cheolsu-reverse-proxy",
-                proxyapi_v2::hyper::http::HeaderValue::from_static("true"),
-            );
+                req.headers_mut().insert(
+                    "x-cheolsu-reverse-proxy",
+                    proxyapi_v2::hyper::http::HeaderValue::from_static("true"),
+                );
+            }
+            Err(e) => {
+                error!(
+                    "[ReverseProxy] URI 파싱 실패: {} (rule: {}, host: {})",
+                    e, rule.id, host
+                );
+            }
         }
 
         req
@@ -412,5 +421,181 @@ impl LoggingHandler {
                 res
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests_reverse_proxy {
+    use super::*;
+    use crate::handler::config::{InterceptEngine, ProxyConfig, QuickSettings, RequestState};
+    use crate::handler::{SseState, WebSocketState};
+    use crate::protocol::ReverseProxyRule;
+    use std::sync::Arc;
+    use tokio::sync::RwLock;
+
+    fn create_handler_with_rules(rules: Vec<ReverseProxyRule>) -> crate::handler::LoggingHandler {
+        let (tx, _rx) = tokio::sync::mpsc::channel(16);
+        crate::handler::LoggingHandler {
+            sender: tx,
+            request: RequestState {
+                req: None,
+                res: None,
+                request_start: None,
+                response_header_time: None,
+                proxy_auth_user: None,
+            },
+            config: ProxyConfig {
+                cache_dir: None,
+                ca_cert_der: None,
+                quick_settings: Arc::new(tokio::sync::RwLock::new(QuickSettings::default())),
+                proxy_auth: Arc::new(tokio::sync::RwLock::new(None)),
+                max_body_size: None,
+            },
+            intercept: InterceptEngine {
+                intercept_rules: Arc::new(RwLock::new(Vec::new())),
+                server_replay_entries: Arc::new(RwLock::new(Vec::new())),
+                host_mappings: Arc::new(RwLock::new(Vec::new())),
+                reverse_proxy_rules: Arc::new(RwLock::new(rules)),
+                script_handle: scripting::ScriptHandle::new(),
+                ssl_proxying: Arc::new(RwLock::new(crate::handler::SslProxyingConfig {
+                    mode: crate::protocol::SslProxyingMode::default(),
+                    entries: Vec::new(),
+                    default_passthrough: crate::ssl_proxying::default_passthrough_entries(),
+                })),
+            },
+            ws: WebSocketState {
+                ws_sender: None,
+                ws_sequence: Arc::new(std::sync::atomic::AtomicU64::new(0)),
+                mqtt_versions: Arc::new(parking_lot::Mutex::new(std::collections::HashMap::new())),
+            },
+            sse: SseState {
+                sse_sender: None,
+                sse_sequence: Arc::new(std::sync::atomic::AtomicU64::new(0)),
+            },
+            breakpoint_manager: None,
+        }
+    }
+
+    fn make_rule(match_host: &str, scheme: &str, host: &str, port: u16) -> ReverseProxyRule {
+        ReverseProxyRule {
+            id: "test".to_string(),
+            match_host: match_host.to_string(),
+            backend_scheme: scheme.to_string(),
+            backend_host: host.to_string(),
+            backend_port: port,
+            rewrite_host: true,
+            enabled: true,
+        }
+    }
+
+    #[tokio::test]
+    async fn relative_uri_with_matching_rule_rewrites_uri() {
+        let handler =
+            create_handler_with_rules(vec![make_rule("localhost", "http", "httpbin.org", 80)]);
+        let req = Request::builder()
+            .uri("/get?foo=bar")
+            .header("host", "localhost")
+            .body(Body::empty())
+            .unwrap();
+
+        let result = handler.apply_reverse_proxy_if_needed(req).await;
+        assert_eq!(
+            result.uri().to_string(),
+            "http://httpbin.org:80/get?foo=bar"
+        );
+        assert_eq!(
+            result.headers().get("x-cheolsu-reverse-proxy").unwrap(),
+            "true"
+        );
+        assert_eq!(result.headers().get("host").unwrap(), "httpbin.org:80");
+    }
+
+    #[tokio::test]
+    async fn absolute_uri_skips_reverse_proxy() {
+        let handler =
+            create_handler_with_rules(vec![make_rule("localhost", "http", "httpbin.org", 80)]);
+        let req = Request::builder()
+            .uri("http://example.com/path")
+            .header("host", "localhost")
+            .body(Body::empty())
+            .unwrap();
+
+        let result = handler.apply_reverse_proxy_if_needed(req).await;
+        assert_eq!(result.uri().to_string(), "http://example.com/path");
+        assert!(result.headers().get("x-cheolsu-reverse-proxy").is_none());
+    }
+
+    #[tokio::test]
+    async fn no_host_header_skips_reverse_proxy() {
+        let handler =
+            create_handler_with_rules(vec![make_rule("localhost", "http", "httpbin.org", 80)]);
+        let req = Request::builder().uri("/get").body(Body::empty()).unwrap();
+
+        let result = handler.apply_reverse_proxy_if_needed(req).await;
+        assert_eq!(result.uri().to_string(), "/get");
+        assert!(result.headers().get("x-cheolsu-reverse-proxy").is_none());
+    }
+
+    #[tokio::test]
+    async fn rewrite_host_false_preserves_original_host() {
+        let mut rule = make_rule("localhost", "http", "httpbin.org", 80);
+        rule.rewrite_host = false;
+        let handler = create_handler_with_rules(vec![rule]);
+        let req = Request::builder()
+            .uri("/get")
+            .header("host", "localhost:9080")
+            .body(Body::empty())
+            .unwrap();
+
+        let result = handler.apply_reverse_proxy_if_needed(req).await;
+        assert_eq!(result.uri().to_string(), "http://httpbin.org:80/get");
+        assert_eq!(result.headers().get("host").unwrap(), "localhost:9080");
+    }
+
+    #[tokio::test]
+    async fn disabled_rule_is_skipped() {
+        let mut rule = make_rule("localhost", "http", "httpbin.org", 80);
+        rule.enabled = false;
+        let handler = create_handler_with_rules(vec![rule]);
+        let req = Request::builder()
+            .uri("/get")
+            .header("host", "localhost")
+            .body(Body::empty())
+            .unwrap();
+
+        let result = handler.apply_reverse_proxy_if_needed(req).await;
+        assert_eq!(result.uri().to_string(), "/get");
+    }
+
+    #[tokio::test]
+    async fn wildcard_matching_works() {
+        let handler =
+            create_handler_with_rules(vec![make_rule("*.local", "https", "backend.com", 443)]);
+        let req = Request::builder()
+            .uri("/api/users")
+            .header("host", "myapp.local")
+            .body(Body::empty())
+            .unwrap();
+
+        let result = handler.apply_reverse_proxy_if_needed(req).await;
+        assert_eq!(
+            result.uri().to_string(),
+            "https://backend.com:443/api/users"
+        );
+    }
+
+    #[tokio::test]
+    async fn no_matching_rule_skips() {
+        let handler =
+            create_handler_with_rules(vec![make_rule("api.example.com", "http", "backend", 80)]);
+        let req = Request::builder()
+            .uri("/get")
+            .header("host", "other.com")
+            .body(Body::empty())
+            .unwrap();
+
+        let result = handler.apply_reverse_proxy_if_needed(req).await;
+        assert_eq!(result.uri().to_string(), "/get");
+        assert!(result.headers().get("x-cheolsu-reverse-proxy").is_none());
     }
 }

@@ -9,7 +9,7 @@
 | HTTP/HTTPS Proxy                 | MITM-based traffic interception                                    | On par with Charles/mitmproxy |
 | SOCKS5 Proxy                     | Full implementation with RFC 1929 auth                             | On par with Charles           |
 | Upstream Proxy                   | HTTP/HTTPS/SOCKS upstream with auth and bypass                     | On par with Charles           |
-| TLS 1.0/1.1 Legacy              | Hybrid OpenSSL/rustls handler                                      | **Unique differentiator**     |
+| TLS 1.0/1.1 Legacy               | Hybrid OpenSSL/rustls handler                                      | **Unique differentiator**     |
 | WebSocket Capture                | Bidirectional monitoring/injection, Socket.IO/MQTT detection       | Superior to Charles           |
 | SSE Streaming Capture            | `text/event-stream` auto-detection, event parsing, scripting hooks | **Unique differentiator**     |
 | gRPC Traffic Decoding            | gRPC frame parsing, metadata extraction, Protobuf decoding         | On par with mitmproxy         |
