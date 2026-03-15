@@ -88,6 +88,7 @@ msgstr "활성 커스텀 CA"
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:134
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:140
 #: src/pages/server-replay/ui/server-replay-page.tsx:170
+#: src/pages/settings/ui/components/client-tags-section.tsx:116
 #: src/pages/settings/ui/components/ssl-proxying-section.tsx:209
 #: src/pages/settings/ui/components/ssl-proxying-section.tsx:272
 msgid "Add"
@@ -229,13 +230,17 @@ msgstr "API 레퍼런스"
 msgid "Append the original request path to the target URL"
 msgstr "원본 요청 경로를 대상 URL에 추가"
 
-#: src/features/query-filter-editor/ui/query-builder.tsx:360
+#: src/features/query-filter-editor/ui/query-builder.tsx:369
 msgid "Apply"
 msgstr "적용"
 
-#: src/features/query-filter-editor/ui/filter-help-tooltip.tsx:83
+#: src/features/query-filter-editor/ui/filter-help-tooltip.tsx:92
 msgid "Apply:"
 msgstr "적용:"
+
+#: src/pages/settings/ui/components/client-tags-section.tsx:53
+msgid "Assign labels to client IP addresses for easier identification and filtering"
+msgstr "클라이언트 IP 주소에 라벨을 지정하여 쉽게 식별하고 필터링할 수 있습니다"
 
 #: src/pages/settings/ui/components/upstream-proxy-section.tsx:51
 msgid "Authentication"
@@ -357,7 +362,7 @@ msgstr "취소"
 msgid "Cannot add: no response data"
 msgstr "추가할 수 없습니다: 응답 데이터 없음"
 
-#: src/pages/settings/ui/settings-page.tsx:111
+#: src/pages/settings/ui/settings-page.tsx:112
 msgid "Certificate"
 msgstr "인증서"
 
@@ -409,7 +414,7 @@ msgstr "네트워크 테이블에 표시할 컬럼을 선택하세요"
 msgid "Claude Code (CLI)"
 msgstr "Claude Code (CLI)"
 
-#: src/features/query-filter-editor/ui/query-builder.tsx:355
+#: src/features/query-filter-editor/ui/query-builder.tsx:364
 #: src/pages/log-viewer/ui/logs-page.tsx:255
 #: src/pages/script/ui/script-page.tsx:298
 #: src/pages/settings/ui/components/request-client-cert-section.tsx:68
@@ -435,6 +440,10 @@ msgstr "모든 트랜잭션 삭제"
 #: src/pages/settings/ui/components/client-certificate-section.tsx:129
 msgid "Client Certificate"
 msgstr "클라이언트 인증서"
+
+#: src/pages/settings/ui/components/client-tags-section.tsx:50
+msgid "Client Tags"
+msgstr "클라이언트 태그"
 
 #: src/pages/settings/ui/components/proxy-auth-section.tsx:48
 msgid "Clients must provide these credentials via Proxy-Authorization header (HTTP Basic) to use this proxy"
@@ -481,7 +490,7 @@ msgstr "요청 작성"
 msgid "Concurrency"
 msgstr "동시 요청 수"
 
-#: src/features/query-filter-editor/ui/query-builder.tsx:344
+#: src/features/query-filter-editor/ui/query-builder.tsx:353
 msgid "Condition"
 msgstr "조건"
 
@@ -673,9 +682,21 @@ msgstr "다운로드 속도 (KB/s)"
 msgid "Drop"
 msgstr "드롭"
 
-#: src/features/query-filter-editor/ui/query-builder.tsx:211
+#: src/features/query-filter-editor/ui/query-builder.tsx:220
+msgid "e.g. 192.168.1.1, MyPhone, username"
+msgstr "예: 192.168.1.1, 내폰, 사용자명"
+
+#: src/pages/settings/ui/components/client-tags-section.tsx:88
+msgid "e.g. 192.168.1.100"
+msgstr "예: 192.168.1.100"
+
+#: src/features/query-filter-editor/ui/query-builder.tsx:212
 msgid "e.g. api.example.com, /api/v1, /users/\\d+"
 msgstr "예: api.example.com, /api/v1, /users/\\d+"
+
+#: src/pages/settings/ui/components/client-tags-section.tsx:100
+msgid "e.g. iPhone, Android, QA Team"
+msgstr "예: iPhone, Android, QA팀"
 
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:164
 msgid "Edit Map Rule"
@@ -728,7 +749,7 @@ msgstr "이벤트"
 msgid "example.com, *.example.com, or example.com:443"
 msgstr "example.com, *.example.com 또는 example.com:443"
 
-#: src/features/query-filter-editor/ui/filter-help-tooltip.tsx:65
+#: src/features/query-filter-editor/ui/filter-help-tooltip.tsx:74
 msgid "Exclude OPTIONS method"
 msgstr "OPTIONS 메서드 제외"
 
@@ -786,6 +807,10 @@ msgstr "실패 횟수"
 msgid "File"
 msgstr "파일"
 
+#: src/features/query-filter-editor/ui/filter-help-tooltip.tsx:65
+msgid "Filter by client IP, tag, or auth user"
+msgstr "클라이언트 IP, 태그 또는 인증 사용자로 필터링"
+
 #: src/pages/log-viewer/ui/logs-page.tsx:366
 msgid "Filter log lines..."
 msgstr "로그 라인 필터..."
@@ -808,7 +833,7 @@ msgstr "전달"
 msgid "Fullscreen"
 msgstr "전체 화면"
 
-#: src/pages/settings/ui/settings-page.tsx:110
+#: src/pages/settings/ui/settings-page.tsx:111
 msgid "General"
 msgstr "일반"
 
@@ -965,6 +990,10 @@ msgstr "설치 중..."
 msgid "Intercept Rules"
 msgstr "인터셉트 규칙"
 
+#: src/pages/settings/ui/components/client-tags-section.tsx:85
+msgid "IP Address"
+msgstr "IP 주소"
+
 #: src/pages/settings/ui/components/client-certificate-section.tsx:200
 msgid "Issuer"
 msgstr "발급자"
@@ -988,6 +1017,10 @@ msgstr "키 파일"
 #: src/pages/settings/ui/components/client-certificate-section.tsx:166
 msgid "Key File"
 msgstr "키 파일"
+
+#: src/pages/settings/ui/components/client-tags-section.tsx:97
+msgid "Label"
+msgstr "라벨"
 
 #: src/pages/settings/ui/components/general-settings.tsx:66
 msgid "Language"
@@ -1054,7 +1087,7 @@ msgstr "localhost, 127.0.0.1, *.internal.com"
 msgid "Log Files"
 msgstr "로그 파일"
 
-#: src/features/query-filter-editor/ui/filter-help-tooltip.tsx:77
+#: src/features/query-filter-editor/ui/filter-help-tooltip.tsx:86
 msgid "Logical OR:"
 msgstr "논리 OR:"
 
@@ -1181,7 +1214,7 @@ msgstr "응답 수정"
 msgid "msgs"
 msgstr "메시지"
 
-#: src/features/query-filter-editor/ui/filter-help-tooltip.tsx:71
+#: src/features/query-filter-editor/ui/filter-help-tooltip.tsx:80
 msgid "Multiple conditions:"
 msgstr "복합 조건:"
 
@@ -1190,7 +1223,7 @@ msgstr "복합 조건:"
 msgid "Name"
 msgstr "이름"
 
-#: src/pages/settings/ui/settings-page.tsx:112
+#: src/pages/settings/ui/settings-page.tsx:113
 #: src/shared/app-sidebar/model/consts.ts:24
 msgid "Network"
 msgstr "네트워크"
@@ -1466,7 +1499,7 @@ msgstr "프록시 주소"
 msgid "Proxy Authentication"
 msgstr "프록시 인증"
 
-#: src/pages/settings/ui/settings-page.tsx:146
+#: src/pages/settings/ui/settings-page.tsx:147
 msgid "Proxy configuration and preferences"
 msgstr "프록시 설정 및 환경설정"
 
@@ -1644,7 +1677,7 @@ msgstr "요청 헤더"
 
 #: src/features/transaction-details/ui/transaction-timing.tsx:109
 msgid "Request Lifecycle"
-msgstr "요청 라이프사이클"
+msgstr "요청 수명 주기"
 
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:306
 msgid "Requests/sec"
@@ -1781,11 +1814,11 @@ msgstr "실행"
 msgid "Running..."
 msgstr "실행 중..."
 
-#: src/pages/settings/ui/settings-page.tsx:162
+#: src/pages/settings/ui/settings-page.tsx:163
 msgid "Save Changes"
 msgstr "변경 사항 저장"
 
-#: src/pages/settings/ui/settings-page.tsx:157
+#: src/pages/settings/ui/settings-page.tsx:158
 msgid "Save failed"
 msgstr "저장 실패"
 
@@ -1793,11 +1826,11 @@ msgstr "저장 실패"
 msgid "Save Session"
 msgstr "세션 저장"
 
-#: src/pages/settings/ui/settings-page.tsx:152
+#: src/pages/settings/ui/settings-page.tsx:153
 msgid "Saved"
 msgstr "저장됨"
 
-#: src/pages/settings/ui/settings-page.tsx:162
+#: src/pages/settings/ui/settings-page.tsx:163
 msgid "Saving..."
 msgstr "저장 중..."
 
@@ -1830,7 +1863,7 @@ msgstr "스크립트가 리로드되었습니다"
 msgid "Script unloaded"
 msgstr "스크립트가 언로드되었습니다"
 
-#: src/pages/settings/ui/settings-page.tsx:113
+#: src/pages/settings/ui/settings-page.tsx:114
 msgid "Security"
 msgstr "보안"
 
@@ -1971,7 +2004,7 @@ msgstr "본문 설정 (선택사항)"
 msgid "Set Wi-Fi proxy on your device to <0>{0}:{1}</0>"
 msgstr "기기의 Wi-Fi 프록시를 <0>{0}:{1}</0>로 설정"
 
-#: src/pages/settings/ui/settings-page.tsx:143
+#: src/pages/settings/ui/settings-page.tsx:144
 #: src/shared/app-sidebar/model/consts.ts:87
 msgid "Settings"
 msgstr "설정"
@@ -2148,7 +2181,7 @@ msgstr "클라이언트로 (서버 → 클라이언트)"
 msgid "To Server (Client → Server)"
 msgstr "서버로 (클라이언트 → 서버)"
 
-#: src/features/query-filter-editor/ui/query-builder.tsx:157
+#: src/features/query-filter-editor/ui/query-builder.tsx:158
 msgid "Toggle AND/OR"
 msgstr "AND/OR 전환"
 
@@ -2156,7 +2189,7 @@ msgstr "AND/OR 전환"
 msgid "Toggle proxy on/off with a global keyboard shortcut"
 msgstr "글로벌 키보드 단축키로 프록시 켜기/끄기"
 
-#: src/pages/settings/ui/settings-page.tsx:114
+#: src/pages/settings/ui/settings-page.tsx:115
 msgid "Tools"
 msgstr "도구"
 
@@ -2264,6 +2297,10 @@ msgstr "URL 패턴 (예: *api.example.com*)"
 msgid "Use different client certificates for specific domains. Supports wildcards (*.example.com). Currently validates certificates only — domain-specific routing coming soon."
 msgstr "특정 도메인에 다른 클라이언트 인증서를 사용합니다. 와일드카드(*.example.com)를 지원합니다. 현재는 인증서 검증만 수행 — 도메인별 라우팅은 추후 지원 예정입니다."
 
+#: src/pages/settings/ui/components/client-tags-section.tsx:121
+msgid "Use tags in the filter with client=\"tag_name\" to filter traffic by device"
+msgstr "필터에서 client=\"태그명\"을 사용하여 기기별 트래픽을 필터링할 수 있습니다"
+
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:254
 msgid "Use wildcard patterns: * matches any string, ? matches a single character."
 msgstr "와일드카드 패턴 사용: *는 모든 문자열, ?는 단일 문자를 매칭합니다."
@@ -2327,7 +2364,7 @@ msgstr "WebSocket 연결 및 메시지"
 msgid "WebSocket Replay"
 msgstr "WebSocket 리플레이"
 
-#: src/features/query-filter-editor/ui/query-builder.tsx:150
+#: src/features/query-filter-editor/ui/query-builder.tsx:151
 msgid "Where"
 msgstr "조건"
 

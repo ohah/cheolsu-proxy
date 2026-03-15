@@ -26,6 +26,7 @@ Cheolsu Proxy의 향후 지원 예정 기능들을 확인할 수 있습니다.
 - **Protobuf 디코딩**: Wire type 기반 자동 디코딩, gRPC Content-Type 감지
 - **트래픽 비교 (Diff)**: 헤더/바디/JSON 구조적 diff
 - **모바일 CA 인증서 배포**: 웹 기반 인증서 다운로드 페이지, iOS/Android 설치 가이드
+- **클라이언트 트래픽 분리**: IP 태깅, 사용자 태그/라벨, Basic Auth 사용자명 추출, 필터링
 
 ### 추후 지원 예정 기능
 
