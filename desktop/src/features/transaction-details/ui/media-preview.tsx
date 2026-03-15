@@ -1,9 +1,4 @@
-import {
-  type DataType,
-  isImageDataType,
-  isVideoDataType,
-  isAudioDataType,
-} from "@/entities/proxy";
+import { type DataType, isImageDataType, isVideoDataType, isAudioDataType } from "@/entities/proxy";
 import { readFile, BaseDirectory } from "@tauri-apps/plugin-fs";
 import { useState, useEffect } from "react";
 
