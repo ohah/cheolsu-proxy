@@ -40,7 +40,7 @@ msgstr "{failCount} failed"
 msgid "{filteredCount} of {totalCount} transactions"
 msgstr "{filteredCount} of {totalCount} transactions"
 
-#: src/widgets/network-table/ui/table-row.tsx:74
+#: src/widgets/network-table/ui/table-row.tsx:82
 msgid "{label} copied to clipboard"
 msgstr "{label} copied to clipboard"
 
@@ -119,7 +119,7 @@ msgstr "Add from Traffic"
 msgid "Add Headers"
 msgstr "Add Headers"
 
-#: src/widgets/network-table/ui/table-row.tsx:167
+#: src/widgets/network-table/ui/table-row.tsx:175
 msgid "Add Intercept Rule"
 msgstr "Add Intercept Rule"
 
@@ -175,7 +175,7 @@ msgid "Added to server replay"
 msgstr "Added to server replay"
 
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:135
-#: src/widgets/network-table/ui/table-row.tsx:158
+#: src/widgets/network-table/ui/table-row.tsx:166
 msgid "Advanced Repeat"
 msgstr "Advanced Repeat"
 
@@ -412,8 +412,8 @@ msgstr "Claude Code (CLI)"
 msgid "Clear"
 msgstr "Clear"
 
-#: src/pages/sse-dashboard/ui/sse-dashboard.tsx:91
-#: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:99
+#: src/pages/sse-dashboard/ui/sse-dashboard.tsx:101
+#: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:109
 msgid "Clear all"
 msgstr "Clear all"
 
@@ -443,7 +443,7 @@ msgstr "Clients without a valid certificate will be rejected"
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:370
 #: src/features/transaction-details/ui/sequence-replay-dialog.tsx:240
 #: src/features/transaction-details/ui/transaction-header.tsx:63
-#: src/widgets/sse-messages/ui/sse-message-detail.tsx:98
+#: src/widgets/sse-messages/ui/sse-message-detail.tsx:96
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:131
 msgid "Close"
 msgstr "Close"
@@ -496,8 +496,8 @@ msgstr "Connection"
 msgid "Connection Strategy"
 msgstr "Connection Strategy"
 
-#: src/pages/sse-dashboard/ui/sse-dashboard.tsx:80
-#: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:88
+#: src/pages/sse-dashboard/ui/sse-dashboard.tsx:90
+#: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:98
 msgid "connections"
 msgstr "connections"
 
@@ -525,7 +525,7 @@ msgstr "Copy"
 msgid "Copy as cURL"
 msgstr "Copy as cURL"
 
-#: src/widgets/network-table/ui/table-row.tsx:137
+#: src/widgets/network-table/ui/table-row.tsx:145
 msgid "Copy as..."
 msgstr "Copy as..."
 
@@ -542,7 +542,7 @@ msgstr "Copy to clipboard"
 msgid "Copy URL"
 msgstr "Copy URL"
 
-#: src/widgets/network-table/ui/table-row.tsx:141
+#: src/widgets/network-table/ui/table-row.tsx:149
 msgid "cURL"
 msgstr "cURL"
 
@@ -605,7 +605,7 @@ msgid "Delete rule"
 msgstr "Delete rule"
 
 #: src/widgets/network-table/ui/cells/action-cell.tsx:21
-#: src/widgets/network-table/ui/table-row.tsx:162
+#: src/widgets/network-table/ui/table-row.tsx:170
 msgid "Delete Transaction"
 msgstr "Delete Transaction"
 
@@ -715,7 +715,7 @@ msgstr "Event ID"
 msgid "Event Type"
 msgstr "Event Type"
 
-#: src/pages/sse-dashboard/ui/sse-dashboard.tsx:81
+#: src/pages/sse-dashboard/ui/sse-dashboard.tsx:91
 #: src/widgets/sse-messages/ui/sse-connection-list.tsx:80
 msgid "events"
 msgstr "events"
@@ -893,7 +893,7 @@ msgstr "Host Tree"
 msgid "HTTP requests and responses"
 msgstr "HTTP requests and responses"
 
-#: src/widgets/network-table/ui/table-row.tsx:147
+#: src/widgets/network-table/ui/table-row.tsx:155
 msgid "HTTPie"
 msgstr "HTTPie"
 
@@ -969,7 +969,7 @@ msgstr "Issuer"
 msgid "Iterations"
 msgstr "Iterations"
 
-#: src/widgets/network-table/ui/table-row.tsx:144
+#: src/widgets/network-table/ui/table-row.tsx:152
 msgid "JavaScript Fetch"
 msgstr "JavaScript Fetch"
 
@@ -1144,7 +1144,7 @@ msgstr "MCP Server Configuration"
 msgid "Message sent successfully"
 msgstr "Message sent successfully"
 
-#: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:89
+#: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:99
 msgid "messages"
 msgstr "messages"
 
@@ -1259,7 +1259,7 @@ msgstr "No proto files registered. gRPC messages will be decoded using wire form
 msgid "No replay entries"
 msgstr "No replay entries"
 
-#: src/features/transaction-details/ui/transaction-timing.tsx:70
+#: src/features/transaction-details/ui/transaction-timing.tsx:52
 msgid "No timing data available"
 msgstr "No timing data available"
 
@@ -1390,7 +1390,7 @@ msgstr "pending"
 msgid "Pending Breakpoints"
 msgstr "Pending Breakpoints"
 
-#: src/widgets/network-table/ui/table-row.tsx:132
+#: src/widgets/network-table/ui/table-row.tsx:140
 msgid "Pin to Top"
 msgstr "Pin to Top"
 
@@ -1470,7 +1470,7 @@ msgstr "Proxy settings and configuration"
 msgid "proxy.company.com"
 msgstr "proxy.company.com"
 
-#: src/widgets/network-table/ui/table-row.tsx:152
+#: src/widgets/network-table/ui/table-row.tsx:160
 msgid "Python Requests"
 msgstr "Python Requests"
 
@@ -1634,7 +1634,7 @@ msgstr "Request Header"
 msgid "Request Headers"
 msgstr "Request Headers"
 
-#: src/features/transaction-details/ui/transaction-timing.tsx:127
+#: src/features/transaction-details/ui/transaction-timing.tsx:109
 msgid "Request Lifecycle"
 msgstr "Request Lifecycle"
 
@@ -2003,7 +2003,7 @@ msgstr "Source host and target host are required"
 msgid "Source Port"
 msgstr "Source Port"
 
-#: src/pages/sse-dashboard/ui/sse-dashboard.tsx:77
+#: src/pages/sse-dashboard/ui/sse-dashboard.tsx:87
 #: src/shared/app-sidebar/model/consts.ts:38
 msgid "SSE"
 msgstr "SSE"
@@ -2152,7 +2152,7 @@ msgstr "Toggle proxy on/off with a global keyboard shortcut"
 msgid "Tools"
 msgstr "Tools"
 
-#: src/features/transaction-details/ui/transaction-timing.tsx:116
+#: src/features/transaction-details/ui/transaction-timing.tsx:98
 msgid "Total"
 msgstr "Total"
 
@@ -2169,15 +2169,15 @@ msgstr "Total Time"
 msgid "Traffic Replay"
 msgstr "Traffic Replay"
 
-#: src/widgets/network-table/ui/table-row.tsx:81
+#: src/widgets/network-table/ui/table-row.tsx:89
 msgid "Transaction deleted"
 msgstr "Transaction deleted"
 
-#: src/widgets/network-table/ui/table-row.tsx:97
+#: src/widgets/network-table/ui/table-row.tsx:105
 msgid "Transaction pinned to top"
 msgstr "Transaction pinned to top"
 
-#: src/widgets/network-table/ui/table-row.tsx:97
+#: src/widgets/network-table/ui/table-row.tsx:105
 msgid "Transaction unpinned"
 msgstr "Transaction unpinned"
 
@@ -2215,7 +2215,7 @@ msgstr "Unlimited"
 msgid "Unload"
 msgstr "Unload"
 
-#: src/widgets/network-table/ui/table-row.tsx:132
+#: src/widgets/network-table/ui/table-row.tsx:140
 msgid "Unpin from Top"
 msgstr "Unpin from Top"
 
@@ -2306,7 +2306,7 @@ msgstr "Waiting for SSE events..."
 msgid "Waiting for WebSocket messages..."
 msgstr "Waiting for WebSocket messages..."
 
-#: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:85
+#: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:95
 #: src/shared/app-sidebar/model/consts.ts:31
 msgid "WebSocket"
 msgstr "WebSocket"
