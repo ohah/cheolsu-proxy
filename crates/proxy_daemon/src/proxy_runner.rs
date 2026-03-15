@@ -8,7 +8,8 @@ use crate::error::DaemonError;
 use crate::handler::{LoggingHandler, QuickSettings, SseEvent, WsEvent};
 use crate::protocol::{
     BreakpointRule, ClientCertConfig, DaemonMessage, HostMapping, InterceptRule,
-    RequestClientCertConfig, ServerReplayEntry, SslProxyingEntry, SslProxyingMode,
+    RequestClientCertConfig, ReverseProxyRule, ServerReplayEntry, SslProxyingEntry,
+    SslProxyingMode,
 };
 use crate::tls_client::create_hybrid_client_with_cert;
 use proxyapi_v2::certificate_authority::{CertificateAuthority, ClientCertVerifyConfig};
@@ -26,6 +27,7 @@ pub async fn run_proxy(
     mut breakpoint_rx: watch::Receiver<Vec<BreakpointRule>>,
     breakpoint_manager: BreakpointManager,
     mut host_mapping_rx: watch::Receiver<Vec<HostMapping>>,
+    mut reverse_proxy_rx: watch::Receiver<Vec<ReverseProxyRule>>,
     mut ssl_proxying_rx: watch::Receiver<(SslProxyingMode, Vec<SslProxyingEntry>)>,
     client_cert_rx: watch::Receiver<Option<ClientCertConfig>>,
     ws_registry: WebSocketRegistry,
@@ -168,6 +170,22 @@ pub async fn run_proxy(
             let mappings = host_mapping_rx.borrow().clone();
             handler_for_mapping_updates
                 .update_host_mappings(mappings)
+                .await;
+        }
+    });
+
+    // Reverse proxy rules initial load and watcher
+    {
+        let rules = reverse_proxy_rx.borrow().clone();
+        handler.update_reverse_proxy_rules(rules).await;
+    }
+
+    let handler_for_reverse_proxy_updates = handler.clone();
+    tokio::spawn(async move {
+        while reverse_proxy_rx.changed().await.is_ok() {
+            let rules = reverse_proxy_rx.borrow().clone();
+            handler_for_reverse_proxy_updates
+                .update_reverse_proxy_rules(rules)
                 .await;
         }
     });

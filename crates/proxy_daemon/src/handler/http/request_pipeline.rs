@@ -167,6 +167,96 @@ impl LoggingHandler {
         restored_req.method() == Method::CONNECT || proxied_request.method() == Method::CONNECT
     }
 
+    /// 리버스 프록시 규칙을 적용합니다.
+    /// URI에 scheme/authority가 없는(relative URI) 요청에 대해
+    /// Host 헤더를 기반으로 매칭되는 리버스 프록시 규칙을 찾아 URI를 재작성합니다.
+    pub(super) async fn apply_reverse_proxy_if_needed(
+        &self,
+        mut req: Request<Body>,
+    ) -> Request<Body> {
+        // URI에 scheme이 있으면 forward proxy 요청이므로 스킵
+        if req.uri().scheme().is_some() {
+            return req;
+        }
+
+        // Host 헤더에서 호스트명 추출
+        let host_header = req
+            .headers()
+            .get(proxyapi_v2::hyper::header::HOST)
+            .and_then(|v| v.to_str().ok())
+            .map(|s| s.to_string());
+
+        let Some(host_value) = host_header else {
+            return req;
+        };
+
+        // host:port 분리
+        let (host, _port) = if let Some(idx) = host_value.rfind(':') {
+            let potential_port = &host_value[idx + 1..];
+            if potential_port.parse::<u16>().is_ok() {
+                (&host_value[..idx], Some(&host_value[idx + 1..]))
+            } else {
+                (host_value.as_str(), None)
+            }
+        } else {
+            (host_value.as_str(), None)
+        };
+
+        // 리버스 프록시 규칙 매칭
+        let rules = self.intercept.reverse_proxy_rules.read().await;
+        let matched = rules.iter().find(|rule| {
+            rule.enabled
+                && crate::pattern_utils::wildcard_matches(
+                    &rule.match_host.to_lowercase(),
+                    &host.to_lowercase(),
+                )
+        });
+
+        let Some(rule) = matched.cloned() else {
+            return req;
+        };
+        drop(rules);
+
+        let path_and_query = req
+            .uri()
+            .path_and_query()
+            .map(|pq| pq.as_str())
+            .unwrap_or("/");
+
+        let new_uri_str = format!(
+            "{}://{}:{}{}",
+            rule.backend_scheme, rule.backend_host, rule.backend_port, path_and_query
+        );
+
+        if let Ok(new_uri) = new_uri_str.parse::<proxyapi_v2::hyper::Uri>() {
+            info!(
+                "[ReverseProxy] {} -> {}://{}:{} (host: {})",
+                req.uri(),
+                rule.backend_scheme,
+                rule.backend_host,
+                rule.backend_port,
+                host
+            );
+            *req.uri_mut() = new_uri;
+
+            if rule.rewrite_host {
+                let backend_host_value = format!("{}:{}", rule.backend_host, rule.backend_port);
+                if let Ok(hv) = proxyapi_v2::hyper::http::HeaderValue::from_str(&backend_host_value)
+                {
+                    req.headers_mut()
+                        .insert(proxyapi_v2::hyper::header::HOST, hv);
+                }
+            }
+
+            req.headers_mut().insert(
+                "x-cheolsu-reverse-proxy",
+                proxyapi_v2::hyper::http::HeaderValue::from_static("true"),
+            );
+        }
+
+        req
+    }
+
     /// Apply host mapping to the request if a matching rule exists.
     /// Rewrites the URI to point to the mapped target host/port,
     /// while preserving the original Host header for correct virtual host routing.

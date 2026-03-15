@@ -137,6 +137,7 @@ fn emit_ws_event_sends_to_channel() {
             intercept_rules: Arc::new(RwLock::new(Vec::new())),
             server_replay_entries: Arc::new(RwLock::new(Vec::new())),
             host_mappings: Arc::new(RwLock::new(Vec::new())),
+            reverse_proxy_rules: Arc::new(RwLock::new(Vec::new())),
             script_handle: scripting::ScriptHandle::new(),
             ssl_proxying: Arc::new(RwLock::new(crate::handler::SslProxyingConfig {
                 mode: crate::protocol::SslProxyingMode::default(),
@@ -204,6 +205,7 @@ fn emit_ws_event_increments_sequence() {
             intercept_rules: Arc::new(RwLock::new(Vec::new())),
             server_replay_entries: Arc::new(RwLock::new(Vec::new())),
             host_mappings: Arc::new(RwLock::new(Vec::new())),
+            reverse_proxy_rules: Arc::new(RwLock::new(Vec::new())),
             script_handle: scripting::ScriptHandle::new(),
             ssl_proxying: Arc::new(RwLock::new(crate::handler::SslProxyingConfig {
                 mode: crate::protocol::SslProxyingMode::default(),

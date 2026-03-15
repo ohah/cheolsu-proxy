@@ -67,6 +67,7 @@ pub(crate) struct DaemonChannels {
     pub(crate) throttle_tx: watch::Sender<Option<ThrottleConfig>>,
     pub(crate) breakpoint_tx: watch::Sender<Vec<crate::protocol::BreakpointRule>>,
     pub(crate) host_mapping_tx: watch::Sender<Vec<crate::protocol::HostMapping>>,
+    pub(crate) reverse_proxy_tx: watch::Sender<Vec<crate::protocol::ReverseProxyRule>>,
     pub(crate) ssl_proxying_tx: watch::Sender<(
         crate::protocol::SslProxyingMode,
         Vec<crate::protocol::SslProxyingEntry>,
@@ -88,6 +89,7 @@ pub(crate) struct WatchReceivers {
     pub(crate) throttle_rx: watch::Receiver<Option<ThrottleConfig>>,
     pub(crate) breakpoint_rx: watch::Receiver<Vec<crate::protocol::BreakpointRule>>,
     pub(crate) host_mapping_rx: watch::Receiver<Vec<crate::protocol::HostMapping>>,
+    pub(crate) reverse_proxy_rx: watch::Receiver<Vec<crate::protocol::ReverseProxyRule>>,
     pub(crate) ssl_proxying_rx: watch::Receiver<(
         crate::protocol::SslProxyingMode,
         Vec<crate::protocol::SslProxyingEntry>,
@@ -113,6 +115,8 @@ impl DaemonChannels {
             watch::channel::<Vec<crate::protocol::BreakpointRule>>(Vec::new());
         let (host_mapping_tx, host_mapping_rx) =
             watch::channel::<Vec<crate::protocol::HostMapping>>(Vec::new());
+        let (reverse_proxy_tx, reverse_proxy_rx) =
+            watch::channel::<Vec<crate::protocol::ReverseProxyRule>>(Vec::new());
         let (ssl_proxying_tx, ssl_proxying_rx) =
             watch::channel::<(
                 crate::protocol::SslProxyingMode,
@@ -134,6 +138,7 @@ impl DaemonChannels {
             throttle_tx,
             breakpoint_tx,
             host_mapping_tx,
+            reverse_proxy_tx,
             ssl_proxying_tx,
             client_cert_tx,
             request_client_cert_tx,
@@ -147,6 +152,7 @@ impl DaemonChannels {
             throttle_rx,
             breakpoint_rx,
             host_mapping_rx,
+            reverse_proxy_rx,
             ssl_proxying_rx,
             client_cert_rx,
             request_client_cert_rx,

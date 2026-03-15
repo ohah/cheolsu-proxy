@@ -131,6 +131,23 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bo
                 }
             }
         }
+        ClientCommand::UpdateReverseProxyRules { rules } => {
+            info!(
+                "Reverse proxy rules updated from client: {} rules",
+                rules.len()
+            );
+            if let Err(e) = s.channels.reverse_proxy_tx.send(rules.clone()) {
+                warn!("리버스 프록시 규칙 watch 채널 전송 실패: {}", e);
+            }
+            let broadcast_msg = DaemonMessage::ReverseProxyRulesUpdated { rules };
+            if let Ok(json) = serde_json::to_string(&broadcast_msg) {
+                if s.event_tx.receiver_count() > 0 {
+                    if let Err(e) = s.event_tx.send(json) {
+                        warn!("리버스 프록시 규칙 broadcast 전송 실패: {}", e);
+                    }
+                }
+            }
+        }
         ClientCommand::UpdateSslProxyingList { mode, entries } => {
             info!(
                 "SSL Proxying list updated from client: mode={:?}, {} entries",

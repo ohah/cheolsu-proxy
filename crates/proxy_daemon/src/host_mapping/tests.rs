@@ -475,6 +475,7 @@ async fn create_test_handler() -> LoggingHandler {
             intercept_rules: Arc::new(RwLock::new(Vec::new())),
             server_replay_entries: Arc::new(RwLock::new(Vec::new())),
             host_mappings: Arc::new(RwLock::new(Vec::new())),
+            reverse_proxy_rules: Arc::new(RwLock::new(Vec::new())),
             script_handle: scripting::ScriptHandle::new(),
             ssl_proxying: Arc::new(RwLock::new(crate::handler::SslProxyingConfig {
                 mode: crate::protocol::SslProxyingMode::default(),

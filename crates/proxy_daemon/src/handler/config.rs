@@ -3,7 +3,7 @@ use std::sync::Arc;
 use tokio::sync::RwLock;
 
 use crate::breakpoint::BreakpointManager;
-use crate::protocol::{HostMapping, InterceptRule, ServerReplayEntry};
+use crate::protocol::{HostMapping, InterceptRule, ReverseProxyRule, ServerReplayEntry};
 
 use super::{SseState, WebSocketState};
 
@@ -56,6 +56,7 @@ pub(crate) struct InterceptEngine {
     pub(crate) intercept_rules: Arc<RwLock<Vec<InterceptRule>>>,
     pub(crate) server_replay_entries: Arc<RwLock<Vec<ServerReplayEntry>>>,
     pub(crate) host_mappings: Arc<RwLock<Vec<HostMapping>>>,
+    pub(crate) reverse_proxy_rules: Arc<RwLock<Vec<ReverseProxyRule>>>,
     pub(crate) script_handle: scripting::ScriptHandle,
     /// SSL Proxying 설정 (모드 + 엔트리 + 기본 패스스루를 단일 lock으로 관리)
     pub(crate) ssl_proxying: Arc<RwLock<SslProxyingConfig>>,
@@ -98,6 +99,7 @@ impl LoggingHandler {
                 intercept_rules: Arc::new(RwLock::new(Vec::new())),
                 server_replay_entries: Arc::new(RwLock::new(Vec::new())),
                 host_mappings: Arc::new(RwLock::new(Vec::new())),
+                reverse_proxy_rules: Arc::new(RwLock::new(Vec::new())),
                 script_handle: scripting::ScriptHandle::new(),
                 ssl_proxying: Arc::new(RwLock::new(SslProxyingConfig {
                     mode: crate::protocol::SslProxyingMode::default(),
@@ -178,6 +180,13 @@ impl LoggingHandler {
         let mut mappings_guard = self.intercept.host_mappings.write().await;
         tracing::info!("[HostMapping] mappings updated: {} entries", mappings.len());
         *mappings_guard = mappings;
+    }
+
+    /// 리버스 프록시 규칙 업데이트
+    pub async fn update_reverse_proxy_rules(&self, rules: Vec<ReverseProxyRule>) {
+        let mut rules_guard = self.intercept.reverse_proxy_rules.write().await;
+        tracing::info!("[ReverseProxy] 규칙 업데이트: {} 개", rules.len());
+        *rules_guard = rules;
     }
 
     /// SSL Proxying 모드 및 목록 업데이트

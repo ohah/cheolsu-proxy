@@ -4,6 +4,7 @@ mod diff;
 mod export;
 mod host_mappings;
 mod replay;
+mod reverse_proxy;
 mod rules;
 mod script;
 mod server_replay;

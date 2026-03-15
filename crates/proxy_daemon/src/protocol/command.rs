@@ -5,6 +5,7 @@ use super::auth::ProxyAuthConfig;
 use super::breakpoint_types::{BreakpointAction, BreakpointData, BreakpointPhase, BreakpointRule};
 use super::host_mapping::HostMapping;
 use super::intercept::{InterceptRule, ServerReplayEntry};
+use super::reverse_proxy::ReverseProxyRule;
 use super::ssl::{
     ClientCertConfig, RequestClientCertConfig, SslProxyingEntry, SslProxyingMode,
     TlsPassthroughEntry,
@@ -32,6 +33,8 @@ pub enum DaemonMessage {
     InterceptRulesUpdated { rules: Vec<InterceptRule> },
     #[serde(rename = "host_mappings_updated")]
     HostMappingsUpdated { mappings: Vec<HostMapping> },
+    #[serde(rename = "reverse_proxy_rules_updated")]
+    ReverseProxyRulesUpdated { rules: Vec<ReverseProxyRule> },
     #[serde(rename = "ws_message")]
     WsMessage { data: WsMessageInfo },
     #[serde(rename = "ws_connection")]
@@ -196,6 +199,8 @@ pub enum ClientCommand {
     LoadSession { path: String },
     #[serde(rename = "update_host_mappings")]
     UpdateHostMappings { mappings: Vec<HostMapping> },
+    #[serde(rename = "update_reverse_proxy_rules")]
+    UpdateReverseProxyRules { rules: Vec<ReverseProxyRule> },
     /// 빠른 설정 업데이트 (No Caching, Block Cookies, No Gzip)
     #[serde(rename = "update_quick_settings")]
     UpdateQuickSettings {
