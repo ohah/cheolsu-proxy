@@ -8,7 +8,6 @@ use proxyapi_v2::hyper::Request;
 use proxyapi_v2::throttle::ThrottleConfig;
 use proxyapi_v2::{
     hyper::{
-        self,
         http::{HeaderValue, StatusCode},
         Response,
     },
