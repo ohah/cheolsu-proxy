@@ -1,4 +1,4 @@
-import { useMemo, useCallback, useState } from "react";
+import { useMemo, useCallback, useState, useRef, useEffect } from "react";
 import { Trans } from "@lingui/react/macro";
 import { Trash2, Plug } from "lucide-react";
 
@@ -15,7 +15,7 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from "@/shared/ui";
-import { useDefaultLayout } from "react-resizable-panels";
+import { useDefaultLayout, type ImperativePanelHandle } from "react-resizable-panels";
 import type { WsMessageInfo, WsConnection } from "@/entities/websocket";
 
 export const WebSocketDashboard = () => {
@@ -69,6 +69,16 @@ export const WebSocketDashboard = () => {
   const handleReplayRequest = useCallback((message: WsMessageInfo) => {
     setReplayMessage(message);
   }, []);
+
+  const detailPanelRef = useRef<ImperativePanelHandle>(null);
+
+  useEffect(() => {
+    if (selectedMessage) {
+      detailPanelRef.current?.expand();
+    } else {
+      detailPanelRef.current?.collapse();
+    }
+  }, [selectedMessage]);
 
   const { defaultLayout, onLayoutChanged } = useDefaultLayout({
     id: "websocket-dashboard-layout",
@@ -141,23 +151,24 @@ export const WebSocketDashboard = () => {
             />
           </ResizablePanel>
 
-          {selectedMessage && (
-            <>
-              <ResizableHandle withHandle />
-              <ResizablePanel
-                id="ws-detail"
-                maxSize="50%"
-                minSize="20%"
-                className="h-full overflow-hidden"
-              >
-                <WsMessageDetail
-                  message={selectedMessage}
-                  onClose={handleCloseDetail}
-                  onReplayRequest={handleReplayRequest}
-                />
-              </ResizablePanel>
-            </>
-          )}
+          <ResizableHandle withHandle />
+          <ResizablePanel
+            ref={detailPanelRef}
+            id="ws-detail"
+            maxSize="50%"
+            minSize="20%"
+            defaultSize="0%"
+            collapsible
+            className="h-full overflow-hidden"
+          >
+            {selectedMessage && (
+              <WsMessageDetail
+                message={selectedMessage}
+                onClose={handleCloseDetail}
+                onReplayRequest={handleReplayRequest}
+              />
+            )}
+          </ResizablePanel>
         </ResizablePanelGroup>
       </div>
 
