@@ -88,6 +88,7 @@ msgstr "Active Custom CA"
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:134
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:140
 #: src/pages/server-replay/ui/server-replay-page.tsx:170
+#: src/pages/settings/ui/components/client-tags-section.tsx:116
 #: src/pages/settings/ui/components/ssl-proxying-section.tsx:209
 #: src/pages/settings/ui/components/ssl-proxying-section.tsx:272
 msgid "Add"
@@ -229,13 +230,17 @@ msgstr "API Reference"
 msgid "Append the original request path to the target URL"
 msgstr "Append the original request path to the target URL"
 
-#: src/features/query-filter-editor/ui/query-builder.tsx:360
+#: src/features/query-filter-editor/ui/query-builder.tsx:369
 msgid "Apply"
 msgstr "Apply"
 
-#: src/features/query-filter-editor/ui/filter-help-tooltip.tsx:83
+#: src/features/query-filter-editor/ui/filter-help-tooltip.tsx:92
 msgid "Apply:"
 msgstr "Apply:"
+
+#: src/pages/settings/ui/components/client-tags-section.tsx:53
+msgid "Assign labels to client IP addresses for easier identification and filtering"
+msgstr "Assign labels to client IP addresses for easier identification and filtering"
 
 #: src/pages/settings/ui/components/upstream-proxy-section.tsx:51
 msgid "Authentication"
@@ -357,7 +362,7 @@ msgstr "Cancel"
 msgid "Cannot add: no response data"
 msgstr "Cannot add: no response data"
 
-#: src/pages/settings/ui/settings-page.tsx:111
+#: src/pages/settings/ui/settings-page.tsx:112
 msgid "Certificate"
 msgstr "Certificate"
 
@@ -409,7 +414,7 @@ msgstr "Choose which columns to display in the network table"
 msgid "Claude Code (CLI)"
 msgstr "Claude Code (CLI)"
 
-#: src/features/query-filter-editor/ui/query-builder.tsx:355
+#: src/features/query-filter-editor/ui/query-builder.tsx:364
 #: src/pages/log-viewer/ui/logs-page.tsx:255
 #: src/pages/script/ui/script-page.tsx:298
 #: src/pages/settings/ui/components/request-client-cert-section.tsx:68
@@ -435,6 +440,10 @@ msgstr "Clear all transactions"
 #: src/pages/settings/ui/components/client-certificate-section.tsx:129
 msgid "Client Certificate"
 msgstr "Client Certificate"
+
+#: src/pages/settings/ui/components/client-tags-section.tsx:50
+msgid "Client Tags"
+msgstr "Client Tags"
 
 #: src/pages/settings/ui/components/proxy-auth-section.tsx:48
 msgid "Clients must provide these credentials via Proxy-Authorization header (HTTP Basic) to use this proxy"
@@ -481,7 +490,7 @@ msgstr "Compose Request"
 msgid "Concurrency"
 msgstr "Concurrency"
 
-#: src/features/query-filter-editor/ui/query-builder.tsx:344
+#: src/features/query-filter-editor/ui/query-builder.tsx:353
 msgid "Condition"
 msgstr "Condition"
 
@@ -673,9 +682,21 @@ msgstr "Download Speed (KB/s)"
 msgid "Drop"
 msgstr "Drop"
 
-#: src/features/query-filter-editor/ui/query-builder.tsx:211
+#: src/features/query-filter-editor/ui/query-builder.tsx:220
+msgid "e.g. 192.168.1.1, MyPhone, username"
+msgstr "e.g. 192.168.1.1, MyPhone, username"
+
+#: src/pages/settings/ui/components/client-tags-section.tsx:88
+msgid "e.g. 192.168.1.100"
+msgstr "e.g. 192.168.1.100"
+
+#: src/features/query-filter-editor/ui/query-builder.tsx:212
 msgid "e.g. api.example.com, /api/v1, /users/\\d+"
 msgstr "e.g. api.example.com, /api/v1, /users/\\d+"
+
+#: src/pages/settings/ui/components/client-tags-section.tsx:100
+msgid "e.g. iPhone, Android, QA Team"
+msgstr "e.g. iPhone, Android, QA Team"
 
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:164
 msgid "Edit Map Rule"
@@ -728,7 +749,7 @@ msgstr "events"
 msgid "example.com, *.example.com, or example.com:443"
 msgstr "example.com, *.example.com, or example.com:443"
 
-#: src/features/query-filter-editor/ui/filter-help-tooltip.tsx:65
+#: src/features/query-filter-editor/ui/filter-help-tooltip.tsx:74
 msgid "Exclude OPTIONS method"
 msgstr "Exclude OPTIONS method"
 
@@ -786,6 +807,10 @@ msgstr "Failures"
 msgid "File"
 msgstr "File"
 
+#: src/features/query-filter-editor/ui/filter-help-tooltip.tsx:65
+msgid "Filter by client IP, tag, or auth user"
+msgstr "Filter by client IP, tag, or auth user"
+
 #: src/pages/log-viewer/ui/logs-page.tsx:366
 msgid "Filter log lines..."
 msgstr "Filter log lines..."
@@ -808,7 +833,7 @@ msgstr "Forward"
 msgid "Fullscreen"
 msgstr "Fullscreen"
 
-#: src/pages/settings/ui/settings-page.tsx:110
+#: src/pages/settings/ui/settings-page.tsx:111
 msgid "General"
 msgstr "General"
 
@@ -965,6 +990,10 @@ msgstr "Installing..."
 msgid "Intercept Rules"
 msgstr "Intercept Rules"
 
+#: src/pages/settings/ui/components/client-tags-section.tsx:85
+msgid "IP Address"
+msgstr "IP Address"
+
 #: src/pages/settings/ui/components/client-certificate-section.tsx:200
 msgid "Issuer"
 msgstr "Issuer"
@@ -988,6 +1017,10 @@ msgstr "Key file"
 #: src/pages/settings/ui/components/client-certificate-section.tsx:166
 msgid "Key File"
 msgstr "Key File"
+
+#: src/pages/settings/ui/components/client-tags-section.tsx:97
+msgid "Label"
+msgstr "Label"
 
 #: src/pages/settings/ui/components/general-settings.tsx:66
 msgid "Language"
@@ -1054,7 +1087,7 @@ msgstr "localhost, 127.0.0.1, *.internal.com"
 msgid "Log Files"
 msgstr "Log Files"
 
-#: src/features/query-filter-editor/ui/filter-help-tooltip.tsx:77
+#: src/features/query-filter-editor/ui/filter-help-tooltip.tsx:86
 msgid "Logical OR:"
 msgstr "Logical OR:"
 
@@ -1181,7 +1214,7 @@ msgstr "Modify Response"
 msgid "msgs"
 msgstr "msgs"
 
-#: src/features/query-filter-editor/ui/filter-help-tooltip.tsx:71
+#: src/features/query-filter-editor/ui/filter-help-tooltip.tsx:80
 msgid "Multiple conditions:"
 msgstr "Multiple conditions:"
 
@@ -1190,7 +1223,7 @@ msgstr "Multiple conditions:"
 msgid "Name"
 msgstr "Name"
 
-#: src/pages/settings/ui/settings-page.tsx:112
+#: src/pages/settings/ui/settings-page.tsx:113
 #: src/shared/app-sidebar/model/consts.ts:24
 msgid "Network"
 msgstr "Network"
@@ -1466,7 +1499,7 @@ msgstr "Proxy Address"
 msgid "Proxy Authentication"
 msgstr "Proxy Authentication"
 
-#: src/pages/settings/ui/settings-page.tsx:146
+#: src/pages/settings/ui/settings-page.tsx:147
 msgid "Proxy configuration and preferences"
 msgstr "Proxy configuration and preferences"
 
@@ -1781,11 +1814,11 @@ msgstr "Run"
 msgid "Running..."
 msgstr "Running..."
 
-#: src/pages/settings/ui/settings-page.tsx:162
+#: src/pages/settings/ui/settings-page.tsx:163
 msgid "Save Changes"
 msgstr "Save Changes"
 
-#: src/pages/settings/ui/settings-page.tsx:157
+#: src/pages/settings/ui/settings-page.tsx:158
 msgid "Save failed"
 msgstr "Save failed"
 
@@ -1793,11 +1826,11 @@ msgstr "Save failed"
 msgid "Save Session"
 msgstr "Save Session"
 
-#: src/pages/settings/ui/settings-page.tsx:152
+#: src/pages/settings/ui/settings-page.tsx:153
 msgid "Saved"
 msgstr "Saved"
 
-#: src/pages/settings/ui/settings-page.tsx:162
+#: src/pages/settings/ui/settings-page.tsx:163
 msgid "Saving..."
 msgstr "Saving..."
 
@@ -1830,7 +1863,7 @@ msgstr "Script reloaded"
 msgid "Script unloaded"
 msgstr "Script unloaded"
 
-#: src/pages/settings/ui/settings-page.tsx:113
+#: src/pages/settings/ui/settings-page.tsx:114
 msgid "Security"
 msgstr "Security"
 
@@ -1971,7 +2004,7 @@ msgstr "Set body (optional)"
 msgid "Set Wi-Fi proxy on your device to <0>{0}:{1}</0>"
 msgstr "Set Wi-Fi proxy on your device to <0>{0}:{1}</0>"
 
-#: src/pages/settings/ui/settings-page.tsx:143
+#: src/pages/settings/ui/settings-page.tsx:144
 #: src/shared/app-sidebar/model/consts.ts:87
 msgid "Settings"
 msgstr "Settings"
@@ -2148,7 +2181,7 @@ msgstr "To Client (Server → Client)"
 msgid "To Server (Client → Server)"
 msgstr "To Server (Client → Server)"
 
-#: src/features/query-filter-editor/ui/query-builder.tsx:157
+#: src/features/query-filter-editor/ui/query-builder.tsx:158
 msgid "Toggle AND/OR"
 msgstr "Toggle AND/OR"
 
@@ -2156,7 +2189,7 @@ msgstr "Toggle AND/OR"
 msgid "Toggle proxy on/off with a global keyboard shortcut"
 msgstr "Toggle proxy on/off with a global keyboard shortcut"
 
-#: src/pages/settings/ui/settings-page.tsx:114
+#: src/pages/settings/ui/settings-page.tsx:115
 msgid "Tools"
 msgstr "Tools"
 
@@ -2264,6 +2297,10 @@ msgstr "URL pattern (e.g., *api.example.com*)"
 msgid "Use different client certificates for specific domains. Supports wildcards (*.example.com). Currently validates certificates only — domain-specific routing coming soon."
 msgstr "Use different client certificates for specific domains. Supports wildcards (*.example.com). Currently validates certificates only — domain-specific routing coming soon."
 
+#: src/pages/settings/ui/components/client-tags-section.tsx:121
+msgid "Use tags in the filter with client=\"tag_name\" to filter traffic by device"
+msgstr "Use tags in the filter with client=\"tag_name\" to filter traffic by device"
+
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:254
 msgid "Use wildcard patterns: * matches any string, ? matches a single character."
 msgstr "Use wildcard patterns: * matches any string, ? matches a single character."
@@ -2327,7 +2364,7 @@ msgstr "WebSocket connections and messages"
 msgid "WebSocket Replay"
 msgstr "WebSocket Replay"
 
-#: src/features/query-filter-editor/ui/query-builder.tsx:150
+#: src/features/query-filter-editor/ui/query-builder.tsx:151
 msgid "Where"
 msgstr "Where"
 
