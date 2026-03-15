@@ -15,6 +15,7 @@ import {
   RequestClientCertSection,
   SslProxyingSection,
   ProtoFilesSection,
+  ClientTagsSection,
 } from "./components";
 import { SettingsFormProvider, useSettingsForm, type SettingsFormValues } from "./settings-form";
 import { saveAllSettings } from "./save-settings";
@@ -203,6 +204,7 @@ function SettingsPageInner() {
             <ConnectionStrategySection />
             <SslProxyingSection />
             <UpstreamProxySection />
+            <ClientTagsSection />
           </div>
 
           <div
