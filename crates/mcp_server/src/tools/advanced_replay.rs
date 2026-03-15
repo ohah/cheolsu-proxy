@@ -153,6 +153,7 @@ impl CheolsuMcpServer {
         let results = std::sync::Arc::new(tokio::sync::Mutex::new(Vec::new()));
 
         let mut handles = Vec::new();
+        let wall_start = std::time::Instant::now();
 
         for _ in 0..iterations {
             let sem = semaphore.clone();
@@ -201,6 +202,7 @@ impl CheolsuMcpServer {
             let _ = handle.await;
         }
 
+        let wall_elapsed = wall_start.elapsed();
         let results = results.lock().await;
         let success_count = results.iter().filter(|(ok, _, _)| *ok).count();
         let failure_count = results.len() - success_count;
@@ -212,9 +214,9 @@ impl CheolsuMcpServer {
         let avg_ms = times.iter().sum::<f64>() / times.len() as f64;
         let min_ms = times.iter().cloned().fold(f64::MAX, f64::min);
         let max_ms = times.iter().cloned().fold(0.0f64, f64::max);
-        let total_secs = times.iter().sum::<f64>() / 1000.0;
-        let rps = if total_secs > 0.0 {
-            iterations as f64 / total_secs * concurrency as f64
+        let wall_secs = wall_elapsed.as_secs_f64();
+        let rps = if wall_secs > 0.0 {
+            iterations as f64 / wall_secs
         } else {
             0.0
         };

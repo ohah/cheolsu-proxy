@@ -1,7 +1,7 @@
 use proxy_daemon::ServerReplayEntry;
 use rmcp::{handler::server::wrapper::Parameters, model::*, tool, ErrorData as McpError};
 
-use crate::helpers::{next_server_replay_id, read_body_text, tool_error, tool_ok};
+use crate::helpers::{next_server_replay_id, tool_error, tool_ok};
 use crate::params::*;
 use crate::server::CheolsuMcpServer;
 
@@ -73,13 +73,12 @@ impl CheolsuMcpServer {
                 .map(|(k, v)| (k.to_string(), v.to_str().unwrap_or("<binary>").to_string()))
                 .collect();
 
-            let body = if res.body_size() > 0 {
-                let text = read_body_text(res.file_path(), res.data_type());
-                if text.starts_with('(') {
-                    None
-                } else {
-                    Some(text)
-                }
+            let body = if res.body_size() > 0 && res.data_type().is_text_based() {
+                res.file_path()
+                    .as_ref()
+                    .and_then(|p| std::fs::read(p).ok())
+                    .and_then(|bytes| String::from_utf8(bytes).ok())
+                    .or_else(|| res.body().and_then(|b| String::from_utf8(b.to_vec()).ok()))
             } else {
                 None
             };
