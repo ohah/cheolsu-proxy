@@ -142,10 +142,7 @@ export const SseDashboard = () => {
                 minSize="20%"
                 className="h-full overflow-hidden"
               >
-                <SseMessageDetail
-                  event={selectedEvent}
-                  onClose={handleCloseDetail}
-                />
+                <SseMessageDetail event={selectedEvent} onClose={handleCloseDetail} />
               </ResizablePanel>
             </>
           )}
