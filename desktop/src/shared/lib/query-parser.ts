@@ -5,6 +5,8 @@ export interface ParsedQuery {
   excludeStatus: string[];
   urls: string[];
   excludeUrls: string[];
+  clients: string[];
+  excludeClients: string[];
   operator: "and" | "or";
 }
 
@@ -37,6 +39,8 @@ export function parseFilterQuery(query: string): ParsedQuery {
     excludeStatus: [],
     urls: [],
     excludeUrls: [],
+    clients: [],
+    excludeClients: [],
     operator: "and",
   };
 
@@ -101,6 +105,20 @@ export function parseFilterQuery(query: string): ParsedQuery {
           result.excludeUrls.push(...urlParts);
         } else {
           result.urls.push(...urlParts);
+        }
+        break;
+      }
+
+      case "client": {
+        const clientParts = value
+          .split(",")
+          .map((c) => c.trim())
+          .filter(Boolean);
+
+        if (isExclude) {
+          result.excludeClients.push(...clientParts);
+        } else {
+          result.clients.push(...clientParts);
         }
         break;
       }

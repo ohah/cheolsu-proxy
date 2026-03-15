@@ -28,6 +28,6 @@ export const STATUS_CODES = [
   { code: "503", detail: "Service Unavailable" },
 ] as const;
 
-export const FILTER_KEYWORDS = ["method", "methods", "status", "url"] as const;
+export const FILTER_KEYWORDS = ["method", "methods", "status", "url", "client"] as const;
 export const LOGICAL_OPERATORS = ["and", "or"] as const;
 export const COMPARISON_OPERATORS = ["=", "|=", "|~", "!=", "!~"] as const;

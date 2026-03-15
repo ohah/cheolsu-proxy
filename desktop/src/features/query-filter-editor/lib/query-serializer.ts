@@ -2,7 +2,7 @@ import type { ParsedQuery } from "@/shared/lib/query-parser";
 
 export interface FilterCondition {
   id: string;
-  field: "method" | "status" | "url";
+  field: "method" | "status" | "url" | "client";
   operator: "=" | "!=" | "|=";
   values: string[];
   logicalOperator: "and" | "or";
@@ -111,6 +111,24 @@ export function parsedQueryToBuilderState(parsed: ParsedQuery): BuilderState {
       field: "url",
       operator: "!=",
       values: parsed.excludeUrls,
+      logicalOperator: parsed.operator,
+    });
+  }
+  if (parsed.clients.length > 0) {
+    conditions.push({
+      id: createConditionId(),
+      field: "client",
+      operator: "|=",
+      values: parsed.clients,
+      logicalOperator: parsed.operator,
+    });
+  }
+  if (parsed.excludeClients.length > 0) {
+    conditions.push({
+      id: createConditionId(),
+      field: "client",
+      operator: "!=",
+      values: parsed.excludeClients,
       logicalOperator: parsed.operator,
     });
   }

@@ -81,6 +81,47 @@ const matchesPathFilter = (
   });
 };
 
+const matchesClientFilter = (
+  clientAddr: string | undefined,
+  proxyAuthUser: string | undefined,
+  clientFilters: string[],
+  excludeFilters: string[],
+  clientTags: Record<string, string> = {},
+): boolean => {
+  const addr = clientAddr ?? "";
+  // IP에서 포트 제거 (예: "192.168.1.1:54321" → "192.168.1.1")
+  const ip = addr.includes(":") ? addr.replace(/:\d+$/, "") : addr;
+  // IPv6 대괄호 제거 (예: "[::1]" → "::1")
+  const cleanIp = ip.replace(/^\[|\]$/g, "");
+  const tag = clientTags[cleanIp] ?? "";
+  const user = proxyAuthUser ?? "";
+
+  // 제외 필터 체크
+  const isExcluded = excludeFilters.some((filter) => {
+    const lowerFilter = filter.toLowerCase();
+    return (
+      cleanIp.includes(lowerFilter) ||
+      tag.toLowerCase().includes(lowerFilter) ||
+      user.toLowerCase().includes(lowerFilter)
+    );
+  });
+
+  if (isExcluded) return false;
+
+  // 포함 필터가 없으면 모두 통과
+  if (clientFilters.length === 0) return true;
+
+  // 포함 필터 체크 (IP, 태그, 사용자명 중 하나라도 매칭)
+  return clientFilters.some((filter) => {
+    const lowerFilter = filter.toLowerCase();
+    return (
+      cleanIp.includes(lowerFilter) ||
+      tag.toLowerCase().includes(lowerFilter) ||
+      user.toLowerCase().includes(lowerFilter)
+    );
+  });
+};
+
 export const getFilteredTransactions = (
   transactions: HttpTransaction[],
   statusFilter: string[],
@@ -89,6 +130,9 @@ export const getFilteredTransactions = (
   excludeStatus: string[] = [],
   excludeMethods: string[] = [],
   excludeUrls: string[] = [],
+  clientFilters: string[] = [],
+  excludeClients: string[] = [],
+  clientTags: Record<string, string> = {},
   operator: "and" | "or" = "and",
 ): HttpTransaction[] => {
   if (
@@ -97,7 +141,9 @@ export const getFilteredTransactions = (
     pathFilters.length === 0 &&
     excludeStatus.length === 0 &&
     excludeMethods.length === 0 &&
-    excludeUrls.length === 0
+    excludeUrls.length === 0 &&
+    clientFilters.length === 0 &&
+    excludeClients.length === 0
   ) {
     return transactions;
   }
@@ -106,27 +152,40 @@ export const getFilteredTransactions = (
     const status = transaction.response?.status ?? 0;
     const method = transaction.request?.method ?? "";
     const path = transaction.request?.uri ?? "";
+    const clientAddr = transaction.request?.client_addr;
+    const proxyAuthUser = transaction.request?.proxy_auth_user;
 
     const statusMatch = matchesStatusFilter(status, statusFilter, excludeStatus);
     const methodMatch = matchesMethodFilter(method, methodFilter, excludeMethods);
     const pathMatch = matchesPathFilter(path, pathFilters, excludeUrls);
+    const clientMatch = matchesClientFilter(
+      clientAddr,
+      proxyAuthUser,
+      clientFilters,
+      excludeClients,
+      clientTags,
+    );
 
     if (operator === "or") {
       const hasIncludeFilter =
-        statusFilter.length > 0 || methodFilter.length > 0 || pathFilters.length > 0;
+        statusFilter.length > 0 ||
+        methodFilter.length > 0 ||
+        pathFilters.length > 0 ||
+        clientFilters.length > 0;
 
       if (!hasIncludeFilter) {
-        return statusMatch && methodMatch && pathMatch;
+        return statusMatch && methodMatch && pathMatch && clientMatch;
       }
 
       const includeMatch =
         (statusFilter.length > 0 && statusMatch) ||
         (methodFilter.length > 0 && methodMatch) ||
-        (pathFilters.length > 0 && pathMatch);
+        (pathFilters.length > 0 && pathMatch) ||
+        (clientFilters.length > 0 && clientMatch);
 
       return includeMatch;
     }
 
-    return statusMatch && methodMatch && pathMatch;
+    return statusMatch && methodMatch && pathMatch && clientMatch;
   });
 };
