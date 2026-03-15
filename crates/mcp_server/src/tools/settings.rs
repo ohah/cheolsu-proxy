@@ -14,8 +14,11 @@ impl CheolsuMcpServer {
         Parameters(p): Parameters<UpdateUpstreamProxyParams>,
     ) -> Result<CallToolResult, McpError> {
         let config = if p.enabled {
+            let Some(host) = p.host else {
+                return tool_error("host is required when enabling upstream proxy.");
+            };
             Some(proxy_daemon::UpstreamProxyConfig {
-                host: p.host.unwrap_or_default(),
+                host,
                 port: p.port.unwrap_or(8080),
                 auth: match (p.username, p.password) {
                     (Some(u), Some(pw)) => Some(proxy_daemon::UpstreamProxyAuth {
