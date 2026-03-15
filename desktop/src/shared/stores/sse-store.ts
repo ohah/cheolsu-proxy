@@ -83,6 +83,10 @@ export const useSseStore = create<SseStoreState>()((set) => ({
 
   clearAll: () => {
     sseEventBuffer.length = 0;
+    if (sseFlushRafId) {
+      cancelAnimationFrame(sseFlushRafId);
+      sseFlushRafId = 0;
+    }
     set({
       events: [],
       connections: new Map(),

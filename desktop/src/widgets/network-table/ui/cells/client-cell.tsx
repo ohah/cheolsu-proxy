@@ -9,8 +9,15 @@ export const ClientCell = memo<TableCellProps>(({ data }) => {
     return <div className="text-sm text-muted-foreground">-</div>;
   }
 
-  // IP:port에서 IP 부분만 표시
-  const display = clientAddr.replace(/:\d+$/, "");
+  // IP:port에서 IP 부분만 표시 (IPv6 [::1]:port 대응)
+  let display = clientAddr;
+  if (clientAddr.startsWith("[")) {
+    // IPv6: [::1]:port → ::1
+    display = clientAddr.replace(/^\[(.+)\]:\d+$/, "$1");
+  } else {
+    // IPv4: 127.0.0.1:port → 127.0.0.1
+    display = clientAddr.replace(/:\d+$/, "");
+  }
 
   return (
     <div className="text-sm font-mono truncate" title={clientAddr}>

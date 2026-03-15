@@ -21,10 +21,11 @@ impl LoggingHandler {
         // Waterfall 타이밍 계산: TTFB와 Content Download 분리
         let timing = self.request.request_start.map(|start| {
             let total_ms = start.elapsed().as_millis() as u64;
-            let ttfb_ms = self
-                .request
-                .response_header_time
-                .map(|header_time| header_time.duration_since(start).as_millis() as u64);
+            let ttfb_ms = self.request.response_header_time.and_then(|header_time| {
+                header_time
+                    .checked_duration_since(start)
+                    .map(|d| d.as_millis() as u64)
+            });
             let content_download_ms = match (self.request.response_header_time, ttfb_ms) {
                 (Some(_), Some(ttfb)) if total_ms > ttfb => Some(total_ms - ttfb),
                 _ => None,
