@@ -1,4 +1,4 @@
-import { useMemo, useCallback } from "react";
+import { useMemo, useCallback, useRef, useEffect } from "react";
 import { Trans } from "@lingui/react/macro";
 import { Trash2, Radio } from "lucide-react";
 
@@ -13,7 +13,7 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from "@/shared/ui";
-import { useDefaultLayout } from "react-resizable-panels";
+import { useDefaultLayout, type ImperativePanelHandle } from "react-resizable-panels";
 import type { SseEventInfo, SseConnection } from "@/entities/sse";
 
 export const SseDashboard = () => {
@@ -61,6 +61,16 @@ export const SseDashboard = () => {
   const handleCloseDetail = useCallback(() => {
     setSelectedEvent(null);
   }, [setSelectedEvent]);
+
+  const detailPanelRef = useRef<ImperativePanelHandle>(null);
+
+  useEffect(() => {
+    if (selectedEvent) {
+      detailPanelRef.current?.expand();
+    } else {
+      detailPanelRef.current?.collapse();
+    }
+  }, [selectedEvent]);
 
   const { defaultLayout, onLayoutChanged } = useDefaultLayout({
     id: "sse-dashboard-layout",
@@ -133,19 +143,20 @@ export const SseDashboard = () => {
             />
           </ResizablePanel>
 
-          {selectedEvent && (
-            <>
-              <ResizableHandle withHandle />
-              <ResizablePanel
-                id="sse-detail"
-                maxSize="50%"
-                minSize="20%"
-                className="h-full overflow-hidden"
-              >
-                <SseMessageDetail event={selectedEvent} onClose={handleCloseDetail} />
-              </ResizablePanel>
-            </>
-          )}
+          <ResizableHandle withHandle />
+          <ResizablePanel
+            ref={detailPanelRef}
+            id="sse-detail"
+            maxSize="50%"
+            minSize="20%"
+            defaultSize="0%"
+            collapsible
+            className="h-full overflow-hidden"
+          >
+            {selectedEvent && (
+              <SseMessageDetail event={selectedEvent} onClose={handleCloseDetail} />
+            )}
+          </ResizablePanel>
         </ResizablePanelGroup>
       </div>
     </div>
