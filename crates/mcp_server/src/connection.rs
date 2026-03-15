@@ -21,6 +21,8 @@ pub async fn try_connect_daemon(store: &Store) -> Option<DaemonConnection> {
         DaemonMessage::HostMappingsUpdated { mappings } => {
             *store.host_mappings.lock() = mappings;
         }
+        DaemonMessage::SseEvent { data } => store.push_sse_event(data),
+        DaemonMessage::SseConnection { data } => store.push_sse_connection(data),
         _ => {}
     })
     .await
