@@ -1,11 +1,12 @@
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useCallback } from "react";
 
 import type { HttpTransaction } from "@/entities/proxy";
 
 import { TableHeader } from "./table-header";
 import { TableBody } from "./table-body";
 import { useTableData } from "../hooks";
-import { loadVisibleColumns, saveVisibleColumns, type ColumnKey } from "../model";
+import { type ColumnKey } from "../model";
+import { useAppSettingsStore } from "@/shared/stores/app-settings-store";
 import { Pin } from "lucide-react";
 
 interface NetworkTableProps {
@@ -33,21 +34,24 @@ export const NetworkTable = ({
   onAdvancedRepeat,
   onToggleCheckAll,
 }: NetworkTableProps) => {
-  const [visibleColumns, setVisibleColumns] = useState<Set<ColumnKey>>(loadVisibleColumns);
+  const storedColumns = useAppSettingsStore((s) => s.visibleColumns);
+  const setStoredColumns = useAppSettingsStore((s) => s.setVisibleColumns);
 
-  const handleToggleColumn = useCallback((key: ColumnKey) => {
-    setVisibleColumns((prev) => {
-      const next = new Set(prev);
+  const visibleColumns = useMemo(() => new Set(storedColumns as ColumnKey[]), [storedColumns]);
+
+  const handleToggleColumn = useCallback(
+    (key: ColumnKey) => {
+      const next = new Set(visibleColumns);
       if (next.has(key)) {
-        if (next.size <= 1) return prev;
+        if (next.size <= 1) return;
         next.delete(key);
       } else {
         next.add(key);
       }
-      saveVisibleColumns(next);
-      return next;
-    });
-  }, []);
+      setStoredColumns([...next]);
+    },
+    [visibleColumns, setStoredColumns],
+  );
 
   const { pinnedTransactions, unpinnedTransactions } = useMemo(() => {
     const pinned: HttpTransaction[] = [];

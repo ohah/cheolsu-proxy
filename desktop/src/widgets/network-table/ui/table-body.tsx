@@ -75,7 +75,7 @@ export const TableBody = ({
         />
       );
     },
-    [data, rowHandlers],
+    [data, rowHandlers, visibleColumns],
   );
 
   if (data.length === 0) {

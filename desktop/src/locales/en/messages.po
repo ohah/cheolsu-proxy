@@ -241,11 +241,11 @@ msgstr "Apply:"
 msgid "Authentication"
 msgstr "Authentication"
 
-#: src/pages/settings/ui/components/general-settings.tsx:193
+#: src/pages/settings/ui/components/general-settings.tsx:235
 msgid "Auto Save Session"
 msgstr "Auto Save Session"
 
-#: src/pages/settings/ui/components/general-settings.tsx:196
+#: src/pages/settings/ui/components/general-settings.tsx:238
 msgid "Automatically save the current session when the app closes and restore it on next launch"
 msgstr "Automatically save the current session when the app closes and restore it on next launch"
 
@@ -263,7 +263,7 @@ msgstr "Blacklist (Exclude)"
 msgid "Block"
 msgstr "Block"
 
-#: src/pages/settings/ui/components/general-settings.tsx:157
+#: src/pages/settings/ui/components/general-settings.tsx:199
 msgid "Block Cookies"
 msgstr "Block Cookies"
 
@@ -277,8 +277,8 @@ msgstr "Block Cookies"
 msgid "Body"
 msgstr "Body"
 
-#: src/pages/settings/ui/components/general-settings.tsx:118
-#: src/pages/settings/ui/components/general-settings.tsx:119
+#: src/pages/settings/ui/components/general-settings.tsx:136
+#: src/pages/settings/ui/components/general-settings.tsx:137
 msgid "Bottom"
 msgstr "Bottom"
 
@@ -397,9 +397,13 @@ msgstr "Change"
 msgid "Cheolsu Proxy Logo"
 msgstr "Cheolsu Proxy Logo"
 
-#: src/pages/settings/ui/components/general-settings.tsx:102
+#: src/pages/settings/ui/components/general-settings.tsx:120
 msgid "Choose where the transaction details panel appears"
 msgstr "Choose where the transaction details panel appears"
+
+#: src/pages/settings/ui/components/general-settings.tsx:150
+msgid "Choose which columns to display in the network table"
+msgstr "Choose which columns to display in the network table"
 
 #: src/shared/app-sidebar/ui/sidebar-mcp.tsx:104
 msgid "Claude Code (CLI)"
@@ -563,7 +567,7 @@ msgstr "Custom body"
 msgid "Custom CA Certificate"
 msgstr "Custom CA Certificate"
 
-#: src/pages/settings/ui/components/general-settings.tsx:84
+#: src/pages/settings/ui/components/general-settings.tsx:102
 msgid "Dark"
 msgstr "Dark"
 
@@ -609,7 +613,7 @@ msgstr "Delete rule"
 msgid "Delete Transaction"
 msgstr "Delete Transaction"
 
-#: src/pages/settings/ui/components/general-settings.tsx:99
+#: src/pages/settings/ui/components/general-settings.tsx:117
 msgid "Details Panel Layout"
 msgstr "Details Panel Layout"
 
@@ -632,7 +636,7 @@ msgstr "Disabled"
 msgid "Disconnected"
 msgstr "Disconnected"
 
-#: src/pages/settings/ui/components/general-settings.tsx:216
+#: src/pages/settings/ui/components/general-settings.tsx:258
 msgid "Display CONNECT tunnel requests in the network list"
 msgstr "Display CONNECT tunnel requests in the network list"
 
@@ -985,7 +989,7 @@ msgstr "Key file"
 msgid "Key File"
 msgstr "Key File"
 
-#: src/pages/settings/ui/components/general-settings.tsx:48
+#: src/pages/settings/ui/components/general-settings.tsx:66
 msgid "Language"
 msgstr "Language"
 
@@ -994,7 +998,7 @@ msgstr "Language"
 msgid "Latency (ms)"
 msgstr "Latency (ms)"
 
-#: src/pages/settings/ui/components/general-settings.tsx:84
+#: src/pages/settings/ui/components/general-settings.tsx:102
 msgid "Light"
 msgstr "Light"
 
@@ -1191,6 +1195,10 @@ msgstr "Name"
 msgid "Network"
 msgstr "Network"
 
+#: src/pages/settings/ui/components/general-settings.tsx:147
+msgid "Network Table Columns"
+msgstr "Network Table Columns"
+
 #: src/pages/settings/ui/components/throttle-section.tsx:19
 msgid "Network Throttling"
 msgstr "Network Throttling"
@@ -1207,7 +1215,7 @@ msgstr "No active WebSocket connections"
 msgid "No breakpoint rules"
 msgstr "No breakpoint rules"
 
-#: src/pages/settings/ui/components/general-settings.tsx:140
+#: src/pages/settings/ui/components/general-settings.tsx:182
 msgid "No Caching"
 msgstr "No Caching"
 
@@ -1223,7 +1231,7 @@ msgstr "No conditions"
 msgid "No console output yet"
 msgstr "No console output yet"
 
-#: src/pages/settings/ui/components/general-settings.tsx:176
+#: src/pages/settings/ui/components/general-settings.tsx:218
 msgid "No Gzip"
 msgstr "No Gzip"
 
@@ -1434,7 +1442,7 @@ msgstr "Preset"
 msgid "Press a key combination..."
 msgstr "Press a key combination..."
 
-#: src/pages/settings/ui/components/general-settings.tsx:143
+#: src/pages/settings/ui/components/general-settings.tsx:185
 msgid "Prevent caching by removing conditional headers and adding no-cache directives"
 msgstr "Prevent caching by removing conditional headers and adding no-cache directives"
 
@@ -1482,11 +1490,11 @@ msgstr "Query Syntax Guide"
 msgid "Query syntax help"
 msgstr "Query syntax help"
 
-#: src/pages/settings/ui/components/general-settings.tsx:129
+#: src/pages/settings/ui/components/general-settings.tsx:171
 msgid "Quick Settings"
 msgstr "Quick Settings"
 
-#: src/pages/settings/ui/components/general-settings.tsx:132
+#: src/pages/settings/ui/components/general-settings.tsx:174
 msgid "Quick toggles for common proxy behaviors"
 msgstr "Quick toggles for common proxy behaviors"
 
@@ -1531,11 +1539,11 @@ msgstr "Remote Device Certificate"
 msgid "Remove"
 msgstr "Remove"
 
-#: src/pages/settings/ui/components/general-settings.tsx:179
+#: src/pages/settings/ui/components/general-settings.tsx:221
 msgid "Remove Accept-Encoding header from requests to prevent compressed responses"
 msgstr "Remove Accept-Encoding header from requests to prevent compressed responses"
 
-#: src/pages/settings/ui/components/general-settings.tsx:160
+#: src/pages/settings/ui/components/general-settings.tsx:202
 msgid "Remove Cookie headers from requests and Set-Cookie headers from responses"
 msgstr "Remove Cookie headers from requests and Set-Cookie headers from responses"
 
@@ -1725,8 +1733,8 @@ msgstr "Return cached responses for matching requests instead of forwarding to t
 msgid "Rewrite"
 msgstr "Rewrite"
 
-#: src/pages/settings/ui/components/general-settings.tsx:115
-#: src/pages/settings/ui/components/general-settings.tsx:116
+#: src/pages/settings/ui/components/general-settings.tsx:133
+#: src/pages/settings/ui/components/general-settings.tsx:134
 msgid "Right"
 msgstr "Right"
 
@@ -1976,7 +1984,7 @@ msgstr "Setup Instructions:"
 msgid "Shortcut Key"
 msgstr "Shortcut Key"
 
-#: src/pages/settings/ui/components/general-settings.tsx:213
+#: src/pages/settings/ui/components/general-settings.tsx:255
 msgid "Show CONNECT Requests"
 msgstr "Show CONNECT Requests"
 
@@ -2061,7 +2069,7 @@ msgstr "Switch to Builder mode"
 msgid "Switch to Code mode"
 msgstr "Switch to Code mode"
 
-#: src/pages/settings/ui/components/general-settings.tsx:84
+#: src/pages/settings/ui/components/general-settings.tsx:102
 msgid "System"
 msgstr "System"
 
@@ -2102,7 +2110,7 @@ msgstr "The certificate must be a CA certificate (BasicConstraints CA=true). Aft
 msgid "The DER certificate file will download automatically"
 msgstr "The DER certificate file will download automatically"
 
-#: src/pages/settings/ui/components/general-settings.tsx:69
+#: src/pages/settings/ui/components/general-settings.tsx:87
 msgid "Theme"
 msgstr "Theme"
 

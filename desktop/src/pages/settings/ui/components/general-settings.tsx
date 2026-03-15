@@ -1,10 +1,11 @@
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
 import { useTheme } from "next-themes";
 import { loadCatalog, locales, type Locale } from "@/shared/lib/i18n";
 import { useAppSettingsStore, type DetailsPanelLayout } from "@/shared/stores/app-settings-store";
 import { Switch, Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/shared/ui";
+import { TABLE_COLUMNS, type ColumnKey } from "@/widgets/network-table/model";
 import { useSettingsForm } from "../settings-form";
 
 const THEME_OPTIONS = [
@@ -21,6 +22,23 @@ export function GeneralSettings() {
   const setLocale = useAppSettingsStore((s) => s.setLocale);
   const detailsPanelLayout = useAppSettingsStore((s) => s.detailsPanelLayout);
   const setDetailsPanelLayout = useAppSettingsStore((s) => s.setDetailsPanelLayout);
+  const storedColumns = useAppSettingsStore((s) => s.visibleColumns);
+  const setStoredColumns = useAppSettingsStore((s) => s.setVisibleColumns);
+  const visibleColumnsSet = useMemo(() => new Set(storedColumns as ColumnKey[]), [storedColumns]);
+
+  const handleToggleColumn = useCallback(
+    (key: ColumnKey, checked: boolean) => {
+      const next = new Set(visibleColumnsSet);
+      if (checked) {
+        next.add(key);
+      } else {
+        if (next.size <= 1) return;
+        next.delete(key);
+      }
+      setStoredColumns([...next]);
+    },
+    [visibleColumnsSet, setStoredColumns],
+  );
 
   const { watch, setValue } = useSettingsForm();
   const noCaching = watch("quickSettings.noCaching");
@@ -120,6 +138,30 @@ export function GeneralSettings() {
             </SelectItem>
           </SelectContent>
         </Select>
+      </div>
+
+      {/* Network Table Columns Section */}
+      <div className="border rounded-lg p-5 space-y-5">
+        <div>
+          <h2 className="text-lg font-semibold">
+            <Trans>Network Table Columns</Trans>
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            <Trans>Choose which columns to display in the network table</Trans>
+          </p>
+        </div>
+        <div className="space-y-4">
+          {TABLE_COLUMNS.map((col) => (
+            <div key={col.key} className="flex items-center justify-between">
+              <label className="text-sm font-medium">{col.label}</label>
+              <Switch
+                checked={visibleColumnsSet.has(col.key)}
+                onCheckedChange={(checked) => handleToggleColumn(col.key, checked)}
+                disabled={visibleColumnsSet.has(col.key) && visibleColumnsSet.size <= 1}
+              />
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Quick Settings Section */}
