@@ -1,5 +1,5 @@
 import type { HttpTransaction } from "@/entities/proxy";
-import { isTextBasedDataType } from "@/entities/proxy/model/data-type";
+import { isTextBasedDataType } from "@/shared/lib/data-type";
 
 /**
  * HTTP 요청을 HTTPie CLI 명령어로 변환

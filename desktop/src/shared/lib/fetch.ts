@@ -1,5 +1,5 @@
 import type { HttpTransaction } from "@/entities/proxy";
-import { isTextBasedDataType } from "@/entities/proxy/model/data-type";
+import { isTextBasedDataType } from "@/shared/lib/data-type";
 
 /**
  * HTTP 요청을 JavaScript fetch API 코드로 변환

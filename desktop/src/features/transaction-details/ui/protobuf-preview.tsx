@@ -3,7 +3,7 @@ import { ChevronRight, ChevronDown, AlertTriangle, Download } from "lucide-react
 import { readFile, BaseDirectory } from "@tauri-apps/plugin-fs";
 import { invoke } from "@tauri-apps/api/core";
 
-import type { DataType } from "@/entities/proxy/model/data-type";
+import type { DataType } from "@/entities/proxy";
 import { Button } from "@/shared/ui";
 import { formatBytes } from "@/shared/lib";
 import {

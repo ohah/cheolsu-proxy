@@ -15,7 +15,7 @@ import {
   isMediaDataType,
   isBinaryDataType,
   isProtobufDataType,
-} from "@/entities/proxy/model/data-type";
+} from "@/entities/proxy";
 import { toast } from "sonner";
 import { MediaPreview } from "./media-preview";
 import { BinaryPreview } from "./binary-preview";

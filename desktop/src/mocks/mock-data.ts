@@ -1,5 +1,5 @@
 import type { HttpRequest, HttpResponse, HttpTransaction } from "@/entities/proxy";
-import type { DataType } from "@/entities/proxy/model/data-type";
+import type { DataType } from "@/entities/proxy";
 
 let idCounter = 0;
 function nextId(): string {
