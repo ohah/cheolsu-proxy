@@ -1,8 +1,8 @@
 use super::state::get_command_sender;
 use super::ProxyV2State;
 use proxy_daemon::{
-    ClientCommand, HostMapping, ProxyAuthConfig, ServerReplayEntry, SslProxyingEntry,
-    SslProxyingMode, ThrottleConfig, UpstreamProxyConfig,
+    ClientCommand, HostMapping, ProxyAuthConfig, ReverseProxyRule, ServerReplayEntry,
+    SslProxyingEntry, SslProxyingMode, ThrottleConfig, UpstreamProxyConfig,
 };
 use tauri::State;
 
@@ -77,6 +77,18 @@ pub(crate) async fn update_host_mappings(
     let cmd = ClientCommand::UpdateHostMappings { mappings };
     sender.send_command(&cmd).await?;
     tracing::info!("Daemon에 호스트 매핑 업데이트 완료");
+    Ok(())
+}
+
+#[tauri::command]
+pub(crate) async fn update_reverse_proxy_rules(
+    proxy: State<'_, ProxyV2State>,
+    rules: Vec<ReverseProxyRule>,
+) -> Result<(), String> {
+    let sender = get_command_sender(&proxy).await?;
+    let cmd = ClientCommand::UpdateReverseProxyRules { rules };
+    sender.send_command(&cmd).await?;
+    tracing::info!("Daemon에 리버스 프록시 규칙 업데이트 완료");
     Ok(())
 }
 

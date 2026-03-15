@@ -10,6 +10,7 @@ import {
   PauseCircle,
   Globe,
   ScrollText,
+  ArrowLeftRight,
 } from "lucide-react";
 import { msg } from "@lingui/core/macro";
 
@@ -73,6 +74,13 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
     label: msg`Host Mapping`,
     icon: Globe,
     description: msg`Map DNS hostnames to different targets`,
+  },
+  {
+    id: "reverse-proxy",
+    path: "/reverse-proxy",
+    label: msg`Reverse Proxy`,
+    icon: ArrowLeftRight,
+    description: msg`Route requests to backend servers by Host header`,
   },
   {
     id: "script",

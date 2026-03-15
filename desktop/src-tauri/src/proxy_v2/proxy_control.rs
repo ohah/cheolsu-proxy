@@ -120,6 +120,11 @@ pub(crate) async fn start_proxy_v2<R: Runtime>(
                                 tracing::warn!("emit host_mappings_updated 실패: {}", e);
                             }
                         }
+                        DaemonMessage::ReverseProxyRulesUpdated { rules } => {
+                            if let Err(e) = app.emit("reverse_proxy_rules_updated", rules) {
+                                tracing::warn!("emit reverse_proxy_rules_updated 실패: {}", e);
+                            }
+                        }
                         DaemonMessage::SslProxyingListUpdated { mode, entries } => {
                             if let Err(e) = app.emit(
                                 "ssl_proxying_list_updated",

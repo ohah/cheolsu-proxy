@@ -87,6 +87,7 @@ msgstr "Active Custom CA"
 #: src/features/transaction-details/ui/replay-dialog.tsx:434
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:134
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:140
+#: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:142
 #: src/pages/server-replay/ui/server-replay-page.tsx:170
 #: src/pages/settings/ui/components/client-tags-section.tsx:116
 #: src/pages/settings/ui/components/ssl-proxying-section.tsx:209
@@ -146,6 +147,7 @@ msgstr "Add Proto Files"
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:113
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:81
 #: src/pages/map-rules/ui/map-rules-page.tsx:72
+#: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:164
 msgid "Add Rule"
 msgstr "Add Rule"
 
@@ -157,6 +159,10 @@ msgstr "Add rules to intercept, block, or modify HTTP requests and responses."
 msgid "Add rules to map URLs to local files or redirect to other servers."
 msgstr "Add rules to map URLs to local files or redirect to other servers."
 
+#: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:159
+msgid "Add rules to route requests with relative URIs to backend servers based on Host header."
+msgstr "Add rules to route requests with relative URIs to backend servers based on Host header."
+
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:159
 msgid "Add your first mapping"
 msgstr "Add your first mapping"
@@ -164,6 +170,7 @@ msgstr "Add your first mapping"
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:172
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:80
 #: src/pages/map-rules/ui/map-rules-page.tsx:71
+#: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:163
 msgid "Add your first rule"
 msgstr "Add your first rule"
 
@@ -216,6 +223,10 @@ msgstr "All HTTPS traffic is intercepted. {defaultEnabledCount} built-in domain(
 msgid "All Methods"
 msgstr "All Methods"
 
+#: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:68
+msgid "All reverse proxy rules cleared"
+msgstr "All reverse proxy rules cleared"
+
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:54
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:68
 #: src/pages/map-rules/ui/map-rules-page.tsx:55
@@ -257,6 +268,22 @@ msgstr "Automatically save the current session when the app closes and restore i
 #: src/pages/server-replay/ui/server-replay-page.tsx:124
 msgid "available"
 msgstr "available"
+
+#: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:111
+msgid "Backend Host"
+msgstr "Backend Host"
+
+#: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:121
+msgid "Backend Port"
+msgstr "Backend Port"
+
+#: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:37
+msgid "Backend port must be between 1 and 65535"
+msgstr "Backend port must be between 1 and 65535"
+
+#: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:88
+msgid "Backend Scheme"
+msgstr "Backend Scheme"
 
 #: src/pages/settings/ui/components/ssl-proxying-section.tsx:192
 msgid "Blacklist (Exclude)"
@@ -304,7 +331,7 @@ msgid "Breakpoint rule added"
 msgstr "Breakpoint rule added"
 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:90
-#: src/shared/app-sidebar/model/consts.ts:66
+#: src/shared/app-sidebar/model/consts.ts:67
 msgid "Breakpoints"
 msgstr "Breakpoints"
 
@@ -354,6 +381,7 @@ msgstr "CA Key File"
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:137
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:137
 #: src/pages/log-viewer/ui/logs-page.tsx:468
+#: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:139
 #: src/pages/settings/ui/components/shortcut-section.tsx:117
 msgid "Cancel"
 msgstr "Cancel"
@@ -614,6 +642,7 @@ msgstr "Delete mapping"
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:210
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:158
 #: src/pages/map-rules/ui/map-rules-page.tsx:135
+#: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:210
 msgid "Delete rule"
 msgstr "Delete rule"
 
@@ -636,6 +665,7 @@ msgid "Direction"
 msgstr "Direction"
 
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:186
+#: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:190
 #: src/pages/server-replay/ui/server-replay-page.tsx:96
 msgid "Disabled"
 msgstr "Disabled"
@@ -720,6 +750,7 @@ msgid "Enable full trust for the Cheolsu Proxy CA certificate"
 msgstr "Enable full trust for the Cheolsu Proxy CA certificate"
 
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:186
+#: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:190
 #: src/pages/server-replay/ui/server-replay-page.tsx:96
 msgid "Enabled"
 msgstr "Enabled"
@@ -902,7 +933,7 @@ msgid "Host"
 msgstr "Host"
 
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:150
-#: src/shared/app-sidebar/model/consts.ts:73
+#: src/shared/app-sidebar/model/consts.ts:74
 msgid "Host Mapping"
 msgstr "Host Mapping"
 
@@ -918,7 +949,7 @@ msgstr "Host mapping deleted"
 msgid "Host Tree"
 msgstr "Host Tree"
 
-#: src/shared/app-sidebar/model/consts.ts:26
+#: src/shared/app-sidebar/model/consts.ts:27
 msgid "HTTP requests and responses"
 msgstr "HTTP requests and responses"
 
@@ -986,7 +1017,7 @@ msgid "Installing..."
 msgstr "Installing..."
 
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:73
-#: src/shared/app-sidebar/model/consts.ts:45
+#: src/shared/app-sidebar/model/consts.ts:46
 msgid "Intercept Rules"
 msgstr "Intercept Rules"
 
@@ -1047,7 +1078,7 @@ msgstr "Load"
 msgid "Load a script file from disk. The file will be watched for changes and auto-reloaded."
 msgstr "Load a script file from disk. The file will be watched for changes and auto-reloaded."
 
-#: src/shared/app-sidebar/model/consts.ts:82
+#: src/shared/app-sidebar/model/consts.ts:90
 msgid "Load and manage proxy scripts"
 msgstr "Load and manage proxy scripts"
 
@@ -1092,11 +1123,11 @@ msgid "Logical OR:"
 msgstr "Logical OR:"
 
 #: src/pages/log-viewer/ui/logs-page.tsx:240
-#: src/shared/app-sidebar/model/consts.ts:94
+#: src/shared/app-sidebar/model/consts.ts:102
 msgid "Logs"
 msgstr "Logs"
 
-#: src/shared/app-sidebar/model/consts.ts:47
+#: src/shared/app-sidebar/model/consts.ts:48
 msgid "Manage request/response intercept rules"
 msgstr "Manage request/response intercept rules"
 
@@ -1108,7 +1139,7 @@ msgstr "Manage wildcard-based request/response intercept rules"
 msgid "Map DNS hostnames to different target hosts for testing and development"
 msgstr "Map DNS hostnames to different target hosts for testing and development"
 
-#: src/shared/app-sidebar/model/consts.ts:75
+#: src/shared/app-sidebar/model/consts.ts:76
 msgid "Map DNS hostnames to different targets"
 msgstr "Map DNS hostnames to different targets"
 
@@ -1119,7 +1150,7 @@ msgstr "Map DNS hostnames to different targets"
 msgid "Map Local"
 msgstr "Map Local"
 
-#: src/shared/app-sidebar/model/consts.ts:54
+#: src/shared/app-sidebar/model/consts.ts:55
 msgid "Map Local / Map Remote rules"
 msgstr "Map Local / Map Remote rules"
 
@@ -1139,7 +1170,7 @@ msgid "Map Remote"
 msgstr "Map Remote"
 
 #: src/pages/map-rules/ui/map-rules-page.tsx:60
-#: src/shared/app-sidebar/model/consts.ts:52
+#: src/shared/app-sidebar/model/consts.ts:53
 msgid "Map Rules"
 msgstr "Map Rules"
 
@@ -1154,6 +1185,14 @@ msgstr "Match 2xx success or 404 error"
 #: src/features/query-filter-editor/ui/filter-help-tooltip.tsx:38
 msgid "Match GET or POST methods"
 msgstr "Match GET or POST methods"
+
+#: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:78
+msgid "Match Host"
+msgstr "Match Host"
+
+#: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:32
+msgid "Match host and backend host are required"
+msgstr "Match host and backend host are required"
 
 #: src/features/intercept-rule-form/ui/rewrite-action-fields.tsx:50
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:462
@@ -1224,7 +1263,7 @@ msgid "Name"
 msgstr "Name"
 
 #: src/pages/settings/ui/settings-page.tsx:113
-#: src/shared/app-sidebar/model/consts.ts:24
+#: src/shared/app-sidebar/model/consts.ts:25
 msgid "Network"
 msgstr "Network"
 
@@ -1299,6 +1338,10 @@ msgstr "No proto files registered. gRPC messages will be decoded using wire form
 #: src/pages/server-replay/ui/server-replay-page.tsx:190
 msgid "No replay entries"
 msgstr "No replay entries"
+
+#: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:157
+msgid "No reverse proxy rules"
+msgstr "No reverse proxy rules"
 
 #: src/features/transaction-details/ui/transaction-timing.tsx:52
 msgid "No timing data available"
@@ -1411,7 +1454,7 @@ msgstr "Pattern is required"
 msgid "Pause and inspect HTTP requests/responses in real-time"
 msgstr "Pause and inspect HTTP requests/responses in real-time"
 
-#: src/shared/app-sidebar/model/consts.ts:68
+#: src/shared/app-sidebar/model/consts.ts:69
 msgid "Pause and inspect requests/responses"
 msgstr "Pause and inspect requests/responses"
 
@@ -1503,7 +1546,7 @@ msgstr "Proxy Authentication"
 msgid "Proxy configuration and preferences"
 msgstr "Proxy configuration and preferences"
 
-#: src/shared/app-sidebar/model/consts.ts:89
+#: src/shared/app-sidebar/model/consts.ts:97
 msgid "Proxy settings and configuration"
 msgstr "Proxy settings and configuration"
 
@@ -1752,7 +1795,7 @@ msgstr "Resume recording"
 msgid "Retry"
 msgstr "Retry"
 
-#: src/shared/app-sidebar/model/consts.ts:61
+#: src/shared/app-sidebar/model/consts.ts:62
 msgid "Return cached responses for matching requests"
 msgstr "Return cached responses for matching requests"
 
@@ -1760,16 +1803,45 @@ msgstr "Return cached responses for matching requests"
 msgid "Return cached responses for matching requests instead of forwarding to the server"
 msgstr "Return cached responses for matching requests instead of forwarding to the server"
 
+#: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:152
+#: src/shared/app-sidebar/model/consts.ts:81
+msgid "Reverse Proxy"
+msgstr "Reverse Proxy"
+
+#: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:52
+msgid "Reverse proxy rule added"
+msgstr "Reverse proxy rule added"
+
+#: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:63
+msgid "Reverse proxy rule deleted"
+msgstr "Reverse proxy rule deleted"
+
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:327
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:327
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:48
 msgid "Rewrite"
 msgstr "Rewrite"
 
+#: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:199
+msgid "Rewrite Host"
+msgstr "Rewrite Host"
+
+#: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:134
+msgid "Rewrite Host header to backend address"
+msgstr "Rewrite Host header to backend address"
+
 #: src/pages/settings/ui/components/general-settings.tsx:133
 #: src/pages/settings/ui/components/general-settings.tsx:134
 msgid "Right"
 msgstr "Right"
+
+#: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:154
+msgid "Route incoming requests to backend servers based on Host header matching"
+msgstr "Route incoming requests to backend servers based on Host header matching"
+
+#: src/shared/app-sidebar/model/consts.ts:83
+msgid "Route requests to backend servers by Host header"
+msgstr "Route requests to backend servers by Host header"
 
 #: src/pages/settings/ui/components/upstream-proxy-section.tsx:20
 msgid "Route traffic through an external proxy server"
@@ -1799,6 +1871,7 @@ msgstr "Rule updated"
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:103
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:75
 #: src/pages/map-rules/ui/map-rules-page.tsx:66
+#: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:156
 msgid "rules"
 msgstr "rules"
 
@@ -1839,7 +1912,7 @@ msgid "Scan for proxy info"
 msgstr "Scan for proxy info"
 
 #: src/pages/script/ui/script-page.tsx:162
-#: src/shared/app-sidebar/model/consts.ts:80
+#: src/shared/app-sidebar/model/consts.ts:88
 msgid "Script"
 msgstr "Script"
 
@@ -1968,11 +2041,11 @@ msgid "Serial Number"
 msgstr "Serial Number"
 
 #: src/pages/server-replay/ui/server-replay-page.tsx:84
-#: src/shared/app-sidebar/model/consts.ts:59
+#: src/shared/app-sidebar/model/consts.ts:60
 msgid "Server Replay"
 msgstr "Server Replay"
 
-#: src/shared/app-sidebar/model/consts.ts:40
+#: src/shared/app-sidebar/model/consts.ts:41
 msgid "Server-Sent Events streams"
 msgstr "Server-Sent Events streams"
 
@@ -2005,7 +2078,7 @@ msgid "Set Wi-Fi proxy on your device to <0>{0}:{1}</0>"
 msgstr "Set Wi-Fi proxy on your device to <0>{0}:{1}</0>"
 
 #: src/pages/settings/ui/settings-page.tsx:144
-#: src/shared/app-sidebar/model/consts.ts:87
+#: src/shared/app-sidebar/model/consts.ts:95
 msgid "Settings"
 msgstr "Settings"
 
@@ -2045,7 +2118,7 @@ msgid "Source Port"
 msgstr "Source Port"
 
 #: src/pages/sse-dashboard/ui/sse-dashboard.tsx:87
-#: src/shared/app-sidebar/model/consts.ts:38
+#: src/shared/app-sidebar/model/consts.ts:39
 msgid "SSE"
 msgstr "SSE"
 
@@ -2339,7 +2412,7 @@ msgstr "Version"
 msgid "View and manage application log files"
 msgstr "View and manage application log files"
 
-#: src/shared/app-sidebar/model/consts.ts:96
+#: src/shared/app-sidebar/model/consts.ts:104
 msgid "View application log files"
 msgstr "View application log files"
 
@@ -2352,11 +2425,11 @@ msgid "Waiting for WebSocket messages..."
 msgstr "Waiting for WebSocket messages..."
 
 #: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:95
-#: src/shared/app-sidebar/model/consts.ts:31
+#: src/shared/app-sidebar/model/consts.ts:32
 msgid "WebSocket"
 msgstr "WebSocket"
 
-#: src/shared/app-sidebar/model/consts.ts:33
+#: src/shared/app-sidebar/model/consts.ts:34
 msgid "WebSocket connections and messages"
 msgstr "WebSocket connections and messages"
 
@@ -2373,6 +2446,7 @@ msgid "Whitelist (Include)"
 msgstr "Whitelist (Include)"
 
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:190
+#: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:194
 msgid "Wildcard"
 msgstr "Wildcard"
 

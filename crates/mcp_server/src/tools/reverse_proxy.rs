@@ -24,11 +24,19 @@ impl CheolsuMcpServer {
         &self,
         Parameters(p): Parameters<AddReverseProxyRuleParams>,
     ) -> Result<CallToolResult, McpError> {
+        let backend_scheme = p.backend_scheme.unwrap_or_else(|| "http".to_string());
+        if backend_scheme != "http" && backend_scheme != "https" {
+            return crate::helpers::tool_error(format!(
+                "Invalid backend_scheme '{}'. Must be 'http' or 'https'.",
+                backend_scheme
+            ));
+        }
+
         let id = next_reverse_proxy_id();
         let rule = ReverseProxyRule {
             id: id.clone(),
             match_host: p.match_host,
-            backend_scheme: p.backend_scheme.unwrap_or_else(|| "http".to_string()),
+            backend_scheme,
             backend_host: p.backend_host,
             backend_port: p.backend_port,
             rewrite_host: p.rewrite_host.unwrap_or(true),

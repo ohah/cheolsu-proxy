@@ -19,8 +19,9 @@ use proxy_v2::{
     uninstall_ca_cert, uninstall_cli, unload_script, update_breakpoint_rules,
     update_client_certificate, update_connection_strategy, update_default_passthrough_domains,
     update_host_mappings, update_intercept_rules_v2, update_proxy_auth, update_quick_settings,
-    update_request_client_cert, update_server_replay, update_ssl_proxying_list, update_throttle,
-    update_upstream_proxy, ws_inject_message, ProxyV2State,
+    update_request_client_cert, update_reverse_proxy_rules, update_server_replay,
+    update_ssl_proxying_list, update_throttle, update_upstream_proxy, ws_inject_message,
+    ProxyV2State,
 };
 use std::sync::Arc;
 use system_proxy::get_proxy_status_command;
@@ -221,6 +222,7 @@ pub fn run() {
                 update_throttle,
                 update_server_replay,
                 update_host_mappings,
+                update_reverse_proxy_rules,
                 update_quick_settings,
                 get_mcp_server_path,
                 install_cli,

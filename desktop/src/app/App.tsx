@@ -11,6 +11,7 @@ import {
   useScriptStore,
   useBreakpointStore,
   useHostMappingStore,
+  useReverseProxyStore,
 } from "@/shared/stores";
 import { useSslProxyingStore } from "@/shared/stores/ssl-proxying-store";
 import { bufferWsMessage } from "@/shared/stores/websocket-store";
@@ -26,7 +27,12 @@ import type { WsMessageInfo, WsConnectionEvent } from "@/entities/websocket";
 import type { SseEventInfo, SseConnectionEvent } from "@/entities/sse";
 import type { InterceptRule } from "@/entities/intercept-rule";
 import type { BreakpointRule, PendingBreakpoint } from "@/entities/breakpoint";
-import type { HostMapping, SslProxyingMode, SslProxyingEntry } from "@/shared/api/proxy";
+import type {
+  HostMapping,
+  ReverseProxyRule,
+  SslProxyingMode,
+  SslProxyingEntry,
+} from "@/shared/api/proxy";
 import { useGlobalShortcut } from "@/features/proxy-toggle";
 import { updateDaemonRules, waitForDaemonRules } from "@/shared/stores/sync-rules";
 
@@ -49,6 +55,7 @@ const App: React.FC = () => {
   const setBreakpointRules = useBreakpointStore((s) => s.setRules);
   const addPendingBreakpoint = useBreakpointStore((s) => s.addPendingBreakpoint);
   const setHostMappings = useHostMappingStore((s) => s.setMappings);
+  const setReverseProxyRules = useReverseProxyStore((s) => s.setRules);
   const setSslFromDaemon = useSslProxyingStore((s) => s.setFromDaemon);
   const setDefaultPassthroughEntries = useSslProxyingStore((s) => s.setDefaultPassthroughEntries);
   const initDefaultPassthrough = useSslProxyingStore((s) => s.initDefaultPassthrough);
@@ -178,6 +185,17 @@ const App: React.FC = () => {
       unlisten.then((f) => f());
     };
   }, [setHostMappings]);
+
+  // 데몬에서 리버스 프록시 규칙 변경 수신
+  useEffect(() => {
+    const unlisten = listen<ReverseProxyRule[]>("reverse_proxy_rules_updated", (event) => {
+      setReverseProxyRules(event.payload);
+    });
+
+    return () => {
+      unlisten.then((f) => f());
+    };
+  }, [setReverseProxyRules]);
 
   // 데몬에서 SSL Proxying 목록 변경 수신
   useEffect(() => {

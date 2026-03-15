@@ -46,6 +46,11 @@ const HostMappingPage = lazy(() =>
     default: m.HostMappingPage,
   })),
 );
+const ReverseProxyPage = lazy(() =>
+  import("@/pages/reverse-proxy").then((m) => ({
+    default: m.ReverseProxyPage,
+  })),
+);
 const LogsPage = lazy(() => import("@/pages/log-viewer").then((m) => ({ default: m.LogsPage })));
 
 function RootLayout() {
@@ -102,6 +107,10 @@ export const router = createBrowserRouter([
       {
         path: "/host-mapping",
         element: <HostMappingPage />,
+      },
+      {
+        path: "/reverse-proxy",
+        element: <ReverseProxyPage />,
       },
       {
         path: "/settings",

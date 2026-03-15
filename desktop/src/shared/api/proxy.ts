@@ -312,6 +312,22 @@ export async function updateHostMappings(mappings: HostMapping[]): Promise<void>
   return invoke("update_host_mappings", { mappings });
 }
 
+// ─── Reverse Proxy ───────────────────────────────────────
+
+export interface ReverseProxyRule {
+  id: string;
+  match_host: string;
+  backend_scheme: string;
+  backend_host: string;
+  backend_port: number;
+  rewrite_host: boolean;
+  enabled: boolean;
+}
+
+export async function updateReverseProxyRules(rules: ReverseProxyRule[]): Promise<void> {
+  return invoke("update_reverse_proxy_rules", { rules });
+}
+
 // ─── SSL Proxying ────────────────────────────────────────
 
 export type SslProxyingMode = "blacklist" | "whitelist";
