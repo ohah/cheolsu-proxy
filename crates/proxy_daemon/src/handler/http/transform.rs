@@ -12,11 +12,11 @@ use super::super::LoggingHandler;
 impl LoggingHandler {
     /// 요청과 응답을 묶어서 전송
     pub(crate) async fn send_output(&self) {
-        let client_request = self
-            .request
-            .req
-            .as_ref()
-            .map(|req| req.clone().for_client(self.config.cache_dir.as_deref()));
+        let client_request = self.request.req.as_ref().map(|req| {
+            let mut client_req = req.clone().for_client(self.config.cache_dir.as_deref());
+            client_req.set_proxy_auth_user(self.request.proxy_auth_user.clone());
+            client_req
+        });
 
         // Waterfall 타이밍 계산: TTFB와 Content Download 분리
         let timing = self.request.request_start.map(|start| {

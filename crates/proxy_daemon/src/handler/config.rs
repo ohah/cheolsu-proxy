@@ -16,6 +16,10 @@ pub(crate) struct RequestState {
     pub(crate) request_start: Option<std::time::Instant>,
     /// 응답 헤더 수신 시각 (TTFB / Content Download 분리용)
     pub(crate) response_header_time: Option<std::time::Instant>,
+    /// 클라이언트 IP 주소
+    pub(crate) client_addr: Option<String>,
+    /// 프록시 인증 사용자명
+    pub(crate) proxy_auth_user: Option<String>,
 }
 
 /// 빠른 설정 (No Caching, Block Cookies, No Gzip)
@@ -83,6 +87,8 @@ impl LoggingHandler {
                 res: None,
                 request_start: None,
                 response_header_time: None,
+                client_addr: None,
+                proxy_auth_user: None,
             },
             config: ProxyConfig {
                 cache_dir: Some(cache_dir),

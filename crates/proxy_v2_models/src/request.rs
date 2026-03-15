@@ -212,6 +212,7 @@ impl ProxiedRequest {
             file_path,
             body_size: original_body_size, // 원본 크기 유지
             client_addr: self.client_addr,
+            proxy_auth_user: None,
         }
     }
 }
@@ -237,6 +238,9 @@ pub struct ClientRequest {
     body_size: usize,          // 실제 body 크기 (파일 저장 시에도 원본 크기 유지)
     #[serde(skip_serializing_if = "Option::is_none", default)]
     client_addr: Option<String>,
+    /// 프록시 인증 사용자명 (Proxy-Authorization Basic 인증 시)
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    proxy_auth_user: Option<String>,
 }
 
 impl ClientRequest {
@@ -305,6 +309,16 @@ impl ClientRequest {
     /// 클라이언트 주소 반환
     pub fn client_addr(&self) -> Option<&str> {
         self.client_addr.as_deref()
+    }
+
+    /// 프록시 인증 사용자명 반환
+    pub fn proxy_auth_user(&self) -> Option<&str> {
+        self.proxy_auth_user.as_deref()
+    }
+
+    /// 프록시 인증 사용자명 설정
+    pub fn set_proxy_auth_user(&mut self, user: Option<String>) {
+        self.proxy_auth_user = user;
     }
 }
 
