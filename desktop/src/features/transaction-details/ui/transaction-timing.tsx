@@ -16,24 +16,6 @@ interface TimingSegment {
 
 const TIMING_SEGMENTS: TimingSegment[] = [
   {
-    label: "DNS Lookup",
-    key: "dns_lookup_ms",
-    color: "#2dd4bf",
-    bgClass: "bg-teal-400",
-  },
-  {
-    label: "TCP Connection",
-    key: "tcp_connection_ms",
-    color: "#fb923c",
-    bgClass: "bg-orange-400",
-  },
-  {
-    label: "TLS Handshake",
-    key: "tls_handshake_ms",
-    color: "#a78bfa",
-    bgClass: "bg-violet-400",
-  },
-  {
     label: "TTFB (Time to First Byte)",
     key: "ttfb_ms",
     color: "#4ade80",
