@@ -1,10 +1,11 @@
-import { useMemo } from "react";
+import { useMemo, useState, useCallback } from "react";
 
 import type { HttpTransaction } from "@/entities/proxy";
 
 import { TableHeader } from "./table-header";
 import { TableBody } from "./table-body";
 import { useTableData } from "../hooks";
+import { loadVisibleColumns, saveVisibleColumns, type ColumnKey } from "../model";
 import { Pin } from "lucide-react";
 
 interface NetworkTableProps {
@@ -32,6 +33,22 @@ export const NetworkTable = ({
   onAdvancedRepeat,
   onToggleCheckAll,
 }: NetworkTableProps) => {
+  const [visibleColumns, setVisibleColumns] = useState<Set<ColumnKey>>(loadVisibleColumns);
+
+  const handleToggleColumn = useCallback((key: ColumnKey) => {
+    setVisibleColumns((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        if (next.size <= 1) return prev;
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      saveVisibleColumns(next);
+      return next;
+    });
+  }, []);
+
   const { pinnedTransactions, unpinnedTransactions } = useMemo(() => {
     const pinned: HttpTransaction[] = [];
     const unpinned: HttpTransaction[] = [];
@@ -72,6 +89,8 @@ export const NetworkTable = ({
         allChecked={allChecked}
         someChecked={someChecked}
         onToggleAll={onToggleCheckAll}
+        visibleColumns={visibleColumns}
+        onToggleColumn={handleToggleColumn}
       />
       <div className="flex-1 flex flex-col overflow-hidden">
         {pinnedTableData.length > 0 && (
@@ -90,6 +109,7 @@ export const NetworkTable = ({
               createTransactionCheckHandler={createTransactionCheckHandler}
               onAdvancedRepeat={onAdvancedRepeat}
               isPinnedSection
+              visibleColumns={visibleColumns}
             />
           </div>
         )}
@@ -103,6 +123,7 @@ export const NetworkTable = ({
           createTransactionCheckHandler={createTransactionCheckHandler}
           onAdvancedRepeat={onAdvancedRepeat}
           isPinnedSection={false}
+          visibleColumns={visibleColumns}
         />
       </div>
     </div>
