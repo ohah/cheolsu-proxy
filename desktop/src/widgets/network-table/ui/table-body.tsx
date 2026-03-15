@@ -5,6 +5,7 @@ import type { HttpTransaction } from "@/entities/proxy";
 import { VirtualizedScrollArea } from "@/shared/ui";
 
 import type { TableRowData } from "../model";
+import type { ColumnKey } from "../model";
 
 import { TableRow } from "./table-row";
 
@@ -18,6 +19,7 @@ interface TableBodyProps {
   createTransactionCheckHandler: (id: string) => () => void;
   onAdvancedRepeat?: (transaction: HttpTransaction) => void;
   isPinnedSection: boolean;
+  visibleColumns: Set<ColumnKey>;
 }
 
 export const TableBody = ({
@@ -30,6 +32,7 @@ export const TableBody = ({
   createTransactionCheckHandler,
   onAdvancedRepeat,
   isPinnedSection,
+  visibleColumns,
 }: TableBodyProps) => {
   const rowHandlers = useMemo(() => {
     return data.map((rowData) => {
@@ -68,6 +71,7 @@ export const TableBody = ({
           isChecked={handlers.isChecked}
           onCheck={handlers.onCheck}
           onAdvancedRepeat={onAdvancedRepeat}
+          visibleColumns={visibleColumns}
         />
       );
     },

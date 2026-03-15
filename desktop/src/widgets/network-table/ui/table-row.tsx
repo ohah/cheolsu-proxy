@@ -11,10 +11,12 @@ import {
 } from "./cells";
 
 import {
+  TABLE_COLUMNS,
   ROW_BASE_CLASSES,
   SELECTED_ROW_CLASSES,
-  GRID_COLS_CLASS,
   PINNED_ROW_CLASSES,
+  buildGridTemplate,
+  type ColumnKey,
 } from "../model";
 import type { TableRowData } from "../model";
 import {
@@ -39,6 +41,16 @@ import { Code, Pin, PinOff, Repeat, Shield, Trash2 } from "lucide-react";
 import { Trans, useLingui } from "@lingui/react/macro";
 import type { HttpTransaction } from "@/entities/proxy";
 
+const CELL_MAP: Record<ColumnKey, React.ComponentType<{ data: TableRowData }>> = {
+  path: PathCell,
+  method: MethodCell,
+  status: StatusCell,
+  size: SizeCell,
+  time: TimeCell,
+  client: ClientCell,
+  waterfall: WaterfallCell,
+};
+
 interface TableRowProps {
   data: TableRowData;
   onSelect: () => void;
@@ -48,6 +60,7 @@ interface TableRowProps {
   isChecked: boolean;
   onCheck: () => void;
   onAdvancedRepeat?: (transaction: HttpTransaction) => void;
+  visibleColumns: Set<ColumnKey>;
 }
 
 export const TableRow = memo(function TableRow({
@@ -59,12 +72,15 @@ export const TableRow = memo(function TableRow({
   isChecked,
   onCheck,
   onAdvancedRepeat,
+  visibleColumns,
 }: TableRowProps) {
   const { isSelected } = data;
   const { t } = useLingui();
 
+  const gridTemplate = buildGridTemplate(visibleColumns);
+
   const rowClasses = useMemo(() => {
-    let classes = `${ROW_BASE_CLASSES} ${GRID_COLS_CLASS}`;
+    let classes = ROW_BASE_CLASSES;
 
     if (isSelected && !isPinned) {
       classes += ` ${SELECTED_ROW_CLASSES}`;
@@ -113,10 +129,19 @@ export const TableRow = memo(function TableRow({
     [onCheck],
   );
 
+  const visibleColumnKeys = useMemo(
+    () => TABLE_COLUMNS.filter((col) => visibleColumns.has(col.key)).map((col) => col.key),
+    [visibleColumns],
+  );
+
   return (
     <ContextMenu>
       <ContextMenuTrigger>
-        <div className={rowClasses} onClick={onSelect}>
+        <div
+          className={rowClasses}
+          style={{ gridTemplateColumns: gridTemplate }}
+          onClick={onSelect}
+        >
           <div className="flex items-center justify-center w-5" onClick={handleCheckboxClick}>
             <input
               type="checkbox"
@@ -125,13 +150,10 @@ export const TableRow = memo(function TableRow({
               className="cursor-pointer accent-primary"
             />
           </div>
-          <PathCell data={data} />
-          <MethodCell data={data} />
-          <StatusCell data={data} />
-          <SizeCell data={data} />
-          <TimeCell data={data} />
-          <ClientCell data={data} />
-          <WaterfallCell data={data} />
+          {visibleColumnKeys.map((key) => {
+            const Cell = CELL_MAP[key];
+            return <Cell key={key} data={data} />;
+          })}
         </div>
       </ContextMenuTrigger>
       <ContextMenuContent className="w-3xs">
