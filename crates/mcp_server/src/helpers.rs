@@ -41,6 +41,11 @@ pub fn next_mapping_id() -> String {
     format!("hm_{}", COUNTER.fetch_add(1, Ordering::Relaxed))
 }
 
+pub fn next_server_replay_id() -> String {
+    static COUNTER: AtomicU32 = AtomicU32::new(0);
+    format!("sr_{}", COUNTER.fetch_add(1, Ordering::Relaxed))
+}
+
 /// Store의 리스트 항목을 포맷팅하여 반환하는 공통 헬퍼.
 /// 비어있으면 `empty_msg`, 있으면 `label` + 아이템 목록을 반환합니다.
 pub fn list_items<T: Display>(

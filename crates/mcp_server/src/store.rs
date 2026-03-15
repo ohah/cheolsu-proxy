@@ -2,16 +2,20 @@ use std::collections::VecDeque;
 use std::sync::Arc;
 
 use parking_lot::Mutex;
-use proxy_daemon::{BreakpointRule, HostMapping, InterceptRule};
-use proxy_v2_models::{RequestInfo, WsConnectionEvent, WsMessageInfo};
+use proxy_daemon::{BreakpointRule, HostMapping, InterceptRule, ServerReplayEntry};
+use proxy_v2_models::{
+    RequestInfo, SseConnectionEvent, SseEventInfo, WsConnectionEvent, WsMessageInfo,
+};
 
 pub const MAX_TRANSACTIONS: usize = 1000;
 pub const MAX_WS_MESSAGES: usize = 5000;
+pub const MAX_SSE_EVENTS: usize = 5000;
 
 /// Store의 용량 설정
 pub struct StoreConfig {
     pub max_transactions: usize,
     pub max_ws_messages: usize,
+    pub max_sse_events: usize,
 }
 
 impl Default for StoreConfig {
@@ -19,6 +23,7 @@ impl Default for StoreConfig {
         Self {
             max_transactions: MAX_TRANSACTIONS,
             max_ws_messages: MAX_WS_MESSAGES,
+            max_sse_events: MAX_SSE_EVENTS,
         }
     }
 }
@@ -31,8 +36,12 @@ pub struct Store {
     pub rules: Arc<Mutex<Vec<InterceptRule>>>,
     pub breakpoint_rules: Arc<Mutex<Vec<BreakpointRule>>>,
     pub host_mappings: Arc<Mutex<Vec<HostMapping>>>,
+    pub sse_events: Arc<Mutex<VecDeque<SseEventInfo>>>,
+    pub sse_connections: Arc<Mutex<Vec<SseConnectionEvent>>>,
+    pub server_replay_entries: Arc<Mutex<Vec<ServerReplayEntry>>>,
     max_transactions: usize,
     max_ws_messages: usize,
+    max_sse_events: usize,
 }
 
 impl Store {
@@ -48,8 +57,12 @@ impl Store {
             rules: Arc::new(Mutex::new(Vec::new())),
             breakpoint_rules: Arc::new(Mutex::new(Vec::new())),
             host_mappings: Arc::new(Mutex::new(Vec::new())),
+            sse_events: Arc::new(Mutex::new(VecDeque::with_capacity(config.max_sse_events))),
+            sse_connections: Arc::new(Mutex::new(Vec::new())),
+            server_replay_entries: Arc::new(Mutex::new(Vec::new())),
             max_transactions: config.max_transactions,
             max_ws_messages: config.max_ws_messages,
+            max_sse_events: config.max_sse_events,
         }
     }
 
@@ -72,6 +85,18 @@ impl Store {
     pub fn push_ws_connection(&self, event: WsConnectionEvent) {
         self.ws_connections.lock().push(event);
     }
+
+    pub fn push_sse_event(&self, event: SseEventInfo) {
+        let mut events = self.sse_events.lock();
+        if events.len() >= self.max_sse_events {
+            events.pop_front();
+        }
+        events.push_back(event);
+    }
+
+    pub fn push_sse_connection(&self, event: SseConnectionEvent) {
+        self.sse_connections.lock().push(event);
+    }
 }
 
 #[cfg(test)]
@@ -84,6 +109,7 @@ mod tests {
         let store = Store::with_config(StoreConfig {
             max_transactions: 5,
             max_ws_messages: 10,
+            max_sse_events: 10,
         });
         for _ in 0..20 {
             store.push_transaction(make_request_info());
@@ -129,6 +155,9 @@ mod tests {
         assert!(store.rules.lock().is_empty());
         assert!(store.breakpoint_rules.lock().is_empty());
         assert!(store.host_mappings.lock().is_empty());
+        assert!(store.sse_events.lock().is_empty());
+        assert!(store.sse_connections.lock().is_empty());
+        assert!(store.server_replay_entries.lock().is_empty());
     }
 
     #[test]
