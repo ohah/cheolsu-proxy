@@ -83,6 +83,10 @@ export const useWebSocketStore = create<WebSocketStoreState>()((set) => ({
 
   clearAll: () => {
     wsMessageBuffer.length = 0;
+    if (wsFlushRafId) {
+      cancelAnimationFrame(wsFlushRafId);
+      wsFlushRafId = 0;
+    }
     set({
       messages: [],
       connections: new Map(),

@@ -11,12 +11,10 @@ export interface SseEventInfo {
 
 export type SseConnectionStatus = "connected" | "disconnected";
 
-export interface SseConnectionEvent {
-  status: SseConnectionStatus;
-  connection_id: string;
-  uri?: string;
-  time: number;
-}
+// Rust: #[serde(tag = "status")] enum — Connected/Disconnected 필드가 다름
+export type SseConnectionEvent =
+  | { status: "connected"; connection_id: string; uri: string; time: number }
+  | { status: "disconnected"; connection_id: string; time: number };
 
 export interface SseConnection {
   id: string;
