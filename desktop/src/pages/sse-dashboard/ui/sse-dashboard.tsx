@@ -13,7 +13,7 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from "@/shared/ui";
-import { useDefaultLayout, type ImperativePanelHandle } from "react-resizable-panels";
+import { useDefaultLayout, type PanelImperativeHandle } from "react-resizable-panels";
 import type { SseEventInfo, SseConnection } from "@/entities/sse";
 
 export const SseDashboard = () => {
@@ -62,7 +62,7 @@ export const SseDashboard = () => {
     setSelectedEvent(null);
   }, [setSelectedEvent]);
 
-  const detailPanelRef = useRef<ImperativePanelHandle>(null);
+  const detailPanelRef = useRef<PanelImperativeHandle>(null);
 
   useEffect(() => {
     if (selectedEvent) {
@@ -145,7 +145,7 @@ export const SseDashboard = () => {
 
           <ResizableHandle withHandle />
           <ResizablePanel
-            ref={detailPanelRef}
+            panelRef={detailPanelRef}
             id="sse-detail"
             maxSize="50%"
             minSize="20%"

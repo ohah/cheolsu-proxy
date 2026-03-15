@@ -1,4 +1,3 @@
-import { Trans } from "@lingui/react/macro";
 import { Check } from "lucide-react";
 
 import { TABLE_COLUMNS, HEADER_CLASSES, buildGridTemplate, type ColumnKey } from "../model";
