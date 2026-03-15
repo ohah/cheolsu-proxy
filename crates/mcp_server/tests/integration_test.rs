@@ -1,8 +1,13 @@
-use cheolsu_proxy_mcp::helpers::{format_size, next_breakpoint_id, next_mapping_id, next_rule_id};
-use cheolsu_proxy_mcp::store::{Store, MAX_TRANSACTIONS, MAX_WS_MESSAGES};
-use proxy_daemon::{BreakpointRule, HostMapping, InterceptAction, InterceptRule};
+use cheolsu_proxy_mcp::helpers::{
+    format_size, next_breakpoint_id, next_mapping_id, next_rule_id, next_server_replay_id,
+};
+use cheolsu_proxy_mcp::store::{Store, MAX_SSE_EVENTS, MAX_TRANSACTIONS, MAX_WS_MESSAGES};
+use proxy_daemon::{
+    BreakpointRule, HostMapping, InterceptAction, InterceptRule, ServerReplayEntry,
+};
 use proxy_v2_models::{
-    RequestInfo, WsConnectionEvent, WsContentType, WsDirection, WsMessageInfo, WsMessageType,
+    RequestInfo, SseConnectionEvent, SseEventInfo, WsConnectionEvent, WsContentType, WsDirection,
+    WsMessageInfo, WsMessageType,
 };
 
 // ─── 헬퍼 ───────────────────────────────────────────────────
@@ -49,6 +54,19 @@ fn make_request_info(id: &str, method: &str, uri: &str, status: u16) -> RequestI
     )
 }
 
+fn make_sse_event(connection_id: &str, seq: u64, data: &str) -> SseEventInfo {
+    SseEventInfo {
+        connection_id: connection_id.to_string(),
+        sequence: seq,
+        event_type: Some("message".to_string()),
+        data: data.to_string(),
+        id: None,
+        retry: None,
+        size: data.len(),
+        time: 1000 + seq as i64,
+    }
+}
+
 fn make_ws_message(connection_id: &str, seq: u64, payload: &str) -> WsMessageInfo {
     WsMessageInfo {
         connection_id: connection_id.to_string(),
@@ -75,6 +93,9 @@ fn store_new_is_empty() {
     assert_eq!(store.rules.lock().len(), 0);
     assert_eq!(store.breakpoint_rules.lock().len(), 0);
     assert_eq!(store.host_mappings.lock().len(), 0);
+    assert_eq!(store.sse_events.lock().len(), 0);
+    assert_eq!(store.sse_connections.lock().len(), 0);
+    assert_eq!(store.server_replay_entries.lock().len(), 0);
 }
 
 #[test]
@@ -910,4 +931,307 @@ fn rule_remove_nonexistent() {
     // 존재하지 않는 ID로 삭제해도 기존 규칙은 유지
     assert_eq!(before, after);
     assert_eq!(after, 1);
+}
+
+// ─── SSE 이벤트 테스트 ──────────────────────────────────
+
+#[test]
+fn store_push_sse_event() {
+    let store = Store::new();
+    let event = make_sse_event("sse://example.com/events", 1, "hello SSE");
+    store.push_sse_event(event);
+
+    let events = store.sse_events.lock();
+    assert_eq!(events.len(), 1);
+    assert_eq!(events[0].data, "hello SSE");
+    assert_eq!(events[0].connection_id, "sse://example.com/events");
+    assert_eq!(events[0].event_type, Some("message".to_string()));
+}
+
+#[test]
+fn store_push_multiple_sse_events() {
+    let store = Store::new();
+    for i in 0..5 {
+        store.push_sse_event(make_sse_event("sse://test", i, &format!("event{}", i)));
+    }
+
+    let events = store.sse_events.lock();
+    assert_eq!(events.len(), 5);
+    assert_eq!(events[0].data, "event0");
+    assert_eq!(events[4].data, "event4");
+}
+
+#[test]
+fn store_sse_event_capacity_eviction() {
+    let store = Store::new();
+    for i in 0..(MAX_SSE_EVENTS + 10) as u64 {
+        store.push_sse_event(make_sse_event("sse://test", i, &format!("evt{}", i)));
+    }
+
+    let events = store.sse_events.lock();
+    assert_eq!(events.len(), MAX_SSE_EVENTS);
+    // 가장 오래된 10개는 제거됨
+    assert_eq!(events.front().unwrap().sequence, 10);
+}
+
+#[test]
+fn store_push_sse_connection() {
+    let store = Store::new();
+    store.push_sse_connection(SseConnectionEvent::Connected {
+        connection_id: "sse_conn1".to_string(),
+        uri: "https://example.com/events".to_string(),
+        time: 1000,
+    });
+
+    let conns = store.sse_connections.lock();
+    assert_eq!(conns.len(), 1);
+    match &conns[0] {
+        SseConnectionEvent::Connected {
+            connection_id, uri, ..
+        } => {
+            assert_eq!(connection_id, "sse_conn1");
+            assert_eq!(uri, "https://example.com/events");
+        }
+        _ => panic!("expected Connected event"),
+    }
+}
+
+#[test]
+fn store_push_sse_connection_disconnect() {
+    let store = Store::new();
+    store.push_sse_connection(SseConnectionEvent::Connected {
+        connection_id: "sse_conn1".to_string(),
+        uri: "https://example.com/events".to_string(),
+        time: 1000,
+    });
+    store.push_sse_connection(SseConnectionEvent::Disconnected {
+        connection_id: "sse_conn1".to_string(),
+        time: 2000,
+    });
+
+    let conns = store.sse_connections.lock();
+    assert_eq!(conns.len(), 2);
+}
+
+#[test]
+fn filter_sse_events_by_connection() {
+    let store = Store::new();
+    store.push_sse_event(make_sse_event("sse://a.com/events", 1, "a1"));
+    store.push_sse_event(make_sse_event("sse://b.com/events", 2, "b1"));
+    store.push_sse_event(make_sse_event("sse://a.com/events", 3, "a2"));
+
+    let events = store.sse_events.lock();
+    let a_count = events
+        .iter()
+        .filter(|e| e.connection_id.contains("a.com"))
+        .count();
+    assert_eq!(a_count, 2);
+}
+
+#[test]
+fn store_concurrent_sse_events() {
+    use std::sync::Arc;
+    use std::thread;
+
+    let store = Arc::new(Store::new());
+    let mut handles = vec![];
+
+    for i in 0..10 {
+        let store = store.clone();
+        handles.push(thread::spawn(move || {
+            for j in 0..10 {
+                let event = make_sse_event("sse://test", (i * 10 + j) as u64, "data");
+                store.push_sse_event(event);
+            }
+        }));
+    }
+
+    for h in handles {
+        h.join().unwrap();
+    }
+
+    assert_eq!(store.sse_events.lock().len(), 100);
+}
+
+// ─── Server Replay 테스트 ───────────────────────────────
+
+#[test]
+fn store_server_replay_crud() {
+    let store = Store::new();
+
+    // Create
+    let entry = ServerReplayEntry {
+        id: "sr_1".to_string(),
+        method: "GET".to_string(),
+        url: "https://api.example.com/users".to_string(),
+        status: 200,
+        headers: std::collections::HashMap::new(),
+        body: Some(r#"[{"id":1,"name":"test"}]"#.to_string()),
+    };
+    store.server_replay_entries.lock().push(entry);
+
+    // Read
+    {
+        let entries = store.server_replay_entries.lock();
+        assert_eq!(entries.len(), 1);
+        assert_eq!(entries[0].method, "GET");
+        assert_eq!(entries[0].url, "https://api.example.com/users");
+        assert_eq!(entries[0].status, 200);
+        assert!(entries[0].body.is_some());
+    }
+
+    // Update
+    {
+        let mut entries = store.server_replay_entries.lock();
+        entries[0].status = 201;
+    }
+    assert_eq!(store.server_replay_entries.lock()[0].status, 201);
+
+    // Delete
+    store
+        .server_replay_entries
+        .lock()
+        .retain(|e| e.id != "sr_1");
+    assert_eq!(store.server_replay_entries.lock().len(), 0);
+}
+
+#[test]
+fn store_multiple_server_replay_entries() {
+    let store = Store::new();
+
+    for i in 0..3 {
+        store.server_replay_entries.lock().push(ServerReplayEntry {
+            id: format!("sr_{}", i),
+            method: "GET".to_string(),
+            url: format!("https://api.example.com/resource/{}", i),
+            status: 200,
+            headers: std::collections::HashMap::new(),
+            body: None,
+        });
+    }
+
+    assert_eq!(store.server_replay_entries.lock().len(), 3);
+
+    // 특정 엔트리만 삭제
+    store
+        .server_replay_entries
+        .lock()
+        .retain(|e| e.id != "sr_1");
+    assert_eq!(store.server_replay_entries.lock().len(), 2);
+
+    let entries = store.server_replay_entries.lock();
+    assert_eq!(entries[0].id, "sr_0");
+    assert_eq!(entries[1].id, "sr_2");
+}
+
+#[test]
+fn store_server_replay_clear() {
+    let store = Store::new();
+    for i in 0..5 {
+        store.server_replay_entries.lock().push(ServerReplayEntry {
+            id: format!("sr_{}", i),
+            method: "POST".to_string(),
+            url: "https://api.example.com/data".to_string(),
+            status: 201,
+            headers: std::collections::HashMap::new(),
+            body: Some("{}".to_string()),
+        });
+    }
+    assert_eq!(store.server_replay_entries.lock().len(), 5);
+
+    store.server_replay_entries.lock().clear();
+    assert_eq!(store.server_replay_entries.lock().len(), 0);
+}
+
+// ─── next_server_replay_id 테스트 ───────────────────────
+
+#[test]
+fn next_server_replay_id_increments() {
+    let id1 = next_server_replay_id();
+    let id2 = next_server_replay_id();
+    assert!(id1.starts_with("sr_"));
+    assert!(id2.starts_with("sr_"));
+    assert_ne!(id1, id2);
+}
+
+// ─── SSE + Server Replay Clone 공유 테스트 ──────────────
+
+#[test]
+fn store_clone_shares_sse_and_replay() {
+    let store1 = Store::new();
+    let store2 = store1.clone();
+
+    store1.push_sse_event(make_sse_event("sse://test", 1, "shared"));
+    store1.server_replay_entries.lock().push(ServerReplayEntry {
+        id: "sr_shared".to_string(),
+        method: "GET".to_string(),
+        url: "https://example.com".to_string(),
+        status: 200,
+        headers: std::collections::HashMap::new(),
+        body: None,
+    });
+
+    // clone된 store에서도 같은 데이터가 보여야 함
+    assert_eq!(store2.sse_events.lock().len(), 1);
+    assert_eq!(store2.sse_events.lock()[0].data, "shared");
+    assert_eq!(store2.server_replay_entries.lock().len(), 1);
+    assert_eq!(store2.server_replay_entries.lock()[0].id, "sr_shared");
+}
+
+// ─── full_workflow에 SSE + Server Replay 추가 ───────────
+
+#[test]
+fn full_workflow_with_sse_and_replay() {
+    let store = Store::new();
+
+    // 1. 트래픽 캡처
+    for i in 0..3 {
+        store.push_transaction(make_request_info(
+            &format!("tx{}", i),
+            "GET",
+            &format!("https://api.example.com/v1/{}", i),
+            200,
+        ));
+    }
+
+    // 2. SSE 이벤트 캡처
+    for i in 0..3 {
+        store.push_sse_event(make_sse_event(
+            "sse://api.example.com/stream",
+            i,
+            &format!(r#"{{"type":"update","id":{}}}"#, i),
+        ));
+    }
+    store.push_sse_connection(SseConnectionEvent::Connected {
+        connection_id: "sse_conn_1".to_string(),
+        uri: "https://api.example.com/stream".to_string(),
+        time: 1000,
+    });
+
+    // 3. Server Replay 설정
+    store.server_replay_entries.lock().push(ServerReplayEntry {
+        id: "sr_1".to_string(),
+        method: "GET".to_string(),
+        url: "https://api.example.com/v1/0".to_string(),
+        status: 200,
+        headers: std::collections::HashMap::new(),
+        body: Some(r#"{"cached":true}"#.to_string()),
+    });
+
+    // 4. 전체 상태 검증
+    assert_eq!(store.transactions.lock().len(), 3);
+    assert_eq!(store.sse_events.lock().len(), 3);
+    assert_eq!(store.sse_connections.lock().len(), 1);
+    assert_eq!(store.server_replay_entries.lock().len(), 1);
+
+    // 5. 트래픽 클리어 (SSE도 포함)
+    store.transactions.lock().clear();
+    store.sse_events.lock().clear();
+    store.sse_connections.lock().clear();
+    assert_eq!(store.transactions.lock().len(), 0);
+    assert_eq!(store.sse_events.lock().len(), 0);
+    assert_eq!(store.sse_connections.lock().len(), 0);
+
+    // Server Replay 엔트리는 유지
+    assert_eq!(store.server_replay_entries.lock().len(), 1);
 }
