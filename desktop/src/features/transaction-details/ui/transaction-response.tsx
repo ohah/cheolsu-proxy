@@ -23,7 +23,7 @@ import {
   isMediaDataType,
   isBinaryDataType,
   isProtobufDataType,
-} from "@/entities/proxy/model/data-type";
+} from "@/entities/proxy";
 import { Trans } from "@lingui/react/macro";
 import { toast } from "sonner";
 import { MediaPreview } from "./media-preview";

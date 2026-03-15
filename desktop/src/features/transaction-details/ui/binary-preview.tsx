@@ -2,8 +2,7 @@ import { useState, useEffect } from "react";
 import { Download, FileArchive, FileText, FileType, HardDrive, Eye, EyeOff } from "lucide-react";
 import { readFile, BaseDirectory } from "@tauri-apps/plugin-fs";
 
-import type { DataType } from "@/entities/proxy/model/data-type";
-import { dataTypeToDisplayName, dataTypeToIcon } from "@/entities/proxy/model/data-type";
+import { type DataType, dataTypeToDisplayName, dataTypeToIcon } from "@/entities/proxy";
 import { Button } from "@/shared/ui";
 import { formatBytes } from "@/shared/lib";
 

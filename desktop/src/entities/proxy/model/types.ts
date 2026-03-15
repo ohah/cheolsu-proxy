@@ -1,4 +1,4 @@
-import { DataType } from "./data-type";
+import type { DataType } from "./data-type";
 
 // HTTP 메서드 타입
 export type HttpMethod =
@@ -76,5 +76,21 @@ export interface HttpTransaction {
 
 export type ProxyEventTuple = [HttpTransaction["request"], HttpTransaction["response"]];
 
-// Re-export DataType for convenience
-export { DataType } from "./data-type";
+// Re-export DataType and utilities for public API
+export {
+  type DataType,
+  dataTypeToMonacoLanguage,
+  dataTypeToMimeType,
+  dataTypeToDisplayName,
+  dataTypeToIcon,
+  isTextBasedDataType,
+  isImageDataType,
+  isVideoDataType,
+  isAudioDataType,
+  isDocumentDataType,
+  isArchiveDataType,
+  isCompressedDataType,
+  isBinaryDataType,
+  isProtobufDataType,
+  isMediaDataType,
+} from "./data-type";

@@ -1,5 +1,5 @@
 import type { HttpTransaction } from "@/entities/proxy";
-import { dataTypeToMimeType } from "@/entities/proxy/model/data-type";
+import { dataTypeToMimeType } from "@/entities/proxy";
 import { readFile, BaseDirectory } from "@tauri-apps/plugin-fs";
 
 interface HarLog {

@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { useServerReplayStore, useTransactionStore } from "@/shared/stores";
 import { Card, CardContent, Badge, Button, Switch } from "@/shared/ui";
 import { getStatusColor } from "@/entities/transaction";
-import { isTextBasedDataType } from "@/entities/proxy/model/data-type";
+import { isTextBasedDataType } from "@/entities/proxy";
 import type { HttpTransaction } from "@/entities/proxy";
 import type { ServerReplayEntry } from "@/shared/api/proxy";
 

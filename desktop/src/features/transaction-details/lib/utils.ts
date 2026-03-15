@@ -1,5 +1,4 @@
-import { DataType } from "@/entities/proxy/model/types";
-import { isTextBasedDataType, isBinaryDataType } from "@/entities/proxy/model/data-type";
+import { type DataType, isTextBasedDataType, isBinaryDataType } from "@/entities/proxy";
 
 /**
  * Uint8Array를 문자열로 변환 (UTF-8 디코딩)
@@ -373,4 +372,4 @@ export {
   isAudioDataType,
   isCompressedDataType,
   isBinaryDataType,
-} from "@/entities/proxy/model/data-type";
+} from "@/entities/proxy";

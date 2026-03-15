@@ -7,7 +7,7 @@ import { useTheme } from "next-themes";
 import { toast } from "sonner";
 
 import type { HttpTransaction } from "@/entities/proxy";
-import { isTextBasedDataType } from "@/entities/proxy/model/data-type";
+import { isTextBasedDataType } from "@/entities/proxy";
 import { replayRequest, type ReplayRequestParams, type ReplayResponse } from "@/shared/api/proxy";
 import {
   useHeaderEditor,

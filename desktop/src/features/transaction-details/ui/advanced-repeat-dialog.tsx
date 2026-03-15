@@ -5,7 +5,7 @@ import { useLingui } from "@lingui/react/macro";
 import { listen } from "@tauri-apps/api/event";
 
 import type { HttpTransaction } from "@/entities/proxy";
-import { isTextBasedDataType } from "@/entities/proxy/model/data-type";
+import { isTextBasedDataType } from "@/entities/proxy";
 import {
   advancedRepeat,
   type AdvancedRepeatParams,
