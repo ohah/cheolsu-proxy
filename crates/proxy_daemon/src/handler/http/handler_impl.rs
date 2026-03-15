@@ -75,9 +75,6 @@ impl HttpHandler for LoggingHandler {
     ) -> RequestOrResponse {
         use super::request_pipeline::PipelineAction;
 
-        // 클라이언트 주소 저장
-        self.request.client_addr = Some(ctx.client_addr.to_string());
-
         // 프록시 인증 사용자명 추출 (Basic 인증 시)
         if let Some(auth_header) = req
             .headers()
