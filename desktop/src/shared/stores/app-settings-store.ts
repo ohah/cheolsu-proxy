@@ -82,6 +82,10 @@ interface AppSettingsState {
   // Details panel layout
   detailsPanelLayout: DetailsPanelLayout;
   setDetailsPanelLayout: (layout: DetailsPanelLayout) => void;
+
+  // Network table visible columns
+  visibleColumns: string[];
+  setVisibleColumns: (columns: string[]) => void;
 }
 
 const DEFAULT_THROTTLE_CONFIG: ThrottleConfigState = {
@@ -146,6 +150,9 @@ export const useAppSettingsStore = create<AppSettingsState>()(
 
       detailsPanelLayout: "right" as DetailsPanelLayout,
       setDetailsPanelLayout: (layout) => set({ detailsPanelLayout: layout }),
+
+      visibleColumns: ["path", "method", "status", "size", "time", "waterfall"],
+      setVisibleColumns: (columns) => set({ visibleColumns: columns }),
     }),
     {
       name: "cheolsu-app-settings",

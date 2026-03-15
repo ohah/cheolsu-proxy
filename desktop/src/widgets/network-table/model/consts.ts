@@ -16,36 +16,6 @@ export const TABLE_COLUMNS: readonly ColumnDef[] = [
   { key: "waterfall", label: "Waterfall", gridSize: "2fr" },
 ] as const;
 
-export const DEFAULT_VISIBLE_COLUMNS: ColumnKey[] = [
-  "path",
-  "method",
-  "status",
-  "size",
-  "time",
-  "waterfall",
-];
-
-const STORAGE_KEY = "network-table-visible-columns";
-
-export function loadVisibleColumns(): Set<ColumnKey> {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      const parsed = JSON.parse(stored) as ColumnKey[];
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return new Set(parsed);
-      }
-    }
-  } catch {
-    // 파싱 실패 시 기본값 사용
-  }
-  return new Set(DEFAULT_VISIBLE_COLUMNS);
-}
-
-export function saveVisibleColumns(columns: Set<ColumnKey>) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify([...columns]));
-}
-
 export function buildGridTemplate(visibleColumns: Set<ColumnKey>): string {
   const sizes = ["24px"]; // checkbox
   for (const col of TABLE_COLUMNS) {

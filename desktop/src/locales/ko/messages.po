@@ -241,11 +241,11 @@ msgstr "적용:"
 msgid "Authentication"
 msgstr "인증"
 
-#: src/pages/settings/ui/components/general-settings.tsx:193
+#: src/pages/settings/ui/components/general-settings.tsx:235
 msgid "Auto Save Session"
 msgstr "자동 세션 저장"
 
-#: src/pages/settings/ui/components/general-settings.tsx:196
+#: src/pages/settings/ui/components/general-settings.tsx:238
 msgid "Automatically save the current session when the app closes and restore it on next launch"
 msgstr "앱 종료 시 현재 세션을 자동으로 저장하고 다음 실행 시 복원합니다"
 
@@ -263,7 +263,7 @@ msgstr "블랙리스트 (제외)"
 msgid "Block"
 msgstr "차단"
 
-#: src/pages/settings/ui/components/general-settings.tsx:157
+#: src/pages/settings/ui/components/general-settings.tsx:199
 msgid "Block Cookies"
 msgstr "쿠키 차단"
 
@@ -277,8 +277,8 @@ msgstr "쿠키 차단"
 msgid "Body"
 msgstr "본문"
 
-#: src/pages/settings/ui/components/general-settings.tsx:118
-#: src/pages/settings/ui/components/general-settings.tsx:119
+#: src/pages/settings/ui/components/general-settings.tsx:136
+#: src/pages/settings/ui/components/general-settings.tsx:137
 msgid "Bottom"
 msgstr "하단"
 
@@ -397,9 +397,13 @@ msgstr "변경"
 msgid "Cheolsu Proxy Logo"
 msgstr "Cheolsu Proxy 로고"
 
-#: src/pages/settings/ui/components/general-settings.tsx:102
+#: src/pages/settings/ui/components/general-settings.tsx:120
 msgid "Choose where the transaction details panel appears"
 msgstr "트랜잭션 상세 패널의 표시 위치를 선택하세요"
+
+#: src/pages/settings/ui/components/general-settings.tsx:150
+msgid "Choose which columns to display in the network table"
+msgstr "네트워크 테이블에 표시할 컬럼을 선택하세요"
 
 #: src/shared/app-sidebar/ui/sidebar-mcp.tsx:104
 msgid "Claude Code (CLI)"
@@ -563,7 +567,7 @@ msgstr "커스텀 본문"
 msgid "Custom CA Certificate"
 msgstr "커스텀 CA 인증서"
 
-#: src/pages/settings/ui/components/general-settings.tsx:84
+#: src/pages/settings/ui/components/general-settings.tsx:102
 msgid "Dark"
 msgstr "다크"
 
@@ -609,7 +613,7 @@ msgstr "규칙 삭제"
 msgid "Delete Transaction"
 msgstr "트랜잭션 삭제"
 
-#: src/pages/settings/ui/components/general-settings.tsx:99
+#: src/pages/settings/ui/components/general-settings.tsx:117
 msgid "Details Panel Layout"
 msgstr "상세 패널 레이아웃"
 
@@ -632,7 +636,7 @@ msgstr "비활성"
 msgid "Disconnected"
 msgstr "연결 끊김"
 
-#: src/pages/settings/ui/components/general-settings.tsx:216
+#: src/pages/settings/ui/components/general-settings.tsx:258
 msgid "Display CONNECT tunnel requests in the network list"
 msgstr "CONNECT 터널 요청을 네트워크 목록에 표시합니다"
 
@@ -985,7 +989,7 @@ msgstr "키 파일"
 msgid "Key File"
 msgstr "키 파일"
 
-#: src/pages/settings/ui/components/general-settings.tsx:48
+#: src/pages/settings/ui/components/general-settings.tsx:66
 msgid "Language"
 msgstr "언어"
 
@@ -994,7 +998,7 @@ msgstr "언어"
 msgid "Latency (ms)"
 msgstr "지연 (ms)"
 
-#: src/pages/settings/ui/components/general-settings.tsx:84
+#: src/pages/settings/ui/components/general-settings.tsx:102
 msgid "Light"
 msgstr "라이트"
 
@@ -1191,6 +1195,10 @@ msgstr "이름"
 msgid "Network"
 msgstr "네트워크"
 
+#: src/pages/settings/ui/components/general-settings.tsx:147
+msgid "Network Table Columns"
+msgstr "네트워크 테이블 컬럼"
+
 #: src/pages/settings/ui/components/throttle-section.tsx:19
 msgid "Network Throttling"
 msgstr "네트워크 쓰로틀링"
@@ -1207,7 +1215,7 @@ msgstr "활성 WebSocket 연결 없음"
 msgid "No breakpoint rules"
 msgstr "Breakpoint 규칙 없음"
 
-#: src/pages/settings/ui/components/general-settings.tsx:140
+#: src/pages/settings/ui/components/general-settings.tsx:182
 msgid "No Caching"
 msgstr "캐시 비활성화"
 
@@ -1223,7 +1231,7 @@ msgstr "조건 없음"
 msgid "No console output yet"
 msgstr "콘솔 출력이 아직 없습니다"
 
-#: src/pages/settings/ui/components/general-settings.tsx:176
+#: src/pages/settings/ui/components/general-settings.tsx:218
 msgid "No Gzip"
 msgstr "Gzip 비활성화"
 
@@ -1434,7 +1442,7 @@ msgstr "프리셋"
 msgid "Press a key combination..."
 msgstr "키 조합을 눌러주세요..."
 
-#: src/pages/settings/ui/components/general-settings.tsx:143
+#: src/pages/settings/ui/components/general-settings.tsx:185
 msgid "Prevent caching by removing conditional headers and adding no-cache directives"
 msgstr "조건부 헤더를 제거하고 no-cache 지시어를 추가하여 캐싱을 방지합니다"
 
@@ -1482,11 +1490,11 @@ msgstr "쿼리 문법 가이드"
 msgid "Query syntax help"
 msgstr "쿼리 문법 도움말"
 
-#: src/pages/settings/ui/components/general-settings.tsx:129
+#: src/pages/settings/ui/components/general-settings.tsx:171
 msgid "Quick Settings"
 msgstr "빠른 설정"
 
-#: src/pages/settings/ui/components/general-settings.tsx:132
+#: src/pages/settings/ui/components/general-settings.tsx:174
 msgid "Quick toggles for common proxy behaviors"
 msgstr "자주 사용하는 프록시 동작을 빠르게 전환합니다"
 
@@ -1531,11 +1539,11 @@ msgstr "외부 기기 인증서"
 msgid "Remove"
 msgstr "삭제"
 
-#: src/pages/settings/ui/components/general-settings.tsx:179
+#: src/pages/settings/ui/components/general-settings.tsx:221
 msgid "Remove Accept-Encoding header from requests to prevent compressed responses"
 msgstr "압축된 응답을 방지하기 위해 요청에서 Accept-Encoding 헤더를 제거합니다"
 
-#: src/pages/settings/ui/components/general-settings.tsx:160
+#: src/pages/settings/ui/components/general-settings.tsx:202
 msgid "Remove Cookie headers from requests and Set-Cookie headers from responses"
 msgstr "요청에서 Cookie 헤더를 제거하고 응답에서 Set-Cookie 헤더를 제거합니다"
 
@@ -1725,8 +1733,8 @@ msgstr "서버로 전달하지 않고 매칭되는 요청에 캐시된 응답을
 msgid "Rewrite"
 msgstr "재작성"
 
-#: src/pages/settings/ui/components/general-settings.tsx:115
-#: src/pages/settings/ui/components/general-settings.tsx:116
+#: src/pages/settings/ui/components/general-settings.tsx:133
+#: src/pages/settings/ui/components/general-settings.tsx:134
 msgid "Right"
 msgstr "오른쪽"
 
@@ -1976,7 +1984,7 @@ msgstr "설정 방법:"
 msgid "Shortcut Key"
 msgstr "단축키"
 
-#: src/pages/settings/ui/components/general-settings.tsx:213
+#: src/pages/settings/ui/components/general-settings.tsx:255
 msgid "Show CONNECT Requests"
 msgstr "CONNECT 요청 표시"
 
@@ -2061,7 +2069,7 @@ msgstr "빌더 모드로 전환"
 msgid "Switch to Code mode"
 msgstr "코드 모드로 전환"
 
-#: src/pages/settings/ui/components/general-settings.tsx:84
+#: src/pages/settings/ui/components/general-settings.tsx:102
 msgid "System"
 msgstr "시스템"
 
@@ -2102,7 +2110,7 @@ msgstr "인증서는 CA 인증서여야 합니다 (BasicConstraints CA=true). �
 msgid "The DER certificate file will download automatically"
 msgstr "DER 인증서 파일이 자동으로 다운로드됩니다"
 
-#: src/pages/settings/ui/components/general-settings.tsx:69
+#: src/pages/settings/ui/components/general-settings.tsx:87
 msgid "Theme"
 msgstr "테마"
 
