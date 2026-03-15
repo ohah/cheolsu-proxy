@@ -15,7 +15,7 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from "@/shared/ui";
-import { useDefaultLayout, type ImperativePanelHandle } from "react-resizable-panels";
+import { useDefaultLayout, type PanelImperativeHandle } from "react-resizable-panels";
 import type { WsMessageInfo, WsConnection } from "@/entities/websocket";
 
 export const WebSocketDashboard = () => {
@@ -70,7 +70,7 @@ export const WebSocketDashboard = () => {
     setReplayMessage(message);
   }, []);
 
-  const detailPanelRef = useRef<ImperativePanelHandle>(null);
+  const detailPanelRef = useRef<PanelImperativeHandle>(null);
 
   useEffect(() => {
     if (selectedMessage) {
@@ -153,7 +153,7 @@ export const WebSocketDashboard = () => {
 
           <ResizableHandle withHandle />
           <ResizablePanel
-            ref={detailPanelRef}
+            panelRef={detailPanelRef}
             id="ws-detail"
             maxSize="50%"
             minSize="20%"

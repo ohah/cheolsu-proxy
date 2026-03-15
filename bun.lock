@@ -62,6 +62,7 @@
         "@types/react": "^19.2.14",
         "@types/react-dom": "^19.2.3",
         "@vitejs/plugin-react": "^5.1.4",
+        "monaco-editor": "^0.55.1",
         "oxfmt": "^0.36.0",
         "oxlint": "^1.51.0",
         "typescript": "^5.9.3",
