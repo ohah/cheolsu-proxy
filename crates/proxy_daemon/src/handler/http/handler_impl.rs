@@ -75,6 +75,28 @@ impl HttpHandler for LoggingHandler {
     ) -> RequestOrResponse {
         use super::request_pipeline::PipelineAction;
 
+        // 클라이언트 주소 저장
+        self.request.client_addr = Some(ctx.client_addr.to_string());
+
+        // 프록시 인증 사용자명 추출 (Basic 인증 시)
+        if let Some(auth_header) = req
+            .headers()
+            .get("proxy-authorization")
+            .and_then(|v| v.to_str().ok())
+        {
+            if let Some(encoded) = auth_header.strip_prefix("Basic ") {
+                if let Ok(decoded) =
+                    base64::Engine::decode(&base64::engine::general_purpose::STANDARD, encoded)
+                {
+                    if let Ok(credentials) = std::str::from_utf8(&decoded) {
+                        if let Some((username, _)) = credentials.split_once(':') {
+                            self.request.proxy_auth_user = Some(username.to_string());
+                        }
+                    }
+                }
+            }
+        }
+
         // 초기 파이프라인: 인증, 바디 크기 제한, 인증서 다운로드, WebSocket 확장 제거
         if let Some(action) = self.run_early_pipeline(&mut req).await {
             return match action {
