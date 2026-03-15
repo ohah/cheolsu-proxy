@@ -14,6 +14,8 @@ pub(crate) struct RequestState {
     pub(crate) res: Option<proxy_v2_models::ProxiedResponse>,
     /// 요청 처리 시작 시각 (Waterfall 타이밍 계산용)
     pub(crate) request_start: Option<std::time::Instant>,
+    /// 응답 헤더 수신 시각 (TTFB / Content Download 분리용)
+    pub(crate) response_header_time: Option<std::time::Instant>,
 }
 
 /// 빠른 설정 (No Caching, Block Cookies, No Gzip)
@@ -80,6 +82,7 @@ impl LoggingHandler {
                 req: None,
                 res: None,
                 request_start: None,
+                response_header_time: None,
             },
             config: ProxyConfig {
                 cache_dir: Some(cache_dir),

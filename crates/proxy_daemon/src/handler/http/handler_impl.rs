@@ -165,6 +165,9 @@ impl HttpHandler for LoggingHandler {
             return res;
         }
 
+        // 응답 헤더 수신 시각 기록 (TTFB 계산용)
+        self.request.response_header_time = Some(std::time::Instant::now());
+
         // 응답 바디 크기 제한 확인
         if let Some(error_response) = self.check_response_body_size_limit(&res) {
             return error_response;
