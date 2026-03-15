@@ -107,6 +107,19 @@ impl CheolsuMcpServer {
                 Self::update_ssl_proxying_list_tool_attr(),
                 Self::update_ssl_proxying_list,
             ))
+            // Reverse Proxy
+            .with_route((
+                Self::list_reverse_proxy_rules_tool_attr(),
+                Self::list_reverse_proxy_rules,
+            ))
+            .with_route((
+                Self::add_reverse_proxy_rule_tool_attr(),
+                Self::add_reverse_proxy_rule,
+            ))
+            .with_route((
+                Self::remove_reverse_proxy_rule_tool_attr(),
+                Self::remove_reverse_proxy_rule,
+            ))
             // Export
             .with_route((Self::export_har_tool_attr(), Self::export_har))
     }
@@ -126,6 +139,16 @@ impl CheolsuMcpServer {
             let mappings = self.store.host_mappings.lock();
             proxy_daemon::ClientCommand::UpdateHostMappings {
                 mappings: mappings.clone(),
+            }
+        };
+        crate::helpers::with_daemon_conn(&self.daemon_conn, &cmd).await
+    }
+
+    pub(crate) async fn send_reverse_proxy_rules(&self) -> Result<(), String> {
+        let cmd = {
+            let rules = self.store.reverse_proxy_rules.lock();
+            proxy_daemon::ClientCommand::UpdateReverseProxyRules {
+                rules: rules.clone(),
             }
         };
         crate::helpers::with_daemon_conn(&self.daemon_conn, &cmd).await

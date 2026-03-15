@@ -41,6 +41,11 @@ pub fn next_mapping_id() -> String {
     format!("hm_{}", COUNTER.fetch_add(1, Ordering::Relaxed))
 }
 
+pub fn next_reverse_proxy_id() -> String {
+    static COUNTER: AtomicU32 = AtomicU32::new(0);
+    format!("rp_{}", COUNTER.fetch_add(1, Ordering::Relaxed))
+}
+
 pub fn next_server_replay_id() -> String {
     static COUNTER: AtomicU32 = AtomicU32::new(0);
     format!("sr_{}", COUNTER.fetch_add(1, Ordering::Relaxed))

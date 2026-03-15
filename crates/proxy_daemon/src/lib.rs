@@ -45,7 +45,8 @@ pub use protocol::{
     AuthMethod, BreakpointAction, BreakpointData, BreakpointPhase, BreakpointRule, CertificateInfo,
     ClientCertConfig, ClientCommand, DaemonMessage, DomainClientCertConfig, HostMapping,
     InterceptAction, InterceptRule, ProxyAuthConfig, ProxyLockInfo, RequestClientCertConfig,
-    ServerReplayEntry, SslProxyingEntry, SslProxyingMode, TlsPassthroughEntry, PROTOCOL_VERSION,
+    ReverseProxyRule, ServerReplayEntry, SslProxyingEntry, SslProxyingMode, TlsPassthroughEntry,
+    PROTOCOL_VERSION,
 };
 pub use proxy_v2_models::RequestInfo;
 pub use proxyapi_v2::certificate_authority::{clean_all_cache, clean_old_cache};

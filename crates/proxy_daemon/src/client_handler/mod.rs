@@ -82,6 +82,15 @@ pub(crate) async fn handle_client(stream: UnixStream, ctx: ClientHandlerContext)
         let _ = w.write_all(mappings_line.as_bytes()).await;
         let _ = w.flush().await;
 
+        let current_reverse_proxy = shared.channels.reverse_proxy_tx.borrow().clone();
+        let reverse_proxy_msg = DaemonMessage::ReverseProxyRulesUpdated {
+            rules: current_reverse_proxy,
+        };
+        let mut reverse_proxy_line = serde_json::to_string(&reverse_proxy_msg).unwrap_or_default();
+        reverse_proxy_line.push('\n');
+        let _ = w.write_all(reverse_proxy_line.as_bytes()).await;
+        let _ = w.flush().await;
+
         let (current_ssl_mode, current_ssl_entries) =
             shared.channels.ssl_proxying_tx.borrow().clone();
         let ssl_msg = DaemonMessage::SslProxyingListUpdated {

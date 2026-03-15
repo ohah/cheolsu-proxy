@@ -164,6 +164,7 @@ impl HttpHandler for LoggingHandler {
             }
         };
 
+        let restored_req = self.apply_reverse_proxy_if_needed(restored_req).await;
         let restored_req = self.apply_host_mapping_if_needed(restored_req).await;
 
         let restored_req = self.apply_quick_settings_on_request(restored_req).await;

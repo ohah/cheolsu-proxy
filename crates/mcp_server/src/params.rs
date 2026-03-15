@@ -313,6 +313,28 @@ pub struct SslProxyingEntryParam {
     pub enabled: bool,
 }
 
+// ─── Reverse Proxy ───────────────────────────────────────
+
+#[derive(Debug, Deserialize, schemars::JsonSchema)]
+pub struct AddReverseProxyRuleParams {
+    /// Host header pattern to match (e.g., "api.myapp.local", "*.local")
+    pub match_host: String,
+    /// Backend scheme: "http" or "https" (default: "http")
+    pub backend_scheme: Option<String>,
+    /// Backend host (IP address or domain name)
+    pub backend_host: String,
+    /// Backend port
+    pub backend_port: u16,
+    /// Rewrite Host header to backend address (default: true)
+    pub rewrite_host: Option<bool>,
+}
+
+#[derive(Debug, Deserialize, schemars::JsonSchema)]
+pub struct RemoveReverseProxyRuleParams {
+    /// Reverse proxy rule ID to remove
+    pub id: String,
+}
+
 // ─── Export ──────────────────────────────────────────────
 
 #[derive(Debug, Deserialize, schemars::JsonSchema)]
