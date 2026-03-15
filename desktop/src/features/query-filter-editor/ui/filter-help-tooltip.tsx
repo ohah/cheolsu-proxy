@@ -57,6 +57,15 @@ export const FilterHelpTooltip = () => {
             </p>
 
             <div className="font-mono bg-muted py-2 rounded">
+              <span className="text-foreground font-bold">client</span>
+              <span className="text-muted-foreground">|=</span>
+              <span className="text-accent font-semibold">"192.168"</span>
+            </div>
+            <p className="text-muted-foreground">
+              <Trans>Filter by client IP, tag, or auth user</Trans>
+            </p>
+
+            <div className="font-mono bg-muted py-2 rounded">
               <span className="text-foreground font-bold">method</span>
               <span className="text-destructive">!=</span>
               <span className="text-accent font-semibold">"OPTIONS"</span>

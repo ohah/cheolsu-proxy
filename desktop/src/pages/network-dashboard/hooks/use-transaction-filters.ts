@@ -12,6 +12,7 @@ export const useTransactionFilters = ({ transactions }: UseTransactionFiltersPro
   const [filterQueryString, setFilterQueryString] = useState<string>("");
   const [appliedQueryString, setAppliedQueryString] = useState<string>("");
   const showConnectRequests = useAppSettingsStore((s) => s.showConnectRequests);
+  const clientTags = useAppSettingsStore((s) => s.clientTags);
 
   const parsedQuery = useMemo(() => parseFilterQuery(appliedQueryString), [appliedQueryString]);
 
@@ -29,9 +30,12 @@ export const useTransactionFilters = ({ transactions }: UseTransactionFiltersPro
       parsedQuery.excludeStatus,
       parsedQuery.excludeMethods,
       parsedQuery.excludeUrls,
+      parsedQuery.clients,
+      parsedQuery.excludeClients,
+      clientTags,
       parsedQuery.operator,
     );
-  }, [visibleTransactions, parsedQuery]);
+  }, [visibleTransactions, parsedQuery, clientTags]);
 
   const handleFilterQueryChange = useCallback((query: string) => {
     setFilterQueryString(query);

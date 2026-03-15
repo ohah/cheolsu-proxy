@@ -26,10 +26,11 @@ const FIELD_OPTIONS: { value: FieldType; label: string }[] = [
   { value: "method", label: "Method" },
   { value: "status", label: "Status" },
   { value: "url", label: "URL" },
+  { value: "client", label: "Client" },
 ];
 
 function getOperatorsForField(field: FieldType): { value: OperatorType; label: string }[] {
-  if (field === "url") {
+  if (field === "url" || field === "client") {
     return [
       { value: "|=", label: "|= contains" },
       { value: "=", label: "= equals" },
@@ -209,6 +210,14 @@ const ConditionRow = ({
           <Input
             className="h-8 text-xs font-mono placeholder:text-muted-foreground/50"
             placeholder={t`e.g. api.example.com, /api/v1, /users/\\d+`}
+            value={condition.values[0] ?? ""}
+            onChange={handleUrlInput}
+          />
+        )}
+        {condition.field === "client" && (
+          <Input
+            className="h-8 text-xs font-mono placeholder:text-muted-foreground/50"
+            placeholder={t`e.g. 192.168.1.1, MyPhone, username`}
             value={condition.values[0] ?? ""}
             onChange={handleUrlInput}
           />

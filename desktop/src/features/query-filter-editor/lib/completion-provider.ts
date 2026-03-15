@@ -22,7 +22,7 @@ export const createCompletionProvider = (monaco: Monaco): IDisposable => {
       };
 
       // 연산자 제안
-      if (/(method|methods|status|url)\s*$/.test(textUntilPosition)) {
+      if (/(method|methods|status|url|client)\s*$/.test(textUntilPosition)) {
         return {
           suggestions: createOperatorSuggestions(monaco, range),
         };
@@ -162,6 +162,13 @@ const createKeywordSuggestions = (monaco: Monaco, range: IRange): languages.Comp
       kind: monaco.languages.CompletionItemKind.Keyword,
       insertText: "url",
       detail: "Filter by URL",
+      range,
+    },
+    {
+      label: "client",
+      kind: monaco.languages.CompletionItemKind.Keyword,
+      insertText: "client",
+      detail: "Filter by client IP, tag, or auth user",
       range,
     },
     {

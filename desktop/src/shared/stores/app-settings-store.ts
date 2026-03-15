@@ -86,6 +86,10 @@ interface AppSettingsState {
   // Network table visible columns
   visibleColumns: string[];
   setVisibleColumns: (columns: string[]) => void;
+
+  // Client tags (IP → label mapping)
+  clientTags: Record<string, string>;
+  setClientTags: (tags: Record<string, string>) => void;
 }
 
 const DEFAULT_THROTTLE_CONFIG: ThrottleConfigState = {
@@ -153,6 +157,9 @@ export const useAppSettingsStore = create<AppSettingsState>()(
 
       visibleColumns: ["path", "method", "status", "size", "time", "waterfall"],
       setVisibleColumns: (columns) => set({ visibleColumns: columns }),
+
+      clientTags: {} as Record<string, string>,
+      setClientTags: (tags) => set({ clientTags: tags }),
     }),
     {
       name: "cheolsu-app-settings",
