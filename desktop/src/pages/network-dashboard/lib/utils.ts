@@ -89,10 +89,9 @@ const matchesClientFilter = (
   clientTags: Record<string, string> = {},
 ): boolean => {
   const addr = clientAddr ?? "";
-  // IP에서 포트 제거 (예: "192.168.1.1:54321" → "192.168.1.1")
-  const ip = addr.includes(":") ? addr.replace(/:\d+$/, "") : addr;
-  // IPv6 대괄호 제거 (예: "[::1]" → "::1")
-  const cleanIp = ip.replace(/^\[|\]$/g, "");
+  // IP에서 포트 제거 + IPv6 대괄호 제거
+  // "[::1]:54321" → "::1", "192.168.1.1:54321" → "192.168.1.1", "::1" → "::1"
+  const cleanIp = addr.replace(/\]?:\d+$/, "").replace(/^\[|\]$/g, "");
   const tag = clientTags[cleanIp] ?? "";
   const user = proxyAuthUser ?? "";
 
