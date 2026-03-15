@@ -68,10 +68,14 @@ pub fn detect_data_type(headers: &HeaderMap, body: &Bytes) -> DataType {
             };
         }
 
-        // SVG 감지 (XML보다 우선)
+        // SVG 감지: 본문 자체가 SVG 파일인 경우만 (HTML 내 인라인 SVG 제외)
         if let Ok(body_str) = std::str::from_utf8(body) {
             let trimmed = body_str.trim();
-            if trimmed.starts_with("<svg") || trimmed.contains("<svg") {
+            if trimmed.starts_with("<svg")
+                || trimmed.starts_with("<?xml")
+                    && trimmed.contains("<svg")
+                    && !trimmed.contains("<html")
+            {
                 return DataType::Image;
             }
         }

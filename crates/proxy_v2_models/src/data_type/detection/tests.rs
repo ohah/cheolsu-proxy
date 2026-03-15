@@ -408,3 +408,70 @@ fn test_protobuf_not_detected_without_content_type() {
     let body = Bytes::from(vec![0x08, 0x96, 0x01]);
     assert_eq!(detect_data_type(&headers, &body), DataType::Binary);
 }
+
+#[test]
+fn test_html_with_inline_svg_not_detected_as_image() {
+    use http::HeaderValue;
+
+    // Content-Type: text/html인 HTML에 인라인 SVG가 포함된 경우 → Html이어야 함
+    let mut headers = HeaderMap::new();
+    headers.insert("content-type", HeaderValue::from_static("text/html"));
+    let html_with_svg = Bytes::from(
+        r#"<!DOCTYPE html><html><body><svg width="100" height="100"><circle cx="50" cy="50" r="40"/></svg></body></html>"#,
+    );
+    assert_eq!(detect_data_type(&headers, &html_with_svg), DataType::Html);
+
+    // Content-Type 없이 인라인 SVG가 포함된 HTML → Text (Image가 아님)
+    let headers_empty = HeaderMap::new();
+    assert_eq!(
+        detect_data_type(&headers_empty, &html_with_svg),
+        DataType::Text
+    );
+}
+
+#[test]
+fn test_js_with_svg_string_not_detected_as_image() {
+    use http::HeaderValue;
+
+    // Content-Type: application/javascript인 JS에 SVG 문자열이 포함된 경우
+    let mut headers = HeaderMap::new();
+    headers.insert(
+        "content-type",
+        HeaderValue::from_static("application/javascript"),
+    );
+    let js_with_svg =
+        Bytes::from(r#"const icon = '<svg viewBox="0 0 24 24"><path d="M12 2L2 22h20z"/></svg>';"#);
+    assert_eq!(
+        detect_data_type(&headers, &js_with_svg),
+        DataType::Javascript
+    );
+
+    // Content-Type 없이 → Text (Image가 아님)
+    let headers_empty = HeaderMap::new();
+    assert_eq!(
+        detect_data_type(&headers_empty, &js_with_svg),
+        DataType::Text
+    );
+}
+
+#[test]
+fn test_pure_svg_detected_as_image() {
+    let headers = HeaderMap::new();
+
+    // <svg>로 시작하는 순수 SVG 파일
+    let svg = Bytes::from(
+        r#"<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><circle cx="50" cy="50" r="40"/></svg>"#,
+    );
+    assert_eq!(detect_data_type(&headers, &svg), DataType::Image);
+
+    // <?xml> 선언 + SVG (HTML 아님)
+    let xml_svg = Bytes::from(
+        r#"<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100"/></svg>"#,
+    );
+    assert_eq!(detect_data_type(&headers, &xml_svg), DataType::Image);
+
+    // <?xml> 선언 + HTML 내 SVG → Image가 아님
+    let xml_html_svg =
+        Bytes::from(r#"<?xml version="1.0"?><html><body><svg><circle/></svg></body></html>"#);
+    assert_ne!(detect_data_type(&headers, &xml_html_svg), DataType::Image);
+}
