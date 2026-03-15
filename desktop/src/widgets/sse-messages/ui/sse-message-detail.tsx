@@ -80,9 +80,7 @@ export const SseMessageDetail = memo(({ event, onClose }: SseMessageDetailProps)
       {/* Header bar */}
       <div className="flex items-center justify-between px-3 py-1.5 border-b border-border flex-shrink-0 bg-muted/30">
         <div className="flex items-center gap-2 text-xs font-medium">
-          <span
-            className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
-          >
+          <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
             {event.event_type ?? "message"}
           </span>
           <span className="text-muted-foreground">{formatSize(event.size)}</span>

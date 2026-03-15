@@ -1,6 +1,14 @@
 import { memo, useCallback, useMemo } from "react";
 
-import { PathCell, MethodCell, StatusCell, SizeCell, TimeCell, ClientCell, WaterfallCell } from "./cells";
+import {
+  PathCell,
+  MethodCell,
+  StatusCell,
+  SizeCell,
+  TimeCell,
+  ClientCell,
+  WaterfallCell,
+} from "./cells";
 
 import {
   ROW_BASE_CLASSES,
