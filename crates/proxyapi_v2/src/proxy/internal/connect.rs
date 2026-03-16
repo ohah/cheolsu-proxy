@@ -84,19 +84,50 @@ where
         };
 
         // 자동 학습 바이패스 체크 (이전에 TLS 핸드셰이크 실패한 도메인)
-        let should_bypass = self
+        // should_intercept()가 true를 반환하면(사용자가 SSL Proxying으로 명시적 인터셉트 요청)
+        // 자동 바이패스를 무시합니다.
+        let has_prior_failure = self
             .ctx
             .tls_passthrough
             .as_ref()
             .and_then(|pt| pt.failures_ref().try_read().ok())
             .is_some_and(|failures| failures.contains_key(authority.host()));
 
-        if should_bypass {
-            return self.handle_tls_passthrough(req, &authority);
-        }
-
         let span = info_span!("process_connect");
         let fut = async move {
+            // should_intercept 결과를 먼저 확인하여 자동 바이패스 적용 여부를 결정
+            let should_intercept = self
+                .http_handler
+                .should_intercept(&self.context(), &req)
+                .await;
+
+            // 이전 TLS 실패 기록이 있고, 사용자가 인터셉트를 요청하지 않은 경우에만 바이패스
+            if has_prior_failure && !should_intercept {
+                debug!(
+                    "[TLS-PASSTHROUGH] 자동 바이패스 적용 (이전 실패 기록): {}",
+                    authority
+                );
+                // handle_tls_passthrough는 동기 함수이므로 여기서는 직접 터널 패스스루 수행
+                let upgraded = match hyper::upgrade::on(&mut req).await {
+                    Ok(u) => u,
+                    Err(e) => {
+                        error!(error = %e, "연결 업그레이드 실패 (바이패스)");
+                        return;
+                    }
+                };
+                let upgraded = TokioIo::new(upgraded);
+                let upgraded = Rewind::new(upgraded, Bytes::new());
+                self.tunnel_passthrough(upgraded, &authority).await;
+                return;
+            }
+
+            if has_prior_failure && should_intercept {
+                info!(
+                    "[SSLProxying] 이전 실패 기록 무시, 명시적 인터셉트 적용: {}",
+                    authority
+                );
+            }
+
             let upgraded = match hyper::upgrade::on(&mut req).await {
                 Ok(u) => u,
                 Err(e) => {
@@ -116,11 +147,7 @@ where
             // Eager 전략: 캐시 미스 시 백그라운드 스니핑 시작
             let eager_handle = self.maybe_start_eager_sniffing(&authority).await;
 
-            if self
-                .http_handler
-                .should_intercept(&self.context(), &req)
-                .await
-            {
+            if should_intercept {
                 if full_buffer.len() >= 4 && full_buffer[..4] == *b"GET " {
                     if let Err(e) = self
                         .serve_stream(TokioIo::new(upgraded), Scheme::HTTP, authority)
