@@ -52,7 +52,7 @@ import {
 
 function parseTransactionsJson(json: string): HttpTransaction[] {
   const tuples: ProxyEventTuple[] = JSON.parse(json);
-  return tuples.map(([request, response]) => ({ request, response }));
+  return tuples.map(([request, response, validations]) => ({ request, response, validations }));
 }
 
 export const NetworkDashboard = () => {

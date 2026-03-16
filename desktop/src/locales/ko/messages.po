@@ -79,6 +79,10 @@ msgstr "활성"
 msgid "Active Custom CA"
 msgstr "활성 커스텀 CA"
 
+#: src/features/transaction-details/ui/transaction-validation.tsx:40
+msgid "Actual"
+msgstr "실제 값"
+
 #: src/features/intercept-rule-form/ui/headers-fields.tsx:59
 #: src/features/intercept-rule-form/ui/headers-fields.tsx:88
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:374
@@ -163,6 +167,10 @@ msgstr "URL을 로컬 파일에 매핑하거나 다른 서버로 리다이렉트
 msgid "Add rules to route requests with relative URIs to backend servers based on Host header."
 msgstr "Host 헤더 기반으로 relative URI 요청을 백엔드 서버에 전달하는 규칙을 추가하세요."
 
+#: src/pages/contract-testing/ui/contract-testing-page.tsx:91
+msgid "Add Spec"
+msgstr "스펙 추가"
+
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:159
 msgid "Add your first mapping"
 msgstr "첫 번째 매핑 추가"
@@ -196,6 +204,10 @@ msgstr "고급 반복 실행 실패"
 msgid "All Connections"
 msgstr "전체 연결"
 
+#: src/features/transaction-details/ui/transaction-validation.tsx:74
+msgid "All contract validations passed"
+msgstr "모든 계약 검증을 통과했습니다"
+
 #: src/pages/server-replay/ui/server-replay-page.tsx:72
 msgid "All entries cleared"
 msgstr "모든 엔트리가 삭제되었습니다"
@@ -222,6 +234,10 @@ msgstr "모든 HTTPS 트래픽이 인터셉트됩니다. {defaultEnabledCount}�
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:215
 msgid "All Methods"
 msgstr "모든 메서드"
+
+#: src/pages/contract-testing/ui/contract-testing-page.tsx:176
+msgid "All requests match the spec"
+msgstr "모든 요청이 스펙에 부합합니다"
 
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:68
 msgid "All reverse proxy rules cleared"
@@ -331,7 +347,7 @@ msgid "Breakpoint rule added"
 msgstr "Breakpoint 규칙이 추가되었습니다"
 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:90
-#: src/shared/app-sidebar/model/consts.ts:67
+#: src/shared/app-sidebar/model/consts.ts:68
 msgid "Breakpoints"
 msgstr "Breakpoints"
 
@@ -550,6 +566,11 @@ msgstr "필요할 때만 서버에 연결합니다 (기본값, 순차적 스니�
 msgid "Console"
 msgstr "콘솔"
 
+#: src/pages/contract-testing/ui/contract-testing-page.tsx:86
+#: src/shared/app-sidebar/model/consts.ts:96
+msgid "Contract Testing"
+msgstr "계약 테스트"
+
 #: src/pages/settings/ui/components/connection-strategy-section.tsx:23
 msgid "Controls when the proxy connects to upstream servers for certificate sniffing"
 msgstr "프록시가 인증서 스니핑을 위해 상류 서버에 연결하는 시점을 제어합니다"
@@ -759,6 +780,11 @@ msgstr "활성"
 msgid "entries"
 msgstr "개 엔트리"
 
+#: src/features/transaction-details/ui/transaction-validation.tsx:95
+#: src/pages/contract-testing/ui/contract-testing-page.tsx:165
+msgid "errors"
+msgstr "오류"
+
 #: src/widgets/sse-messages/ui/sse-message-table.tsx:145
 msgid "Event"
 msgstr "이벤트"
@@ -797,6 +823,10 @@ msgstr "펼치기"
 msgid "Expand sidebar"
 msgstr "사이드바 펼치기"
 
+#: src/features/transaction-details/ui/transaction-validation.tsx:35
+msgid "Expected"
+msgstr "기대 값"
+
 #: src/widgets/network-header/ui/network-controls.tsx:113
 msgid "Export HAR"
 msgstr "HAR 내보내기"
@@ -821,14 +851,29 @@ msgstr "요청 드롭에 실패했습니다"
 msgid "Failed to forward breakpoint"
 msgstr "Breakpoint 전달에 실패했습니다"
 
+#. placeholder {0}: String(e)
+#: src/pages/contract-testing/ui/contract-testing-page.tsx:31
+msgid "Failed to load spec: {0}"
+msgstr ""
+
 #. placeholder {0}: e instanceof Error ? e.message : String(e)
 #: src/pages/script/ui/script-page.tsx:101
 msgid "Failed to read file: {0}"
 msgstr "파일 읽기 실패: {0}"
 
+#. placeholder {0}: String(e)
+#: src/pages/contract-testing/ui/contract-testing-page.tsx:41
+msgid "Failed to remove spec: {0}"
+msgstr ""
+
 #: src/features/websocket-replay/ui/ws-replay-dialog.tsx:88
 msgid "Failed to send"
 msgstr "전송 실패"
+
+#. placeholder {0}: String(e)
+#: src/pages/contract-testing/ui/contract-testing-page.tsx:49
+msgid "Failed to toggle spec: {0}"
+msgstr ""
 
 #: src/pages/log-viewer/ui/logs-page.tsx:421
 msgid "Failures"
@@ -933,7 +978,7 @@ msgid "Host"
 msgstr "호스트"
 
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:150
-#: src/shared/app-sidebar/model/consts.ts:74
+#: src/shared/app-sidebar/model/consts.ts:75
 msgid "Host Mapping"
 msgstr "호스트 매핑"
 
@@ -949,7 +994,7 @@ msgstr "호스트 매핑이 삭제되었습니다"
 msgid "Host Tree"
 msgstr "호스트 트리"
 
-#: src/shared/app-sidebar/model/consts.ts:27
+#: src/shared/app-sidebar/model/consts.ts:28
 msgid "HTTP requests and responses"
 msgstr "HTTP 요청 및 응답"
 
@@ -1017,7 +1062,7 @@ msgid "Installing..."
 msgstr "설치 중..."
 
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:73
-#: src/shared/app-sidebar/model/consts.ts:46
+#: src/shared/app-sidebar/model/consts.ts:47
 msgid "Intercept Rules"
 msgstr "인터셉트 규칙"
 
@@ -1078,7 +1123,11 @@ msgstr "로드"
 msgid "Load a script file from disk. The file will be watched for changes and auto-reloaded."
 msgstr "디스크에서 스크립트 파일을 로드합니다. 파일 변경 시 자동으로 리로드됩니다."
 
-#: src/shared/app-sidebar/model/consts.ts:90
+#: src/features/transaction-details/ui/transaction-validation.tsx:59
+msgid "Load an OpenAPI spec to enable contract testing"
+msgstr "계약 테스트를 활성화하려면 OpenAPI 스펙을 로드하세요"
+
+#: src/shared/app-sidebar/model/consts.ts:91
 msgid "Load and manage proxy scripts"
 msgstr "프록시 스크립트 로드 및 관리"
 
@@ -1123,11 +1172,11 @@ msgid "Logical OR:"
 msgstr "논리 OR:"
 
 #: src/pages/log-viewer/ui/logs-page.tsx:240
-#: src/shared/app-sidebar/model/consts.ts:102
+#: src/shared/app-sidebar/model/consts.ts:110
 msgid "Logs"
 msgstr "로그"
 
-#: src/shared/app-sidebar/model/consts.ts:48
+#: src/shared/app-sidebar/model/consts.ts:49
 msgid "Manage request/response intercept rules"
 msgstr "요청/응답 인터셉트 규칙 관리"
 
@@ -1139,7 +1188,7 @@ msgstr "와일드카드 기반 요청/응답 인터셉트 규칙 관리"
 msgid "Map DNS hostnames to different target hosts for testing and development"
 msgstr "테스트 및 개발을 위해 DNS 호스트명을 다른 대상 호스트로 매핑"
 
-#: src/shared/app-sidebar/model/consts.ts:76
+#: src/shared/app-sidebar/model/consts.ts:77
 msgid "Map DNS hostnames to different targets"
 msgstr "DNS 호스트명을 다른 대상으로 매핑"
 
@@ -1150,7 +1199,7 @@ msgstr "DNS 호스트명을 다른 대상으로 매핑"
 msgid "Map Local"
 msgstr "로컬 매핑"
 
-#: src/shared/app-sidebar/model/consts.ts:55
+#: src/shared/app-sidebar/model/consts.ts:56
 msgid "Map Local / Map Remote rules"
 msgstr "로컬 매핑 / 원격 매핑 규칙"
 
@@ -1170,7 +1219,7 @@ msgid "Map Remote"
 msgstr "원격 매핑"
 
 #: src/pages/map-rules/ui/map-rules-page.tsx:60
-#: src/shared/app-sidebar/model/consts.ts:53
+#: src/shared/app-sidebar/model/consts.ts:54
 msgid "Map Rules"
 msgstr "맵 규칙"
 
@@ -1202,6 +1251,10 @@ msgstr "매칭 패턴"
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:213
 msgid "Match pattern is required"
 msgstr "매치 패턴은 필수입니다"
+
+#: src/features/transaction-details/ui/transaction-validation.tsx:110
+msgid "Matched"
+msgstr "매칭됨"
 
 #: src/shared/app-sidebar/ui/sidebar-mcp.tsx:56
 msgid "MCP configuration copied to clipboard"
@@ -1263,7 +1316,7 @@ msgid "Name"
 msgstr "이름"
 
 #: src/pages/settings/ui/settings-page.tsx:113
-#: src/shared/app-sidebar/model/consts.ts:25
+#: src/shared/app-sidebar/model/consts.ts:26
 msgid "Network"
 msgstr "네트워크"
 
@@ -1302,6 +1355,10 @@ msgstr "조건 없음"
 #: src/pages/script/ui/script-page.tsx:304
 msgid "No console output yet"
 msgstr "콘솔 출력이 아직 없습니다"
+
+#: src/features/transaction-details/ui/transaction-validation.tsx:56
+msgid "No contract validation results"
+msgstr "계약 검증 결과 없음"
 
 #: src/pages/settings/ui/components/general-settings.tsx:218
 msgid "No Gzip"
@@ -1342,6 +1399,10 @@ msgstr "리플레이 엔트리 없음"
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:157
 msgid "No reverse proxy rules"
 msgstr "리버스 프록시 규칙 없음"
+
+#: src/pages/contract-testing/ui/contract-testing-page.tsx:103
+msgid "No specs loaded. Add an OpenAPI/Swagger spec file to start contract testing."
+msgstr "로드된 스펙이 없습니다. OpenAPI/Swagger 스펙 파일을 추가하여 계약 테스트를 시작하세요."
 
 #: src/features/transaction-details/ui/transaction-timing.tsx:52
 msgid "No timing data available"
@@ -1420,6 +1481,14 @@ msgstr "OpenAPI 내보내기 실패"
 msgid "OpenAPI spec exported successfully ({0} transactions)"
 msgstr "OpenAPI 스펙 내보내기 성공 ({0}개 트랜잭션)"
 
+#: src/pages/contract-testing/ui/contract-testing-page.tsx:29
+msgid "OpenAPI spec loaded"
+msgstr ""
+
+#: src/pages/contract-testing/ui/contract-testing-page.tsx:99
+msgid "OpenAPI Specs"
+msgstr "OpenAPI 스펙"
+
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:98
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:124
 msgid "optional"
@@ -1441,6 +1510,10 @@ msgstr "원본"
 msgid "Password"
 msgstr "비밀번호"
 
+#: src/pages/contract-testing/ui/contract-testing-page.tsx:130
+msgid "paths"
+msgstr "경로"
+
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:276
 msgid "Pattern"
 msgstr "패턴"
@@ -1454,7 +1527,7 @@ msgstr "패턴은 필수입니다"
 msgid "Pause and inspect HTTP requests/responses in real-time"
 msgstr "실시간으로 HTTP 요청/응답을 일시 정지하고 검사"
 
-#: src/shared/app-sidebar/model/consts.ts:69
+#: src/shared/app-sidebar/model/consts.ts:70
 msgid "Pause and inspect requests/responses"
 msgstr "요청/응답 일시 정지 및 검사"
 
@@ -1546,7 +1619,7 @@ msgstr "프록시 인증"
 msgid "Proxy configuration and preferences"
 msgstr "프록시 설정 및 환경설정"
 
-#: src/shared/app-sidebar/model/consts.ts:97
+#: src/shared/app-sidebar/model/consts.ts:105
 msgid "Proxy settings and configuration"
 msgstr "프록시 설정 및 구성"
 
@@ -1795,7 +1868,7 @@ msgstr "기록 재개"
 msgid "Retry"
 msgstr "재시도"
 
-#: src/shared/app-sidebar/model/consts.ts:62
+#: src/shared/app-sidebar/model/consts.ts:63
 msgid "Return cached responses for matching requests"
 msgstr "매칭되는 요청에 캐시된 응답 반환"
 
@@ -1804,7 +1877,7 @@ msgid "Return cached responses for matching requests instead of forwarding to th
 msgstr "서버로 전달하지 않고 매칭되는 요청에 캐시된 응답을 반환합니다"
 
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:152
-#: src/shared/app-sidebar/model/consts.ts:81
+#: src/shared/app-sidebar/model/consts.ts:82
 msgid "Reverse Proxy"
 msgstr "리버스 프록시"
 
@@ -1839,7 +1912,7 @@ msgstr "오른쪽"
 msgid "Route incoming requests to backend servers based on Host header matching"
 msgstr "Host 헤더 매칭을 기반으로 수신 요청을 백엔드 서버에 전달"
 
-#: src/shared/app-sidebar/model/consts.ts:83
+#: src/shared/app-sidebar/model/consts.ts:84
 msgid "Route requests to backend servers by Host header"
 msgstr "Host 헤더 기반으로 백엔드 서버에 요청 전달"
 
@@ -1912,7 +1985,7 @@ msgid "Scan for proxy info"
 msgstr "프록시 정보 스캔"
 
 #: src/pages/script/ui/script-page.tsx:162
-#: src/shared/app-sidebar/model/consts.ts:88
+#: src/shared/app-sidebar/model/consts.ts:89
 msgid "Script"
 msgstr "스크립트"
 
@@ -2041,11 +2114,11 @@ msgid "Serial Number"
 msgstr "시리얼 번호"
 
 #: src/pages/server-replay/ui/server-replay-page.tsx:84
-#: src/shared/app-sidebar/model/consts.ts:60
+#: src/shared/app-sidebar/model/consts.ts:61
 msgid "Server Replay"
 msgstr "서버 리플레이"
 
-#: src/shared/app-sidebar/model/consts.ts:41
+#: src/shared/app-sidebar/model/consts.ts:42
 msgid "Server-Sent Events streams"
 msgstr "Server-Sent Events 스트림"
 
@@ -2078,7 +2151,7 @@ msgid "Set Wi-Fi proxy on your device to <0>{0}:{1}</0>"
 msgstr "기기의 Wi-Fi 프록시를 <0>{0}:{1}</0>로 설정"
 
 #: src/pages/settings/ui/settings-page.tsx:144
-#: src/shared/app-sidebar/model/consts.ts:95
+#: src/shared/app-sidebar/model/consts.ts:103
 msgid "Settings"
 msgstr "설정"
 
@@ -2117,8 +2190,12 @@ msgstr "소스 호스트와 대상 호스트는 필수입니다"
 msgid "Source Port"
 msgstr "소스 포트"
 
+#: src/pages/contract-testing/ui/contract-testing-page.tsx:39
+msgid "Spec removed"
+msgstr ""
+
 #: src/pages/sse-dashboard/ui/sse-dashboard.tsx:87
-#: src/shared/app-sidebar/model/consts.ts:39
+#: src/shared/app-sidebar/model/consts.ts:40
 msgid "SSE"
 msgstr "SSE"
 
@@ -2397,6 +2474,14 @@ msgstr "유효 기간 시작"
 msgid "Valid Until"
 msgstr "유효 기간 만료"
 
+#: src/shared/app-sidebar/model/consts.ts:98
+msgid "Validate API responses against OpenAPI specs"
+msgstr "OpenAPI 스펙으로 API 응답 검증"
+
+#: src/pages/contract-testing/ui/contract-testing-page.tsx:152
+msgid "Validation Report"
+msgstr "검증 리포트"
+
 #: src/features/intercept-rule-form/ui/headers-fields.tsx:70
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:386
 #: src/features/map-rule-form/ui/map-local-fields.tsx:84
@@ -2412,9 +2497,13 @@ msgstr "버전"
 msgid "View and manage application log files"
 msgstr "애플리케이션 로그 파일 조회 및 관리"
 
-#: src/shared/app-sidebar/model/consts.ts:104
+#: src/shared/app-sidebar/model/consts.ts:112
 msgid "View application log files"
 msgstr "애플리케이션 로그 파일 조회"
+
+#: src/pages/contract-testing/ui/contract-testing-page.tsx:159
+msgid "Violations"
+msgstr "위반"
 
 #: src/widgets/sse-messages/ui/sse-message-table.tsx:136
 msgid "Waiting for SSE events..."
@@ -2424,12 +2513,17 @@ msgstr "SSE 이벤트 대기 중..."
 msgid "Waiting for WebSocket messages..."
 msgstr "WebSocket 메시지 대기 중..."
 
+#: src/features/transaction-details/ui/transaction-validation.tsx:101
+#: src/pages/contract-testing/ui/contract-testing-page.tsx:171
+msgid "warnings"
+msgstr "경고"
+
 #: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:95
-#: src/shared/app-sidebar/model/consts.ts:32
+#: src/shared/app-sidebar/model/consts.ts:33
 msgid "WebSocket"
 msgstr "WebSocket"
 
-#: src/shared/app-sidebar/model/consts.ts:34
+#: src/shared/app-sidebar/model/consts.ts:35
 msgid "WebSocket connections and messages"
 msgstr "WebSocket 연결 및 메시지"
 

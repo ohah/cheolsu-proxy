@@ -7,6 +7,7 @@ import {
   Settings,
   Database,
   FileCode,
+  FileCheck,
   PauseCircle,
   Globe,
   ScrollText,
@@ -88,6 +89,13 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
     label: msg`Script`,
     icon: FileCode,
     description: msg`Load and manage proxy scripts`,
+  },
+  {
+    id: "contract-testing",
+    path: "/contract-testing",
+    label: msg`Contract Testing`,
+    icon: FileCheck,
+    description: msg`Validate API responses against OpenAPI specs`,
   },
   {
     id: "settings",

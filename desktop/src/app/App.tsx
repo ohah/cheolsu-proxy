@@ -14,13 +14,14 @@ import {
   useReverseProxyStore,
 } from "@/shared/stores";
 import { useSslProxyingStore } from "@/shared/stores/ssl-proxying-store";
+import { useContractStore } from "@/shared/stores/contract-store";
 import { bufferWsMessage } from "@/shared/stores/websocket-store";
 import { bufferSseEvent } from "@/shared/stores/sse-store";
 import { emit, listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { router } from "./providers/router-provider";
-import type { ProxyEventTuple, HttpTransaction } from "@/entities/proxy";
+import type { ProxyEventTuple, HttpTransaction, ContractSpecInfo } from "@/entities/proxy";
 import { autosaveSession, autoloadSession } from "@/shared/api/proxy";
 import { useAppSettingsStore } from "@/shared/stores/app-settings-store";
 import type { WsMessageInfo, WsConnectionEvent } from "@/entities/websocket";
@@ -59,6 +60,7 @@ const App: React.FC = () => {
   const setSslFromDaemon = useSslProxyingStore((s) => s.setFromDaemon);
   const setDefaultPassthroughEntries = useSslProxyingStore((s) => s.setDefaultPassthroughEntries);
   const initDefaultPassthrough = useSslProxyingStore((s) => s.initDefaultPassthrough);
+  const setContractSpecs = useContractStore((s) => s.setSpecs);
 
   // 앱 시작 시 프록시 초기화 → 데몬 규칙 수신 대기 → 저장된 규칙 동기화
   useEffect(() => {
@@ -70,8 +72,8 @@ const App: React.FC = () => {
     if (paused) return;
 
     const unlisten = listen<ProxyEventTuple>("proxy_event", (event) => {
-      const [request, response] = event.payload;
-      addTransaction({ request, response });
+      const [request, response, validations] = event.payload;
+      addTransaction({ request, response, validations });
     });
 
     return () => {
@@ -224,6 +226,17 @@ const App: React.FC = () => {
       unlisten.then((f) => f());
     };
   }, [setDefaultPassthroughEntries]);
+
+  // Contract Testing 스펙 업데이트 수신
+  useEffect(() => {
+    const unlisten = listen<ContractSpecInfo[]>("contract_specs_updated", (event) => {
+      setContractSpecs(event.payload);
+    });
+
+    return () => {
+      unlisten.then((f) => f());
+    };
+  }, [setContractSpecs]);
 
   // persist에서 복원된 기본 패스스루 도메인이 없으면 Rust 백엔드에서 기본값 로딩
   useEffect(() => {
