@@ -10,6 +10,19 @@ use crate::handler::response_helpers;
 
 use super::super::LoggingHandler;
 
+/// Basic 인증 헤더에서 사용자명을 추출한다.
+fn extract_basic_auth_username(headers: &proxyapi_v2::hyper::http::HeaderMap) -> Option<String> {
+    let auth_header = headers
+        .get("proxy-authorization")
+        .and_then(|v| v.to_str().ok())?;
+    let encoded = auth_header.strip_prefix("Basic ")?;
+    let decoded =
+        base64::Engine::decode(&base64::engine::general_purpose::STANDARD, encoded).ok()?;
+    let credentials = std::str::from_utf8(&decoded).ok()?;
+    let (username, _) = credentials.split_once(':')?;
+    Some(username.to_string())
+}
+
 impl HttpHandler for LoggingHandler {
     async fn should_intercept(&mut self, _ctx: &HttpContext, req: &Request<Body>) -> bool {
         // 프록시 인증 체크: 인증 실패 여부를 먼저 판정
@@ -76,23 +89,7 @@ impl HttpHandler for LoggingHandler {
         use super::request_pipeline::PipelineAction;
 
         // 프록시 인증 사용자명 추출 (Basic 인증 시)
-        if let Some(auth_header) = req
-            .headers()
-            .get("proxy-authorization")
-            .and_then(|v| v.to_str().ok())
-        {
-            if let Some(encoded) = auth_header.strip_prefix("Basic ") {
-                if let Ok(decoded) =
-                    base64::Engine::decode(&base64::engine::general_purpose::STANDARD, encoded)
-                {
-                    if let Ok(credentials) = std::str::from_utf8(&decoded) {
-                        if let Some((username, _)) = credentials.split_once(':') {
-                            self.request.proxy_auth_user = Some(username.to_string());
-                        }
-                    }
-                }
-            }
-        }
+        self.request.proxy_auth_user = extract_basic_auth_username(req.headers());
 
         // 초기 파이프라인: 인증, 바디 크기 제한, 인증서 다운로드, WebSocket 확장 제거
         if let Some(action) = self.run_early_pipeline(&mut req).await {
@@ -297,5 +294,83 @@ impl HttpHandler for LoggingHandler {
             StatusCode::BAD_GATEWAY,
             Body::from(format!("Proxy Error: {}", err)),
         )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use proxyapi_v2::hyper::http::{HeaderMap, HeaderValue};
+
+    fn encode_basic(username: &str, password: &str) -> String {
+        use base64::Engine;
+        base64::engine::general_purpose::STANDARD.encode(format!("{}:{}", username, password))
+    }
+
+    #[test]
+    fn test_extract_basic_auth_username_valid() {
+        let mut headers = HeaderMap::new();
+        let value = format!("Basic {}", encode_basic("admin", "secret"));
+        headers.insert(
+            "proxy-authorization",
+            HeaderValue::from_str(&value).unwrap(),
+        );
+        assert_eq!(
+            extract_basic_auth_username(&headers),
+            Some("admin".to_string())
+        );
+    }
+
+    #[test]
+    fn test_extract_basic_auth_username_no_header() {
+        let headers = HeaderMap::new();
+        assert_eq!(extract_basic_auth_username(&headers), None);
+    }
+
+    #[test]
+    fn test_extract_basic_auth_username_not_basic() {
+        let mut headers = HeaderMap::new();
+        headers.insert(
+            "proxy-authorization",
+            HeaderValue::from_static("Bearer some-token"),
+        );
+        assert_eq!(extract_basic_auth_username(&headers), None);
+    }
+
+    #[test]
+    fn test_extract_basic_auth_username_invalid_base64() {
+        let mut headers = HeaderMap::new();
+        headers.insert(
+            "proxy-authorization",
+            HeaderValue::from_static("Basic !!!invalid!!!"),
+        );
+        assert_eq!(extract_basic_auth_username(&headers), None);
+    }
+
+    #[test]
+    fn test_extract_basic_auth_username_no_colon() {
+        use base64::Engine;
+        let mut headers = HeaderMap::new();
+        let encoded = base64::engine::general_purpose::STANDARD.encode("nocolon");
+        let value = format!("Basic {}", encoded);
+        headers.insert(
+            "proxy-authorization",
+            HeaderValue::from_str(&value).unwrap(),
+        );
+        assert_eq!(extract_basic_auth_username(&headers), None);
+    }
+
+    #[test]
+    fn test_extract_basic_auth_username_empty_password() {
+        let mut headers = HeaderMap::new();
+        let value = format!("Basic {}", encode_basic("user", ""));
+        headers.insert(
+            "proxy-authorization",
+            HeaderValue::from_str(&value).unwrap(),
+        );
+        assert_eq!(
+            extract_basic_auth_username(&headers),
+            Some("user".to_string())
+        );
     }
 }
