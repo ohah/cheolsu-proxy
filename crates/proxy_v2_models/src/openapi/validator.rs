@@ -305,6 +305,9 @@ pub fn validate_transaction(
     (violations, matched_path, matched_operation)
 }
 
+/// 스키마 검증의 최대 재귀 깊이 (순환 $ref 보호)
+const MAX_VALIDATION_DEPTH: usize = 32;
+
 /// JSON 값을 스키마에 대해 재귀적으로 검증합니다 ($ref 해석 포함).
 pub fn validate_against_schema(
     value: &serde_json::Value,
@@ -313,6 +316,21 @@ pub fn validate_against_schema(
     violations: &mut Vec<ContractViolation>,
     components: Option<&super::types::Components>,
 ) {
+    validate_against_schema_inner(value, schema, json_path, violations, components, 0);
+}
+
+fn validate_against_schema_inner(
+    value: &serde_json::Value,
+    schema: &SchemaObject,
+    json_path: &str,
+    violations: &mut Vec<ContractViolation>,
+    components: Option<&super::types::Components>,
+    depth: usize,
+) {
+    if depth >= MAX_VALIDATION_DEPTH {
+        return;
+    }
+
     // $ref 해석
     let schema = resolve_schema(schema, components);
 
@@ -360,12 +378,13 @@ pub fn validate_against_schema(
                 for (prop_name, prop_schema) in properties {
                     if let Some(prop_value) = obj.get(prop_name) {
                         let child_path = format!("{}.{}", json_path, prop_name);
-                        validate_against_schema(
+                        validate_against_schema_inner(
                             prop_value,
                             prop_schema,
                             &child_path,
                             violations,
                             components,
+                            depth + 1,
                         );
                     }
                 }
@@ -417,12 +436,13 @@ pub fn validate_against_schema(
             if let Some(items_schema) = &schema.items {
                 if let Some(first) = value.as_array().and_then(|arr| arr.first()) {
                     let child_path = format!("{}[0]", json_path);
-                    validate_against_schema(
+                    validate_against_schema_inner(
                         first,
                         items_schema,
                         &child_path,
                         violations,
                         components,
+                        depth + 1,
                     );
                 }
             }
