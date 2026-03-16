@@ -56,16 +56,12 @@ impl ContractValidator {
             std::fs::read_to_string(path).map_err(|e| format!("파일 읽기 실패: {}", e))?;
 
         let spec: OpenApiSpec = if path.ends_with(".yaml") || path.ends_with(".yml") {
-            serde_yaml::from_str(&content).map_err(|e| format!("YAML 파싱 실패: {}", e))?
+            serde_yml::from_str(&content).map_err(|e| format!("YAML 파싱 실패: {}", e))?
         } else {
             serde_json::from_str(&content).map_err(|e| format!("JSON 파싱 실패: {}", e))?
         };
 
-        let id = format!(
-            "{}-{}",
-            chrono::Local::now().timestamp_millis(),
-            std::process::id()
-        );
+        let id = uuid::Uuid::new_v4().to_string();
         let name = spec.info.title.clone();
         let loaded_at = chrono::Local::now()
             .timestamp_nanos_opt()
@@ -121,11 +117,10 @@ impl ContractValidator {
         req: &ClientRequest,
         res: &ClientResponse,
     ) -> Vec<ContractValidationResult> {
-        if !self.has_active_specs() {
+        let specs = self.specs.read();
+        if !specs.iter().any(|s| s.enabled) {
             return Vec::new();
         }
-
-        let specs = self.specs.read();
         let mut results = Vec::new();
 
         let method = req.method().as_str();

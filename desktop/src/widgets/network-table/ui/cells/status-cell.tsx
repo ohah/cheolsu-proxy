@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import { AlertTriangle } from "lucide-react";
 
 import { Badge } from "@/shared/ui";
@@ -11,9 +11,14 @@ export const StatusCell = memo<TableCellProps>(({ data }) => {
   const status = data.transaction.response?.status || 0;
   const isConnect = method === "CONNECT";
 
-  const violations = data.transaction.validations?.flatMap((r) => r.violations) ?? [];
-  const hasErrors = violations.some((v) => v.severity === "Error");
-  const hasWarnings = violations.length > 0;
+  const { hasErrors, hasWarnings, count } = useMemo(() => {
+    const violations = data.transaction.validations?.flatMap((r) => r.violations) ?? [];
+    return {
+      hasErrors: violations.some((v) => v.severity === "Error"),
+      hasWarnings: violations.length > 0,
+      count: violations.length,
+    };
+  }, [data.transaction.validations]);
 
   return (
     <div className="flex items-center gap-1">
@@ -21,7 +26,7 @@ export const StatusCell = memo<TableCellProps>(({ data }) => {
         {isConnect ? "TUNNEL" : status}
       </Badge>
       {hasWarnings && (
-        <span title={`${violations.length} contract violation(s)`}>
+        <span title={`${count} contract violation(s)`}>
           <AlertTriangle
             className={`h-3.5 w-3.5 shrink-0 ${hasErrors ? "text-destructive" : "text-yellow-500"}`}
           />
