@@ -3,6 +3,7 @@ pub(crate) mod breakpoint_handler;
 pub(crate) mod cert_distribution;
 pub mod client;
 pub mod client_handler;
+pub mod contract_validator;
 pub mod curl_fallback;
 pub mod daemon;
 pub(crate) mod diff;
@@ -30,6 +31,7 @@ pub use breakpoint::BreakpointManager;
 pub use client::{
     connect_to_daemon, ensure_daemon, is_daemon_running, CommandSender, DaemonConnection,
 };
+pub use contract_validator::ContractValidator;
 pub use daemon::{check_and_cleanup_stale_lock, lock_file_path, run_daemon, uds_socket_path};
 pub use diff::{
     diff_headers, diff_json, diff_text, format_diff_text, is_text_data_type, BodyDiff, DiffLine,

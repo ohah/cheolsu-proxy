@@ -473,6 +473,7 @@ mod tests_reverse_proxy {
                 sse_sequence: Arc::new(std::sync::atomic::AtomicU64::new(0)),
             },
             breakpoint_manager: None,
+            contract_validator: crate::contract_validator::ContractValidator::new(),
         }
     }
 

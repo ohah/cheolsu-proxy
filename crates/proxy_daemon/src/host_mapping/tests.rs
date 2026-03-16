@@ -493,5 +493,6 @@ async fn create_test_handler() -> LoggingHandler {
             sse_sequence: Arc::new(std::sync::atomic::AtomicU64::new(0)),
         },
         breakpoint_manager: None,
+        contract_validator: crate::contract_validator::ContractValidator::new(),
     }
 }

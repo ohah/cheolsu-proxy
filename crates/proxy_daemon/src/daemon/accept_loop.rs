@@ -70,6 +70,7 @@ pub(super) async fn run_accept_loop(
                                 client_count: ctx.client_count.clone(),
                                 tls_passthrough: ctx.tls_passthrough.clone(),
                                 connection_strategy: ctx.connection_strategy.clone(),
+                                contract_validator: ctx.contract_validator.clone(),
                             },
                         };
 

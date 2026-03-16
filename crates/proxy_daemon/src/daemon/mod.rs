@@ -187,6 +187,7 @@ pub(crate) struct DaemonContext {
     pub(crate) proxy_auth: Arc<tokio::sync::RwLock<Option<crate::protocol::ProxyAuthConfig>>>,
     pub(crate) tls_passthrough: proxyapi_v2::tls_passthrough::TlsPassthrough,
     pub(crate) connection_strategy: Arc<std::sync::atomic::AtomicU8>,
+    pub(crate) contract_validator: crate::contract_validator::ContractValidator,
 }
 
 // --- 데몬 진입점 ---
@@ -339,6 +340,8 @@ async fn daemon_main(port: u16, host: String) -> i32 {
         });
     }
 
+    let contract_validator = crate::contract_validator::ContractValidator::new();
+
     let (proxy_handle, proxy_shutdown_tx) = spawn_proxy_task(
         addr,
         event_tx.clone(),
@@ -354,6 +357,7 @@ async fn daemon_main(port: u16, host: String) -> i32 {
         connection_strategy.clone(),
         metrics_collector.clone(),
         total_transactions.clone(),
+        contract_validator.clone(),
     );
 
     let uds_listener = match UnixListener::bind(&uds_path) {
@@ -396,6 +400,7 @@ async fn daemon_main(port: u16, host: String) -> i32 {
         proxy_auth,
         tls_passthrough,
         connection_strategy,
+        contract_validator,
     };
 
     run_accept_loop(uds_listener, &mut shutdown_rx, &ctx, port).await;

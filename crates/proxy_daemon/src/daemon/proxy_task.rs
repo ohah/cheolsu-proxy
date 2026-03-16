@@ -6,6 +6,7 @@ use tracing::{error, warn};
 
 use super::WatchReceivers;
 use crate::breakpoint::BreakpointManager;
+use crate::contract_validator::ContractValidator;
 use crate::handler::QuickSettings;
 use crate::proxy_runner::run_proxy;
 use proxyapi_v2::metrics::MetricsCollector;
@@ -28,6 +29,7 @@ pub(super) fn spawn_proxy_task(
     connection_strategy: Arc<std::sync::atomic::AtomicU8>,
     metrics_collector: Arc<MetricsCollector>,
     total_transactions: std::sync::Arc<std::sync::atomic::AtomicU64>,
+    contract_validator: ContractValidator,
 ) -> (
     tokio::task::JoinHandle<()>,
     tokio::sync::oneshot::Sender<()>,
@@ -73,6 +75,7 @@ pub(super) fn spawn_proxy_task(
             metrics_collector,
             total_transactions,
             default_passthrough_rx,
+            contract_validator,
         )
         .await
         {

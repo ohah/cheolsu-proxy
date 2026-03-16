@@ -10,6 +10,7 @@ use tokio::sync::{broadcast, Mutex};
 use tracing::{debug, error, warn};
 
 use crate::breakpoint::BreakpointManager;
+use crate::contract_validator::ContractValidator;
 use crate::daemon::{DaemonChannels, DaemonMetrics};
 use crate::protocol::{ClientCommand, DaemonMessage, ProxyAuthConfig, PROTOCOL_VERSION};
 use proxyapi_v2::websocket_registry::WebSocketRegistry;
@@ -31,6 +32,7 @@ pub(crate) struct SharedDaemonState {
     pub(crate) client_count: Arc<std::sync::atomic::AtomicUsize>,
     pub(crate) tls_passthrough: proxyapi_v2::tls_passthrough::TlsPassthrough,
     pub(crate) connection_strategy: Arc<std::sync::atomic::AtomicU8>,
+    pub(crate) contract_validator: ContractValidator,
 }
 
 /// handle_client에 전달되는 채널/상태를 묶는 컨텍스트 구조체.

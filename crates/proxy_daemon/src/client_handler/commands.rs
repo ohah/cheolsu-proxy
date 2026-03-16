@@ -449,6 +449,49 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bo
             let response = DaemonMessage::RecentErrorsResult { errors };
             ctx.send_message(&response).await;
         }
+        ClientCommand::LoadContractSpec { path } => {
+            info!("Loading contract spec: {}", path);
+            match s.contract_validator.load_spec(&path) {
+                Ok(spec_info) => {
+                    let response = DaemonMessage::ContractSpecLoaded { spec: spec_info };
+                    ctx.send_message(&response).await;
+                    // 전체 목록도 브로드캐스트
+                    let specs = s.contract_validator.list_specs();
+                    let broadcast_msg = DaemonMessage::ContractSpecsUpdated { specs };
+                    if let Ok(json) = serde_json::to_string(&broadcast_msg) {
+                        let _ = s.event_tx.send(json);
+                    }
+                }
+                Err(e) => {
+                    error!("Failed to load contract spec: {}", e);
+                    let response = DaemonMessage::ContractSpecError { error: e };
+                    ctx.send_message(&response).await;
+                }
+            }
+        }
+        ClientCommand::UnloadContractSpec { id } => {
+            info!("Unloading contract spec: {}", id);
+            s.contract_validator.unload_spec(&id);
+            let specs = s.contract_validator.list_specs();
+            let broadcast_msg = DaemonMessage::ContractSpecsUpdated { specs };
+            if let Ok(json) = serde_json::to_string(&broadcast_msg) {
+                let _ = s.event_tx.send(json);
+            }
+        }
+        ClientCommand::ToggleContractSpec { id, enabled } => {
+            info!("Toggle contract spec: {} -> {}", id, enabled);
+            s.contract_validator.toggle_spec(&id, enabled);
+            let specs = s.contract_validator.list_specs();
+            let broadcast_msg = DaemonMessage::ContractSpecsUpdated { specs };
+            if let Ok(json) = serde_json::to_string(&broadcast_msg) {
+                let _ = s.event_tx.send(json);
+            }
+        }
+        ClientCommand::GetContractSpecs => {
+            let specs = s.contract_validator.list_specs();
+            let response = DaemonMessage::ContractSpecsUpdated { specs };
+            ctx.send_message(&response).await;
+        }
         ClientCommand::Stop => {
             return true;
         }
