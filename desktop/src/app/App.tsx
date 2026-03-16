@@ -295,7 +295,13 @@ const App: React.FC = () => {
               response,
             })) as HttpTransaction[];
             if (loaded.length > 0) {
-              setTransactions(loaded);
+              // 세션 복원 중 도착한 트랜잭션이 있으면 세션 데이터 뒤에 병합
+              const { transactions: arrived } = useTransactionStore.getState();
+              if (arrived.length > 0) {
+                setTransactions([...loaded, ...arrived]);
+              } else {
+                setTransactions(loaded);
+              }
               console.info(`자동 세션 복원 완료: ${loaded.length}개 트랜잭션`);
             }
           } catch (e) {

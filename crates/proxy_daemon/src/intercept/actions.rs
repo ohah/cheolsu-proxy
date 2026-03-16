@@ -422,8 +422,8 @@ impl LoggingHandler {
 
     /// MapRemote 규칙의 대상 포트가 CONNECT authority와 매칭되는지 확인합니다.
     ///
-    /// MapRemote 규칙이 `*example.com*` → `http://localhost:8083` 형태일 때,
-    /// dev server의 HMR 스크립트가 `example.com:8083`으로 CONNECT를 시도할 수 있습니다.
+    /// MapRemote 규칙이 `*app.example.dev*` → `http://localhost:8083` 형태일 때,
+    /// dev server의 HMR 스크립트가 `app.example.dev:8083`으로 CONNECT를 시도할 수 있습니다.
     /// 이 경우 SSL 인터셉트를 활성화하여 MapRemote가 정상 동작하도록 합니다.
     pub(crate) async fn should_intercept_for_map_remote(
         &self,
@@ -494,7 +494,7 @@ impl LoggingHandler {
 /// MapRemote 규칙 목록에서 CONNECT host:port 조합이 인터셉트 대상인지 판단합니다.
 ///
 /// MapRemote의 target_url 포트가 CONNECT 포트와 일치하고,
-/// CONNECT 호스트가 해당 규칙의 소스 패턴과 매칭되면 true를 반환합니다.
+/// CONNECT 호스트가 해당 규칙의 소스 패턴과 매칭되면 `true`를 반환합니다.
 pub(crate) fn map_remote_needs_ssl_intercept(
     rules: &[InterceptRule],
     host: &str,
@@ -519,11 +519,6 @@ pub(crate) fn map_remote_needs_ssl_intercept(
                     // CONNECT URI는 "host:port" 형태이므로 https:// scheme을 붙여서 전체 URL 형태로 매칭
                     let synthetic_url = format!("https://{}:{}/", host, c_port);
                     if crate::pattern_utils::wildcard_matches(&rule.pattern, &synthetic_url) {
-                        return true;
-                    }
-                    // scheme 없이 호스트만으로도 매칭 시도
-                    // (패턴이 `*example.com*` 같은 단순 도메인 형태일 수 있음)
-                    if crate::pattern_utils::wildcard_matches(&rule.pattern, host) {
                         return true;
                     }
                 }

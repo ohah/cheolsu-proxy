@@ -1,11 +1,7 @@
 use crate::intercept::actions::map_remote_needs_ssl_intercept;
 use crate::protocol::{InterceptAction, InterceptRule};
 
-fn make_map_remote_rule(
-    pattern: &str,
-    target_url: &str,
-    enabled: bool,
-) -> InterceptRule {
+fn make_map_remote_rule(pattern: &str, target_url: &str, enabled: bool) -> InterceptRule {
     InterceptRule {
         id: "test".to_string(),
         name: "Test MapRemote".to_string(),
@@ -21,16 +17,16 @@ fn make_map_remote_rule(
 
 #[test]
 fn test_map_remote_port_match() {
-    // MapRemote: *pos-webview.payhere.dev* → http://localhost:8083
-    // CONNECT: pos-webview.payhere.dev:8083 → should intercept
+    // MapRemote: *app.example.dev* → http://localhost:8083
+    // CONNECT: app.example.dev:8083 → should intercept
     let rules = vec![make_map_remote_rule(
-        "*pos-webview.payhere.dev*",
+        "*app.example.dev*",
         "http://localhost:8083",
         true,
     )];
     assert!(map_remote_needs_ssl_intercept(
         &rules,
-        "pos-webview.payhere.dev",
+        "app.example.dev",
         Some(8083),
     ));
 }
@@ -39,13 +35,13 @@ fn test_map_remote_port_match() {
 fn test_map_remote_port_mismatch() {
     // CONNECT port 443 doesn't match target port 8083
     let rules = vec![make_map_remote_rule(
-        "*pos-webview.payhere.dev*",
+        "*app.example.dev*",
         "http://localhost:8083",
         true,
     )];
     assert!(!map_remote_needs_ssl_intercept(
         &rules,
-        "pos-webview.payhere.dev",
+        "app.example.dev",
         Some(443),
     ));
 }
@@ -54,7 +50,7 @@ fn test_map_remote_port_mismatch() {
 fn test_map_remote_host_mismatch() {
     // Host doesn't match pattern
     let rules = vec![make_map_remote_rule(
-        "*pos-webview.payhere.dev*",
+        "*app.example.dev*",
         "http://localhost:8083",
         true,
     )];
@@ -68,13 +64,13 @@ fn test_map_remote_host_mismatch() {
 #[test]
 fn test_map_remote_disabled_rule_ignored() {
     let rules = vec![make_map_remote_rule(
-        "*pos-webview.payhere.dev*",
+        "*app.example.dev*",
         "http://localhost:8083",
         false,
     )];
     assert!(!map_remote_needs_ssl_intercept(
         &rules,
-        "pos-webview.payhere.dev",
+        "app.example.dev",
         Some(8083),
     ));
 }
@@ -102,11 +98,7 @@ fn test_map_remote_no_connect_port() {
         "http://localhost:8083",
         true,
     )];
-    assert!(!map_remote_needs_ssl_intercept(
-        &rules,
-        "example.com",
-        None,
-    ));
+    assert!(!map_remote_needs_ssl_intercept(&rules, "example.com", None,));
 }
 
 #[test]
@@ -159,13 +151,13 @@ fn test_map_remote_non_map_remote_rule_ignored() {
 fn test_map_remote_subdomain_pattern() {
     // Wildcard subdomain pattern
     let rules = vec![make_map_remote_rule(
-        "*.payhere.dev*",
+        "*.example.dev*",
         "http://localhost:8083",
         true,
     )];
     assert!(map_remote_needs_ssl_intercept(
         &rules,
-        "pos-webview.payhere.dev",
+        "app.example.dev",
         Some(8083),
     ));
 }

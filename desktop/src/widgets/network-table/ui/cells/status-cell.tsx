@@ -10,6 +10,7 @@ export const StatusCell = memo<TableCellProps>(({ data }) => {
   const method = data.transaction.request?.method;
   const status = data.transaction.response?.status || 0;
   const isConnect = method === "CONNECT";
+  const isMapRemote = !!data.transaction.request?.headers["x-cheolsu-map-remote-original"];
 
   const { hasErrors, hasWarnings, count } = useMemo(() => {
     const violations = data.transaction.validations?.flatMap((r) => r.violations) ?? [];
@@ -25,6 +26,15 @@ export const StatusCell = memo<TableCellProps>(({ data }) => {
       <Badge variant="outline" className={`text-xs ${getStatusColor(status)}`}>
         {isConnect ? "TUNNEL" : status}
       </Badge>
+      {isMapRemote && (
+        <Badge
+          variant="outline"
+          className="text-xs text-blue-500 border-blue-500/50"
+          title={`MapRemote: ${data.transaction.request?.headers["x-cheolsu-map-remote-original"]}`}
+        >
+          Map
+        </Badge>
+      )}
       {hasWarnings && (
         <span title={`${count} contract violation(s)`}>
           <AlertTriangle
