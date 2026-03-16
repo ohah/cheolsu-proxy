@@ -28,7 +28,6 @@ describe("proxy-store", () => {
     store.setState({
       isConnected: false,
       isInitialized: false,
-      port: 8100,
     });
   });
 
@@ -36,7 +35,6 @@ describe("proxy-store", () => {
     const state = store.getState();
     expect(state.isConnected).toBe(false);
     expect(state.isInitialized).toBe(false);
-    expect(state.port).toBe(8100);
   });
 
   test("initializeProxy: 초기화 성공 시 isConnected 설정", async () => {
@@ -71,13 +69,12 @@ describe("proxy-store", () => {
     expect(store.getState().isConnected).toBe(false);
   });
 
-  test("setPort: 포트 변경", () => {
-    store.getState().setPort(9090);
-    expect(store.getState().port).toBe(9090);
-  });
-
-  test("initializeProxy: 커스텀 포트 설정", async () => {
+  test("initializeProxy: 커스텀 포트로 프록시 시작", async () => {
     await store.getState().initializeProxy(9090);
-    expect(store.getState().port).toBe(9090);
+    expect(store.getState().isConnected).toBe(true);
+    // start_proxy_v2가 커스텀 포트로 호출되었는지 확인
+    const lastCall = mockInvoke.mock.calls[mockInvoke.mock.calls.length - 1];
+    expect(lastCall[0]).toBe("start_proxy_v2");
+    expect(lastCall[1]).toEqual({ addr: "127.0.0.1:9090" });
   });
 });
