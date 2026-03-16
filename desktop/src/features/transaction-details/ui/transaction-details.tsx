@@ -8,6 +8,7 @@ import { TransactionBody } from "./transaction-body";
 import { TransactionResponse } from "./transaction-response";
 import { TransactionBodySideBySide } from "./transaction-body-side-by-side";
 import { TransactionTiming } from "./transaction-timing";
+import { TransactionValidation } from "./transaction-validation";
 
 import { useTransactionTabs } from "../hooks";
 import {
@@ -92,6 +93,10 @@ export function TransactionDetails({
 
                 <TabsContent value={TRANSACTION_DETAILS_TABS.TIMING} className="flex-1 mt-4">
                   <TransactionTiming timing={response.timing} />
+                </TabsContent>
+
+                <TabsContent value={TRANSACTION_DETAILS_TABS.VALIDATION} className="flex-1 mt-4">
+                  <TransactionValidation validations={transaction.validations} />
                 </TabsContent>
               </>
             )}

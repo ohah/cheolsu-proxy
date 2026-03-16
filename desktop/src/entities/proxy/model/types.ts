@@ -69,12 +69,55 @@ export interface HttpResponse {
   timing?: TimingWaterfall; // 요청/응답 각 단계별 타이밍 정보
 }
 
+// Contract Testing 관련 타입
+export type ViolationType =
+  | "StatusCodeMismatch"
+  | "MissingField"
+  | "TypeMismatch"
+  | "ExtraField"
+  | "PathNotFound"
+  | "MethodNotAllowed";
+
+export type Severity = "Error" | "Warning";
+
+export interface ContractViolation {
+  violation_type: ViolationType;
+  path: string;
+  message: string;
+  expected?: string;
+  actual?: string;
+  severity: Severity;
+}
+
+export interface ContractValidationResult {
+  request_id: string;
+  spec_id: string;
+  violations: ContractViolation[];
+  validated_at: number;
+  matched_path?: string;
+  matched_operation?: string;
+}
+
+export interface ContractSpecInfo {
+  id: string;
+  name: string;
+  file_path: string;
+  enabled: boolean;
+  path_count: number;
+  loaded_at: number;
+}
+
 export interface HttpTransaction {
   request: HttpRequest | null;
   response: HttpResponse | null;
+  validations?: ContractValidationResult[];
 }
 
-export type ProxyEventTuple = [HttpTransaction["request"], HttpTransaction["response"]];
+export type ProxyEventTuple = [
+  HttpTransaction["request"],
+  HttpTransaction["response"],
+  HttpTransaction["validations"]?,
+];
 
 // Re-export DataType and utilities for public API
 export {

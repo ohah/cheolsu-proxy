@@ -3,6 +3,7 @@ export const TRANSACTION_DETAILS_TABS = {
   BODY: "body",
   RESPONSE: "response",
   TIMING: "timing",
+  VALIDATION: "validation",
 } as const;
 
 export const TRANSACTION_DETAILS_TAB_LABELS = {
@@ -10,6 +11,7 @@ export const TRANSACTION_DETAILS_TAB_LABELS = {
   [TRANSACTION_DETAILS_TABS.BODY]: "Body",
   [TRANSACTION_DETAILS_TABS.RESPONSE]: "Response",
   [TRANSACTION_DETAILS_TABS.TIMING]: "Timing",
+  [TRANSACTION_DETAILS_TABS.VALIDATION]: "Validation",
 } as const;
 
 export const TRANSACTION_DETAILS_BOTTOM_TABS = {

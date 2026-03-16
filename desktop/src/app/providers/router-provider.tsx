@@ -52,6 +52,11 @@ const ReverseProxyPage = lazy(() =>
   })),
 );
 const LogsPage = lazy(() => import("@/pages/log-viewer").then((m) => ({ default: m.LogsPage })));
+const ContractTestingPage = lazy(() =>
+  import("@/pages/contract-testing").then((m) => ({
+    default: m.ContractTestingPage,
+  })),
+);
 
 function RootLayout() {
   return (
@@ -119,6 +124,10 @@ export const router = createBrowserRouter([
       {
         path: "/logs",
         element: <LogsPage />,
+      },
+      {
+        path: "/contract-testing",
+        element: <ContractTestingPage />,
       },
     ],
   },
