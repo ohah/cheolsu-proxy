@@ -1,6 +1,7 @@
 mod breakpoint;
 mod certificate;
 mod cli;
+mod contract;
 mod diff;
 mod intercept;
 mod log;
@@ -20,6 +21,9 @@ pub(crate) use certificate::{
     remove_custom_ca, uninstall_ca_cert,
 };
 pub(crate) use cli::{check_cli_installed, get_mcp_server_path, install_cli, uninstall_cli};
+pub(crate) use contract::{
+    get_contract_specs, load_contract_spec, toggle_contract_spec, unload_contract_spec,
+};
 pub(crate) use diff::{diff_transaction_pairs, diff_transactions};
 pub(crate) use intercept::{update_intercept_rules_v2, ws_inject_message};
 pub(crate) use log::{clear_log_file, delete_log_file, get_log_dir, get_log_files, read_log_file};
