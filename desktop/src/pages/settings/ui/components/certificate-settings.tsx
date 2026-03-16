@@ -10,6 +10,7 @@ import {
   type CertDownloadInfo,
 } from "@/shared/api/proxy";
 import { useProxyStore } from "@/shared/stores/proxy-store";
+import { useAppSettingsStore } from "@/shared/stores/app-settings-store";
 import { Button, Badge } from "@/shared/ui";
 import { CustomCaSection } from "./custom-ca-section";
 
@@ -22,7 +23,7 @@ const CERT_DOWNLOAD_PATHS = {
 
 export function CertificateSettings() {
   const { t } = useLingui();
-  const proxyPort = useProxyStore((s) => s.port);
+  const proxyPort = useAppSettingsStore((s) => s.proxyPort);
   const isProxyConnected = useProxyStore((s) => s.isConnected);
 
   const [caInstalled, setCaInstalled] = useState(false);

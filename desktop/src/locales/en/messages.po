@@ -376,7 +376,7 @@ msgstr "Bypass List"
 msgid "bytes body"
 msgstr "bytes body"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:115
+#: src/pages/settings/ui/components/certificate-settings.tsx:116
 msgid "CA Certificate"
 msgstr "CA Certificate"
 
@@ -414,7 +414,7 @@ msgstr "Certificate"
 msgid "Certificate Details"
 msgstr "Certificate Details"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:398
+#: src/pages/settings/ui/components/certificate-settings.tsx:399
 msgid "Certificate Download URL"
 msgstr "Certificate Download URL"
 
@@ -575,7 +575,7 @@ msgstr "Contract Testing"
 msgid "Controls when the proxy connects to upstream servers for certificate sniffing"
 msgstr "Controls when the proxy connects to upstream servers for certificate sniffing"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:242
+#: src/pages/settings/ui/components/certificate-settings.tsx:243
 msgid "Copied!"
 msgstr "Copied!"
 
@@ -600,7 +600,7 @@ msgstr "Copy Headers"
 msgid "Copy to clipboard"
 msgstr "Copy to clipboard"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:242
+#: src/pages/settings/ui/components/certificate-settings.tsx:243
 msgid "Copy URL"
 msgstr "Copy URL"
 
@@ -634,7 +634,7 @@ msgstr "Dark"
 msgid "Data"
 msgstr "Data"
 
-#: src/pages/settings/ui/components/proxy-port-section.tsx:31
+#: src/pages/settings/ui/components/proxy-port-section.tsx:44
 msgid "Default port is 8100. Make sure your system proxy is configured to use port {port}."
 msgstr "Default port is 8100. Make sure your system proxy is configured to use port {port}."
 
@@ -770,7 +770,7 @@ msgstr "Edit Rule"
 msgid "Editor"
 msgstr "Editor"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:317
+#: src/pages/settings/ui/components/certificate-settings.tsx:318
 msgid "Enable full trust for the Cheolsu Proxy CA certificate"
 msgstr "Enable full trust for the Cheolsu Proxy CA certificate"
 
@@ -899,8 +899,8 @@ msgstr "Filter log lines..."
 msgid "For Cursor, Claude Desktop, and other MCP-compatible clients:"
 msgstr "For Cursor, Claude Desktop, and other MCP-compatible clients:"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:260
-#: src/pages/settings/ui/components/certificate-settings.tsx:264
+#: src/pages/settings/ui/components/certificate-settings.tsx:261
+#: src/pages/settings/ui/components/certificate-settings.tsx:265
 msgid "format"
 msgstr "format"
 
@@ -921,15 +921,15 @@ msgstr "General"
 msgid "Global Shortcut"
 msgstr "Global Shortcut"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:311
+#: src/pages/settings/ui/components/certificate-settings.tsx:312
 msgid "Go to <0>Settings → General → About → Certificate Trust Settings</0>"
 msgstr "Go to <0>Settings → General → About → Certificate Trust Settings</0>"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:303
+#: src/pages/settings/ui/components/certificate-settings.tsx:304
 msgid "Go to <0>Settings → General → VPN & Device Management</0>"
 msgstr "Go to <0>Settings → General → VPN & Device Management</0>"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:351
+#: src/pages/settings/ui/components/certificate-settings.tsx:352
 msgid "Go to <0>Settings → Security → Encryption & credentials</0>"
 msgstr "Go to <0>Settings → Security → Encryption & credentials</0>"
 
@@ -1030,17 +1030,17 @@ msgstr "Importing..."
 msgid "Inactive"
 msgstr "Inactive"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:128
+#: src/pages/settings/ui/components/certificate-settings.tsx:129
 #: src/pages/settings/ui/components/cli-settings.tsx:61
 msgid "Install"
 msgstr "Install"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:204
+#: src/pages/settings/ui/components/certificate-settings.tsx:205
 msgid "Install and trust the downloaded certificate"
 msgstr "Install and trust the downloaded certificate"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:283
-#: src/pages/settings/ui/components/certificate-settings.tsx:333
+#: src/pages/settings/ui/components/certificate-settings.tsx:284
+#: src/pages/settings/ui/components/certificate-settings.tsx:334
 msgid "Install Guide"
 msgstr "Install Guide"
 
@@ -1048,11 +1048,11 @@ msgstr "Install Guide"
 msgid "Install the <0>cheolsu</0> command to use the TUI from your terminal"
 msgstr "Install the <0>cheolsu</0> command to use the TUI from your terminal"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:161
+#: src/pages/settings/ui/components/certificate-settings.tsx:162
 msgid "Install the CA certificate on external devices (mobile, tablet) to intercept HTTPS traffic"
 msgstr "Install the CA certificate on external devices (mobile, tablet) to intercept HTTPS traffic"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:118
+#: src/pages/settings/ui/components/certificate-settings.tsx:119
 msgid "Install the CA certificate to trust HTTPS traffic intercepted by the proxy"
 msgstr "Install the CA certificate to trust HTTPS traffic intercepted by the proxy"
 
@@ -1060,7 +1060,7 @@ msgstr "Install the CA certificate to trust HTTPS traffic intercepted by the pro
 msgid "Installed"
 msgstr "Installed"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:128
+#: src/pages/settings/ui/components/certificate-settings.tsx:129
 #: src/pages/settings/ui/components/cli-settings.tsx:61
 msgid "Installing..."
 msgstr "Installing..."
@@ -1153,7 +1153,7 @@ msgstr "Loading certificate info..."
 
 #: src/pages/script/ui/script-page.tsx:214
 #: src/pages/script/ui/script-page.tsx:266
-#: src/pages/settings/ui/components/certificate-settings.tsx:176
+#: src/pages/settings/ui/components/certificate-settings.tsx:177
 #: src/pages/settings/ui/components/proto-files-section.tsx:77
 msgid "Loading..."
 msgstr "Loading..."
@@ -1286,7 +1286,7 @@ msgstr "messages"
 msgid "Method"
 msgstr "Method"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:213
+#: src/pages/settings/ui/components/certificate-settings.tsx:214
 msgid "Mobile Certificate Install"
 msgstr "Mobile Certificate Install"
 
@@ -1428,7 +1428,7 @@ msgstr "No valid request to replay"
 msgid "No valid requests to replay"
 msgstr "No valid requests to replay"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:142
+#: src/pages/settings/ui/components/certificate-settings.tsx:143
 msgid "Not Trusted"
 msgstr "Not Trusted"
 
@@ -1452,15 +1452,15 @@ msgstr "Only http:// and https:// URLs are allowed"
 msgid "Only whitelisted domains ({enabledCount}) will have HTTPS traffic intercepted"
 msgstr "Only whitelisted domains ({enabledCount}) will have HTTPS traffic intercepted"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:343
+#: src/pages/settings/ui/components/certificate-settings.tsx:344
 msgid "Open <0>{CERT_DOWNLOAD_URL}</0> in Chrome"
 msgstr "Open <0>{CERT_DOWNLOAD_URL}</0> in Chrome"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:293
+#: src/pages/settings/ui/components/certificate-settings.tsx:294
 msgid "Open <0>{CERT_DOWNLOAD_URL}</0> in Safari"
 msgstr "Open <0>{CERT_DOWNLOAD_URL}</0> in Safari"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:195
+#: src/pages/settings/ui/components/certificate-settings.tsx:196
 msgid "Open <0>{CERT_DOWNLOAD_URL}</0> in your device browser"
 msgstr "Open <0>{CERT_DOWNLOAD_URL}</0> in your device browser"
 
@@ -1472,7 +1472,7 @@ msgstr "Open Directory"
 msgid "Open File"
 msgstr "Open File"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:251
+#: src/pages/settings/ui/components/certificate-settings.tsx:252
 msgid "Open this URL in your mobile browser after setting the Wi-Fi proxy. The page automatically detects your device and provides the correct certificate format."
 msgstr "Open this URL in your mobile browser after setting the Wi-Fi proxy. The page automatically detects your device and provides the correct certificate format."
 
@@ -1576,10 +1576,11 @@ msgid "Port"
 msgstr "Port"
 
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:37
+#: src/pages/settings/ui/components/proxy-port-section.tsx:38
 msgid "Port must be between 1 and 65535"
 msgstr "Port must be between 1 and 65535"
 
-#: src/pages/settings/ui/components/proxy-port-section.tsx:16
+#: src/pages/settings/ui/components/proxy-port-section.tsx:20
 msgid "Port number for the proxy server to listen on. Changes take effect on next app restart."
 msgstr "Port number for the proxy server to listen on. Changes take effect on next app restart."
 
@@ -1615,7 +1616,7 @@ msgstr "Progress"
 msgid "Proto file removed"
 msgstr "Proto file removed"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:388
+#: src/pages/settings/ui/components/certificate-settings.tsx:389
 msgid "Proxy Address"
 msgstr "Proxy Address"
 
@@ -1627,7 +1628,7 @@ msgstr "Proxy Authentication"
 msgid "Proxy configuration and preferences"
 msgstr "Proxy configuration and preferences"
 
-#: src/pages/settings/ui/components/proxy-port-section.tsx:13
+#: src/pages/settings/ui/components/proxy-port-section.tsx:17
 msgid "Proxy Port"
 msgstr "Proxy Port"
 
@@ -1669,7 +1670,7 @@ msgstr "Received (Server → Client)"
 
 #: src/pages/log-viewer/ui/logs-page.tsx:251
 #: src/pages/log-viewer/ui/logs-page.tsx:276
-#: src/pages/settings/ui/components/certificate-settings.tsx:405
+#: src/pages/settings/ui/components/certificate-settings.tsx:406
 msgid "Refresh"
 msgstr "Refresh"
 
@@ -1682,7 +1683,7 @@ msgstr "Regex pattern (e.g. old-domain\\.com)"
 msgid "Register .proto files to decode gRPC traffic with actual field names instead of field numbers."
 msgstr "Register .proto files to decode gRPC traffic with actual field names instead of field numbers."
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:128
+#: src/pages/settings/ui/components/certificate-settings.tsx:129
 #: src/pages/settings/ui/components/cli-settings.tsx:61
 msgid "Reinstall"
 msgstr "Reinstall"
@@ -1691,7 +1692,7 @@ msgstr "Reinstall"
 msgid "Reload"
 msgstr "Reload"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:158
+#: src/pages/settings/ui/components/certificate-settings.tsx:159
 msgid "Remote Device Certificate"
 msgstr "Remote Device Certificate"
 
@@ -1992,7 +1993,7 @@ msgstr "Saved"
 msgid "Saving..."
 msgstr "Saving..."
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:380
+#: src/pages/settings/ui/components/certificate-settings.tsx:381
 msgid "Scan for proxy info"
 msgstr "Scan for proxy info"
 
@@ -2065,11 +2066,11 @@ msgstr "Select PKCS12 file (.p12, .pfx)"
 msgid "Select preset..."
 msgstr "Select preset..."
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:359
+#: src/pages/settings/ui/components/certificate-settings.tsx:360
 msgid "Select the downloaded certificate file and confirm"
 msgstr "Select the downloaded certificate file and confirm"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:308
+#: src/pages/settings/ui/components/certificate-settings.tsx:309
 msgid "Select the downloaded profile and tap \"Install\""
 msgstr "Select the downloaded profile and tap \"Install\""
 
@@ -2158,7 +2159,7 @@ msgstr "Set body (optional)"
 
 #. placeholder {0}: certDownloadInfo.local_ips[0] || "127.0.0.1"
 #. placeholder {1}: certDownloadInfo.port
-#: src/pages/settings/ui/components/certificate-settings.tsx:187
+#: src/pages/settings/ui/components/certificate-settings.tsx:188
 msgid "Set Wi-Fi proxy on your device to <0>{0}:{1}</0>"
 msgstr "Set Wi-Fi proxy on your device to <0>{0}:{1}</0>"
 
@@ -2167,7 +2168,7 @@ msgstr "Set Wi-Fi proxy on your device to <0>{0}:{1}</0>"
 msgid "Settings"
 msgstr "Settings"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:183
+#: src/pages/settings/ui/components/certificate-settings.tsx:184
 msgid "Setup Instructions:"
 msgstr "Setup Instructions:"
 
@@ -2219,8 +2220,8 @@ msgstr "SSL Proxying"
 msgid "Start"
 msgstr "Start"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:147
-#: src/pages/settings/ui/components/certificate-settings.tsx:171
+#: src/pages/settings/ui/components/certificate-settings.tsx:148
+#: src/pages/settings/ui/components/certificate-settings.tsx:172
 msgid "Start proxy first"
 msgstr "Start proxy first"
 
@@ -2268,11 +2269,11 @@ msgstr "Switch to Code mode"
 msgid "System"
 msgstr "System"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:298
+#: src/pages/settings/ui/components/certificate-settings.tsx:299
 msgid "Tap \"Allow\" when prompted to download the configuration profile"
 msgstr "Tap \"Allow\" when prompted to download the configuration profile"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:356
+#: src/pages/settings/ui/components/certificate-settings.tsx:357
 msgid "Tap \"Install a certificate\" → \"CA certificate\""
 msgstr "Tap \"Install a certificate\" → \"CA certificate\""
 
@@ -2301,7 +2302,7 @@ msgstr "Terminal Command"
 msgid "The certificate must be a CA certificate (BasicConstraints CA=true). After importing, restart the proxy to use the new CA. You also need to install this CA on your system and devices."
 msgstr "The certificate must be a CA certificate (BasicConstraints CA=true). After importing, restart the proxy to use the new CA. You also need to install this CA on your system and devices."
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:348
+#: src/pages/settings/ui/components/certificate-settings.tsx:349
 msgid "The DER certificate file will download automatically"
 msgstr "The DER certificate file will download automatically"
 
@@ -2388,7 +2389,7 @@ msgstr "Transaction unpinned"
 msgid "Tries Eager first, falls back to Lazy on failure"
 msgstr "Tries Eager first, falls back to Lazy on failure"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:137
+#: src/pages/settings/ui/components/certificate-settings.tsx:138
 msgid "Trusted"
 msgstr "Trusted"
 
@@ -2398,12 +2399,12 @@ msgstr "Trusted"
 msgid "Type"
 msgstr "Type"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:132
+#: src/pages/settings/ui/components/certificate-settings.tsx:133
 #: src/pages/settings/ui/components/cli-settings.tsx:65
 msgid "Uninstall"
 msgstr "Uninstall"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:270
+#: src/pages/settings/ui/components/certificate-settings.tsx:271
 msgid "Universal format"
 msgstr "Universal format"
 
