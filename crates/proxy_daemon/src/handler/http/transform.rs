@@ -60,7 +60,11 @@ impl LoggingHandler {
         } else {
             None
         };
-        let request_info = RequestInfo(client_request, client_response, validations);
+        let request_info = RequestInfo {
+            request: client_request,
+            response: client_response,
+            validations,
+        };
         if let Err(e) = self.sender.send(request_info).await {
             error!("[LoggingHandler] 이벤트 전송 실패: {}", e);
         }

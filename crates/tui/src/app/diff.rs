@@ -15,7 +15,7 @@ impl App {
             return;
         };
 
-        let request_diff = match (&txn_a.0, &txn_b.0) {
+        let request_diff = match (&txn_a.request, &txn_b.request) {
             (Some(req_a), Some(req_b)) => {
                 let method_diff = if req_a.method() != req_b.method() {
                     Some((req_a.method().to_string(), req_b.method().to_string()))
@@ -69,7 +69,7 @@ impl App {
             _ => None,
         };
 
-        let response_diff = match (&txn_a.1, &txn_b.1) {
+        let response_diff = match (&txn_a.response, &txn_b.response) {
             (Some(res_a), Some(res_b)) => {
                 let status_diff = if res_a.status() != res_b.status() {
                     Some((res_a.status().as_u16(), res_b.status().as_u16()))

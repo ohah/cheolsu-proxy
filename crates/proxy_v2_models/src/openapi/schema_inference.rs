@@ -10,6 +10,8 @@ pub fn infer_schema(value: &serde_json::Value) -> SchemaObject {
             properties: None,
             items: None,
             example: None,
+            required: None,
+            ref_path: None,
         },
         serde_json::Value::Bool(b) => SchemaObject {
             schema_type: Some("boolean".to_string()),
@@ -17,6 +19,8 @@ pub fn infer_schema(value: &serde_json::Value) -> SchemaObject {
             properties: None,
             items: None,
             nullable: None,
+            required: None,
+            ref_path: None,
         },
         serde_json::Value::Number(n) => {
             let type_str = if n.is_f64() && !n.is_i64() && !n.is_u64() {
@@ -30,6 +34,8 @@ pub fn infer_schema(value: &serde_json::Value) -> SchemaObject {
                 properties: None,
                 items: None,
                 nullable: None,
+                required: None,
+                ref_path: None,
             }
         }
         serde_json::Value::String(s) => SchemaObject {
@@ -38,6 +44,8 @@ pub fn infer_schema(value: &serde_json::Value) -> SchemaObject {
             properties: None,
             items: None,
             nullable: None,
+            required: None,
+            ref_path: None,
         },
         serde_json::Value::Array(arr) => {
             let items = arr.first().map(|item| Box::new(infer_schema(item)));
@@ -47,6 +55,8 @@ pub fn infer_schema(value: &serde_json::Value) -> SchemaObject {
                 properties: None,
                 example: None,
                 nullable: None,
+                required: None,
+                ref_path: None,
             }
         }
         serde_json::Value::Object(obj) => {
@@ -64,6 +74,8 @@ pub fn infer_schema(value: &serde_json::Value) -> SchemaObject {
                 items: None,
                 example: None,
                 nullable: None,
+                required: None,
+                ref_path: None,
             }
         }
     }
@@ -77,6 +89,8 @@ pub fn merge_schemas(schemas: &[SchemaObject]) -> SchemaObject {
             properties: None,
             items: None,
             example: None,
+            required: None,
+            ref_path: None,
             nullable: None,
         };
     }
@@ -107,6 +121,8 @@ pub fn merge_schemas(schemas: &[SchemaObject]) -> SchemaObject {
             },
             items: None,
             example: None,
+            required: None,
+            ref_path: None,
             nullable: None,
         };
     }

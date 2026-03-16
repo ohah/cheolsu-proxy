@@ -21,7 +21,7 @@ import { emit, listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { router } from "./providers/router-provider";
-import type { ProxyEventTuple, HttpTransaction, ContractSpecInfo } from "@/entities/proxy";
+import type { ProxyEventPayload, HttpTransaction, ContractSpecInfo } from "@/entities/proxy";
 import { autosaveSession, autoloadSession } from "@/shared/api/proxy";
 import { useAppSettingsStore } from "@/shared/stores/app-settings-store";
 import type { WsMessageInfo, WsConnectionEvent } from "@/entities/websocket";
@@ -71,9 +71,8 @@ const App: React.FC = () => {
   useEffect(() => {
     if (paused) return;
 
-    const unlisten = listen<ProxyEventTuple>("proxy_event", (event) => {
-      const [request, response, validations] = event.payload;
-      addTransaction({ request, response, validations });
+    const unlisten = listen<ProxyEventPayload>("proxy_event", (event) => {
+      addTransaction(event.payload);
     });
 
     return () => {

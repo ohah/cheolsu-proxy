@@ -11,7 +11,7 @@ pub fn build_openapi_spec(transactions: &[RequestInfo]) -> OpenApiSpec {
 
     // 1. 트랜잭션을 (경로, 메서드)로 그룹핑
     for info in transactions {
-        let Some(req) = info.0.as_ref() else {
+        let Some(req) = info.request.as_ref() else {
             continue;
         };
 
@@ -89,6 +89,7 @@ pub fn build_openapi_spec(transactions: &[RequestInfo]) -> OpenApiSpec {
         } else {
             Some(servers_vec)
         },
+        components: None,
     }
 }
 
@@ -99,7 +100,7 @@ fn build_operation(infos: &[&RequestInfo]) -> Operation {
 
     for info in infos {
         // 요청 바디 스키마 수집
-        if let Some(req) = info.0.as_ref() {
+        if let Some(req) = info.request.as_ref() {
             if let Some(body_json) = req.body_json() {
                 has_request_body = true;
                 request_schemas.push(infer_schema(body_json));
@@ -107,7 +108,7 @@ fn build_operation(infos: &[&RequestInfo]) -> Operation {
         }
 
         // 응답 스키마 수집 (상태 코드별 그룹핑)
-        if let Some(res) = info.1.as_ref() {
+        if let Some(res) = info.response.as_ref() {
             let status = res.status().as_u16().to_string();
             if let Some(body_json) = res.body_json() {
                 response_schemas
@@ -235,7 +236,11 @@ mod tests {
         let client_req = req.for_client(None);
         let client_res = res.for_client(client_req.id(), None);
 
-        RequestInfo(Some(client_req), Some(client_res), None)
+        RequestInfo {
+            request: Some(client_req),
+            response: Some(client_res),
+            validations: None,
+        }
     }
 
     #[test]

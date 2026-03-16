@@ -32,7 +32,7 @@ import { ResizableHandle, ResizablePanel, ResizablePanelGroup, Button } from "@/
 import { useDefaultLayout } from "react-resizable-panels";
 import { Play, X, GitCompareArrows } from "lucide-react";
 
-import type { HttpTransaction, ProxyEventTuple } from "@/entities/proxy";
+import type { HttpTransaction, ProxyEventPayload } from "@/entities/proxy";
 import {
   diffTransactionPairs,
   saveSession,
@@ -51,8 +51,8 @@ import {
 } from "@/shared/hooks/use-transaction-selectors";
 
 function parseTransactionsJson(json: string): HttpTransaction[] {
-  const tuples: ProxyEventTuple[] = JSON.parse(json);
-  return tuples.map(([request, response, validations]) => ({ request, response, validations }));
+  const items: ProxyEventPayload[] = JSON.parse(json);
+  return items;
 }
 
 export const NetworkDashboard = () => {

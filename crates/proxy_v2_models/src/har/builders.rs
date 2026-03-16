@@ -104,17 +104,17 @@ pub fn build_har(transactions: &[RequestInfo]) -> Har {
     let entries = transactions
         .iter()
         .filter_map(|info| {
-            let req = info.0.as_ref()?;
+            let req = info.request.as_ref()?;
 
             let har_request = build_har_request(req);
             let har_response = info
-                .1
+                .response
                 .as_ref()
                 .map(build_har_response)
                 .unwrap_or_else(empty_har_response);
 
             let req_time = req.time();
-            let res_time = info.1.as_ref().map(|r| r.time()).unwrap_or(req_time);
+            let res_time = info.response.as_ref().map(|r| r.time()).unwrap_or(req_time);
             let elapsed = (res_time - req_time).max(0);
 
             Some(HarEntry {

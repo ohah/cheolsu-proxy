@@ -9,6 +9,15 @@ pub struct OpenApiSpec {
     pub paths: BTreeMap<String, PathItem>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub servers: Option<Vec<OpenApiServer>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub components: Option<Components>,
+}
+
+/// OpenAPI Components (스키마 정의 등)
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct Components {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub schemas: Option<BTreeMap<String, SchemaObject>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -99,4 +108,10 @@ pub struct SchemaObject {
     pub nullable: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub example: Option<serde_json::Value>,
+    /// 필수 필드 목록
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub required: Option<Vec<String>>,
+    /// $ref 참조 (e.g. "#/components/schemas/User")
+    #[serde(rename = "$ref", skip_serializing_if = "Option::is_none")]
+    pub ref_path: Option<String>,
 }

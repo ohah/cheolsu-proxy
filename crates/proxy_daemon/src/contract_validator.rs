@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use parking_lot::RwLock;
 use proxy_v2_models::openapi::{
-    validate_response, ContractSpecInfo, ContractValidationResult, OpenApiSpec,
+    validate_transaction, ContractSpecInfo, ContractValidationResult, OpenApiSpec,
 };
 use proxy_v2_models::ClientRequest;
 use proxy_v2_models::ClientResponse;
@@ -141,13 +141,15 @@ impl ContractValidator {
         // 쿼리 스트링 제거는 match_path_template 내부에서 처리
 
         let status = res.status().as_u16();
+        let request_body_json = req.body_json();
 
         for spec in specs.iter().filter(|s| s.enabled) {
-            let (violations, matched_path, matched_operation) = validate_response(
+            let (violations, matched_path, matched_operation) = validate_transaction(
                 &spec.spec,
                 method,
                 &request_path,
                 status,
+                request_body_json.as_ref(),
                 res.body_json().as_ref(),
             );
 

@@ -452,7 +452,7 @@ impl App {
     fn replay_selected_request(&mut self) {
         if let Some(idx) = self.selected_transaction {
             if let Some(info) = self.transactions.get(idx) {
-                if let Some(req) = &info.0 {
+                if let Some(req) = &info.request {
                     let method = req.method().to_string();
                     let uri = req.uri().to_string();
                     let headers = req.headers().clone();

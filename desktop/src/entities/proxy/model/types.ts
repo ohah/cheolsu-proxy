@@ -113,11 +113,7 @@ export interface HttpTransaction {
   validations?: ContractValidationResult[];
 }
 
-export type ProxyEventTuple = [
-  HttpTransaction["request"],
-  HttpTransaction["response"],
-  HttpTransaction["validations"]?,
-];
+export type ProxyEventPayload = HttpTransaction;
 
 // Re-export DataType and utilities for public API
 export {

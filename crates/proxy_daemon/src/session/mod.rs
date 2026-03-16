@@ -186,7 +186,11 @@ mod tests {
         );
         let client_res = res.for_client(&req_id, None);
 
-        RequestInfo(Some(client_req), Some(client_res), None)
+        RequestInfo {
+            request: Some(client_req),
+            response: Some(client_res),
+            validations: None,
+        }
     }
 
     // --- SessionFile 기본 테스트 ---
@@ -340,7 +344,11 @@ mod tests {
 
     #[test]
     fn test_from_traffic_with_data() {
-        let transactions = vec![RequestInfo(None, None, None)];
+        let transactions = vec![RequestInfo {
+            request: None,
+            response: None,
+            validations: None,
+        }];
         let session = SessionFile::from_traffic(8100, &transactions, &[], &[], &[], None);
         assert_eq!(session.metadata.total_transactions, 1);
         assert_eq!(session.transactions.len(), 1);
@@ -348,7 +356,11 @@ mod tests {
 
     #[test]
     fn test_extract_transactions() {
-        let transactions = vec![RequestInfo(None, None, None)];
+        let transactions = vec![RequestInfo {
+            request: None,
+            response: None,
+            validations: None,
+        }];
         let session = SessionFile::from_traffic(8100, &transactions, &[], &[], &[], None);
         let extracted = session.extract_transactions();
         assert_eq!(extracted.len(), 1);
@@ -363,22 +375,22 @@ mod tests {
         let transactions = vec![info];
         let session = SessionFile::from_traffic(8100, &transactions, &[], &[], &[], None);
 
-        assert!(session.transactions[0].info.0.is_some());
-        assert!(session.transactions[0].info.1.is_some());
+        assert!(session.transactions[0].info.request.is_some());
+        assert!(session.transactions[0].info.response.is_some());
 
         session.save(&path).unwrap();
         let loaded = SessionFile::load(&path).unwrap();
 
         assert_eq!(loaded.transactions.len(), 1);
         let loaded_info = &loaded.transactions[0].info;
-        assert!(loaded_info.0.is_some(), "request가 손실됨");
-        assert!(loaded_info.1.is_some(), "response가 손실됨");
+        assert!(loaded_info.request.is_some(), "request가 손실됨");
+        assert!(loaded_info.response.is_some(), "response가 손실됨");
 
-        let req = loaded_info.0.as_ref().unwrap();
+        let req = loaded_info.request.as_ref().unwrap();
         assert_eq!(req.method().as_str(), "GET");
         assert!(req.uri().to_string().contains("example.com"));
 
-        let res = loaded_info.1.as_ref().unwrap();
+        let res = loaded_info.response.as_ref().unwrap();
         assert_eq!(res.status().as_u16(), 200);
     }
 
@@ -394,7 +406,11 @@ mod tests {
             Some("This is a longer description to make compression meaningful".to_string());
         for _ in 0..50 {
             session.transactions.push(SessionTransaction {
-                info: RequestInfo(None, None, None),
+                info: RequestInfo {
+                    request: None,
+                    response: None,
+                    validations: None,
+                },
             });
         }
 
@@ -499,8 +515,8 @@ mod tests {
         let extracted = session.extract_transactions();
 
         assert_eq!(extracted.len(), 1);
-        assert!(extracted[0].0.is_some(), "추출된 request가 없음");
-        assert!(extracted[0].1.is_some(), "추출된 response가 없음");
+        assert!(extracted[0].request.is_some(), "추출된 request가 없음");
+        assert!(extracted[0].response.is_some(), "추출된 response가 없음");
     }
 
     #[test]
@@ -553,8 +569,8 @@ mod tests {
         assert_eq!(loaded.metadata.total_transactions, count);
         assert_eq!(loaded.transactions.len(), count);
         for t in &loaded.transactions {
-            assert!(t.info.0.is_some());
-            assert!(t.info.1.is_some());
+            assert!(t.info.request.is_some());
+            assert!(t.info.response.is_some());
         }
     }
 
@@ -587,12 +603,12 @@ mod tests {
 
         assert_eq!(loaded.transactions.len(), 1);
         let loaded_info = &loaded.transactions[0].info;
-        assert!(loaded_info.0.is_some());
-        assert!(loaded_info.1.is_some());
+        assert!(loaded_info.request.is_some());
+        assert!(loaded_info.response.is_some());
 
-        let req = loaded_info.0.as_ref().unwrap();
+        let req = loaded_info.request.as_ref().unwrap();
         assert_eq!(req.method().as_str(), "GET");
-        let res = loaded_info.1.as_ref().unwrap();
+        let res = loaded_info.response.as_ref().unwrap();
         assert_eq!(res.status().as_u16(), 200);
     }
 

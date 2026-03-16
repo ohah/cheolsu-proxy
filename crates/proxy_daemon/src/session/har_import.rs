@@ -185,7 +185,11 @@ fn convert_har_entry(entry: HarEntryImport) -> Result<RequestInfo, SessionError>
         Some(proxied_res.for_client(&req_id, None))
     });
 
-    Ok(RequestInfo(Some(client_req), client_res, None))
+    Ok(RequestInfo {
+        request: Some(client_req),
+        response: client_res,
+        validations: None,
+    })
 }
 
 /// HTTP 버전 문자열을 hyper Version으로 파싱
@@ -273,7 +277,7 @@ mod tests {
 
         let transactions = import_har(har_json).unwrap();
         assert_eq!(transactions.len(), 1);
-        let req = transactions[0].0.as_ref().unwrap();
+        let req = transactions[0].request.as_ref().unwrap();
         assert_eq!(req.method().as_str(), "GET");
         assert!(req.uri().to_string().contains("example.com"));
     }
@@ -313,7 +317,7 @@ mod tests {
 
         let transactions = import_har_file(&path).unwrap();
         assert_eq!(transactions.len(), 1);
-        let req = transactions[0].0.as_ref().unwrap();
+        let req = transactions[0].request.as_ref().unwrap();
         assert_eq!(req.method().as_str(), "POST");
     }
 
@@ -344,8 +348,8 @@ mod tests {
 
         let transactions = import_har(har_json).unwrap();
         assert_eq!(transactions.len(), 1);
-        assert!(transactions[0].0.is_some());
-        assert!(transactions[0].1.is_none());
+        assert!(transactions[0].request.is_some());
+        assert!(transactions[0].response.is_none());
     }
 
     #[test]
@@ -413,7 +417,7 @@ mod tests {
 
         let methods: Vec<&str> = transactions
             .iter()
-            .map(|t| t.0.as_ref().unwrap().method().as_str())
+            .map(|t| t.request.as_ref().unwrap().method().as_str())
             .collect();
         assert_eq!(methods, vec!["GET", "POST"]);
     }
@@ -467,7 +471,7 @@ mod tests {
 
         let transactions = import_har(&har_json).unwrap();
         assert_eq!(transactions.len(), 1);
-        let res = transactions[0].1.as_ref().unwrap();
+        let res = transactions[0].response.as_ref().unwrap();
         let body = res.body();
         assert!(body.is_some());
     }
@@ -514,7 +518,7 @@ mod tests {
 
         let transactions = import_har(har_json).unwrap();
         assert_eq!(transactions.len(), 1);
-        let req = transactions[0].0.as_ref().unwrap();
+        let req = transactions[0].request.as_ref().unwrap();
         assert!(req.headers().contains_key("accept"));
         assert!(req.headers().contains_key("authorization"));
     }
@@ -560,7 +564,7 @@ mod tests {
         for version in &["HTTP/1.0", "HTTP/2", "h2", "HTTP/1.1"] {
             let txns = import_har(&make_har(version)).unwrap();
             assert_eq!(txns.len(), 1);
-            assert!(txns[0].0.is_some());
+            assert!(txns[0].request.is_some());
         }
     }
 }
