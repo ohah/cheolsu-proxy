@@ -81,7 +81,7 @@ msgstr "활성 커스텀 CA"
 
 #: src/features/transaction-details/ui/transaction-validation.tsx:37
 msgid "Actual"
-msgstr ""
+msgstr "실제값"
 
 #: src/features/intercept-rule-form/ui/headers-fields.tsx:59
 #: src/features/intercept-rule-form/ui/headers-fields.tsx:88
@@ -169,7 +169,7 @@ msgstr "Host 헤더 기반으로 relative URI 요청을 백엔드 서버에 전�
 
 #: src/pages/contract-testing/ui/contract-testing-page.tsx:91
 msgid "Add Spec"
-msgstr ""
+msgstr "스펙 추가"
 
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:159
 msgid "Add your first mapping"
@@ -206,7 +206,7 @@ msgstr "전체 연결"
 
 #: src/features/transaction-details/ui/transaction-validation.tsx:72
 msgid "All contract validations passed"
-msgstr ""
+msgstr "모든 API 검증을 통과했습니다"
 
 #: src/pages/server-replay/ui/server-replay-page.tsx:72
 msgid "All entries cleared"
@@ -237,7 +237,7 @@ msgstr "모든 메서드"
 
 #: src/pages/contract-testing/ui/contract-testing-page.tsx:176
 msgid "All requests match the spec"
-msgstr ""
+msgstr "모든 요청이 스펙과 일치합니다"
 
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:68
 msgid "All reverse proxy rules cleared"
@@ -569,7 +569,7 @@ msgstr "콘솔"
 #: src/pages/contract-testing/ui/contract-testing-page.tsx:86
 #: src/shared/app-sidebar/model/consts.ts:96
 msgid "Contract Testing"
-msgstr ""
+msgstr "API 검증"
 
 #: src/pages/settings/ui/components/connection-strategy-section.tsx:23
 msgid "Controls when the proxy connects to upstream servers for certificate sniffing"
@@ -787,7 +787,7 @@ msgstr "개 엔트리"
 #: src/features/transaction-details/ui/transaction-validation.tsx:93
 #: src/pages/contract-testing/ui/contract-testing-page.tsx:162
 msgid "errors"
-msgstr ""
+msgstr "오류"
 
 #: src/widgets/sse-messages/ui/sse-message-table.tsx:145
 msgid "Event"
@@ -829,7 +829,7 @@ msgstr "사이드바 펼치기"
 
 #: src/features/transaction-details/ui/transaction-validation.tsx:31
 msgid "Expected"
-msgstr ""
+msgstr "기대값"
 
 #: src/widgets/network-header/ui/network-controls.tsx:113
 msgid "Export HAR"
@@ -858,7 +858,7 @@ msgstr "Breakpoint 전달에 실패했습니다"
 #. placeholder {0}: String(e)
 #: src/pages/contract-testing/ui/contract-testing-page.tsx:38
 msgid "Failed to load spec: {0}"
-msgstr ""
+msgstr "스펙 로드 실패: {0}"
 
 #. placeholder {0}: e instanceof Error ? e.message : String(e)
 #: src/pages/script/ui/script-page.tsx:101
@@ -868,7 +868,7 @@ msgstr "파일 읽기 실패: {0}"
 #. placeholder {0}: String(e)
 #: src/pages/contract-testing/ui/contract-testing-page.tsx:48
 msgid "Failed to remove spec: {0}"
-msgstr ""
+msgstr "스펙 제거 실패: {0}"
 
 #: src/features/websocket-replay/ui/ws-replay-dialog.tsx:88
 msgid "Failed to send"
@@ -877,7 +877,7 @@ msgstr "전송 실패"
 #. placeholder {0}: String(e)
 #: src/pages/contract-testing/ui/contract-testing-page.tsx:56
 msgid "Failed to toggle spec: {0}"
-msgstr ""
+msgstr "스펙 전환 실패: {0}"
 
 #: src/pages/log-viewer/ui/logs-page.tsx:421
 msgid "Failures"
@@ -1129,7 +1129,7 @@ msgstr "디스크에서 스크립트 파일을 로드합니다. 파일 변경 �
 
 #: src/features/transaction-details/ui/transaction-validation.tsx:57
 msgid "Load an OpenAPI spec to enable contract testing"
-msgstr ""
+msgstr "API 검증을 사용하려면 OpenAPI 스펙을 로드하세요"
 
 #: src/shared/app-sidebar/model/consts.ts:91
 msgid "Load and manage proxy scripts"
@@ -1258,7 +1258,7 @@ msgstr "매치 패턴은 필수입니다"
 
 #: src/features/transaction-details/ui/transaction-validation.tsx:108
 msgid "Matched"
-msgstr ""
+msgstr "일치"
 
 #: src/shared/app-sidebar/ui/sidebar-mcp.tsx:56
 msgid "MCP configuration copied to clipboard"
@@ -1362,7 +1362,7 @@ msgstr "콘솔 출력이 아직 없습니다"
 
 #: src/features/transaction-details/ui/transaction-validation.tsx:54
 msgid "No contract validation results"
-msgstr ""
+msgstr "API 검증 결과 없음"
 
 #: src/pages/settings/ui/components/general-settings.tsx:218
 msgid "No Gzip"
@@ -1406,7 +1406,7 @@ msgstr "리버스 프록시 규칙 없음"
 
 #: src/pages/contract-testing/ui/contract-testing-page.tsx:103
 msgid "No specs loaded. Add an OpenAPI/Swagger spec file to start contract testing."
-msgstr ""
+msgstr "로드된 스펙이 없습니다. OpenAPI/Swagger 스펙 파일을 추가하여 API 검증을 시작하세요."
 
 #: src/features/transaction-details/ui/transaction-timing.tsx:52
 msgid "No timing data available"
@@ -1487,11 +1487,11 @@ msgstr "OpenAPI 스펙 내보내기 성공 ({0}개 트랜잭션)"
 
 #: src/pages/contract-testing/ui/contract-testing-page.tsx:36
 msgid "OpenAPI spec loaded"
-msgstr ""
+msgstr "OpenAPI 스펙 로드 완료"
 
 #: src/pages/contract-testing/ui/contract-testing-page.tsx:99
 msgid "OpenAPI Specs"
-msgstr ""
+msgstr "OpenAPI 스펙"
 
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:98
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:124
@@ -1516,7 +1516,7 @@ msgstr "비밀번호"
 
 #: src/pages/contract-testing/ui/contract-testing-page.tsx:126
 msgid "paths"
-msgstr ""
+msgstr "경로"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:276
 msgid "Pattern"
@@ -2205,7 +2205,7 @@ msgstr "소스 포트"
 
 #: src/pages/contract-testing/ui/contract-testing-page.tsx:46
 msgid "Spec removed"
-msgstr ""
+msgstr "스펙 제거 완료"
 
 #: src/pages/sse-dashboard/ui/sse-dashboard.tsx:87
 #: src/shared/app-sidebar/model/consts.ts:40
@@ -2489,11 +2489,11 @@ msgstr "유효 기간 만료"
 
 #: src/shared/app-sidebar/model/consts.ts:98
 msgid "Validate API responses against OpenAPI specs"
-msgstr ""
+msgstr "OpenAPI 스펙 기반 API 응답 검증"
 
 #: src/pages/contract-testing/ui/contract-testing-page.tsx:148
 msgid "Validation Report"
-msgstr ""
+msgstr "검증 리포트"
 
 #: src/features/intercept-rule-form/ui/headers-fields.tsx:70
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:386
@@ -2516,7 +2516,7 @@ msgstr "애플리케이션 로그 파일 조회"
 
 #: src/pages/contract-testing/ui/contract-testing-page.tsx:155
 msgid "Violations"
-msgstr ""
+msgstr "위반 사항"
 
 #: src/widgets/sse-messages/ui/sse-message-table.tsx:136
 msgid "Waiting for SSE events..."
@@ -2529,7 +2529,7 @@ msgstr "WebSocket 메시지 대기 중..."
 #: src/features/transaction-details/ui/transaction-validation.tsx:99
 #: src/pages/contract-testing/ui/contract-testing-page.tsx:170
 msgid "warnings"
-msgstr ""
+msgstr "경고"
 
 #: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:95
 #: src/shared/app-sidebar/model/consts.ts:33
