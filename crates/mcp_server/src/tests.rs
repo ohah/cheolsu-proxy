@@ -22,7 +22,11 @@ fn make_block_rule(id: &str) -> InterceptRule {
 }
 
 fn make_empty_request_info() -> RequestInfo {
-    RequestInfo(None, None, None)
+    RequestInfo {
+        request: None,
+        response: None,
+        validations: None,
+    }
 }
 
 fn make_ws_message(connection_id: &str) -> WsMessageInfo {

@@ -21,7 +21,7 @@ impl CheolsuMcpServer {
             let mut reqs = Vec::new();
             for id in &p.transaction_ids {
                 let info = txns.iter().find(|info| {
-                    info.0
+                    info.request
                         .as_ref()
                         .map(|r| r.id() == id.as_str())
                         .unwrap_or(false)
@@ -29,7 +29,7 @@ impl CheolsuMcpServer {
                 let Some(info) = info else {
                     return tool_error(format!("Transaction '{}' not found.", id));
                 };
-                let Some(req) = &info.0 else {
+                let Some(req) = &info.request else {
                     return tool_error(format!("Transaction '{}' has no request data.", id));
                 };
                 let body = if req.body_size() > 0 {

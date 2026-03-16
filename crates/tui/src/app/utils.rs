@@ -51,7 +51,7 @@ pub(crate) fn format_ws_messages(conn_id: &str, uri: &str, messages: &[WsMessage
 }
 
 pub(crate) fn format_curl_command(info: &RequestInfo) -> String {
-    let Some(req) = &info.0 else {
+    let Some(req) = &info.request else {
         return String::new();
     };
 

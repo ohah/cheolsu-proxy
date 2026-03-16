@@ -25,7 +25,9 @@ impl CheolsuMcpServer {
             .iter()
             .rev()
             .filter(|info| {
-                let Some(req) = &info.0 else { return false };
+                let Some(req) = &info.request else {
+                    return false;
+                };
                 let uri = req.uri().to_string();
 
                 if let Some(ref host) = p.host {
@@ -39,7 +41,7 @@ impl CheolsuMcpServer {
                     }
                 }
                 if let Some(status) = p.status {
-                    match &info.1 {
+                    match &info.response {
                         Some(res) if res.status().as_u16() == status => {}
                         _ => return false,
                     }
@@ -53,19 +55,19 @@ impl CheolsuMcpServer {
             })
             .take(limit)
             .filter_map(|info| {
-                let req = info.0.as_ref()?;
+                let req = info.request.as_ref()?;
                 let status = info
-                    .1
+                    .response
                     .as_ref()
                     .map(|r| r.status().as_u16().to_string())
                     .unwrap_or_else(|| "pending".to_string());
                 let size = info
-                    .1
+                    .response
                     .as_ref()
                     .map(|r| format_size(r.body_size()))
                     .unwrap_or_default();
                 let dtype = info
-                    .1
+                    .response
                     .as_ref()
                     .map(|r| format!("{:?}", r.data_type()))
                     .unwrap_or_default();
@@ -100,9 +102,12 @@ impl CheolsuMcpServer {
         Parameters(p): Parameters<GetTransactionParams>,
     ) -> Result<CallToolResult, McpError> {
         let txns = self.store.transactions.lock();
-        let info = txns
-            .iter()
-            .find(|info| info.0.as_ref().map(|r| r.id() == p.id).unwrap_or(false));
+        let info = txns.iter().find(|info| {
+            info.request
+                .as_ref()
+                .map(|r| r.id() == p.id)
+                .unwrap_or(false)
+        });
 
         let Some(info) = info else {
             return tool_error(format!("Transaction '{}' not found.", p.id));
@@ -110,7 +115,7 @@ impl CheolsuMcpServer {
 
         let mut out = String::new();
 
-        if let Some(req) = &info.0 {
+        if let Some(req) = &info.request {
             out.push_str(&format!(
                 "## Request\n{} {} {:?}\n\n",
                 req.method(),
@@ -139,7 +144,7 @@ impl CheolsuMcpServer {
             }
         }
 
-        if let Some(res) = &info.1 {
+        if let Some(res) = &info.response {
             out.push_str(&format!(
                 "\n## Response\n{} {:?}\n\n",
                 res.status().as_u16(),
@@ -227,13 +232,13 @@ impl CheolsuMcpServer {
         let txns = self.store.transactions.lock();
 
         let txn_a = txns.iter().find(|info| {
-            info.0
+            info.request
                 .as_ref()
                 .map(|r| r.id() == p.transaction_id_a)
                 .unwrap_or(false)
         });
         let txn_b = txns.iter().find(|info| {
-            info.0
+            info.request
                 .as_ref()
                 .map(|r| r.id() == p.transaction_id_b)
                 .unwrap_or(false)
@@ -246,7 +251,7 @@ impl CheolsuMcpServer {
             return tool_error(format!("Transaction '{}' not found.", p.transaction_id_b));
         };
 
-        let request_diff = match (&txn_a.0, &txn_b.0) {
+        let request_diff = match (&txn_a.request, &txn_b.request) {
             (Some(req_a), Some(req_b)) => {
                 let method_diff = if req_a.method() != req_b.method() {
                     Some((req_a.method().to_string(), req_b.method().to_string()))
@@ -292,7 +297,7 @@ impl CheolsuMcpServer {
             _ => None,
         };
 
-        let response_diff = match (&txn_a.1, &txn_b.1) {
+        let response_diff = match (&txn_a.response, &txn_b.response) {
             (Some(res_a), Some(res_b)) => {
                 let status_diff = if res_a.status() != res_b.status() {
                     Some((res_a.status().as_u16(), res_b.status().as_u16()))
@@ -372,7 +377,9 @@ impl CheolsuMcpServer {
         let filtered: Vec<proxy_v2_models::RequestInfo> = txns
             .iter()
             .filter(|info| {
-                let Some(req) = &info.0 else { return false };
+                let Some(req) = &info.request else {
+                    return false;
+                };
                 let uri = req.uri().to_string();
 
                 if let Some(ref host) = p.host {

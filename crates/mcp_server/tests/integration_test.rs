@@ -48,11 +48,11 @@ fn make_client_response(id: &str, status: u16) -> proxy_v2_models::ClientRespons
 }
 
 fn make_request_info(id: &str, method: &str, uri: &str, status: u16) -> RequestInfo {
-    RequestInfo(
-        Some(make_client_request(id, method, uri)),
-        Some(make_client_response(id, status)),
-        None,
-    )
+    RequestInfo {
+        request: Some(make_client_request(id, method, uri)),
+        response: Some(make_client_response(id, status)),
+        validations: None,
+    }
 }
 
 fn make_sse_event(connection_id: &str, seq: u64, data: &str) -> SseEventInfo {
@@ -107,7 +107,7 @@ fn store_push_transaction() {
 
     let txns = store.transactions.lock();
     assert_eq!(txns.len(), 1);
-    let req = txns[0].0.as_ref().unwrap();
+    let req = txns[0].request.as_ref().unwrap();
     assert_eq!(req.id(), "tx1");
     assert_eq!(req.method().as_str(), "GET");
     assert_eq!(req.uri().to_string(), "https://example.com/api");
@@ -129,8 +129,8 @@ fn store_push_multiple_transactions() {
     let txns = store.transactions.lock();
     assert_eq!(txns.len(), 5);
     // VecDeque 순서: 처음 삽입된 것이 front
-    assert_eq!(txns[0].0.as_ref().unwrap().id(), "tx0");
-    assert_eq!(txns[4].0.as_ref().unwrap().id(), "tx4");
+    assert_eq!(txns[0].request.as_ref().unwrap().id(), "tx0");
+    assert_eq!(txns[4].request.as_ref().unwrap().id(), "tx4");
 }
 
 #[test]
@@ -150,9 +150,23 @@ fn store_transaction_capacity_eviction() {
     let txns = store.transactions.lock();
     assert_eq!(txns.len(), MAX_TRANSACTIONS);
     // 가장 오래된(처음 10개)은 제거됨
-    let first_id = txns.front().unwrap().0.as_ref().unwrap().id().to_string();
+    let first_id = txns
+        .front()
+        .unwrap()
+        .request
+        .as_ref()
+        .unwrap()
+        .id()
+        .to_string();
     assert_eq!(first_id, "tx10");
-    let last_id = txns.back().unwrap().0.as_ref().unwrap().id().to_string();
+    let last_id = txns
+        .back()
+        .unwrap()
+        .request
+        .as_ref()
+        .unwrap()
+        .id()
+        .to_string();
     assert_eq!(last_id, format!("tx{}", MAX_TRANSACTIONS + 9));
 }
 
@@ -522,7 +536,7 @@ fn store_clone_shares_data() {
     // clone된 store에서도 같은 데이터가 보여야 함 (Arc 공유)
     assert_eq!(store2.transactions.lock().len(), 1);
     assert_eq!(
-        store2.transactions.lock()[0].0.as_ref().unwrap().id(),
+        store2.transactions.lock()[0].request.as_ref().unwrap().id(),
         "tx_shared"
     );
 }
@@ -534,21 +548,21 @@ fn store_push_partial_request_info() {
     let store = Store::new();
 
     // request만 있고 response가 없는 경우
-    let info = RequestInfo(
-        Some(make_client_request(
+    let info = RequestInfo {
+        request: Some(make_client_request(
             "tx_partial",
             "GET",
             "https://example.com",
         )),
-        None,
-        None,
-    );
+        response: None,
+        validations: None,
+    };
     store.push_transaction(info);
 
     let txns = store.transactions.lock();
     assert_eq!(txns.len(), 1);
-    assert!(txns[0].0.is_some());
-    assert!(txns[0].1.is_none());
+    assert!(txns[0].request.is_some());
+    assert!(txns[0].response.is_none());
 }
 
 #[test]
@@ -556,13 +570,17 @@ fn store_push_empty_request_info() {
     let store = Store::new();
 
     // request도 response도 없는 경우
-    let info = RequestInfo(None, None, None);
+    let info = RequestInfo {
+        request: None,
+        response: None,
+        validations: None,
+    };
     store.push_transaction(info);
 
     let txns = store.transactions.lock();
     assert_eq!(txns.len(), 1);
-    assert!(txns[0].0.is_none());
-    assert!(txns[0].1.is_none());
+    assert!(txns[0].request.is_none());
+    assert!(txns[0].response.is_none());
 }
 
 // ─── InterceptRule 다양한 액션 타입 테스트 ──────────────────
@@ -787,7 +805,7 @@ fn search_traffic_by_method() {
     let get_count = txns
         .iter()
         .filter(|info| {
-            info.0
+            info.request
                 .as_ref()
                 .map(|r| r.method().as_str() == "GET")
                 .unwrap_or(false)
@@ -822,7 +840,7 @@ fn search_traffic_by_host() {
     let example_count = txns
         .iter()
         .filter(|info| {
-            info.0
+            info.request
                 .as_ref()
                 .map(|r| r.uri().to_string().contains("example.com"))
                 .unwrap_or(false)
@@ -848,7 +866,7 @@ fn search_traffic_by_status() {
     let error_count = txns
         .iter()
         .filter(|info| {
-            info.1
+            info.response
                 .as_ref()
                 .map(|r| r.status().as_u16() >= 400)
                 .unwrap_or(false)
@@ -883,7 +901,7 @@ fn search_traffic_by_path() {
     let v1_users_count = txns
         .iter()
         .filter(|info| {
-            info.0
+            info.request
                 .as_ref()
                 .map(|r| r.uri().to_string().contains("/v1/users"))
                 .unwrap_or(false)

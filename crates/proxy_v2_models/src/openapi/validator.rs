@@ -142,15 +142,48 @@ fn get_operation_for_method<'a>(
     }
 }
 
-/// OpenAPI 스펙에 대해 응답을 검증합니다.
-pub fn validate_response(
+/// `$ref` 참조를 해석하여 실제 스키마를 반환합니다.
+/// 예: "#/components/schemas/User" → components.schemas.User
+fn resolve_ref<'a>(
+    ref_path: &str,
+    components: Option<&'a super::types::Components>,
+) -> Option<&'a SchemaObject> {
+    let prefix = "#/components/schemas/";
+    if !ref_path.starts_with(prefix) {
+        return None;
+    }
+    let schema_name = &ref_path[prefix.len()..];
+    components
+        .and_then(|c| c.schemas.as_ref())
+        .and_then(|schemas| schemas.get(schema_name))
+}
+
+/// 스키마를 해석합니다. `$ref`가 있으면 참조를 따라가고, 없으면 원본을 반환합니다.
+fn resolve_schema<'a>(
+    schema: &'a SchemaObject,
+    components: Option<&'a super::types::Components>,
+) -> &'a SchemaObject {
+    if let Some(ref_path) = &schema.ref_path {
+        resolve_ref(ref_path, components).unwrap_or(schema)
+    } else {
+        schema
+    }
+}
+
+/// OpenAPI 스펙에 대해 요청/응답을 검증합니다.
+///
+/// `request_body_json`: 요청 body JSON (POST/PUT/PATCH 등)
+/// `response_body_json`: 응답 body JSON
+pub fn validate_transaction(
     spec: &OpenApiSpec,
     method: &str,
     request_path: &str,
     status: u16,
-    body_json: Option<&serde_json::Value>,
+    request_body_json: Option<&serde_json::Value>,
+    response_body_json: Option<&serde_json::Value>,
 ) -> (Vec<ContractViolation>, Option<String>, Option<String>) {
     let mut violations = Vec::new();
+    let components = spec.components.as_ref();
 
     // 1. Path 매칭
     let (matched_path, path_item) = match match_path_template(request_path, &spec.paths) {
@@ -193,7 +226,41 @@ pub fn validate_response(
         }
     };
 
-    // 3. Status code 확인
+    // 3. Request body 검증
+    if let Some(request_body_spec) = &operation.request_body {
+        if let Some(req_body) = request_body_json {
+            // 요청 body가 있으면 스키마 검증
+            let schema = request_body_spec
+                .content
+                .get("application/json")
+                .or_else(|| request_body_spec.content.get("application/*"))
+                .or_else(|| request_body_spec.content.get("*/*"))
+                .and_then(|mt| mt.schema.as_ref());
+
+            if let Some(schema) = schema {
+                let resolved = resolve_schema(schema, components);
+                validate_against_schema(
+                    req_body,
+                    resolved,
+                    "$.request.body",
+                    &mut violations,
+                    components,
+                );
+            }
+        } else if request_body_spec.required == Some(true) {
+            // 필수 요청 body가 없음
+            violations.push(ContractViolation {
+                violation_type: ViolationType::MissingField,
+                path: "$.request.body".to_string(),
+                message: "Request body is required but not provided".to_string(),
+                expected: Some("request body".to_string()),
+                actual: None,
+                severity: Severity::Error,
+            });
+        }
+    }
+
+    // 4. Status code 확인
     let status_str = status.to_string();
     let has_status = operation.responses.contains_key(&status_str)
         || operation.responses.contains_key("default");
@@ -214,15 +281,14 @@ pub fn validate_response(
         });
     }
 
-    // 4. Response body 스키마 검증
+    // 5. Response body 스키마 검증
     let response_spec = operation
         .responses
         .get(&status_str)
         .or_else(|| operation.responses.get("default"));
 
-    if let (Some(response_spec), Some(body)) = (response_spec, body_json) {
+    if let (Some(response_spec), Some(body)) = (response_spec, response_body_json) {
         if let Some(content) = &response_spec.content {
-            // application/json 스키마 찾기
             let schema = content
                 .get("application/json")
                 .or_else(|| content.get("application/*"))
@@ -230,7 +296,8 @@ pub fn validate_response(
                 .and_then(|mt| mt.schema.as_ref());
 
             if let Some(schema) = schema {
-                validate_against_schema(body, schema, "$.body", &mut violations);
+                let resolved = resolve_schema(schema, components);
+                validate_against_schema(body, resolved, "$.body", &mut violations, components);
             }
         }
     }
@@ -238,13 +305,17 @@ pub fn validate_response(
     (violations, matched_path, matched_operation)
 }
 
-/// JSON 값을 스키마에 대해 재귀적으로 검증합니다.
+/// JSON 값을 스키마에 대해 재귀적으로 검증합니다 ($ref 해석 포함).
 pub fn validate_against_schema(
     value: &serde_json::Value,
     schema: &SchemaObject,
     json_path: &str,
     violations: &mut Vec<ContractViolation>,
+    components: Option<&super::types::Components>,
 ) {
+    // $ref 해석
+    let schema = resolve_schema(schema, components);
+
     // null 값 처리
     if value.is_null() {
         if schema.nullable == Some(true) {
@@ -269,7 +340,6 @@ pub fn validate_against_schema(
 
     let actual_type = json_value_type(value);
 
-    // 타입 검증
     match expected_type.as_str() {
         "object" => {
             if !value.is_object() {
@@ -286,16 +356,34 @@ pub fn validate_against_schema(
 
             let obj = value.as_object().unwrap();
 
-            // properties 검증
             if let Some(properties) = &schema.properties {
-                // 스펙에 정의된 필드가 응답에 있는지 확인
                 for (prop_name, prop_schema) in properties {
                     if let Some(prop_value) = obj.get(prop_name) {
                         let child_path = format!("{}.{}", json_path, prop_name);
-                        validate_against_schema(prop_value, prop_schema, &child_path, violations);
+                        validate_against_schema(
+                            prop_value,
+                            prop_schema,
+                            &child_path,
+                            violations,
+                            components,
+                        );
                     }
-                    // NOTE: required 필드가 SchemaObject에 없으므로
-                    // 필드 누락은 Warning으로 보고하지 않음 (스펙 정보 부족)
+                }
+
+                // required 필드 누락 검사
+                if let Some(required_fields) = &schema.required {
+                    for field in required_fields {
+                        if !obj.contains_key(field) {
+                            violations.push(ContractViolation {
+                                violation_type: ViolationType::MissingField,
+                                path: format!("{}.{}", json_path, field),
+                                message: format!("Required field '{}' is missing", field),
+                                expected: Some(field.clone()),
+                                actual: None,
+                                severity: Severity::Error,
+                            });
+                        }
+                    }
                 }
 
                 // 스펙에 정의되지 않은 추가 필드 검사 (Warning)
@@ -326,11 +414,16 @@ pub fn validate_against_schema(
                 return;
             }
 
-            // items 스키마로 첫 번째 요소 검증 (성능상 전체 검증은 생략)
             if let Some(items_schema) = &schema.items {
                 if let Some(first) = value.as_array().and_then(|arr| arr.first()) {
                     let child_path = format!("{}[0]", json_path);
-                    validate_against_schema(first, items_schema, &child_path, violations);
+                    validate_against_schema(
+                        first,
+                        items_schema,
+                        &child_path,
+                        violations,
+                        components,
+                    );
                 }
             }
         }
@@ -409,57 +502,60 @@ mod tests {
     use super::*;
     use crate::openapi::types::*;
 
+    /// 간편한 SchemaObject 생성 헬퍼
+    fn schema(t: &str) -> SchemaObject {
+        SchemaObject {
+            schema_type: Some(t.to_string()),
+            properties: None,
+            items: None,
+            nullable: None,
+            example: None,
+            required: None,
+            ref_path: None,
+        }
+    }
+
+    fn schema_ref(ref_path: &str) -> SchemaObject {
+        SchemaObject {
+            schema_type: None,
+            properties: None,
+            items: None,
+            nullable: None,
+            example: None,
+            required: None,
+            ref_path: Some(ref_path.to_string()),
+        }
+    }
+
     fn make_spec() -> OpenApiSpec {
         let mut paths = BTreeMap::new();
 
-        // GET /users/{id}
-        let mut responses = BTreeMap::new();
-        responses.insert(
+        // GET /users/{id} — 200 응답에 required: [id, name]
+        let mut user_responses = BTreeMap::new();
+        user_responses.insert(
             "200".to_string(),
             ResponseSpec {
                 description: "Success".to_string(),
-                content: Some({
-                    let mut content = BTreeMap::new();
-                    content.insert(
-                        "application/json".to_string(),
-                        MediaType {
-                            schema: Some(SchemaObject {
-                                schema_type: Some("object".to_string()),
-                                properties: Some({
-                                    let mut props = BTreeMap::new();
-                                    props.insert(
-                                        "id".to_string(),
-                                        SchemaObject {
-                                            schema_type: Some("integer".to_string()),
-                                            properties: None,
-                                            items: None,
-                                            nullable: None,
-                                            example: None,
-                                        },
-                                    );
-                                    props.insert(
-                                        "name".to_string(),
-                                        SchemaObject {
-                                            schema_type: Some("string".to_string()),
-                                            properties: None,
-                                            items: None,
-                                            nullable: None,
-                                            example: None,
-                                        },
-                                    );
-                                    props
-                                }),
-                                items: None,
-                                nullable: None,
-                                example: None,
-                            }),
-                        },
-                    );
-                    content
-                }),
+                content: Some(BTreeMap::from([(
+                    "application/json".to_string(),
+                    MediaType {
+                        schema: Some(SchemaObject {
+                            schema_type: Some("object".to_string()),
+                            properties: Some(BTreeMap::from([
+                                ("id".to_string(), schema("integer")),
+                                ("name".to_string(), schema("string")),
+                            ])),
+                            items: None,
+                            nullable: None,
+                            example: None,
+                            required: Some(vec!["id".to_string(), "name".to_string()]),
+                            ref_path: None,
+                        }),
+                    },
+                )])),
             },
         );
-        responses.insert(
+        user_responses.insert(
             "404".to_string(),
             ResponseSpec {
                 description: "Not Found".to_string(),
@@ -472,52 +568,41 @@ mod tests {
             summary: Some("Get user by ID".to_string()),
             parameters: vec![],
             request_body: None,
-            responses,
+            responses: user_responses,
         });
-
         paths.insert("/users/{id}".to_string(), user_path);
 
-        // GET /items
+        // GET /items — 배열 응답
         let mut items_responses = BTreeMap::new();
         items_responses.insert(
             "200".to_string(),
             ResponseSpec {
                 description: "List".to_string(),
-                content: Some({
-                    let mut content = BTreeMap::new();
-                    content.insert(
-                        "application/json".to_string(),
-                        MediaType {
-                            schema: Some(SchemaObject {
-                                schema_type: Some("array".to_string()),
-                                properties: None,
-                                items: Some(Box::new(SchemaObject {
-                                    schema_type: Some("object".to_string()),
-                                    properties: Some({
-                                        let mut props = BTreeMap::new();
-                                        props.insert(
-                                            "title".to_string(),
-                                            SchemaObject {
-                                                schema_type: Some("string".to_string()),
-                                                properties: None,
-                                                items: None,
-                                                nullable: None,
-                                                example: None,
-                                            },
-                                        );
-                                        props
-                                    }),
-                                    items: None,
-                                    nullable: None,
-                                    example: None,
-                                })),
+                content: Some(BTreeMap::from([(
+                    "application/json".to_string(),
+                    MediaType {
+                        schema: Some(SchemaObject {
+                            schema_type: Some("array".to_string()),
+                            properties: None,
+                            items: Some(Box::new(SchemaObject {
+                                schema_type: Some("object".to_string()),
+                                properties: Some(BTreeMap::from([(
+                                    "title".to_string(),
+                                    schema("string"),
+                                )])),
+                                items: None,
                                 nullable: None,
                                 example: None,
-                            }),
-                        },
-                    );
-                    content
-                }),
+                                required: None,
+                                ref_path: None,
+                            })),
+                            nullable: None,
+                            example: None,
+                            required: None,
+                            ref_path: None,
+                        }),
+                    },
+                )])),
             },
         );
 
@@ -530,6 +615,75 @@ mod tests {
         });
         paths.insert("/items".to_string(), items_path);
 
+        // POST /users — 요청 body 필수 + $ref 응답
+        let mut create_user_responses = BTreeMap::new();
+        create_user_responses.insert(
+            "201".to_string(),
+            ResponseSpec {
+                description: "Created".to_string(),
+                content: Some(BTreeMap::from([(
+                    "application/json".to_string(),
+                    MediaType {
+                        schema: Some(schema_ref("#/components/schemas/User")),
+                    },
+                )])),
+            },
+        );
+
+        let mut users_path = paths
+            .remove("/users/{id}")
+            .map(|mut p| {
+                // POST도 같은 PathItem에 추가
+                // 실제로는 /users 경로에 POST를 추가해야 하지만 테스트 편의상 분리
+                p
+            })
+            .unwrap_or_default();
+
+        // /users (POST)
+        let mut users_collection = PathItem::default();
+        users_collection.post = Some(Operation {
+            summary: Some("Create user".to_string()),
+            parameters: vec![],
+            request_body: Some(RequestBody {
+                content: BTreeMap::from([(
+                    "application/json".to_string(),
+                    MediaType {
+                        schema: Some(SchemaObject {
+                            schema_type: Some("object".to_string()),
+                            properties: Some(BTreeMap::from([(
+                                "name".to_string(),
+                                schema("string"),
+                            )])),
+                            items: None,
+                            nullable: None,
+                            example: None,
+                            required: Some(vec!["name".to_string()]),
+                            ref_path: None,
+                        }),
+                    },
+                )]),
+                required: Some(true),
+            }),
+            responses: create_user_responses,
+        });
+
+        paths.insert("/users/{id}".to_string(), users_path);
+        paths.insert("/users".to_string(), users_collection);
+
+        // components.schemas.User ($ref 대상)
+        let user_schema = SchemaObject {
+            schema_type: Some("object".to_string()),
+            properties: Some(BTreeMap::from([
+                ("id".to_string(), schema("integer")),
+                ("name".to_string(), schema("string")),
+            ])),
+            items: None,
+            nullable: None,
+            example: None,
+            required: Some(vec!["id".to_string(), "name".to_string()]),
+            ref_path: None,
+        };
+
         OpenApiSpec {
             openapi: "3.0.0".to_string(),
             info: OpenApiInfo {
@@ -539,8 +693,13 @@ mod tests {
             },
             paths,
             servers: None,
+            components: Some(Components {
+                schemas: Some(BTreeMap::from([("User".to_string(), user_schema)])),
+            }),
         }
     }
+
+    // --- Path 매칭 테스트 ---
 
     #[test]
     fn test_match_path_exact() {
@@ -573,116 +732,279 @@ mod tests {
         assert!(result.is_none());
     }
 
+    // --- 기본 검증 테스트 ---
+
     #[test]
-    fn test_validate_response_path_not_found() {
+    fn test_path_not_found() {
         let spec = make_spec();
-        let (violations, matched, _) = validate_response(&spec, "GET", "/nonexistent", 200, None);
-        assert_eq!(violations.len(), 1);
-        assert_eq!(violations[0].violation_type, ViolationType::PathNotFound);
+        let (v, matched, _) = validate_transaction(&spec, "GET", "/nonexistent", 200, None, None);
+        assert_eq!(v.len(), 1);
+        assert_eq!(v[0].violation_type, ViolationType::PathNotFound);
         assert!(matched.is_none());
     }
 
     #[test]
-    fn test_validate_response_method_not_allowed() {
+    fn test_method_not_allowed() {
         let spec = make_spec();
-        let (violations, _, _) = validate_response(&spec, "DELETE", "/items", 200, None);
-        assert_eq!(violations.len(), 1);
-        assert_eq!(
-            violations[0].violation_type,
-            ViolationType::MethodNotAllowed
-        );
+        let (v, _, _) = validate_transaction(&spec, "DELETE", "/items", 200, None, None);
+        assert_eq!(v.len(), 1);
+        assert_eq!(v[0].violation_type, ViolationType::MethodNotAllowed);
     }
 
     #[test]
-    fn test_validate_response_status_mismatch() {
+    fn test_status_code_mismatch() {
         let spec = make_spec();
-        let (violations, _, _) = validate_response(&spec, "GET", "/users/1", 500, None);
-        assert_eq!(violations.len(), 1);
-        assert_eq!(
-            violations[0].violation_type,
-            ViolationType::StatusCodeMismatch
-        );
+        let (v, _, _) = validate_transaction(&spec, "GET", "/users/1", 500, None, None);
+        assert_eq!(v.len(), 1);
+        assert_eq!(v[0].violation_type, ViolationType::StatusCodeMismatch);
     }
 
     #[test]
-    fn test_validate_response_valid() {
+    fn test_valid_response() {
         let spec = make_spec();
         let body = serde_json::json!({"id": 1, "name": "Alice"});
-        let (violations, matched_path, matched_op) =
-            validate_response(&spec, "GET", "/users/42", 200, Some(&body));
-        assert!(
-            violations.is_empty(),
-            "Expected no violations, got: {:?}",
-            violations
-        );
-        assert_eq!(matched_path.as_deref(), Some("/users/{id}"));
-        assert_eq!(matched_op.as_deref(), Some("GET"));
+        let (v, path, op) = validate_transaction(&spec, "GET", "/users/42", 200, None, Some(&body));
+        assert!(v.is_empty(), "Expected no violations, got: {:?}", v);
+        assert_eq!(path.as_deref(), Some("/users/{id}"));
+        assert_eq!(op.as_deref(), Some("GET"));
     }
 
     #[test]
-    fn test_validate_response_type_mismatch() {
+    fn test_type_mismatch() {
         let spec = make_spec();
         let body = serde_json::json!({"id": "not-a-number", "name": "Alice"});
-        let (violations, _, _) = validate_response(&spec, "GET", "/users/1", 200, Some(&body));
-        assert!(violations
+        let (v, _, _) = validate_transaction(&spec, "GET", "/users/1", 200, None, Some(&body));
+        assert!(v
             .iter()
-            .any(|v| v.violation_type == ViolationType::TypeMismatch));
+            .any(|x| x.violation_type == ViolationType::TypeMismatch));
     }
 
     #[test]
-    fn test_validate_response_extra_field() {
+    fn test_extra_field() {
         let spec = make_spec();
         let body = serde_json::json!({"id": 1, "name": "Alice", "extra": true});
-        let (violations, _, _) = validate_response(&spec, "GET", "/users/1", 200, Some(&body));
-        assert!(violations
+        let (v, _, _) = validate_transaction(&spec, "GET", "/users/1", 200, None, Some(&body));
+        assert!(v
             .iter()
-            .any(|v| v.violation_type == ViolationType::ExtraField));
+            .any(|x| x.violation_type == ViolationType::ExtraField));
     }
 
     #[test]
-    fn test_validate_array_body() {
+    fn test_array_body_valid() {
         let spec = make_spec();
         let body = serde_json::json!([{"title": "Item 1"}]);
-        let (violations, _, _) = validate_response(&spec, "GET", "/items", 200, Some(&body));
-        assert!(violations.is_empty());
+        let (v, _, _) = validate_transaction(&spec, "GET", "/items", 200, None, Some(&body));
+        assert!(v.is_empty());
     }
 
     #[test]
-    fn test_validate_array_item_type_mismatch() {
+    fn test_array_item_type_mismatch() {
         let spec = make_spec();
         let body = serde_json::json!([{"title": 123}]);
-        let (violations, _, _) = validate_response(&spec, "GET", "/items", 200, Some(&body));
-        assert!(violations
+        let (v, _, _) = validate_transaction(&spec, "GET", "/items", 200, None, Some(&body));
+        assert!(v
             .iter()
-            .any(|v| v.violation_type == ViolationType::TypeMismatch));
+            .any(|x| x.violation_type == ViolationType::TypeMismatch));
     }
 
+    // --- nullable 테스트 ---
+
     #[test]
-    fn test_validate_null_with_nullable() {
-        let schema = SchemaObject {
-            schema_type: Some("string".to_string()),
-            properties: None,
-            items: None,
-            nullable: Some(true),
-            example: None,
-        };
+    fn test_null_with_nullable() {
+        let mut s = schema("string");
+        s.nullable = Some(true);
         let mut violations = Vec::new();
-        validate_against_schema(&serde_json::Value::Null, &schema, "$", &mut violations);
+        validate_against_schema(&serde_json::Value::Null, &s, "$", &mut violations, None);
         assert!(violations.is_empty());
     }
 
     #[test]
-    fn test_validate_null_without_nullable() {
-        let schema = SchemaObject {
-            schema_type: Some("string".to_string()),
-            properties: None,
-            items: None,
-            nullable: None,
-            example: None,
-        };
+    fn test_null_without_nullable() {
+        let s = schema("string");
         let mut violations = Vec::new();
-        validate_against_schema(&serde_json::Value::Null, &schema, "$", &mut violations);
+        validate_against_schema(&serde_json::Value::Null, &s, "$", &mut violations, None);
         assert_eq!(violations.len(), 1);
         assert_eq!(violations[0].violation_type, ViolationType::TypeMismatch);
+    }
+
+    // --- required 필드 테스트 (#7) ---
+
+    #[test]
+    fn test_required_field_missing() {
+        let spec = make_spec();
+        let body = serde_json::json!({"id": 1}); // name 누락
+        let (v, _, _) = validate_transaction(&spec, "GET", "/users/1", 200, None, Some(&body));
+        assert!(
+            v.iter().any(|x| x.violation_type == ViolationType::MissingField
+                && x.path.contains("name")),
+            "Expected MissingField for 'name', got: {:?}",
+            v
+        );
+    }
+
+    #[test]
+    fn test_required_fields_present() {
+        let spec = make_spec();
+        let body = serde_json::json!({"id": 1, "name": "Alice"});
+        let (v, _, _) = validate_transaction(&spec, "GET", "/users/1", 200, None, Some(&body));
+        assert!(
+            !v.iter()
+                .any(|x| x.violation_type == ViolationType::MissingField),
+            "Unexpected MissingField: {:?}",
+            v
+        );
+    }
+
+    // --- $ref 해석 테스트 (#8) ---
+
+    #[test]
+    fn test_ref_resolution_valid() {
+        let spec = make_spec();
+        let req_body = serde_json::json!({"name": "Bob"});
+        let res_body = serde_json::json!({"id": 1, "name": "Bob"});
+        let (v, _, _) = validate_transaction(
+            &spec,
+            "POST",
+            "/users",
+            201,
+            Some(&req_body),
+            Some(&res_body),
+        );
+        assert!(v.is_empty(), "Expected no violations, got: {:?}", v);
+    }
+
+    #[test]
+    fn test_ref_resolution_type_mismatch() {
+        let spec = make_spec();
+        let req_body = serde_json::json!({"name": "Bob"});
+        let res_body = serde_json::json!({"id": "not-int", "name": "Bob"});
+        let (v, _, _) = validate_transaction(
+            &spec,
+            "POST",
+            "/users",
+            201,
+            Some(&req_body),
+            Some(&res_body),
+        );
+        assert!(v
+            .iter()
+            .any(|x| x.violation_type == ViolationType::TypeMismatch));
+    }
+
+    #[test]
+    fn test_ref_resolution_missing_required() {
+        let spec = make_spec();
+        let req_body = serde_json::json!({"name": "Bob"});
+        let res_body = serde_json::json!({"name": "Bob"}); // id 누락 (required by $ref → User)
+        let (v, _, _) = validate_transaction(
+            &spec,
+            "POST",
+            "/users",
+            201,
+            Some(&req_body),
+            Some(&res_body),
+        );
+        assert!(
+            v.iter()
+                .any(|x| x.violation_type == ViolationType::MissingField && x.path.contains("id")),
+            "Expected MissingField for 'id', got: {:?}",
+            v
+        );
+    }
+
+    // --- 요청 body 검증 테스트 ---
+
+    #[test]
+    fn test_request_body_required_missing() {
+        let spec = make_spec();
+        // POST /users는 request body가 required: true
+        let (v, _, _) = validate_transaction(&spec, "POST", "/users", 201, None, None);
+        assert!(
+            v.iter()
+                .any(|x| x.violation_type == ViolationType::MissingField
+                    && x.path.contains("request.body")),
+            "Expected MissingField for request body, got: {:?}",
+            v
+        );
+    }
+
+    #[test]
+    fn test_request_body_valid() {
+        let spec = make_spec();
+        let req_body = serde_json::json!({"name": "Alice"});
+        let (v, _, _) = validate_transaction(&spec, "POST", "/users", 201, Some(&req_body), None);
+        assert!(
+            !v.iter().any(|x| x.path.contains("request.body")
+                && x.violation_type == ViolationType::TypeMismatch),
+            "Unexpected request body violation: {:?}",
+            v
+        );
+    }
+
+    #[test]
+    fn test_request_body_type_mismatch() {
+        let spec = make_spec();
+        let req_body = serde_json::json!({"name": 123}); // name은 string이어야 함
+        let (v, _, _) = validate_transaction(&spec, "POST", "/users", 201, Some(&req_body), None);
+        assert!(
+            v.iter()
+                .any(|x| x.violation_type == ViolationType::TypeMismatch
+                    && x.path.contains("request.body")),
+            "Expected TypeMismatch for request body, got: {:?}",
+            v
+        );
+    }
+
+    #[test]
+    fn test_request_body_required_field_missing() {
+        let spec = make_spec();
+        let req_body = serde_json::json!({}); // name 누락 (required)
+        let (v, _, _) = validate_transaction(&spec, "POST", "/users", 201, Some(&req_body), None);
+        assert!(
+            v.iter().any(|x| x.violation_type == ViolationType::MissingField
+                && x.path.contains("name")),
+            "Expected MissingField for 'name' in request body, got: {:?}",
+            v
+        );
+    }
+
+    // --- 추가 타입 검증 테스트 ---
+
+    #[test]
+    fn test_boolean_type_valid() {
+        let s = schema("boolean");
+        let mut v = Vec::new();
+        validate_against_schema(&serde_json::json!(true), &s, "$", &mut v, None);
+        assert!(v.is_empty());
+    }
+
+    #[test]
+    fn test_boolean_type_mismatch() {
+        let s = schema("boolean");
+        let mut v = Vec::new();
+        validate_against_schema(&serde_json::json!("true"), &s, "$", &mut v, None);
+        assert_eq!(v[0].violation_type, ViolationType::TypeMismatch);
+    }
+
+    #[test]
+    fn test_number_type_valid() {
+        let s = schema("number");
+        let mut v = Vec::new();
+        validate_against_schema(&serde_json::json!(3.14), &s, "$", &mut v, None);
+        assert!(v.is_empty());
+    }
+
+    #[test]
+    fn test_integer_accepts_integer_not_float() {
+        let s = schema("integer");
+        let mut v = Vec::new();
+        validate_against_schema(&serde_json::json!(42), &s, "$", &mut v, None);
+        assert!(v.is_empty());
+    }
+
+    #[test]
+    fn test_resolve_ref_not_found() {
+        let result = resolve_ref("#/components/schemas/NonExistent", None);
+        assert!(result.is_none());
     }
 }

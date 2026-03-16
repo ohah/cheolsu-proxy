@@ -47,7 +47,7 @@ impl CheolsuMcpServer {
         let entry = {
             let txns = self.store.transactions.lock();
             let info = txns.iter().find(|info| {
-                info.0
+                info.request
                     .as_ref()
                     .map(|r| r.id() == p.transaction_id)
                     .unwrap_or(false)
@@ -57,11 +57,11 @@ impl CheolsuMcpServer {
                 return tool_error(format!("Transaction '{}' not found.", p.transaction_id));
             };
 
-            let Some(req) = &info.0 else {
+            let Some(req) = &info.request else {
                 return tool_error("Transaction has no request data.");
             };
 
-            let Some(res) = &info.1 else {
+            let Some(res) = &info.response else {
                 return tool_error(
                     "Transaction has no response data. Only completed transactions can be added to server replay.",
                 );

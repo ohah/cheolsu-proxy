@@ -314,12 +314,12 @@ impl ClientResponse {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-pub struct RequestInfo(
-    pub Option<ClientRequest>,
-    pub Option<ClientResponse>,
+pub struct RequestInfo {
+    pub request: Option<ClientRequest>,
+    pub response: Option<ClientResponse>,
     #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub  Option<Vec<ContractValidationResult>>,
-);
+    pub validations: Option<Vec<ContractValidationResult>>,
+}
 
 #[cfg(test)]
 mod tests {
@@ -452,10 +452,14 @@ mod tests {
 
     #[test]
     fn test_request_info_structure() {
-        let info = RequestInfo(None, None, None);
-        assert!(info.0.is_none());
-        assert!(info.1.is_none());
-        assert!(info.2.is_none());
+        let info = RequestInfo {
+            request: None,
+            response: None,
+            validations: None,
+        };
+        assert!(info.request.is_none());
+        assert!(info.response.is_none());
+        assert!(info.validations.is_none());
 
         let json = serde_json::to_string(&info).unwrap();
         let parsed: RequestInfo = serde_json::from_str(&json).unwrap();

@@ -48,7 +48,7 @@ impl App {
                     // Copy URL
                     if let Some(idx) = self.selected_transaction {
                         if let Some(info) = self.transactions.get(idx) {
-                            if let Some(req) = &info.0 {
+                            if let Some(req) = &info.request {
                                 if copy_to_clipboard(&req.uri().to_string()) {
                                     self.set_status("URL copied to clipboard");
                                 }
@@ -114,7 +114,7 @@ impl App {
                 // Copy selected request URL to clipboard
                 if let Some(idx) = self.selected_transaction {
                     if let Some(info) = self.transactions.get(idx) {
-                        if let Some(req) = &info.0 {
+                        if let Some(req) = &info.request {
                             if copy_to_clipboard(&req.uri().to_string()) {
                                 self.set_status("URL copied to clipboard");
                             }
@@ -154,7 +154,7 @@ impl App {
                         let uri = self
                             .transactions
                             .get(idx)
-                            .and_then(|t| t.0.as_ref())
+                            .and_then(|t| t.request.as_ref())
                             .map(|r| r.uri().to_string())
                             .unwrap_or_default();
                         self.set_status(&format!("Diff marked: #{} {}", idx, uri));

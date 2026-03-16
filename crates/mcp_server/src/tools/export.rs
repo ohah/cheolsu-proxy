@@ -17,7 +17,9 @@ impl CheolsuMcpServer {
         let filtered: Vec<proxy_v2_models::RequestInfo> = txns
             .iter()
             .filter(|info| {
-                let Some(req) = &info.0 else { return false };
+                let Some(req) = &info.request else {
+                    return false;
+                };
                 let uri = req.uri().to_string();
 
                 if let Some(ref host) = p.host {

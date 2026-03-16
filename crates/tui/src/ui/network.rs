@@ -168,7 +168,7 @@ fn draw_transaction_detail(f: &mut Frame, app: &mut App, area: Rect) {
     let mut lines = Vec::new();
 
     // Request info
-    if let Some(req) = &info.0 {
+    if let Some(req) = &info.request {
         lines.push(Line::from(Span::styled(
             "── Request ──",
             Style::default()
@@ -207,7 +207,7 @@ fn draw_transaction_detail(f: &mut Frame, app: &mut App, area: Rect) {
     }
 
     // Response info
-    if let Some(res) = &info.1 {
+    if let Some(res) = &info.response {
         lines.push(Line::from(Span::styled(
             "── Response ──",
             Style::default()
@@ -279,18 +279,22 @@ fn extract_transaction_info(
     info: &proxy_v2_models::RequestInfo,
 ) -> (String, String, i64, u16, usize) {
     let method = info
-        .0
+        .request
         .as_ref()
         .map(|r| r.method().to_string())
         .unwrap_or_default();
     let uri = info
-        .0
+        .request
         .as_ref()
         .map(|r| r.uri().to_string())
         .unwrap_or_default();
-    let time = info.0.as_ref().map(|r| r.time()).unwrap_or(0);
-    let status = info.1.as_ref().map(|r| r.status().as_u16()).unwrap_or(0);
-    let size = info.1.as_ref().map(|r| r.body_size()).unwrap_or(0);
+    let time = info.request.as_ref().map(|r| r.time()).unwrap_or(0);
+    let status = info
+        .response
+        .as_ref()
+        .map(|r| r.status().as_u16())
+        .unwrap_or(0);
+    let size = info.response.as_ref().map(|r| r.body_size()).unwrap_or(0);
 
     (method, uri, time, status, size)
 }

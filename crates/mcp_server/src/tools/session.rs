@@ -21,7 +21,7 @@ impl CheolsuMcpServer {
                 let filter_lower = filter.to_lowercase();
                 txns.iter()
                     .filter(|info| {
-                        info.0
+                        info.request
                             .as_ref()
                             .map(|req| req.uri().to_string().to_lowercase().contains(&filter_lower))
                             .unwrap_or(false)

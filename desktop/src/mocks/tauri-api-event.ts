@@ -1,4 +1,4 @@
-import type { ProxyEventTuple } from "@/entities/proxy";
+import type { ProxyEventPayload } from "@/entities/proxy";
 import { MOCK_TRANSACTIONS } from "./mock-data";
 
 type UnlistenFn = () => void;
@@ -14,7 +14,7 @@ export async function listen<T>(event: string, handler: EventCallback<T>): Promi
 
   // proxy_event: 목 트랜잭션을 순차적으로 전송
   if (event === "proxy_event") {
-    startMockStream(handler as EventCallback<ProxyEventTuple>);
+    startMockStream(handler as EventCallback<ProxyEventPayload>);
   }
 
   return () => {
@@ -28,7 +28,7 @@ export async function emit(event: string, payload?: any): Promise<void> {
 
 let streamStarted = false;
 
-function startMockStream(handler: EventCallback<ProxyEventTuple>) {
+function startMockStream(handler: EventCallback<ProxyEventPayload>) {
   if (streamStarted) return;
   streamStarted = true;
 
@@ -45,7 +45,7 @@ function startMockStream(handler: EventCallback<ProxyEventTuple>) {
 
     const tx = MOCK_TRANSACTIONS[index];
     index += 1;
-    handler({ payload: [tx.request, tx.response] });
+    handler({ payload: { request: tx.request, response: tx.response } });
 
     setTimeout(sendNext, 80 + Math.random() * 200);
   };
@@ -86,8 +86,8 @@ function startRandomStream() {
     const path = paths[Math.floor(Math.random() * paths.length)];
     const status = statuses[Math.floor(Math.random() * statuses.length)];
 
-    const payload: ProxyEventTuple = [
-      {
+    const payload: ProxyEventPayload = {
+      request: {
         method,
         uri: `https://${host}${path}`,
         version: "HTTP/2.0",
@@ -99,7 +99,7 @@ function startRandomStream() {
         body_json: method !== "GET" ? { mock: true } : undefined,
         body_size: method !== "GET" ? 15 : 0,
       },
-      {
+      response: {
         status,
         version: "HTTP/2.0",
         headers: { "content-type": "application/json" },
@@ -110,7 +110,7 @@ function startRandomStream() {
         body_json: { ok: status < 400 },
         body_size: 15,
       },
-    ];
+    };
 
     listeners.get("proxy_event")?.forEach((handler) => handler({ payload }));
 
