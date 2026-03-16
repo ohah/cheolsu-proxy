@@ -10,7 +10,11 @@ import { open } from "@tauri-apps/plugin-dialog";
 export const ContractTestingPage = () => {
   const { t } = useLingui();
   const { specs, loadSpec, unloadSpec, toggleSpec } = useContractStore();
-  const transactions = useTransactionStore((s) => s.transactions);
+  const violationTransactions = useTransactionStore((s) =>
+    s.transactions.filter(
+      (tx) => tx.validations && tx.validations.some((v) => v.violations.length > 0),
+    ),
+  );
 
   const handleAddSpec = async () => {
     const path = await open({
@@ -49,11 +53,6 @@ export const ContractTestingPage = () => {
       toast.error(t`Failed to toggle spec: ${String(e)}`);
     }
   };
-
-  // 위반이 있는 트랜잭션 집계
-  const violationTransactions = transactions.filter(
-    (tx) => tx.validations && tx.validations.some((v) => v.violations.length > 0),
-  );
 
   const totalErrors = violationTransactions.reduce(
     (sum, tx) =>
