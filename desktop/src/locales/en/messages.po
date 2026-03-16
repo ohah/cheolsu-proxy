@@ -167,7 +167,7 @@ msgstr "Add rules to map URLs to local files or redirect to other servers."
 msgid "Add rules to route requests with relative URIs to backend servers based on Host header."
 msgstr "Add rules to route requests with relative URIs to backend servers based on Host header."
 
-#: src/pages/contract-testing/ui/contract-testing-page.tsx:88
+#: src/pages/contract-testing/ui/contract-testing-page.tsx:91
 msgid "Add Spec"
 msgstr "Add Spec"
 
@@ -235,7 +235,7 @@ msgstr "All HTTPS traffic is intercepted. {defaultEnabledCount} built-in domain(
 msgid "All Methods"
 msgstr "All Methods"
 
-#: src/pages/contract-testing/ui/contract-testing-page.tsx:173
+#: src/pages/contract-testing/ui/contract-testing-page.tsx:176
 msgid "All requests match the spec"
 msgstr "All requests match the spec"
 
@@ -566,7 +566,7 @@ msgstr "Connects to the server only when needed (default, sequential sniffing)"
 msgid "Console"
 msgstr "Console"
 
-#: src/pages/contract-testing/ui/contract-testing-page.tsx:83
+#: src/pages/contract-testing/ui/contract-testing-page.tsx:86
 #: src/shared/app-sidebar/model/consts.ts:96
 msgid "Contract Testing"
 msgstr "Contract Testing"
@@ -781,7 +781,7 @@ msgid "entries"
 msgstr "entries"
 
 #: src/features/transaction-details/ui/transaction-validation.tsx:93
-#: src/pages/contract-testing/ui/contract-testing-page.tsx:159
+#: src/pages/contract-testing/ui/contract-testing-page.tsx:162
 msgid "errors"
 msgstr "errors"
 
@@ -852,7 +852,7 @@ msgid "Failed to forward breakpoint"
 msgstr "Failed to forward breakpoint"
 
 #. placeholder {0}: String(e)
-#: src/pages/contract-testing/ui/contract-testing-page.tsx:35
+#: src/pages/contract-testing/ui/contract-testing-page.tsx:38
 msgid "Failed to load spec: {0}"
 msgstr "Failed to load spec: {0}"
 
@@ -862,7 +862,7 @@ msgid "Failed to read file: {0}"
 msgstr "Failed to read file: {0}"
 
 #. placeholder {0}: String(e)
-#: src/pages/contract-testing/ui/contract-testing-page.tsx:45
+#: src/pages/contract-testing/ui/contract-testing-page.tsx:48
 msgid "Failed to remove spec: {0}"
 msgstr "Failed to remove spec: {0}"
 
@@ -871,7 +871,7 @@ msgid "Failed to send"
 msgstr "Failed to send"
 
 #. placeholder {0}: String(e)
-#: src/pages/contract-testing/ui/contract-testing-page.tsx:53
+#: src/pages/contract-testing/ui/contract-testing-page.tsx:56
 msgid "Failed to toggle spec: {0}"
 msgstr "Failed to toggle spec: {0}"
 
@@ -1400,7 +1400,7 @@ msgstr "No replay entries"
 msgid "No reverse proxy rules"
 msgstr "No reverse proxy rules"
 
-#: src/pages/contract-testing/ui/contract-testing-page.tsx:100
+#: src/pages/contract-testing/ui/contract-testing-page.tsx:103
 msgid "No specs loaded. Add an OpenAPI/Swagger spec file to start contract testing."
 msgstr "No specs loaded. Add an OpenAPI/Swagger spec file to start contract testing."
 
@@ -1481,11 +1481,11 @@ msgstr "OpenAPI export failed"
 msgid "OpenAPI spec exported successfully ({0} transactions)"
 msgstr "OpenAPI spec exported successfully ({0} transactions)"
 
-#: src/pages/contract-testing/ui/contract-testing-page.tsx:33
+#: src/pages/contract-testing/ui/contract-testing-page.tsx:36
 msgid "OpenAPI spec loaded"
 msgstr "OpenAPI spec loaded"
 
-#: src/pages/contract-testing/ui/contract-testing-page.tsx:96
+#: src/pages/contract-testing/ui/contract-testing-page.tsx:99
 msgid "OpenAPI Specs"
 msgstr "OpenAPI Specs"
 
@@ -1510,7 +1510,7 @@ msgstr "Original"
 msgid "Password"
 msgstr "Password"
 
-#: src/pages/contract-testing/ui/contract-testing-page.tsx:123
+#: src/pages/contract-testing/ui/contract-testing-page.tsx:126
 msgid "paths"
 msgstr "paths"
 
@@ -2190,7 +2190,7 @@ msgstr "Source host and target host are required"
 msgid "Source Port"
 msgstr "Source Port"
 
-#: src/pages/contract-testing/ui/contract-testing-page.tsx:43
+#: src/pages/contract-testing/ui/contract-testing-page.tsx:46
 msgid "Spec removed"
 msgstr "Spec removed"
 
@@ -2478,7 +2478,7 @@ msgstr "Valid Until"
 msgid "Validate API responses against OpenAPI specs"
 msgstr "Validate API responses against OpenAPI specs"
 
-#: src/pages/contract-testing/ui/contract-testing-page.tsx:145
+#: src/pages/contract-testing/ui/contract-testing-page.tsx:148
 msgid "Validation Report"
 msgstr "Validation Report"
 
@@ -2501,7 +2501,7 @@ msgstr "View and manage application log files"
 msgid "View application log files"
 msgstr "View application log files"
 
-#: src/pages/contract-testing/ui/contract-testing-page.tsx:152
+#: src/pages/contract-testing/ui/contract-testing-page.tsx:155
 msgid "Violations"
 msgstr "Violations"
 
@@ -2514,7 +2514,7 @@ msgid "Waiting for WebSocket messages..."
 msgstr "Waiting for WebSocket messages..."
 
 #: src/features/transaction-details/ui/transaction-validation.tsx:99
-#: src/pages/contract-testing/ui/contract-testing-page.tsx:167
+#: src/pages/contract-testing/ui/contract-testing-page.tsx:170
 msgid "warnings"
 msgstr "warnings"
 
