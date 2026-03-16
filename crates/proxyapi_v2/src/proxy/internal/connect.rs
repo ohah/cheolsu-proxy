@@ -101,27 +101,12 @@ where
                 .should_intercept(&self.context(), &req)
                 .await;
 
-            // 이전 TLS 실패 기록이 있고, 사용자가 인터셉트를 요청하지 않은 경우에만 바이패스
             if has_prior_failure && !should_intercept {
                 debug!(
                     "[TLS-PASSTHROUGH] 자동 바이패스 적용 (이전 실패 기록): {}",
                     authority
                 );
-                // handle_tls_passthrough는 동기 함수이므로 여기서는 직접 터널 패스스루 수행
-                let upgraded = match hyper::upgrade::on(&mut req).await {
-                    Ok(u) => u,
-                    Err(e) => {
-                        error!(error = %e, "연결 업그레이드 실패 (바이패스)");
-                        return;
-                    }
-                };
-                let upgraded = TokioIo::new(upgraded);
-                let upgraded = Rewind::new(upgraded, Bytes::new());
-                self.tunnel_passthrough(upgraded, &authority).await;
-                return;
-            }
-
-            if has_prior_failure && should_intercept {
+            } else if has_prior_failure && should_intercept {
                 info!(
                     "[SSLProxying] 이전 실패 기록 무시, 명시적 인터셉트 적용: {}",
                     authority
@@ -135,6 +120,16 @@ where
                     return;
                 }
             };
+
+            // 이전 TLS 실패 기록이 있고, 사용자가 인터셉트를 요청하지 않은 경우 바이패스
+            // ClientHello를 읽지 않고 바로 패스스루
+            if has_prior_failure && !should_intercept {
+                let upgraded = TokioIo::new(upgraded);
+                let upgraded = Rewind::new(upgraded, Bytes::new());
+                self.tunnel_passthrough(upgraded, &authority).await;
+                return;
+            }
+
             let mut upgraded = TokioIo::new(upgraded);
 
             let full_buffer = match Self::read_client_hello(&mut upgraded).await {
@@ -179,86 +174,6 @@ where
 
         spawn_with_trace(fut, span);
         Response::new(Body::empty())
-    }
-
-    /// TLS 패스스루 바이패스 처리 (이전 핸드셰이크 실패 도메인)
-    fn handle_tls_passthrough(
-        self,
-        mut req: Request<Body>,
-        authority: &Authority,
-    ) -> Response<Body> {
-        debug!(
-            "[TLS-PASSTHROUGH] 자동 바이패스 적용 (이전 실패 기록): {}",
-            authority
-        );
-        let response = match Response::builder()
-            .status(200)
-            .header("Connection", "keep-alive")
-            .body(Body::empty())
-        {
-            Ok(resp) => resp,
-            Err(e) => {
-                error!("바이패스 응답 생성 실패: {}", e);
-                return bad_request();
-            }
-        };
-
-        let authority = authority.clone();
-        let shutdown_rx = self.ctx.shutdown_rx.clone();
-        tokio::spawn(async move {
-            let upgraded = match hyper::upgrade::on(&mut req).await {
-                Ok(u) => u,
-                Err(e) => {
-                    error!("[TLS-PASSTHROUGH] 업그레이드 실패: {}", e);
-                    return;
-                }
-            };
-            let mut client_stream = TokioIo::new(upgraded);
-            let target_addr = format!(
-                "{}:{}",
-                authority.host(),
-                authority
-                    .port()
-                    .map(|p| p.to_string())
-                    .unwrap_or_else(|| "443".to_string())
-            );
-            let mut server_stream =
-                match connect_to_target(&target_addr, self.ctx.upstream_proxy.as_ref()).await {
-                    Ok(s) => s,
-                    Err(e) => {
-                        error!("[TLS-PASSTHROUGH] 서버 연결 실패: {} - {}", target_addr, e);
-                        return;
-                    }
-                };
-
-            let throttle_config = self
-                .ctx
-                .throttle_rx
-                .as_ref()
-                .and_then(|rx| rx.borrow().clone());
-            let copy_fut = copy_bidirectional_maybe_throttled(
-                &mut client_stream,
-                &mut server_stream,
-                throttle_config.as_ref(),
-            );
-            // shutdown 신호 수신 시 양방향 복사를 조기 종료
-            if let Some(mut rx) = shutdown_rx {
-                tokio::select! {
-                    result = copy_fut => {
-                        if let Err(e) = result {
-                            warn!("[TLS-PASSTHROUGH] 양방향 복사 실패: {} - {}", authority, e);
-                        }
-                    }
-                    _ = rx.wait_for(|&v| v) => {
-                        debug!("[TLS-PASSTHROUGH] shutdown 신호 수신, 패스스루 종료: {}", authority);
-                    }
-                }
-            } else if let Err(e) = copy_fut.await {
-                warn!("[TLS-PASSTHROUGH] 양방향 복사 실패: {} - {}", authority, e);
-            }
-        });
-
-        response
     }
 
     /// 클라이언트로부터 TLS ClientHello 메시지를 읽는 헬퍼
