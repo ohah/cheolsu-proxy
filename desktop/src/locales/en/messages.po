@@ -406,7 +406,7 @@ msgstr "Cancel"
 msgid "Cannot add: no response data"
 msgstr "Cannot add: no response data"
 
-#: src/pages/settings/ui/settings-page.tsx:112
+#: src/pages/settings/ui/settings-page.tsx:113
 msgid "Certificate"
 msgstr "Certificate"
 
@@ -633,6 +633,10 @@ msgstr "Dark"
 #: src/widgets/websocket-messages/ui/ws-message-table.tsx:203
 msgid "Data"
 msgstr "Data"
+
+#: src/pages/settings/ui/components/proxy-port-section.tsx:31
+msgid "Default port is 8100. Make sure your system proxy is configured to use port {port}."
+msgstr "Default port is 8100. Make sure your system proxy is configured to use port {port}."
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:500
 msgid "Delay before forwarding the request (milliseconds)"
@@ -909,7 +913,7 @@ msgstr "Forward"
 msgid "Fullscreen"
 msgstr "Fullscreen"
 
-#: src/pages/settings/ui/settings-page.tsx:111
+#: src/pages/settings/ui/settings-page.tsx:112
 msgid "General"
 msgstr "General"
 
@@ -1315,7 +1319,7 @@ msgstr "Multiple conditions:"
 msgid "Name"
 msgstr "Name"
 
-#: src/pages/settings/ui/settings-page.tsx:113
+#: src/pages/settings/ui/settings-page.tsx:114
 #: src/shared/app-sidebar/model/consts.ts:26
 msgid "Network"
 msgstr "Network"
@@ -1575,6 +1579,10 @@ msgstr "Port"
 msgid "Port must be between 1 and 65535"
 msgstr "Port must be between 1 and 65535"
 
+#: src/pages/settings/ui/components/proxy-port-section.tsx:16
+msgid "Port number for the proxy server to listen on. Changes take effect on next app restart."
+msgstr "Port number for the proxy server to listen on. Changes take effect on next app restart."
+
 #: src/pages/settings/ui/components/client-certificate-section.tsx:132
 msgid "Present a client certificate when connecting to servers that require mTLS authentication"
 msgstr "Present a client certificate when connecting to servers that require mTLS authentication"
@@ -1615,9 +1623,13 @@ msgstr "Proxy Address"
 msgid "Proxy Authentication"
 msgstr "Proxy Authentication"
 
-#: src/pages/settings/ui/settings-page.tsx:147
+#: src/pages/settings/ui/settings-page.tsx:148
 msgid "Proxy configuration and preferences"
 msgstr "Proxy configuration and preferences"
+
+#: src/pages/settings/ui/components/proxy-port-section.tsx:13
+msgid "Proxy Port"
+msgstr "Proxy Port"
 
 #: src/shared/app-sidebar/model/consts.ts:105
 msgid "Proxy settings and configuration"
@@ -1960,11 +1972,11 @@ msgstr "Run"
 msgid "Running..."
 msgstr "Running..."
 
-#: src/pages/settings/ui/settings-page.tsx:163
+#: src/pages/settings/ui/settings-page.tsx:164
 msgid "Save Changes"
 msgstr "Save Changes"
 
-#: src/pages/settings/ui/settings-page.tsx:158
+#: src/pages/settings/ui/settings-page.tsx:159
 msgid "Save failed"
 msgstr "Save failed"
 
@@ -1972,11 +1984,11 @@ msgstr "Save failed"
 msgid "Save Session"
 msgstr "Save Session"
 
-#: src/pages/settings/ui/settings-page.tsx:153
+#: src/pages/settings/ui/settings-page.tsx:154
 msgid "Saved"
 msgstr "Saved"
 
-#: src/pages/settings/ui/settings-page.tsx:163
+#: src/pages/settings/ui/settings-page.tsx:164
 msgid "Saving..."
 msgstr "Saving..."
 
@@ -2009,7 +2021,7 @@ msgstr "Script reloaded"
 msgid "Script unloaded"
 msgstr "Script unloaded"
 
-#: src/pages/settings/ui/settings-page.tsx:114
+#: src/pages/settings/ui/settings-page.tsx:115
 msgid "Security"
 msgstr "Security"
 
@@ -2150,7 +2162,7 @@ msgstr "Set body (optional)"
 msgid "Set Wi-Fi proxy on your device to <0>{0}:{1}</0>"
 msgstr "Set Wi-Fi proxy on your device to <0>{0}:{1}</0>"
 
-#: src/pages/settings/ui/settings-page.tsx:144
+#: src/pages/settings/ui/settings-page.tsx:145
 #: src/shared/app-sidebar/model/consts.ts:103
 msgid "Settings"
 msgstr "Settings"
@@ -2339,7 +2351,7 @@ msgstr "Toggle AND/OR"
 msgid "Toggle proxy on/off with a global keyboard shortcut"
 msgstr "Toggle proxy on/off with a global keyboard shortcut"
 
-#: src/pages/settings/ui/settings-page.tsx:115
+#: src/pages/settings/ui/settings-page.tsx:116
 msgid "Tools"
 msgstr "Tools"
 

@@ -6,6 +6,9 @@ import type { ConnectionStrategy, SslProxyingMode, SslProxyingEntry } from "@/sh
 import type { DomainClientCertConfig } from "@/shared/api/proxy";
 
 export interface SettingsFormValues {
+  // Proxy Port
+  proxyPort: number;
+
   // Quick Settings
   quickSettings: {
     noCaching: boolean;
@@ -77,6 +80,7 @@ export interface SettingsFormValues {
 export function getDefaultValues(): SettingsFormValues {
   const store = useAppSettingsStore.getState();
   return {
+    proxyPort: store.proxyPort,
     quickSettings: {
       noCaching: store.quickSettingsNoCaching,
       blockCookies: store.quickSettingsBlockCookies,

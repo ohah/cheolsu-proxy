@@ -64,7 +64,8 @@ const App: React.FC = () => {
 
   // 앱 시작 시 프록시 초기화 → 데몬 규칙 수신 대기 → 저장된 규칙 동기화
   useEffect(() => {
-    initializeProxy().then(() => waitForDaemonRules().then(() => syncToProxy()));
+    const port = useAppSettingsStore.getState().proxyPort;
+    initializeProxy(port).then(() => waitForDaemonRules().then(() => syncToProxy()));
   }, [initializeProxy, syncToProxy]);
 
   // 프록시 이벤트를 전역적으로 수신하여 트랜잭션 store에 저장
