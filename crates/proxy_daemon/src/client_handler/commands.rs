@@ -225,14 +225,11 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bo
                         );
                     }
                     // 스크립트 상태 브로드캐스트
-                    let status_msg = DaemonMessage::ScriptStatus {
+                    s.broadcast_event(&DaemonMessage::ScriptStatus {
                         active: true,
                         path: path.clone(),
                         message: "스크립트 로드 완료".to_string(),
-                    };
-                    if let Ok(json) = serde_json::to_string(&status_msg) {
-                        let _ = s.event_tx.send(json);
-                    }
+                    });
                     DaemonMessage::ScriptResult {
                         success: true,
                         error: None,
@@ -256,14 +253,11 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bo
             }
             info!("Script unloaded");
             // 스크립트 상태 브로드캐스트
-            let status_msg = DaemonMessage::ScriptStatus {
+            s.broadcast_event(&DaemonMessage::ScriptStatus {
                 active: false,
                 path: None,
                 message: "스크립트 언로드됨".to_string(),
-            };
-            if let Ok(json) = serde_json::to_string(&status_msg) {
-                let _ = s.event_tx.send(json);
-            }
+            });
             let response = DaemonMessage::ScriptResult {
                 success: true,
                 error: None,

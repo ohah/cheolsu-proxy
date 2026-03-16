@@ -30,7 +30,7 @@
     "format": "oxfmt",
     "format:check": "oxfmt --check",
     "dev:mock": "MOCK=true bun run --filter cheolsu-proxy dev -- --port 12308 --host 0.0.0.0",
-    "cargo:test": "DYLD_LIBRARY_PATH=desktop/src-tauri/openssl-bundle/lib cargo test",
+    "cargo:test": "DYLD_LIBRARY_PATH=$(pwd)/desktop/src-tauri/openssl-bundle/lib cargo test",
     "cargo:check": "cargo check",
     "cargo:fmt": "cargo fmt --all",
     "cargo:clean": "cargo clean"
