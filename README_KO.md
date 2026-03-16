@@ -13,7 +13,7 @@
 
 ## 소개
 
-Rust 기반 **Man in the Middle 프록시**로, HTTP/HTTPS/WebSocket 트래픽을 검사하고 조작할 수 있습니다. 데스크톱 GUI (Tauri + React), 터미널 UI (Ratatui), headless CLI 모드를 제공하며, 스크립트 기반 트래픽 조작과 인터셉트 규칙을 지원합니다. MCP를 통해 AI 어시스턴트와도 연동됩니다.
+Rust 기반 **Man in the Middle 프록시**로, HTTP/HTTPS/WebSocket 트래픽을 검사하고 조작할 수 있습니다. 데스크톱 GUI (Tauri + React)와 터미널 UI (Ratatui)를 제공하며, 스크립트 기반 트래픽 조작과 인터셉트 규칙을 지원합니다. MCP를 통해 AI 어시스턴트와도 연동됩니다.
 
 ## 스크린샷
 
@@ -65,7 +65,6 @@ Rust 기반 **Man in the Middle 프록시**로, HTTP/HTTPS/WebSocket 트래픽�
 
 - GUI 데스크톱 앱 (Tauri + React)
 - TUI 터미널 인터페이스 (Ratatui)
-- CLI headless 모드
 - MCP 서버 (AI 어시스턴트 연동)
 - 다크 / 라이트 테마
 - 다국어 지원 (영어, 한국어)
@@ -192,22 +191,7 @@ OpenSSL 링크 오류가 발생하면 환경변수를 설정하세요:
 PKG_CONFIG_PATH="/opt/homebrew/opt/openssl@3/lib/pkgconfig" bun tauri dev
 ```
 
-### 4. CLI (Headless) 모드
-
-GUI 없이 프록시만 실행할 수 있습니다:
-
-```bash
-bun tauri dev -- -- --headless --port 8100
-```
-
-| 옵션            | 단축 | 설명                                 |
-| --------------- | ---- | ------------------------------------ |
-| `--headless`    | `-H` | GUI 없이 프록시만 실행               |
-| `--port <PORT>` | `-p` | 프록시 리슨 포트 (기본: 8100)        |
-| `--host <HOST>` | `-b` | 프록시 리슨 호스트 (기본: 127.0.0.1) |
-| `--verbose`     | `-v` | 상세 로깅 활성화                     |
-
-### 5. 테스트
+### 4. 테스트
 
 ```bash
 # 단위 테스트 (TLS 전략 선택, ClientHello 파싱 등)
