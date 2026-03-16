@@ -24,7 +24,6 @@
     "tauri": "bun run --filter cheolsu-proxy tauri dev",
     "tauri:dev": "bun run --filter cheolsu-proxy tauri dev",
     "tauri:build": "bun run --filter cheolsu-proxy tauri build",
-    "tauri:headless": "bun run --filter cheolsu-proxy tauri dev -- -- --headless --port 8100",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
     "format": "oxfmt",
