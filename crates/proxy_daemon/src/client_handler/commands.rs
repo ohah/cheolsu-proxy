@@ -44,14 +44,7 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bo
             if let Err(e) = s.channels.intercept_tx.send(rules.clone()) {
                 warn!("인터셉트 규칙 watch 채널 전송 실패: {}", e);
             }
-            let broadcast_msg = DaemonMessage::InterceptRulesUpdated { rules };
-            if let Ok(json) = serde_json::to_string(&broadcast_msg) {
-                if s.event_tx.receiver_count() > 0 {
-                    if let Err(e) = s.event_tx.send(json) {
-                        warn!("인터셉트 규칙 broadcast 전송 실패: {}", e);
-                    }
-                }
-            }
+            s.broadcast_event(&DaemonMessage::InterceptRulesUpdated { rules });
         }
         ClientCommand::WsInject {
             connection_id,
@@ -122,14 +115,7 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bo
             if let Err(e) = s.channels.host_mapping_tx.send(mappings.clone()) {
                 warn!("호스트 매핑 watch 채널 전송 실패: {}", e);
             }
-            let broadcast_msg = DaemonMessage::HostMappingsUpdated { mappings };
-            if let Ok(json) = serde_json::to_string(&broadcast_msg) {
-                if s.event_tx.receiver_count() > 0 {
-                    if let Err(e) = s.event_tx.send(json) {
-                        warn!("호스트 매핑 broadcast 전송 실패: {}", e);
-                    }
-                }
-            }
+            s.broadcast_event(&DaemonMessage::HostMappingsUpdated { mappings });
         }
         ClientCommand::UpdateReverseProxyRules { rules } => {
             info!(
@@ -139,14 +125,7 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bo
             if let Err(e) = s.channels.reverse_proxy_tx.send(rules.clone()) {
                 warn!("리버스 프록시 규칙 watch 채널 전송 실패: {}", e);
             }
-            let broadcast_msg = DaemonMessage::ReverseProxyRulesUpdated { rules };
-            if let Ok(json) = serde_json::to_string(&broadcast_msg) {
-                if s.event_tx.receiver_count() > 0 {
-                    if let Err(e) = s.event_tx.send(json) {
-                        warn!("리버스 프록시 규칙 broadcast 전송 실패: {}", e);
-                    }
-                }
-            }
+            s.broadcast_event(&DaemonMessage::ReverseProxyRulesUpdated { rules });
         }
         ClientCommand::UpdateSslProxyingList { mode, entries } => {
             info!(
@@ -161,14 +140,7 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bo
             {
                 warn!("SSL 프록싱 목록 watch 채널 전송 실패: {}", e);
             }
-            let broadcast_msg = DaemonMessage::SslProxyingListUpdated { mode, entries };
-            if let Ok(json) = serde_json::to_string(&broadcast_msg) {
-                if s.event_tx.receiver_count() > 0 {
-                    if let Err(e) = s.event_tx.send(json) {
-                        warn!("SSL 프록싱 목록 broadcast 전송 실패: {}", e);
-                    }
-                }
-            }
+            s.broadcast_event(&DaemonMessage::SslProxyingListUpdated { mode, entries });
         }
         ClientCommand::UpdateDefaultPassthroughDomains { entries } => {
             info!(
@@ -178,14 +150,7 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bo
             if let Err(e) = s.channels.default_passthrough_tx.send(entries.clone()) {
                 warn!("기본 패스스루 도메인 watch 채널 전송 실패: {}", e);
             }
-            let broadcast_msg = DaemonMessage::DefaultPassthroughDomainsUpdated { entries };
-            if let Ok(json) = serde_json::to_string(&broadcast_msg) {
-                if s.event_tx.receiver_count() > 0 {
-                    if let Err(e) = s.event_tx.send(json) {
-                        warn!("기본 패스스루 도메인 broadcast 전송 실패: {}", e);
-                    }
-                }
-            }
+            s.broadcast_event(&DaemonMessage::DefaultPassthroughDomainsUpdated { entries });
         }
         ClientCommand::UpdateClientCertificate { config } => {
             info!(
@@ -195,14 +160,7 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bo
             if let Err(e) = s.channels.client_cert_tx.send(config.clone()) {
                 warn!("클라이언트 인증서 설정 watch 채널 전송 실패: {}", e);
             }
-            let broadcast_msg = DaemonMessage::ClientCertificateUpdated { config };
-            if let Ok(json) = serde_json::to_string(&broadcast_msg) {
-                if s.event_tx.receiver_count() > 0 {
-                    if let Err(e) = s.event_tx.send(json) {
-                        warn!("클라이언트 인증서 설정 broadcast 전송 실패: {}", e);
-                    }
-                }
-            }
+            s.broadcast_event(&DaemonMessage::ClientCertificateUpdated { config });
         }
         ClientCommand::UpdateQuickSettings {
             no_caching,
@@ -320,14 +278,7 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bo
             if let Err(e) = s.channels.breakpoint_tx.send(rules.clone()) {
                 warn!("브레이크포인트 규칙 watch 채널 전송 실패: {}", e);
             }
-            let broadcast_msg = DaemonMessage::BreakpointRulesUpdated { rules };
-            if let Ok(json) = serde_json::to_string(&broadcast_msg) {
-                if s.event_tx.receiver_count() > 0 {
-                    if let Err(e) = s.event_tx.send(json) {
-                        warn!("브레이크포인트 규칙 broadcast 전송 실패: {}", e);
-                    }
-                }
-            }
+            s.broadcast_event(&DaemonMessage::BreakpointRulesUpdated { rules });
         }
         ClientCommand::ResolveBreakpoint { id, action } => {
             info!("Resolving breakpoint: {} -> {:?}", id, action);
@@ -400,14 +351,7 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bo
             if let Err(e) = s.channels.request_client_cert_tx.send(config.clone()) {
                 warn!("클라이언트 인증서 요청 설정 watch 채널 전송 실패: {}", e);
             }
-            let broadcast_msg = DaemonMessage::RequestClientCertUpdated { config };
-            if let Ok(json) = serde_json::to_string(&broadcast_msg) {
-                if s.event_tx.receiver_count() > 0 {
-                    if let Err(e) = s.event_tx.send(json) {
-                        warn!("클라이언트 인증서 요청 설정 broadcast 전송 실패: {}", e);
-                    }
-                }
-            }
+            s.broadcast_event(&DaemonMessage::RequestClientCertUpdated { config });
         }
         ClientCommand::UpdateConnectionStrategy { strategy } => {
             let strategy_value = match strategy.as_str() {

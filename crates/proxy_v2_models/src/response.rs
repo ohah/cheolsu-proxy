@@ -46,16 +46,18 @@ impl ProxiedResponse {
         let data_type = detect_data_type(&headers, &body);
 
         // 압축 해제된 데이터 생성 (타우리 UI용)
+        let has_compressed_encoding = headers
+            .get("content-encoding")
+            .and_then(|h| h.to_str().ok())
+            .map(|e| {
+                let e = e.to_lowercase();
+                e.contains("gzip") || e.contains("br")
+            })
+            .unwrap_or(false);
+
         let decompressed_body = if data_type == DataType::Json
             || data_type == DataType::GraphQL
-            || headers
-                .get("content-encoding")
-                .map(|h| h.to_str().unwrap_or("").to_lowercase().contains("gzip"))
-                .unwrap_or(false)
-            || headers
-                .get("content-encoding")
-                .map(|h| h.to_str().unwrap_or("").to_lowercase().contains("br"))
-                .unwrap_or(false)
+            || has_compressed_encoding
         {
             let decompressed = decompress_body_if_needed(&headers, &body);
             if decompressed != body.to_vec() {

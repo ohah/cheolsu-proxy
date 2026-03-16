@@ -43,6 +43,20 @@ pub(crate) struct ClientHandlerContext {
     pub(crate) shared: SharedDaemonState,
 }
 
+impl SharedDaemonState {
+    /// SSE 구독자에게 상태 변경 이벤트를 브로드캐스트하는 헬퍼.
+    /// 수신자가 없으면 전송을 건너뛴다.
+    pub(crate) fn broadcast_event(&self, msg: &DaemonMessage) {
+        if self.event_tx.receiver_count() > 0 {
+            if let Ok(json) = serde_json::to_string(msg) {
+                if let Err(e) = self.event_tx.send(json) {
+                    tracing::warn!("broadcast 전송 실패: {}", e);
+                }
+            }
+        }
+    }
+}
+
 pub(crate) async fn handle_client(stream: UnixStream, ctx: ClientHandlerContext) {
     let ClientHandlerContext {
         mut event_rx,
