@@ -78,7 +78,7 @@ export const ContractTestingPage = () => {
   );
 
   return (
-    <div className="flex flex-col h-full p-4 gap-4 overflow-auto">
+    <div className="flex-1 flex flex-col h-full p-6 gap-6 overflow-auto">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <FileCheck className="h-5 w-5" />
