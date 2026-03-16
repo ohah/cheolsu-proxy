@@ -13,7 +13,7 @@
 
 ## Description
 
-Rust-based **Man in the Middle proxy** for inspecting and manipulating HTTP/HTTPS/WebSocket traffic. Provides a desktop GUI (Tauri + React), a terminal UI (Ratatui), and a headless CLI mode. Supports scriptable traffic manipulation, intercept rules, and integrates with AI assistants via MCP.
+Rust-based **Man in the Middle proxy** for inspecting and manipulating HTTP/HTTPS/WebSocket traffic. Provides a desktop GUI (Tauri + React) and a terminal UI (Ratatui). Supports scriptable traffic manipulation, intercept rules, and integrates with AI assistants via MCP.
 
 ## Screenshots
 
@@ -65,7 +65,6 @@ Rust-based **Man in the Middle proxy** for inspecting and manipulating HTTP/HTTP
 
 - GUI desktop app (Tauri + React)
 - TUI terminal interface (Ratatui)
-- CLI headless mode
 - MCP Server for AI assistant integration
 - Dark / light theme
 - i18n support (English, Korean)
@@ -192,22 +191,7 @@ If you encounter OpenSSL linking errors, set the environment variable:
 PKG_CONFIG_PATH="/opt/homebrew/opt/openssl@3/lib/pkgconfig" bun tauri dev
 ```
 
-### 4. CLI (Headless) Mode
-
-Run the proxy without the GUI:
-
-```bash
-bun tauri dev -- -- --headless --port 8100
-```
-
-| Option          | Short | Description                            |
-| --------------- | ----- | -------------------------------------- |
-| `--headless`    | `-H`  | Run proxy without GUI                  |
-| `--port <PORT>` | `-p`  | Proxy listen port (default: 8100)      |
-| `--host <HOST>` | `-b`  | Proxy listen host (default: 127.0.0.1) |
-| `--verbose`     | `-v`  | Enable verbose logging                 |
-
-### 5. Testing
+### 4. Testing
 
 ```bash
 # Unit tests (TLS strategy selection, ClientHello parsing, etc.)
