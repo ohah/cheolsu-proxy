@@ -139,7 +139,7 @@ mod tests {
     }
 
     fn make_request_info() -> RequestInfo {
-        RequestInfo(None, None)
+        RequestInfo(None, None, None)
     }
 
     fn make_ws_message(seq: u64) -> WsMessageInfo {

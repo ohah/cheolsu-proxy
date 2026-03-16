@@ -48,7 +48,7 @@ fn make_transaction(
     let req = make_request(method, uri, req_body, req_time);
     let id = req.id().to_string();
     let res = make_response(status, res_body, res_time, &id);
-    RequestInfo(Some(req), Some(res))
+    RequestInfo(Some(req), Some(res), None)
 }
 
 #[test]
@@ -164,7 +164,7 @@ fn build_har_text_body_no_encoding() {
 #[test]
 fn build_har_request_only_no_response() {
     let req = make_request("GET", "https://example.com/pending", b"", 1700000000000);
-    let tx = RequestInfo(Some(req), None);
+    let tx = RequestInfo(Some(req), None, None);
 
     let har = build_har(&[tx]);
     assert_eq!(har.log.entries.len(), 1);
@@ -176,7 +176,7 @@ fn build_har_request_only_no_response() {
 
 #[test]
 fn build_har_no_request_skipped() {
-    let tx = RequestInfo(None, None);
+    let tx = RequestInfo(None, None, None);
     let har = build_har(&[tx]);
     assert!(har.log.entries.is_empty());
 }
@@ -214,7 +214,7 @@ fn build_har_cookies_parsed() {
         1700000000000,
     );
     let client_req = req.for_client(None);
-    let tx = RequestInfo(Some(client_req), None);
+    let tx = RequestInfo(Some(client_req), None, None);
 
     let har = build_har(&[tx]);
     let cookies = &har.log.entries[0].request.cookies;
@@ -241,7 +241,7 @@ fn build_har_redirect_url() {
         1700000000050,
     );
     let client_res = res.for_client(&id, None);
-    let tx = RequestInfo(Some(req), Some(client_res));
+    let tx = RequestInfo(Some(req), Some(client_res), None);
 
     let har = build_har(&[tx]);
     assert_eq!(
