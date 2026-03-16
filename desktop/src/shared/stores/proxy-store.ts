@@ -8,10 +8,8 @@ import { toast } from "sonner";
 interface ProxyState {
   isConnected: boolean;
   isInitialized: boolean;
-  port: number;
-  initializeProxy: (port?: number) => Promise<void>;
+  initializeProxy: (port: number) => Promise<void>;
   setConnected: (connected: boolean) => void;
-  setPort: (port: number) => void;
 }
 
 export const useProxyStore = create<ProxyState>()(
@@ -19,15 +17,14 @@ export const useProxyStore = create<ProxyState>()(
     (set, get) => ({
       isConnected: false,
       isInitialized: false,
-      port: 8100,
 
-      initializeProxy: async (port: number = 8100) => {
+      initializeProxy: async (port: number) => {
         const { isInitialized } = get();
 
         // 이미 초기화되었으면 중복 실행 방지
         if (isInitialized) return;
 
-        set({ isInitialized: true, port });
+        set({ isInitialized: true });
 
         try {
           // 앱 시작 시 오래된 캐시 정리 (1일 이상)
@@ -49,12 +46,11 @@ export const useProxyStore = create<ProxyState>()(
       },
 
       setConnected: (connected: boolean) => set({ isConnected: connected }),
-      setPort: (port: number) => set({ port }),
     }),
     {
       name: "cheolsu-proxy-store",
       storage: createJSONStorage(() => createTauriStorage()),
-      // port는 app-settings-store에서 관리, isInitialized는 앱 재시작 시 리셋
+      // isInitialized는 앱 재시작 시 리셋
       partialize: () => ({}),
     },
   ),
