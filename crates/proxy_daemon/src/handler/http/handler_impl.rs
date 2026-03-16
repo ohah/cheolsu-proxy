@@ -82,13 +82,10 @@ impl HttpHandler for LoggingHandler {
 
             // SSL Proxying 목록에 없더라도, MapRemote 규칙의 대상 포트와 소스 도메인이
             // CONNECT authority와 일치하면 인터셉트합니다.
-            // 예: MapRemote `*pos-webview.payhere.dev*` → `http://localhost:8083` 규칙이 있을 때,
-            // HMR 등이 `pos-webview.payhere.dev:8083`으로 CONNECT를 시도하면
+            // 예: MapRemote `*app.example.dev*` → `http://localhost:8083` 규칙이 있을 때,
+            // HMR 등이 `app.example.dev:8083`으로 CONNECT를 시도하면
             // 이 포트+도메인 조합을 자동으로 인터셉트하여 MapRemote가 적용될 수 있게 합니다.
-            if self
-                .should_intercept_for_map_remote(host, port)
-                .await
-            {
+            if self.should_intercept_for_map_remote(host, port).await {
                 info!(
                     "[SSLProxying] MapRemote 규칙에 의한 자동 SSL 인터셉트: {}",
                     authority
@@ -191,6 +188,17 @@ impl HttpHandler for LoggingHandler {
         let result = self
             .apply_request_intercept(restored_req, &url, &method)
             .await;
+
+        // MapRemote 적용 시 원본 URL 헤더를 ProxiedRequest에도 반영 (프론트엔드 표시용)
+        if let RequestOrResponse::Request(ref req) = result {
+            if let Some(original_url) = req.headers().get("x-cheolsu-map-remote-original") {
+                if let Some(proxied_req) = self.request.req.as_mut() {
+                    proxied_req
+                        .headers_mut()
+                        .insert("x-cheolsu-map-remote-original", original_url.clone());
+                }
+            }
+        }
 
         if let RequestOrResponse::Response(_) = &result {
             self.send_output().await;
