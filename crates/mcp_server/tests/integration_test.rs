@@ -51,6 +51,7 @@ fn make_request_info(id: &str, method: &str, uri: &str, status: u16) -> RequestI
     RequestInfo(
         Some(make_client_request(id, method, uri)),
         Some(make_client_response(id, status)),
+        None,
     )
 }
 
@@ -540,6 +541,7 @@ fn store_push_partial_request_info() {
             "https://example.com",
         )),
         None,
+        None,
     );
     store.push_transaction(info);
 
@@ -554,7 +556,7 @@ fn store_push_empty_request_info() {
     let store = Store::new();
 
     // request도 response도 없는 경우
-    let info = RequestInfo(None, None);
+    let info = RequestInfo(None, None, None);
     store.push_transaction(info);
 
     let txns = store.transactions.lock();

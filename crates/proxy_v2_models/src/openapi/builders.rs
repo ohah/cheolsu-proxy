@@ -235,7 +235,7 @@ mod tests {
         let client_req = req.for_client(None);
         let client_res = res.for_client(client_req.id(), None);
 
-        RequestInfo(Some(client_req), Some(client_res))
+        RequestInfo(Some(client_req), Some(client_res), None)
     }
 
     #[test]
