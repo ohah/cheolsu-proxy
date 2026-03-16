@@ -1,5 +1,6 @@
 import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
+import { useShallow } from "zustand/react/shallow";
 import { useContractStore } from "@/shared/stores/contract-store";
 import { useTransactionStore } from "@/shared/stores";
 import { Card, CardContent, Badge, Button, Switch } from "@/shared/ui";
@@ -10,9 +11,11 @@ import { open } from "@tauri-apps/plugin-dialog";
 export const ContractTestingPage = () => {
   const { t } = useLingui();
   const { specs, loadSpec, unloadSpec, toggleSpec } = useContractStore();
-  const violationTransactions = useTransactionStore((s) =>
-    s.transactions.filter(
-      (tx) => tx.validations && tx.validations.some((v) => v.violations.length > 0),
+  const violationTransactions = useTransactionStore(
+    useShallow((s) =>
+      s.transactions.filter(
+        (tx) => tx.validations && tx.validations.some((v) => v.violations.length > 0),
+      ),
     ),
   );
 

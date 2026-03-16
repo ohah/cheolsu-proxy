@@ -79,7 +79,7 @@ msgstr "활성"
 msgid "Active Custom CA"
 msgstr "활성 커스텀 CA"
 
-#: src/features/transaction-details/ui/transaction-validation.tsx:40
+#: src/features/transaction-details/ui/transaction-validation.tsx:37
 msgid "Actual"
 msgstr "실제 값"
 
@@ -167,7 +167,7 @@ msgstr "URL을 로컬 파일에 매핑하거나 다른 서버로 리다이렉트
 msgid "Add rules to route requests with relative URIs to backend servers based on Host header."
 msgstr "Host 헤더 기반으로 relative URI 요청을 백엔드 서버에 전달하는 규칙을 추가하세요."
 
-#: src/pages/contract-testing/ui/contract-testing-page.tsx:91
+#: src/pages/contract-testing/ui/contract-testing-page.tsx:88
 msgid "Add Spec"
 msgstr "스펙 추가"
 
@@ -204,7 +204,7 @@ msgstr "고급 반복 실행 실패"
 msgid "All Connections"
 msgstr "전체 연결"
 
-#: src/features/transaction-details/ui/transaction-validation.tsx:74
+#: src/features/transaction-details/ui/transaction-validation.tsx:72
 msgid "All contract validations passed"
 msgstr "모든 계약 검증을 통과했습니다"
 
@@ -235,7 +235,7 @@ msgstr "모든 HTTPS 트래픽이 인터셉트됩니다. {defaultEnabledCount}�
 msgid "All Methods"
 msgstr "모든 메서드"
 
-#: src/pages/contract-testing/ui/contract-testing-page.tsx:176
+#: src/pages/contract-testing/ui/contract-testing-page.tsx:173
 msgid "All requests match the spec"
 msgstr "모든 요청이 스펙에 부합합니다"
 
@@ -566,7 +566,7 @@ msgstr "필요할 때만 서버에 연결합니다 (기본값, 순차적 스니�
 msgid "Console"
 msgstr "콘솔"
 
-#: src/pages/contract-testing/ui/contract-testing-page.tsx:86
+#: src/pages/contract-testing/ui/contract-testing-page.tsx:83
 #: src/shared/app-sidebar/model/consts.ts:96
 msgid "Contract Testing"
 msgstr "계약 테스트"
@@ -780,8 +780,8 @@ msgstr "활성"
 msgid "entries"
 msgstr "개 엔트리"
 
-#: src/features/transaction-details/ui/transaction-validation.tsx:95
-#: src/pages/contract-testing/ui/contract-testing-page.tsx:165
+#: src/features/transaction-details/ui/transaction-validation.tsx:93
+#: src/pages/contract-testing/ui/contract-testing-page.tsx:159
 msgid "errors"
 msgstr "오류"
 
@@ -823,7 +823,7 @@ msgstr "펼치기"
 msgid "Expand sidebar"
 msgstr "사이드바 펼치기"
 
-#: src/features/transaction-details/ui/transaction-validation.tsx:35
+#: src/features/transaction-details/ui/transaction-validation.tsx:31
 msgid "Expected"
 msgstr "기대 값"
 
@@ -852,9 +852,9 @@ msgid "Failed to forward breakpoint"
 msgstr "Breakpoint 전달에 실패했습니다"
 
 #. placeholder {0}: String(e)
-#: src/pages/contract-testing/ui/contract-testing-page.tsx:31
+#: src/pages/contract-testing/ui/contract-testing-page.tsx:35
 msgid "Failed to load spec: {0}"
-msgstr ""
+msgstr "스펙 로드 실패: {0}"
 
 #. placeholder {0}: e instanceof Error ? e.message : String(e)
 #: src/pages/script/ui/script-page.tsx:101
@@ -862,18 +862,18 @@ msgid "Failed to read file: {0}"
 msgstr "파일 읽기 실패: {0}"
 
 #. placeholder {0}: String(e)
-#: src/pages/contract-testing/ui/contract-testing-page.tsx:41
+#: src/pages/contract-testing/ui/contract-testing-page.tsx:45
 msgid "Failed to remove spec: {0}"
-msgstr ""
+msgstr "스펙 제거 실패: {0}"
 
 #: src/features/websocket-replay/ui/ws-replay-dialog.tsx:88
 msgid "Failed to send"
 msgstr "전송 실패"
 
 #. placeholder {0}: String(e)
-#: src/pages/contract-testing/ui/contract-testing-page.tsx:49
+#: src/pages/contract-testing/ui/contract-testing-page.tsx:53
 msgid "Failed to toggle spec: {0}"
-msgstr ""
+msgstr "스펙 토글 실패: {0}"
 
 #: src/pages/log-viewer/ui/logs-page.tsx:421
 msgid "Failures"
@@ -1123,7 +1123,7 @@ msgstr "로드"
 msgid "Load a script file from disk. The file will be watched for changes and auto-reloaded."
 msgstr "디스크에서 스크립트 파일을 로드합니다. 파일 변경 시 자동으로 리로드됩니다."
 
-#: src/features/transaction-details/ui/transaction-validation.tsx:59
+#: src/features/transaction-details/ui/transaction-validation.tsx:57
 msgid "Load an OpenAPI spec to enable contract testing"
 msgstr "계약 테스트를 활성화하려면 OpenAPI 스펙을 로드하세요"
 
@@ -1252,7 +1252,7 @@ msgstr "매칭 패턴"
 msgid "Match pattern is required"
 msgstr "매치 패턴은 필수입니다"
 
-#: src/features/transaction-details/ui/transaction-validation.tsx:110
+#: src/features/transaction-details/ui/transaction-validation.tsx:108
 msgid "Matched"
 msgstr "매칭됨"
 
@@ -1356,7 +1356,7 @@ msgstr "조건 없음"
 msgid "No console output yet"
 msgstr "콘솔 출력이 아직 없습니다"
 
-#: src/features/transaction-details/ui/transaction-validation.tsx:56
+#: src/features/transaction-details/ui/transaction-validation.tsx:54
 msgid "No contract validation results"
 msgstr "계약 검증 결과 없음"
 
@@ -1400,7 +1400,7 @@ msgstr "리플레이 엔트리 없음"
 msgid "No reverse proxy rules"
 msgstr "리버스 프록시 규칙 없음"
 
-#: src/pages/contract-testing/ui/contract-testing-page.tsx:103
+#: src/pages/contract-testing/ui/contract-testing-page.tsx:100
 msgid "No specs loaded. Add an OpenAPI/Swagger spec file to start contract testing."
 msgstr "로드된 스펙이 없습니다. OpenAPI/Swagger 스펙 파일을 추가하여 계약 테스트를 시작하세요."
 
@@ -1481,11 +1481,11 @@ msgstr "OpenAPI 내보내기 실패"
 msgid "OpenAPI spec exported successfully ({0} transactions)"
 msgstr "OpenAPI 스펙 내보내기 성공 ({0}개 트랜잭션)"
 
-#: src/pages/contract-testing/ui/contract-testing-page.tsx:29
+#: src/pages/contract-testing/ui/contract-testing-page.tsx:33
 msgid "OpenAPI spec loaded"
-msgstr ""
+msgstr "OpenAPI 스펙 로드 완료"
 
-#: src/pages/contract-testing/ui/contract-testing-page.tsx:99
+#: src/pages/contract-testing/ui/contract-testing-page.tsx:96
 msgid "OpenAPI Specs"
 msgstr "OpenAPI 스펙"
 
@@ -1510,7 +1510,7 @@ msgstr "원본"
 msgid "Password"
 msgstr "비밀번호"
 
-#: src/pages/contract-testing/ui/contract-testing-page.tsx:130
+#: src/pages/contract-testing/ui/contract-testing-page.tsx:123
 msgid "paths"
 msgstr "경로"
 
@@ -2190,9 +2190,9 @@ msgstr "소스 호스트와 대상 호스트는 필수입니다"
 msgid "Source Port"
 msgstr "소스 포트"
 
-#: src/pages/contract-testing/ui/contract-testing-page.tsx:39
+#: src/pages/contract-testing/ui/contract-testing-page.tsx:43
 msgid "Spec removed"
-msgstr ""
+msgstr "스펙 제거 완료"
 
 #: src/pages/sse-dashboard/ui/sse-dashboard.tsx:87
 #: src/shared/app-sidebar/model/consts.ts:40
@@ -2478,7 +2478,7 @@ msgstr "유효 기간 만료"
 msgid "Validate API responses against OpenAPI specs"
 msgstr "OpenAPI 스펙으로 API 응답 검증"
 
-#: src/pages/contract-testing/ui/contract-testing-page.tsx:152
+#: src/pages/contract-testing/ui/contract-testing-page.tsx:145
 msgid "Validation Report"
 msgstr "검증 리포트"
 
@@ -2501,7 +2501,7 @@ msgstr "애플리케이션 로그 파일 조회 및 관리"
 msgid "View application log files"
 msgstr "애플리케이션 로그 파일 조회"
 
-#: src/pages/contract-testing/ui/contract-testing-page.tsx:159
+#: src/pages/contract-testing/ui/contract-testing-page.tsx:152
 msgid "Violations"
 msgstr "위반"
 
@@ -2513,8 +2513,8 @@ msgstr "SSE 이벤트 대기 중..."
 msgid "Waiting for WebSocket messages..."
 msgstr "WebSocket 메시지 대기 중..."
 
-#: src/features/transaction-details/ui/transaction-validation.tsx:101
-#: src/pages/contract-testing/ui/contract-testing-page.tsx:171
+#: src/features/transaction-details/ui/transaction-validation.tsx:99
+#: src/pages/contract-testing/ui/contract-testing-page.tsx:167
 msgid "warnings"
 msgstr "경고"
 
