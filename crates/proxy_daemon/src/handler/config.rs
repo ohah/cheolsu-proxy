@@ -3,6 +3,7 @@ use std::sync::Arc;
 use tokio::sync::RwLock;
 
 use crate::breakpoint::BreakpointManager;
+use crate::contract_validator::ContractValidator;
 use crate::protocol::{HostMapping, InterceptRule, ReverseProxyRule, ServerReplayEntry};
 
 use super::{SseState, WebSocketState};
@@ -72,6 +73,7 @@ pub struct LoggingHandler {
     pub(crate) ws: WebSocketState,
     pub(crate) sse: SseState,
     pub(crate) breakpoint_manager: Option<BreakpointManager>,
+    pub(crate) contract_validator: ContractValidator,
 }
 
 impl LoggingHandler {
@@ -117,6 +119,7 @@ impl LoggingHandler {
                 sse_sequence: Arc::new(std::sync::atomic::AtomicU64::new(0)),
             },
             breakpoint_manager: None,
+            contract_validator: ContractValidator::new(),
         }
     }
 
@@ -235,5 +238,16 @@ impl LoggingHandler {
     pub fn with_max_body_size(mut self, max_body_size: Option<usize>) -> Self {
         self.config.max_body_size = max_body_size;
         self
+    }
+
+    /// Contract Validator를 설정합니다.
+    pub fn with_contract_validator(mut self, validator: ContractValidator) -> Self {
+        self.contract_validator = validator;
+        self
+    }
+
+    /// Contract Validator 반환
+    pub fn contract_validator(&self) -> &ContractValidator {
+        &self.contract_validator
     }
 }

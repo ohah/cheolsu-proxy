@@ -10,6 +10,7 @@ use super::ssl::{
     ClientCertConfig, RequestClientCertConfig, SslProxyingEntry, SslProxyingMode,
     TlsPassthroughEntry,
 };
+use proxy_v2_models::openapi::ContractSpecInfo;
 use proxy_v2_models::{
     RequestInfo, SseConnectionEvent, SseEventInfo, WsConnectionEvent, WsMessageInfo,
 };
@@ -142,6 +143,15 @@ pub enum DaemonMessage {
     RecentErrorsResult {
         errors: Vec<crate::metrics_aggregator::ErrorEntry>,
     },
+    /// Contract Testing 스펙 목록 업데이트
+    #[serde(rename = "contract_specs_updated")]
+    ContractSpecsUpdated { specs: Vec<ContractSpecInfo> },
+    /// Contract Testing 스펙 로드 완료
+    #[serde(rename = "contract_spec_loaded")]
+    ContractSpecLoaded { spec: ContractSpecInfo },
+    /// Contract Testing 스펙 로드 에러
+    #[serde(rename = "contract_spec_error")]
+    ContractSpecError { error: String },
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -260,6 +270,18 @@ pub enum ClientCommand {
         #[serde(default)]
         limit: Option<usize>,
     },
+    /// Contract Testing 스펙 로드
+    #[serde(rename = "load_contract_spec")]
+    LoadContractSpec { path: String },
+    /// Contract Testing 스펙 제거
+    #[serde(rename = "unload_contract_spec")]
+    UnloadContractSpec { id: String },
+    /// Contract Testing 스펙 활성/비활성 토글
+    #[serde(rename = "toggle_contract_spec")]
+    ToggleContractSpec { id: String, enabled: bool },
+    /// Contract Testing 스펙 목록 조회
+    #[serde(rename = "get_contract_specs")]
+    GetContractSpecs,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

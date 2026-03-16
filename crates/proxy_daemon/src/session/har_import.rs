@@ -185,7 +185,7 @@ fn convert_har_entry(entry: HarEntryImport) -> Result<RequestInfo, SessionError>
         Some(proxied_res.for_client(&req_id, None))
     });
 
-    Ok(RequestInfo(Some(client_req), client_res))
+    Ok(RequestInfo(Some(client_req), client_res, None))
 }
 
 /// HTTP 버전 문자열을 hyper Version으로 파싱

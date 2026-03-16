@@ -49,7 +49,18 @@ impl LoggingHandler {
             res.clone()
                 .for_client_with_timing(request_id, self.config.cache_dir.as_deref(), timing)
         });
-        let request_info = RequestInfo(client_request, client_response);
+        // Contract Testing: 활성 스펙이 있으면 응답 검증 수행
+        let validations = if let (Some(req), Some(res)) = (&client_request, &client_response) {
+            let results = self.contract_validator.validate(req, res);
+            if results.is_empty() {
+                None
+            } else {
+                Some(results)
+            }
+        } else {
+            None
+        };
+        let request_info = RequestInfo(client_request, client_response, validations);
         if let Err(e) = self.sender.send(request_info).await {
             error!("[LoggingHandler] 이벤트 전송 실패: {}", e);
         }

@@ -155,6 +155,7 @@ fn emit_ws_event_sends_to_channel() {
             sse_sequence: Arc::new(std::sync::atomic::AtomicU64::new(0)),
         },
         breakpoint_manager: None,
+        contract_validator: crate::contract_validator::ContractValidator::new(),
     };
 
     handler.emit_ws_event(
@@ -223,6 +224,7 @@ fn emit_ws_event_increments_sequence() {
             sse_sequence: Arc::new(std::sync::atomic::AtomicU64::new(0)),
         },
         breakpoint_manager: None,
+        contract_validator: crate::contract_validator::ContractValidator::new(),
     };
 
     for i in 0..3 {

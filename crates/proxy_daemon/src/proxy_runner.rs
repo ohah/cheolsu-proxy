@@ -4,6 +4,7 @@ use tokio::sync::{broadcast, watch, Semaphore};
 use tracing::info;
 
 use crate::breakpoint::BreakpointManager;
+use crate::contract_validator::ContractValidator;
 use crate::error::DaemonError;
 use crate::handler::{LoggingHandler, QuickSettings, SseEvent, WsEvent};
 use crate::protocol::{
@@ -43,6 +44,7 @@ pub async fn run_proxy(
     metrics_collector: std::sync::Arc<proxyapi_v2::metrics::MetricsCollector>,
     total_transactions: std::sync::Arc<std::sync::atomic::AtomicU64>,
     mut default_passthrough_rx: watch::Receiver<Vec<SslProxyingEntry>>,
+    contract_validator: ContractValidator,
 ) -> Result<(), DaemonError> {
     use proxyapi_v2::builder::ProxyBuilder;
     use proxyapi_v2::certificate_authority::{
@@ -111,7 +113,8 @@ pub async fn run_proxy(
         .with_breakpoint_manager(breakpoint_manager.clone())
         .with_quick_settings(quick_settings)
         .with_proxy_auth(proxy_auth)
-        .with_max_body_size(max_body_size);
+        .with_max_body_size(max_body_size)
+        .with_contract_validator(contract_validator);
 
     // 인터셉트 규칙 초기값 로드
     {

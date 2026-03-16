@@ -186,7 +186,7 @@ mod tests {
         );
         let client_res = res.for_client(&req_id, None);
 
-        RequestInfo(Some(client_req), Some(client_res))
+        RequestInfo(Some(client_req), Some(client_res), None)
     }
 
     // --- SessionFile 기본 테스트 ---
@@ -340,7 +340,7 @@ mod tests {
 
     #[test]
     fn test_from_traffic_with_data() {
-        let transactions = vec![RequestInfo(None, None)];
+        let transactions = vec![RequestInfo(None, None, None)];
         let session = SessionFile::from_traffic(8100, &transactions, &[], &[], &[], None);
         assert_eq!(session.metadata.total_transactions, 1);
         assert_eq!(session.transactions.len(), 1);
@@ -348,7 +348,7 @@ mod tests {
 
     #[test]
     fn test_extract_transactions() {
-        let transactions = vec![RequestInfo(None, None)];
+        let transactions = vec![RequestInfo(None, None, None)];
         let session = SessionFile::from_traffic(8100, &transactions, &[], &[], &[], None);
         let extracted = session.extract_transactions();
         assert_eq!(extracted.len(), 1);
@@ -394,7 +394,7 @@ mod tests {
             Some("This is a longer description to make compression meaningful".to_string());
         for _ in 0..50 {
             session.transactions.push(SessionTransaction {
-                info: RequestInfo(None, None),
+                info: RequestInfo(None, None, None),
             });
         }
 
