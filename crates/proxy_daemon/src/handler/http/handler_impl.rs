@@ -11,11 +11,16 @@ use crate::handler::response_helpers;
 use super::super::LoggingHandler;
 
 /// Basic 인증 헤더에서 사용자명을 추출한다.
+/// RFC 7617: scheme은 case-insensitive ("Basic", "basic", "BASIC" 모두 유효)
 fn extract_basic_auth_username(headers: &proxyapi_v2::hyper::http::HeaderMap) -> Option<String> {
     let auth_header = headers
         .get("proxy-authorization")
         .and_then(|v| v.to_str().ok())?;
-    let encoded = auth_header.strip_prefix("Basic ")?;
+    let encoded = if auth_header.len() > 6 && auth_header[..6].eq_ignore_ascii_case("basic ") {
+        &auth_header[6..]
+    } else {
+        return None;
+    };
     let decoded =
         base64::Engine::decode(&base64::engine::general_purpose::STANDARD, encoded).ok()?;
     let credentials = std::str::from_utf8(&decoded).ok()?;
@@ -372,5 +377,23 @@ mod tests {
             extract_basic_auth_username(&headers),
             Some("user".to_string())
         );
+    }
+
+    #[test]
+    fn test_extract_basic_auth_username_case_insensitive() {
+        for scheme in ["basic ", "BASIC ", "bAsIc "] {
+            let mut headers = HeaderMap::new();
+            let value = format!("{}{}", scheme, encode_basic("admin", "pass"));
+            headers.insert(
+                "proxy-authorization",
+                HeaderValue::from_str(&value).unwrap(),
+            );
+            assert_eq!(
+                extract_basic_auth_username(&headers),
+                Some("admin".to_string()),
+                "scheme '{}' should be accepted",
+                scheme.trim()
+            );
+        }
     }
 }
