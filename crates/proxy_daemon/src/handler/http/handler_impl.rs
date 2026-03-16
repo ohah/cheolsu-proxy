@@ -76,11 +76,28 @@ impl HttpHandler for LoggingHandler {
                 port,
             );
 
-            if !result {
-                debug!("[SSLProxying] TLS Passthrough 적용: {}", authority);
+            if result {
+                return true;
             }
 
-            result
+            // SSL Proxying 목록에 없더라도, MapRemote 규칙의 대상 포트와 소스 도메인이
+            // CONNECT authority와 일치하면 인터셉트합니다.
+            // 예: MapRemote `*pos-webview.payhere.dev*` → `http://localhost:8083` 규칙이 있을 때,
+            // HMR 등이 `pos-webview.payhere.dev:8083`으로 CONNECT를 시도하면
+            // 이 포트+도메인 조합을 자동으로 인터셉트하여 MapRemote가 적용될 수 있게 합니다.
+            if self
+                .should_intercept_for_map_remote(host, port)
+                .await
+            {
+                info!(
+                    "[SSLProxying] MapRemote 규칙에 의한 자동 SSL 인터셉트: {}",
+                    authority
+                );
+                return true;
+            }
+
+            debug!("[SSLProxying] TLS Passthrough 적용: {}", authority);
+            false
         } else {
             true
         }
