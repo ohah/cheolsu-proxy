@@ -413,6 +413,7 @@ where
                     }
                     Ok(Ok(hybrid_stream)) => {
                         info!(%version, "하이브리드 TLS 연결 성공");
+                        self.record_tls_success(authority).await;
                         if let Err(e) = self
                             .serve_stream(
                                 TokioIo::new(hybrid_stream),
@@ -468,6 +469,8 @@ where
             }
         };
 
+        self.record_tls_success(authority).await;
+
         if let Err(e) = self
             .serve_stream(stream, Scheme::HTTPS, authority.clone())
             .await
@@ -480,6 +483,13 @@ where
     async fn record_tls_failure(&self, authority: &Authority) {
         if let Some(ref passthrough) = self.ctx.tls_passthrough {
             passthrough.record_failure(authority).await;
+        }
+    }
+
+    /// TLS 성공 시 이전 실패 기록을 제거하여 바이패스 해제
+    async fn record_tls_success(&self, authority: &Authority) {
+        if let Some(ref passthrough) = self.ctx.tls_passthrough {
+            passthrough.record_success(authority).await;
         }
     }
 
