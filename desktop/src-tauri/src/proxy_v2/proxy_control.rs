@@ -174,6 +174,21 @@ pub(crate) async fn start_proxy_v2<R: Runtime>(
                                 tracing::warn!("emit sse_connection 실패: {}", e);
                             }
                         }
+                        DaemonMessage::ContractSpecsUpdated { specs } => {
+                            if let Err(e) = app.emit("contract_specs_updated", specs) {
+                                tracing::warn!("emit contract_specs_updated 실패: {}", e);
+                            }
+                        }
+                        DaemonMessage::ContractSpecLoaded { spec } => {
+                            if let Err(e) = app.emit("contract_spec_loaded", spec) {
+                                tracing::warn!("emit contract_spec_loaded 실패: {}", e);
+                            }
+                        }
+                        DaemonMessage::ContractSpecError { error } => {
+                            if let Err(e) = app.emit("contract_spec_error", error) {
+                                tracing::warn!("emit contract_spec_error 실패: {}", e);
+                            }
+                        }
                         _ => {}
                     }
                 });
