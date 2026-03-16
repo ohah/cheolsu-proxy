@@ -1,4 +1,5 @@
 export { GeneralSettings } from "./general-settings";
+export { ProxyPortSection } from "./proxy-port-section";
 export { CertificateSettings } from "./certificate-settings";
 export { CliSettings } from "./cli-settings";
 export { ThrottleSection } from "./throttle-section";

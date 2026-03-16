@@ -54,10 +54,8 @@ export const useProxyStore = create<ProxyState>()(
     {
       name: "cheolsu-proxy-store",
       storage: createJSONStorage(() => createTauriStorage()),
-      // isInitialized는 persist하지 않음 (앱 재시작 시 다시 초기화되어야 함)
-      partialize: (state) => ({
-        port: state.port,
-      }),
+      // port는 app-settings-store에서 관리, isInitialized는 앱 재시작 시 리셋
+      partialize: () => ({}),
     },
   ),
 );

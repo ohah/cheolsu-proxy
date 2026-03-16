@@ -6,6 +6,7 @@ import {
   GeneralSettings,
   CertificateSettings,
   CliSettings,
+  ProxyPortSection,
   ThrottleSection,
   ConnectionStrategySection,
   UpstreamProxySection,
@@ -200,6 +201,7 @@ function SettingsPageInner() {
             className="space-y-6"
           >
             <h2 className="text-xl font-semibold text-foreground">{categoryLabels.network}</h2>
+            <ProxyPortSection />
             <ThrottleSection />
             <ConnectionStrategySection />
             <SslProxyingSection />

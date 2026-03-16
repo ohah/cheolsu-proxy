@@ -29,6 +29,10 @@ interface ProxyAuthConfigState {
 export type DetailsPanelLayout = "right" | "bottom";
 
 interface AppSettingsState {
+  // Proxy port
+  proxyPort: number;
+  setProxyPort: (port: number) => void;
+
   // Locale
   locale: Locale;
   setLocale: (locale: Locale) => void;
@@ -117,6 +121,9 @@ const DEFAULT_PROXY_AUTH_CONFIG: ProxyAuthConfigState = {
 export const useAppSettingsStore = create<AppSettingsState>()(
   persist(
     (set) => ({
+      proxyPort: 8100,
+      setProxyPort: (port) => set({ proxyPort: port }),
+
       locale: "en" as Locale,
       setLocale: (locale) => set({ locale }),
 

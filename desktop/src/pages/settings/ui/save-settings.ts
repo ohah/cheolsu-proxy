@@ -41,6 +41,16 @@ export async function saveAllSettings(
   const store = useAppSettingsStore.getState();
   const results: SaveResult[] = [];
 
+  // Proxy Port
+  if (dirtyFields.proxyPort) {
+    try {
+      store.setProxyPort(data.proxyPort);
+      results.push({ section: "proxyPort", success: true });
+    } catch (error) {
+      results.push({ section: "proxyPort", success: false, error });
+    }
+  }
+
   // Quick Settings
   if (dirtyFields.quickSettings) {
     try {

@@ -1,9 +1,11 @@
 import { useProxyStore } from "@/shared/stores";
+import { useAppSettingsStore } from "@/shared/stores/app-settings-store";
 import { startProxyV2, stopProxyV2 } from "@/shared/api/proxy";
 import { toast } from "sonner";
 
 export async function toggleProxy() {
-  const { isConnected, port } = useProxyStore.getState();
+  const { isConnected } = useProxyStore.getState();
+  const port = useAppSettingsStore.getState().proxyPort;
 
   try {
     if (isConnected) {
