@@ -50,7 +50,7 @@ export default defineConfig({
   },
   build: {
     target: "esnext",
-    rollupOptions: {
+    rolldownOptions: {
       input: {
         main: path.resolve(__dirname, "index.html"),
         tray: path.resolve(__dirname, "tray.html"),
