@@ -1,28 +1,28 @@
 {
-  "name": "cheolsu-proxy-document",
-  "version": "1.0.0",
-  "description": "Cheolsu Proxy Documentation",
-  "keywords": [
-    "documentation",
-    "mitm",
-    "proxy",
-    "rspress"
-  ],
-  "license": "MIT",
-  "author": "Cheolsu Proxy Team",
-  "type": "module",
-  "scripts": {
-    "dev": "rspress dev",
-    "build": "rspress build",
-    "preview": "rspress preview"
-  },
-  "dependencies": {
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0"
-  },
-  "devDependencies": {
-    "@rspress/core": "2.0.3",
-    "@types/react": "^19.2.2",
-    "@types/react-dom": "^19.2.2"
-  }
+	"name": "cheolsu-proxy-document",
+	"version": "1.0.0",
+	"description": "Cheolsu Proxy Documentation",
+	"keywords": [
+		"documentation",
+		"mitm",
+		"proxy",
+		"rspress"
+	],
+	"license": "MIT",
+	"author": "Cheolsu Proxy Team",
+	"type": "module",
+	"scripts": {
+		"dev": "rspress dev",
+		"build": "rspress build",
+		"preview": "rspress preview"
+	},
+	"dependencies": {
+		"react": "^19.2.0",
+		"react-dom": "^19.2.0"
+	},
+	"devDependencies": {
+		"@rspress/core": "2.0.3",
+		"@types/react": "^19.2.2",
+		"@types/react-dom": "^19.2.2"
+	}
 }
