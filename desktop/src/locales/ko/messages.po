@@ -61,8 +61,8 @@ msgstr "* = 모든 문자열, ? = 단일 문자"
 msgid "200 (optional)"
 msgstr "200 (선택사항)"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:289
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:293
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:378
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:382
 msgid "Abort"
 msgstr "중단"
 
@@ -89,7 +89,8 @@ msgstr "실제값"
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:405
 #: src/features/map-rule-form/ui/map-local-fields.tsx:73
 #: src/features/transaction-details/ui/replay-dialog.tsx:434
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:134
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:215
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:435
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:140
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:142
 #: src/pages/server-replay/ui/server-replay-page.tsx:170
@@ -99,7 +100,7 @@ msgstr "실제값"
 msgid "Add"
 msgstr "추가"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:168
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:249
 msgid "Add breakpoint rules to pause HTTP requests/responses for inspection."
 msgstr "HTTP 요청/응답을 검사하기 위해 일시 정지할 Breakpoint 규칙을 추가하세요."
 
@@ -148,7 +149,7 @@ msgstr "Proto 파일 추가"
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:251
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:602
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:258
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:113
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:194
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:81
 #: src/pages/map-rules/ui/map-rules-page.tsx:72
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:164
@@ -175,7 +176,7 @@ msgstr "스펙 추가"
 msgid "Add your first mapping"
 msgstr "첫 번째 매핑 추가"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:172
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:253
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:80
 #: src/pages/map-rules/ui/map-rules-page.tsx:71
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:163
@@ -243,7 +244,7 @@ msgstr "모든 요청이 스펙과 일치합니다"
 msgid "All reverse proxy rules cleared"
 msgstr "모든 리버스 프록시 규칙이 삭제되었습니다"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:54
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:135
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:68
 #: src/pages/map-rules/ui/map-rules-page.tsx:55
 msgid "All rules cleared"
@@ -322,6 +323,7 @@ msgstr "쿠키 차단"
 #: src/features/transaction-details/ui/replay-dialog.tsx:129
 #: src/features/transaction-details/ui/replay-dialog.tsx:200
 #: src/features/transaction-details/ui/replay-dialog.tsx:483
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:469
 msgid "Body"
 msgstr "본문"
 
@@ -330,23 +332,23 @@ msgstr "본문"
 msgid "Bottom"
 msgstr "하단"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:143
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:224
 msgid "Break on Request"
 msgstr "요청 시 중단"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:147
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:228
 msgid "Break on Response"
 msgstr "응답 시 중단"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:60
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:141
 msgid "Breakpoint forwarded"
 msgstr "Breakpoint가 전달되었습니다"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:44
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:125
 msgid "Breakpoint rule added"
 msgstr "Breakpoint 규칙이 추가되었습니다"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:90
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:171
 #: src/shared/app-sidebar/model/consts.ts:68
 msgid "Breakpoints"
 msgstr "Breakpoints"
@@ -394,7 +396,8 @@ msgstr "CA 키 파일"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:599
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:255
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:137
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:218
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:482
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:137
 #: src/pages/log-viewer/ui/logs-page.tsx:468
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:139
@@ -470,7 +473,7 @@ msgstr "지우기"
 msgid "Clear all"
 msgstr "전체 삭제"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:108
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:189
 #: src/pages/log-viewer/ui/logs-page.tsx:285
 #: src/pages/server-replay/ui/server-replay-page.tsx:105
 #: src/shared/ui/rule-list-page.tsx:69
@@ -664,7 +667,7 @@ msgstr "로그 파일 삭제"
 msgid "Delete mapping"
 msgstr "매핑 삭제"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:210
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:291
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:158
 #: src/pages/map-rules/ui/map-rules-page.tsx:135
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:210
@@ -732,8 +735,8 @@ msgstr "다운로드 (KB/s)"
 msgid "Download Speed (KB/s)"
 msgstr "다운로드 속도 (KB/s)"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:280
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:283
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:369
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:372
 msgid "Drop"
 msgstr "드롭"
 
@@ -752,6 +755,15 @@ msgstr "예: api.example.com, /api/v1, /users/\\d+"
 #: src/pages/settings/ui/components/client-tags-section.tsx:100
 msgid "e.g. iPhone, Android, QA Team"
 msgstr "예: iPhone, Android, QA팀"
+
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:354
+msgid "Edit"
+msgstr "편집"
+
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:351
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:399
+msgid "Edit & Forward"
+msgstr "편집 후 전달"
 
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:164
 msgid "Edit Map Rule"
@@ -843,15 +855,15 @@ msgstr "OpenAPI 스펙 내보내기"
 msgid "Failed"
 msgstr "실패"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:80
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:161
 msgid "Failed to abort request"
 msgstr "요청 중단에 실패했습니다"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:71
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:152
 msgid "Failed to drop request"
 msgstr "요청 드롭에 실패했습니다"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:62
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:143
 msgid "Failed to forward breakpoint"
 msgstr "Breakpoint 전달에 실패했습니다"
 
@@ -859,6 +871,10 @@ msgstr "Breakpoint 전달에 실패했습니다"
 #: src/pages/contract-testing/ui/contract-testing-page.tsx:38
 msgid "Failed to load spec: {0}"
 msgstr "스펙 로드 실패: {0}"
+
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:88
+msgid "Failed to modify and forward"
+msgstr "수정 후 전달에 실패했습니다"
 
 #. placeholder {0}: e instanceof Error ? e.message : String(e)
 #: src/pages/script/ui/script-page.tsx:101
@@ -904,8 +920,8 @@ msgstr "Cursor, Claude Desktop 및 기타 MCP 호환 클라이언트용:"
 msgid "format"
 msgstr "형식"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:271
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:274
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:360
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:363
 msgid "Forward"
 msgstr "전달"
 
@@ -957,6 +973,7 @@ msgstr "HAR 가져오기 성공"
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:380
 #: src/features/map-rule-form/ui/map-local-fields.tsx:79
 #: src/features/transaction-details/ui/replay-dialog.tsx:446
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:444
 msgid "Header name"
 msgstr "헤더 이름"
 
@@ -968,6 +985,10 @@ msgstr "삭제할 헤더 이름"
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:127
 #: src/pages/server-replay/ui/server-replay-page.tsx:225
 msgid "headers"
+msgstr "헤더"
+
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:431
+msgid "Headers"
 msgstr "헤더"
 
 #. placeholder {0}: headerEntries.length
@@ -1294,6 +1315,14 @@ msgstr "모바일 인증서 설치"
 msgid "Mode"
 msgstr "모드"
 
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:86
+msgid "Modified and forwarded"
+msgstr "수정 후 전달되었습니다"
+
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:486
+msgid "Modify & Forward"
+msgstr "수정 후 전달"
+
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:321
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:322
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:44
@@ -1340,7 +1369,7 @@ msgstr "활성 SSE 연결 없음"
 msgid "No active WebSocket connections"
 msgstr "활성 WebSocket 연결 없음"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:165
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:246
 msgid "No breakpoint rules"
 msgstr "Breakpoint 규칙 없음"
 
@@ -1384,11 +1413,11 @@ msgstr "로그 파일을 찾을 수 없습니다"
 msgid "No map rules"
 msgstr "맵 규칙 없음"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:237
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:318
 msgid "No pending breakpoints. Matched requests will appear here."
 msgstr "대기 중인 Breakpoint가 없습니다. 매칭된 요청이 여기에 표시됩니다."
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:201
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:282
 msgid "No phase selected"
 msgstr "단계가 선택되지 않음"
 
@@ -1523,11 +1552,11 @@ msgid "Pattern"
 msgstr "패턴"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:208
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:29
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:110
 msgid "Pattern is required"
 msgstr "패턴은 필수입니다"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:93
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:174
 msgid "Pause and inspect HTTP requests/responses in real-time"
 msgstr "실시간으로 HTTP 요청/응답을 일시 정지하고 검사"
 
@@ -1543,11 +1572,11 @@ msgstr "기록 일시정지"
 msgid "Payload"
 msgstr "페이로드"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:99
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:180
 msgid "pending"
 msgstr "대기 중"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:226
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:307
 msgid "Pending Breakpoints"
 msgstr "대기 중인 Breakpoints"
 
@@ -1757,7 +1786,7 @@ msgstr "요청 리플레이"
 
 #: src/features/transaction-details/ui/replay-dialog.tsx:373
 #: src/features/transaction-details/ui/transaction-body-side-by-side.tsx:16
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:191
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:272
 msgid "Request"
 msgstr "요청"
 
@@ -1765,7 +1794,7 @@ msgstr "요청"
 msgid "Request a client certificate from connecting clients (mTLS server-side)"
 msgstr "연결하는 클라이언트에게 인증서를 요청합니다 (mTLS 서버 측)"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:78
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:159
 msgid "Request aborted"
 msgstr "요청이 중단되었습니다"
 
@@ -1784,7 +1813,7 @@ msgstr "클라이언트 인증서 요청"
 msgid "Request Details"
 msgstr "요청 상세"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:69
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:150
 msgid "Request dropped"
 msgstr "요청이 드롭되었습니다"
 
@@ -1808,6 +1837,10 @@ msgstr "요청 헤더"
 msgid "Request Lifecycle"
 msgstr "요청 수명 주기"
 
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:474
+msgid "Request/Response body"
+msgstr "요청/응답 본문"
+
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:306
 msgid "Requests/sec"
 msgstr "초당 요청 수"
@@ -1822,7 +1855,7 @@ msgstr "인증서 필수"
 
 #: src/features/transaction-details/ui/replay-dialog.tsx:387
 #: src/features/transaction-details/ui/transaction-body-side-by-side.tsx:24
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:196
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:277
 msgid "Response"
 msgstr "응답"
 
@@ -1938,7 +1971,7 @@ msgstr "외부 프록시 서버를 통해 트래픽 라우팅"
 msgid "Rule added"
 msgstr "규칙이 추가되었습니다"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:49
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:130
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:63
 #: src/pages/map-rules/ui/map-rules-page.tsx:50
 msgid "Rule deleted"
@@ -1954,14 +1987,14 @@ msgstr "규칙 이름 (선택사항)"
 msgid "Rule updated"
 msgstr "규칙이 수정되었습니다"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:103
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:184
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:75
 #: src/pages/map-rules/ui/map-rules-page.tsx:66
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:156
 msgid "rules"
 msgstr "규칙"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:160
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:241
 msgid "Rules"
 msgstr "규칙"
 
@@ -2242,6 +2275,7 @@ msgstr "상태"
 #: src/features/intercept-rule-form/ui/block-action-fields.tsx:15
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:338
 #: src/features/map-rule-form/ui/map-local-fields.tsx:56
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:415
 msgid "Status Code"
 msgstr "상태 코드"
 
@@ -2452,7 +2486,7 @@ msgstr "URL에 \" 포함"
 msgid "URL Pattern"
 msgstr "URL 패턴"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:127
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:208
 msgid "URL pattern (e.g., *api.example.com*)"
 msgstr "URL 패턴 (예: *api.example.com*)"
 
@@ -2499,6 +2533,7 @@ msgstr "검증 리포트"
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:386
 #: src/features/map-rule-form/ui/map-local-fields.tsx:84
 #: src/features/transaction-details/ui/replay-dialog.tsx:454
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:450
 msgid "Value"
 msgstr "값"
 
