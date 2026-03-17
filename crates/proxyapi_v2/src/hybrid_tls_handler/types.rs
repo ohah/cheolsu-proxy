@@ -16,7 +16,7 @@ pub struct LearnedTlsStrategy {
     /// 도메인
     pub domain: String,
     /// 학습된 전략
-    pub strategy: String,
+    pub strategy: TlsStrategy,
 }
 
 /// TLS 연결 정보를 담는 구조체
@@ -65,12 +65,13 @@ impl TlsStrategy {
             TlsStrategy::RustlsOnly => TlsStrategy::OpenSslOnly,
         }
     }
+}
 
-    /// 표시용 문자열
-    pub fn as_str(&self) -> &'static str {
+impl std::fmt::Display for TlsStrategy {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            TlsStrategy::OpenSslOnly => "OpenSSL",
-            TlsStrategy::RustlsOnly => "rustls",
+            TlsStrategy::OpenSslOnly => write!(f, "OpenSSL"),
+            TlsStrategy::RustlsOnly => write!(f, "rustls"),
         }
     }
 }

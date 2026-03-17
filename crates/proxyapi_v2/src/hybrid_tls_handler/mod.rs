@@ -67,9 +67,16 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
         }
     }
 
-    /// 성공한 전략을 학습합니다
+    /// 성공한 전략을 학습합니다 (이미 동일한 전략이 캐시되어 있으면 skip)
     async fn learn_strategy(&self, host: &str, strategy: TlsStrategy) {
         if let Some(cache) = &self.strategy_cache {
+            // read lock으로 먼저 확인하여 불필요한 write lock 방지
+            {
+                let guard = cache.read().await;
+                if guard.get(host) == Some(&strategy) {
+                    return;
+                }
+            }
             let mut guard = cache.write().await;
             guard.insert(host.to_string(), strategy);
         }
@@ -137,7 +144,7 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
         } else {
             analyzed_strategy
         };
-        let fallback_used = learned.is_some() && learned.unwrap() != analyzed_strategy;
+        let fallback_used = learned.is_some_and(|s| s != analyzed_strategy);
 
         info!("🎯 [TLS-STRATEGY] 선택된 전략: {:?}", strategy);
 

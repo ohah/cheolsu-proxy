@@ -2719,6 +2719,10 @@ msgstr "시간"
 msgid "TLS Engine Rules"
 msgstr "TLS 엔진 규칙"
 
+#: src/widgets/network-table/ui/cells/path-cell.tsx:20
+msgid "TLS fallback — learned strategy used"
+msgstr "TLS 폴백 — 학습된 전략 사용"
+
 #: src/pages/log-viewer/ui/logs-page.tsx:313
 msgid "TLS Passthrough"
 msgstr "TLS Passthrough"

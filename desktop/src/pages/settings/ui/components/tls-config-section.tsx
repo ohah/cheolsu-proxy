@@ -40,7 +40,7 @@ export function TlsConfigSection() {
   }, [fetchData]);
 
   const handleClearStrategies = useCallback(async () => {
-    await invoke("clear_learned_tls_strategies");
+    await invoke("clear_learned_tls_strategies").catch(() => {});
     setStrategies([]);
   }, []);
 
@@ -129,12 +129,12 @@ export function TlsConfigSection() {
                 <Badge
                   variant="outline"
                   className={
-                    s.strategy === "OpenSSL"
+                    s.strategy === "OpenSslOnly"
                       ? "text-amber-600 border-amber-500/50 text-xs"
                       : "text-blue-600 border-blue-500/50 text-xs"
                   }
                 >
-                  {s.strategy}
+                  {s.strategy === "OpenSslOnly" ? "OpenSSL" : "rustls"}
                 </Badge>
               </div>
             ))}
