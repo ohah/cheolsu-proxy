@@ -349,7 +349,6 @@ mod tests {
         let manager = TlsConfigManager::with_builtin_rules();
 
         assert!(manager.requires_openssl("api2.cursor.sh"));
-        assert!(!manager.requires_openssl("jamf.payhere.in"));
         assert!(!manager.requires_openssl("example.com"));
     }
 

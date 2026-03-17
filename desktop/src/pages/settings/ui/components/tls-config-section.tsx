@@ -69,7 +69,10 @@ export function TlsConfigSection() {
         ) : (
           <div className="border rounded-lg divide-y">
             {rules.map((rule) => (
-              <div key={rule.domain_pattern} className="flex items-center justify-between px-4 py-2">
+              <div
+                key={rule.domain_pattern}
+                className="flex items-center justify-between px-4 py-2"
+              >
                 <div className="flex items-center gap-3">
                   <span className="font-mono text-sm">{rule.domain_pattern}</span>
                   {rule.require_openssl && (
@@ -83,7 +86,10 @@ export function TlsConfigSection() {
                     </Badge>
                   )}
                   {rule.disable_cert_verify && (
-                    <Badge variant="outline" className="text-xs text-orange-500 border-orange-400/50">
+                    <Badge
+                      variant="outline"
+                      className="text-xs text-orange-500 border-orange-400/50"
+                    >
                       <Trans>No Verify</Trans>
                     </Badge>
                   )}
