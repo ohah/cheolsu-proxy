@@ -190,6 +190,7 @@ mod tests {
             request: Some(client_req),
             response: Some(client_res),
             validations: None,
+            server_cert: None,
         }
     }
 
@@ -348,6 +349,7 @@ mod tests {
             request: None,
             response: None,
             validations: None,
+            server_cert: None,
         }];
         let session = SessionFile::from_traffic(8100, &transactions, &[], &[], &[], None);
         assert_eq!(session.metadata.total_transactions, 1);
@@ -360,6 +362,7 @@ mod tests {
             request: None,
             response: None,
             validations: None,
+            server_cert: None,
         }];
         let session = SessionFile::from_traffic(8100, &transactions, &[], &[], &[], None);
         let extracted = session.extract_transactions();
@@ -410,6 +413,7 @@ mod tests {
                     request: None,
                     response: None,
                     validations: None,
+                    server_cert: None,
                 },
             });
         }

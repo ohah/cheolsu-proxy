@@ -1,5 +1,7 @@
 use bytes::Bytes;
-use proxy_v2_models::{ProxiedRequest, ProxiedResponse, RequestInfo, TimingWaterfall};
+use proxy_v2_models::{
+    ProxiedRequest, ProxiedResponse, RequestInfo, ServerCertInfo, TimingWaterfall,
+};
 use proxyapi_v2::{hyper::http::StatusCode, hyper::Response, Body};
 use tracing::error;
 
@@ -60,14 +62,129 @@ impl LoggingHandler {
         } else {
             None
         };
+        // 서버 TLS 인증서 정보 생성
+        let server_cert = self.build_server_cert_info();
+
         let request_info = RequestInfo {
             request: client_request,
             response: client_response,
             validations,
+            server_cert,
         };
         if let Err(e) = self.sender.send(request_info).await {
             error!("[LoggingHandler] 이벤트 전송 실패: {}", e);
         }
+    }
+
+    /// 서버 TLS 인증서 DER에서 ServerCertInfo를 생성
+    fn build_server_cert_info(&self) -> Option<ServerCertInfo> {
+        let cert_der = self.request.server_cert_der.as_ref()?;
+
+        let (_, cert) = x509_parser::parse_x509_certificate(cert_der).ok()?;
+
+        use x509_parser::oid_registry::{OID_X509_COMMON_NAME, OID_X509_ORGANIZATION_NAME};
+
+        let mut subject_cn = None;
+        let mut organization = None;
+        for rdn in cert.subject().iter() {
+            for attr in rdn.iter() {
+                if *attr.attr_type() == OID_X509_COMMON_NAME {
+                    subject_cn = attr.as_str().ok().map(String::from);
+                }
+                if *attr.attr_type() == OID_X509_ORGANIZATION_NAME {
+                    organization = attr.as_str().ok().map(String::from);
+                }
+            }
+        }
+
+        let mut issuer_cn = None;
+        for rdn in cert.issuer().iter() {
+            for attr in rdn.iter() {
+                if *attr.attr_type() == OID_X509_COMMON_NAME {
+                    issuer_cn = attr.as_str().ok().map(String::from);
+                }
+            }
+        }
+
+        let not_before = Some(
+            cert.validity()
+                .not_before
+                .to_rfc2822()
+                .unwrap_or_else(|_| format!("{}", cert.validity().not_before)),
+        );
+        let not_after = Some(
+            cert.validity()
+                .not_after
+                .to_rfc2822()
+                .unwrap_or_else(|_| format!("{}", cert.validity().not_after)),
+        );
+
+        let serial_number = Some(
+            cert.raw_serial()
+                .iter()
+                .map(|b| format!("{:02X}", b))
+                .collect::<Vec<_>>()
+                .join(":"),
+        );
+
+        use sha2::{Digest, Sha256};
+        let fingerprint = Sha256::digest(cert_der);
+        let fingerprint_sha256 = Some(
+            fingerprint
+                .iter()
+                .map(|b| format!("{:02X}", b))
+                .collect::<Vec<_>>()
+                .join(":"),
+        );
+
+        let is_ca = cert
+            .basic_constraints()
+            .ok()
+            .flatten()
+            .map(|bc| bc.value.ca)
+            .unwrap_or(false);
+
+        let mut sans_dns = Vec::new();
+        let mut sans_ip = Vec::new();
+        if let Ok(Some(san_ext)) = cert.subject_alternative_name() {
+            use x509_parser::extensions::GeneralName;
+            for name in &san_ext.value.general_names {
+                match name {
+                    GeneralName::DNSName(dns) => sans_dns.push(dns.to_string()),
+                    GeneralName::IPAddress(ip_bytes) => {
+                        if ip_bytes.len() == 4 {
+                            let ip = std::net::IpAddr::from([
+                                ip_bytes[0],
+                                ip_bytes[1],
+                                ip_bytes[2],
+                                ip_bytes[3],
+                            ]);
+                            sans_ip.push(ip.to_string());
+                        } else if ip_bytes.len() == 16 {
+                            let mut octets = [0u8; 16];
+                            octets.copy_from_slice(ip_bytes);
+                            sans_ip.push(std::net::IpAddr::from(octets).to_string());
+                        }
+                    }
+                    _ => {}
+                }
+            }
+        }
+
+        Some(ServerCertInfo {
+            subject_cn,
+            issuer_cn,
+            organization,
+            sans_dns,
+            sans_ip,
+            not_before,
+            not_after,
+            serial_number,
+            fingerprint_sha256,
+            is_ca,
+            negotiated_alpn: self.request.server_cert_alpn.clone(),
+            chain_length: self.request.server_cert_chain_length,
+        })
     }
 
     /// Request를 ProxiedRequest로 변환하고 원본 요청을 복원

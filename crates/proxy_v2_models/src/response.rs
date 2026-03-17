@@ -315,12 +315,43 @@ impl ClientResponse {
     }
 }
 
+/// 서버 TLS 인증서 상세 정보
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct ServerCertInfo {
+    /// Subject Common Name
+    pub subject_cn: Option<String>,
+    /// Issuer Common Name
+    pub issuer_cn: Option<String>,
+    /// Subject Organization
+    pub organization: Option<String>,
+    /// DNS Subject Alternative Names
+    pub sans_dns: Vec<String>,
+    /// IP Subject Alternative Names
+    pub sans_ip: Vec<String>,
+    /// 인증서 유효 시작일 (ISO 8601)
+    pub not_before: Option<String>,
+    /// 인증서 만료일 (ISO 8601)
+    pub not_after: Option<String>,
+    /// 시리얼 번호 (hex)
+    pub serial_number: Option<String>,
+    /// SHA-256 핑거프린트 (colon-separated hex)
+    pub fingerprint_sha256: Option<String>,
+    /// CA 인증서 여부
+    pub is_ca: bool,
+    /// 협상된 ALPN 프로토콜 (예: "h2", "http/1.1")
+    pub negotiated_alpn: Option<String>,
+    /// 인증서 체인 길이
+    pub chain_length: usize,
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct RequestInfo {
     pub request: Option<ClientRequest>,
     pub response: Option<ClientResponse>,
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub validations: Option<Vec<ContractValidationResult>>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub server_cert: Option<ServerCertInfo>,
 }
 
 #[cfg(test)]

@@ -4,6 +4,7 @@ export const TRANSACTION_DETAILS_TABS = {
   RESPONSE: "response",
   TIMING: "timing",
   VALIDATION: "validation",
+  CERTIFICATE: "certificate",
 } as const;
 
 export const TRANSACTION_DETAILS_TAB_LABELS = {
@@ -12,6 +13,7 @@ export const TRANSACTION_DETAILS_TAB_LABELS = {
   [TRANSACTION_DETAILS_TABS.RESPONSE]: "Response",
   [TRANSACTION_DETAILS_TABS.TIMING]: "Timing",
   [TRANSACTION_DETAILS_TABS.VALIDATION]: "Validation",
+  [TRANSACTION_DETAILS_TABS.CERTIFICATE]: "Certificate",
 } as const;
 
 export const TRANSACTION_DETAILS_BOTTOM_TABS = {

@@ -9,6 +9,7 @@ import { TransactionResponse } from "./transaction-response";
 import { TransactionBodySideBySide } from "./transaction-body-side-by-side";
 import { TransactionTiming } from "./transaction-timing";
 import { TransactionValidation } from "./transaction-validation";
+import { TransactionCertificate } from "./transaction-certificate";
 
 import { useTransactionTabs } from "../hooks";
 import {
@@ -43,6 +44,11 @@ export function TransactionDetails({
     ? TRANSACTION_DETAILS_BOTTOM_TAB_LABELS
     : TRANSACTION_DETAILS_TAB_LABELS;
 
+  const hasCert = !!transaction.server_cert;
+  const filteredTabs = isBottom
+    ? tabs
+    : tabs.filter((tab) => tab !== TRANSACTION_DETAILS_TABS.CERTIFICATE || hasCert);
+
   return (
     <div className="h-full bg-card flex flex-col select-text">
       <TransactionHeader
@@ -55,9 +61,9 @@ export function TransactionDetails({
           <Tabs value={activeTab} onValueChange={onTabChange} className="h-full flex flex-col">
             <TabsList
               className="grid w-full flex-shrink-0"
-              style={{ gridTemplateColumns: `repeat(${tabs.length}, 1fr)` }}
+              style={{ gridTemplateColumns: `repeat(${filteredTabs.length}, 1fr)` }}
             >
-              {tabs.map((tab) => (
+              {filteredTabs.map((tab) => (
                 <TabsTrigger key={tab} value={tab}>
                   {tabLabels[tab as keyof typeof tabLabels]}
                 </TabsTrigger>
@@ -98,6 +104,12 @@ export function TransactionDetails({
                 <TabsContent value={TRANSACTION_DETAILS_TABS.VALIDATION} className="flex-1 mt-4">
                   <TransactionValidation validations={transaction.validations} />
                 </TabsContent>
+
+                {hasCert && (
+                  <TabsContent value={TRANSACTION_DETAILS_TABS.CERTIFICATE} className="flex-1 mt-4">
+                    <TransactionCertificate serverCert={transaction.server_cert} />
+                  </TabsContent>
+                )}
               </>
             )}
           </Tabs>

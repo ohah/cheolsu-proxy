@@ -87,11 +87,17 @@ impl From<Response<Body>> for RequestOrResponse {
 }
 
 /// Context for HTTP requests and responses.
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug)]
 #[non_exhaustive]
 pub struct HttpContext {
     /// Address of the client that is sending the request.
     pub client_addr: SocketAddr,
+    /// 서버 TLS 인증서 DER 바이트 (HTTPS 연결 시)
+    pub server_cert_der: Option<Vec<u8>>,
+    /// 인증서 체인 길이 (end-entity 포함)
+    pub server_cert_chain_length: usize,
+    /// 협상된 ALPN 프로토콜
+    pub server_cert_alpn: Option<String>,
 }
 
 /// Context for websocket messages.

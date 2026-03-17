@@ -349,7 +349,7 @@ where
 
     /// TLS 인터셉트 처리: 하이브리드 핸들러 또는 rustls 폴백
     async fn handle_tls_intercept(
-        self,
+        mut self,
         upgraded: Rewind<TokioIo<Upgraded>>,
         full_buffer: &[u8],
         authority: &Authority,
@@ -362,6 +362,9 @@ where
                 debug!(%version, "TLS 버전 감지 - 하이브리드 핸들러 사용");
 
                 let upstream_cert = self.resolve_upstream_cert(authority, eager_handle).await;
+                // 인증서 정보를 InternalProxy에 저장 (이후 context()에서 사용)
+                self.upstream_cert_der = upstream_cert.as_ref().and_then(|c| c.cert_der.clone());
+                self.upstream_cert_info = upstream_cert.clone();
 
                 let hybrid_handler = match HybridTlsHandler::new(
                     Arc::clone(&self.ca),

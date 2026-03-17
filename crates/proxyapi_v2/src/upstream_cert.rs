@@ -27,19 +27,36 @@ pub struct UpstreamCertInfo {
     pub sans_ip: Vec<IpAddr>,
     /// 상류 서버가 지원하는 ALPN 프로토콜 (협상 결과)
     pub negotiated_alpn: Option<Vec<u8>>,
+    /// Issuer Common Name
+    pub issuer_cn: Option<String>,
+    /// 인증서 유효 시작일 (ISO 8601)
+    pub not_before: Option<String>,
+    /// 인증서 만료일 (ISO 8601)
+    pub not_after: Option<String>,
+    /// 시리얼 번호 (hex)
+    pub serial_number: Option<String>,
+    /// SHA-256 핑거프린트 (colon-separated hex)
+    pub fingerprint_sha256: Option<String>,
+    /// CA 인증서 여부
+    pub is_ca: bool,
+    /// 인증서 체인 길이 (end-entity 포함)
+    pub chain_length: usize,
+    /// End-entity 인증서 DER 바이트 (원본)
+    pub cert_der: Option<Vec<u8>>,
 }
 
 /// 인증서를 캡처하는 TLS 검증기
 #[derive(Debug)]
 struct CertCapturingVerifier {
     captured: Arc<Mutex<Option<Vec<u8>>>>,
+    chain_length: Arc<Mutex<usize>>,
 }
 
 impl ServerCertVerifier for CertCapturingVerifier {
     fn verify_server_cert(
         &self,
         end_entity: &CertificateDer<'_>,
-        _intermediates: &[CertificateDer<'_>],
+        intermediates: &[CertificateDer<'_>],
         _server_name: &ServerName<'_>,
         _ocsp_response: &[u8],
         _now: UnixTime,
@@ -47,6 +64,11 @@ impl ServerCertVerifier for CertCapturingVerifier {
         match self.captured.lock() {
             Ok(mut guard) => *guard = Some(end_entity.to_vec()),
             Err(poisoned) => *poisoned.into_inner() = Some(end_entity.to_vec()),
+        }
+        // 체인 길이: end-entity + intermediates
+        match self.chain_length.lock() {
+            Ok(mut guard) => *guard = 1 + intermediates.len(),
+            Err(poisoned) => *poisoned.into_inner() = 1 + intermediates.len(),
         }
         Ok(ServerCertVerified::assertion())
     }
@@ -147,8 +169,10 @@ async fn sniff_upstream_cert_inner(
 
     // 2. 인증서 캡처용 TLS 설정
     let captured = Arc::new(Mutex::new(None));
+    let chain_length = Arc::new(Mutex::new(0usize));
     let verifier = CertCapturingVerifier {
         captured: Arc::clone(&captured),
+        chain_length: Arc::clone(&chain_length),
     };
 
     let mut config = ClientConfig::builder_with_provider(Arc::new(
@@ -209,8 +233,13 @@ async fn sniff_upstream_cert_inner(
         .lock()
         .unwrap_or_else(|poisoned| poisoned.into_inner())
         .take()?;
+    let captured_chain_length = *chain_length
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner());
     let mut info = parse_cert_info(&cert_der)?;
     info.negotiated_alpn = negotiated_alpn;
+    info.chain_length = captured_chain_length;
+    info.cert_der = Some(cert_der);
     Some(info)
 }
 
@@ -220,7 +249,7 @@ fn parse_cert_info(cert_der: &[u8]) -> Option<UpstreamCertInfo> {
 
     let mut info = UpstreamCertInfo::default();
 
-    // CN, Organization 추출
+    // Subject: CN, Organization 추출
     for rdn in cert.subject().iter() {
         for attr in rdn.iter() {
             if *attr.attr_type() == OID_X509_COMMON_NAME {
@@ -231,6 +260,57 @@ fn parse_cert_info(cert_der: &[u8]) -> Option<UpstreamCertInfo> {
             }
         }
     }
+
+    // Issuer: CN 추출
+    for rdn in cert.issuer().iter() {
+        for attr in rdn.iter() {
+            if *attr.attr_type() == OID_X509_COMMON_NAME {
+                info.issuer_cn = attr.as_str().ok().map(String::from);
+            }
+        }
+    }
+
+    // 유효기간 (ASN.1 GeneralizedTime → ISO 8601)
+    info.not_before = Some(
+        cert.validity()
+            .not_before
+            .to_rfc2822()
+            .unwrap_or_else(|_| format!("{}", cert.validity().not_before)),
+    );
+    info.not_after = Some(
+        cert.validity()
+            .not_after
+            .to_rfc2822()
+            .unwrap_or_else(|_| format!("{}", cert.validity().not_after)),
+    );
+
+    // Serial Number (hex)
+    info.serial_number = Some(
+        cert.raw_serial()
+            .iter()
+            .map(|b| format!("{:02X}", b))
+            .collect::<Vec<_>>()
+            .join(":"),
+    );
+
+    // SHA-256 Fingerprint
+    use sha2::{Digest, Sha256};
+    let fingerprint = Sha256::digest(cert_der);
+    info.fingerprint_sha256 = Some(
+        fingerprint
+            .iter()
+            .map(|b| format!("{:02X}", b))
+            .collect::<Vec<_>>()
+            .join(":"),
+    );
+
+    // CA 여부 (Basic Constraints)
+    info.is_ca = cert
+        .basic_constraints()
+        .ok()
+        .flatten()
+        .map(|bc| bc.value.ca)
+        .unwrap_or(false);
 
     // SAN 추출
     if let Ok(Some(san_ext)) = cert.subject_alternative_name() {
@@ -255,8 +335,13 @@ fn parse_cert_info(cert_der: &[u8]) -> Option<UpstreamCertInfo> {
     }
 
     debug!(
-        "[UPSTREAM-CERT] 파싱 결과: CN={:?}, Org={:?}, DNS SANs={:?}, IP SANs={:?}",
-        info.common_name, info.organization, info.sans_dns, info.sans_ip
+        "[UPSTREAM-CERT] 파싱 결과: CN={:?}, Issuer={:?}, Org={:?}, DNS SANs={:?}, IP SANs={:?}, Not After={:?}",
+        info.common_name,
+        info.issuer_cn,
+        info.organization,
+        info.sans_dns,
+        info.sans_ip,
+        info.not_after
     );
 
     Some(info)

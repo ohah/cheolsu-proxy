@@ -140,6 +140,7 @@ impl TunnelEvent {
                     request: Some(request.for_client(None)),
                     response: None,
                     validations: None,
+                    server_cert: None,
                 })
             }
             TunnelEventType::Completed => {
@@ -188,6 +189,7 @@ impl TunnelEvent {
                     request: None,
                     response: Some(response.for_client("tunnel_completed", None)),
                     validations: None,
+                    server_cert: None,
                 })
             }
             TunnelEventType::Error => {
@@ -234,6 +236,7 @@ impl TunnelEvent {
                     request: None,
                     response: Some(response.for_client("tunnel_error", None)),
                     validations: None,
+                    server_cert: None,
                 })
             }
         }

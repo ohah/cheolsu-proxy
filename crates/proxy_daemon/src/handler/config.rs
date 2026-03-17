@@ -19,6 +19,12 @@ pub(crate) struct RequestState {
     pub(crate) response_header_time: Option<std::time::Instant>,
     /// 프록시 인증 사용자명
     pub(crate) proxy_auth_user: Option<String>,
+    /// 서버 TLS 인증서 DER 바이트
+    pub(crate) server_cert_der: Option<Vec<u8>>,
+    /// 인증서 체인 길이
+    pub(crate) server_cert_chain_length: usize,
+    /// 협상된 ALPN 프로토콜
+    pub(crate) server_cert_alpn: Option<String>,
 }
 
 /// 빠른 설정 (No Caching, Block Cookies, No Gzip)
@@ -89,6 +95,9 @@ impl LoggingHandler {
                 request_start: None,
                 response_header_time: None,
                 proxy_auth_user: None,
+                server_cert_der: None,
+                server_cert_chain_length: 0,
+                server_cert_alpn: None,
             },
             config: ProxyConfig {
                 cache_dir: Some(cache_dir),
