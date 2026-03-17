@@ -62,6 +62,11 @@ const ContractTestingPage = lazy(() =>
     default: m.ContractTestingPage,
   })),
 );
+const AnalyticsDashboard = lazy(() =>
+  import("@/pages/analytics-dashboard").then((m) => ({
+    default: m.AnalyticsDashboard,
+  })),
+);
 
 function RootLayout() {
   return (
@@ -137,6 +142,10 @@ export const router = createBrowserRouter([
       {
         path: "/contract-testing",
         element: <ContractTestingPage />,
+      },
+      {
+        path: "/analytics",
+        element: <AnalyticsDashboard />,
       },
     ],
   },
