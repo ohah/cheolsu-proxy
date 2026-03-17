@@ -107,10 +107,26 @@ export interface ContractSpecInfo {
   loaded_at: number;
 }
 
+export interface ServerCertInfo {
+  subject_cn?: string;
+  issuer_cn?: string;
+  organization?: string;
+  sans_dns: string[];
+  sans_ip: string[];
+  not_before?: string;
+  not_after?: string;
+  serial_number?: string;
+  fingerprint_sha256?: string;
+  is_ca: boolean;
+  negotiated_alpn?: string;
+  chain_length: number;
+}
+
 export interface HttpTransaction {
   request: HttpRequest | null;
   response: HttpResponse | null;
   validations?: ContractValidationResult[];
+  server_cert?: ServerCertInfo | null;
 }
 
 export type ProxyEventPayload = HttpTransaction;
