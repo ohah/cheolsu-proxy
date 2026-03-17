@@ -515,7 +515,7 @@ msgstr "Clear all"
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:213
 #: src/pages/log-viewer/ui/logs-page.tsx:285
 #: src/pages/server-replay/ui/server-replay-page.tsx:105
-#: src/pages/settings/ui/components/tls-config-section.tsx:115
+#: src/pages/settings/ui/components/tls-config-section.tsx:121
 #: src/shared/ui/rule-list-page.tsx:69
 msgid "Clear All"
 msgstr "Clear All"
@@ -798,7 +798,7 @@ msgstr "Domains in this list will NOT be intercepted (pass-through). Built-in do
 msgid "Domains that failed TLS handshake are automatically tunneled without MITM decryption. You can remove entries to retry MITM for specific domains."
 msgstr "Domains that failed TLS handshake are automatically tunneled without MITM decryption. You can remove entries to retry MITM for specific domains."
 
-#: src/pages/settings/ui/components/tls-config-section.tsx:106
+#: src/pages/settings/ui/components/tls-config-section.tsx:112
 msgid "Domains that failed with the default TLS engine are recorded here. On the next connection, the alternate engine will be used automatically."
 msgstr "Domains that failed with the default TLS engine are recorded here. On the next connection, the alternate engine will be used automatically."
 
@@ -1309,7 +1309,7 @@ msgstr "Last Seen"
 msgid "Latency (ms)"
 msgstr "Latency (ms)"
 
-#: src/pages/settings/ui/components/tls-config-section.tsx:103
+#: src/pages/settings/ui/components/tls-config-section.tsx:109
 msgid "Learned TLS Strategies"
 msgstr "Learned TLS Strategies"
 
@@ -1633,7 +1633,7 @@ msgstr "No host mappings"
 msgid "No intercept rules"
 msgstr "No intercept rules"
 
-#: src/pages/settings/ui/components/tls-config-section.tsx:122
+#: src/pages/settings/ui/components/tls-config-section.tsx:128
 msgid "No learned strategies yet. They will appear after TLS fallback events."
 msgstr "No learned strategies yet. They will appear after TLS fallback events."
 
@@ -1713,7 +1713,7 @@ msgstr "No valid request to replay"
 msgid "No valid requests to replay"
 msgstr "No valid requests to replay"
 
-#: src/pages/settings/ui/components/tls-config-section.tsx:87
+#: src/pages/settings/ui/components/tls-config-section.tsx:93
 msgid "No Verify"
 msgstr "No Verify"
 

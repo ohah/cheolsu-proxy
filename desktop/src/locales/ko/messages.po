@@ -515,7 +515,7 @@ msgstr "전체 삭제"
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:213
 #: src/pages/log-viewer/ui/logs-page.tsx:285
 #: src/pages/server-replay/ui/server-replay-page.tsx:105
-#: src/pages/settings/ui/components/tls-config-section.tsx:115
+#: src/pages/settings/ui/components/tls-config-section.tsx:121
 #: src/shared/ui/rule-list-page.tsx:69
 msgid "Clear All"
 msgstr "전체 삭제"
@@ -798,7 +798,7 @@ msgstr "이 목록의 도메인은 인터셉트하지 않습니다 (패스스루
 msgid "Domains that failed TLS handshake are automatically tunneled without MITM decryption. You can remove entries to retry MITM for specific domains."
 msgstr "TLS 핸드셰이크에 실패한 도메인은 MITM 복호화 없이 자동으로 터널링됩니다. 항목을 삭제하면 해당 도메인에 대해 MITM을 다시 시도합니다."
 
-#: src/pages/settings/ui/components/tls-config-section.tsx:106
+#: src/pages/settings/ui/components/tls-config-section.tsx:112
 msgid "Domains that failed with the default TLS engine are recorded here. On the next connection, the alternate engine will be used automatically."
 msgstr "기본 TLS 엔진으로 실패한 도메인이 여기에 기록됩니다. 다음 연결 시 자동으로 대체 엔진을 사용합니다."
 
@@ -1309,7 +1309,7 @@ msgstr "마지막 발견"
 msgid "Latency (ms)"
 msgstr "지연 (ms)"
 
-#: src/pages/settings/ui/components/tls-config-section.tsx:103
+#: src/pages/settings/ui/components/tls-config-section.tsx:109
 msgid "Learned TLS Strategies"
 msgstr "학습된 TLS 전략"
 
@@ -1633,7 +1633,7 @@ msgstr "호스트 매핑 없음"
 msgid "No intercept rules"
 msgstr "인터셉트 규칙 없음"
 
-#: src/pages/settings/ui/components/tls-config-section.tsx:122
+#: src/pages/settings/ui/components/tls-config-section.tsx:128
 msgid "No learned strategies yet. They will appear after TLS fallback events."
 msgstr "아직 학습된 전략이 없습니다. TLS 폴백 이벤트 발생 후 표시됩니다."
 
@@ -1713,7 +1713,7 @@ msgstr "재생할 유효한 요청이 없습니다"
 msgid "No valid requests to replay"
 msgstr "리플레이할 유효한 요청이 없습니다"
 
-#: src/pages/settings/ui/components/tls-config-section.tsx:87
+#: src/pages/settings/ui/components/tls-config-section.tsx:93
 msgid "No Verify"
 msgstr "검증 안 함"
 
