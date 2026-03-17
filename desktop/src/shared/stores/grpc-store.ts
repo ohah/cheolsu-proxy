@@ -59,6 +59,7 @@ export function extractGrpcCall(tx: HttpTransaction): GrpcCall | null {
     contentSubtype: reqMeta?.content_subtype ?? resMeta?.content_subtype ?? null,
     requestFrameCount: reqMeta?.frame_count ?? 0,
     responseFrameCount: resMeta?.frame_count ?? 0,
+    streamingType: reqMeta?.streaming_type ?? "Unary",
     httpStatus: tx.response?.status ?? null,
     requestSize: req.body_size,
     responseSize: tx.response?.body_size ?? 0,
