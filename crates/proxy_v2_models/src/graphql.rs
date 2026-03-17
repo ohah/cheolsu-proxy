@@ -134,9 +134,24 @@ pub fn is_graphql(method: &str, uri: &str, content_type: Option<&str>, body: Opt
     }
 }
 
+/// 주석과 공백을 건너뛴 query 문자열 반환
+fn skip_comments_and_whitespace(query: &str) -> &str {
+    let mut s = query.trim();
+    while s.starts_with('#') {
+        // 줄 끝까지 건너뛰기
+        if let Some(newline_pos) = s.find('\n') {
+            s = s[newline_pos + 1..].trim();
+        } else {
+            // 주석만 있고 개행이 없는 경우
+            return "";
+        }
+    }
+    s
+}
+
 /// query 문자열에서 오퍼레이션 타입을 파싱
 fn parse_operation_type(query: &str) -> GraphqlOperationType {
-    let trimmed = query.trim();
+    let trimmed = skip_comments_and_whitespace(query);
     if trimmed.starts_with("mutation") {
         GraphqlOperationType::Mutation
     } else if trimmed.starts_with("subscription") {
@@ -149,7 +164,7 @@ fn parse_operation_type(query: &str) -> GraphqlOperationType {
 
 /// query 문자열에서 오퍼레이션 이름을 파싱
 fn parse_operation_name_from_query(query: &str) -> Option<String> {
-    let trimmed = query.trim();
+    let trimmed = skip_comments_and_whitespace(query);
     // "query OperationName" 또는 "mutation OperationName" 패턴 파싱
     let after_keyword = if trimmed.starts_with("query") {
         Some(&trimmed[5..])
@@ -627,6 +642,267 @@ mod tests {
         assert_eq!(
             format!("{}", GraphqlOperationType::Subscription),
             "subscription"
+        );
+    }
+
+    // --- 엣지 케이스 테스트 ---
+
+    #[test]
+    fn test_empty_query_string() {
+        let body = r#"{"query":""}"#;
+        let ops = parse_graphql_request(body);
+        assert_eq!(ops.len(), 1);
+        assert_eq!(ops[0].query, "");
+        assert_eq!(ops[0].operation_type, GraphqlOperationType::Query);
+    }
+
+    #[test]
+    fn test_invalid_json_body() {
+        let ops = parse_graphql_request("{invalid json}");
+        assert!(ops.is_empty());
+    }
+
+    #[test]
+    fn test_query_field_is_number() {
+        let body = r#"{"query":42}"#;
+        let ops = parse_graphql_request(body);
+        assert!(ops.is_empty());
+    }
+
+    #[test]
+    fn test_query_field_is_null() {
+        let body = r#"{"query":null}"#;
+        let ops = parse_graphql_request(body);
+        assert!(ops.is_empty());
+    }
+
+    #[test]
+    fn test_variables_null() {
+        let body = r#"{"query":"{ user { name } }","variables":null}"#;
+        let ops = parse_graphql_request(body);
+        assert_eq!(ops.len(), 1);
+        // variables 필드가 존재하되 null 값
+        assert!(ops[0].variables.is_some());
+        assert!(ops[0].variables.as_ref().unwrap().is_null());
+    }
+
+    #[test]
+    fn test_variables_absent() {
+        let body = r#"{"query":"{ user { name } }"}"#;
+        let ops = parse_graphql_request(body);
+        assert_eq!(ops.len(), 1);
+        // variables 필드가 없는 경우
+        assert!(ops[0].variables.is_none());
+    }
+
+    #[test]
+    fn test_very_long_query_string() {
+        let long_field = "a".repeat(10_000);
+        let body = format!(
+            r#"{{"query":"query {} {{ user {{ name }} }}"}}"#,
+            long_field
+        );
+        let ops = parse_graphql_request(&body);
+        assert_eq!(ops.len(), 1);
+        assert_eq!(ops[0].operation_type, GraphqlOperationType::Query);
+        assert_eq!(ops[0].operation_name, Some(long_field));
+    }
+
+    #[test]
+    fn test_operation_name_with_special_chars() {
+        // 특수문자는 이름으로 인식하지 않으므로 underscore와 영숫자만 이름으로 추출
+        let body = r#"{"query":"query Get_User123 { user { name } }"}"#;
+        let ops = parse_graphql_request(body);
+        assert_eq!(ops[0].operation_name, Some("Get_User123".to_string()));
+    }
+
+    #[test]
+    fn test_operation_name_starts_with_special_char() {
+        // 이름이 특수문자로 시작하면 이름을 추출할 수 없음
+        let body = r#"{"query":"query @directive { user { name } }"}"#;
+        let ops = parse_graphql_request(body);
+        assert_eq!(ops[0].operation_name, None);
+    }
+
+    #[test]
+    fn test_batch_query_empty_array() {
+        let body = "[]";
+        let ops = parse_graphql_request(body);
+        assert!(ops.is_empty());
+    }
+
+    #[test]
+    fn test_batch_query_partially_valid() {
+        let body = r#"[{"query":"{ user { name } }"},{"not_query":"value"},{"query":"mutation { deleteUser }"}]"#;
+        let ops = parse_graphql_request(body);
+        assert_eq!(ops.len(), 2);
+        assert_eq!(ops[0].operation_type, GraphqlOperationType::Query);
+        assert_eq!(ops[1].operation_type, GraphqlOperationType::Mutation);
+    }
+
+    #[test]
+    fn test_nested_fragments_operation_type() {
+        let body = r#"{"query":"mutation CreateUser { createUser { ...UserFields } } fragment UserFields on User { id name email }"}"#;
+        let ops = parse_graphql_request(body);
+        assert_eq!(ops.len(), 1);
+        assert_eq!(ops[0].operation_type, GraphqlOperationType::Mutation);
+        assert_eq!(ops[0].operation_name, Some("CreateUser".to_string()));
+    }
+
+    #[test]
+    fn test_is_graphql_content_type_with_charset() {
+        assert!(is_graphql(
+            "POST",
+            "/graphql",
+            Some("application/graphql+json; charset=utf-8"),
+            None
+        ));
+    }
+
+    #[test]
+    fn test_persisted_query_no_query_field() {
+        // persisted query: extensions에 persistedQuery hash만 있고 query가 없는 경우
+        let body = r#"{"extensions":{"persistedQuery":{"version":1,"sha256Hash":"abc123"}}}"#;
+        let ops = parse_graphql_request(body);
+        // query 필드가 없으므로 파싱되지 않음
+        assert!(ops.is_empty());
+    }
+
+    #[test]
+    fn test_persisted_query_with_empty_query() {
+        // persisted query에 빈 query가 포함된 경우
+        let body =
+            r#"{"query":"","extensions":{"persistedQuery":{"version":1,"sha256Hash":"abc123"}}}"#;
+        let ops = parse_graphql_request(body);
+        assert_eq!(ops.len(), 1);
+        assert!(ops[0].extensions.is_some());
+    }
+
+    #[test]
+    fn test_multiline_query() {
+        let body = r#"{"query":"query GetUser {\n  user {\n    name\n    email\n  }\n}"}"#;
+        let ops = parse_graphql_request(body);
+        assert_eq!(ops.len(), 1);
+        assert_eq!(ops[0].operation_type, GraphqlOperationType::Query);
+        assert_eq!(ops[0].operation_name, Some("GetUser".to_string()));
+    }
+
+    #[test]
+    fn test_query_with_comments() {
+        let body =
+            r##"{"query":"# This is a comment\nmutation CreateUser { createUser { id } }"}"##;
+        let ops = parse_graphql_request(body);
+        assert_eq!(ops.len(), 1);
+        assert_eq!(ops[0].operation_type, GraphqlOperationType::Mutation);
+        assert_eq!(ops[0].operation_name, Some("CreateUser".to_string()));
+    }
+
+    #[test]
+    fn test_query_with_multiple_comments() {
+        let body =
+            r##"{"query":"# comment 1\n# comment 2\nsubscription OnEvent { event { data } }"}"##;
+        let ops = parse_graphql_request(body);
+        assert_eq!(ops.len(), 1);
+        assert_eq!(ops[0].operation_type, GraphqlOperationType::Subscription);
+        assert_eq!(ops[0].operation_name, Some("OnEvent".to_string()));
+    }
+
+    #[test]
+    fn test_query_with_inline_comment_only() {
+        let body = r##"{"query":"# just a comment"}"##;
+        let ops = parse_graphql_request(body);
+        assert_eq!(ops.len(), 1);
+        // 주석만 있는 경우 기본적으로 Query로 파싱됨
+        assert_eq!(ops[0].operation_type, GraphqlOperationType::Query);
+    }
+
+    #[test]
+    fn test_is_graphql_post_no_body() {
+        assert!(!is_graphql("POST", "/graphql", None, None));
+    }
+
+    #[test]
+    fn test_is_graphql_put_method() {
+        let body = r#"{"query":"{ user { name } }"}"#;
+        assert!(!is_graphql("PUT", "/graphql", None, Some(body)));
+    }
+
+    #[test]
+    fn test_is_graphql_batch_empty_array() {
+        assert!(!is_graphql("POST", "/graphql", None, Some("[]")));
+    }
+
+    #[test]
+    fn test_is_graphql_batch_first_item_no_query() {
+        let body = r#"[{"data":"test"},{"query":"{ user { name } }"}]"#;
+        assert!(!is_graphql("POST", "/graphql", None, Some(body)));
+    }
+
+    #[test]
+    fn test_parse_get_with_variables() {
+        let uri = "/graphql?query=%7B+user+%7D&variables=%7B%22id%22%3A1%7D";
+        let ops = parse_graphql_request_from_query_params(uri);
+        assert_eq!(ops.len(), 1);
+        assert!(ops[0].variables.is_some());
+    }
+
+    #[test]
+    fn test_parse_get_with_extensions() {
+        let uri = "/graphql?query=%7B+user+%7D&extensions=%7B%22key%22%3A%22val%22%7D";
+        let ops = parse_graphql_request_from_query_params(uri);
+        assert_eq!(ops.len(), 1);
+        assert!(ops[0].extensions.is_some());
+    }
+
+    #[test]
+    fn test_parse_get_no_query_string() {
+        let ops = parse_graphql_request_from_query_params("/graphql");
+        assert!(ops.is_empty());
+    }
+
+    #[test]
+    fn test_response_only_errors() {
+        let body = r#"{"errors":[{"message":"Unauthorized"}]}"#;
+        let responses = parse_graphql_response(body);
+        assert_eq!(responses.len(), 1);
+        assert!(responses[0].data.is_none());
+        assert!(responses[0].errors.is_some());
+    }
+
+    #[test]
+    fn test_response_empty_body() {
+        let responses = parse_graphql_response("");
+        assert!(responses.is_empty());
+    }
+
+    #[test]
+    fn test_response_invalid_json() {
+        let responses = parse_graphql_response("not json");
+        assert!(responses.is_empty());
+    }
+
+    #[test]
+    fn test_url_decode_incomplete_percent() {
+        // 끝에 불완전한 % 인코딩
+        assert_eq!(urlencoding_decode("%7"), Some("%7".to_string()));
+    }
+
+    #[test]
+    fn test_url_decode_invalid_hex() {
+        assert_eq!(urlencoding_decode("%ZZ"), Some("%ZZ".to_string()));
+    }
+
+    #[test]
+    fn test_skip_comments_and_whitespace() {
+        assert_eq!(
+            skip_comments_and_whitespace("# comment\nmutation { }"),
+            "mutation { }"
+        );
+        assert_eq!(skip_comments_and_whitespace("query { }"), "query { }");
+        assert_eq!(skip_comments_and_whitespace("# only comment"), "");
+        assert_eq!(
+            skip_comments_and_whitespace("# c1\n# c2\n{ user }"),
+            "{ user }"
         );
     }
 }
