@@ -34,6 +34,11 @@ const GraphqlDashboard = lazy(() =>
     default: m.GraphqlDashboard,
   })),
 );
+const GrpcDashboard = lazy(() =>
+  import("@/pages/grpc-dashboard").then((m) => ({
+    default: m.GrpcDashboard,
+  })),
+);
 const SettingsPage = lazy(() =>
   import("@/pages/settings").then((m) => ({ default: m.SettingsPage })),
 );
@@ -110,6 +115,10 @@ export const router = createBrowserRouter([
       {
         path: "/graphql",
         element: <GraphqlDashboard />,
+      },
+      {
+        path: "/grpc",
+        element: <GrpcDashboard />,
       },
       {
         path: "/server-replay",

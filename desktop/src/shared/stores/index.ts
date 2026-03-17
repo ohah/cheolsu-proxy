@@ -15,3 +15,4 @@ export * from "./host-mapping-store";
 export * from "./reverse-proxy-store";
 export * from "./app-settings-store";
 export * from "./graphql-store";
+export * from "./grpc-store";

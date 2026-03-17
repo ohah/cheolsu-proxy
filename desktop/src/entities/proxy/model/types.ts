@@ -30,6 +30,17 @@ export interface ResponsePayload {
   data?: Record<string, unknown> | string;
 }
 
+export interface GrpcMetadata {
+  service?: string | null;
+  method?: string | null;
+  status_code?: number | null;
+  status_message?: string | null;
+  content_subtype?: string | null;
+  streaming_type: "Unary" | "ServerStreaming" | "ClientStreaming" | "BidirectionalStreaming";
+  frame_count: number;
+  is_compressed: boolean;
+}
+
 export interface HttpRequest {
   method: string;
   uri: string;
@@ -44,6 +55,7 @@ export interface HttpRequest {
   body_size: number; // 실제 body 크기 (파일 저장 시에도 원본 크기 유지)
   client_addr?: string; // 클라이언트 IP 주소
   proxy_auth_user?: string; // 프록시 인증 사용자명
+  grpc_metadata?: GrpcMetadata | null;
 }
 
 export interface TimingWaterfall {
@@ -67,6 +79,7 @@ export interface HttpResponse {
   file_path?: string; // body가 저장된 파일 경로
   body_size: number; // 실제 body 크기 (파일 저장 시에도 원본 크기 유지)
   timing?: TimingWaterfall; // 요청/응답 각 단계별 타이밍 정보
+  grpc_metadata?: GrpcMetadata | null;
 }
 
 // Contract Testing 관련 타입
@@ -149,5 +162,6 @@ export {
   isCompressedDataType,
   isBinaryDataType,
   isProtobufDataType,
+  isGrpcDataType,
   isMediaDataType,
 } from "./data-type";

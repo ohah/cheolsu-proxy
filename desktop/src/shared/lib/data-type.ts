@@ -13,6 +13,7 @@ export type DataType =
   | "Document"
   | "Archive"
   | "Protobuf"
+  | "Grpc"
   | "Binary"
   | "Empty"
   | "Unknown";
@@ -42,6 +43,7 @@ export const dataTypeToMonacoLanguage = (dataType: DataType): string => {
     case "Document":
     case "Archive":
     case "Protobuf":
+    case "Grpc":
     case "Binary":
     case "Empty":
     case "Unknown":
@@ -81,6 +83,8 @@ export const dataTypeToMimeType = (dataType: DataType): string => {
       return "application/zip";
     case "Protobuf":
       return "application/x-protobuf";
+    case "Grpc":
+      return "application/grpc";
     case "Binary":
       return "application/octet-stream";
     case "Empty":
@@ -122,6 +126,8 @@ export const dataTypeToDisplayName = (dataType: DataType): string => {
       return "Archive";
     case "Protobuf":
       return "Protobuf";
+    case "Grpc":
+      return "gRPC";
     case "Binary":
       return "Binary Data";
     case "Empty":
@@ -162,6 +168,8 @@ export const dataTypeToIcon = (dataType: DataType): string => {
     case "Archive":
       return "📦";
     case "Protobuf":
+      return "📦";
+    case "Grpc":
       return "📦";
     case "Binary":
       return "📦";
@@ -226,7 +234,7 @@ export const isCompressedDataType = (dataType: DataType): boolean => {
  * 데이터 타입이 바이너리인지 확인
  */
 export const isBinaryDataType = (dataType: DataType): boolean => {
-  return ["Image", "Video", "Audio", "Document", "Archive", "Protobuf", "Binary"].includes(
+  return ["Image", "Video", "Audio", "Document", "Archive", "Protobuf", "Grpc", "Binary"].includes(
     dataType,
   );
 };
@@ -235,7 +243,11 @@ export const isBinaryDataType = (dataType: DataType): boolean => {
  * 데이터 타입이 Protobuf인지 확인
  */
 export const isProtobufDataType = (dataType: DataType): boolean => {
-  return dataType === "Protobuf";
+  return dataType === "Protobuf" || dataType === "Grpc";
+};
+
+export const isGrpcDataType = (dataType: DataType): boolean => {
+  return dataType === "Grpc";
 };
 
 /**
