@@ -5,16 +5,12 @@ import { X } from "lucide-react";
 import { Editor } from "@monaco-editor/react";
 import { useTheme } from "next-themes";
 import { Button, Tooltip, TooltipTrigger, TooltipContent } from "@/shared/ui";
+import { formatTimeFull } from "@/shared/lib/format-time";
 import type { SseEventInfo } from "@/entities/sse";
 
 interface SseMessageDetailProps {
   event: SseEventInfo;
   onClose: () => void;
-}
-
-function formatTimeFull(nanos: number): string {
-  const ms = nanos / 1_000_000;
-  return new Date(ms).toLocaleString();
 }
 
 function formatSize(bytes: number): string {

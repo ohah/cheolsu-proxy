@@ -327,7 +327,7 @@ msgstr "백엔드 스킴"
 msgid "Base URL"
 msgstr "기본 URL"
 
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:93
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:81
 msgid "Batch"
 msgstr "배치"
 
@@ -557,10 +557,10 @@ msgstr "유효한 인증서가 없는 클라이언트는 거부됩니다"
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:370
 #: src/features/transaction-details/ui/sequence-replay-dialog.tsx:241
 #: src/features/transaction-details/ui/transaction-header.tsx:63
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:178
-#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:112
-#: src/widgets/sse-messages/ui/sse-message-detail.tsx:96
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:131
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:166
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:100
+#: src/widgets/sse-messages/ui/sse-message-detail.tsx:92
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:127
 msgid "Close"
 msgstr "닫기"
 
@@ -608,8 +608,8 @@ msgid "Connected"
 msgstr "연결됨"
 
 #: src/features/websocket-replay/ui/ws-replay-dialog.tsx:110
-#: src/widgets/sse-messages/ui/sse-message-detail.tsx:64
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:64
+#: src/widgets/sse-messages/ui/sse-message-detail.tsx:60
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:60
 msgid "Connection"
 msgstr "연결"
 
@@ -708,8 +708,8 @@ msgstr "커스텀 CA 인증서"
 msgid "Dark"
 msgstr "다크"
 
-#: src/widgets/sse-messages/ui/sse-message-table.tsx:147
-#: src/widgets/websocket-messages/ui/ws-message-table.tsx:203
+#: src/widgets/sse-messages/ui/sse-message-table.tsx:135
+#: src/widgets/websocket-messages/ui/ws-message-table.tsx:191
 msgid "Data"
 msgstr "데이터"
 
@@ -759,13 +759,13 @@ msgstr "트랜잭션 삭제"
 msgid "Details Panel Layout"
 msgstr "상세 패널 레이아웃"
 
-#: src/widgets/websocket-messages/ui/ws-message-table.tsx:200
+#: src/widgets/websocket-messages/ui/ws-message-table.tsx:188
 msgid "Dir"
 msgstr "방향"
 
 #: src/features/websocket-replay/ui/ws-replay-dialog.tsx:123
 #: src/pages/analytics-dashboard/ui/misc-tab.tsx:136
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:55
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:51
 msgid "Direction"
 msgstr "방향"
 
@@ -830,10 +830,10 @@ msgid "Duplicate Requests"
 msgstr "중복 요청"
 
 #: src/pages/analytics-dashboard/ui/performance-tab.tsx:48
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:79
-#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:177
-#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:45
-#: src/widgets/grpc-calls/ui/grpc-call-table.tsx:156
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:67
+#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:157
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:33
+#: src/widgets/grpc-calls/ui/grpc-call-table.tsx:136
 msgid "Duration"
 msgstr "소요 시간"
 
@@ -889,12 +889,12 @@ msgstr "Cheolsu Proxy CA 인증서에 대한 완전 신뢰를 활성화하세요
 msgid "Enabled"
 msgstr "활성"
 
-#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:67
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:55
 msgid "Encoding"
 msgstr ""
 
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:76
-#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:42
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:64
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:30
 msgid "Endpoint"
 msgstr "엔드포인트"
 
@@ -921,7 +921,7 @@ msgstr "에러율"
 msgid "Error Status Code Distribution"
 msgstr "에러 상태 코드 분포"
 
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:261
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:249
 msgid "error(s)"
 msgstr "에러"
 
@@ -934,19 +934,19 @@ msgstr "오류"
 
 #: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:180
 #: src/pages/analytics-dashboard/ui/error-tab.tsx:72
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:143
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:131
 msgid "Errors"
 msgstr "에러"
 
-#: src/widgets/sse-messages/ui/sse-message-table.tsx:145
+#: src/widgets/sse-messages/ui/sse-message-table.tsx:133
 msgid "Event"
 msgstr "이벤트"
 
-#: src/widgets/sse-messages/ui/sse-message-detail.tsx:69
+#: src/widgets/sse-messages/ui/sse-message-detail.tsx:65
 msgid "Event ID"
 msgstr "이벤트 ID"
 
-#: src/widgets/sse-messages/ui/sse-message-detail.tsx:61
+#: src/widgets/sse-messages/ui/sse-message-detail.tsx:57
 msgid "Event Type"
 msgstr "이벤트 타입"
 
@@ -1107,7 +1107,7 @@ msgstr "GraphQL"
 msgid "GraphQL operations viewer"
 msgstr "GraphQL 오퍼레이션 뷰어"
 
-#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:165
+#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:145
 msgid "GraphQL 오퍼레이션을 기다리는 중..."
 msgstr "GraphQL 오퍼레이션을 기다리는 중..."
 
@@ -1124,11 +1124,11 @@ msgstr "gRPC 호출 및 서비스 메서드"
 msgid "gRPC Proto Files"
 msgstr "gRPC Proto 파일"
 
-#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:51
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:39
 msgid "gRPC Status"
 msgstr ""
 
-#: src/widgets/grpc-calls/ui/grpc-call-table.tsx:145
+#: src/widgets/grpc-calls/ui/grpc-call-table.tsx:125
 msgid "gRPC 호출을 기다리는 중..."
 msgstr ""
 
@@ -1206,7 +1206,7 @@ msgstr "HTTP 연결 (TLS 없음)"
 msgid "HTTP requests and responses"
 msgstr "HTTP 요청 및 응답"
 
-#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:64
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:52
 msgid "HTTP Status"
 msgstr ""
 
@@ -1526,8 +1526,8 @@ msgstr "메시지"
 #: src/pages/analytics-dashboard/ui/misc-tab.tsx:39
 #: src/pages/analytics-dashboard/ui/misc-tab.tsx:132
 #: src/pages/analytics-dashboard/ui/performance-tab.tsx:44
-#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:40
-#: src/widgets/grpc-calls/ui/grpc-call-table.tsx:155
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:28
+#: src/widgets/grpc-calls/ui/grpc-call-table.tsx:135
 msgid "Method"
 msgstr "메서드"
 
@@ -1581,7 +1581,7 @@ msgstr "N+1"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:264
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:178
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:73
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:61
 msgid "Name"
 msgstr "이름"
 
@@ -1835,7 +1835,7 @@ msgstr "OpenAPI 스펙 로드 완료"
 msgid "OpenAPI Specs"
 msgstr "OpenAPI 스펙"
 
-#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:175
+#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:155
 msgid "Operation"
 msgstr "오퍼레이션"
 
@@ -2016,7 +2016,7 @@ msgstr "proxy.company.com"
 msgid "Python Requests"
 msgstr "Python Requests"
 
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:130
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:118
 msgid "Query"
 msgstr "쿼리"
 
@@ -2036,11 +2036,11 @@ msgstr "빠른 설정"
 msgid "Quick toggles for common proxy behaviors"
 msgstr "자주 사용하는 프록시 동작을 빠르게 전환합니다"
 
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:87
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:83
 msgid "Received"
 msgstr "수신"
 
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:56
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:52
 msgid "Received (Server → Client)"
 msgstr "수신 (서버 → 클라이언트)"
 
@@ -2123,11 +2123,11 @@ msgid "Replacement string (supports $1, $2 capture groups)"
 msgstr "치환 문자열 ($1, $2 캡처 그룹 지원)"
 
 #: src/features/transaction-details/ui/replay-dialog.tsx:387
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:122
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:118
 msgid "Replay"
 msgstr "리플레이"
 
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:118
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:114
 msgid "Replay message"
 msgstr "메시지 리플레이"
 
@@ -2138,7 +2138,7 @@ msgstr "요청 리플레이"
 #: src/features/transaction-details/ui/replay-dialog.tsx:373
 #: src/features/transaction-details/ui/transaction-body-side-by-side.tsx:16
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:296
-#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:70
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:58
 msgid "Request"
 msgstr "요청"
 
@@ -2213,8 +2213,8 @@ msgstr "인증서 필수"
 #: src/features/transaction-details/ui/replay-dialog.tsx:387
 #: src/features/transaction-details/ui/transaction-body-side-by-side.tsx:24
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:301
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:138
-#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:74
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:126
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:62
 msgid "Response"
 msgstr "응답"
 
@@ -2270,7 +2270,7 @@ msgid "Resume recording"
 msgstr "기록 재개"
 
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:367
-#: src/widgets/sse-messages/ui/sse-message-detail.tsx:72
+#: src/widgets/sse-messages/ui/sse-message-detail.tsx:68
 msgid "Retry"
 msgstr "재시도"
 
@@ -2497,16 +2497,16 @@ msgstr "요청을 순서대로 전송 중..."
 msgid "Sending..."
 msgstr "전송 중..."
 
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:87
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:83
 msgid "Sent"
 msgstr "송신"
 
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:56
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:52
 msgid "Sent (Client → Server)"
 msgstr "송신 (클라이언트 → 서버)"
 
-#: src/widgets/sse-messages/ui/sse-message-detail.tsx:65
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:65
+#: src/widgets/sse-messages/ui/sse-message-detail.tsx:61
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:61
 msgid "Sequence"
 msgstr "시퀀스"
 
@@ -2533,7 +2533,7 @@ msgstr "서버 리플레이"
 msgid "Server-Sent Events streams"
 msgstr "Server-Sent Events 스트림"
 
-#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:37
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:25
 msgid "Service"
 msgstr ""
 
@@ -2595,10 +2595,10 @@ msgid "Simulate slow network conditions for testing"
 msgstr "테스트를 위한 저속 네트워크 환경 시뮬레이션"
 
 #: src/pages/analytics-dashboard/ui/misc-tab.tsx:139
-#: src/widgets/sse-messages/ui/sse-message-detail.tsx:62
-#: src/widgets/sse-messages/ui/sse-message-table.tsx:146
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:62
-#: src/widgets/websocket-messages/ui/ws-message-table.tsx:202
+#: src/widgets/sse-messages/ui/sse-message-detail.tsx:58
+#: src/widgets/sse-messages/ui/sse-message-table.tsx:134
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:58
+#: src/widgets/websocket-messages/ui/ws-message-table.tsx:190
 msgid "Size"
 msgstr "크기"
 
@@ -2652,9 +2652,9 @@ msgstr "ClientHello 감지 직후 백그라운드에서 서버 연결을 시작�
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:118
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:123
 #: src/shared/app-sidebar/ui/sidebar-status.tsx:39
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:86
-#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:176
-#: src/widgets/grpc-calls/ui/grpc-call-table.tsx:154
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:74
+#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:156
+#: src/widgets/grpc-calls/ui/grpc-call-table.tsx:134
 msgid "Status"
 msgstr "상태"
 
@@ -2669,7 +2669,7 @@ msgstr "상태 코드"
 msgid "Status Code Distribution"
 msgstr "상태 코드 분포"
 
-#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:58
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:46
 msgid "Status Message"
 msgstr ""
 
@@ -2758,14 +2758,14 @@ msgstr "처리량"
 #: src/pages/analytics-dashboard/ui/misc-tab.tsx:46
 #: src/pages/analytics-dashboard/ui/misc-tab.tsx:96
 #: src/pages/analytics-dashboard/ui/performance-tab.tsx:54
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:77
-#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:178
-#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:43
-#: src/widgets/grpc-calls/ui/grpc-call-table.tsx:157
-#: src/widgets/sse-messages/ui/sse-message-detail.tsx:63
-#: src/widgets/sse-messages/ui/sse-message-table.tsx:148
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:63
-#: src/widgets/websocket-messages/ui/ws-message-table.tsx:204
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:65
+#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:158
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:31
+#: src/widgets/grpc-calls/ui/grpc-call-table.tsx:137
+#: src/widgets/sse-messages/ui/sse-message-detail.tsx:59
+#: src/widgets/sse-messages/ui/sse-message-table.tsx:136
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:59
+#: src/widgets/websocket-messages/ui/ws-message-table.tsx:192
 msgid "Time"
 msgstr "시간"
 
@@ -2855,10 +2855,10 @@ msgid "Trusted"
 msgstr "신뢰됨"
 
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:229
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:69
-#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:174
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:59
-#: src/widgets/websocket-messages/ui/ws-message-table.tsx:201
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:57
+#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:154
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:55
+#: src/widgets/websocket-messages/ui/ws-message-table.tsx:189
 msgid "Type"
 msgstr "타입"
 
@@ -2974,7 +2974,7 @@ msgstr "유효 기간"
 msgid "Value"
 msgstr "값"
 
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:133
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:121
 msgid "Variables"
 msgstr "변수"
 
@@ -2998,11 +2998,11 @@ msgstr "위반 사항"
 msgid "Vitest/Jest Test"
 msgstr "Vitest/Jest 테스트"
 
-#: src/widgets/sse-messages/ui/sse-message-table.tsx:136
+#: src/widgets/sse-messages/ui/sse-message-table.tsx:124
 msgid "Waiting for SSE events..."
 msgstr "SSE 이벤트 대기 중..."
 
-#: src/widgets/websocket-messages/ui/ws-message-table.tsx:191
+#: src/widgets/websocket-messages/ui/ws-message-table.tsx:179
 msgid "Waiting for WebSocket messages..."
 msgstr "WebSocket 메시지 대기 중..."
 

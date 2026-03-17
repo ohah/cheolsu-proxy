@@ -4,33 +4,13 @@ import { useLingui } from "@lingui/react/macro";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { cn } from "@/shared/lib";
 import { ScrollArea } from "@/shared/ui";
+import { formatTime, formatDuration } from "@/shared/lib/format-time";
 import type { GraphqlOperation } from "@/entities/graphql";
 
 interface GraphqlOperationTableProps {
   operations: GraphqlOperation[];
   selectedOperation: GraphqlOperation | null;
   onSelectOperation: (op: GraphqlOperation) => void;
-}
-
-function formatTime(nanos: number): string {
-  const ms = nanos / 1_000_000;
-  const date = new Date(ms);
-  const hms = date.toLocaleTimeString("en-US", {
-    hour12: false,
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
-  const millis = String(date.getMilliseconds()).padStart(3, "0");
-  return `${hms}.${millis}`;
-}
-
-function formatDuration(requestNanos: number, responseNanos: number | null): string {
-  if (responseNanos == null) return "-";
-  const ms = (responseNanos - requestNanos) / 1_000_000;
-  if (ms < 1) return "<1ms";
-  if (ms < 1000) return `${Math.round(ms)}ms`;
-  return `${(ms / 1000).toFixed(1)}s`;
 }
 
 const TYPE_COLORS: Record<string, string> = {

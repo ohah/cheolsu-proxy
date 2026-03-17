@@ -7,17 +7,13 @@ import { useTheme } from "next-themes";
 import { Button, Tooltip, TooltipTrigger, TooltipContent } from "@/shared/ui";
 import { cn } from "@/shared/lib";
 import { getWsContentView, parseMqtt } from "@/shared/lib/ws-content-view";
+import { formatTimeFull } from "@/shared/lib/format-time";
 import type { WsMessageInfo } from "@/entities/websocket";
 
 interface WsMessageDetailProps {
   message: WsMessageInfo;
   onClose: () => void;
   onReplayRequest: (message: WsMessageInfo) => void;
-}
-
-function formatTimeFull(nanos: number): string {
-  const ms = nanos / 1_000_000;
-  return new Date(ms).toLocaleString();
 }
 
 function formatSize(bytes: number): string {

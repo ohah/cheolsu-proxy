@@ -6,24 +6,12 @@ import { Button, Tooltip, TooltipTrigger, TooltipContent } from "@/shared/ui";
 import { cn } from "@/shared/lib";
 import { formatBytes } from "@/shared/lib/format-bytes";
 import type { GrpcCall } from "@/entities/grpc";
+import { formatTimeFull, formatDuration } from "@/shared/lib/format-time";
 import { GRPC_STATUS_COLORS } from "./grpc-status-colors";
 
 interface GrpcCallDetailProps {
   call: GrpcCall;
   onClose: () => void;
-}
-
-function formatTimeFull(nanos: number): string {
-  const ms = nanos / 1_000_000;
-  return new Date(ms).toLocaleString();
-}
-
-function formatDuration(requestNanos: number, responseNanos: number | null): string {
-  if (responseNanos == null) return "-";
-  const ms = (responseNanos - requestNanos) / 1_000_000;
-  if (ms < 1) return "<1ms";
-  if (ms < 1000) return `${Math.round(ms)}ms`;
-  return `${(ms / 1000).toFixed(1)}s`;
 }
 
 export const GrpcCallDetail = memo(({ call, onClose }: GrpcCallDetailProps) => {
