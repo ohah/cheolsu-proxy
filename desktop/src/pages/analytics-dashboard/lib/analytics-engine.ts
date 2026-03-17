@@ -131,7 +131,7 @@ export function computeSummary(transactions: HttpTransaction[]): SummaryMetrics 
   for (const tx of transactions) {
     const d = getDuration(tx);
     if (d != null && d >= 0) durations.push(d);
-    if (tx.response && isError(tx.response.status)) errorCount++;
+    if (tx.response && isError(tx.response.status)) errorCount += 1;
   }
 
   durations.sort((a, b) => a - b);
@@ -193,10 +193,10 @@ export function analyzeErrors(transactions: HttpTransaction[], topLimit = 10): E
       });
     }
     const ep = endpointMap.get(key)!;
-    ep.total++;
+    ep.total += 1;
 
     if (tx.response && isError(tx.response.status)) {
-      ep.errors++;
+      ep.errors += 1;
       const status = tx.response.status;
       statusCounts.set(status, (statusCounts.get(status) ?? 0) + 1);
     }
@@ -254,7 +254,7 @@ export function analyzeEndpoints(
     const d = getDuration(tx);
     if (d != null && d >= 0) ep.durations.push(d);
     if (tx.response) {
-      if (isError(tx.response.status)) ep.errorCount++;
+      if (isError(tx.response.status)) ep.errorCount += 1;
       ep.responseSizes.push(tx.response.body_size ?? 0);
     }
   }
@@ -312,7 +312,7 @@ export function detectDuplicateRequests(
 
     // Find clusters within window
     let clusterStart = 0;
-    for (let i = 1; i <= group.timestamps.length; i++) {
+    for (let i = 1; i <= group.timestamps.length; i += 1) {
       if (
         i === group.timestamps.length ||
         group.timestamps[i] - group.timestamps[i - 1] > windowMs
@@ -365,7 +365,7 @@ export function detectNPlusOne(transactions: HttpTransaction[], threshold = 3): 
         count: 0,
       });
     }
-    patternCounts.get(key)!.count++;
+    patternCounts.get(key)!.count += 1;
   }
 
   return Array.from(patternCounts.values())
