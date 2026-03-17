@@ -22,13 +22,18 @@ import { toast } from "sonner";
 import type { BreakpointRule, PendingBreakpoint } from "@/entities/breakpoint";
 
 interface HeaderEntry {
+  id: string;
   key: string;
   value: string;
 }
 
 function headersToEntries(headers: Record<string, string>): HeaderEntry[] {
-  const entries = Object.entries(headers).map(([key, value]) => ({ key, value }));
-  return entries.length > 0 ? entries : [{ key: "", value: "" }];
+  const entries = Object.entries(headers).map(([key, value]) => ({
+    id: crypto.randomUUID(),
+    key,
+    value,
+  }));
+  return entries.length > 0 ? entries : [{ id: crypto.randomUUID(), key: "", value: "" }];
 }
 
 function entriesToHeaders(entries: HeaderEntry[]): Record<string, string> {
@@ -60,7 +65,9 @@ export const BreakpointPage = () => {
   const [breakOnResponse, setBreakOnResponse] = useState(false);
 
   const [editTarget, setEditTarget] = useState<PendingBreakpoint | null>(null);
-  const [editHeaders, setEditHeaders] = useState<HeaderEntry[]>([{ key: "", value: "" }]);
+  const [editHeaders, setEditHeaders] = useState<HeaderEntry[]>([
+    { id: crypto.randomUUID(), key: "", value: "" },
+  ]);
   const [editBody, setEditBody] = useState("");
   const [editStatus, setEditStatus] = useState("");
 
@@ -73,9 +80,24 @@ export const BreakpointPage = () => {
 
   const handleModifyAndForward = useCallback(async () => {
     if (!editTarget) return;
+
+    if (!pendingBreakpoints.some((bp) => bp.id === editTarget.id)) {
+      setEditTarget(null);
+      toast.error(t`Breakpoint is no longer pending`);
+      return;
+    }
+
+    const statusNum = editStatus ? Number(editStatus) : undefined;
+    if (
+      statusNum !== undefined &&
+      (Number.isNaN(statusNum) || statusNum < 100 || statusNum > 599)
+    ) {
+      toast.error(t`Invalid status code`);
+      return;
+    }
+
     try {
       const headers = entriesToHeaders(editHeaders);
-      const statusNum = editStatus ? Number(editStatus) : undefined;
       await resolveBreakpoint(editTarget.id, {
         type: "modify_and_forward",
         headers: Object.keys(headers).length > 0 ? headers : undefined,
@@ -87,7 +109,7 @@ export const BreakpointPage = () => {
     } catch {
       toast.error(t`Failed to modify and forward`);
     }
-  }, [editTarget, editHeaders, editBody, editStatus, resolveBreakpoint, t]);
+  }, [editTarget, editHeaders, editBody, editStatus, resolveBreakpoint, pendingBreakpoints, t]);
 
   const updateHeaderEntry = useCallback((index: number, field: "key" | "value", val: string) => {
     setEditHeaders((prev) =>
@@ -96,12 +118,14 @@ export const BreakpointPage = () => {
   }, []);
 
   const addHeaderEntry = useCallback(() => {
-    setEditHeaders((prev) => [...prev, { key: "", value: "" }]);
+    setEditHeaders((prev) => [...prev, { id: crypto.randomUUID(), key: "", value: "" }]);
   }, []);
 
   const removeHeaderEntry = useCallback((index: number) => {
     setEditHeaders((prev) =>
-      prev.length <= 1 ? [{ key: "", value: "" }] : prev.filter((_, i) => i !== index),
+      prev.length <= 1
+        ? [{ id: crypto.randomUUID(), key: "", value: "" }]
+        : prev.filter((_, i) => i !== index),
     );
   }, []);
 
@@ -437,7 +461,7 @@ export const BreakpointPage = () => {
               </div>
               <div className="space-y-1.5 max-h-48 overflow-y-auto">
                 {editHeaders.map((entry, index) => (
-                  <div key={index} className="flex items-center gap-2">
+                  <div key={entry.id} className="flex items-center gap-2">
                     <Input
                       value={entry.key}
                       onChange={(e) => updateHeaderEntry(index, "key", e.target.value)}
