@@ -174,6 +174,11 @@ pub(crate) async fn start_proxy_v2<R: Runtime>(
                                 tracing::warn!("emit sse_connection 실패: {}", e);
                             }
                         }
+                        DaemonMessage::GraphqlOperation { data } => {
+                            if let Err(e) = app.emit("graphql_operation", data) {
+                                tracing::warn!("emit graphql_operation 실패: {}", e);
+                            }
+                        }
                         DaemonMessage::ContractSpecsUpdated { specs } => {
                             if let Err(e) = app.emit("contract_specs_updated", specs) {
                                 tracing::warn!("emit contract_specs_updated 실패: {}", e);

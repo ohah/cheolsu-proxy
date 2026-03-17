@@ -10,6 +10,7 @@ use super::ssl::{
     ClientCertConfig, RequestClientCertConfig, SslProxyingEntry, SslProxyingMode,
     TlsPassthroughEntry,
 };
+use proxy_v2_models::graphql::GraphqlOperationInfo;
 use proxy_v2_models::openapi::ContractSpecInfo;
 use proxy_v2_models::{
     RequestInfo, SseConnectionEvent, SseEventInfo, WsConnectionEvent, WsMessageInfo,
@@ -49,6 +50,8 @@ pub enum DaemonMessage {
     SseEvent { data: SseEventInfo },
     #[serde(rename = "sse_connection")]
     SseConnection { data: SseConnectionEvent },
+    #[serde(rename = "graphql_operation")]
+    GraphqlOperation { data: GraphqlOperationInfo },
     /// 스크립트 로드/언로드 결과
     #[serde(rename = "script_result")]
     ScriptResult {
@@ -282,6 +285,9 @@ pub enum ClientCommand {
     /// Contract Testing 스펙 목록 조회
     #[serde(rename = "get_contract_specs")]
     GetContractSpecs,
+    /// GraphQL 오퍼레이션 목록 조회
+    #[serde(rename = "get_graphql_operations")]
+    GetGraphqlOperations,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
