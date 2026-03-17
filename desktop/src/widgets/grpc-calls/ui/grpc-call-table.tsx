@@ -5,6 +5,7 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { cn } from "@/shared/lib";
 import { ScrollArea } from "@/shared/ui";
 import type { GrpcCall } from "@/entities/grpc";
+import { GRPC_STATUS_COLORS } from "./grpc-status-colors";
 
 interface GrpcCallTableProps {
   calls: GrpcCall[];
@@ -33,19 +34,6 @@ function formatDuration(requestNanos: number, responseNanos: number | null): str
   return `${(ms / 1000).toFixed(1)}s`;
 }
 
-const STATUS_COLORS: Record<string, string> = {
-  OK: "text-green-600 dark:text-green-400",
-  CANCELLED: "text-yellow-600 dark:text-yellow-400",
-  UNKNOWN: "text-red-600 dark:text-red-400",
-  INVALID_ARGUMENT: "text-red-600 dark:text-red-400",
-  DEADLINE_EXCEEDED: "text-red-600 dark:text-red-400",
-  NOT_FOUND: "text-orange-600 dark:text-orange-400",
-  PERMISSION_DENIED: "text-red-600 dark:text-red-400",
-  INTERNAL: "text-red-600 dark:text-red-400",
-  UNAVAILABLE: "text-red-600 dark:text-red-400",
-  UNAUTHENTICATED: "text-red-600 dark:text-red-400",
-};
-
 const GrpcCallRow = memo(
   ({
     call,
@@ -71,7 +59,7 @@ const GrpcCallRow = memo(
             <span
               className={cn(
                 "text-[10px] font-medium",
-                STATUS_COLORS[call.statusName] ?? "text-muted-foreground",
+                GRPC_STATUS_COLORS[call.statusName] ?? "text-muted-foreground",
               )}
             >
               {call.statusName}

@@ -558,7 +558,7 @@ msgstr "Clients without a valid certificate will be rejected"
 #: src/features/transaction-details/ui/sequence-replay-dialog.tsx:240
 #: src/features/transaction-details/ui/transaction-header.tsx:63
 #: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:178
-#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:120
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:107
 #: src/widgets/sse-messages/ui/sse-message-detail.tsx:96
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:131
 msgid "Close"
@@ -832,8 +832,8 @@ msgstr "Duplicate Requests"
 #: src/pages/analytics-dashboard/ui/performance-tab.tsx:48
 #: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:79
 #: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:177
-#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:58
-#: src/widgets/grpc-calls/ui/grpc-call-table.tsx:171
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:45
+#: src/widgets/grpc-calls/ui/grpc-call-table.tsx:159
 msgid "Duration"
 msgstr "Duration"
 
@@ -889,12 +889,12 @@ msgstr "Enable full trust for the Cheolsu Proxy CA certificate"
 msgid "Enabled"
 msgstr "Enabled"
 
-#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:76
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:63
 msgid "Encoding"
 msgstr "Encoding"
 
 #: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:76
-#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:55
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:42
 msgid "Endpoint"
 msgstr "Endpoint"
 
@@ -1124,11 +1124,11 @@ msgstr "gRPC calls and service methods"
 msgid "gRPC Proto Files"
 msgstr "gRPC Proto Files"
 
-#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:64
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:51
 msgid "gRPC Status"
 msgstr "gRPC Status"
 
-#: src/widgets/grpc-calls/ui/grpc-call-table.tsx:160
+#: src/widgets/grpc-calls/ui/grpc-call-table.tsx:148
 msgid "gRPC 호출을 기다리는 중..."
 msgstr "gRPC 호출을 기다리는 중..."
 
@@ -1206,7 +1206,7 @@ msgstr "HTTP connection (no TLS)"
 msgid "HTTP requests and responses"
 msgstr "HTTP requests and responses"
 
-#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:73
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:60
 msgid "HTTP Status"
 msgstr "HTTP Status"
 
@@ -1526,8 +1526,8 @@ msgstr "messages"
 #: src/pages/analytics-dashboard/ui/misc-tab.tsx:39
 #: src/pages/analytics-dashboard/ui/misc-tab.tsx:132
 #: src/pages/analytics-dashboard/ui/performance-tab.tsx:44
-#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:53
-#: src/widgets/grpc-calls/ui/grpc-call-table.tsx:170
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:40
+#: src/widgets/grpc-calls/ui/grpc-call-table.tsx:158
 msgid "Method"
 msgstr "Method"
 
@@ -2138,7 +2138,7 @@ msgstr "Replay request"
 #: src/features/transaction-details/ui/replay-dialog.tsx:373
 #: src/features/transaction-details/ui/transaction-body-side-by-side.tsx:16
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:296
-#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:79
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:66
 msgid "Request"
 msgstr "Request"
 
@@ -2214,7 +2214,7 @@ msgstr "Require certificate"
 #: src/features/transaction-details/ui/transaction-body-side-by-side.tsx:24
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:301
 #: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:138
-#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:83
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:70
 msgid "Response"
 msgstr "Response"
 
@@ -2533,7 +2533,7 @@ msgstr "Server Replay"
 msgid "Server-Sent Events streams"
 msgstr "Server-Sent Events streams"
 
-#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:50
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:37
 msgid "Service"
 msgstr "Service"
 
@@ -2654,7 +2654,7 @@ msgstr "Starts background server connection immediately after ClientHello detect
 #: src/shared/app-sidebar/ui/sidebar-status.tsx:39
 #: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:86
 #: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:176
-#: src/widgets/grpc-calls/ui/grpc-call-table.tsx:169
+#: src/widgets/grpc-calls/ui/grpc-call-table.tsx:157
 msgid "Status"
 msgstr "Status"
 
@@ -2669,7 +2669,7 @@ msgstr "Status Code"
 msgid "Status Code Distribution"
 msgstr "Status Code Distribution"
 
-#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:70
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:57
 msgid "Status Message"
 msgstr "Status Message"
 
@@ -2760,8 +2760,8 @@ msgstr "Throughput"
 #: src/pages/analytics-dashboard/ui/performance-tab.tsx:54
 #: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:77
 #: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:178
-#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:56
-#: src/widgets/grpc-calls/ui/grpc-call-table.tsx:172
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:43
+#: src/widgets/grpc-calls/ui/grpc-call-table.tsx:160
 #: src/widgets/sse-messages/ui/sse-message-detail.tsx:63
 #: src/widgets/sse-messages/ui/sse-message-table.tsx:148
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:63

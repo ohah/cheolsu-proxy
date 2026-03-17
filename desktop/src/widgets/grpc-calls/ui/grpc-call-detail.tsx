@@ -4,7 +4,9 @@ import { Trans } from "@lingui/react/macro";
 import { X } from "lucide-react";
 import { Button, Tooltip, TooltipTrigger, TooltipContent } from "@/shared/ui";
 import { cn } from "@/shared/lib";
+import { formatBytes } from "@/shared/lib/format-bytes";
 import type { GrpcCall } from "@/entities/grpc";
+import { GRPC_STATUS_COLORS } from "./grpc-status-colors";
 
 interface GrpcCallDetailProps {
   call: GrpcCall;
@@ -23,21 +25,6 @@ function formatDuration(requestNanos: number, responseNanos: number | null): str
   if (ms < 1000) return `${Math.round(ms)}ms`;
   return `${(ms / 1000).toFixed(1)}s`;
 }
-
-function formatBytes(bytes: number): string {
-  if (bytes === 0) return "0 B";
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-const STATUS_COLORS: Record<string, string> = {
-  OK: "text-green-600 dark:text-green-400",
-  CANCELLED: "text-yellow-600 dark:text-yellow-400",
-  INTERNAL: "text-red-600 dark:text-red-400",
-  UNAVAILABLE: "text-red-600 dark:text-red-400",
-  DEADLINE_EXCEEDED: "text-red-600 dark:text-red-400",
-};
 
 export const GrpcCallDetail = memo(({ call, onClose }: GrpcCallDetailProps) => {
   const { t } = useLingui();
@@ -103,7 +90,7 @@ export const GrpcCallDetail = memo(({ call, onClose }: GrpcCallDetailProps) => {
             <span
               className={cn(
                 "text-[10px] font-medium",
-                STATUS_COLORS[call.statusName] ?? (isError ? "text-destructive" : "text-muted-foreground"),
+                GRPC_STATUS_COLORS[call.statusName] ?? (isError ? "text-destructive" : "text-muted-foreground"),
               )}
             >
               {call.statusName}

@@ -23,6 +23,8 @@ export interface GrpcCall {
   requestFrameCount: number;
   /** 응답 프레임 수 */
   responseFrameCount: number;
+  /** 스트리밍 타입 */
+  streamingType: "Unary" | "ServerStreaming" | "ClientStreaming" | "BidirectionalStreaming";
   /** HTTP 상태 코드 */
   httpStatus: number | null;
   /** 요청 바디 크기 */

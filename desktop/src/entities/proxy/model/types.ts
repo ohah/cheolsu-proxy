@@ -30,13 +30,15 @@ export interface ResponsePayload {
   data?: Record<string, unknown> | string;
 }
 
+export type GrpcStreamingType = "Unary" | "ServerStreaming" | "ClientStreaming" | "BidirectionalStreaming";
+
 export interface GrpcMetadata {
-  service?: string | null;
-  method?: string | null;
-  status_code?: number | null;
-  status_message?: string | null;
-  content_subtype?: string | null;
-  streaming_type: "Unary" | "ServerStreaming" | "ClientStreaming" | "BidirectionalStreaming";
+  service: string | null;
+  method: string | null;
+  status_code: number | null;
+  status_message: string | null;
+  content_subtype: string | null;
+  streaming_type: GrpcStreamingType;
   frame_count: number;
   is_compressed: boolean;
 }
