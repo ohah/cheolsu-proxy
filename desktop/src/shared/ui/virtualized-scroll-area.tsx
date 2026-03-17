@@ -1,4 +1,4 @@
-import { useRef, forwardRef, useMemo, useEffect, useCallback } from "react";
+import { forwardRef, useMemo, useState, useCallback } from "react";
 
 import { useVirtualizer } from "@tanstack/react-virtual";
 
@@ -14,21 +14,18 @@ interface VirtualizedScrollAreaProps {
 
 export const VirtualizedScrollArea = forwardRef<HTMLDivElement, VirtualizedScrollAreaProps>(
   ({ itemCount, itemSize, overscan = 10, className, renderItem }, _ref) => {
-    const scrollAreaRef = useRef<HTMLDivElement>(null);
-    const viewportRef = useRef<HTMLDivElement>(null);
+    const [viewport, setViewport] = useState<HTMLDivElement | null>(null);
 
-    useEffect(() => {
-      if (scrollAreaRef.current) {
-        const viewport = scrollAreaRef.current.querySelector(
+    const scrollAreaRef = useCallback((node: HTMLDivElement | null) => {
+      if (node) {
+        const vp = node.querySelector(
           '[data-slot="scroll-area-viewport"]',
-        ) as HTMLDivElement;
-        if (viewport) {
-          viewportRef.current = viewport;
-        }
+        ) as HTMLDivElement | null;
+        setViewport(vp);
       }
     }, []);
 
-    const getScrollElement = useCallback(() => viewportRef.current, []);
+    const getScrollElement = useCallback(() => viewport, [viewport]);
     const estimateSize = useCallback(() => itemSize, [itemSize]);
 
     const virtualizer = useVirtualizer({
