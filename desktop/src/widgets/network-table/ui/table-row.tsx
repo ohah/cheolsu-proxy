@@ -34,6 +34,8 @@ import {
   generateFetchCommand,
   generateHttpieCommand,
   generatePythonRequestsCommand,
+  generatePowerShellCommand,
+  generateNodejsFetchCommand,
 } from "@/shared/lib";
 import { useInterceptRuleDialogStore } from "@/shared/stores";
 import { toast } from "sonner";
@@ -172,6 +174,16 @@ export const TableRow = memo(function TableRow({
             </ContextMenuItem>
             <ContextMenuItem onClick={() => handleCopyAs(generateFetchCommand, "fetch")}>
               <Trans>JavaScript Fetch</Trans>
+            </ContextMenuItem>
+            <ContextMenuItem
+              onClick={() => handleCopyAs(generateNodejsFetchCommand, "Node.js fetch")}
+            >
+              <Trans>Node.js Fetch</Trans>
+            </ContextMenuItem>
+            <ContextMenuItem
+              onClick={() => handleCopyAs(generatePowerShellCommand, "PowerShell")}
+            >
+              <Trans>PowerShell</Trans>
             </ContextMenuItem>
             <ContextMenuItem onClick={() => handleCopyAs(generateHttpieCommand, "HTTPie")}>
               <Trans>HTTPie</Trans>
