@@ -16,9 +16,10 @@
     "log:clean": "cd src-tauri/logs && TODAY=$(date +%Y-%m-%d) && rm -f proxy.log.$TODAY.old*",
     "extract": "lingui extract --clean",
     "compile": "lingui compile",
-    "test": "bun test --preload ./test/setup.ts test/stores test/entities test/lib",
+    "test": "bun test --preload ./test/setup.ts test/stores test/entities test/lib src/shared/lib",
+    "test:components": "bun test --preload ./test/setup.ts --preload ./test/setup-react.ts src/features src/widgets src/pages",
     "test:e2e": "bun test --timeout 60000 test/e2e",
-    "test:all": "bun run test && bun run test:e2e"
+    "test:all": "bun run test && bun run test:components && bun run test:e2e"
   },
   "dependencies": {
     "@base-ui/react": "^1.2.0",
@@ -37,6 +38,7 @@
     "@tauri-apps/plugin-os": "^2.3.2",
     "@tauri-apps/plugin-store": "2.4.2",
     "@tauri-apps/plugin-updater": "^2.10.0",
+    "babel-plugin-macros": "^3.1.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",

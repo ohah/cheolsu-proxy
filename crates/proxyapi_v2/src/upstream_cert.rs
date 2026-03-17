@@ -401,4 +401,76 @@ mod tests {
         let result = parse_cert_info(b"not a valid certificate");
         assert!(result.is_none());
     }
+
+    #[test]
+    fn test_to_server_cert_info_basic_conversion() {
+        let info = UpstreamCertInfo {
+            common_name: Some("example.com".to_string()),
+            organization: Some("Example Inc.".to_string()),
+            sans_dns: vec!["example.com".to_string(), "*.example.com".to_string()],
+            sans_ip: vec!["127.0.0.1".parse().unwrap(), "::1".parse().unwrap()],
+            negotiated_alpn: Some(b"h2".to_vec()),
+            issuer_cn: Some("Let's Encrypt".to_string()),
+            not_before: Some("2024-01-01T00:00:00Z".to_string()),
+            not_after: Some("2025-01-01T00:00:00Z".to_string()),
+            serial_number: Some("01:AB:CD".to_string()),
+            fingerprint_sha256: Some("AA:BB:CC".to_string()),
+            is_ca: false,
+            chain_length: 3,
+        };
+
+        let cert_info = info.to_server_cert_info();
+
+        assert_eq!(cert_info.subject_cn, Some("example.com".to_string()));
+        assert_eq!(cert_info.organization, Some("Example Inc.".to_string()));
+        assert_eq!(cert_info.issuer_cn, Some("Let's Encrypt".to_string()));
+        assert_eq!(cert_info.sans_dns.len(), 2);
+        assert_eq!(cert_info.sans_ip, vec!["127.0.0.1", "::1"]);
+        assert_eq!(
+            cert_info.not_before,
+            Some("2024-01-01T00:00:00Z".to_string())
+        );
+        assert_eq!(
+            cert_info.not_after,
+            Some("2025-01-01T00:00:00Z".to_string())
+        );
+        assert_eq!(cert_info.serial_number, Some("01:AB:CD".to_string()));
+        assert_eq!(cert_info.fingerprint_sha256, Some("AA:BB:CC".to_string()));
+        assert!(!cert_info.is_ca);
+        assert_eq!(cert_info.negotiated_alpn, Some("h2".to_string()));
+        assert_eq!(cert_info.chain_length, 3);
+    }
+
+    #[test]
+    fn test_to_server_cert_info_default_values() {
+        let info = UpstreamCertInfo::default();
+        let cert_info = info.to_server_cert_info();
+
+        assert!(cert_info.subject_cn.is_none());
+        assert!(cert_info.issuer_cn.is_none());
+        assert!(cert_info.organization.is_none());
+        assert!(cert_info.sans_dns.is_empty());
+        assert!(cert_info.sans_ip.is_empty());
+        assert!(cert_info.not_before.is_none());
+        assert!(cert_info.not_after.is_none());
+        assert!(cert_info.serial_number.is_none());
+        assert!(cert_info.fingerprint_sha256.is_none());
+        assert!(!cert_info.is_ca);
+        assert!(cert_info.negotiated_alpn.is_none());
+        assert_eq!(cert_info.chain_length, 0);
+    }
+
+    #[test]
+    fn test_to_server_cert_info_ip_addr_to_string() {
+        let info = UpstreamCertInfo {
+            sans_ip: vec![
+                "192.168.1.1".parse().unwrap(),
+                "2001:db8::1".parse().unwrap(),
+            ],
+            ..Default::default()
+        };
+
+        let cert_info = info.to_server_cert_info();
+        assert_eq!(cert_info.sans_ip, vec!["192.168.1.1", "2001:db8::1"]);
+    }
 }
