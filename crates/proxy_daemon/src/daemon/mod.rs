@@ -348,8 +348,9 @@ async fn daemon_main(port: u16, host: String) -> i32 {
     let tls_strategy_cache: proxyapi_v2::hybrid_tls_handler::TlsStrategyCache =
         std::sync::Arc::new(tokio::sync::RwLock::new(std::collections::HashMap::new()));
     // TLS 설정 관리자 (내장 규칙 포함)
-    let tls_config: proxyapi_v2::tls_config::SharedTlsConfig =
-        std::sync::Arc::new(proxyapi_v2::tls_config::TlsConfigManager::with_builtin_rules());
+    let tls_config: proxyapi_v2::tls_config::SharedTlsConfig = std::sync::Arc::new(
+        tokio::sync::RwLock::new(proxyapi_v2::tls_config::TlsConfigManager::with_builtin_rules()),
+    );
 
     let (proxy_handle, proxy_shutdown_tx) = spawn_proxy_task(
         addr,

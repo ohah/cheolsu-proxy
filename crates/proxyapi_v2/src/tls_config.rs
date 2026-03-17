@@ -292,8 +292,9 @@ fn matches_domain_pattern(pattern: &str, host: &str) -> bool {
     }
 }
 
-/// `Arc`로 감싼 `TlsConfigManager` 타입 alias
-pub type SharedTlsConfig = Arc<TlsConfigManager>;
+/// `Arc<RwLock>`로 감싼 `TlsConfigManager` 타입 alias
+/// 런타임에 규칙 추가/제거가 가능합니다.
+pub type SharedTlsConfig = Arc<tokio::sync::RwLock<TlsConfigManager>>;
 
 #[cfg(test)]
 mod tests {
