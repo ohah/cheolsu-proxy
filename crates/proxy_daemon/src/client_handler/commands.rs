@@ -435,6 +435,58 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bo
             // 별도의 서버 측 처리가 필요하지 않습니다.
             info!("GraphQL 오퍼레이션 목록 조회 요청 수신");
         }
+        ClientCommand::GetTlsConfigRules => {
+            if let Some(tls_config) = &s.tls_config {
+                let rules = tls_config.rules().to_vec();
+                let response = DaemonMessage::TlsConfigRules { rules };
+                ctx.send_message(&response).await;
+            } else {
+                let response = DaemonMessage::TlsConfigRules { rules: vec![] };
+                ctx.send_message(&response).await;
+            }
+        }
+        ClientCommand::UpdateTlsConfigRules { rules } => {
+            info!("TLS config rules updated: {} rules", rules.len());
+            if let Some(tls_config) = &s.tls_config {
+                // SharedTlsConfig은 Arc<TlsConfigManager>이므로 직접 수정 불가
+                // 새 매니저를 생성하여 교체하는 방식 대신, 현재는 로그만 남김
+                // TODO: Arc<RwLock<TlsConfigManager>>로 변경하면 런타임 수정 가능
+                warn!(
+                    "TLS config rules update requested but SharedTlsConfig is immutable (Arc). {} rules received, current: {} rules",
+                    rules.len(),
+                    tls_config.rules().len()
+                );
+            }
+            let response = DaemonMessage::TlsConfigRules { rules };
+            ctx.send_message(&response).await;
+        }
+        ClientCommand::GetLearnedTlsStrategies => {
+            if let Some(cache) = &s.tls_strategy_cache {
+                let guard = cache.read().await;
+                let strategies: Vec<proxyapi_v2::hybrid_tls_handler::LearnedTlsStrategy> = guard
+                    .iter()
+                    .map(
+                        |(domain, strategy)| proxyapi_v2::hybrid_tls_handler::LearnedTlsStrategy {
+                            domain: domain.clone(),
+                            strategy: strategy.as_str().to_string(),
+                        },
+                    )
+                    .collect();
+                let response = DaemonMessage::LearnedTlsStrategies { strategies };
+                ctx.send_message(&response).await;
+            } else {
+                let response = DaemonMessage::LearnedTlsStrategies { strategies: vec![] };
+                ctx.send_message(&response).await;
+            }
+        }
+        ClientCommand::ClearLearnedTlsStrategies => {
+            if let Some(cache) = &s.tls_strategy_cache {
+                let mut guard = cache.write().await;
+                let count = guard.len();
+                guard.clear();
+                info!("Learned TLS strategies cleared: {} entries removed", count);
+            }
+        }
         ClientCommand::Stop => {
             return true;
         }

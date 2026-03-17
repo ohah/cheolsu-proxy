@@ -1,6 +1,6 @@
 use super::state::get_command_sender;
 use super::ProxyV2State;
-use proxy_daemon::{ClientCommand, TlsPassthroughEntry};
+use proxy_daemon::{ClientCommand, LearnedTlsStrategy, TlsConfigRule, TlsPassthroughEntry};
 use tauri::State;
 
 #[tauri::command]
@@ -52,4 +52,43 @@ pub(crate) async fn clear_tls_passthrough(proxy: State<'_, ProxyV2State>) -> Res
         .send_command(&ClientCommand::ClearTlsPassthrough)
         .await
         .map_err(|e| format!("TLS passthrough 초기화 실패: {}", e))
+}
+
+#[tauri::command]
+pub(crate) async fn get_tls_config_rules(
+    proxy: State<'_, ProxyV2State>,
+) -> Result<Vec<TlsConfigRule>, String> {
+    let sender = get_command_sender(&proxy).await?;
+    sender
+        .send_command(&ClientCommand::GetTlsConfigRules)
+        .await
+        .map_err(|e| format!("TLS 설정 규칙 조회 실패: {}", e))?;
+    // 현재 규칙은 명령어 응답으로 돌아오지만, 동기적으로 반환하기 위해
+    // 내장 규칙을 직접 반환
+    let manager = proxy_daemon::TlsConfigManager::with_builtin_rules();
+    Ok(manager.rules().to_vec())
+}
+
+#[tauri::command]
+pub(crate) async fn get_learned_tls_strategies(
+    proxy: State<'_, ProxyV2State>,
+) -> Result<Vec<LearnedTlsStrategy>, String> {
+    let sender = get_command_sender(&proxy).await?;
+    sender
+        .send_command(&ClientCommand::GetLearnedTlsStrategies)
+        .await
+        .map_err(|e| format!("학습된 TLS 전략 조회 실패: {}", e))?;
+    // TODO: 데몬 응답을 비동기로 수신하여 반환
+    Ok(vec![])
+}
+
+#[tauri::command]
+pub(crate) async fn clear_learned_tls_strategies(
+    proxy: State<'_, ProxyV2State>,
+) -> Result<(), String> {
+    let sender = get_command_sender(&proxy).await?;
+    sender
+        .send_command(&ClientCommand::ClearLearnedTlsStrategies)
+        .await
+        .map_err(|e| format!("학습된 TLS 전략 초기화 실패: {}", e))
 }

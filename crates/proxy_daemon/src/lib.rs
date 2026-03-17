@@ -53,7 +53,9 @@ pub use protocol::{
 };
 pub use proxy_v2_models::RequestInfo;
 pub use proxyapi_v2::certificate_authority::{clean_all_cache, clean_old_cache};
+pub use proxyapi_v2::hybrid_tls_handler::LearnedTlsStrategy;
 pub use proxyapi_v2::throttle::{ThrottleConfig, ThrottlePreset};
+pub use proxyapi_v2::tls_config::{TlsConfigManager, TlsConfigRule};
 pub use proxyapi_v2::upstream_proxy::{UpstreamProxyAuth, UpstreamProxyConfig};
 pub use session::{
     ensure_extension, import_har, import_har_file, SessionFile, SessionMetadata, SessionTransaction,

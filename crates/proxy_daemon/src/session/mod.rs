@@ -191,6 +191,7 @@ mod tests {
             response: Some(client_res),
             validations: None,
             server_cert: None,
+            tls_fallback_used: None,
         }
     }
 
@@ -350,6 +351,7 @@ mod tests {
             response: None,
             validations: None,
             server_cert: None,
+            tls_fallback_used: None,
         }];
         let session = SessionFile::from_traffic(8100, &transactions, &[], &[], &[], None);
         assert_eq!(session.metadata.total_transactions, 1);
@@ -363,6 +365,7 @@ mod tests {
             response: None,
             validations: None,
             server_cert: None,
+            tls_fallback_used: None,
         }];
         let session = SessionFile::from_traffic(8100, &transactions, &[], &[], &[], None);
         let extracted = session.extract_transactions();
@@ -414,6 +417,7 @@ mod tests {
                     response: None,
                     validations: None,
                     server_cert: None,
+                    tls_fallback_used: None,
                 },
             });
         }

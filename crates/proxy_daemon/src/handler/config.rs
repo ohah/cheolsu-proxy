@@ -21,6 +21,8 @@ pub(crate) struct RequestState {
     pub(crate) proxy_auth_user: Option<String>,
     /// 서버 TLS 인증서 정보
     pub(crate) server_cert: Option<proxy_v2_models::ServerCertInfo>,
+    /// TLS 학습 기반 폴백 사용 여부
+    pub(crate) tls_fallback_used: Option<bool>,
 }
 
 /// 빠른 설정 (No Caching, Block Cookies, No Gzip)
@@ -92,6 +94,7 @@ impl LoggingHandler {
                 response_header_time: None,
                 proxy_auth_user: None,
                 server_cert: None,
+                tls_fallback_used: None,
             },
             config: ProxyConfig {
                 cache_dir: Some(cache_dir),

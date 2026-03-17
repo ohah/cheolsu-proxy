@@ -16,7 +16,9 @@ pub(crate) use analysis::{analyze_tls_connection, determine_tls_strategy};
 // calculate_complexity_score, get_extension_name, is_openssl_required_domain are
 // used internally in analysis.rs and re-exported for tests below.
 pub(crate) use stream::HybridTlsStream;
-pub use types::{TlsConnectionInfo, TlsExtension, TlsStrategy};
+pub use types::{
+    LearnedTlsStrategy, TlsConnectionInfo, TlsExtension, TlsStrategy, TlsStrategyCache,
+};
 
 use crate::certificate_authority::CertificateAuthority;
 use crate::rewind::Rewind;
@@ -28,13 +30,15 @@ use hyper::upgrade::Upgraded;
 use hyper_util::rt::TokioIo;
 use std::sync::Arc;
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite};
-use tracing::{error, info};
+use tracing::{error, info, warn};
 
 /// TLS 핸들러 - rustls 사용 (Hudsucker 방식으로 단순화)
 pub(crate) struct HybridTlsHandler<CA: CertificateAuthority> {
     ca: Arc<CA>,
     tls_event_sender: Option<TlsEventSender>,
     tls_config: Option<SharedTlsConfig>,
+    /// 도메인별 학습된 TLS 전략 캐시
+    strategy_cache: Option<TlsStrategyCache>,
 }
 
 impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
@@ -43,12 +47,32 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
         ca: Arc<CA>,
         tls_event_sender: Option<TlsEventSender>,
         tls_config: Option<SharedTlsConfig>,
+        strategy_cache: Option<TlsStrategyCache>,
     ) -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
         Ok(Self {
             ca,
             tls_event_sender,
             tls_config,
+            strategy_cache,
         })
+    }
+
+    /// 학습된 전략이 있으면 반환합니다
+    async fn get_learned_strategy(&self, host: &str) -> Option<TlsStrategy> {
+        if let Some(cache) = &self.strategy_cache {
+            let guard = cache.read().await;
+            guard.get(host).copied()
+        } else {
+            None
+        }
+    }
+
+    /// 성공한 전략을 학습합니다
+    async fn learn_strategy(&self, host: &str, strategy: TlsStrategy) {
+        if let Some(cache) = &self.strategy_cache {
+            let mut guard = cache.write().await;
+            guard.insert(host.to_string(), strategy);
+        }
     }
 
     /// TLS 연결을 상세 분석합니다
@@ -69,13 +93,15 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
     }
 
     /// TLS 버전을 감지하고 적절한 TLS 핸들러를 선택합니다 (Upgraded 스트림 전용)
+    ///
+    /// 반환값: `(TLS 스트림, 폴백 사용 여부)`
     pub(crate) async fn handle_tls_connection_upgraded(
         &self,
         authority: &Authority,
         upgraded: Rewind<TokioIo<Upgraded>>,
         initial_buffer: &[u8],
         upstream_cert: Option<&UpstreamCertInfo>,
-    ) -> Result<HybridTlsStream, Box<dyn std::error::Error + Send + Sync>> {
+    ) -> Result<(HybridTlsStream, bool), Box<dyn std::error::Error + Send + Sync>> {
         info!("🔍 [TLS-NEGOTIATION] 새로운 TLS 협상 시작: {}", authority);
         let handshake_start = std::time::Instant::now();
 
@@ -91,8 +117,23 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
             },
         );
 
-        // 2단계: 결정적 라이브러리 선택
-        let strategy = self.determine_tls_strategy(authority, &tls_info);
+        // 2단계: 전략 선택 (학습된 전략 우선)
+        let host = authority.host();
+        let analyzed_strategy = self.determine_tls_strategy(authority, &tls_info);
+        let learned = self.get_learned_strategy(host).await;
+        let strategy = if let Some(learned_strategy) = learned {
+            if learned_strategy != analyzed_strategy {
+                info!(
+                    "🎯 [TLS-STRATEGY] 학습된 전략 사용: {:?} (분석 결과: {:?})",
+                    learned_strategy, analyzed_strategy
+                );
+            }
+            learned_strategy
+        } else {
+            analyzed_strategy
+        };
+        let fallback_used = learned.is_some() && learned.unwrap() != analyzed_strategy;
+
         info!("🎯 [TLS-STRATEGY] 선택된 전략: {:?}", strategy);
 
         emit_tls_event(
@@ -137,18 +178,32 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
         let duration = handshake_start.elapsed();
         match &result {
             Ok(_) => {
-                info!("✅ [TLS] 핸드셰이크 성공: {} ({:?})", authority, duration);
+                // 성공한 전략을 학습
+                self.learn_strategy(host, strategy).await;
+                info!(
+                    "✅ [TLS] 핸드셰이크 성공: {} ({:?}){}",
+                    authority,
+                    duration,
+                    if fallback_used { " [폴백]" } else { "" }
+                );
                 emit_tls_event(
                     &self.tls_event_sender,
                     TlsEvent::HandshakeCompleted {
                         authority: authority.clone(),
                         strategy,
                         duration,
+                        fallback_used,
                     },
                 );
             }
             Err(e) => {
-                error!("❌ [TLS] 핸드셰이크 실패: {} - {}", authority, e);
+                // 실패 시 반대 전략을 학습 (다음 연결에서 시도)
+                let opposite = strategy.opposite();
+                warn!(
+                    "❌ [TLS] 핸드셰이크 실패: {} - {}. 다음 연결에서 {:?} 전략 시도 예정",
+                    authority, e, opposite
+                );
+                self.learn_strategy(host, opposite).await;
                 emit_tls_event(
                     &self.tls_event_sender,
                     TlsEvent::HandshakeFailed {
@@ -161,7 +216,7 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
             }
         }
 
-        result
+        result.map(|stream| (stream, fallback_used))
     }
 
     /// TLS 버전을 감지하고 적절한 TLS 핸들러를 선택합니다

@@ -53,6 +53,7 @@ fn make_transaction(
         response: Some(res),
         validations: None,
         server_cert: None,
+        tls_fallback_used: None,
     }
 }
 
@@ -174,6 +175,7 @@ fn build_har_request_only_no_response() {
         response: None,
         validations: None,
         server_cert: None,
+        tls_fallback_used: None,
     };
 
     let har = build_har(&[tx]);
@@ -191,6 +193,7 @@ fn build_har_no_request_skipped() {
         response: None,
         validations: None,
         server_cert: None,
+        tls_fallback_used: None,
     };
     let har = build_har(&[tx]);
     assert!(har.log.entries.is_empty());
@@ -234,6 +237,7 @@ fn build_har_cookies_parsed() {
         response: None,
         validations: None,
         server_cert: None,
+        tls_fallback_used: None,
     };
 
     let har = build_har(&[tx]);
@@ -266,6 +270,7 @@ fn build_har_redirect_url() {
         response: Some(client_res),
         validations: None,
         server_cert: None,
+        tls_fallback_used: None,
     };
 
     let har = build_har(&[tx]);

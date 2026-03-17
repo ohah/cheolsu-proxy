@@ -1,3 +1,4 @@
+use crate::hybrid_tls_handler::TlsStrategyCache;
 use crate::metrics::MetricsCollector;
 use crate::throttle::ThrottleConfig;
 use crate::tls_config::SharedTlsConfig;
@@ -71,6 +72,8 @@ pub struct ProxyContext {
     pub metrics: Option<Arc<MetricsCollector>>,
     /// Graceful shutdown 신호 수신기 (detached 태스크 종료용)
     pub shutdown_rx: Option<watch::Receiver<bool>>,
+    /// 도메인별 학습된 TLS 전략 캐시 (폴백 학습용)
+    pub tls_strategy_cache: Option<TlsStrategyCache>,
 }
 
 impl ProxyContext {

@@ -15,7 +15,9 @@ use proxy_v2_models::openapi::ContractSpecInfo;
 use proxy_v2_models::{
     RequestInfo, SseConnectionEvent, SseEventInfo, WsConnectionEvent, WsMessageInfo,
 };
+use proxyapi_v2::hybrid_tls_handler::LearnedTlsStrategy;
 use proxyapi_v2::throttle::ThrottleConfig;
+use proxyapi_v2::tls_config::TlsConfigRule;
 use proxyapi_v2::upstream_proxy::UpstreamProxyConfig;
 use serde::{Deserialize, Serialize};
 
@@ -155,6 +157,12 @@ pub enum DaemonMessage {
     /// Contract Testing 스펙 로드 에러
     #[serde(rename = "contract_spec_error")]
     ContractSpecError { error: String },
+    /// TLS 설정 규칙 목록
+    #[serde(rename = "tls_config_rules")]
+    TlsConfigRules { rules: Vec<TlsConfigRule> },
+    /// 학습된 TLS 전략 목록
+    #[serde(rename = "learned_tls_strategies")]
+    LearnedTlsStrategies { strategies: Vec<LearnedTlsStrategy> },
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -288,6 +296,18 @@ pub enum ClientCommand {
     /// GraphQL 오퍼레이션 목록 조회
     #[serde(rename = "get_graphql_operations")]
     GetGraphqlOperations,
+    /// TLS 설정 규칙 조회
+    #[serde(rename = "get_tls_config_rules")]
+    GetTlsConfigRules,
+    /// TLS 설정 규칙 업데이트
+    #[serde(rename = "update_tls_config_rules")]
+    UpdateTlsConfigRules { rules: Vec<TlsConfigRule> },
+    /// 학습된 TLS 전략 조회
+    #[serde(rename = "get_learned_tls_strategies")]
+    GetLearnedTlsStrategies,
+    /// 학습된 TLS 전략 초기화
+    #[serde(rename = "clear_learned_tls_strategies")]
+    ClearLearnedTlsStrategies,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

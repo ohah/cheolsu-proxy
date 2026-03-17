@@ -53,6 +53,7 @@ fn make_request_info(id: &str, method: &str, uri: &str, status: u16) -> RequestI
         response: Some(make_client_response(id, status)),
         validations: None,
         server_cert: None,
+        tls_fallback_used: None,
     }
 }
 
@@ -558,6 +559,7 @@ fn store_push_partial_request_info() {
         response: None,
         validations: None,
         server_cert: None,
+        tls_fallback_used: None,
     };
     store.push_transaction(info);
 
@@ -577,6 +579,7 @@ fn store_push_empty_request_info() {
         response: None,
         validations: None,
         server_cert: None,
+        tls_fallback_used: None,
     };
     store.push_transaction(info);
 

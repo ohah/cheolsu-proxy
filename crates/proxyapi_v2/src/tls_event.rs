@@ -39,6 +39,8 @@ pub enum TlsEvent {
         authority: Authority,
         strategy: TlsStrategy,
         duration: Duration,
+        /// 학습 기반 폴백으로 전략이 변경되었는지 여부
+        fallback_used: bool,
     },
     /// TLS 핸드셰이크 실패
     HandshakeFailed {

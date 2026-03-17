@@ -369,6 +369,7 @@ where
                     Arc::clone(&self.ca),
                     self.ctx.tls_event_sender.clone(),
                     self.ctx.tls_config.clone(),
+                    self.ctx.tls_strategy_cache.clone(),
                 )
                 .await
                 {
@@ -413,8 +414,9 @@ where
                         );
                         self.record_tls_failure(authority).await;
                     }
-                    Ok(Ok(hybrid_stream)) => {
-                        info!(%version, "하이브리드 TLS 연결 성공");
+                    Ok(Ok((hybrid_stream, fallback_used))) => {
+                        info!(%version, fallback_used, "하이브리드 TLS 연결 성공");
+                        self.tls_fallback_used = if fallback_used { Some(true) } else { None };
                         self.record_tls_success(authority).await;
                         if let Err(e) = self
                             .serve_stream(

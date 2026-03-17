@@ -444,6 +444,7 @@ mod tests_reverse_proxy {
                 response_header_time: None,
                 proxy_auth_user: None,
                 server_cert: None,
+                tls_fallback_used: None,
             },
             config: ProxyConfig {
                 cache_dir: None,

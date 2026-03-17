@@ -7,11 +7,12 @@ mod system_proxy;
 mod tray;
 use proxy_v2::{
     advanced_repeat, autoload_session, autosave_session, check_ca_installed, check_cli_installed,
-    clean_old_proxy_cache, clear_log_file, clear_tls_passthrough, create_proto_file_state,
-    decode_grpc_message, delete_log_file, diff_transaction_pairs, diff_transactions,
-    export_har_file, generate_openapi_from_transactions, get_ca_cert_path, get_cert_download_info,
-    get_contract_specs, get_custom_ca_status, get_default_passthrough_domains, get_log_dir,
-    get_log_files, get_mcp_server_path, get_tls_passthrough_list, import_custom_ca,
+    clean_old_proxy_cache, clear_learned_tls_strategies, clear_log_file, clear_tls_passthrough,
+    create_proto_file_state, decode_grpc_message, delete_log_file, diff_transaction_pairs,
+    diff_transactions, export_har_file, generate_openapi_from_transactions, get_ca_cert_path,
+    get_cert_download_info, get_contract_specs, get_custom_ca_status,
+    get_default_passthrough_domains, get_learned_tls_strategies, get_log_dir, get_log_files,
+    get_mcp_server_path, get_tls_config_rules, get_tls_passthrough_list, import_custom_ca,
     import_custom_ca_pkcs12, import_har_file_cmd, install_ca_cert, install_cli, list_proto_files,
     load_contract_spec, load_proto_files, load_script, load_session, parse_certificate_info,
     proxy_v2_status, read_body_file, read_log_file, remove_custom_ca, remove_proto_file,
@@ -280,6 +281,9 @@ pub fn run() {
                 unload_contract_spec,
                 toggle_contract_spec,
                 get_contract_specs,
+                get_tls_config_rules,
+                get_learned_tls_strategies,
+                clear_learned_tls_strategies,
             ])
             .run(tauri::generate_context!())
             .expect("error while running tauri application");

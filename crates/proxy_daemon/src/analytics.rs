@@ -936,6 +936,7 @@ mod tests {
             response: Some(make_client_response(status, res_time)),
             validations: None,
             server_cert: None,
+            tls_fallback_used: None,
         }
     }
 
@@ -1064,6 +1065,7 @@ mod tests {
             response: Some(res),
             validations: None,
             server_cert: None,
+            tls_fallback_used: None,
         }];
 
         let issues = TrafficAnalytics::cors_issues(&entries);
@@ -1109,6 +1111,7 @@ mod tests {
             response: Some(res),
             validations: None,
             server_cert: None,
+            tls_fallback_used: None,
         }];
 
         let warnings = TrafficAnalytics::mixed_content_warnings(&entries);
@@ -1179,6 +1182,7 @@ mod tests {
             response: Some(res.for_client("test", None)),
             validations: None,
             server_cert: None,
+            tls_fallback_used: None,
         }
     }
 
@@ -1211,6 +1215,7 @@ mod tests {
             response: Some(res.for_client("test", None)),
             validations: None,
             server_cert: None,
+            tls_fallback_used: None,
         }
     }
 
@@ -1486,6 +1491,7 @@ mod tests {
             response: Some(make_client_response(200, 1100)),
             validations: None,
             server_cert: None,
+            tls_fallback_used: None,
         }];
         // 모든 분석 함수가 패닉 없이 빈 결과를 반환해야 함
         let slow = TrafficAnalytics::slow_requests(&entries, 1000, 10);
@@ -1511,6 +1517,7 @@ mod tests {
             response: None,
             validations: None,
             server_cert: None,
+            tls_fallback_used: None,
         }];
         // slow_requests: response가 없으면 duration 계산 불가 -> 스킵
         let slow = TrafficAnalytics::slow_requests(&entries, 0, 10);

@@ -1,4 +1,23 @@
 use crate::tls_version_detector::TlsVersion;
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use std::sync::Arc;
+use tokio::sync::RwLock;
+
+/// 도메인별 학습된 TLS 전략 저장소
+///
+/// TLS 핸드셰이크 실패 시 반대 전략을 기록하여,
+/// 다음 연결부터 자동으로 올바른 전략을 선택합니다.
+pub type TlsStrategyCache = Arc<RwLock<HashMap<String, TlsStrategy>>>;
+
+/// 학습된 TLS 전략 정보 (프론트엔드 전달용)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LearnedTlsStrategy {
+    /// 도메인
+    pub domain: String,
+    /// 학습된 전략
+    pub strategy: String,
+}
 
 /// TLS 연결 정보를 담는 구조체
 #[derive(Debug, Clone)]
@@ -30,10 +49,28 @@ pub struct TlsExtension {
 }
 
 /// TLS 처리 전략 — 결정적(deterministic) 선택만 사용
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum TlsStrategy {
     /// OpenSSL 전용 (TLS 1.0/1.1, SSL 3.0, 특수 도메인/암호화)
     OpenSslOnly,
     /// rustls 전용 (TLS 1.2/1.3 일반 연결)
     RustlsOnly,
+}
+
+impl TlsStrategy {
+    /// 반대 전략을 반환합니다 (폴백용)
+    pub fn opposite(self) -> Self {
+        match self {
+            TlsStrategy::OpenSslOnly => TlsStrategy::RustlsOnly,
+            TlsStrategy::RustlsOnly => TlsStrategy::OpenSslOnly,
+        }
+    }
+
+    /// 표시용 문자열
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            TlsStrategy::OpenSslOnly => "OpenSSL",
+            TlsStrategy::RustlsOnly => "rustls",
+        }
+    }
 }

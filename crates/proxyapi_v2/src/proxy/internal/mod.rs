@@ -53,6 +53,8 @@ pub(crate) struct InternalProxy<C, CA, H, W> {
     pub(crate) ctx: ProxyContext,
     /// 상류 서버 인증서 정보 (TLS 인터셉트 시 캡처)
     pub(crate) upstream_cert_info: Option<UpstreamCertInfo>,
+    /// TLS 학습 기반 폴백 사용 여부
+    pub(crate) tls_fallback_used: Option<bool>,
 }
 
 impl<C, CA, H, W> Clone for InternalProxy<C, CA, H, W>
@@ -71,6 +73,7 @@ where
             client_addr: self.client_addr,
             ctx: self.ctx.clone(),
             upstream_cert_info: self.upstream_cert_info.clone(),
+            tls_fallback_used: self.tls_fallback_used,
         }
     }
 }
@@ -106,6 +109,7 @@ where
                 .upstream_cert_info
                 .as_ref()
                 .map(|info| info.to_server_cert_info()),
+            tls_fallback_used: self.tls_fallback_used,
         }
     }
 
@@ -311,6 +315,7 @@ mod tests {
             client_addr: "127.0.0.1:8080".parse().unwrap(),
             ctx: ProxyContext::new(),
             upstream_cert_info: None,
+            tls_fallback_used: None,
         }
     }
 

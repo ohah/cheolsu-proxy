@@ -188,6 +188,8 @@ pub(crate) struct DaemonContext {
     pub(crate) tls_passthrough: proxyapi_v2::tls_passthrough::TlsPassthrough,
     pub(crate) connection_strategy: Arc<std::sync::atomic::AtomicU8>,
     pub(crate) contract_validator: crate::contract_validator::ContractValidator,
+    pub(crate) tls_strategy_cache: Option<proxyapi_v2::hybrid_tls_handler::TlsStrategyCache>,
+    pub(crate) tls_config: Option<proxyapi_v2::tls_config::SharedTlsConfig>,
 }
 
 // --- 데몬 진입점 ---
@@ -342,6 +344,13 @@ async fn daemon_main(port: u16, host: String) -> i32 {
 
     let contract_validator = crate::contract_validator::ContractValidator::new();
 
+    // TLS 학습 기반 폴백용 전략 캐시
+    let tls_strategy_cache: proxyapi_v2::hybrid_tls_handler::TlsStrategyCache =
+        std::sync::Arc::new(tokio::sync::RwLock::new(std::collections::HashMap::new()));
+    // TLS 설정 관리자 (내장 규칙 포함)
+    let tls_config: proxyapi_v2::tls_config::SharedTlsConfig =
+        std::sync::Arc::new(proxyapi_v2::tls_config::TlsConfigManager::with_builtin_rules());
+
     let (proxy_handle, proxy_shutdown_tx) = spawn_proxy_task(
         addr,
         event_tx.clone(),
@@ -358,6 +367,8 @@ async fn daemon_main(port: u16, host: String) -> i32 {
         metrics_collector.clone(),
         total_transactions.clone(),
         contract_validator.clone(),
+        tls_strategy_cache.clone(),
+        tls_config.clone(),
     );
 
     let uds_listener = match UnixListener::bind(&uds_path) {
@@ -401,6 +412,8 @@ async fn daemon_main(port: u16, host: String) -> i32 {
         tls_passthrough,
         connection_strategy,
         contract_validator,
+        tls_strategy_cache: Some(tls_strategy_cache),
+        tls_config: Some(tls_config),
     };
 
     run_accept_loop(uds_listener, &mut shutdown_rx, &ctx, port).await;
