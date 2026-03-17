@@ -335,6 +335,54 @@ pub struct RemoveReverseProxyRuleParams {
     pub id: String,
 }
 
+// ─── Analytics ────────────────────────────────────────────
+
+#[derive(Debug, Deserialize, schemars::JsonSchema)]
+pub struct AnalyzePerformanceParams {
+    /// Duration threshold in milliseconds to consider a request "slow" (default: 1000)
+    pub threshold_ms: Option<u64>,
+    /// Maximum number of slow requests to return (default: 20)
+    pub limit: Option<usize>,
+}
+
+#[derive(Debug, Deserialize, schemars::JsonSchema)]
+pub struct AnalyzeErrorsParams {
+    /// (reserved for future use) Not currently used
+    pub _placeholder: Option<String>,
+}
+
+#[derive(Debug, Deserialize, schemars::JsonSchema)]
+pub struct AnalyzeEndpointsParams {
+    /// Sort by: "count", "duration", "error_rate" (default: "count")
+    pub sort_by: Option<String>,
+    /// Maximum number of endpoints to return (default: 30)
+    pub limit: Option<usize>,
+}
+
+#[derive(Debug, Deserialize, schemars::JsonSchema)]
+pub struct DetectDuplicatesParams {
+    /// Time window in milliseconds to consider requests as duplicates (default: 3000)
+    pub window_ms: Option<u64>,
+}
+
+#[derive(Debug, Deserialize, schemars::JsonSchema)]
+pub struct DetectNPlus1Params {
+    /// (reserved for future use) Not currently used
+    pub _placeholder: Option<String>,
+}
+
+#[derive(Debug, Deserialize, schemars::JsonSchema)]
+pub struct AnalyzeTimelineParams {
+    /// Time bucket size in seconds (default: 60)
+    pub bucket_seconds: Option<u64>,
+}
+
+#[derive(Debug, Deserialize, schemars::JsonSchema)]
+pub struct AnalyzeFullParams {
+    /// (reserved for future use) Not currently used
+    pub _placeholder: Option<String>,
+}
+
 // ─── Export ──────────────────────────────────────────────
 
 #[derive(Debug, Deserialize, schemars::JsonSchema)]

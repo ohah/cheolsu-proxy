@@ -1,4 +1,5 @@
 mod advanced_replay;
+mod analyze;
 mod breakpoints;
 mod diff;
 mod export;
