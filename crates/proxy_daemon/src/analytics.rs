@@ -310,13 +310,14 @@ impl TrafficAnalytics {
 
         // duration 내림차순 정렬
         slow.sort_by(|a, b| b.duration_ms.cmp(&a.duration_ms));
+        let total_slow = slow.len();
         slow.truncate(limit);
 
         durations.sort();
 
         SlowRequestReport {
             threshold_ms,
-            total_slow: slow.len(),
+            total_slow,
             requests: slow,
             p50_ms: percentile(&durations, 50.0),
             p95_ms: percentile(&durations, 95.0),
@@ -1142,5 +1143,996 @@ mod tests {
         assert_eq!(percentile(&values, 100.0), 10.0);
         assert_eq!(percentile(&[], 50.0), 0.0);
         assert_eq!(percentile(&[42], 50.0), 42.0);
+    }
+
+    // ─── 헬퍼: 커스텀 헤더가 있는 요청/응답 생성 ─────────────
+
+    fn make_info_with_headers(
+        method: &str,
+        uri: &str,
+        status: u16,
+        req_time: i64,
+        res_time: i64,
+        req_headers: HeaderMap,
+        res_headers: HeaderMap,
+    ) -> RequestInfo {
+        let req = proxy_v2_models::ProxiedRequest::new(
+            method.parse::<Method>().unwrap(),
+            uri.parse::<Uri>().unwrap(),
+            Version::HTTP_11,
+            req_headers,
+            Bytes::new(),
+            req_time,
+        );
+        let res = proxy_v2_models::ProxiedResponse::new(
+            StatusCode::from_u16(status).unwrap(),
+            Version::HTTP_11,
+            res_headers,
+            Bytes::new(),
+            res_time,
+        );
+        RequestInfo {
+            request: Some(req.for_client(None)),
+            response: Some(res.for_client("test", None)),
+            validations: None,
+        }
+    }
+
+    fn make_info_with_body(
+        method: &str,
+        uri: &str,
+        status: u16,
+        req_time: i64,
+        res_time: i64,
+        req_body: &[u8],
+        res_body: &[u8],
+    ) -> RequestInfo {
+        let req = proxy_v2_models::ProxiedRequest::new(
+            method.parse::<Method>().unwrap(),
+            uri.parse::<Uri>().unwrap(),
+            Version::HTTP_11,
+            HeaderMap::new(),
+            Bytes::from(req_body.to_vec()),
+            req_time,
+        );
+        let res = proxy_v2_models::ProxiedResponse::new(
+            StatusCode::from_u16(status).unwrap(),
+            Version::HTTP_11,
+            HeaderMap::new(),
+            Bytes::from(res_body.to_vec()),
+            res_time,
+        );
+        RequestInfo {
+            request: Some(req.for_client(None)),
+            response: Some(res.for_client("test", None)),
+            validations: None,
+        }
+    }
+
+    // ─── 엣지 케이스: 빈 데이터에 대한 모든 분석 함수 ────────
+
+    #[test]
+    fn test_error_analysis_empty() {
+        let report = TrafficAnalytics::error_analysis(&[]);
+        assert_eq!(report.total_requests, 0);
+        assert_eq!(report.error_count, 0);
+        assert_eq!(report.error_rate, 0.0);
+        assert!(report.by_status.is_empty());
+        assert!(report.by_endpoint.is_empty());
+        assert!(report.recent_errors.is_empty());
+    }
+
+    #[test]
+    fn test_endpoint_stats_empty() {
+        let stats = TrafficAnalytics::endpoint_stats(&[]);
+        assert!(stats.is_empty());
+    }
+
+    #[test]
+    fn test_duplicate_requests_empty() {
+        let dupes = TrafficAnalytics::duplicate_requests(&[], 3000);
+        assert!(dupes.is_empty());
+    }
+
+    #[test]
+    fn test_n_plus_one_detection_empty() {
+        let patterns = TrafficAnalytics::n_plus_one_detection(&[]);
+        assert!(patterns.is_empty());
+    }
+
+    #[test]
+    fn test_traffic_timeline_empty() {
+        let timeline = TrafficAnalytics::traffic_timeline(&[], 60);
+        assert!(timeline.is_empty());
+    }
+
+    #[test]
+    fn test_domain_breakdown_empty() {
+        let stats = TrafficAnalytics::domain_breakdown(&[]);
+        assert!(stats.is_empty());
+    }
+
+    #[test]
+    fn test_payload_size_analysis_empty() {
+        let report = TrafficAnalytics::payload_size_analysis(&[]);
+        assert_eq!(report.total_requests, 0);
+        assert_eq!(report.avg_request_size, 0);
+        assert_eq!(report.avg_response_size, 0);
+        assert_eq!(report.max_request_size, 0);
+        assert_eq!(report.max_response_size, 0);
+        assert!(report.largest_requests.is_empty());
+        assert!(report.largest_responses.is_empty());
+    }
+
+    #[test]
+    fn test_cors_issues_empty() {
+        let issues = TrafficAnalytics::cors_issues(&[]);
+        assert!(issues.is_empty());
+    }
+
+    #[test]
+    fn test_mixed_content_warnings_empty() {
+        let warnings = TrafficAnalytics::mixed_content_warnings(&[]);
+        assert!(warnings.is_empty());
+    }
+
+    #[test]
+    fn test_full_report_empty() {
+        let report = TrafficAnalytics::full_report(&[]);
+        assert_eq!(report.slow_requests.total_slow, 0);
+        assert_eq!(report.errors.total_requests, 0);
+        assert!(report.top_endpoints.is_empty());
+        assert!(report.duplicates.is_empty());
+        assert!(report.n_plus_one.is_empty());
+        assert!(report.domain_breakdown.is_empty());
+        assert_eq!(report.payload.total_requests, 0);
+        assert!(report.cors_issues.is_empty());
+        assert!(report.mixed_content.is_empty());
+    }
+
+    // ─── 엣지 케이스: 단일 요청에 대한 퍼센타일 계산 ─────────
+
+    #[test]
+    fn test_single_request_percentiles() {
+        let entries = vec![make_info("GET", "http://example.com/a", 200, 1000, 1150)];
+        let report = TrafficAnalytics::slow_requests(&entries, 0, 10);
+        // 단일 값이면 P50/P95/P99 모두 같아야 함
+        assert_eq!(report.p50_ms, report.p95_ms);
+        assert_eq!(report.p95_ms, report.p99_ms);
+        assert_eq!(report.total_slow, 1);
+    }
+
+    // ─── 엣지 케이스: 0ms 응답 시간 ─────────────────────────
+
+    #[test]
+    fn test_zero_duration_request() {
+        let entries = vec![make_info(
+            "GET",
+            "http://example.com/instant",
+            200,
+            1000,
+            1000,
+        )];
+        let report = TrafficAnalytics::slow_requests(&entries, 1000, 10);
+        assert_eq!(report.total_slow, 0);
+        assert_eq!(report.p50_ms, 0.0);
+
+        let stats = TrafficAnalytics::endpoint_stats(&entries);
+        assert_eq!(stats.len(), 1);
+        assert_eq!(stats[0].avg_duration_ms, 0.0);
+    }
+
+    // ─── 엣지 케이스: 매우 큰 응답 시간 (u64 범위) ───────────
+
+    #[test]
+    fn test_very_large_duration() {
+        // res_time - req_time = i64::MAX에 가까운 값
+        let entries = vec![make_info(
+            "GET",
+            "http://example.com/slow",
+            200,
+            0,
+            1_000_000_000, // 10^9 ms = ~11.5일
+        )];
+        let report = TrafficAnalytics::slow_requests(&entries, 1000, 10);
+        assert_eq!(report.total_slow, 1);
+        assert_eq!(report.requests[0].duration_ms, 1_000_000_000);
+    }
+
+    // ─── 엣지 케이스: 모든 요청이 에러인 경우 ───────────────
+
+    #[test]
+    fn test_all_requests_are_errors() {
+        let entries = vec![
+            make_info("GET", "http://example.com/a", 500, 1000, 1100),
+            make_info("GET", "http://example.com/b", 502, 2000, 2100),
+            make_info("POST", "http://example.com/c", 404, 3000, 3100),
+        ];
+        let report = TrafficAnalytics::error_analysis(&entries);
+        assert_eq!(report.total_requests, 3);
+        assert_eq!(report.error_count, 3);
+        assert!((report.error_rate - 100.0).abs() < f64::EPSILON);
+        assert_eq!(report.by_status.len(), 3);
+    }
+
+    // ─── 엣지 케이스: 에러가 하나도 없는 경우 ───────────────
+
+    #[test]
+    fn test_no_errors() {
+        let entries = vec![
+            make_info("GET", "http://example.com/a", 200, 1000, 1100),
+            make_info("GET", "http://example.com/b", 201, 2000, 2100),
+            make_info("GET", "http://example.com/c", 304, 3000, 3100),
+        ];
+        let report = TrafficAnalytics::error_analysis(&entries);
+        assert_eq!(report.total_requests, 3);
+        assert_eq!(report.error_count, 0);
+        assert_eq!(report.error_rate, 0.0);
+        assert!(report.by_status.is_empty());
+        assert!(report.by_endpoint.is_empty());
+        assert!(report.recent_errors.is_empty());
+    }
+
+    // ─── 엣지 케이스: 동일한 타임스탬프의 요청들 ─────────────
+
+    #[test]
+    fn test_same_timestamp_requests() {
+        let entries = vec![
+            make_info("GET", "http://example.com/a", 200, 1000, 1100),
+            make_info("GET", "http://example.com/b", 200, 1000, 1100),
+            make_info("GET", "http://example.com/c", 200, 1000, 1100),
+        ];
+        let timeline = TrafficAnalytics::traffic_timeline(&entries, 60);
+        // 모두 같은 버킷에 들어가야 함
+        assert_eq!(timeline.len(), 1);
+        assert_eq!(timeline[0].request_count, 3);
+    }
+
+    // ─── 엣지 케이스: URL에 쿼리 파라미터가 있는 중복 감지 ──
+
+    #[test]
+    fn test_duplicate_with_query_params() {
+        // 쿼리 파라미터가 다르면 다른 URL로 취급됨 (현재 구현 기준)
+        let entries = vec![
+            make_info("GET", "http://example.com/api?page=1", 200, 1000, 1100),
+            make_info("GET", "http://example.com/api?page=1", 200, 1500, 1600),
+            make_info("GET", "http://example.com/api?page=2", 200, 2000, 2100),
+        ];
+        let dupes = TrafficAnalytics::duplicate_requests(&entries, 3000);
+        // ?page=1 이 2번이므로 1개 그룹
+        assert_eq!(dupes.len(), 1);
+        assert_eq!(dupes[0].count, 2);
+        assert!(dupes[0].url.contains("page=1"));
+    }
+
+    // ─── 엣지 케이스: N+1 패턴에서 UUID ID ──────────────────
+
+    #[test]
+    fn test_n_plus_one_with_uuid_ids() {
+        let entries = vec![
+            make_info(
+                "GET",
+                "http://example.com/api/users/550e8400-e29b-41d4-a716-446655440000",
+                200,
+                1000,
+                1100,
+            ),
+            make_info(
+                "GET",
+                "http://example.com/api/users/550e8400-e29b-41d4-a716-446655440001",
+                200,
+                1200,
+                1300,
+            ),
+            make_info(
+                "GET",
+                "http://example.com/api/users/550e8400-e29b-41d4-a716-446655440002",
+                200,
+                1400,
+                1500,
+            ),
+        ];
+        let patterns = TrafficAnalytics::n_plus_one_detection(&entries);
+        assert!(!patterns.is_empty());
+        assert!(patterns[0].pattern.contains("{id}"));
+        assert_eq!(patterns[0].count, 3);
+    }
+
+    // ─── 엣지 케이스: N+1 패턴에서 중첩 경로 ────────────────
+
+    #[test]
+    fn test_n_plus_one_nested_paths() {
+        let entries = vec![
+            make_info(
+                "GET",
+                "http://example.com/api/users/1/posts/100",
+                200,
+                1000,
+                1100,
+            ),
+            make_info(
+                "GET",
+                "http://example.com/api/users/2/posts/200",
+                200,
+                1200,
+                1300,
+            ),
+            make_info(
+                "GET",
+                "http://example.com/api/users/3/posts/300",
+                200,
+                1400,
+                1500,
+            ),
+        ];
+        let patterns = TrafficAnalytics::n_plus_one_detection(&entries);
+        assert!(!patterns.is_empty());
+        // /api/users/{id}/posts/{id} 패턴이 감지되어야 함
+        assert!(patterns[0].pattern.contains("{id}"));
+        assert_eq!(patterns[0].count, 3);
+    }
+
+    // ─── 엣지 케이스: request/response가 None인 항목 ─────────
+
+    #[test]
+    fn test_entries_with_none_request() {
+        let entries = vec![RequestInfo {
+            request: None,
+            response: Some(make_client_response(200, 1100)),
+            validations: None,
+        }];
+        // 모든 분석 함수가 패닉 없이 빈 결과를 반환해야 함
+        let slow = TrafficAnalytics::slow_requests(&entries, 1000, 10);
+        assert_eq!(slow.total_slow, 0);
+        let errors = TrafficAnalytics::error_analysis(&entries);
+        assert_eq!(errors.total_requests, 0);
+        let stats = TrafficAnalytics::endpoint_stats(&entries);
+        assert!(stats.is_empty());
+        let dupes = TrafficAnalytics::duplicate_requests(&entries, 3000);
+        assert!(dupes.is_empty());
+        let patterns = TrafficAnalytics::n_plus_one_detection(&entries);
+        assert!(patterns.is_empty());
+        let domain = TrafficAnalytics::domain_breakdown(&entries);
+        assert!(domain.is_empty());
+        let payload = TrafficAnalytics::payload_size_analysis(&entries);
+        assert_eq!(payload.total_requests, 0);
+    }
+
+    #[test]
+    fn test_entries_with_none_response() {
+        let entries = vec![RequestInfo {
+            request: Some(make_client_request("GET", "http://example.com/a", 1000)),
+            response: None,
+            validations: None,
+        }];
+        // slow_requests: response가 없으면 duration 계산 불가 -> 스킵
+        let slow = TrafficAnalytics::slow_requests(&entries, 0, 10);
+        assert_eq!(slow.total_slow, 0);
+        // error_analysis: response가 없으면 스킵
+        let errors = TrafficAnalytics::error_analysis(&entries);
+        assert_eq!(errors.total_requests, 0);
+        // endpoint_stats: response가 없으면 스킵
+        let stats = TrafficAnalytics::endpoint_stats(&entries);
+        assert!(stats.is_empty());
+    }
+
+    // ─── 엣지 케이스: total_slow가 truncate 전 값인지 확인 ──
+
+    #[test]
+    fn test_slow_requests_total_slow_before_truncate() {
+        let mut entries = Vec::new();
+        for i in 0..20 {
+            entries.push(make_info(
+                "GET",
+                "http://example.com/slow",
+                200,
+                i * 1000,
+                i * 1000 + 2000, // 2000ms duration > 500ms threshold
+            ));
+        }
+        let report = TrafficAnalytics::slow_requests(&entries, 500, 5);
+        // total_slow는 limit 적용 전의 개수여야 함
+        assert_eq!(report.total_slow, 20);
+        // requests는 limit으로 잘려야 함
+        assert_eq!(report.requests.len(), 5);
+    }
+
+    // ─── 엣지 케이스: 퍼센타일 경계값 ──────────────────────
+
+    #[test]
+    fn test_percentile_two_values() {
+        let values = vec![10, 20];
+        // P50: round(0.5 * 1) = round(0.5) = 1 -> values[1] = 20
+        // (round rounds .5 to nearest even = 0, but Rust's f64::round rounds .5 away from zero = 1)
+        let p50 = percentile(&values, 50.0);
+        assert!(p50 == 10.0 || p50 == 20.0); // 구현에 따라 다를 수 있음
+        assert_eq!(percentile(&values, 0.0), 10.0);
+        assert_eq!(percentile(&values, 100.0), 20.0);
+    }
+
+    #[test]
+    fn test_percentile_p99_large_dataset() {
+        let values: Vec<u64> = (1..=100).collect();
+        let p99 = percentile(&values, 99.0);
+        // idx = round(0.99 * 99) = round(98.01) = 98 -> values[98] = 99
+        assert_eq!(p99, 99.0);
+    }
+
+    // ─── 헬퍼 함수 테스트 ───────────────────────────────────
+
+    #[test]
+    fn test_extract_path_with_query_params() {
+        assert_eq!(
+            extract_path("http://example.com/api/users?page=1&limit=10"),
+            "/api/users"
+        );
+        assert_eq!(extract_path("http://example.com/"), "/");
+        assert_eq!(extract_path("http://example.com"), "/");
+        assert_eq!(extract_path("/api/users?q=test"), "/api/users");
+        assert_eq!(extract_path("/api/users"), "/api/users");
+    }
+
+    #[test]
+    fn test_extract_domain_various() {
+        assert_eq!(extract_domain("http://example.com/path"), "example.com");
+        assert_eq!(
+            extract_domain("https://example.com:8443/path"),
+            "example.com"
+        );
+        assert_eq!(extract_domain("http://example.com"), "example.com");
+        assert_eq!(extract_domain("no-scheme"), "unknown");
+    }
+
+    #[test]
+    fn test_extract_scheme() {
+        assert_eq!(extract_scheme("http://example.com"), "http");
+        assert_eq!(extract_scheme("https://example.com"), "https");
+        assert_eq!(extract_scheme("no-scheme"), "unknown");
+    }
+
+    #[test]
+    fn test_is_error_status_boundary() {
+        assert!(!is_error_status(399));
+        assert!(is_error_status(400));
+        assert!(is_error_status(401));
+        assert!(is_error_status(500));
+        assert!(is_error_status(503));
+    }
+
+    #[test]
+    fn test_normalize_path_pattern_various() {
+        // 순수 숫자
+        assert_eq!(normalize_path_pattern("/api/users/42"), "/api/users/{id}");
+        // 짧은 UUID (32자 미만)
+        assert_eq!(
+            normalize_path_pattern("/api/users/abc123"),
+            "/api/users/abc123"
+        );
+        // 경로 없음
+        assert_eq!(normalize_path_pattern("/"), "/");
+        // 여러 ID 세그먼트
+        assert_eq!(
+            normalize_path_pattern("/api/users/1/posts/2"),
+            "/api/users/{id}/posts/{id}"
+        );
+        // 빈 세그먼트는 건드리지 않음
+        assert_eq!(normalize_path_pattern("/api//users"), "/api//users");
+    }
+
+    // ─── 통합 시나리오: 실제적인 API 트래픽 시뮬레이션 ──────
+
+    #[test]
+    fn test_realistic_api_traffic_simulation() {
+        let mut entries = Vec::new();
+        let base_time = 1_700_000_000_000i64; // 임의의 Unix ms 타임스탬프
+
+        // 정상 GET 요청 (빠름)
+        for i in 0..50 {
+            entries.push(make_info(
+                "GET",
+                "http://api.example.com/api/users",
+                200,
+                base_time + i * 100,
+                base_time + i * 100 + 50, // 50ms
+            ));
+        }
+        // 느린 GET 요청
+        for i in 0..5 {
+            entries.push(make_info(
+                "GET",
+                "http://api.example.com/api/reports",
+                200,
+                base_time + 5000 + i * 200,
+                base_time + 5000 + i * 200 + 3000, // 3000ms
+            ));
+        }
+        // 에러 요청
+        for i in 0..10 {
+            entries.push(make_info(
+                "POST",
+                "http://api.example.com/api/orders",
+                500,
+                base_time + 10000 + i * 100,
+                base_time + 10000 + i * 100 + 100,
+            ));
+        }
+        // 404 요청
+        for i in 0..3 {
+            entries.push(make_info(
+                "GET",
+                "http://api.example.com/api/not-found",
+                404,
+                base_time + 15000 + i * 100,
+                base_time + 15000 + i * 100 + 20,
+            ));
+        }
+
+        let report = TrafficAnalytics::full_report(&entries);
+
+        // 검증
+        assert_eq!(report.errors.total_requests, 68); // 50 + 5 + 10 + 3
+        assert_eq!(report.errors.error_count, 13); // 10 + 3
+        assert!(report.errors.error_rate > 15.0 && report.errors.error_rate < 25.0);
+
+        // 느린 요청 검출
+        assert!(report.slow_requests.total_slow > 0);
+
+        // 도메인은 1개
+        assert_eq!(report.domain_breakdown.len(), 1);
+        assert_eq!(report.domain_breakdown[0].domain, "api.example.com");
+    }
+
+    // ─── 통합 시나리오: 대량 요청 정확성 ─────────────────────
+
+    #[test]
+    fn test_large_volume_analysis_accuracy() {
+        let mut entries = Vec::new();
+        for i in 0..1000 {
+            let status = if i % 10 == 0 { 500 } else { 200 };
+            entries.push(make_info(
+                "GET",
+                "http://example.com/api/data",
+                status,
+                i * 10,
+                i * 10 + (i % 50) + 1, // 1~50ms 다양한 duration
+            ));
+        }
+
+        let report = TrafficAnalytics::error_analysis(&entries);
+        assert_eq!(report.total_requests, 1000);
+        assert_eq!(report.error_count, 100); // 1000 / 10
+        assert!((report.error_rate - 10.0).abs() < 0.01);
+
+        let slow = TrafficAnalytics::slow_requests(&entries, 0, 1000);
+        assert_eq!(slow.total_slow, 1000); // 모든 요청이 0ms 이상
+        assert!(slow.p50_ms >= 0.0);
+        assert!(slow.p95_ms >= slow.p50_ms);
+        assert!(slow.p99_ms >= slow.p95_ms);
+    }
+
+    // ─── 통합 시나리오: endpoint_stats 정렬 옵션별 검증 ──────
+
+    #[test]
+    fn test_endpoint_stats_sorting() {
+        let entries = vec![
+            // /fast: 빠르지만 많이 호출
+            make_info("GET", "http://example.com/fast", 200, 1000, 1010),
+            make_info("GET", "http://example.com/fast", 200, 2000, 2010),
+            make_info("GET", "http://example.com/fast", 200, 3000, 3010),
+            // /slow: 느리지만 적게 호출
+            make_info("GET", "http://example.com/slow", 200, 4000, 5000),
+            // /error: 에러율 높음
+            make_info("GET", "http://example.com/error", 500, 6000, 6100),
+            make_info("GET", "http://example.com/error", 200, 7000, 7100),
+        ];
+
+        let mut stats = TrafficAnalytics::endpoint_stats(&entries);
+        // 기본 정렬: count 내림차순
+        assert_eq!(stats[0].path, "/fast");
+        assert_eq!(stats[0].count, 3);
+
+        // duration 정렬
+        stats.sort_by(|a, b| {
+            b.avg_duration_ms
+                .partial_cmp(&a.avg_duration_ms)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
+        assert_eq!(stats[0].path, "/slow");
+
+        // error_rate 정렬
+        stats.sort_by(|a, b| {
+            b.error_rate
+                .partial_cmp(&a.error_rate)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
+        assert_eq!(stats[0].path, "/error");
+        assert!((stats[0].error_rate - 50.0).abs() < 0.01);
+    }
+
+    // ─── 통합 시나리오: traffic_timeline 버킷 경계값 ─────────
+
+    #[test]
+    fn test_traffic_timeline_bucket_boundaries() {
+        let bucket_seconds = 10u64; // 10초 = 10000ms 버킷
+        let bucket_ms = (bucket_seconds * 1000) as i64;
+
+        let entries = vec![
+            // 버킷 0: [0, 10000)
+            make_info("GET", "http://example.com/a", 200, 0, 100),
+            make_info("GET", "http://example.com/b", 200, 9999, 10050),
+            // 버킷 1: [10000, 20000)
+            make_info("GET", "http://example.com/c", 500, 10000, 10100),
+            make_info("GET", "http://example.com/d", 200, 15000, 15100),
+            // 버킷 2: [20000, 30000)
+            make_info("GET", "http://example.com/e", 200, 20000, 20100),
+        ];
+
+        let timeline = TrafficAnalytics::traffic_timeline(&entries, bucket_seconds);
+        assert_eq!(timeline.len(), 3);
+
+        // 첫 번째 버킷
+        assert_eq!(timeline[0].timestamp, 0);
+        assert_eq!(timeline[0].request_count, 2);
+        assert_eq!(timeline[0].error_count, 0);
+
+        // 두 번째 버킷
+        assert_eq!(timeline[1].timestamp, bucket_ms);
+        assert_eq!(timeline[1].request_count, 2);
+        assert_eq!(timeline[1].error_count, 1);
+
+        // 세 번째 버킷
+        assert_eq!(timeline[2].timestamp, bucket_ms * 2);
+        assert_eq!(timeline[2].request_count, 1);
+    }
+
+    // ─── 통합 시나리오: CORS preflight + 실제 요청 쌍 감지 ──
+
+    #[test]
+    fn test_cors_preflight_and_actual_request_pair() {
+        // preflight OPTIONS (CORS 헤더 없는 응답)
+        let preflight_req_headers = {
+            let mut h = HeaderMap::new();
+            h.insert("origin", HeaderValue::from_static("http://localhost:3000"));
+            h
+        };
+        let preflight = make_info_with_headers(
+            "OPTIONS",
+            "http://api.example.com/data",
+            200,
+            1000,
+            1050,
+            preflight_req_headers,
+            HeaderMap::new(), // CORS 헤더 없음
+        );
+
+        // 실제 요청 (CORS 헤더 없는 응답)
+        let actual_req_headers = {
+            let mut h = HeaderMap::new();
+            h.insert("origin", HeaderValue::from_static("http://localhost:3000"));
+            h
+        };
+        let actual = make_info_with_headers(
+            "POST",
+            "http://api.example.com/data",
+            200,
+            1100,
+            1200,
+            actual_req_headers,
+            HeaderMap::new(), // CORS 헤더 없음
+        );
+
+        let entries = vec![preflight, actual];
+        let issues = TrafficAnalytics::cors_issues(&entries);
+
+        // preflight: missing_allow_origin + missing_allow_methods
+        // actual: missing_allow_origin
+        assert!(issues.len() >= 3);
+
+        let preflight_issues: Vec<_> = issues
+            .iter()
+            .filter(|i| {
+                i.issue_type == "preflight_missing_allow_origin"
+                    || i.issue_type == "preflight_missing_allow_methods"
+            })
+            .collect();
+        assert_eq!(preflight_issues.len(), 2);
+
+        let actual_issues: Vec<_> = issues
+            .iter()
+            .filter(|i| i.issue_type == "missing_allow_origin")
+            .collect();
+        assert_eq!(actual_issues.len(), 1);
+    }
+
+    // ─── 통합 시나리오: Mixed Content 감지 (Referer 헤더) ────
+
+    #[test]
+    fn test_mixed_content_various_resource_types() {
+        let entries = vec![
+            {
+                let req_h = {
+                    let mut h = HeaderMap::new();
+                    h.insert(
+                        "referer",
+                        HeaderValue::from_static("https://secure.example.com/page"),
+                    );
+                    h
+                };
+                let res_h = {
+                    let mut h = HeaderMap::new();
+                    h.insert("content-type", HeaderValue::from_static("text/css"));
+                    h
+                };
+                make_info_with_headers(
+                    "GET",
+                    "http://insecure.example.com/style.css",
+                    200,
+                    1000,
+                    1100,
+                    req_h,
+                    res_h,
+                )
+            },
+            {
+                let req_h = {
+                    let mut h = HeaderMap::new();
+                    h.insert(
+                        "referer",
+                        HeaderValue::from_static("https://secure.example.com/page"),
+                    );
+                    h
+                };
+                let res_h = {
+                    let mut h = HeaderMap::new();
+                    h.insert(
+                        "content-type",
+                        HeaderValue::from_static("application/javascript"),
+                    );
+                    h
+                };
+                make_info_with_headers(
+                    "GET",
+                    "http://insecure.example.com/app.js",
+                    200,
+                    2000,
+                    2100,
+                    req_h,
+                    res_h,
+                )
+            },
+            {
+                let req_h = {
+                    let mut h = HeaderMap::new();
+                    h.insert(
+                        "referer",
+                        HeaderValue::from_static("https://secure.example.com/page"),
+                    );
+                    h
+                };
+                let res_h = {
+                    let mut h = HeaderMap::new();
+                    h.insert("content-type", HeaderValue::from_static("font/woff2"));
+                    h
+                };
+                make_info_with_headers(
+                    "GET",
+                    "http://insecure.example.com/font.woff2",
+                    200,
+                    3000,
+                    3100,
+                    req_h,
+                    res_h,
+                )
+            },
+        ];
+
+        let warnings = TrafficAnalytics::mixed_content_warnings(&entries);
+        assert_eq!(warnings.len(), 3);
+
+        let types: Vec<&str> = warnings.iter().map(|w| w.resource_type.as_str()).collect();
+        assert!(types.contains(&"stylesheet"));
+        assert!(types.contains(&"script"));
+        assert!(types.contains(&"font"));
+    }
+
+    // ─── 통합 시나리오: HTTPS 요청은 Mixed Content가 아님 ────
+
+    #[test]
+    fn test_no_mixed_content_for_https_resources() {
+        let req_headers = {
+            let mut h = HeaderMap::new();
+            h.insert(
+                "referer",
+                HeaderValue::from_static("https://secure.example.com/page"),
+            );
+            h
+        };
+        let entries = vec![make_info_with_headers(
+            "GET",
+            "https://also-secure.example.com/data",
+            200,
+            1000,
+            1100,
+            req_headers,
+            HeaderMap::new(),
+        )];
+        let warnings = TrafficAnalytics::mixed_content_warnings(&entries);
+        assert!(warnings.is_empty());
+    }
+
+    // ─── 통합 시나리오: 중복 요청 - 윈도우 밖 요청 ───────────
+
+    #[test]
+    fn test_duplicate_requests_outside_window() {
+        let entries = vec![
+            make_info("GET", "http://example.com/api/data", 200, 1000, 1100),
+            make_info("GET", "http://example.com/api/data", 200, 5000, 5100),
+        ];
+        // window 1000ms -> 두 요청 사이 간격 4000ms이므로 중복 아님
+        let dupes = TrafficAnalytics::duplicate_requests(&entries, 1000);
+        assert!(dupes.is_empty());
+    }
+
+    // ─── 통합 시나리오: 단일 요청은 중복이 아님 ──────────────
+
+    #[test]
+    fn test_single_request_not_duplicate() {
+        let entries = vec![make_info(
+            "GET",
+            "http://example.com/api/data",
+            200,
+            1000,
+            1100,
+        )];
+        let dupes = TrafficAnalytics::duplicate_requests(&entries, 3000);
+        assert!(dupes.is_empty());
+    }
+
+    // ─── 통합 시나리오: N+1 패턴 - 2개는 감지 안됨 ──────────
+
+    #[test]
+    fn test_n_plus_one_two_requests_not_detected() {
+        let entries = vec![
+            make_info("GET", "http://example.com/api/users/1", 200, 1000, 1100),
+            make_info("GET", "http://example.com/api/users/2", 200, 1200, 1300),
+        ];
+        let patterns = TrafficAnalytics::n_plus_one_detection(&entries);
+        // 3개 미만이므로 감지되지 않음
+        assert!(patterns.is_empty());
+    }
+
+    // ─── 통합 시나리오: 페이로드 크기 분석 with body ─────────
+
+    #[test]
+    fn test_payload_size_analysis_with_bodies() {
+        let entries = vec![
+            make_info_with_body(
+                "POST",
+                "http://example.com/a",
+                200,
+                1000,
+                1100,
+                b"req1",
+                b"response1",
+            ),
+            make_info_with_body(
+                "POST",
+                "http://example.com/b",
+                200,
+                2000,
+                2100,
+                b"request2",
+                b"r2",
+            ),
+        ];
+        let report = TrafficAnalytics::payload_size_analysis(&entries);
+        assert_eq!(report.total_requests, 2);
+        // 최대 요청 크기: "request2" = 8 bytes
+        assert_eq!(report.max_request_size, 8);
+        // 최대 응답 크기: "response1" = 9 bytes
+        assert_eq!(report.max_response_size, 9);
+    }
+
+    // ─── 통합 시나리오: CORS - origin 없는 요청은 무시 ───────
+
+    #[test]
+    fn test_cors_no_origin_header_ignored() {
+        let entries = vec![make_info(
+            "GET",
+            "http://api.example.com/data",
+            200,
+            1000,
+            1100,
+        )];
+        let issues = TrafficAnalytics::cors_issues(&entries);
+        // origin 헤더 없으면 CORS 검사 안 함
+        assert!(issues.is_empty());
+    }
+
+    // ─── 통합 시나리오: CORS preflight 에러 상태 감지 ────────
+
+    #[test]
+    fn test_cors_preflight_error_status() {
+        let req_headers = {
+            let mut h = HeaderMap::new();
+            h.insert("origin", HeaderValue::from_static("http://localhost:3000"));
+            h
+        };
+        let entries = vec![make_info_with_headers(
+            "OPTIONS",
+            "http://api.example.com/data",
+            403,
+            1000,
+            1050,
+            req_headers,
+            HeaderMap::new(),
+        )];
+        let issues = TrafficAnalytics::cors_issues(&entries);
+        let failed: Vec<_> = issues
+            .iter()
+            .filter(|i| i.issue_type == "preflight_failed")
+            .collect();
+        assert_eq!(failed.len(), 1);
+        assert!(failed[0].details.contains("403"));
+    }
+
+    // ─── 통합 시나리오: 도메인 통계 - 여러 포트 ──────────────
+
+    #[test]
+    fn test_domain_breakdown_with_ports() {
+        let entries = vec![
+            make_info("GET", "http://example.com:8080/a", 200, 1000, 1100),
+            make_info("GET", "http://example.com:8080/b", 200, 2000, 2100),
+            make_info("GET", "http://example.com:9090/c", 200, 3000, 3100),
+        ];
+        let stats = TrafficAnalytics::domain_breakdown(&entries);
+        // 포트가 다르면 같은 도메인으로 추출됨 (extract_domain은 포트 제거)
+        assert_eq!(stats.len(), 1);
+        assert_eq!(stats[0].domain, "example.com");
+        assert_eq!(stats[0].request_count, 3);
+    }
+
+    // ─── 통합 시나리오: 대량 요청에 대한 타임라인 ────────────
+
+    #[test]
+    fn test_traffic_timeline_large_volume() {
+        let mut entries = Vec::new();
+        // 100초 동안 매 100ms마다 요청 (1000건)
+        for i in 0..1000 {
+            let status = if i % 20 == 0 { 500 } else { 200 };
+            entries.push(make_info(
+                "GET",
+                "http://example.com/api/data",
+                status,
+                i * 100,      // 0, 100, 200, ...
+                i * 100 + 50, // 50ms duration
+            ));
+        }
+
+        let timeline = TrafficAnalytics::traffic_timeline(&entries, 10); // 10초 버킷
+                                                                         // 100초 / 10초 = 10개 버킷
+        assert_eq!(timeline.len(), 10);
+
+        // 각 버킷에 100개 요청
+        for bucket in &timeline {
+            assert_eq!(bucket.request_count, 100);
+            // 5% 에러율 (20건 중 1건)
+            assert_eq!(bucket.error_count, 5);
+        }
+    }
+
+    // ─── 통합 시나리오: extract_path 엣지케이스 ──────────────
+
+    #[test]
+    fn test_extract_path_edge_cases() {
+        // fragment
+        assert_eq!(extract_path("http://example.com/path?q=1"), "/path");
+        // 빈 경로
+        assert_eq!(extract_path("http://example.com"), "/");
+        // 여러 쿼리 파라미터
+        assert_eq!(
+            extract_path("http://example.com/api/v1/users?page=1&size=20&sort=name"),
+            "/api/v1/users"
+        );
     }
 }
