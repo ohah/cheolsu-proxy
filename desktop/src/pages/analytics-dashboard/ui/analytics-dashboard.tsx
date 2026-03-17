@@ -79,7 +79,15 @@ export const AnalyticsDashboard = () => {
       const nPlusOne = detectNPlusOne(transactions);
       const misc = analyzeMisc(transactions);
 
-      setAnalysis({ summary, performance, errors, endpoints, duplicates, nPlusOne, misc });
+      setAnalysis({
+        summary,
+        performance,
+        errors,
+        endpoints,
+        duplicates,
+        nPlusOne,
+        misc,
+      });
       setAnalyzing(false);
     });
   }, [transactions, endpointSort]);

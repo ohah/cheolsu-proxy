@@ -36,7 +36,9 @@ export function useBodyFile(
         const appCachePath = filePath.startsWith("com.cheolsu-proxy/")
           ? filePath.slice("com.cheolsu-proxy/".length)
           : filePath;
-        const rawData = await readFile(appCachePath, { baseDir: BaseDirectory.AppCache });
+        const rawData = await readFile(appCachePath, {
+          baseDir: BaseDirectory.AppCache,
+        });
         setBody(rawData);
       } catch (err) {
         setError(err instanceof Error ? err.message : "파일 읽기 실패");

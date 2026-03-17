@@ -34,12 +34,12 @@ flowchart TD
 
 ## Spec Management
 
-| Feature | Description |
-| --- | --- |
-| **Load** | Load an OpenAPI spec file (JSON/YAML supported) |
-| **Unload** | Remove a loaded spec |
-| **Enable/Disable** | Toggle validation for individual specs |
-| **List** | View loaded specs |
+| Feature            | Description                                     |
+| ------------------ | ----------------------------------------------- |
+| **Load**           | Load an OpenAPI spec file (JSON/YAML supported) |
+| **Unload**         | Remove a loaded spec                            |
+| **Enable/Disable** | Toggle validation for individual specs          |
+| **List**           | View loaded specs                               |
 
 Multiple OpenAPI specs can be loaded simultaneously, each individually toggleable.
 
@@ -49,13 +49,13 @@ Multiple OpenAPI specs can be loaded simultaneously, each individually toggleabl
 
 Each result includes:
 
-| Field | Description |
-| --- | --- |
-| **Request ID** | Validated transaction identifier |
-| **Spec ID** | Matched OpenAPI spec |
-| **Violations** | List of violations found |
-| **Matched Path** | Matched path pattern from spec |
-| **Matched Operation** | Matched HTTP method |
+| Field                 | Description                      |
+| --------------------- | -------------------------------- |
+| **Request ID**        | Validated transaction identifier |
+| **Spec ID**           | Matched OpenAPI spec             |
+| **Violations**        | List of violations found         |
+| **Matched Path**      | Matched path pattern from spec   |
+| **Matched Operation** | Matched HTTP method              |
 
 ---
 

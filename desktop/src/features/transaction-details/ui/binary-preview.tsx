@@ -100,7 +100,9 @@ export const BinaryPreview = ({
       const appCachePath = filePath.startsWith("com.cheolsu-proxy/")
         ? filePath.slice("com.cheolsu-proxy/".length)
         : filePath;
-      const rawData = await readFile(appCachePath, { baseDir: BaseDirectory.AppCache });
+      const rawData = await readFile(appCachePath, {
+        baseDir: BaseDirectory.AppCache,
+      });
       const result = new Uint8Array(rawData);
       setFileData(result);
       return result;
@@ -118,7 +120,9 @@ export const BinaryPreview = ({
     const createPdfUrl = async () => {
       const loaded = await loadFileData();
       if (!loaded) return;
-      const blob = new Blob([loaded.buffer as ArrayBuffer], { type: "application/pdf" });
+      const blob = new Blob([loaded.buffer as ArrayBuffer], {
+        type: "application/pdf",
+      });
       const url = URL.createObjectURL(blob);
       setPdfUrl(url);
     };

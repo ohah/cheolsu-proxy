@@ -12,12 +12,12 @@ SSE responses are delivered with the `text/event-stream` Content-Type. Cheolsu P
 
 Each event is parsed according to the SSE standard:
 
-| Field | Description |
-| --- | --- |
-| **data** | Event data (can span multiple lines) |
-| **event** | Event type (default: `message`) |
-| **id** | Event identifier (used as `Last-Event-ID` header on reconnection) |
-| **retry** | Reconnection interval (milliseconds) |
+| Field     | Description                                                       |
+| --------- | ----------------------------------------------------------------- |
+| **data**  | Event data (can span multiple lines)                              |
+| **event** | Event type (default: `message`)                                   |
+| **id**    | Event identifier (used as `Last-Event-ID` header on reconnection) |
+| **retry** | Reconnection interval (milliseconds)                              |
 
 Comments (lines starting with `:`) are handled separately and not included in event data.
 

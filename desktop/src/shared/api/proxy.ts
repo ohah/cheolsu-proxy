@@ -222,7 +222,12 @@ export interface JsonDiffEntry {
 }
 
 export type BodyDiff =
-  | { type: "text"; additions: DiffLine[]; deletions: DiffLine[]; unchanged: number }
+  | {
+      type: "text";
+      additions: DiffLine[];
+      deletions: DiffLine[];
+      unchanged: number;
+    }
   | { type: "json"; changes: JsonDiffEntry[] }
   | { type: "binary"; old_size: number; new_size: number };
 

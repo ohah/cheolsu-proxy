@@ -21,20 +21,20 @@ Requests are automatically detected as GraphQL when any of the following conditi
 
 ### Operation Details
 
-| Field | Description |
-| --- | --- |
-| **Operation Type** | Query, Mutation, Subscription |
+| Field              | Description                                  |
+| ------------------ | -------------------------------------------- |
+| **Operation Type** | Query, Mutation, Subscription                |
 | **Operation Name** | e.g., `GetUser` from `query GetUser { ... }` |
-| **Query** | Full GraphQL query string |
-| **Variables** | Variables passed to the query (JSON) |
-| **Endpoint** | Request URL |
+| **Query**          | Full GraphQL query string                    |
+| **Variables**      | Variables passed to the query (JSON)         |
+| **Endpoint**       | Request URL                                  |
 
 ### Response Analysis
 
-| Field | Description |
-| --- | --- |
-| **data** | Response data |
-| **errors** | GraphQL error list (message, locations, path) |
+| Field          | Description                                       |
+| -------------- | ------------------------------------------------- |
+| **data**       | Response data                                     |
+| **errors**     | GraphQL error list (message, locations, path)     |
 | **extensions** | Server extension data (performance metrics, etc.) |
 
 ### Batch Queries

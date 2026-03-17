@@ -60,7 +60,12 @@ export function PerformanceTab({ report }: PerformanceTabProps) {
               <Trans>No slow requests detected</Trans>
             </div>
           ) : (
-            <div style={{ height: `${rowVirtualizer.getTotalSize()}px`, position: "relative" }}>
+            <div
+              style={{
+                height: `${rowVirtualizer.getTotalSize()}px`,
+                position: "relative",
+              }}
+            >
               {rowVirtualizer.getVirtualItems().map((virtualRow) => {
                 const req = report.slowRequests[virtualRow.index];
                 return (

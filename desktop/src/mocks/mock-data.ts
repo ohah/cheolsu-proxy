@@ -94,7 +94,12 @@ export const MOCK_TRANSACTIONS: HttpTransaction[] = [
         data: [
           { id: 1, name: "Alice", email: "alice@example.com", role: "admin" },
           { id: 2, name: "Bob", email: "bob@example.com", role: "user" },
-          { id: 3, name: "Charlie", email: "charlie@example.com", role: "user" },
+          {
+            id: 3,
+            name: "Charlie",
+            email: "charlie@example.com",
+            role: "user",
+          },
         ],
         pagination: { page: 1, limit: 20, total: 142 },
       }),
@@ -130,12 +135,20 @@ export const MOCK_TRANSACTIONS: HttpTransaction[] = [
     {
       method: "PUT",
       uri: "https://api.example.com/v1/users/2",
-      headers: { "content-type": "application/json", authorization: "Bearer token..." },
+      headers: {
+        "content-type": "application/json",
+        authorization: "Bearer token...",
+      },
       ...jsonBody({ name: "Bob Updated", role: "admin" }),
     },
     {
       status: 200,
-      ...jsonBody({ id: 2, name: "Bob Updated", email: "bob@example.com", role: "admin" }),
+      ...jsonBody({
+        id: 2,
+        name: "Bob Updated",
+        email: "bob@example.com",
+        role: "admin",
+      }),
     },
   ),
 
@@ -159,7 +172,11 @@ export const MOCK_TRANSACTIONS: HttpTransaction[] = [
     },
     {
       status: 200,
-      ...jsonBody({ theme: "dark", notifications: true, updated_at: "2026-03-06T10:05:00Z" }),
+      ...jsonBody({
+        theme: "dark",
+        notifications: true,
+        updated_at: "2026-03-06T10:05:00Z",
+      }),
     },
   ),
 
@@ -174,7 +191,10 @@ export const MOCK_TRANSACTIONS: HttpTransaction[] = [
     },
     {
       status: 200,
-      headers: { "content-type": "text/html; charset=utf-8", "cache-control": "max-age=3600" },
+      headers: {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "max-age=3600",
+      },
       ...textBody(htmlSnippet, "Html"),
     },
   ),
@@ -237,7 +257,10 @@ export const MOCK_TRANSACTIONS: HttpTransaction[] = [
     },
     {
       status: 404,
-      ...jsonBody({ error: "Not Found", message: "Product with id 99999 does not exist" }),
+      ...jsonBody({
+        error: "Not Found",
+        message: "Product with id 99999 does not exist",
+      }),
     },
   ),
 
@@ -251,7 +274,10 @@ export const MOCK_TRANSACTIONS: HttpTransaction[] = [
     },
     {
       status: 500,
-      ...jsonBody({ error: "Internal Server Error", message: "Database connection timeout" }),
+      ...jsonBody({
+        error: "Internal Server Error",
+        message: "Database connection timeout",
+      }),
     },
   ),
 
@@ -265,7 +291,10 @@ export const MOCK_TRANSACTIONS: HttpTransaction[] = [
     },
     {
       status: 301,
-      headers: { location: "https://example.com/new-page", "content-type": "text/html" },
+      headers: {
+        location: "https://example.com/new-page",
+        "content-type": "text/html",
+      },
       data_type: "Empty",
       body_size: 0,
     },
@@ -441,7 +470,10 @@ export const MOCK_TRANSACTIONS: HttpTransaction[] = [
     {
       method: "GET",
       uri: "https://api.example.com/v1/products?category=electronics&sort=price",
-      headers: { accept: "application/json", "accept-encoding": "gzip, deflate, br" },
+      headers: {
+        accept: "application/json",
+        "accept-encoding": "gzip, deflate, br",
+      },
     },
     {
       status: 200,

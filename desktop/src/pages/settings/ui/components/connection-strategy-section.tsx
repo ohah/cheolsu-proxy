@@ -33,7 +33,10 @@ export function ConnectionStrategySection() {
           <Select
             value={strategy}
             onValueChange={(v) => {
-              if (v) setValue("connectionStrategy", v as ConnectionStrategy, { shouldDirty: true });
+              if (v)
+                setValue("connectionStrategy", v as ConnectionStrategy, {
+                  shouldDirty: true,
+                });
             }}
           >
             <SelectTrigger className="w-72">

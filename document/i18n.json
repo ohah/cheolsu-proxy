@@ -1,50 +1,50 @@
 {
-	"guide": {
-		"ko": "가이드",
-		"en": "Guide"
-	},
-	"contributing": {
-		"ko": "기여하기",
-		"en": "Contributing"
-	},
-	"gettingStarted": {
-		"ko": "시작하기",
-		"en": "Getting Started"
-	},
-	"introduction": {
-		"ko": "소개",
-		"en": "Introduction"
-	},
-	"features": {
-		"ko": "주요 기능",
-		"en": "Features"
-	},
-	"certificateSetup": {
-		"ko": "인증서 설정",
-		"en": "Certificate Setup"
-	},
-	"contributingGuide": {
-		"ko": "기여 방법",
-		"en": "Contributing Guide"
-	},
-	"developmentSetup": {
-		"ko": "개발 환경 설정",
-		"en": "Development Setup"
-	},
-	"codeStructure": {
-		"ko": "프로젝트 구조",
-		"en": "Code Structure"
-	},
-	"testing": {
-		"ko": "테스트",
-		"en": "Testing"
-	},
-	"featureSection": {
-		"ko": "기능",
-		"en": "Features"
-	},
-	"tlsSupport": {
-		"ko": "TLS 1.0/1.1 지원",
-		"en": "TLS 1.0/1.1 Support"
-	}
+  "guide": {
+    "ko": "가이드",
+    "en": "Guide"
+  },
+  "contributing": {
+    "ko": "기여하기",
+    "en": "Contributing"
+  },
+  "gettingStarted": {
+    "ko": "시작하기",
+    "en": "Getting Started"
+  },
+  "introduction": {
+    "ko": "소개",
+    "en": "Introduction"
+  },
+  "features": {
+    "ko": "주요 기능",
+    "en": "Features"
+  },
+  "certificateSetup": {
+    "ko": "인증서 설정",
+    "en": "Certificate Setup"
+  },
+  "contributingGuide": {
+    "ko": "기여 방법",
+    "en": "Contributing Guide"
+  },
+  "developmentSetup": {
+    "ko": "개발 환경 설정",
+    "en": "Development Setup"
+  },
+  "codeStructure": {
+    "ko": "프로젝트 구조",
+    "en": "Code Structure"
+  },
+  "testing": {
+    "ko": "테스트",
+    "en": "Testing"
+  },
+  "featureSection": {
+    "ko": "기능",
+    "en": "Features"
+  },
+  "tlsSupport": {
+    "ko": "TLS 1.0/1.1 지원",
+    "en": "TLS 1.0/1.1 Support"
+  }
 }

@@ -299,7 +299,11 @@ export function detectDuplicateRequests(
     if (!tx.request) continue;
     const key = `${tx.request.method} ${tx.request.uri}`;
     if (!groups.has(key)) {
-      groups.set(key, { method: tx.request.method, url: tx.request.uri, timestamps: [] });
+      groups.set(key, {
+        method: tx.request.method,
+        url: tx.request.uri,
+        timestamps: [],
+      });
     }
     groups.get(key)!.timestamps.push(tx.request.time);
   }

@@ -36,12 +36,12 @@ flowchart TD
 
 Use wildcard patterns to specify which requests to pause.
 
-| Setting | Description |
-| --- | --- |
-| **Pattern** | URL wildcard pattern (e.g., `*api.example.com*`) |
-| **Break on Request** | Pause at the request phase |
-| **Break on Response** | Pause at the response phase |
-| **Enabled** | Toggle rule on/off |
+| Setting               | Description                                      |
+| --------------------- | ------------------------------------------------ |
+| **Pattern**           | URL wildcard pattern (e.g., `*api.example.com*`) |
+| **Break on Request**  | Pause at the request phase                       |
+| **Break on Response** | Pause at the response phase                      |
+| **Enabled**           | Toggle rule on/off                               |
 
 Setting both request and response breakpoints will pause twice for a single request.
 
@@ -62,12 +62,14 @@ Pass the request/response through without modification.
 Edit the request or response before forwarding.
 
 **Request modifications:**
+
 - URL
 - HTTP method
 - Headers
 - Body
 
 **Response modifications:**
+
 - Status code
 - Headers
 - Body

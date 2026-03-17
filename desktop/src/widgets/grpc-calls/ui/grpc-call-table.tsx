@@ -90,110 +90,106 @@ GrpcCallRow.displayName = "GrpcCallRow";
 
 const ROW_HEIGHT = 32;
 
-export const GrpcCallTable = memo(
-  ({ calls, selectedCall, onSelectCall }: GrpcCallTableProps) => {
-    const { t } = useLingui();
-    const viewportRef = useRef<HTMLDivElement>(null);
-    const shouldAutoScroll = useRef(true);
+export const GrpcCallTable = memo(({ calls, selectedCall, onSelectCall }: GrpcCallTableProps) => {
+  const { t } = useLingui();
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const shouldAutoScroll = useRef(true);
 
-    const handleScroll = useCallback(() => {
-      const el = viewportRef.current;
-      if (!el) return;
-      const distFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
-      shouldAutoScroll.current = distFromBottom < 50;
-    }, []);
+  const handleScroll = useCallback(() => {
+    const el = viewportRef.current;
+    if (!el) return;
+    const distFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    shouldAutoScroll.current = distFromBottom < 50;
+  }, []);
 
-    const scrollAreaCallbackRef = useCallback(
-      (node: HTMLDivElement | null) => {
-        if (node) {
-          const viewport = node.querySelector(
-            '[data-slot="scroll-area-viewport"]',
-          ) as HTMLDivElement;
-          if (viewport) {
-            viewportRef.current = viewport;
-            viewport.addEventListener("scroll", handleScroll);
-          }
-        } else if (viewportRef.current) {
-          viewportRef.current.removeEventListener("scroll", handleScroll);
-          viewportRef.current = null;
+  const scrollAreaCallbackRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      if (node) {
+        const viewport = node.querySelector('[data-slot="scroll-area-viewport"]') as HTMLDivElement;
+        if (viewport) {
+          viewportRef.current = viewport;
+          viewport.addEventListener("scroll", handleScroll);
         }
-      },
-      [handleScroll],
-    );
-
-    const getScrollElement = useCallback(() => viewportRef.current, []);
-    const estimateSize = useCallback(() => ROW_HEIGHT, []);
-
-    const virtualizer = useVirtualizer({
-      count: calls.length,
-      getScrollElement,
-      estimateSize,
-      overscan: 20,
-    });
-
-    useEffect(() => {
-      if (shouldAutoScroll.current && calls.length > 0) {
-        virtualizer.scrollToIndex(calls.length - 1, { align: "end" });
+      } else if (viewportRef.current) {
+        viewportRef.current.removeEventListener("scroll", handleScroll);
+        viewportRef.current = null;
       }
-    }, [calls.length]);
+    },
+    [handleScroll],
+  );
 
-    const selectHandlers = useMemo(
-      () => calls.map((call) => () => onSelectCall(call)),
-      [calls, onSelectCall],
-    );
+  const getScrollElement = useCallback(() => viewportRef.current, []);
+  const estimateSize = useCallback(() => ROW_HEIGHT, []);
 
-    if (calls.length === 0) {
-      return (
-        <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">
-          <Trans>gRPC 호출을 기다리는 중...</Trans>
-        </div>
-      );
+  const virtualizer = useVirtualizer({
+    count: calls.length,
+    getScrollElement,
+    estimateSize,
+    overscan: 20,
+  });
+
+  useEffect(() => {
+    if (shouldAutoScroll.current && calls.length > 0) {
+      virtualizer.scrollToIndex(calls.length - 1, { align: "end" });
     }
+  }, [calls.length]);
 
+  const selectHandlers = useMemo(
+    () => calls.map((call) => () => onSelectCall(call)),
+    [calls, onSelectCall],
+  );
+
+  if (calls.length === 0) {
     return (
-      <div className="flex-1 flex flex-col h-full overflow-hidden">
-        <div className="flex-shrink-0 border-b border-border">
-          <div className="h-7 flex items-center text-xs text-muted-foreground font-medium bg-muted/30">
-            <div className="px-2 w-20 text-left flex-shrink-0">{t`Status`}</div>
-            <div className="px-2 flex-1 text-left min-w-0">{t`Method`}</div>
-            <div className="px-2 w-16 text-right flex-shrink-0">{t`Duration`}</div>
-            <div className="px-2 pr-4 w-24 text-right flex-shrink-0">{t`Time`}</div>
-          </div>
-        </div>
-        <ScrollArea ref={scrollAreaCallbackRef} className="flex-1 h-full min-h-0">
-          <div
-            style={{
-              height: `${virtualizer.getTotalSize()}px`,
-              width: "100%",
-              position: "relative",
-            }}
-          >
-            {virtualizer.getVirtualItems().map((virtualItem) => {
-              const call = calls[virtualItem.index];
-              return (
-                <div
-                  key={call.id}
-                  style={{
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    width: "100%",
-                    height: `${virtualItem.size}px`,
-                    transform: `translateY(${virtualItem.start}px)`,
-                  }}
-                >
-                  <GrpcCallRow
-                    call={call}
-                    isSelected={selectedCall?.id === call.id}
-                    onSelect={selectHandlers[virtualItem.index]}
-                  />
-                </div>
-              );
-            })}
-          </div>
-        </ScrollArea>
+      <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">
+        <Trans>gRPC 호출을 기다리는 중...</Trans>
       </div>
     );
-  },
-);
+  }
+
+  return (
+    <div className="flex-1 flex flex-col h-full overflow-hidden">
+      <div className="flex-shrink-0 border-b border-border">
+        <div className="h-7 flex items-center text-xs text-muted-foreground font-medium bg-muted/30">
+          <div className="px-2 w-20 text-left flex-shrink-0">{t`Status`}</div>
+          <div className="px-2 flex-1 text-left min-w-0">{t`Method`}</div>
+          <div className="px-2 w-16 text-right flex-shrink-0">{t`Duration`}</div>
+          <div className="px-2 pr-4 w-24 text-right flex-shrink-0">{t`Time`}</div>
+        </div>
+      </div>
+      <ScrollArea ref={scrollAreaCallbackRef} className="flex-1 h-full min-h-0">
+        <div
+          style={{
+            height: `${virtualizer.getTotalSize()}px`,
+            width: "100%",
+            position: "relative",
+          }}
+        >
+          {virtualizer.getVirtualItems().map((virtualItem) => {
+            const call = calls[virtualItem.index];
+            return (
+              <div
+                key={call.id}
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  height: `${virtualItem.size}px`,
+                  transform: `translateY(${virtualItem.start}px)`,
+                }}
+              >
+                <GrpcCallRow
+                  call={call}
+                  isSelected={selectedCall?.id === call.id}
+                  onSelect={selectHandlers[virtualItem.index]}
+                />
+              </div>
+            );
+          })}
+        </div>
+      </ScrollArea>
+    </div>
+  );
+});
 GrpcCallTable.displayName = "GrpcCallTable";

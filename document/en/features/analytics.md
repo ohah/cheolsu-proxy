@@ -12,11 +12,11 @@ Traffic Analytics analyzes captured HTTP traffic from multiple angles, automatic
 
 Identifies requests exceeding a configured threshold and provides response time percentiles.
 
-| Metric | Description |
-| --- | --- |
-| **P50** | Median response time |
-| **P95** | 95th percentile response time |
-| **P99** | 99th percentile response time |
+| Metric                 | Description                            |
+| ---------------------- | -------------------------------------- |
+| **P50**                | Median response time                   |
+| **P95**                | 95th percentile response time          |
+| **P99**                | 99th percentile response time          |
 | **Slow Request Count** | Number of requests exceeding threshold |
 
 ### Error Analysis
@@ -32,14 +32,14 @@ Classifies HTTP error responses (4xx, 5xx) by status code and endpoint.
 
 Aggregates performance metrics per API endpoint.
 
-| Metric | Description |
-| --- | --- |
-| **Method + Path** | API endpoint identifier |
-| **Request Count** | Number of requests |
-| **Avg Response Time** | Average duration |
+| Metric                | Description              |
+| --------------------- | ------------------------ |
+| **Method + Path**     | API endpoint identifier  |
+| **Request Count**     | Number of requests       |
+| **Avg Response Time** | Average duration         |
 | **P95 Response Time** | 95th percentile duration |
-| **Error Rate** | Error response ratio |
-| **Avg Response Size** | Response body size |
+| **Error Rate**        | Error response ratio     |
+| **Avg Response Size** | Response body size       |
 
 ### Duplicate Request Detection
 

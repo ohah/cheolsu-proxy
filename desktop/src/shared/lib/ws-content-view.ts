@@ -219,7 +219,10 @@ export function parseMqtt(base64Payload: string, mqttVersion?: number): MqttPars
       }
       if (offset < bytes.length) {
         const connectFlags = bytes[offset];
-        fields.push({ label: "Clean Session", value: String((connectFlags & 0x02) !== 0) });
+        fields.push({
+          label: "Clean Session",
+          value: String((connectFlags & 0x02) !== 0),
+        });
         offset += 1;
       }
       if (offset + 2 <= bytes.length) {
@@ -236,10 +239,16 @@ export function parseMqtt(base64Payload: string, mqttVersion?: number): MqttPars
           label: "Session Present",
           value: String((bytes[payloadStart] & 0x01) !== 0),
         });
-        fields.push({ label: "Reason Code", value: String(bytes[payloadStart + 1]) });
+        fields.push({
+          label: "Reason Code",
+          value: String(bytes[payloadStart + 1]),
+        });
       }
       if (mqttVersion)
-        fields.push({ label: "Version", value: mqttVersion === 5 ? "5.0" : "3.1.1" });
+        fields.push({
+          label: "Version",
+          value: mqttVersion === 5 ? "5.0" : "3.1.1",
+        });
     } else if (packetTypeNum === 8) {
       // SUBSCRIBE
       let offset = payloadStart;

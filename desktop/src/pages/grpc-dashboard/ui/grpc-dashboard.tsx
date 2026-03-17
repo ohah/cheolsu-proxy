@@ -142,9 +142,7 @@ export const GrpcDashboard = () => {
             collapsible
             className="h-full overflow-hidden"
           >
-            {selectedCall && (
-              <GrpcCallDetail call={selectedCall} onClose={handleCloseDetail} />
-            )}
+            {selectedCall && <GrpcCallDetail call={selectedCall} onClose={handleCloseDetail} />}
           </ResizablePanel>
         </ResizablePanelGroup>
       </div>

@@ -61,7 +61,9 @@ export function TransactionDetails({
           <Tabs value={activeTab} onValueChange={onTabChange} className="h-full flex flex-col">
             <TabsList
               className="grid w-full flex-shrink-0"
-              style={{ gridTemplateColumns: `repeat(${filteredTabs.length}, 1fr)` }}
+              style={{
+                gridTemplateColumns: `repeat(${filteredTabs.length}, 1fr)`,
+              }}
             >
               {filteredTabs.map((tab) => (
                 <TabsTrigger key={tab} value={tab}>
