@@ -45,7 +45,7 @@ msgstr "{failCount}개 실패"
 msgid "{filteredCount} of {totalCount} transactions"
 msgstr "{totalCount}개 중 {filteredCount}개 트랜잭션"
 
-#: src/widgets/network-table/ui/table-row.tsx:100
+#: src/widgets/network-table/ui/table-row.tsx:103
 msgid "{label} copied to clipboard"
 msgstr "{label} 클립보드에 복사됨"
 
@@ -131,7 +131,7 @@ msgstr "트래픽에서 추가"
 msgid "Add Headers"
 msgstr "헤더 추가"
 
-#: src/widgets/network-table/ui/table-row.tsx:207
+#: src/widgets/network-table/ui/table-row.tsx:220
 msgid "Add Intercept Rule"
 msgstr "인터셉트 규칙 추가"
 
@@ -197,7 +197,7 @@ msgid "Added to server replay"
 msgstr "서버 리플레이에 추가되었습니다"
 
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:135
-#: src/widgets/network-table/ui/table-row.tsx:198
+#: src/widgets/network-table/ui/table-row.tsx:211
 msgid "Advanced Repeat"
 msgstr "고급 반복"
 
@@ -649,7 +649,7 @@ msgstr "복사"
 msgid "Copy as cURL"
 msgstr "cURL로 복사"
 
-#: src/widgets/network-table/ui/table-row.tsx:169
+#: src/widgets/network-table/ui/table-row.tsx:172
 msgid "Copy as..."
 msgstr "다른 형식으로 복사..."
 
@@ -676,7 +676,7 @@ msgstr "CORS 문제"
 msgid "Count"
 msgstr "횟수"
 
-#: src/widgets/network-table/ui/table-row.tsx:173
+#: src/widgets/network-table/ui/table-row.tsx:176
 msgid "cURL"
 msgstr "cURL"
 
@@ -744,7 +744,7 @@ msgid "Delete rule"
 msgstr "규칙 삭제"
 
 #: src/widgets/network-table/ui/cells/action-cell.tsx:21
-#: src/widgets/network-table/ui/table-row.tsx:202
+#: src/widgets/network-table/ui/table-row.tsx:215
 msgid "Delete Transaction"
 msgstr "트랜잭션 삭제"
 
@@ -1166,7 +1166,7 @@ msgstr "HTTP 연결 (TLS 없음)"
 msgid "HTTP requests and responses"
 msgstr "HTTP 요청 및 응답"
 
-#: src/widgets/network-table/ui/table-row.tsx:187
+#: src/widgets/network-table/ui/table-row.tsx:190
 msgid "HTTPie"
 msgstr "HTTPie"
 
@@ -1259,13 +1259,17 @@ msgstr "발급자 정보를 사용할 수 없습니다"
 msgid "Iterations"
 msgstr "반복 횟수"
 
-#: src/widgets/network-table/ui/table-row.tsx:176
+#: src/widgets/network-table/ui/table-row.tsx:179
 msgid "JavaScript Fetch"
 msgstr "JavaScript Fetch"
 
 #: src/shared/app-sidebar/ui/sidebar-mcp.tsx:127
 msgid "JSON Configuration"
 msgstr "JSON 설정"
+
+#: src/widgets/network-table/ui/table-row.tsx:205
+msgid "k6 Load Test"
+msgstr "k6 부하 테스트"
 
 #: src/pages/settings/ui/components/client-certificate-section.tsx:306
 msgid "Key file"
@@ -1688,7 +1692,7 @@ msgstr "재생할 유효한 요청이 없습니다"
 msgid "No valid requests to replay"
 msgstr "리플레이할 유효한 요청이 없습니다"
 
-#: src/widgets/network-table/ui/table-row.tsx:181
+#: src/widgets/network-table/ui/table-row.tsx:184
 msgid "Node.js Fetch"
 msgstr "Node.js Fetch"
 
@@ -1849,7 +1853,7 @@ msgstr "대기 중인 Breakpoints"
 msgid "Performance"
 msgstr "성능"
 
-#: src/widgets/network-table/ui/table-row.tsx:164
+#: src/widgets/network-table/ui/table-row.tsx:167
 msgid "Pin to Top"
 msgstr "상단에 고정"
 
@@ -1860,6 +1864,10 @@ msgstr "PKCS12 파일"
 #: src/pages/settings/ui/components/custom-ca-section.tsx:269
 msgid "PKCS12 password (leave empty if none)"
 msgstr "PKCS12 비밀번호 (없으면 비워두세요)"
+
+#: src/widgets/network-table/ui/table-row.tsx:202
+msgid "Playwright Test"
+msgstr "Playwright 테스트"
 
 #: src/pages/settings/ui/components/custom-ca-section.tsx:89
 msgid "Please select a PKCS12 file"
@@ -1882,7 +1890,7 @@ msgstr "포트는 1에서 65535 사이여야 합니다"
 msgid "Port number for the proxy server to listen on. Changes take effect on next app restart."
 msgstr "프록시 서버가 수신할 포트 번호입니다. 변경 사항은 앱을 다시 시작하면 적용됩니다."
 
-#: src/widgets/network-table/ui/table-row.tsx:184
+#: src/widgets/network-table/ui/table-row.tsx:187
 msgid "PowerShell"
 msgstr "PowerShell"
 
@@ -1942,7 +1950,7 @@ msgstr "프록시 설정 및 구성"
 msgid "proxy.company.com"
 msgstr "proxy.company.com"
 
-#: src/widgets/network-table/ui/table-row.tsx:192
+#: src/widgets/network-table/ui/table-row.tsx:195
 msgid "Python Requests"
 msgstr "Python Requests"
 
@@ -2739,15 +2747,15 @@ msgstr "트래픽 분석"
 msgid "Traffic Replay"
 msgstr "트래픽 리플레이"
 
-#: src/widgets/network-table/ui/table-row.tsx:107
+#: src/widgets/network-table/ui/table-row.tsx:110
 msgid "Transaction deleted"
 msgstr "트랜잭션이 삭제되었습니다"
 
-#: src/widgets/network-table/ui/table-row.tsx:123
+#: src/widgets/network-table/ui/table-row.tsx:126
 msgid "Transaction pinned to top"
 msgstr "트랜잭션이 상단에 고정되었습니다"
 
-#: src/widgets/network-table/ui/table-row.tsx:123
+#: src/widgets/network-table/ui/table-row.tsx:126
 msgid "Transaction unpinned"
 msgstr "트랜잭션 고정이 해제되었습니다"
 
@@ -2787,7 +2795,7 @@ msgstr "무제한"
 msgid "Unload"
 msgstr "언로드"
 
-#: src/widgets/network-table/ui/table-row.tsx:164
+#: src/widgets/network-table/ui/table-row.tsx:167
 msgid "Unpin from Top"
 msgstr "상단 고정 해제"
 
@@ -2898,6 +2906,10 @@ msgstr "애플리케이션 로그 파일 조회"
 #: src/pages/contract-testing/ui/contract-testing-page.tsx:155
 msgid "Violations"
 msgstr "위반 사항"
+
+#: src/widgets/network-table/ui/table-row.tsx:199
+msgid "Vitest/Jest Test"
+msgstr "Vitest/Jest 테스트"
 
 #: src/widgets/sse-messages/ui/sse-message-table.tsx:136
 msgid "Waiting for SSE events..."
