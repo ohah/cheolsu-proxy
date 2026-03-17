@@ -29,6 +29,11 @@ const SseDashboard = lazy(() =>
     default: m.SseDashboard,
   })),
 );
+const GraphqlDashboard = lazy(() =>
+  import("@/pages/graphql-dashboard").then((m) => ({
+    default: m.GraphqlDashboard,
+  })),
+);
 const SettingsPage = lazy(() =>
   import("@/pages/settings").then((m) => ({ default: m.SettingsPage })),
 );
@@ -96,6 +101,10 @@ export const router = createBrowserRouter([
       {
         path: "/sse",
         element: <SseDashboard />,
+      },
+      {
+        path: "/graphql",
+        element: <GraphqlDashboard />,
       },
       {
         path: "/server-replay",

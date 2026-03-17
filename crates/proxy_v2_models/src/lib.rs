@@ -1,5 +1,6 @@
 mod data_type;
 mod file_storage;
+pub mod graphql;
 pub mod grpc;
 pub mod har;
 mod mime_utils;

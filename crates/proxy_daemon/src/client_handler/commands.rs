@@ -430,6 +430,11 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bo
             let response = DaemonMessage::ContractSpecsUpdated { specs };
             ctx.send_message(&response).await;
         }
+        ClientCommand::GetGraphqlOperations => {
+            // GraphQL 오퍼레이션은 클라이언트 측에서 기존 트랜잭션 데이터를 필터링하여 표시하므로
+            // 별도의 서버 측 처리가 필요하지 않습니다.
+            info!("GraphQL 오퍼레이션 목록 조회 요청 수신");
+        }
         ClientCommand::Stop => {
             return true;
         }

@@ -4,6 +4,7 @@ import {
   Route,
   Plug,
   Radio,
+  Braces,
   Settings,
   Database,
   FileCode,
@@ -40,6 +41,13 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
     label: msg`SSE`,
     icon: Radio,
     description: msg`Server-Sent Events streams`,
+  },
+  {
+    id: "graphql",
+    path: "/graphql",
+    label: msg`GraphQL`,
+    icon: Braces,
+    description: msg`GraphQL operations viewer`,
   },
   {
     id: "intercept-rules",
