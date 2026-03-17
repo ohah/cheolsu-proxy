@@ -25,7 +25,7 @@ export const TableHeader = ({
       <ContextMenu>
         <ContextMenuTrigger>
           <div
-            className={`grid gap-4 p-3.5 ${HEADER_CLASSES}`}
+            className={`grid gap-4 px-3 py-3.5 border-l-4 border-l-transparent ${HEADER_CLASSES}`}
             style={{ gridTemplateColumns: gridTemplate }}
           >
             <div className="flex items-center justify-center w-5">
