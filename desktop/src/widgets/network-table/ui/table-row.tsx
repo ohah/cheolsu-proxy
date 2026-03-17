@@ -36,6 +36,9 @@ import {
   generatePythonRequestsCommand,
   generatePowerShellCommand,
   generateNodejsFetchCommand,
+  generateVitestCode,
+  generatePlaywrightCode,
+  generateK6Code,
 } from "@/shared/lib";
 import { useInterceptRuleDialogStore } from "@/shared/stores";
 import { toast } from "sonner";
@@ -190,6 +193,16 @@ export const TableRow = memo(function TableRow({
               onClick={() => handleCopyAs(generatePythonRequestsCommand, "Python requests")}
             >
               <Trans>Python Requests</Trans>
+            </ContextMenuItem>
+            <ContextMenuSeparator />
+            <ContextMenuItem onClick={() => handleCopyAs(generateVitestCode, "Vitest")}>
+              <Trans>Vitest/Jest Test</Trans>
+            </ContextMenuItem>
+            <ContextMenuItem onClick={() => handleCopyAs(generatePlaywrightCode, "Playwright")}>
+              <Trans>Playwright Test</Trans>
+            </ContextMenuItem>
+            <ContextMenuItem onClick={() => handleCopyAs(generateK6Code, "k6")}>
+              <Trans>k6 Load Test</Trans>
             </ContextMenuItem>
           </ContextMenuSubContent>
         </ContextMenuSub>

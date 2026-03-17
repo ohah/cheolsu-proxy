@@ -8,3 +8,7 @@ export * from "./python-requests";
 export * from "./powershell";
 export * from "./nodejs-fetch";
 export * from "./http-headers";
+export * from "./schema-inference";
+export * from "./vitest";
+export * from "./playwright";
+export * from "./k6";

@@ -45,7 +45,7 @@ msgstr "{failCount} failed"
 msgid "{filteredCount} of {totalCount} transactions"
 msgstr "{filteredCount} of {totalCount} transactions"
 
-#: src/widgets/network-table/ui/table-row.tsx:100
+#: src/widgets/network-table/ui/table-row.tsx:103
 msgid "{label} copied to clipboard"
 msgstr "{label} copied to clipboard"
 
@@ -131,7 +131,7 @@ msgstr "Add from Traffic"
 msgid "Add Headers"
 msgstr "Add Headers"
 
-#: src/widgets/network-table/ui/table-row.tsx:207
+#: src/widgets/network-table/ui/table-row.tsx:220
 msgid "Add Intercept Rule"
 msgstr "Add Intercept Rule"
 
@@ -197,7 +197,7 @@ msgid "Added to server replay"
 msgstr "Added to server replay"
 
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:135
-#: src/widgets/network-table/ui/table-row.tsx:198
+#: src/widgets/network-table/ui/table-row.tsx:211
 msgid "Advanced Repeat"
 msgstr "Advanced Repeat"
 
@@ -649,7 +649,7 @@ msgstr "Copy"
 msgid "Copy as cURL"
 msgstr "Copy as cURL"
 
-#: src/widgets/network-table/ui/table-row.tsx:169
+#: src/widgets/network-table/ui/table-row.tsx:172
 msgid "Copy as..."
 msgstr "Copy as..."
 
@@ -676,7 +676,7 @@ msgstr "CORS Issues"
 msgid "Count"
 msgstr "Count"
 
-#: src/widgets/network-table/ui/table-row.tsx:173
+#: src/widgets/network-table/ui/table-row.tsx:176
 msgid "cURL"
 msgstr "cURL"
 
@@ -744,7 +744,7 @@ msgid "Delete rule"
 msgstr "Delete rule"
 
 #: src/widgets/network-table/ui/cells/action-cell.tsx:21
-#: src/widgets/network-table/ui/table-row.tsx:202
+#: src/widgets/network-table/ui/table-row.tsx:215
 msgid "Delete Transaction"
 msgstr "Delete Transaction"
 
@@ -1166,7 +1166,7 @@ msgstr "HTTP connection (no TLS)"
 msgid "HTTP requests and responses"
 msgstr "HTTP requests and responses"
 
-#: src/widgets/network-table/ui/table-row.tsx:187
+#: src/widgets/network-table/ui/table-row.tsx:190
 msgid "HTTPie"
 msgstr "HTTPie"
 
@@ -1259,13 +1259,17 @@ msgstr "Issuer information not available"
 msgid "Iterations"
 msgstr "Iterations"
 
-#: src/widgets/network-table/ui/table-row.tsx:176
+#: src/widgets/network-table/ui/table-row.tsx:179
 msgid "JavaScript Fetch"
 msgstr "JavaScript Fetch"
 
 #: src/shared/app-sidebar/ui/sidebar-mcp.tsx:127
 msgid "JSON Configuration"
 msgstr "JSON Configuration"
+
+#: src/widgets/network-table/ui/table-row.tsx:205
+msgid "k6 Load Test"
+msgstr "k6 Load Test"
 
 #: src/pages/settings/ui/components/client-certificate-section.tsx:306
 msgid "Key file"
@@ -1688,7 +1692,7 @@ msgstr "No valid request to replay"
 msgid "No valid requests to replay"
 msgstr "No valid requests to replay"
 
-#: src/widgets/network-table/ui/table-row.tsx:181
+#: src/widgets/network-table/ui/table-row.tsx:184
 msgid "Node.js Fetch"
 msgstr "Node.js Fetch"
 
@@ -1849,7 +1853,7 @@ msgstr "Pending Breakpoints"
 msgid "Performance"
 msgstr "Performance"
 
-#: src/widgets/network-table/ui/table-row.tsx:164
+#: src/widgets/network-table/ui/table-row.tsx:167
 msgid "Pin to Top"
 msgstr "Pin to Top"
 
@@ -1860,6 +1864,10 @@ msgstr "PKCS12 File"
 #: src/pages/settings/ui/components/custom-ca-section.tsx:269
 msgid "PKCS12 password (leave empty if none)"
 msgstr "PKCS12 password (leave empty if none)"
+
+#: src/widgets/network-table/ui/table-row.tsx:202
+msgid "Playwright Test"
+msgstr "Playwright Test"
 
 #: src/pages/settings/ui/components/custom-ca-section.tsx:89
 msgid "Please select a PKCS12 file"
@@ -1882,7 +1890,7 @@ msgstr "Port must be between 1 and 65535"
 msgid "Port number for the proxy server to listen on. Changes take effect on next app restart."
 msgstr "Port number for the proxy server to listen on. Changes take effect on next app restart."
 
-#: src/widgets/network-table/ui/table-row.tsx:184
+#: src/widgets/network-table/ui/table-row.tsx:187
 msgid "PowerShell"
 msgstr "PowerShell"
 
@@ -1942,7 +1950,7 @@ msgstr "Proxy settings and configuration"
 msgid "proxy.company.com"
 msgstr "proxy.company.com"
 
-#: src/widgets/network-table/ui/table-row.tsx:192
+#: src/widgets/network-table/ui/table-row.tsx:195
 msgid "Python Requests"
 msgstr "Python Requests"
 
@@ -2739,15 +2747,15 @@ msgstr "Traffic Analysis"
 msgid "Traffic Replay"
 msgstr "Traffic Replay"
 
-#: src/widgets/network-table/ui/table-row.tsx:107
+#: src/widgets/network-table/ui/table-row.tsx:110
 msgid "Transaction deleted"
 msgstr "Transaction deleted"
 
-#: src/widgets/network-table/ui/table-row.tsx:123
+#: src/widgets/network-table/ui/table-row.tsx:126
 msgid "Transaction pinned to top"
 msgstr "Transaction pinned to top"
 
-#: src/widgets/network-table/ui/table-row.tsx:123
+#: src/widgets/network-table/ui/table-row.tsx:126
 msgid "Transaction unpinned"
 msgstr "Transaction unpinned"
 
@@ -2787,7 +2795,7 @@ msgstr "Unlimited"
 msgid "Unload"
 msgstr "Unload"
 
-#: src/widgets/network-table/ui/table-row.tsx:164
+#: src/widgets/network-table/ui/table-row.tsx:167
 msgid "Unpin from Top"
 msgstr "Unpin from Top"
 
@@ -2898,6 +2906,10 @@ msgstr "View application log files"
 #: src/pages/contract-testing/ui/contract-testing-page.tsx:155
 msgid "Violations"
 msgstr "Violations"
+
+#: src/widgets/network-table/ui/table-row.tsx:199
+msgid "Vitest/Jest Test"
+msgstr "Vitest/Jest Test"
 
 #: src/widgets/sse-messages/ui/sse-message-table.tsx:136
 msgid "Waiting for SSE events..."
