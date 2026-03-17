@@ -450,12 +450,8 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bo
             info!("TLS config rules updated: {} rules", rules.len());
             if let Some(tls_config) = &s.tls_config {
                 let mut guard = tls_config.write().await;
-                // 기존 규칙을 모두 제거하고 새 규칙으로 교체
                 let old_count = guard.rules().len();
-                *guard = proxyapi_v2::tls_config::TlsConfigManager::new();
-                for rule in &rules {
-                    guard.add_rule(rule.clone());
-                }
+                guard.replace_rules(rules.clone());
                 info!(
                     "TLS config rules replaced: {} -> {} rules",
                     old_count,
@@ -470,12 +466,12 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bo
                 let guard = cache.read().await;
                 let strategies: Vec<proxyapi_v2::hybrid_tls_handler::LearnedTlsStrategy> = guard
                     .iter()
-                    .map(
-                        |(domain, strategy)| proxyapi_v2::hybrid_tls_handler::LearnedTlsStrategy {
+                    .map(|(domain, &strategy)| {
+                        proxyapi_v2::hybrid_tls_handler::LearnedTlsStrategy {
                             domain: domain.clone(),
-                            strategy: strategy.as_str().to_string(),
-                        },
-                    )
+                            strategy,
+                        }
+                    })
                     .collect();
                 let response = DaemonMessage::LearnedTlsStrategies { strategies };
                 ctx.send_message(&response).await;

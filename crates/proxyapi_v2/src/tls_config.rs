@@ -217,6 +217,12 @@ impl TlsConfigManager {
         self.rules.sort_by_key(|r| r.priority);
     }
 
+    /// 모든 규칙을 교체합니다
+    pub fn replace_rules(&mut self, rules: Vec<TlsConfigRule>) {
+        self.rules = rules;
+        self.rules.sort_by_key(|r| r.priority);
+    }
+
     /// 규칙을 제거합니다 (도메인 패턴으로 검색)
     pub fn remove_rule(&mut self, domain_pattern: &str) -> bool {
         let before = self.rules.len();

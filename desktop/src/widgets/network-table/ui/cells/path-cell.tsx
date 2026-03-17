@@ -1,8 +1,10 @@
 import { memo } from "react";
+import { useLingui } from "@lingui/react/macro";
 
 import type { TableCellProps } from "../../model";
 
 export const PathCell = memo<TableCellProps>(({ data }) => {
+  const { t } = useLingui();
   const { authority, pathname, transaction } = data;
   const fallback = transaction.tls_fallback_used;
 
@@ -15,7 +17,7 @@ export const PathCell = memo<TableCellProps>(({ data }) => {
         {fallback && (
           <span
             className="shrink-0 rounded bg-amber-500/15 px-1 py-px text-[10px] font-semibold leading-none text-amber-600 dark:text-amber-400"
-            title="TLS fallback — learned strategy used"
+            title={t`TLS fallback — learned strategy used`}
           >
             FB
           </span>
