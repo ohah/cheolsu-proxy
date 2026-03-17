@@ -1,11 +1,46 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
 import { useBreakpointStore } from "@/shared/stores";
-import { Card, CardContent, Badge, Button, Switch } from "@/shared/ui";
-import { Plus, Trash2, Eraser, Play, XCircle, StopCircle } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  Badge,
+  Button,
+  Switch,
+  Input,
+  Textarea,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/shared/ui";
+import { Plus, Trash2, Eraser, Play, XCircle, StopCircle, Pencil, Send } from "lucide-react";
 import { toast } from "sonner";
 import type { BreakpointRule, PendingBreakpoint } from "@/entities/breakpoint";
+
+interface HeaderEntry {
+  key: string;
+  value: string;
+}
+
+function headersToEntries(headers: Record<string, string>): HeaderEntry[] {
+  const entries = Object.entries(headers).map(([key, value]) => ({ key, value }));
+  return entries.length > 0 ? entries : [{ key: "", value: "" }];
+}
+
+function entriesToHeaders(entries: HeaderEntry[]): Record<string, string> {
+  const result: Record<string, string> = {};
+  for (const entry of entries) {
+    const key = entry.key.trim();
+    if (key) {
+      result[key] = entry.value;
+    }
+  }
+  return result;
+}
 
 export const BreakpointPage = () => {
   const { t } = useLingui();
@@ -23,6 +58,52 @@ export const BreakpointPage = () => {
   const [newPattern, setNewPattern] = useState("");
   const [breakOnRequest, setBreakOnRequest] = useState(true);
   const [breakOnResponse, setBreakOnResponse] = useState(false);
+
+  const [editTarget, setEditTarget] = useState<PendingBreakpoint | null>(null);
+  const [editHeaders, setEditHeaders] = useState<HeaderEntry[]>([{ key: "", value: "" }]);
+  const [editBody, setEditBody] = useState("");
+  const [editStatus, setEditStatus] = useState("");
+
+  const openEditDialog = useCallback((bp: PendingBreakpoint) => {
+    setEditTarget(bp);
+    setEditHeaders(headersToEntries(bp.data.headers));
+    setEditBody(bp.data.body ?? "");
+    setEditStatus(bp.data.status ? String(bp.data.status) : "");
+  }, []);
+
+  const handleModifyAndForward = useCallback(async () => {
+    if (!editTarget) return;
+    try {
+      const headers = entriesToHeaders(editHeaders);
+      const statusNum = editStatus ? Number(editStatus) : undefined;
+      await resolveBreakpoint(editTarget.id, {
+        type: "modify_and_forward",
+        headers: Object.keys(headers).length > 0 ? headers : undefined,
+        body: editBody || undefined,
+        status: statusNum,
+      });
+      setEditTarget(null);
+      toast.success(t`Modified and forwarded`);
+    } catch {
+      toast.error(t`Failed to modify and forward`);
+    }
+  }, [editTarget, editHeaders, editBody, editStatus, resolveBreakpoint, t]);
+
+  const updateHeaderEntry = useCallback((index: number, field: "key" | "value", val: string) => {
+    setEditHeaders((prev) =>
+      prev.map((entry, i) => (i === index ? { ...entry, [field]: val } : entry)),
+    );
+  }, []);
+
+  const addHeaderEntry = useCallback(() => {
+    setEditHeaders((prev) => [...prev, { key: "", value: "" }]);
+  }, []);
+
+  const removeHeaderEntry = useCallback((index: number) => {
+    setEditHeaders((prev) =>
+      prev.length <= 1 ? [{ key: "", value: "" }] : prev.filter((_, i) => i !== index),
+    );
+  }, []);
 
   const handleAdd = () => {
     if (!newPattern.trim()) {
@@ -262,8 +343,16 @@ export const BreakpointPage = () => {
                           </span>
                         )}
                       </div>
-                      {/* TODO: modify_and_forward 액션 UI 구현 */}
                       <div className="flex items-center gap-1 shrink-0">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openEditDialog(bp)}
+                          title={t`Edit & Forward`}
+                        >
+                          <Pencil className="w-3 h-3 mr-1" />
+                          <Trans>Edit</Trans>
+                        </Button>
                         <Button
                           variant="outline"
                           size="sm"
@@ -301,6 +390,104 @@ export const BreakpointPage = () => {
           )}
         </div>
       </div>
+
+      {/* Edit & Forward Dialog */}
+      <Dialog open={!!editTarget} onOpenChange={(open) => !open && setEditTarget(null)}>
+        <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              <Trans>Edit & Forward</Trans>
+            </DialogTitle>
+            <DialogDescription>
+              {editTarget && (
+                <span className="font-mono">
+                  {editTarget.data.method} {editTarget.data.url}
+                </span>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {/* Status (response phase only) */}
+            {editTarget?.phase === "response" && (
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium">
+                  <Trans>Status Code</Trans>
+                </label>
+                <Input
+                  type="number"
+                  value={editStatus}
+                  onChange={(e) => setEditStatus(e.target.value)}
+                  placeholder="200"
+                  className="w-32"
+                />
+              </div>
+            )}
+
+            {/* Headers */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium">
+                  <Trans>Headers</Trans>
+                </label>
+                <Button variant="ghost" size="sm" onClick={addHeaderEntry}>
+                  <Plus className="w-3 h-3 mr-1" />
+                  <Trans>Add</Trans>
+                </Button>
+              </div>
+              <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                {editHeaders.map((entry, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <Input
+                      value={entry.key}
+                      onChange={(e) => updateHeaderEntry(index, "key", e.target.value)}
+                      placeholder={t`Header name`}
+                      className="flex-1 font-mono text-xs"
+                    />
+                    <Input
+                      value={entry.value}
+                      onChange={(e) => updateHeaderEntry(index, "value", e.target.value)}
+                      placeholder={t`Value`}
+                      className="flex-[2] font-mono text-xs"
+                    />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeHeaderEntry(index)}
+                      className="shrink-0 text-muted-foreground hover:text-destructive"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Body */}
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">
+                <Trans>Body</Trans>
+              </label>
+              <Textarea
+                value={editBody}
+                onChange={(e) => setEditBody(e.target.value)}
+                placeholder={t`Request/Response body`}
+                className="font-mono text-xs min-h-32"
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditTarget(null)}>
+              <Trans>Cancel</Trans>
+            </Button>
+            <Button onClick={handleModifyAndForward}>
+              <Send className="w-4 h-4 mr-1" />
+              <Trans>Modify & Forward</Trans>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
