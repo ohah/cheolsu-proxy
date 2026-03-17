@@ -1,3 +1,4 @@
+mod analytics;
 mod breakpoint;
 mod logs;
 mod network;
@@ -83,6 +84,7 @@ fn draw_content(f: &mut Frame, app: &mut App, area: Rect) {
         Tab::InterceptRules => rules::draw(f, app, area),
         Tab::Script => script::draw(f, app, area),
         Tab::Breakpoint => breakpoint::draw(f, app, area),
+        Tab::Analytics => analytics::draw(f, app, area),
         Tab::Settings => settings::draw(f, app, area),
         Tab::Logs => logs::draw(f, app, area),
     }
@@ -106,6 +108,7 @@ fn draw_status_bar(f: &mut Frame, app: &App, area: Rect) {
         Tab::InterceptRules => "  j/k: nav | a: add | t: toggle | d: delete | C: clear all",
         Tab::Script => "  l: load | u: unload | r: reload | c: clear | j/k: scroll",
         Tab::Breakpoint => "  a: add | t: toggle | d: del | e: edit | f: fwd | x: drop | b: abort",
+        Tab::Analytics => "  r: 새로고침 | j/k: 스크롤",
         Tab::Settings => "  j/k: nav | Enter/Space: toggle/edit | Esc: cancel",
         Tab::Logs => "  j/k: scroll | h/l: file | /: filter | r: refresh | C: clear",
     };

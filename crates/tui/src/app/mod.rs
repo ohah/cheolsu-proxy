@@ -129,6 +129,50 @@ pub struct LogFileEntry {
     pub size: u64,
 }
 
+/// 분석 결과 캐시
+#[derive(Debug, Clone, Default)]
+pub struct AnalyticsResult {
+    /// 총 요청 수
+    pub total_requests: usize,
+    /// 에러율 (%)
+    pub error_rate: f64,
+    /// 평균 응답시간 (ms)
+    pub avg_duration_ms: f64,
+    /// P95 응답시간 (ms)
+    pub p95_duration_ms: u64,
+    /// 느린 요청 Top 10
+    pub slow_requests: Vec<SlowRequest>,
+    /// 에러 분포 (status_code, count)
+    pub error_distribution: Vec<(u16, usize)>,
+    /// 중복 요청
+    pub duplicate_requests: Vec<DuplicateRequest>,
+    /// N+1 패턴
+    pub n_plus_one_patterns: Vec<NPlusOnePattern>,
+}
+
+#[derive(Debug, Clone)]
+pub struct SlowRequest {
+    pub method: String,
+    pub url: String,
+    pub duration_ms: u64,
+    pub status: u16,
+}
+
+#[derive(Debug, Clone)]
+pub struct DuplicateRequest {
+    pub method: String,
+    pub url: String,
+    pub count: usize,
+    pub window_secs: u64,
+}
+
+#[derive(Debug, Clone)]
+pub struct NPlusOnePattern {
+    pub pattern: String,
+    pub count: usize,
+    pub suggestion: String,
+}
+
 /// TUI app state
 pub struct App {
     pub port: u16,
@@ -245,6 +289,10 @@ pub struct App {
     pub log_filter_editing: bool,
     pub log_last_refresh: Option<std::time::Instant>,
 
+    // Analytics
+    pub analytics_result: Option<AnalyticsResult>,
+    pub analytics_scroll: u16,
+
     // Status message
     pub status_message: Option<(String, std::time::Instant)>,
 
@@ -327,6 +375,8 @@ impl App {
             log_filter: String::new(),
             log_filter_editing: false,
             log_last_refresh: None,
+            analytics_result: None,
+            analytics_scroll: 0,
             status_message: None,
             conn: None,
             event_tx: None,
@@ -410,6 +460,212 @@ impl App {
                 self.log_scroll = 0;
             }
         }
+    }
+
+    /// 트래픽 데이터를 분석하여 결과를 캐시
+    pub fn refresh_analytics(&mut self) {
+        use std::collections::HashMap;
+
+        let txns = &self.transactions;
+        let total_requests = txns.len();
+
+        if total_requests == 0 {
+            self.analytics_result = Some(AnalyticsResult::default());
+            return;
+        }
+
+        // 응답시간 수집 및 에러 카운트
+        let mut durations: Vec<u64> = Vec::new();
+        let mut error_count = 0usize;
+        let mut error_map: HashMap<u16, usize> = HashMap::new();
+
+        // URL별 요청 수집 (중복/N+1 탐지)
+        let mut url_requests: HashMap<String, Vec<(String, i64)>> = HashMap::new();
+
+        // 느린 요청 후보
+        struct SlowCandidate {
+            method: String,
+            url: String,
+            duration_ms: u64,
+            status: u16,
+        }
+        let mut slow_candidates: Vec<SlowCandidate> = Vec::new();
+
+        for info in txns.iter() {
+            let method = info
+                .request
+                .as_ref()
+                .map(|r| r.method().to_string())
+                .unwrap_or_default();
+            let url = info
+                .request
+                .as_ref()
+                .map(|r| r.uri().to_string())
+                .unwrap_or_default();
+            let req_time = info.request.as_ref().map(|r| r.time()).unwrap_or(0);
+            let status = info
+                .response
+                .as_ref()
+                .map(|r| r.status().as_u16())
+                .unwrap_or(0);
+
+            // 타이밍 정보 수집
+            let duration_ms = info
+                .response
+                .as_ref()
+                .and_then(|r| r.timing().as_ref())
+                .map(|t| t.total_ms)
+                .unwrap_or_else(|| {
+                    // 타이밍 정보 없으면 요청/응답 시간차로 계산
+                    let res_time = info.response.as_ref().map(|r| r.time()).unwrap_or(0);
+                    if res_time > 0 && req_time > 0 {
+                        ((res_time - req_time).unsigned_abs()) / 1_000_000 // ns -> ms
+                    } else {
+                        0
+                    }
+                });
+
+            durations.push(duration_ms);
+
+            // 에러 카운트
+            if status >= 400 {
+                error_count += 1;
+                *error_map.entry(status).or_insert(0) += 1;
+            }
+
+            // 느린 요청
+            slow_candidates.push(SlowCandidate {
+                method: method.clone(),
+                url: url.clone(),
+                duration_ms,
+                status,
+            });
+
+            // URL별 요청 기록 (중복 탐지용)
+            let key = format!("{} {}", method, url);
+            url_requests
+                .entry(key)
+                .or_default()
+                .push((method, req_time));
+        }
+
+        // 평균 응답시간
+        let avg_duration_ms = if durations.is_empty() {
+            0.0
+        } else {
+            durations.iter().sum::<u64>() as f64 / durations.len() as f64
+        };
+
+        // P95
+        durations.sort_unstable();
+        let p95_duration_ms = if durations.is_empty() {
+            0
+        } else {
+            let p95_idx = ((durations.len() as f64) * 0.95).ceil() as usize;
+            durations[p95_idx.min(durations.len() - 1)]
+        };
+
+        // 에러율
+        let error_rate = (error_count as f64 / total_requests as f64) * 100.0;
+
+        // 에러 분포 (개수 내림차순)
+        let mut error_distribution: Vec<(u16, usize)> = error_map.into_iter().collect();
+        error_distribution.sort_by(|a, b| b.1.cmp(&a.1));
+
+        // 느린 요청 Top 10
+        slow_candidates.sort_by(|a, b| b.duration_ms.cmp(&a.duration_ms));
+        let slow_requests: Vec<SlowRequest> = slow_candidates
+            .into_iter()
+            .take(10)
+            .map(|c| SlowRequest {
+                method: c.method,
+                url: c.url,
+                duration_ms: c.duration_ms,
+                status: c.status,
+            })
+            .collect();
+
+        // 중복 요청 탐지 (같은 URL이 짧은 시간 내 3회 이상)
+        let mut duplicate_requests: Vec<DuplicateRequest> = Vec::new();
+        for (key, times) in &url_requests {
+            if times.len() >= 3 {
+                let mut sorted_times: Vec<i64> = times.iter().map(|(_, t)| *t).collect();
+                sorted_times.sort_unstable();
+                if let (Some(&first), Some(&last)) = (sorted_times.first(), sorted_times.last()) {
+                    let window_ns = (last - first).unsigned_abs();
+                    let window_secs = window_ns / 1_000_000_000;
+                    if window_secs <= 10 {
+                        let parts: Vec<&str> = key.splitn(2, ' ').collect();
+                        let (method, url) = if parts.len() == 2 {
+                            (parts[0].to_string(), parts[1].to_string())
+                        } else {
+                            (String::new(), key.clone())
+                        };
+                        duplicate_requests.push(DuplicateRequest {
+                            method,
+                            url,
+                            count: times.len(),
+                            window_secs: window_secs.max(1),
+                        });
+                    }
+                }
+            }
+        }
+        duplicate_requests.sort_by(|a, b| b.count.cmp(&a.count));
+        duplicate_requests.truncate(10);
+
+        // N+1 패턴 탐지 (URL 패스의 마지막 세그먼트가 변하는 패턴)
+        let mut path_pattern_counts: HashMap<String, usize> = HashMap::new();
+        for (key, times) in &url_requests {
+            if times.len() >= 1 {
+                let parts: Vec<&str> = key.splitn(2, ' ').collect();
+                if parts.len() == 2 {
+                    let url = parts[1];
+                    // URL에서 path 추출 후 마지막 세그먼트를 {id}로 치환
+                    if let Some(path) = url.split('?').next() {
+                        let segments: Vec<&str> = path.split('/').collect();
+                        if segments.len() >= 3 {
+                            // 마지막 세그먼트가 숫자이거나 UUID-like인 경우
+                            if let Some(last) = segments.last() {
+                                if last.parse::<u64>().is_ok()
+                                    || (last.len() > 8
+                                        && last.chars().all(|c| c.is_alphanumeric() || c == '-'))
+                                {
+                                    let pattern_segs: Vec<&str> =
+                                        segments[..segments.len() - 1].to_vec();
+                                    let pattern =
+                                        format!("{} {}/{{id}}", parts[0], pattern_segs.join("/"));
+                                    *path_pattern_counts.entry(pattern).or_insert(0) += 1;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        let mut n_plus_one_patterns: Vec<NPlusOnePattern> = path_pattern_counts
+            .into_iter()
+            .filter(|(_, count)| *count >= 5)
+            .map(|(pattern, count)| NPlusOnePattern {
+                pattern,
+                count,
+                suggestion: "배치 API 사용 권장".to_string(),
+            })
+            .collect();
+        n_plus_one_patterns.sort_by(|a, b| b.count.cmp(&a.count));
+        n_plus_one_patterns.truncate(10);
+
+        self.analytics_result = Some(AnalyticsResult {
+            total_requests,
+            error_rate,
+            avg_duration_ms,
+            p95_duration_ms,
+            slow_requests,
+            error_distribution,
+            duplicate_requests,
+            n_plus_one_patterns,
+        });
     }
 
     pub async fn run(&mut self) -> Result<(), Box<dyn std::error::Error>> {

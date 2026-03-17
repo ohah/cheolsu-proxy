@@ -1,4 +1,5 @@
 /// 키 핸들러 모듈 - 탭별 키 입력 처리를 서브모듈로 분리
+mod analytics;
 mod breakpoint;
 mod logs;
 mod network;
@@ -113,10 +114,17 @@ impl App {
                 return;
             }
             KeyCode::Char('6') if key.modifiers.contains(KeyModifiers::ALT) => {
-                self.tab = Tab::Settings;
+                self.tab = Tab::Analytics;
+                if self.analytics_result.is_none() {
+                    self.refresh_analytics();
+                }
                 return;
             }
             KeyCode::Char('7') if key.modifiers.contains(KeyModifiers::ALT) => {
+                self.tab = Tab::Settings;
+                return;
+            }
+            KeyCode::Char('8') if key.modifiers.contains(KeyModifiers::ALT) => {
                 self.tab = Tab::Logs;
                 self.refresh_log_files();
                 self.refresh_log_content();
@@ -132,6 +140,7 @@ impl App {
             Tab::InterceptRules => self.handle_rules_key(key).await,
             Tab::Script => self.handle_script_key(key).await,
             Tab::Breakpoint => self.handle_breakpoint_key(key).await,
+            Tab::Analytics => self.handle_analytics_key(key),
             Tab::Settings => self.handle_settings_key(key).await,
             Tab::Logs => self.handle_logs_key(key),
         }
