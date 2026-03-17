@@ -17,6 +17,11 @@ msgstr ""
 msgid " (preserve path)"
 msgstr " (preserve path)"
 
+#. placeholder {0}: serverCert.chain_length
+#: src/features/transaction-details/ui/transaction-certificate.tsx:218
+msgid "{0} certificate(s)"
+msgstr "{0} certificate(s)"
+
 #. placeholder {0}: result.failure_count
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:257
 msgid "{0} failed"
@@ -40,7 +45,7 @@ msgstr "{failCount} failed"
 msgid "{filteredCount} of {totalCount} transactions"
 msgstr "{filteredCount} of {totalCount} transactions"
 
-#: src/widgets/network-table/ui/table-row.tsx:98
+#: src/widgets/network-table/ui/table-row.tsx:100
 msgid "{label} copied to clipboard"
 msgstr "{label} copied to clipboard"
 
@@ -126,7 +131,7 @@ msgstr "Add from Traffic"
 msgid "Add Headers"
 msgstr "Add Headers"
 
-#: src/widgets/network-table/ui/table-row.tsx:197
+#: src/widgets/network-table/ui/table-row.tsx:209
 msgid "Add Intercept Rule"
 msgstr "Add Intercept Rule"
 
@@ -192,7 +197,7 @@ msgid "Added to server replay"
 msgstr "Added to server replay"
 
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:135
-#: src/widgets/network-table/ui/table-row.tsx:188
+#: src/widgets/network-table/ui/table-row.tsx:200
 msgid "Advanced Repeat"
 msgstr "Advanced Repeat"
 
@@ -250,10 +255,6 @@ msgstr "All reverse proxy rules cleared"
 msgid "All rules cleared"
 msgstr "All rules cleared"
 
-#: src/shared/app-sidebar/model/consts.ts:114
-msgid "Analyze traffic patterns and performance"
-msgstr "Analyze traffic patterns and performance"
-
 #: src/pages/script/ui/script-page.tsx:204
 msgid "API Reference"
 msgstr "API Reference"
@@ -290,18 +291,6 @@ msgstr "Automatically save the current session when the app closes and restore i
 msgid "available"
 msgstr "available"
 
-#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:155
-msgid "Avg Response Time"
-msgstr "Avg Response Time"
-
-#: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:82
-msgid "Avg Size"
-msgstr "Avg Size"
-
-#: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:75
-msgid "Avg Time"
-msgstr "Avg Time"
-
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:111
 msgid "Backend Host"
 msgstr "Backend Host"
@@ -317,14 +306,6 @@ msgstr "Backend port must be between 1 and 65535"
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:88
 msgid "Backend Scheme"
 msgstr "Backend Scheme"
-
-#: src/pages/analytics-dashboard/ui/nplus-one-tab.tsx:34
-msgid "Base URL"
-msgstr "Base URL"
-
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:93
-msgid "Batch"
-msgstr "Batch"
 
 #: src/pages/settings/ui/components/ssl-proxying-section.tsx:192
 msgid "Blacklist (Exclude)"
@@ -377,7 +358,7 @@ msgid "Breakpoint rule added"
 msgstr "Breakpoint rule added"
 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:195
-#: src/shared/app-sidebar/model/consts.ts:77
+#: src/shared/app-sidebar/model/consts.ts:68
 msgid "Breakpoints"
 msgstr "Breakpoints"
 
@@ -406,6 +387,7 @@ msgstr "Bypass List"
 msgid "bytes body"
 msgstr "bytes body"
 
+#: src/features/transaction-details/ui/transaction-certificate.tsx:92
 #: src/pages/settings/ui/components/certificate-settings.tsx:116
 msgid "CA Certificate"
 msgstr "CA Certificate"
@@ -441,6 +423,11 @@ msgstr "Cannot add: no response data"
 msgid "Certificate"
 msgstr "Certificate"
 
+#: src/features/transaction-details/ui/transaction-certificate.tsx:217
+msgid "Certificate Chain"
+msgstr "Certificate Chain"
+
+#: src/features/transaction-details/ui/transaction-certificate.tsx:192
 #: src/pages/settings/ui/components/client-certificate-section.tsx:188
 msgid "Certificate Details"
 msgstr "Certificate Details"
@@ -512,15 +499,6 @@ msgstr "Clear All"
 msgid "Clear all transactions"
 msgstr "Clear all transactions"
 
-#: src/pages/graphql-dashboard/ui/graphql-dashboard.tsx:114
-msgid "Clear selection"
-msgstr "Clear selection"
-
-#. placeholder {0}: transactions.length
-#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:130
-msgid "Click \"Run Analysis\" to analyze {0} captured requests."
-msgstr "Click \"Run Analysis\" to analyze {0} captured requests."
-
 #: src/pages/settings/ui/components/client-certificate-section.tsx:129
 msgid "Client Certificate"
 msgstr "Client Certificate"
@@ -540,7 +518,6 @@ msgstr "Clients without a valid certificate will be rejected"
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:370
 #: src/features/transaction-details/ui/sequence-replay-dialog.tsx:240
 #: src/features/transaction-details/ui/transaction-header.tsx:63
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:178
 #: src/widgets/sse-messages/ui/sse-message-detail.tsx:96
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:131
 msgid "Close"
@@ -562,6 +539,11 @@ msgstr "Comma-separated list of hosts to connect directly (supports *.domain.com
 #: src/shared/app-sidebar/ui/sidebar-mcp.tsx:63
 msgid "Command copied to clipboard"
 msgstr "Command copied to clipboard"
+
+#: src/features/transaction-details/ui/transaction-certificate.tsx:80
+#: src/features/transaction-details/ui/transaction-certificate.tsx:107
+msgid "Common Name (CN)"
+msgstr "Common Name (CN)"
 
 #: src/widgets/network-header/ui/network-controls.tsx:66
 msgid "Compose request"
@@ -590,6 +572,10 @@ msgstr "Connected"
 msgid "Connection"
 msgstr "Connection"
 
+#: src/features/transaction-details/ui/transaction-certificate.tsx:215
+msgid "Connection Info"
+msgstr "Connection Info"
+
 #: src/pages/settings/ui/components/connection-strategy-section.tsx:20
 msgid "Connection Strategy"
 msgstr "Connection Strategy"
@@ -608,7 +594,7 @@ msgid "Console"
 msgstr "Console"
 
 #: src/pages/contract-testing/ui/contract-testing-page.tsx:86
-#: src/shared/app-sidebar/model/consts.ts:105
+#: src/shared/app-sidebar/model/consts.ts:96
 msgid "Contract Testing"
 msgstr "Contract Testing"
 
@@ -616,6 +602,7 @@ msgstr "Contract Testing"
 msgid "Controls when the proxy connects to upstream servers for certificate sniffing"
 msgstr "Controls when the proxy connects to upstream servers for certificate sniffing"
 
+#: src/features/transaction-details/ui/transaction-certificate.tsx:30
 #: src/pages/settings/ui/components/certificate-settings.tsx:243
 msgid "Copied!"
 msgstr "Copied!"
@@ -628,7 +615,7 @@ msgstr "Copy"
 msgid "Copy as cURL"
 msgstr "Copy as cURL"
 
-#: src/widgets/network-table/ui/table-row.tsx:167
+#: src/widgets/network-table/ui/table-row.tsx:169
 msgid "Copy as..."
 msgstr "Copy as..."
 
@@ -636,6 +623,7 @@ msgstr "Copy as..."
 msgid "Copy Headers"
 msgstr "Copy Headers"
 
+#: src/features/transaction-details/ui/transaction-certificate.tsx:30
 #: src/shared/app-sidebar/ui/sidebar-mcp.tsx:114
 #: src/shared/app-sidebar/ui/sidebar-mcp.tsx:140
 msgid "Copy to clipboard"
@@ -645,16 +633,7 @@ msgstr "Copy to clipboard"
 msgid "Copy URL"
 msgstr "Copy URL"
 
-#: src/pages/analytics-dashboard/ui/misc-tab.tsx:24
-msgid "CORS Issues"
-msgstr "CORS Issues"
-
-#: src/pages/analytics-dashboard/ui/duplicate-tab.tsx:25
-#: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:72
-msgid "Count"
-msgstr "Count"
-
-#: src/widgets/network-table/ui/table-row.tsx:171
+#: src/widgets/network-table/ui/table-row.tsx:173
 msgid "cURL"
 msgstr "cURL"
 
@@ -722,7 +701,7 @@ msgid "Delete rule"
 msgstr "Delete rule"
 
 #: src/widgets/network-table/ui/cells/action-cell.tsx:21
-#: src/widgets/network-table/ui/table-row.tsx:192
+#: src/widgets/network-table/ui/table-row.tsx:204
 msgid "Delete Transaction"
 msgstr "Delete Transaction"
 
@@ -735,7 +714,6 @@ msgid "Dir"
 msgstr "Dir"
 
 #: src/features/websocket-replay/ui/ws-replay-dialog.tsx:123
-#: src/pages/analytics-dashboard/ui/misc-tab.tsx:136
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:55
 msgid "Direction"
 msgstr "Direction"
@@ -787,16 +765,6 @@ msgstr "Download Speed (KB/s)"
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:396
 msgid "Drop"
 msgstr "Drop"
-
-#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:178
-msgid "Duplicate Requests"
-msgstr "Duplicate Requests"
-
-#: src/pages/analytics-dashboard/ui/performance-tab.tsx:48
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:79
-#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:177
-msgid "Duration"
-msgstr "Duration"
 
 #: src/features/query-filter-editor/ui/query-builder.tsx:220
 msgid "e.g. 192.168.1.1, MyPhone, username"
@@ -850,48 +818,14 @@ msgstr "Enable full trust for the Cheolsu Proxy CA certificate"
 msgid "Enabled"
 msgstr "Enabled"
 
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:76
-msgid "Endpoint"
-msgstr "Endpoint"
-
-#: src/pages/graphql-dashboard/ui/graphql-dashboard.tsx:97
-msgid "endpoints"
-msgstr "endpoints"
-
-#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:175
-msgid "Endpoints"
-msgstr "Endpoints"
-
 #: src/pages/server-replay/ui/server-replay-page.tsx:100
 msgid "entries"
 msgstr "entries"
 
-#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:149
-#: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:38
-#: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:79
-#: src/pages/analytics-dashboard/ui/error-tab.tsx:78
-msgid "Error Rate"
-msgstr "Error Rate"
-
-#: src/pages/analytics-dashboard/ui/error-tab.tsx:18
-msgid "Error Status Code Distribution"
-msgstr "Error Status Code Distribution"
-
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:261
-msgid "error(s)"
-msgstr "error(s)"
-
 #: src/features/transaction-details/ui/transaction-validation.tsx:93
 #: src/pages/contract-testing/ui/contract-testing-page.tsx:162
-#: src/pages/graphql-dashboard/ui/graphql-dashboard.tsx:102
 msgid "errors"
 msgstr "errors"
-
-#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:172
-#: src/pages/analytics-dashboard/ui/error-tab.tsx:72
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:143
-msgid "Errors"
-msgstr "Errors"
 
 #: src/widgets/sse-messages/ui/sse-message-table.tsx:145
 msgid "Event"
@@ -934,6 +868,10 @@ msgstr "Expand sidebar"
 #: src/features/transaction-details/ui/transaction-validation.tsx:31
 msgid "Expected"
 msgstr "Expected"
+
+#: src/features/transaction-details/ui/transaction-certificate.tsx:143
+msgid "Expired"
+msgstr "Expired"
 
 #: src/widgets/network-header/ui/network-controls.tsx:113
 msgid "Export HAR"
@@ -1003,10 +941,6 @@ msgstr "Filter by client IP, tag, or auth user"
 msgid "Filter log lines..."
 msgstr "Filter log lines..."
 
-#: src/pages/analytics-dashboard/ui/duplicate-tab.tsx:31
-msgid "First Seen"
-msgstr "First Seen"
-
 #: src/shared/app-sidebar/ui/sidebar-mcp.tsx:130
 msgid "For Cursor, Claude Desktop, and other MCP-compatible clients:"
 msgstr "For Cursor, Claude Desktop, and other MCP-compatible clients:"
@@ -1020,10 +954,6 @@ msgstr "format"
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:387
 msgid "Forward"
 msgstr "Forward"
-
-#: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:36
-msgid "Frequency"
-msgstr "Frequency"
 
 #: src/features/transaction-details/ui/image-preview.tsx:154
 msgid "Fullscreen"
@@ -1048,19 +978,6 @@ msgstr "Go to <0>Settings → General → VPN & Device Management</0>"
 #: src/pages/settings/ui/components/certificate-settings.tsx:352
 msgid "Go to <0>Settings → Security → Encryption & credentials</0>"
 msgstr "Go to <0>Settings → Security → Encryption & credentials</0>"
-
-#: src/pages/graphql-dashboard/ui/graphql-dashboard.tsx:90
-#: src/shared/app-sidebar/model/consts.ts:49
-msgid "GraphQL"
-msgstr "GraphQL"
-
-#: src/shared/app-sidebar/model/consts.ts:51
-msgid "GraphQL operations viewer"
-msgstr "GraphQL operations viewer"
-
-#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:165
-msgid "GraphQL 오퍼레이션을 기다리는 중..."
-msgstr "GraphQL 오퍼레이션을 기다리는 중..."
 
 #: src/pages/settings/ui/components/proto-files-section.tsx:65
 msgid "gRPC Proto Files"
@@ -1116,7 +1033,7 @@ msgid "Host"
 msgstr "Host"
 
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:150
-#: src/shared/app-sidebar/model/consts.ts:84
+#: src/shared/app-sidebar/model/consts.ts:75
 msgid "Host Mapping"
 msgstr "Host Mapping"
 
@@ -1132,11 +1049,15 @@ msgstr "Host mapping deleted"
 msgid "Host Tree"
 msgstr "Host Tree"
 
-#: src/shared/app-sidebar/model/consts.ts:30
+#: src/features/transaction-details/ui/transaction-certificate.tsx:68
+msgid "HTTP connection (no TLS)"
+msgstr "HTTP connection (no TLS)"
+
+#: src/shared/app-sidebar/model/consts.ts:28
 msgid "HTTP requests and responses"
 msgstr "HTTP requests and responses"
 
-#: src/widgets/network-table/ui/table-row.tsx:177
+#: src/widgets/network-table/ui/table-row.tsx:189
 msgid "HTTPie"
 msgstr "HTTPie"
 
@@ -1200,7 +1121,7 @@ msgid "Installing..."
 msgstr "Installing..."
 
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:73
-#: src/shared/app-sidebar/model/consts.ts:56
+#: src/shared/app-sidebar/model/consts.ts:47
 msgid "Intercept Rules"
 msgstr "Intercept Rules"
 
@@ -1212,19 +1133,20 @@ msgstr "Invalid status code"
 msgid "IP Address"
 msgstr "IP Address"
 
-#: src/pages/analytics-dashboard/ui/misc-tab.tsx:43
-msgid "Issue"
-msgstr "Issue"
-
+#: src/features/transaction-details/ui/transaction-certificate.tsx:104
 #: src/pages/settings/ui/components/client-certificate-section.tsx:200
 msgid "Issuer"
 msgstr "Issuer"
+
+#: src/features/transaction-details/ui/transaction-certificate.tsx:112
+msgid "Issuer information not available"
+msgstr "Issuer information not available"
 
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:152
 msgid "Iterations"
 msgstr "Iterations"
 
-#: src/widgets/network-table/ui/table-row.tsx:174
+#: src/widgets/network-table/ui/table-row.tsx:176
 msgid "JavaScript Fetch"
 msgstr "JavaScript Fetch"
 
@@ -1247,14 +1169,6 @@ msgstr "Label"
 #: src/pages/settings/ui/components/general-settings.tsx:66
 msgid "Language"
 msgstr "Language"
-
-#: src/pages/analytics-dashboard/ui/misc-tab.tsx:122
-msgid "Largest Payloads (Top 10)"
-msgstr "Largest Payloads (Top 10)"
-
-#: src/pages/analytics-dashboard/ui/duplicate-tab.tsx:34
-msgid "Last Seen"
-msgstr "Last Seen"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:491
 #: src/pages/settings/ui/components/throttle-section.tsx:74
@@ -1281,7 +1195,7 @@ msgstr "Load a script file from disk. The file will be watched for changes and a
 msgid "Load an OpenAPI spec to enable contract testing"
 msgstr "Load an OpenAPI spec to enable contract testing"
 
-#: src/shared/app-sidebar/model/consts.ts:100
+#: src/shared/app-sidebar/model/consts.ts:91
 msgid "Load and manage proxy scripts"
 msgstr "Load and manage proxy scripts"
 
@@ -1326,11 +1240,11 @@ msgid "Logical OR:"
 msgstr "Logical OR:"
 
 #: src/pages/log-viewer/ui/logs-page.tsx:240
-#: src/shared/app-sidebar/model/consts.ts:126
+#: src/shared/app-sidebar/model/consts.ts:110
 msgid "Logs"
 msgstr "Logs"
 
-#: src/shared/app-sidebar/model/consts.ts:58
+#: src/shared/app-sidebar/model/consts.ts:49
 msgid "Manage request/response intercept rules"
 msgstr "Manage request/response intercept rules"
 
@@ -1342,7 +1256,7 @@ msgstr "Manage wildcard-based request/response intercept rules"
 msgid "Map DNS hostnames to different target hosts for testing and development"
 msgstr "Map DNS hostnames to different target hosts for testing and development"
 
-#: src/shared/app-sidebar/model/consts.ts:86
+#: src/shared/app-sidebar/model/consts.ts:77
 msgid "Map DNS hostnames to different targets"
 msgstr "Map DNS hostnames to different targets"
 
@@ -1353,7 +1267,7 @@ msgstr "Map DNS hostnames to different targets"
 msgid "Map Local"
 msgstr "Map Local"
 
-#: src/shared/app-sidebar/model/consts.ts:65
+#: src/shared/app-sidebar/model/consts.ts:56
 msgid "Map Local / Map Remote rules"
 msgstr "Map Local / Map Remote rules"
 
@@ -1373,7 +1287,7 @@ msgid "Map Remote"
 msgstr "Map Remote"
 
 #: src/pages/map-rules/ui/map-rules-page.tsx:60
-#: src/shared/app-sidebar/model/consts.ts:63
+#: src/shared/app-sidebar/model/consts.ts:54
 msgid "Map Rules"
 msgstr "Map Rules"
 
@@ -1433,22 +1347,8 @@ msgstr "messages"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:289
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:204
-#: src/pages/analytics-dashboard/ui/duplicate-tab.tsx:21
-#: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:66
-#: src/pages/analytics-dashboard/ui/error-tab.tsx:66
-#: src/pages/analytics-dashboard/ui/misc-tab.tsx:39
-#: src/pages/analytics-dashboard/ui/misc-tab.tsx:132
-#: src/pages/analytics-dashboard/ui/performance-tab.tsx:44
 msgid "Method"
 msgstr "Method"
-
-#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:184
-msgid "Misc"
-msgstr "Misc"
-
-#: src/pages/analytics-dashboard/ui/misc-tab.tsx:77
-msgid "Mixed Content Warnings"
-msgstr "Mixed Content Warnings"
 
 #: src/pages/settings/ui/components/certificate-settings.tsx:214
 msgid "Mobile Certificate Install"
@@ -1486,18 +1386,17 @@ msgstr "msgs"
 msgid "Multiple conditions:"
 msgstr "Multiple conditions:"
 
-#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:181
-msgid "N+1"
-msgstr "N+1"
-
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:264
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:178
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:73
 msgid "Name"
 msgstr "Name"
 
+#: src/features/transaction-details/ui/transaction-certificate.tsx:221
+msgid "Negotiated ALPN"
+msgstr "Negotiated ALPN"
+
 #: src/pages/settings/ui/settings-page.tsx:114
-#: src/shared/app-sidebar/model/consts.ts:28
+#: src/shared/app-sidebar/model/consts.ts:26
 msgid "Network"
 msgstr "Network"
 
@@ -1508,6 +1407,10 @@ msgstr "Network Table Columns"
 #: src/pages/settings/ui/components/throttle-section.tsx:19
 msgid "Network Throttling"
 msgstr "Network Throttling"
+
+#: src/features/transaction-details/ui/transaction-certificate.tsx:96
+msgid "No"
+msgstr "No"
 
 #: src/widgets/sse-messages/ui/sse-connection-list.tsx:27
 msgid "No active SSE connections"
@@ -1541,26 +1444,6 @@ msgstr "No console output yet"
 msgid "No contract validation results"
 msgstr "No contract validation results"
 
-#: src/pages/analytics-dashboard/ui/misc-tab.tsx:33
-msgid "No CORS issues detected"
-msgstr "No CORS issues detected"
-
-#: src/pages/analytics-dashboard/ui/duplicate-tab.tsx:15
-msgid "No duplicate requests detected"
-msgstr "No duplicate requests detected"
-
-#: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:88
-msgid "No endpoint data"
-msgstr "No endpoint data"
-
-#: src/pages/analytics-dashboard/ui/error-tab.tsx:60
-msgid "No error endpoints detected"
-msgstr "No error endpoints detected"
-
-#: src/pages/analytics-dashboard/ui/error-tab.tsx:22
-msgid "No errors detected"
-msgstr "No errors detected"
-
 #: src/pages/settings/ui/components/general-settings.tsx:218
 msgid "No Gzip"
 msgstr "No Gzip"
@@ -1580,18 +1463,6 @@ msgstr "No log files found"
 #: src/pages/map-rules/ui/map-rules-page.tsx:67
 msgid "No map rules"
 msgstr "No map rules"
-
-#: src/pages/analytics-dashboard/ui/misc-tab.tsx:86
-msgid "No mixed content warnings"
-msgstr "No mixed content warnings"
-
-#: src/pages/analytics-dashboard/ui/nplus-one-tab.tsx:15
-msgid "No N+1 patterns detected"
-msgstr "No N+1 patterns detected"
-
-#: src/pages/analytics-dashboard/ui/misc-tab.tsx:126
-msgid "No payload data"
-msgstr "No payload data"
 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:342
 msgid "No pending breakpoints. Matched requests will appear here."
@@ -1613,10 +1484,6 @@ msgstr "No replay entries"
 msgid "No reverse proxy rules"
 msgstr "No reverse proxy rules"
 
-#: src/pages/analytics-dashboard/ui/performance-tab.tsx:60
-msgid "No slow requests detected"
-msgstr "No slow requests detected"
-
 #: src/pages/contract-testing/ui/contract-testing-page.tsx:103
 msgid "No specs loaded. Add an OpenAPI/Swagger spec file to start contract testing."
 msgstr "No specs loaded. Add an OpenAPI/Swagger spec file to start contract testing."
@@ -1628,10 +1495,6 @@ msgstr "No timing data available"
 #: src/pages/log-viewer/ui/logs-page.tsx:410
 msgid "No TLS passthrough entries"
 msgstr "No TLS passthrough entries"
-
-#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:128
-msgid "No traffic data available. Start the proxy to capture requests."
-msgstr "No traffic data available. Start the proxy to capture requests."
 
 #: src/widgets/network-table/ui/table-body.tsx:85
 msgid "No transactions to display"
@@ -1645,9 +1508,25 @@ msgstr "No valid request to replay"
 msgid "No valid requests to replay"
 msgstr "No valid requests to replay"
 
+#: src/widgets/network-table/ui/table-row.tsx:181
+msgid "Node.js Fetch"
+msgstr "Node.js Fetch"
+
+#: src/features/transaction-details/ui/transaction-certificate.tsx:135
+msgid "Not After"
+msgstr "Not After"
+
+#: src/features/transaction-details/ui/transaction-certificate.tsx:123
+msgid "Not Before"
+msgstr "Not Before"
+
 #: src/pages/settings/ui/components/certificate-settings.tsx:143
 msgid "Not Trusted"
 msgstr "Not Trusted"
+
+#: src/features/transaction-details/ui/transaction-certificate.tsx:129
+msgid "Not yet valid"
+msgstr "Not yet valid"
 
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:179
 msgid "Number of simultaneous requests (1-100)"
@@ -1710,19 +1589,12 @@ msgstr "OpenAPI spec loaded"
 msgid "OpenAPI Specs"
 msgstr "OpenAPI Specs"
 
-#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:175
-msgid "Operation"
-msgstr "Operation"
-
-#: src/pages/graphql-dashboard/ui/graphql-dashboard.tsx:93
-msgid "operations"
-msgstr "operations"
-
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:98
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:124
 msgid "optional"
 msgstr "optional"
 
+#: src/features/transaction-details/ui/transaction-certificate.tsx:88
 #: src/pages/settings/ui/components/client-certificate-section.tsx:208
 #: src/pages/settings/ui/components/custom-ca-section.tsx:160
 msgid "Organization"
@@ -1732,21 +1604,12 @@ msgstr "Organization"
 msgid "Original"
 msgstr "Original"
 
-#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:160
-msgid "P95 Response Time"
-msgstr "P95 Response Time"
-
 #: src/pages/settings/ui/components/custom-ca-section.tsx:265
 #: src/pages/settings/ui/components/proxy-auth-section.tsx:38
 #: src/pages/settings/ui/components/proxy-auth-section.tsx:42
 #: src/pages/settings/ui/components/upstream-proxy-section.tsx:62
 msgid "Password"
 msgstr "Password"
-
-#: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:69
-#: src/pages/analytics-dashboard/ui/error-tab.tsx:69
-msgid "Path"
-msgstr "Path"
 
 #: src/pages/contract-testing/ui/contract-testing-page.tsx:126
 msgid "paths"
@@ -1765,7 +1628,7 @@ msgstr "Pattern is required"
 msgid "Pause and inspect HTTP requests/responses in real-time"
 msgstr "Pause and inspect HTTP requests/responses in real-time"
 
-#: src/shared/app-sidebar/model/consts.ts:79
+#: src/shared/app-sidebar/model/consts.ts:70
 msgid "Pause and inspect requests/responses"
 msgstr "Pause and inspect requests/responses"
 
@@ -1785,11 +1648,7 @@ msgstr "pending"
 msgid "Pending Breakpoints"
 msgstr "Pending Breakpoints"
 
-#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:169
-msgid "Performance"
-msgstr "Performance"
-
-#: src/widgets/network-table/ui/table-row.tsx:162
+#: src/widgets/network-table/ui/table-row.tsx:164
 msgid "Pin to Top"
 msgstr "Pin to Top"
 
@@ -1821,6 +1680,10 @@ msgstr "Port must be between 1 and 65535"
 #: src/pages/settings/ui/components/proxy-port-section.tsx:20
 msgid "Port number for the proxy server to listen on. Changes take effect on next app restart."
 msgstr "Port number for the proxy server to listen on. Changes take effect on next app restart."
+
+#: src/widgets/network-table/ui/table-row.tsx:186
+msgid "PowerShell"
+msgstr "PowerShell"
 
 #: src/pages/settings/ui/components/client-certificate-section.tsx:132
 msgid "Present a client certificate when connecting to servers that require mTLS authentication"
@@ -1870,7 +1733,7 @@ msgstr "Proxy configuration and preferences"
 msgid "Proxy Port"
 msgstr "Proxy Port"
 
-#: src/shared/app-sidebar/model/consts.ts:121
+#: src/shared/app-sidebar/model/consts.ts:105
 msgid "Proxy settings and configuration"
 msgstr "Proxy settings and configuration"
 
@@ -1878,13 +1741,9 @@ msgstr "Proxy settings and configuration"
 msgid "proxy.company.com"
 msgstr "proxy.company.com"
 
-#: src/widgets/network-table/ui/table-row.tsx:182
+#: src/widgets/network-table/ui/table-row.tsx:194
 msgid "Python Requests"
 msgstr "Python Requests"
-
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:130
-msgid "Query"
-msgstr "Query"
 
 #: src/features/query-filter-editor/ui/filter-help-tooltip.tsx:28
 msgid "Query Syntax Guide"
@@ -1909,10 +1768,6 @@ msgstr "Received"
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:56
 msgid "Received (Server → Client)"
 msgstr "Received (Server → Client)"
-
-#: src/pages/analytics-dashboard/ui/misc-tab.tsx:93
-msgid "Referrer"
-msgstr "Referrer"
 
 #: src/pages/log-viewer/ui/logs-page.tsx:251
 #: src/pages/log-viewer/ui/logs-page.tsx:276
@@ -2058,11 +1913,6 @@ msgstr "Request Lifecycle"
 msgid "Request/Response body"
 msgstr "Request/Response body"
 
-#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:111
-#: src/pages/analytics-dashboard/ui/nplus-one-tab.tsx:30
-msgid "requests"
-msgstr "requests"
-
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:306
 msgid "Requests/sec"
 msgstr "Requests/sec"
@@ -2078,7 +1928,6 @@ msgstr "Require certificate"
 #: src/features/transaction-details/ui/replay-dialog.tsx:387
 #: src/features/transaction-details/ui/transaction-body-side-by-side.tsx:24
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:301
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:138
 msgid "Response"
 msgstr "Response"
 
@@ -2113,7 +1962,6 @@ msgid "Response Status Code"
 msgstr "Response Status Code"
 
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:269
-#: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:37
 msgid "Response Time"
 msgstr "Response Time"
 
@@ -2138,7 +1986,7 @@ msgstr "Resume recording"
 msgid "Retry"
 msgstr "Retry"
 
-#: src/shared/app-sidebar/model/consts.ts:72
+#: src/shared/app-sidebar/model/consts.ts:63
 msgid "Return cached responses for matching requests"
 msgstr "Return cached responses for matching requests"
 
@@ -2147,7 +1995,7 @@ msgid "Return cached responses for matching requests instead of forwarding to th
 msgstr "Return cached responses for matching requests instead of forwarding to the server"
 
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:152
-#: src/shared/app-sidebar/model/consts.ts:91
+#: src/shared/app-sidebar/model/consts.ts:82
 msgid "Reverse Proxy"
 msgstr "Reverse Proxy"
 
@@ -2182,7 +2030,7 @@ msgstr "Right"
 msgid "Route incoming requests to backend servers based on Host header matching"
 msgstr "Route incoming requests to backend servers based on Host header matching"
 
-#: src/shared/app-sidebar/model/consts.ts:93
+#: src/shared/app-sidebar/model/consts.ts:84
 msgid "Route requests to backend servers by Host header"
 msgstr "Route requests to backend servers by Host header"
 
@@ -2226,10 +2074,6 @@ msgstr "Rules"
 msgid "Run"
 msgstr "Run"
 
-#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:117
-msgid "Run Analysis"
-msgstr "Run Analysis"
-
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:354
 msgid "Running..."
 msgstr "Running..."
@@ -2259,7 +2103,7 @@ msgid "Scan for proxy info"
 msgstr "Scan for proxy info"
 
 #: src/pages/script/ui/script-page.tsx:162
-#: src/shared/app-sidebar/model/consts.ts:98
+#: src/shared/app-sidebar/model/consts.ts:89
 msgid "Script"
 msgstr "Script"
 
@@ -2383,16 +2227,17 @@ msgstr "Sequence Replay ({0} requests)"
 msgid "Sequence replay failed"
 msgstr "Sequence replay failed"
 
+#: src/features/transaction-details/ui/transaction-certificate.tsx:195
 #: src/pages/settings/ui/components/client-certificate-section.tsx:239
 msgid "Serial Number"
 msgstr "Serial Number"
 
 #: src/pages/server-replay/ui/server-replay-page.tsx:84
-#: src/shared/app-sidebar/model/consts.ts:70
+#: src/shared/app-sidebar/model/consts.ts:61
 msgid "Server Replay"
 msgstr "Server Replay"
 
-#: src/shared/app-sidebar/model/consts.ts:44
+#: src/shared/app-sidebar/model/consts.ts:42
 msgid "Server-Sent Events streams"
 msgstr "Server-Sent Events streams"
 
@@ -2425,13 +2270,17 @@ msgid "Set Wi-Fi proxy on your device to <0>{0}:{1}</0>"
 msgstr "Set Wi-Fi proxy on your device to <0>{0}:{1}</0>"
 
 #: src/pages/settings/ui/settings-page.tsx:145
-#: src/shared/app-sidebar/model/consts.ts:119
+#: src/shared/app-sidebar/model/consts.ts:103
 msgid "Settings"
 msgstr "Settings"
 
 #: src/pages/settings/ui/components/certificate-settings.tsx:184
 msgid "Setup Instructions:"
 msgstr "Setup Instructions:"
+
+#: src/features/transaction-details/ui/transaction-certificate.tsx:203
+msgid "SHA-256 Fingerprint"
+msgstr "SHA-256 Fingerprint"
 
 #: src/pages/settings/ui/components/shortcut-section.tsx:88
 msgid "Shortcut Key"
@@ -2445,17 +2294,12 @@ msgstr "Show CONNECT Requests"
 msgid "Simulate slow network conditions for testing"
 msgstr "Simulate slow network conditions for testing"
 
-#: src/pages/analytics-dashboard/ui/misc-tab.tsx:139
 #: src/widgets/sse-messages/ui/sse-message-detail.tsx:62
 #: src/widgets/sse-messages/ui/sse-message-table.tsx:146
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:62
 #: src/widgets/websocket-messages/ui/ws-message-table.tsx:202
 msgid "Size"
 msgstr "Size"
-
-#: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:47
-msgid "Sort by"
-msgstr "Sort by"
 
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:86
 msgid "Source Host"
@@ -2474,7 +2318,7 @@ msgid "Spec removed"
 msgstr "Spec removed"
 
 #: src/pages/sse-dashboard/ui/sse-dashboard.tsx:87
-#: src/shared/app-sidebar/model/consts.ts:42
+#: src/shared/app-sidebar/model/consts.ts:40
 msgid "SSE"
 msgstr "SSE"
 
@@ -2499,12 +2343,9 @@ msgstr "Start Replay"
 msgid "Starts background server connection immediately after ClientHello detection"
 msgstr "Starts background server connection immediately after ClientHello detection"
 
-#: src/pages/analytics-dashboard/ui/performance-tab.tsx:51
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:115
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:120
 #: src/shared/app-sidebar/ui/sidebar-status.tsx:39
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:86
-#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:176
 msgid "Status"
 msgstr "Status"
 
@@ -2522,6 +2363,14 @@ msgstr "Status Code Distribution"
 #: src/pages/settings/ui/components/connection-strategy-section.tsx:31
 msgid "Strategy"
 msgstr "Strategy"
+
+#: src/features/transaction-details/ui/transaction-certificate.tsx:77
+msgid "Subject"
+msgstr "Subject"
+
+#: src/features/transaction-details/ui/transaction-certificate.tsx:160
+msgid "Subject Alternative Names (SAN)"
+msgstr "Subject Alternative Names (SAN)"
 
 #: src/pages/settings/ui/components/client-certificate-section.tsx:267
 msgid "Supports PEM-encoded certificates and keys (RSA, ECDSA, PKCS#8)"
@@ -2593,11 +2442,6 @@ msgstr "Throttle"
 msgid "Throughput"
 msgstr "Throughput"
 
-#: src/pages/analytics-dashboard/ui/misc-tab.tsx:46
-#: src/pages/analytics-dashboard/ui/misc-tab.tsx:96
-#: src/pages/analytics-dashboard/ui/performance-tab.tsx:54
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:77
-#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:178
 #: src/widgets/sse-messages/ui/sse-message-detail.tsx:63
 #: src/widgets/sse-messages/ui/sse-message-table.tsx:148
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:63
@@ -2631,12 +2475,7 @@ msgstr "Toggle proxy on/off with a global keyboard shortcut"
 msgid "Tools"
 msgstr "Tools"
 
-#: src/pages/analytics-dashboard/ui/error-tab.tsx:56
-msgid "Top Error Endpoints"
-msgstr "Top Error Endpoints"
-
 #: src/features/transaction-details/ui/transaction-timing.tsx:98
-#: src/pages/analytics-dashboard/ui/error-tab.tsx:75
 msgid "Total"
 msgstr "Total"
 
@@ -2645,32 +2484,23 @@ msgstr "Total"
 msgid "Total {0}ms"
 msgstr "Total {0}ms"
 
-#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:144
-msgid "Total Requests"
-msgstr "Total Requests"
-
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:300
 msgid "Total Time"
 msgstr "Total Time"
-
-#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:107
-#: src/shared/app-sidebar/model/consts.ts:112
-msgid "Traffic Analysis"
-msgstr "Traffic Analysis"
 
 #: src/features/transaction-details/ui/replay-dialog.tsx:360
 msgid "Traffic Replay"
 msgstr "Traffic Replay"
 
-#: src/widgets/network-table/ui/table-row.tsx:105
+#: src/widgets/network-table/ui/table-row.tsx:107
 msgid "Transaction deleted"
 msgstr "Transaction deleted"
 
-#: src/widgets/network-table/ui/table-row.tsx:121
+#: src/widgets/network-table/ui/table-row.tsx:123
 msgid "Transaction pinned to top"
 msgstr "Transaction pinned to top"
 
-#: src/widgets/network-table/ui/table-row.tsx:121
+#: src/widgets/network-table/ui/table-row.tsx:123
 msgid "Transaction unpinned"
 msgstr "Transaction unpinned"
 
@@ -2683,8 +2513,6 @@ msgid "Trusted"
 msgstr "Trusted"
 
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:229
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:69
-#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:174
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:59
 #: src/widgets/websocket-messages/ui/ws-message-table.tsx:201
 msgid "Type"
@@ -2710,7 +2538,7 @@ msgstr "Unlimited"
 msgid "Unload"
 msgstr "Unload"
 
-#: src/widgets/network-table/ui/table-row.tsx:162
+#: src/widgets/network-table/ui/table-row.tsx:164
 msgid "Unpin from Top"
 msgstr "Unpin from Top"
 
@@ -2769,6 +2597,10 @@ msgstr "Use your own CA certificate instead of the auto-generated one"
 msgid "Username"
 msgstr "Username"
 
+#: src/features/transaction-details/ui/transaction-certificate.tsx:148
+msgid "Valid"
+msgstr "Valid"
+
 #: src/pages/settings/ui/components/client-certificate-section.tsx:227
 msgid "Valid From"
 msgstr "Valid From"
@@ -2778,13 +2610,17 @@ msgstr "Valid From"
 msgid "Valid Until"
 msgstr "Valid Until"
 
-#: src/shared/app-sidebar/model/consts.ts:107
+#: src/shared/app-sidebar/model/consts.ts:98
 msgid "Validate API responses against OpenAPI specs"
 msgstr "Validate API responses against OpenAPI specs"
 
 #: src/pages/contract-testing/ui/contract-testing-page.tsx:148
 msgid "Validation Report"
 msgstr "Validation Report"
+
+#: src/features/transaction-details/ui/transaction-certificate.tsx:120
+msgid "Validity Period"
+msgstr "Validity Period"
 
 #: src/features/intercept-rule-form/ui/headers-fields.tsx:70
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:386
@@ -2794,10 +2630,6 @@ msgstr "Validation Report"
 msgid "Value"
 msgstr "Value"
 
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:133
-msgid "Variables"
-msgstr "Variables"
-
 #: src/shared/app-sidebar/ui/sidebar-status.tsx:48
 msgid "Version"
 msgstr "Version"
@@ -2806,7 +2638,7 @@ msgstr "Version"
 msgid "View and manage application log files"
 msgstr "View and manage application log files"
 
-#: src/shared/app-sidebar/model/consts.ts:128
+#: src/shared/app-sidebar/model/consts.ts:112
 msgid "View application log files"
 msgstr "View application log files"
 
@@ -2828,11 +2660,11 @@ msgid "warnings"
 msgstr "warnings"
 
 #: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:95
-#: src/shared/app-sidebar/model/consts.ts:35
+#: src/shared/app-sidebar/model/consts.ts:33
 msgid "WebSocket"
 msgstr "WebSocket"
 
-#: src/shared/app-sidebar/model/consts.ts:37
+#: src/shared/app-sidebar/model/consts.ts:35
 msgid "WebSocket connections and messages"
 msgstr "WebSocket connections and messages"
 
@@ -2853,10 +2685,10 @@ msgstr "Whitelist (Include)"
 msgid "Wildcard"
 msgstr "Wildcard"
 
-#: src/pages/analytics-dashboard/ui/duplicate-tab.tsx:28
-msgid "Window"
-msgstr "Window"
-
 #: src/pages/script/ui/script-page.tsx:165
 msgid "Write or load JavaScript/TypeScript proxy scripts"
 msgstr "Write or load JavaScript/TypeScript proxy scripts"
+
+#: src/features/transaction-details/ui/transaction-certificate.tsx:94
+msgid "Yes"
+msgstr "Yes"

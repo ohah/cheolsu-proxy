@@ -5,4 +5,6 @@ export * from "./curl";
 export * from "./fetch";
 export * from "./httpie";
 export * from "./python-requests";
+export * from "./powershell";
+export * from "./nodejs-fetch";
 export * from "./http-headers";

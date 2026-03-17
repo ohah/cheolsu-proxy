@@ -17,6 +17,11 @@ msgstr ""
 msgid " (preserve path)"
 msgstr " (경로 유지)"
 
+#. placeholder {0}: serverCert.chain_length
+#: src/features/transaction-details/ui/transaction-certificate.tsx:218
+msgid "{0} certificate(s)"
+msgstr "{0}개 인증서"
+
 #. placeholder {0}: result.failure_count
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:257
 msgid "{0} failed"
@@ -40,7 +45,7 @@ msgstr "{failCount}개 실패"
 msgid "{filteredCount} of {totalCount} transactions"
 msgstr "{totalCount}개 중 {filteredCount}개 트랜잭션"
 
-#: src/widgets/network-table/ui/table-row.tsx:98
+#: src/widgets/network-table/ui/table-row.tsx:100
 msgid "{label} copied to clipboard"
 msgstr "{label} 클립보드에 복사됨"
 
@@ -126,7 +131,7 @@ msgstr "트래픽에서 추가"
 msgid "Add Headers"
 msgstr "헤더 추가"
 
-#: src/widgets/network-table/ui/table-row.tsx:197
+#: src/widgets/network-table/ui/table-row.tsx:209
 msgid "Add Intercept Rule"
 msgstr "인터셉트 규칙 추가"
 
@@ -192,7 +197,7 @@ msgid "Added to server replay"
 msgstr "서버 리플레이에 추가되었습니다"
 
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:135
-#: src/widgets/network-table/ui/table-row.tsx:188
+#: src/widgets/network-table/ui/table-row.tsx:200
 msgid "Advanced Repeat"
 msgstr "고급 반복"
 
@@ -250,10 +255,6 @@ msgstr "모든 리버스 프록시 규칙이 삭제되었습니다"
 msgid "All rules cleared"
 msgstr "모든 규칙이 삭제되었습니다"
 
-#: src/shared/app-sidebar/model/consts.ts:114
-msgid "Analyze traffic patterns and performance"
-msgstr "트래픽 패턴 및 성능 분석"
-
 #: src/pages/script/ui/script-page.tsx:204
 msgid "API Reference"
 msgstr "API 레퍼런스"
@@ -290,18 +291,6 @@ msgstr "앱 종료 시 현재 세션을 자동으로 저장하고 다음 실행 
 msgid "available"
 msgstr "개 사용 가능"
 
-#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:155
-msgid "Avg Response Time"
-msgstr "평균 응답 시간"
-
-#: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:82
-msgid "Avg Size"
-msgstr "평균 크기"
-
-#: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:75
-msgid "Avg Time"
-msgstr "평균 시간"
-
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:111
 msgid "Backend Host"
 msgstr "백엔드 호스트"
@@ -317,14 +306,6 @@ msgstr "백엔드 포트는 1~65535 사이여야 합니다"
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:88
 msgid "Backend Scheme"
 msgstr "백엔드 스킴"
-
-#: src/pages/analytics-dashboard/ui/nplus-one-tab.tsx:34
-msgid "Base URL"
-msgstr "기본 URL"
-
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:93
-msgid "Batch"
-msgstr "배치"
 
 #: src/pages/settings/ui/components/ssl-proxying-section.tsx:192
 msgid "Blacklist (Exclude)"
@@ -377,7 +358,7 @@ msgid "Breakpoint rule added"
 msgstr "Breakpoint 규칙이 추가되었습니다"
 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:195
-#: src/shared/app-sidebar/model/consts.ts:77
+#: src/shared/app-sidebar/model/consts.ts:68
 msgid "Breakpoints"
 msgstr "Breakpoints"
 
@@ -406,6 +387,7 @@ msgstr "바이패스 목록"
 msgid "bytes body"
 msgstr "바이트 본문"
 
+#: src/features/transaction-details/ui/transaction-certificate.tsx:92
 #: src/pages/settings/ui/components/certificate-settings.tsx:116
 msgid "CA Certificate"
 msgstr "CA 인증서"
@@ -441,6 +423,11 @@ msgstr "추가할 수 없습니다: 응답 데이터 없음"
 msgid "Certificate"
 msgstr "인증서"
 
+#: src/features/transaction-details/ui/transaction-certificate.tsx:217
+msgid "Certificate Chain"
+msgstr "인증서 체인"
+
+#: src/features/transaction-details/ui/transaction-certificate.tsx:192
 #: src/pages/settings/ui/components/client-certificate-section.tsx:188
 msgid "Certificate Details"
 msgstr "인증서 상세 정보"
@@ -512,15 +499,6 @@ msgstr "전체 삭제"
 msgid "Clear all transactions"
 msgstr "모든 트랜잭션 삭제"
 
-#: src/pages/graphql-dashboard/ui/graphql-dashboard.tsx:114
-msgid "Clear selection"
-msgstr "선택 해제"
-
-#. placeholder {0}: transactions.length
-#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:130
-msgid "Click \"Run Analysis\" to analyze {0} captured requests."
-msgstr "\"분석 실행\"을 클릭하여 캡처된 {0}개의 요청을 분석하세요."
-
 #: src/pages/settings/ui/components/client-certificate-section.tsx:129
 msgid "Client Certificate"
 msgstr "클라이언트 인증서"
@@ -540,7 +518,6 @@ msgstr "유효한 인증서가 없는 클라이언트는 거부됩니다"
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:370
 #: src/features/transaction-details/ui/sequence-replay-dialog.tsx:240
 #: src/features/transaction-details/ui/transaction-header.tsx:63
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:178
 #: src/widgets/sse-messages/ui/sse-message-detail.tsx:96
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:131
 msgid "Close"
@@ -562,6 +539,11 @@ msgstr "직접 연결할 호스트 목록 (쉼표로 구분, *.domain.com 와일
 #: src/shared/app-sidebar/ui/sidebar-mcp.tsx:63
 msgid "Command copied to clipboard"
 msgstr "명령어가 클립보드에 복사되었습니다"
+
+#: src/features/transaction-details/ui/transaction-certificate.tsx:80
+#: src/features/transaction-details/ui/transaction-certificate.tsx:107
+msgid "Common Name (CN)"
+msgstr "일반 이름 (CN)"
 
 #: src/widgets/network-header/ui/network-controls.tsx:66
 msgid "Compose request"
@@ -590,6 +572,10 @@ msgstr "연결됨"
 msgid "Connection"
 msgstr "연결"
 
+#: src/features/transaction-details/ui/transaction-certificate.tsx:215
+msgid "Connection Info"
+msgstr "연결 정보"
+
 #: src/pages/settings/ui/components/connection-strategy-section.tsx:20
 msgid "Connection Strategy"
 msgstr "연결 전략"
@@ -608,7 +594,7 @@ msgid "Console"
 msgstr "콘솔"
 
 #: src/pages/contract-testing/ui/contract-testing-page.tsx:86
-#: src/shared/app-sidebar/model/consts.ts:105
+#: src/shared/app-sidebar/model/consts.ts:96
 msgid "Contract Testing"
 msgstr "API 검증"
 
@@ -616,6 +602,7 @@ msgstr "API 검증"
 msgid "Controls when the proxy connects to upstream servers for certificate sniffing"
 msgstr "프록시가 인증서 스니핑을 위해 상류 서버에 연결하는 시점을 제어합니다"
 
+#: src/features/transaction-details/ui/transaction-certificate.tsx:30
 #: src/pages/settings/ui/components/certificate-settings.tsx:243
 msgid "Copied!"
 msgstr "복사됨!"
@@ -628,7 +615,7 @@ msgstr "복사"
 msgid "Copy as cURL"
 msgstr "cURL로 복사"
 
-#: src/widgets/network-table/ui/table-row.tsx:167
+#: src/widgets/network-table/ui/table-row.tsx:169
 msgid "Copy as..."
 msgstr "다른 형식으로 복사..."
 
@@ -636,6 +623,7 @@ msgstr "다른 형식으로 복사..."
 msgid "Copy Headers"
 msgstr "헤더 복사"
 
+#: src/features/transaction-details/ui/transaction-certificate.tsx:30
 #: src/shared/app-sidebar/ui/sidebar-mcp.tsx:114
 #: src/shared/app-sidebar/ui/sidebar-mcp.tsx:140
 msgid "Copy to clipboard"
@@ -645,16 +633,7 @@ msgstr "클립보드에 복사"
 msgid "Copy URL"
 msgstr "URL 복사"
 
-#: src/pages/analytics-dashboard/ui/misc-tab.tsx:24
-msgid "CORS Issues"
-msgstr "CORS 문제"
-
-#: src/pages/analytics-dashboard/ui/duplicate-tab.tsx:25
-#: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:72
-msgid "Count"
-msgstr "횟수"
-
-#: src/widgets/network-table/ui/table-row.tsx:171
+#: src/widgets/network-table/ui/table-row.tsx:173
 msgid "cURL"
 msgstr "cURL"
 
@@ -722,7 +701,7 @@ msgid "Delete rule"
 msgstr "규칙 삭제"
 
 #: src/widgets/network-table/ui/cells/action-cell.tsx:21
-#: src/widgets/network-table/ui/table-row.tsx:192
+#: src/widgets/network-table/ui/table-row.tsx:204
 msgid "Delete Transaction"
 msgstr "트랜잭션 삭제"
 
@@ -735,7 +714,6 @@ msgid "Dir"
 msgstr "방향"
 
 #: src/features/websocket-replay/ui/ws-replay-dialog.tsx:123
-#: src/pages/analytics-dashboard/ui/misc-tab.tsx:136
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:55
 msgid "Direction"
 msgstr "방향"
@@ -787,16 +765,6 @@ msgstr "다운로드 속도 (KB/s)"
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:396
 msgid "Drop"
 msgstr "드롭"
-
-#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:178
-msgid "Duplicate Requests"
-msgstr "중복 요청"
-
-#: src/pages/analytics-dashboard/ui/performance-tab.tsx:48
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:79
-#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:177
-msgid "Duration"
-msgstr "소요 시간"
 
 #: src/features/query-filter-editor/ui/query-builder.tsx:220
 msgid "e.g. 192.168.1.1, MyPhone, username"
@@ -850,48 +818,14 @@ msgstr "Cheolsu Proxy CA 인증서에 대한 완전 신뢰를 활성화하세요
 msgid "Enabled"
 msgstr "활성"
 
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:76
-msgid "Endpoint"
-msgstr "엔드포인트"
-
-#: src/pages/graphql-dashboard/ui/graphql-dashboard.tsx:97
-msgid "endpoints"
-msgstr "엔드포인트"
-
-#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:175
-msgid "Endpoints"
-msgstr "엔드포인트"
-
 #: src/pages/server-replay/ui/server-replay-page.tsx:100
 msgid "entries"
 msgstr "개 엔트리"
 
-#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:149
-#: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:38
-#: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:79
-#: src/pages/analytics-dashboard/ui/error-tab.tsx:78
-msgid "Error Rate"
-msgstr "에러율"
-
-#: src/pages/analytics-dashboard/ui/error-tab.tsx:18
-msgid "Error Status Code Distribution"
-msgstr "에러 상태 코드 분포"
-
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:261
-msgid "error(s)"
-msgstr "에러"
-
 #: src/features/transaction-details/ui/transaction-validation.tsx:93
 #: src/pages/contract-testing/ui/contract-testing-page.tsx:162
-#: src/pages/graphql-dashboard/ui/graphql-dashboard.tsx:102
 msgid "errors"
 msgstr "오류"
-
-#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:172
-#: src/pages/analytics-dashboard/ui/error-tab.tsx:72
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:143
-msgid "Errors"
-msgstr "에러"
 
 #: src/widgets/sse-messages/ui/sse-message-table.tsx:145
 msgid "Event"
@@ -934,6 +868,10 @@ msgstr "사이드바 펼치기"
 #: src/features/transaction-details/ui/transaction-validation.tsx:31
 msgid "Expected"
 msgstr "기대값"
+
+#: src/features/transaction-details/ui/transaction-certificate.tsx:143
+msgid "Expired"
+msgstr "만료됨"
 
 #: src/widgets/network-header/ui/network-controls.tsx:113
 msgid "Export HAR"
@@ -1003,10 +941,6 @@ msgstr "클라이언트 IP, 태그 또는 인증 사용자로 필터링"
 msgid "Filter log lines..."
 msgstr "로그 라인 필터..."
 
-#: src/pages/analytics-dashboard/ui/duplicate-tab.tsx:31
-msgid "First Seen"
-msgstr "최초 발견"
-
 #: src/shared/app-sidebar/ui/sidebar-mcp.tsx:130
 msgid "For Cursor, Claude Desktop, and other MCP-compatible clients:"
 msgstr "Cursor, Claude Desktop 및 기타 MCP 호환 클라이언트용:"
@@ -1020,10 +954,6 @@ msgstr "형식"
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:387
 msgid "Forward"
 msgstr "전달"
-
-#: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:36
-msgid "Frequency"
-msgstr "호출 빈도"
 
 #: src/features/transaction-details/ui/image-preview.tsx:154
 msgid "Fullscreen"
@@ -1048,19 +978,6 @@ msgstr "<0>설정 → 일반 → VPN 및 기기 관리</0>로 이동하세요"
 #: src/pages/settings/ui/components/certificate-settings.tsx:352
 msgid "Go to <0>Settings → Security → Encryption & credentials</0>"
 msgstr "<0>설정 → 보안 → 암호화 및 자격증명</0>으로 이동하세요"
-
-#: src/pages/graphql-dashboard/ui/graphql-dashboard.tsx:90
-#: src/shared/app-sidebar/model/consts.ts:49
-msgid "GraphQL"
-msgstr "GraphQL"
-
-#: src/shared/app-sidebar/model/consts.ts:51
-msgid "GraphQL operations viewer"
-msgstr "GraphQL 오퍼레이션 뷰어"
-
-#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:165
-msgid "GraphQL 오퍼레이션을 기다리는 중..."
-msgstr "GraphQL 오퍼레이션을 기다리는 중..."
 
 #: src/pages/settings/ui/components/proto-files-section.tsx:65
 msgid "gRPC Proto Files"
@@ -1116,7 +1033,7 @@ msgid "Host"
 msgstr "호스트"
 
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:150
-#: src/shared/app-sidebar/model/consts.ts:84
+#: src/shared/app-sidebar/model/consts.ts:75
 msgid "Host Mapping"
 msgstr "호스트 매핑"
 
@@ -1132,11 +1049,15 @@ msgstr "호스트 매핑이 삭제되었습니다"
 msgid "Host Tree"
 msgstr "호스트 트리"
 
-#: src/shared/app-sidebar/model/consts.ts:30
+#: src/features/transaction-details/ui/transaction-certificate.tsx:68
+msgid "HTTP connection (no TLS)"
+msgstr "HTTP 연결 (TLS 없음)"
+
+#: src/shared/app-sidebar/model/consts.ts:28
 msgid "HTTP requests and responses"
 msgstr "HTTP 요청 및 응답"
 
-#: src/widgets/network-table/ui/table-row.tsx:177
+#: src/widgets/network-table/ui/table-row.tsx:189
 msgid "HTTPie"
 msgstr "HTTPie"
 
@@ -1200,7 +1121,7 @@ msgid "Installing..."
 msgstr "설치 중..."
 
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:73
-#: src/shared/app-sidebar/model/consts.ts:56
+#: src/shared/app-sidebar/model/consts.ts:47
 msgid "Intercept Rules"
 msgstr "인터셉트 규칙"
 
@@ -1212,19 +1133,20 @@ msgstr "유효하지 않은 상태 코드입니다"
 msgid "IP Address"
 msgstr "IP 주소"
 
-#: src/pages/analytics-dashboard/ui/misc-tab.tsx:43
-msgid "Issue"
-msgstr "문제"
-
+#: src/features/transaction-details/ui/transaction-certificate.tsx:104
 #: src/pages/settings/ui/components/client-certificate-section.tsx:200
 msgid "Issuer"
 msgstr "발급자"
+
+#: src/features/transaction-details/ui/transaction-certificate.tsx:112
+msgid "Issuer information not available"
+msgstr "발급자 정보를 사용할 수 없습니다"
 
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:152
 msgid "Iterations"
 msgstr "반복 횟수"
 
-#: src/widgets/network-table/ui/table-row.tsx:174
+#: src/widgets/network-table/ui/table-row.tsx:176
 msgid "JavaScript Fetch"
 msgstr "JavaScript Fetch"
 
@@ -1247,14 +1169,6 @@ msgstr "라벨"
 #: src/pages/settings/ui/components/general-settings.tsx:66
 msgid "Language"
 msgstr "언어"
-
-#: src/pages/analytics-dashboard/ui/misc-tab.tsx:122
-msgid "Largest Payloads (Top 10)"
-msgstr "가장 큰 페이로드 (Top 10)"
-
-#: src/pages/analytics-dashboard/ui/duplicate-tab.tsx:34
-msgid "Last Seen"
-msgstr "마지막 발견"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:491
 #: src/pages/settings/ui/components/throttle-section.tsx:74
@@ -1281,7 +1195,7 @@ msgstr "디스크에서 스크립트 파일을 로드합니다. 파일 변경 �
 msgid "Load an OpenAPI spec to enable contract testing"
 msgstr "API 검증을 사용하려면 OpenAPI 스펙을 로드하세요"
 
-#: src/shared/app-sidebar/model/consts.ts:100
+#: src/shared/app-sidebar/model/consts.ts:91
 msgid "Load and manage proxy scripts"
 msgstr "프록시 스크립트 로드 및 관리"
 
@@ -1326,11 +1240,11 @@ msgid "Logical OR:"
 msgstr "논리 OR:"
 
 #: src/pages/log-viewer/ui/logs-page.tsx:240
-#: src/shared/app-sidebar/model/consts.ts:126
+#: src/shared/app-sidebar/model/consts.ts:110
 msgid "Logs"
 msgstr "로그"
 
-#: src/shared/app-sidebar/model/consts.ts:58
+#: src/shared/app-sidebar/model/consts.ts:49
 msgid "Manage request/response intercept rules"
 msgstr "요청/응답 인터셉트 규칙 관리"
 
@@ -1342,7 +1256,7 @@ msgstr "와일드카드 기반 요청/응답 인터셉트 규칙 관리"
 msgid "Map DNS hostnames to different target hosts for testing and development"
 msgstr "테스트 및 개발을 위해 DNS 호스트명을 다른 대상 호스트로 매핑"
 
-#: src/shared/app-sidebar/model/consts.ts:86
+#: src/shared/app-sidebar/model/consts.ts:77
 msgid "Map DNS hostnames to different targets"
 msgstr "DNS 호스트명을 다른 대상으로 매핑"
 
@@ -1353,7 +1267,7 @@ msgstr "DNS 호스트명을 다른 대상으로 매핑"
 msgid "Map Local"
 msgstr "로컬 매핑"
 
-#: src/shared/app-sidebar/model/consts.ts:65
+#: src/shared/app-sidebar/model/consts.ts:56
 msgid "Map Local / Map Remote rules"
 msgstr "로컬 매핑 / 원격 매핑 규칙"
 
@@ -1373,7 +1287,7 @@ msgid "Map Remote"
 msgstr "원격 매핑"
 
 #: src/pages/map-rules/ui/map-rules-page.tsx:60
-#: src/shared/app-sidebar/model/consts.ts:63
+#: src/shared/app-sidebar/model/consts.ts:54
 msgid "Map Rules"
 msgstr "맵 규칙"
 
@@ -1433,22 +1347,8 @@ msgstr "메시지"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:289
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:204
-#: src/pages/analytics-dashboard/ui/duplicate-tab.tsx:21
-#: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:66
-#: src/pages/analytics-dashboard/ui/error-tab.tsx:66
-#: src/pages/analytics-dashboard/ui/misc-tab.tsx:39
-#: src/pages/analytics-dashboard/ui/misc-tab.tsx:132
-#: src/pages/analytics-dashboard/ui/performance-tab.tsx:44
 msgid "Method"
 msgstr "메서드"
-
-#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:184
-msgid "Misc"
-msgstr "기타"
-
-#: src/pages/analytics-dashboard/ui/misc-tab.tsx:77
-msgid "Mixed Content Warnings"
-msgstr "Mixed Content 경고"
 
 #: src/pages/settings/ui/components/certificate-settings.tsx:214
 msgid "Mobile Certificate Install"
@@ -1486,18 +1386,17 @@ msgstr "메시지"
 msgid "Multiple conditions:"
 msgstr "복합 조건:"
 
-#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:181
-msgid "N+1"
-msgstr "N+1"
-
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:264
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:178
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:73
 msgid "Name"
 msgstr "이름"
 
+#: src/features/transaction-details/ui/transaction-certificate.tsx:221
+msgid "Negotiated ALPN"
+msgstr "협상된 ALPN"
+
 #: src/pages/settings/ui/settings-page.tsx:114
-#: src/shared/app-sidebar/model/consts.ts:28
+#: src/shared/app-sidebar/model/consts.ts:26
 msgid "Network"
 msgstr "네트워크"
 
@@ -1508,6 +1407,10 @@ msgstr "네트워크 테이블 컬럼"
 #: src/pages/settings/ui/components/throttle-section.tsx:19
 msgid "Network Throttling"
 msgstr "네트워크 쓰로틀링"
+
+#: src/features/transaction-details/ui/transaction-certificate.tsx:96
+msgid "No"
+msgstr "아니오"
 
 #: src/widgets/sse-messages/ui/sse-connection-list.tsx:27
 msgid "No active SSE connections"
@@ -1541,26 +1444,6 @@ msgstr "콘솔 출력이 아직 없습니다"
 msgid "No contract validation results"
 msgstr "API 검증 결과 없음"
 
-#: src/pages/analytics-dashboard/ui/misc-tab.tsx:33
-msgid "No CORS issues detected"
-msgstr "CORS 문제가 감지되지 않았습니다"
-
-#: src/pages/analytics-dashboard/ui/duplicate-tab.tsx:15
-msgid "No duplicate requests detected"
-msgstr "중복 요청이 감지되지 않았습니다"
-
-#: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:88
-msgid "No endpoint data"
-msgstr "엔드포인트 데이터 없음"
-
-#: src/pages/analytics-dashboard/ui/error-tab.tsx:60
-msgid "No error endpoints detected"
-msgstr "에러 엔드포인트가 감지되지 않았습니다"
-
-#: src/pages/analytics-dashboard/ui/error-tab.tsx:22
-msgid "No errors detected"
-msgstr "에러가 감지되지 않았습니다"
-
 #: src/pages/settings/ui/components/general-settings.tsx:218
 msgid "No Gzip"
 msgstr "Gzip 비활성화"
@@ -1580,18 +1463,6 @@ msgstr "로그 파일을 찾을 수 없습니다"
 #: src/pages/map-rules/ui/map-rules-page.tsx:67
 msgid "No map rules"
 msgstr "맵 규칙 없음"
-
-#: src/pages/analytics-dashboard/ui/misc-tab.tsx:86
-msgid "No mixed content warnings"
-msgstr "Mixed Content 경고 없음"
-
-#: src/pages/analytics-dashboard/ui/nplus-one-tab.tsx:15
-msgid "No N+1 patterns detected"
-msgstr "N+1 패턴이 감지되지 않았습니다"
-
-#: src/pages/analytics-dashboard/ui/misc-tab.tsx:126
-msgid "No payload data"
-msgstr "페이로드 데이터 없음"
 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:342
 msgid "No pending breakpoints. Matched requests will appear here."
@@ -1613,10 +1484,6 @@ msgstr "리플레이 엔트리 없음"
 msgid "No reverse proxy rules"
 msgstr "리버스 프록시 규칙 없음"
 
-#: src/pages/analytics-dashboard/ui/performance-tab.tsx:60
-msgid "No slow requests detected"
-msgstr "느린 요청이 감지되지 않았습니다"
-
 #: src/pages/contract-testing/ui/contract-testing-page.tsx:103
 msgid "No specs loaded. Add an OpenAPI/Swagger spec file to start contract testing."
 msgstr "로드된 스펙이 없습니다. OpenAPI/Swagger 스펙 파일을 추가하여 API 검증을 시작하세요."
@@ -1628,10 +1495,6 @@ msgstr "타이밍 데이터 없음"
 #: src/pages/log-viewer/ui/logs-page.tsx:410
 msgid "No TLS passthrough entries"
 msgstr "TLS Passthrough 항목이 없습니다"
-
-#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:128
-msgid "No traffic data available. Start the proxy to capture requests."
-msgstr "트래픽 데이터가 없습니다. 프록시를 시작하여 요청을 캡처하세요."
 
 #: src/widgets/network-table/ui/table-body.tsx:85
 msgid "No transactions to display"
@@ -1645,9 +1508,25 @@ msgstr "재생할 유효한 요청이 없습니다"
 msgid "No valid requests to replay"
 msgstr "리플레이할 유효한 요청이 없습니다"
 
+#: src/widgets/network-table/ui/table-row.tsx:181
+msgid "Node.js Fetch"
+msgstr "Node.js Fetch"
+
+#: src/features/transaction-details/ui/transaction-certificate.tsx:135
+msgid "Not After"
+msgstr "만료일"
+
+#: src/features/transaction-details/ui/transaction-certificate.tsx:123
+msgid "Not Before"
+msgstr "발급일"
+
 #: src/pages/settings/ui/components/certificate-settings.tsx:143
 msgid "Not Trusted"
 msgstr "신뢰되지 않음"
+
+#: src/features/transaction-details/ui/transaction-certificate.tsx:129
+msgid "Not yet valid"
+msgstr "아직 유효하지 않음"
 
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:179
 msgid "Number of simultaneous requests (1-100)"
@@ -1710,19 +1589,12 @@ msgstr "OpenAPI 스펙 로드 완료"
 msgid "OpenAPI Specs"
 msgstr "OpenAPI 스펙"
 
-#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:175
-msgid "Operation"
-msgstr "오퍼레이션"
-
-#: src/pages/graphql-dashboard/ui/graphql-dashboard.tsx:93
-msgid "operations"
-msgstr "오퍼레이션"
-
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:98
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:124
 msgid "optional"
 msgstr "선택사항"
 
+#: src/features/transaction-details/ui/transaction-certificate.tsx:88
 #: src/pages/settings/ui/components/client-certificate-section.tsx:208
 #: src/pages/settings/ui/components/custom-ca-section.tsx:160
 msgid "Organization"
@@ -1732,21 +1604,12 @@ msgstr "조직"
 msgid "Original"
 msgstr "원본"
 
-#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:160
-msgid "P95 Response Time"
-msgstr "P95 응답 시간"
-
 #: src/pages/settings/ui/components/custom-ca-section.tsx:265
 #: src/pages/settings/ui/components/proxy-auth-section.tsx:38
 #: src/pages/settings/ui/components/proxy-auth-section.tsx:42
 #: src/pages/settings/ui/components/upstream-proxy-section.tsx:62
 msgid "Password"
 msgstr "비밀번호"
-
-#: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:69
-#: src/pages/analytics-dashboard/ui/error-tab.tsx:69
-msgid "Path"
-msgstr "경로"
 
 #: src/pages/contract-testing/ui/contract-testing-page.tsx:126
 msgid "paths"
@@ -1765,7 +1628,7 @@ msgstr "패턴은 필수입니다"
 msgid "Pause and inspect HTTP requests/responses in real-time"
 msgstr "실시간으로 HTTP 요청/응답을 일시 정지하고 검사"
 
-#: src/shared/app-sidebar/model/consts.ts:79
+#: src/shared/app-sidebar/model/consts.ts:70
 msgid "Pause and inspect requests/responses"
 msgstr "요청/응답 일시 정지 및 검사"
 
@@ -1785,11 +1648,7 @@ msgstr "대기 중"
 msgid "Pending Breakpoints"
 msgstr "대기 중인 Breakpoints"
 
-#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:169
-msgid "Performance"
-msgstr "성능"
-
-#: src/widgets/network-table/ui/table-row.tsx:162
+#: src/widgets/network-table/ui/table-row.tsx:164
 msgid "Pin to Top"
 msgstr "상단에 고정"
 
@@ -1821,6 +1680,10 @@ msgstr "포트는 1에서 65535 사이여야 합니다"
 #: src/pages/settings/ui/components/proxy-port-section.tsx:20
 msgid "Port number for the proxy server to listen on. Changes take effect on next app restart."
 msgstr "프록시 서버가 수신할 포트 번호입니다. 변경 사항은 앱을 다시 시작하면 적용됩니다."
+
+#: src/widgets/network-table/ui/table-row.tsx:186
+msgid "PowerShell"
+msgstr "PowerShell"
 
 #: src/pages/settings/ui/components/client-certificate-section.tsx:132
 msgid "Present a client certificate when connecting to servers that require mTLS authentication"
@@ -1870,7 +1733,7 @@ msgstr "프록시 설정 및 환경설정"
 msgid "Proxy Port"
 msgstr "프록시 포트"
 
-#: src/shared/app-sidebar/model/consts.ts:121
+#: src/shared/app-sidebar/model/consts.ts:105
 msgid "Proxy settings and configuration"
 msgstr "프록시 설정 및 구성"
 
@@ -1878,13 +1741,9 @@ msgstr "프록시 설정 및 구성"
 msgid "proxy.company.com"
 msgstr "proxy.company.com"
 
-#: src/widgets/network-table/ui/table-row.tsx:182
+#: src/widgets/network-table/ui/table-row.tsx:194
 msgid "Python Requests"
 msgstr "Python Requests"
-
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:130
-msgid "Query"
-msgstr "쿼리"
 
 #: src/features/query-filter-editor/ui/filter-help-tooltip.tsx:28
 msgid "Query Syntax Guide"
@@ -1909,10 +1768,6 @@ msgstr "수신"
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:56
 msgid "Received (Server → Client)"
 msgstr "수신 (서버 → 클라이언트)"
-
-#: src/pages/analytics-dashboard/ui/misc-tab.tsx:93
-msgid "Referrer"
-msgstr "리퍼러"
 
 #: src/pages/log-viewer/ui/logs-page.tsx:251
 #: src/pages/log-viewer/ui/logs-page.tsx:276
@@ -2058,11 +1913,6 @@ msgstr "요청 수명 주기"
 msgid "Request/Response body"
 msgstr "요청/응답 본문"
 
-#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:111
-#: src/pages/analytics-dashboard/ui/nplus-one-tab.tsx:30
-msgid "requests"
-msgstr "요청"
-
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:306
 msgid "Requests/sec"
 msgstr "초당 요청 수"
@@ -2078,7 +1928,6 @@ msgstr "인증서 필수"
 #: src/features/transaction-details/ui/replay-dialog.tsx:387
 #: src/features/transaction-details/ui/transaction-body-side-by-side.tsx:24
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:301
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:138
 msgid "Response"
 msgstr "응답"
 
@@ -2113,7 +1962,6 @@ msgid "Response Status Code"
 msgstr "응답 상태 코드"
 
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:269
-#: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:37
 msgid "Response Time"
 msgstr "응답 시간"
 
@@ -2138,7 +1986,7 @@ msgstr "기록 재개"
 msgid "Retry"
 msgstr "재시도"
 
-#: src/shared/app-sidebar/model/consts.ts:72
+#: src/shared/app-sidebar/model/consts.ts:63
 msgid "Return cached responses for matching requests"
 msgstr "매칭되는 요청에 캐시된 응답 반환"
 
@@ -2147,7 +1995,7 @@ msgid "Return cached responses for matching requests instead of forwarding to th
 msgstr "서버로 전달하지 않고 매칭되는 요청에 캐시된 응답을 반환합니다"
 
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:152
-#: src/shared/app-sidebar/model/consts.ts:91
+#: src/shared/app-sidebar/model/consts.ts:82
 msgid "Reverse Proxy"
 msgstr "리버스 프록시"
 
@@ -2182,7 +2030,7 @@ msgstr "오른쪽"
 msgid "Route incoming requests to backend servers based on Host header matching"
 msgstr "Host 헤더 매칭을 기반으로 수신 요청을 백엔드 서버에 전달"
 
-#: src/shared/app-sidebar/model/consts.ts:93
+#: src/shared/app-sidebar/model/consts.ts:84
 msgid "Route requests to backend servers by Host header"
 msgstr "Host 헤더 기반으로 백엔드 서버에 요청 전달"
 
@@ -2226,10 +2074,6 @@ msgstr "규칙"
 msgid "Run"
 msgstr "실행"
 
-#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:117
-msgid "Run Analysis"
-msgstr "분석 실행"
-
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:354
 msgid "Running..."
 msgstr "실행 중..."
@@ -2259,7 +2103,7 @@ msgid "Scan for proxy info"
 msgstr "프록시 정보 스캔"
 
 #: src/pages/script/ui/script-page.tsx:162
-#: src/shared/app-sidebar/model/consts.ts:98
+#: src/shared/app-sidebar/model/consts.ts:89
 msgid "Script"
 msgstr "스크립트"
 
@@ -2383,16 +2227,17 @@ msgstr "시퀀스 리플레이 ({0}개 요청)"
 msgid "Sequence replay failed"
 msgstr "시퀀스 리플레이 실패"
 
+#: src/features/transaction-details/ui/transaction-certificate.tsx:195
 #: src/pages/settings/ui/components/client-certificate-section.tsx:239
 msgid "Serial Number"
 msgstr "시리얼 번호"
 
 #: src/pages/server-replay/ui/server-replay-page.tsx:84
-#: src/shared/app-sidebar/model/consts.ts:70
+#: src/shared/app-sidebar/model/consts.ts:61
 msgid "Server Replay"
 msgstr "서버 리플레이"
 
-#: src/shared/app-sidebar/model/consts.ts:44
+#: src/shared/app-sidebar/model/consts.ts:42
 msgid "Server-Sent Events streams"
 msgstr "Server-Sent Events 스트림"
 
@@ -2425,13 +2270,17 @@ msgid "Set Wi-Fi proxy on your device to <0>{0}:{1}</0>"
 msgstr "기기의 Wi-Fi 프록시를 <0>{0}:{1}</0>로 설정"
 
 #: src/pages/settings/ui/settings-page.tsx:145
-#: src/shared/app-sidebar/model/consts.ts:119
+#: src/shared/app-sidebar/model/consts.ts:103
 msgid "Settings"
 msgstr "설정"
 
 #: src/pages/settings/ui/components/certificate-settings.tsx:184
 msgid "Setup Instructions:"
 msgstr "설정 방법:"
+
+#: src/features/transaction-details/ui/transaction-certificate.tsx:203
+msgid "SHA-256 Fingerprint"
+msgstr "SHA-256 지문"
 
 #: src/pages/settings/ui/components/shortcut-section.tsx:88
 msgid "Shortcut Key"
@@ -2445,17 +2294,12 @@ msgstr "CONNECT 요청 표시"
 msgid "Simulate slow network conditions for testing"
 msgstr "테스트를 위한 저속 네트워크 환경 시뮬레이션"
 
-#: src/pages/analytics-dashboard/ui/misc-tab.tsx:139
 #: src/widgets/sse-messages/ui/sse-message-detail.tsx:62
 #: src/widgets/sse-messages/ui/sse-message-table.tsx:146
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:62
 #: src/widgets/websocket-messages/ui/ws-message-table.tsx:202
 msgid "Size"
 msgstr "크기"
-
-#: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:47
-msgid "Sort by"
-msgstr "정렬 기준"
 
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:86
 msgid "Source Host"
@@ -2474,7 +2318,7 @@ msgid "Spec removed"
 msgstr "스펙 제거 완료"
 
 #: src/pages/sse-dashboard/ui/sse-dashboard.tsx:87
-#: src/shared/app-sidebar/model/consts.ts:42
+#: src/shared/app-sidebar/model/consts.ts:40
 msgid "SSE"
 msgstr "SSE"
 
@@ -2499,12 +2343,9 @@ msgstr "리플레이 시작"
 msgid "Starts background server connection immediately after ClientHello detection"
 msgstr "ClientHello 감지 직후 백그라운드에서 서버 연결을 시작합니다"
 
-#: src/pages/analytics-dashboard/ui/performance-tab.tsx:51
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:115
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:120
 #: src/shared/app-sidebar/ui/sidebar-status.tsx:39
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:86
-#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:176
 msgid "Status"
 msgstr "상태"
 
@@ -2522,6 +2363,14 @@ msgstr "상태 코드 분포"
 #: src/pages/settings/ui/components/connection-strategy-section.tsx:31
 msgid "Strategy"
 msgstr "전략"
+
+#: src/features/transaction-details/ui/transaction-certificate.tsx:77
+msgid "Subject"
+msgstr "주체"
+
+#: src/features/transaction-details/ui/transaction-certificate.tsx:160
+msgid "Subject Alternative Names (SAN)"
+msgstr "주체 대체 이름 (SAN)"
 
 #: src/pages/settings/ui/components/client-certificate-section.tsx:267
 msgid "Supports PEM-encoded certificates and keys (RSA, ECDSA, PKCS#8)"
@@ -2593,11 +2442,6 @@ msgstr "스로틀"
 msgid "Throughput"
 msgstr "처리량"
 
-#: src/pages/analytics-dashboard/ui/misc-tab.tsx:46
-#: src/pages/analytics-dashboard/ui/misc-tab.tsx:96
-#: src/pages/analytics-dashboard/ui/performance-tab.tsx:54
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:77
-#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:178
 #: src/widgets/sse-messages/ui/sse-message-detail.tsx:63
 #: src/widgets/sse-messages/ui/sse-message-table.tsx:148
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:63
@@ -2631,12 +2475,7 @@ msgstr "글로벌 키보드 단축키로 프록시 켜기/끄기"
 msgid "Tools"
 msgstr "도구"
 
-#: src/pages/analytics-dashboard/ui/error-tab.tsx:56
-msgid "Top Error Endpoints"
-msgstr "에러율 높은 엔드포인트"
-
 #: src/features/transaction-details/ui/transaction-timing.tsx:98
-#: src/pages/analytics-dashboard/ui/error-tab.tsx:75
 msgid "Total"
 msgstr "전체"
 
@@ -2645,32 +2484,23 @@ msgstr "전체"
 msgid "Total {0}ms"
 msgstr "총 {0}ms"
 
-#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:144
-msgid "Total Requests"
-msgstr "총 요청"
-
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:300
 msgid "Total Time"
 msgstr "총 시간"
-
-#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:107
-#: src/shared/app-sidebar/model/consts.ts:112
-msgid "Traffic Analysis"
-msgstr "트래픽 분석"
 
 #: src/features/transaction-details/ui/replay-dialog.tsx:360
 msgid "Traffic Replay"
 msgstr "트래픽 리플레이"
 
-#: src/widgets/network-table/ui/table-row.tsx:105
+#: src/widgets/network-table/ui/table-row.tsx:107
 msgid "Transaction deleted"
 msgstr "트랜잭션이 삭제되었습니다"
 
-#: src/widgets/network-table/ui/table-row.tsx:121
+#: src/widgets/network-table/ui/table-row.tsx:123
 msgid "Transaction pinned to top"
 msgstr "트랜잭션이 상단에 고정되었습니다"
 
-#: src/widgets/network-table/ui/table-row.tsx:121
+#: src/widgets/network-table/ui/table-row.tsx:123
 msgid "Transaction unpinned"
 msgstr "트랜잭션 고정이 해제되었습니다"
 
@@ -2683,8 +2513,6 @@ msgid "Trusted"
 msgstr "신뢰됨"
 
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:229
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:69
-#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:174
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:59
 #: src/widgets/websocket-messages/ui/ws-message-table.tsx:201
 msgid "Type"
@@ -2710,7 +2538,7 @@ msgstr "무제한"
 msgid "Unload"
 msgstr "언로드"
 
-#: src/widgets/network-table/ui/table-row.tsx:162
+#: src/widgets/network-table/ui/table-row.tsx:164
 msgid "Unpin from Top"
 msgstr "상단 고정 해제"
 
@@ -2769,6 +2597,10 @@ msgstr "자동 생성된 CA 대신 직접 CA 인증서를 사용합니다"
 msgid "Username"
 msgstr "사용자 이름"
 
+#: src/features/transaction-details/ui/transaction-certificate.tsx:148
+msgid "Valid"
+msgstr "유효"
+
 #: src/pages/settings/ui/components/client-certificate-section.tsx:227
 msgid "Valid From"
 msgstr "유효 기간 시작"
@@ -2778,13 +2610,17 @@ msgstr "유효 기간 시작"
 msgid "Valid Until"
 msgstr "유효 기간 만료"
 
-#: src/shared/app-sidebar/model/consts.ts:107
+#: src/shared/app-sidebar/model/consts.ts:98
 msgid "Validate API responses against OpenAPI specs"
 msgstr "OpenAPI 스펙 기반 API 응답 검증"
 
 #: src/pages/contract-testing/ui/contract-testing-page.tsx:148
 msgid "Validation Report"
 msgstr "검증 리포트"
+
+#: src/features/transaction-details/ui/transaction-certificate.tsx:120
+msgid "Validity Period"
+msgstr "유효 기간"
 
 #: src/features/intercept-rule-form/ui/headers-fields.tsx:70
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:386
@@ -2794,10 +2630,6 @@ msgstr "검증 리포트"
 msgid "Value"
 msgstr "값"
 
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:133
-msgid "Variables"
-msgstr "변수"
-
 #: src/shared/app-sidebar/ui/sidebar-status.tsx:48
 msgid "Version"
 msgstr "버전"
@@ -2806,7 +2638,7 @@ msgstr "버전"
 msgid "View and manage application log files"
 msgstr "애플리케이션 로그 파일 조회 및 관리"
 
-#: src/shared/app-sidebar/model/consts.ts:128
+#: src/shared/app-sidebar/model/consts.ts:112
 msgid "View application log files"
 msgstr "애플리케이션 로그 파일 조회"
 
@@ -2828,11 +2660,11 @@ msgid "warnings"
 msgstr "경고"
 
 #: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:95
-#: src/shared/app-sidebar/model/consts.ts:35
+#: src/shared/app-sidebar/model/consts.ts:33
 msgid "WebSocket"
 msgstr "WebSocket"
 
-#: src/shared/app-sidebar/model/consts.ts:37
+#: src/shared/app-sidebar/model/consts.ts:35
 msgid "WebSocket connections and messages"
 msgstr "WebSocket 연결 및 메시지"
 
@@ -2853,10 +2685,10 @@ msgstr "화이트리스트 (포함)"
 msgid "Wildcard"
 msgstr "와일드카드"
 
-#: src/pages/analytics-dashboard/ui/duplicate-tab.tsx:28
-msgid "Window"
-msgstr "시간 범위"
-
 #: src/pages/script/ui/script-page.tsx:165
 msgid "Write or load JavaScript/TypeScript proxy scripts"
 msgstr "JavaScript/TypeScript 프록시 스크립트 작성 또는 로드"
+
+#: src/features/transaction-details/ui/transaction-certificate.tsx:94
+msgid "Yes"
+msgstr "예"
