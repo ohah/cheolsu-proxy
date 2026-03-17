@@ -443,6 +443,7 @@ mod tests_reverse_proxy {
                 request_start: None,
                 response_header_time: None,
                 proxy_auth_user: None,
+                server_cert: None,
             },
             config: ProxyConfig {
                 cache_dir: None,

@@ -125,6 +125,7 @@ fn emit_ws_event_sends_to_channel() {
             request_start: None,
             response_header_time: None,
             proxy_auth_user: None,
+            server_cert: None,
         },
         config: ProxyConfig {
             cache_dir: None,
@@ -194,6 +195,7 @@ fn emit_ws_event_increments_sequence() {
             request_start: None,
             response_header_time: None,
             proxy_auth_user: None,
+            server_cert: None,
         },
         config: ProxyConfig {
             cache_dir: None,

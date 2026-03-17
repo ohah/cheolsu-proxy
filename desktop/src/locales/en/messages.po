@@ -18,7 +18,7 @@ msgid " (preserve path)"
 msgstr " (preserve path)"
 
 #. placeholder {0}: serverCert.chain_length
-#: src/features/transaction-details/ui/transaction-certificate.tsx:218
+#: src/features/transaction-details/ui/transaction-certificate.tsx:230
 msgid "{0} certificate(s)"
 msgstr "{0} certificate(s)"
 
@@ -131,7 +131,7 @@ msgstr "Add from Traffic"
 msgid "Add Headers"
 msgstr "Add Headers"
 
-#: src/widgets/network-table/ui/table-row.tsx:209
+#: src/widgets/network-table/ui/table-row.tsx:207
 msgid "Add Intercept Rule"
 msgstr "Add Intercept Rule"
 
@@ -197,7 +197,7 @@ msgid "Added to server replay"
 msgstr "Added to server replay"
 
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:135
-#: src/widgets/network-table/ui/table-row.tsx:200
+#: src/widgets/network-table/ui/table-row.tsx:198
 msgid "Advanced Repeat"
 msgstr "Advanced Repeat"
 
@@ -411,7 +411,7 @@ msgstr "Bypass List"
 msgid "bytes body"
 msgstr "bytes body"
 
-#: src/features/transaction-details/ui/transaction-certificate.tsx:92
+#: src/features/transaction-details/ui/transaction-certificate.tsx:90
 #: src/pages/settings/ui/components/certificate-settings.tsx:116
 msgid "CA Certificate"
 msgstr "CA Certificate"
@@ -447,11 +447,11 @@ msgstr "Cannot add: no response data"
 msgid "Certificate"
 msgstr "Certificate"
 
-#: src/features/transaction-details/ui/transaction-certificate.tsx:217
+#: src/features/transaction-details/ui/transaction-certificate.tsx:229
 msgid "Certificate Chain"
 msgstr "Certificate Chain"
 
-#: src/features/transaction-details/ui/transaction-certificate.tsx:192
+#: src/features/transaction-details/ui/transaction-certificate.tsx:199
 #: src/pages/settings/ui/components/client-certificate-section.tsx:188
 msgid "Certificate Details"
 msgstr "Certificate Details"
@@ -575,7 +575,7 @@ msgid "Command copied to clipboard"
 msgstr "Command copied to clipboard"
 
 #: src/features/transaction-details/ui/transaction-certificate.tsx:80
-#: src/features/transaction-details/ui/transaction-certificate.tsx:107
+#: src/features/transaction-details/ui/transaction-certificate.tsx:111
 msgid "Common Name (CN)"
 msgstr "Common Name (CN)"
 
@@ -606,7 +606,7 @@ msgstr "Connected"
 msgid "Connection"
 msgstr "Connection"
 
-#: src/features/transaction-details/ui/transaction-certificate.tsx:215
+#: src/features/transaction-details/ui/transaction-certificate.tsx:226
 msgid "Connection Info"
 msgstr "Connection Info"
 
@@ -744,7 +744,7 @@ msgid "Delete rule"
 msgstr "Delete rule"
 
 #: src/widgets/network-table/ui/cells/action-cell.tsx:21
-#: src/widgets/network-table/ui/table-row.tsx:204
+#: src/widgets/network-table/ui/table-row.tsx:202
 msgid "Delete Transaction"
 msgstr "Delete Transaction"
 
@@ -957,7 +957,7 @@ msgstr "Expand sidebar"
 msgid "Expected"
 msgstr "Expected"
 
-#: src/features/transaction-details/ui/transaction-certificate.tsx:143
+#: src/features/transaction-details/ui/transaction-certificate.tsx:147
 msgid "Expired"
 msgstr "Expired"
 
@@ -1158,7 +1158,7 @@ msgstr "Host mapping deleted"
 msgid "Host Tree"
 msgstr "Host Tree"
 
-#: src/features/transaction-details/ui/transaction-certificate.tsx:68
+#: src/features/transaction-details/ui/transaction-certificate.tsx:66
 msgid "HTTP connection (no TLS)"
 msgstr "HTTP connection (no TLS)"
 
@@ -1166,7 +1166,7 @@ msgstr "HTTP connection (no TLS)"
 msgid "HTTP requests and responses"
 msgstr "HTTP requests and responses"
 
-#: src/widgets/network-table/ui/table-row.tsx:189
+#: src/widgets/network-table/ui/table-row.tsx:187
 msgid "HTTPie"
 msgstr "HTTPie"
 
@@ -1246,12 +1246,12 @@ msgstr "IP Address"
 msgid "Issue"
 msgstr "Issue"
 
-#: src/features/transaction-details/ui/transaction-certificate.tsx:104
+#: src/features/transaction-details/ui/transaction-certificate.tsx:107
 #: src/pages/settings/ui/components/client-certificate-section.tsx:200
 msgid "Issuer"
 msgstr "Issuer"
 
-#: src/features/transaction-details/ui/transaction-certificate.tsx:112
+#: src/features/transaction-details/ui/transaction-certificate.tsx:114
 msgid "Issuer information not available"
 msgstr "Issuer information not available"
 
@@ -1531,7 +1531,7 @@ msgstr "N+1"
 msgid "Name"
 msgstr "Name"
 
-#: src/features/transaction-details/ui/transaction-certificate.tsx:221
+#: src/features/transaction-details/ui/transaction-certificate.tsx:233
 msgid "Negotiated ALPN"
 msgstr "Negotiated ALPN"
 
@@ -1548,7 +1548,7 @@ msgstr "Network Table Columns"
 msgid "Network Throttling"
 msgstr "Network Throttling"
 
-#: src/features/transaction-details/ui/transaction-certificate.tsx:96
+#: src/features/transaction-details/ui/transaction-certificate.tsx:97
 msgid "No"
 msgstr "No"
 
@@ -1692,11 +1692,11 @@ msgstr "No valid requests to replay"
 msgid "Node.js Fetch"
 msgstr "Node.js Fetch"
 
-#: src/features/transaction-details/ui/transaction-certificate.tsx:135
+#: src/features/transaction-details/ui/transaction-certificate.tsx:139
 msgid "Not After"
 msgstr "Not After"
 
-#: src/features/transaction-details/ui/transaction-certificate.tsx:123
+#: src/features/transaction-details/ui/transaction-certificate.tsx:127
 msgid "Not Before"
 msgstr "Not Before"
 
@@ -1704,7 +1704,7 @@ msgstr "Not Before"
 msgid "Not Trusted"
 msgstr "Not Trusted"
 
-#: src/features/transaction-details/ui/transaction-certificate.tsx:129
+#: src/features/transaction-details/ui/transaction-certificate.tsx:133
 msgid "Not yet valid"
 msgstr "Not yet valid"
 
@@ -1882,7 +1882,7 @@ msgstr "Port must be between 1 and 65535"
 msgid "Port number for the proxy server to listen on. Changes take effect on next app restart."
 msgstr "Port number for the proxy server to listen on. Changes take effect on next app restart."
 
-#: src/widgets/network-table/ui/table-row.tsx:186
+#: src/widgets/network-table/ui/table-row.tsx:184
 msgid "PowerShell"
 msgstr "PowerShell"
 
@@ -1942,7 +1942,7 @@ msgstr "Proxy settings and configuration"
 msgid "proxy.company.com"
 msgstr "proxy.company.com"
 
-#: src/widgets/network-table/ui/table-row.tsx:194
+#: src/widgets/network-table/ui/table-row.tsx:192
 msgid "Python Requests"
 msgstr "Python Requests"
 
@@ -2447,7 +2447,7 @@ msgstr "Sequence Replay ({0} requests)"
 msgid "Sequence replay failed"
 msgstr "Sequence replay failed"
 
-#: src/features/transaction-details/ui/transaction-certificate.tsx:195
+#: src/features/transaction-details/ui/transaction-certificate.tsx:203
 #: src/pages/settings/ui/components/client-certificate-section.tsx:239
 msgid "Serial Number"
 msgstr "Serial Number"
@@ -2498,7 +2498,7 @@ msgstr "Settings"
 msgid "Setup Instructions:"
 msgstr "Setup Instructions:"
 
-#: src/features/transaction-details/ui/transaction-certificate.tsx:203
+#: src/features/transaction-details/ui/transaction-certificate.tsx:211
 msgid "SHA-256 Fingerprint"
 msgstr "SHA-256 Fingerprint"
 
@@ -2592,11 +2592,11 @@ msgstr "Status Code Distribution"
 msgid "Strategy"
 msgstr "Strategy"
 
-#: src/features/transaction-details/ui/transaction-certificate.tsx:77
+#: src/features/transaction-details/ui/transaction-certificate.tsx:76
 msgid "Subject"
 msgstr "Subject"
 
-#: src/features/transaction-details/ui/transaction-certificate.tsx:160
+#: src/features/transaction-details/ui/transaction-certificate.tsx:165
 msgid "Subject Alternative Names (SAN)"
 msgstr "Subject Alternative Names (SAN)"
 
@@ -2846,7 +2846,7 @@ msgstr "Use your own CA certificate instead of the auto-generated one"
 msgid "Username"
 msgstr "Username"
 
-#: src/features/transaction-details/ui/transaction-certificate.tsx:148
+#: src/features/transaction-details/ui/transaction-certificate.tsx:152
 msgid "Valid"
 msgstr "Valid"
 
@@ -2867,7 +2867,7 @@ msgstr "Validate API responses against OpenAPI specs"
 msgid "Validation Report"
 msgstr "Validation Report"
 
-#: src/features/transaction-details/ui/transaction-certificate.tsx:120
+#: src/features/transaction-details/ui/transaction-certificate.tsx:123
 msgid "Validity Period"
 msgstr "Validity Period"
 
@@ -2946,6 +2946,6 @@ msgstr "Window"
 msgid "Write or load JavaScript/TypeScript proxy scripts"
 msgstr "Write or load JavaScript/TypeScript proxy scripts"
 
-#: src/features/transaction-details/ui/transaction-certificate.tsx:94
+#: src/features/transaction-details/ui/transaction-certificate.tsx:93
 msgid "Yes"
 msgstr "Yes"

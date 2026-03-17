@@ -163,7 +163,6 @@ where
                         client_addr,
                         ctx: self.ctx.clone(),
                         upstream_cert_info: None,
-                        upstream_cert_der: None,
                     };
 
                     shutdown.spawn_task_fn(move |guard| async move {

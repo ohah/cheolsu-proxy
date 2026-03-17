@@ -363,7 +363,6 @@ where
 
                 let upstream_cert = self.resolve_upstream_cert(authority, eager_handle).await;
                 // 인증서 정보를 InternalProxy에 저장 (이후 context()에서 사용)
-                self.upstream_cert_der = upstream_cert.as_ref().and_then(|c| c.cert_der.clone());
                 self.upstream_cert_info = upstream_cert.clone();
 
                 let hybrid_handler = match HybridTlsHandler::new(

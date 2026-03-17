@@ -34,9 +34,7 @@ function CopyButton({ value }: { value: string }) {
 }
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
-  return (
-    <h3 className="text-sm font-semibold text-foreground mb-2">{children}</h3>
-  );
+  return <h3 className="text-sm font-semibold text-foreground mb-2">{children}</h3>;
 }
 
 function InfoRow({ label, children }: { label: React.ReactNode; children: React.ReactNode }) {
@@ -74,7 +72,9 @@ export function TransactionCertificate({ serverCert }: TransactionCertificatePro
     <div className="space-y-5">
       {/* Subject */}
       <div className="rounded-lg border border-border p-4">
-        <SectionTitle><Trans>Subject</Trans></SectionTitle>
+        <SectionTitle>
+          <Trans>Subject</Trans>
+        </SectionTitle>
         <div className="space-y-0">
           {serverCert.subject_cn && (
             <InfoRow label={t`Common Name (CN)`}>
@@ -85,15 +85,17 @@ export function TransactionCertificate({ serverCert }: TransactionCertificatePro
             </InfoRow>
           )}
           {serverCert.organization && (
-            <InfoRow label={t`Organization`}>
-              {serverCert.organization}
-            </InfoRow>
+            <InfoRow label={t`Organization`}>{serverCert.organization}</InfoRow>
           )}
           <InfoRow label={t`CA Certificate`}>
             {serverCert.is_ca ? (
-              <Badge variant="secondary"><Trans>Yes</Trans></Badge>
+              <Badge variant="secondary">
+                <Trans>Yes</Trans>
+              </Badge>
             ) : (
-              <Badge variant="outline"><Trans>No</Trans></Badge>
+              <Badge variant="outline">
+                <Trans>No</Trans>
+              </Badge>
             )}
           </InfoRow>
         </div>
@@ -101,12 +103,12 @@ export function TransactionCertificate({ serverCert }: TransactionCertificatePro
 
       {/* Issuer */}
       <div className="rounded-lg border border-border p-4">
-        <SectionTitle><Trans>Issuer</Trans></SectionTitle>
+        <SectionTitle>
+          <Trans>Issuer</Trans>
+        </SectionTitle>
         <div className="space-y-0">
           {serverCert.issuer_cn ? (
-            <InfoRow label={t`Common Name (CN)`}>
-              {serverCert.issuer_cn}
-            </InfoRow>
+            <InfoRow label={t`Common Name (CN)`}>{serverCert.issuer_cn}</InfoRow>
           ) : (
             <div className="text-xs text-muted-foreground">
               <Trans>Issuer information not available</Trans>
@@ -117,7 +119,9 @@ export function TransactionCertificate({ serverCert }: TransactionCertificatePro
 
       {/* Validity */}
       <div className="rounded-lg border border-border p-4">
-        <SectionTitle><Trans>Validity Period</Trans></SectionTitle>
+        <SectionTitle>
+          <Trans>Validity Period</Trans>
+        </SectionTitle>
         <div className="space-y-0">
           {serverCert.not_before && (
             <InfoRow label={t`Not Before`}>
@@ -157,7 +161,9 @@ export function TransactionCertificate({ serverCert }: TransactionCertificatePro
       {/* SAN */}
       {(serverCert.sans_dns.length > 0 || serverCert.sans_ip.length > 0) && (
         <div className="rounded-lg border border-border p-4">
-          <SectionTitle><Trans>Subject Alternative Names (SAN)</Trans></SectionTitle>
+          <SectionTitle>
+            <Trans>Subject Alternative Names (SAN)</Trans>
+          </SectionTitle>
           <div className="space-y-2">
             {serverCert.sans_dns.length > 0 && (
               <div>
@@ -189,7 +195,9 @@ export function TransactionCertificate({ serverCert }: TransactionCertificatePro
 
       {/* Fingerprint & Serial */}
       <div className="rounded-lg border border-border p-4">
-        <SectionTitle><Trans>Certificate Details</Trans></SectionTitle>
+        <SectionTitle>
+          <Trans>Certificate Details</Trans>
+        </SectionTitle>
         <div className="space-y-0">
           {serverCert.serial_number && (
             <InfoRow label={t`Serial Number`}>
@@ -202,7 +210,9 @@ export function TransactionCertificate({ serverCert }: TransactionCertificatePro
           {serverCert.fingerprint_sha256 && (
             <InfoRow label={t`SHA-256 Fingerprint`}>
               <div className="flex items-center gap-1">
-                <code className="font-mono text-[11px] break-all">{serverCert.fingerprint_sha256}</code>
+                <code className="font-mono text-[11px] break-all">
+                  {serverCert.fingerprint_sha256}
+                </code>
                 <CopyButton value={serverCert.fingerprint_sha256} />
               </div>
             </InfoRow>
@@ -212,7 +222,9 @@ export function TransactionCertificate({ serverCert }: TransactionCertificatePro
 
       {/* Chain & ALPN */}
       <div className="rounded-lg border border-border p-4">
-        <SectionTitle><Trans>Connection Info</Trans></SectionTitle>
+        <SectionTitle>
+          <Trans>Connection Info</Trans>
+        </SectionTitle>
         <div className="space-y-0">
           <InfoRow label={t`Certificate Chain`}>
             <Trans>{serverCert.chain_length} certificate(s)</Trans>

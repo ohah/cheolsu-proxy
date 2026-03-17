@@ -41,8 +41,29 @@ pub struct UpstreamCertInfo {
     pub is_ca: bool,
     /// 인증서 체인 길이 (end-entity 포함)
     pub chain_length: usize,
-    /// End-entity 인증서 DER 바이트 (원본)
-    pub cert_der: Option<Vec<u8>>,
+}
+
+impl UpstreamCertInfo {
+    /// `ServerCertInfo`로 변환 (프론트엔드 전달용)
+    pub fn to_server_cert_info(&self) -> proxy_v2_models::ServerCertInfo {
+        proxy_v2_models::ServerCertInfo {
+            subject_cn: self.common_name.clone(),
+            issuer_cn: self.issuer_cn.clone(),
+            organization: self.organization.clone(),
+            sans_dns: self.sans_dns.clone(),
+            sans_ip: self.sans_ip.iter().map(|ip| ip.to_string()).collect(),
+            not_before: self.not_before.clone(),
+            not_after: self.not_after.clone(),
+            serial_number: self.serial_number.clone(),
+            fingerprint_sha256: self.fingerprint_sha256.clone(),
+            is_ca: self.is_ca,
+            negotiated_alpn: self
+                .negotiated_alpn
+                .as_ref()
+                .map(|a| String::from_utf8_lossy(a).to_string()),
+            chain_length: self.chain_length,
+        }
+    }
 }
 
 /// 인증서를 캡처하는 TLS 검증기
@@ -239,7 +260,6 @@ async fn sniff_upstream_cert_inner(
     let mut info = parse_cert_info(&cert_der)?;
     info.negotiated_alpn = negotiated_alpn;
     info.chain_length = captured_chain_length;
-    info.cert_der = Some(cert_der);
     Some(info)
 }
 
@@ -368,6 +388,7 @@ mod tests {
             sans_dns: vec!["example.com".to_string(), "*.example.com".to_string()],
             sans_ip: vec!["127.0.0.1".parse().unwrap()],
             negotiated_alpn: Some(b"h2".to_vec()),
+            ..Default::default()
         };
         let cloned = info.clone();
         assert_eq!(cloned.common_name, info.common_name);

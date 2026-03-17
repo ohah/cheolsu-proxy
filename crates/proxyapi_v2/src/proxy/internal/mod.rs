@@ -53,8 +53,6 @@ pub(crate) struct InternalProxy<C, CA, H, W> {
     pub(crate) ctx: ProxyContext,
     /// 상류 서버 인증서 정보 (TLS 인터셉트 시 캡처)
     pub(crate) upstream_cert_info: Option<UpstreamCertInfo>,
-    /// 상류 서버 인증서 DER 바이트
-    pub(crate) upstream_cert_der: Option<Vec<u8>>,
 }
 
 impl<C, CA, H, W> Clone for InternalProxy<C, CA, H, W>
@@ -73,7 +71,6 @@ where
             client_addr: self.client_addr,
             ctx: self.ctx.clone(),
             upstream_cert_info: self.upstream_cert_info.clone(),
-            upstream_cert_der: self.upstream_cert_der.clone(),
         }
     }
 }
@@ -103,23 +100,12 @@ where
     W: WebSocketHandler,
 {
     pub(crate) fn context(&self) -> HttpContext {
-        let (server_cert_der, server_cert_chain_length, server_cert_alpn) =
-            if let Some(ref info) = self.upstream_cert_info {
-                (
-                    self.upstream_cert_der.clone(),
-                    info.chain_length,
-                    info.negotiated_alpn
-                        .as_ref()
-                        .map(|a| String::from_utf8_lossy(a).to_string()),
-                )
-            } else {
-                (None, 0, None)
-            };
         HttpContext {
             client_addr: self.client_addr,
-            server_cert_der,
-            server_cert_chain_length,
-            server_cert_alpn,
+            server_cert: self
+                .upstream_cert_info
+                .as_ref()
+                .map(|info| info.to_server_cert_info()),
         }
     }
 
@@ -325,7 +311,6 @@ mod tests {
             client_addr: "127.0.0.1:8080".parse().unwrap(),
             ctx: ProxyContext::new(),
             upstream_cert_info: None,
-            upstream_cert_der: None,
         }
     }
 

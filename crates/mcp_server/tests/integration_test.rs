@@ -52,6 +52,7 @@ fn make_request_info(id: &str, method: &str, uri: &str, status: u16) -> RequestI
         request: Some(make_client_request(id, method, uri)),
         response: Some(make_client_response(id, status)),
         validations: None,
+        server_cert: None,
     }
 }
 
@@ -556,6 +557,7 @@ fn store_push_partial_request_info() {
         )),
         response: None,
         validations: None,
+        server_cert: None,
     };
     store.push_transaction(info);
 
@@ -574,6 +576,7 @@ fn store_push_empty_request_info() {
         request: None,
         response: None,
         validations: None,
+        server_cert: None,
     };
     store.push_transaction(info);
 
