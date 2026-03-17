@@ -12,3 +12,4 @@ export { RequestClientCertSection } from "./request-client-cert-section";
 export { SslProxyingSection } from "./ssl-proxying-section";
 export { ProtoFilesSection } from "./proto-files-section";
 export { ClientTagsSection } from "./client-tags-section";
+export { TlsConfigSection } from "./tls-config-section";

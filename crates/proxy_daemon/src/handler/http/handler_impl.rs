@@ -112,6 +112,8 @@ impl HttpHandler for LoggingHandler {
 
         // 서버 TLS 인증서 정보 저장
         self.request.server_cert = ctx.server_cert.clone();
+        // TLS 폴백 여부 저장
+        self.request.tls_fallback_used = ctx.tls_fallback_used;
 
         // 초기 파이프라인: 인증, 바디 크기 제한, 인증서 다운로드, WebSocket 확장 제거
         if let Some(action) = self.run_early_pipeline(&mut req).await {

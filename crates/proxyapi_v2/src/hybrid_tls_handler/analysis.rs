@@ -13,7 +13,6 @@ pub(crate) fn is_openssl_required_domain(authority: &Authority) -> bool {
         "gdmf.apple.com",
         "fbs.smoot.apple.com",
         "gateway.icloud.com",
-        "jamf.payhere.in",
     ];
     openssl_required_domains
         .iter()

@@ -17,6 +17,7 @@ import {
   SslProxyingSection,
   ProtoFilesSection,
   ClientTagsSection,
+  TlsConfigSection,
 } from "./components";
 import { SettingsFormProvider, useSettingsForm, type SettingsFormValues } from "./settings-form";
 import { saveAllSettings } from "./save-settings";
@@ -205,6 +206,7 @@ function SettingsPageInner() {
             <ThrottleSection />
             <ConnectionStrategySection />
             <SslProxyingSection />
+            <TlsConfigSection />
             <UpstreamProxySection />
             <ClientTagsSection />
           </div>

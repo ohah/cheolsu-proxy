@@ -45,6 +45,8 @@ pub async fn run_proxy(
     total_transactions: std::sync::Arc<std::sync::atomic::AtomicU64>,
     mut default_passthrough_rx: watch::Receiver<Vec<SslProxyingEntry>>,
     contract_validator: ContractValidator,
+    tls_strategy_cache: proxyapi_v2::hybrid_tls_handler::TlsStrategyCache,
+    tls_config: proxyapi_v2::tls_config::SharedTlsConfig,
 ) -> Result<(), DaemonError> {
     use proxyapi_v2::builder::ProxyBuilder;
     use proxyapi_v2::certificate_authority::{
@@ -273,6 +275,8 @@ pub async fn run_proxy(
         connection_strategy: Some(connection_strategy),
         metrics: Some(metrics_collector),
         shutdown_rx: Some(passthrough_shutdown_rx),
+        tls_strategy_cache: Some(tls_strategy_cache),
+        tls_config: Some(tls_config),
         ..Default::default()
     };
 

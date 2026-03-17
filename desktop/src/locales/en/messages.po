@@ -443,7 +443,7 @@ msgstr "Cancel"
 msgid "Cannot add: no response data"
 msgstr "Cannot add: no response data"
 
-#: src/pages/settings/ui/settings-page.tsx:113
+#: src/pages/settings/ui/settings-page.tsx:114
 msgid "Certificate"
 msgstr "Certificate"
 
@@ -515,6 +515,7 @@ msgstr "Clear all"
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:213
 #: src/pages/log-viewer/ui/logs-page.tsx:285
 #: src/pages/server-replay/ui/server-replay-page.tsx:105
+#: src/pages/settings/ui/components/tls-config-section.tsx:115
 #: src/shared/ui/rule-list-page.tsx:69
 msgid "Clear All"
 msgstr "Clear All"
@@ -785,6 +786,10 @@ msgstr "Domain"
 msgid "Domain-specific Certificates"
 msgstr "Domain-specific Certificates"
 
+#: src/pages/settings/ui/components/tls-config-section.tsx:58
+msgid "Domain-specific TLS engine rules. Domains matched here use OpenSSL instead of rustls for compatibility."
+msgstr "Domain-specific TLS engine rules. Domains matched here use OpenSSL instead of rustls for compatibility."
+
 #: src/pages/settings/ui/components/ssl-proxying-section.tsx:214
 msgid "Domains in this list will NOT be intercepted (pass-through). Built-in domains can be managed below."
 msgstr "Domains in this list will NOT be intercepted (pass-through). Built-in domains can be managed below."
@@ -792,6 +797,10 @@ msgstr "Domains in this list will NOT be intercepted (pass-through). Built-in do
 #: src/pages/log-viewer/ui/logs-page.tsx:402
 msgid "Domains that failed TLS handshake are automatically tunneled without MITM decryption. You can remove entries to retry MITM for specific domains."
 msgstr "Domains that failed TLS handshake are automatically tunneled without MITM decryption. You can remove entries to retry MITM for specific domains."
+
+#: src/pages/settings/ui/components/tls-config-section.tsx:106
+msgid "Domains that failed with the default TLS engine are recorded here. On the next connection, the alternate engine will be used automatically."
+msgstr "Domains that failed with the default TLS engine are recorded here. On the next connection, the alternate engine will be used automatically."
 
 #: src/features/transaction-details/ui/image-preview.tsx:169
 msgid "Download"
@@ -1055,7 +1064,7 @@ msgstr "Frequency"
 msgid "Fullscreen"
 msgstr "Fullscreen"
 
-#: src/pages/settings/ui/settings-page.tsx:112
+#: src/pages/settings/ui/settings-page.tsx:113
 msgid "General"
 msgstr "General"
 
@@ -1300,6 +1309,10 @@ msgstr "Last Seen"
 msgid "Latency (ms)"
 msgstr "Latency (ms)"
 
+#: src/pages/settings/ui/components/tls-config-section.tsx:103
+msgid "Learned TLS Strategies"
+msgstr "Learned TLS Strategies"
+
 #: src/pages/settings/ui/components/general-settings.tsx:102
 msgid "Light"
 msgstr "Light"
@@ -1539,7 +1552,7 @@ msgstr "Name"
 msgid "Negotiated ALPN"
 msgstr "Negotiated ALPN"
 
-#: src/pages/settings/ui/settings-page.tsx:114
+#: src/pages/settings/ui/settings-page.tsx:115
 #: src/shared/app-sidebar/model/consts.ts:28
 msgid "Network"
 msgstr "Network"
@@ -1620,6 +1633,10 @@ msgstr "No host mappings"
 msgid "No intercept rules"
 msgstr "No intercept rules"
 
+#: src/pages/settings/ui/components/tls-config-section.tsx:122
+msgid "No learned strategies yet. They will appear after TLS fallback events."
+msgstr "No learned strategies yet. They will appear after TLS fallback events."
+
 #: src/pages/log-viewer/ui/logs-page.tsx:334
 msgid "No log files found"
 msgstr "No log files found"
@@ -1660,6 +1677,10 @@ msgstr "No replay entries"
 msgid "No reverse proxy rules"
 msgstr "No reverse proxy rules"
 
+#: src/pages/settings/ui/components/tls-config-section.tsx:67
+msgid "No rules configured."
+msgstr "No rules configured."
+
 #: src/pages/analytics-dashboard/ui/performance-tab.tsx:60
 msgid "No slow requests detected"
 msgstr "No slow requests detected"
@@ -1691,6 +1712,10 @@ msgstr "No valid request to replay"
 #: src/features/transaction-details/ui/sequence-replay-dialog.tsx:77
 msgid "No valid requests to replay"
 msgstr "No valid requests to replay"
+
+#: src/pages/settings/ui/components/tls-config-section.tsx:87
+msgid "No Verify"
+msgstr "No Verify"
 
 #: src/widgets/network-table/ui/table-row.tsx:184
 msgid "Node.js Fetch"
@@ -1934,7 +1959,7 @@ msgstr "Proxy Address"
 msgid "Proxy Authentication"
 msgstr "Proxy Authentication"
 
-#: src/pages/settings/ui/settings-page.tsx:148
+#: src/pages/settings/ui/settings-page.tsx:149
 msgid "Proxy configuration and preferences"
 msgstr "Proxy configuration and preferences"
 
@@ -2306,11 +2331,11 @@ msgstr "Run Analysis"
 msgid "Running..."
 msgstr "Running..."
 
-#: src/pages/settings/ui/settings-page.tsx:164
+#: src/pages/settings/ui/settings-page.tsx:165
 msgid "Save Changes"
 msgstr "Save Changes"
 
-#: src/pages/settings/ui/settings-page.tsx:159
+#: src/pages/settings/ui/settings-page.tsx:160
 msgid "Save failed"
 msgstr "Save failed"
 
@@ -2318,11 +2343,11 @@ msgstr "Save failed"
 msgid "Save Session"
 msgstr "Save Session"
 
-#: src/pages/settings/ui/settings-page.tsx:154
+#: src/pages/settings/ui/settings-page.tsx:155
 msgid "Saved"
 msgstr "Saved"
 
-#: src/pages/settings/ui/settings-page.tsx:164
+#: src/pages/settings/ui/settings-page.tsx:165
 msgid "Saving..."
 msgstr "Saving..."
 
@@ -2355,7 +2380,7 @@ msgstr "Script reloaded"
 msgid "Script unloaded"
 msgstr "Script unloaded"
 
-#: src/pages/settings/ui/settings-page.tsx:115
+#: src/pages/settings/ui/settings-page.tsx:116
 msgid "Security"
 msgstr "Security"
 
@@ -2497,7 +2522,7 @@ msgstr "Set body (optional)"
 msgid "Set Wi-Fi proxy on your device to <0>{0}:{1}</0>"
 msgstr "Set Wi-Fi proxy on your device to <0>{0}:{1}</0>"
 
-#: src/pages/settings/ui/settings-page.tsx:145
+#: src/pages/settings/ui/settings-page.tsx:146
 #: src/shared/app-sidebar/model/consts.ts:119
 msgid "Settings"
 msgstr "Settings"
@@ -2690,6 +2715,10 @@ msgstr "Throughput"
 msgid "Time"
 msgstr "Time"
 
+#: src/pages/settings/ui/components/tls-config-section.tsx:55
+msgid "TLS Engine Rules"
+msgstr "TLS Engine Rules"
+
 #: src/pages/log-viewer/ui/logs-page.tsx:313
 msgid "TLS Passthrough"
 msgstr "TLS Passthrough"
@@ -2712,7 +2741,7 @@ msgstr "Toggle AND/OR"
 msgid "Toggle proxy on/off with a global keyboard shortcut"
 msgstr "Toggle proxy on/off with a global keyboard shortcut"
 
-#: src/pages/settings/ui/settings-page.tsx:116
+#: src/pages/settings/ui/settings-page.tsx:117
 msgid "Tools"
 msgstr "Tools"
 

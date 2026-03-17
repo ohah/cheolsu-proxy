@@ -241,6 +241,7 @@ mod tests {
             response: Some(client_res),
             validations: None,
             server_cert: None,
+            tls_fallback_used: None,
         }
     }
 

@@ -443,7 +443,7 @@ msgstr "취소"
 msgid "Cannot add: no response data"
 msgstr "추가할 수 없습니다: 응답 데이터 없음"
 
-#: src/pages/settings/ui/settings-page.tsx:113
+#: src/pages/settings/ui/settings-page.tsx:114
 msgid "Certificate"
 msgstr "인증서"
 
@@ -515,6 +515,7 @@ msgstr "전체 삭제"
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:213
 #: src/pages/log-viewer/ui/logs-page.tsx:285
 #: src/pages/server-replay/ui/server-replay-page.tsx:105
+#: src/pages/settings/ui/components/tls-config-section.tsx:115
 #: src/shared/ui/rule-list-page.tsx:69
 msgid "Clear All"
 msgstr "전체 삭제"
@@ -785,6 +786,10 @@ msgstr "도메인"
 msgid "Domain-specific Certificates"
 msgstr "도메인별 인증서"
 
+#: src/pages/settings/ui/components/tls-config-section.tsx:58
+msgid "Domain-specific TLS engine rules. Domains matched here use OpenSSL instead of rustls for compatibility."
+msgstr "도메인별 TLS 엔진 규칙입니다. 호환성을 위해 여기에 매칭된 도메인은 rustls 대신 OpenSSL을 사용합니다."
+
 #: src/pages/settings/ui/components/ssl-proxying-section.tsx:214
 msgid "Domains in this list will NOT be intercepted (pass-through). Built-in domains can be managed below."
 msgstr "이 목록의 도메인은 인터셉트하지 않습니다 (패스스루). 기본 제외 도메인은 아래에서 관리할 수 있습니다."
@@ -792,6 +797,10 @@ msgstr "이 목록의 도메인은 인터셉트하지 않습니다 (패스스루
 #: src/pages/log-viewer/ui/logs-page.tsx:402
 msgid "Domains that failed TLS handshake are automatically tunneled without MITM decryption. You can remove entries to retry MITM for specific domains."
 msgstr "TLS 핸드셰이크에 실패한 도메인은 MITM 복호화 없이 자동으로 터널링됩니다. 항목을 삭제하면 해당 도메인에 대해 MITM을 다시 시도합니다."
+
+#: src/pages/settings/ui/components/tls-config-section.tsx:106
+msgid "Domains that failed with the default TLS engine are recorded here. On the next connection, the alternate engine will be used automatically."
+msgstr "기본 TLS 엔진으로 실패한 도메인이 여기에 기록됩니다. 다음 연결 시 자동으로 대체 엔진을 사용합니다."
 
 #: src/features/transaction-details/ui/image-preview.tsx:169
 msgid "Download"
@@ -1055,7 +1064,7 @@ msgstr "호출 빈도"
 msgid "Fullscreen"
 msgstr "전체 화면"
 
-#: src/pages/settings/ui/settings-page.tsx:112
+#: src/pages/settings/ui/settings-page.tsx:113
 msgid "General"
 msgstr "일반"
 
@@ -1300,6 +1309,10 @@ msgstr "마지막 발견"
 msgid "Latency (ms)"
 msgstr "지연 (ms)"
 
+#: src/pages/settings/ui/components/tls-config-section.tsx:103
+msgid "Learned TLS Strategies"
+msgstr "학습된 TLS 전략"
+
 #: src/pages/settings/ui/components/general-settings.tsx:102
 msgid "Light"
 msgstr "라이트"
@@ -1539,7 +1552,7 @@ msgstr "이름"
 msgid "Negotiated ALPN"
 msgstr "협상된 ALPN"
 
-#: src/pages/settings/ui/settings-page.tsx:114
+#: src/pages/settings/ui/settings-page.tsx:115
 #: src/shared/app-sidebar/model/consts.ts:28
 msgid "Network"
 msgstr "네트워크"
@@ -1620,6 +1633,10 @@ msgstr "호스트 매핑 없음"
 msgid "No intercept rules"
 msgstr "인터셉트 규칙 없음"
 
+#: src/pages/settings/ui/components/tls-config-section.tsx:122
+msgid "No learned strategies yet. They will appear after TLS fallback events."
+msgstr "아직 학습된 전략이 없습니다. TLS 폴백 이벤트 발생 후 표시됩니다."
+
 #: src/pages/log-viewer/ui/logs-page.tsx:334
 msgid "No log files found"
 msgstr "로그 파일을 찾을 수 없습니다"
@@ -1660,6 +1677,10 @@ msgstr "리플레이 엔트리 없음"
 msgid "No reverse proxy rules"
 msgstr "리버스 프록시 규칙 없음"
 
+#: src/pages/settings/ui/components/tls-config-section.tsx:67
+msgid "No rules configured."
+msgstr "설정된 규칙이 없습니다."
+
 #: src/pages/analytics-dashboard/ui/performance-tab.tsx:60
 msgid "No slow requests detected"
 msgstr "느린 요청이 감지되지 않았습니다"
@@ -1691,6 +1712,10 @@ msgstr "재생할 유효한 요청이 없습니다"
 #: src/features/transaction-details/ui/sequence-replay-dialog.tsx:77
 msgid "No valid requests to replay"
 msgstr "리플레이할 유효한 요청이 없습니다"
+
+#: src/pages/settings/ui/components/tls-config-section.tsx:87
+msgid "No Verify"
+msgstr "검증 안 함"
 
 #: src/widgets/network-table/ui/table-row.tsx:184
 msgid "Node.js Fetch"
@@ -1934,7 +1959,7 @@ msgstr "프록시 주소"
 msgid "Proxy Authentication"
 msgstr "프록시 인증"
 
-#: src/pages/settings/ui/settings-page.tsx:148
+#: src/pages/settings/ui/settings-page.tsx:149
 msgid "Proxy configuration and preferences"
 msgstr "프록시 설정 및 환경설정"
 
@@ -2306,11 +2331,11 @@ msgstr "분석 실행"
 msgid "Running..."
 msgstr "실행 중..."
 
-#: src/pages/settings/ui/settings-page.tsx:164
+#: src/pages/settings/ui/settings-page.tsx:165
 msgid "Save Changes"
 msgstr "변경 사항 저장"
 
-#: src/pages/settings/ui/settings-page.tsx:159
+#: src/pages/settings/ui/settings-page.tsx:160
 msgid "Save failed"
 msgstr "저장 실패"
 
@@ -2318,11 +2343,11 @@ msgstr "저장 실패"
 msgid "Save Session"
 msgstr "세션 저장"
 
-#: src/pages/settings/ui/settings-page.tsx:154
+#: src/pages/settings/ui/settings-page.tsx:155
 msgid "Saved"
 msgstr "저장됨"
 
-#: src/pages/settings/ui/settings-page.tsx:164
+#: src/pages/settings/ui/settings-page.tsx:165
 msgid "Saving..."
 msgstr "저장 중..."
 
@@ -2355,7 +2380,7 @@ msgstr "스크립트가 리로드되었습니다"
 msgid "Script unloaded"
 msgstr "스크립트가 언로드되었습니다"
 
-#: src/pages/settings/ui/settings-page.tsx:115
+#: src/pages/settings/ui/settings-page.tsx:116
 msgid "Security"
 msgstr "보안"
 
@@ -2497,7 +2522,7 @@ msgstr "본문 설정 (선택사항)"
 msgid "Set Wi-Fi proxy on your device to <0>{0}:{1}</0>"
 msgstr "기기의 Wi-Fi 프록시를 <0>{0}:{1}</0>로 설정"
 
-#: src/pages/settings/ui/settings-page.tsx:145
+#: src/pages/settings/ui/settings-page.tsx:146
 #: src/shared/app-sidebar/model/consts.ts:119
 msgid "Settings"
 msgstr "설정"
@@ -2690,6 +2715,10 @@ msgstr "처리량"
 msgid "Time"
 msgstr "시간"
 
+#: src/pages/settings/ui/components/tls-config-section.tsx:55
+msgid "TLS Engine Rules"
+msgstr "TLS 엔진 규칙"
+
 #: src/pages/log-viewer/ui/logs-page.tsx:313
 msgid "TLS Passthrough"
 msgstr "TLS Passthrough"
@@ -2712,7 +2741,7 @@ msgstr "AND/OR 전환"
 msgid "Toggle proxy on/off with a global keyboard shortcut"
 msgstr "글로벌 키보드 단축키로 프록시 켜기/끄기"
 
-#: src/pages/settings/ui/settings-page.tsx:116
+#: src/pages/settings/ui/settings-page.tsx:117
 msgid "Tools"
 msgstr "도구"
 

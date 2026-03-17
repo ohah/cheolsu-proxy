@@ -94,6 +94,8 @@ pub struct HttpContext {
     pub client_addr: SocketAddr,
     /// 서버 TLS 인증서 정보 (HTTPS 연결 시)
     pub server_cert: Option<proxy_v2_models::ServerCertInfo>,
+    /// TLS 학습 기반 폴백 사용 여부
+    pub tls_fallback_used: Option<bool>,
 }
 
 /// Context for websocket messages.

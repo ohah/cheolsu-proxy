@@ -144,6 +144,7 @@ mod tests {
             response: None,
             validations: None,
             server_cert: None,
+            tls_fallback_used: None,
         }
     }
 

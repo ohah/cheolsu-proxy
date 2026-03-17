@@ -195,7 +195,6 @@ impl TlsConfigManager {
             "gdmf.apple.com",
             "fbs.smoot.apple.com",
             "gateway.icloud.com",
-            "jamf.payhere.in",
         ];
         for domain in openssl_required_domains {
             manager.add_rule(TlsConfigRule {
@@ -343,7 +342,7 @@ mod tests {
         let manager = TlsConfigManager::with_builtin_rules();
 
         assert!(manager.requires_openssl("api2.cursor.sh"));
-        assert!(manager.requires_openssl("jamf.payhere.in"));
+        assert!(!manager.requires_openssl("jamf.payhere.in"));
         assert!(!manager.requires_openssl("example.com"));
     }
 

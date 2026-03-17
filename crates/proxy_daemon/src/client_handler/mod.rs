@@ -33,6 +33,8 @@ pub(crate) struct SharedDaemonState {
     pub(crate) tls_passthrough: proxyapi_v2::tls_passthrough::TlsPassthrough,
     pub(crate) connection_strategy: Arc<std::sync::atomic::AtomicU8>,
     pub(crate) contract_validator: ContractValidator,
+    pub(crate) tls_strategy_cache: Option<proxyapi_v2::hybrid_tls_handler::TlsStrategyCache>,
+    pub(crate) tls_config: Option<proxyapi_v2::tls_config::SharedTlsConfig>,
 }
 
 /// handle_client에 전달되는 채널/상태를 묶는 컨텍스트 구조체.

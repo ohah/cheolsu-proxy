@@ -352,6 +352,9 @@ pub struct RequestInfo {
     pub validations: Option<Vec<ContractValidationResult>>,
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub server_cert: Option<ServerCertInfo>,
+    /// TLS 학습 기반 폴백으로 연결되었는지 여부
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub tls_fallback_used: Option<bool>,
 }
 
 #[cfg(test)]
@@ -490,6 +493,7 @@ mod tests {
             response: None,
             validations: None,
             server_cert: None,
+            tls_fallback_used: None,
         };
         assert!(info.request.is_none());
         assert!(info.response.is_none());

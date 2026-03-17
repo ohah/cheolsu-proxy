@@ -65,6 +65,7 @@ impl LoggingHandler {
             response: client_response,
             validations,
             server_cert: self.request.server_cert.clone(),
+            tls_fallback_used: self.request.tls_fallback_used,
         };
         if let Err(e) = self.sender.send(request_info).await {
             error!("[LoggingHandler] 이벤트 전송 실패: {}", e);

@@ -127,6 +127,8 @@ export interface HttpTransaction {
   response: HttpResponse | null;
   validations?: ContractValidationResult[];
   server_cert?: ServerCertInfo | null;
+  /** TLS 학습 기반 폴백으로 연결되었는지 여부 */
+  tls_fallback_used?: boolean;
 }
 
 export type ProxyEventPayload = HttpTransaction;

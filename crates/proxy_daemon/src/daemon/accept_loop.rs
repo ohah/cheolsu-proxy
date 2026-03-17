@@ -71,6 +71,8 @@ pub(super) async fn run_accept_loop(
                                 tls_passthrough: ctx.tls_passthrough.clone(),
                                 connection_strategy: ctx.connection_strategy.clone(),
                                 contract_validator: ctx.contract_validator.clone(),
+                                tls_strategy_cache: ctx.tls_strategy_cache.clone(),
+                                tls_config: ctx.tls_config.clone(),
                             },
                         };
 

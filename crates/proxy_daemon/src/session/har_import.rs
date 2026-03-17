@@ -190,6 +190,7 @@ fn convert_har_entry(entry: HarEntryImport) -> Result<RequestInfo, SessionError>
         response: client_res,
         validations: None,
         server_cert: None,
+        tls_fallback_used: None,
     })
 }
 

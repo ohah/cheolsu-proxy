@@ -30,6 +30,8 @@ pub(super) fn spawn_proxy_task(
     metrics_collector: Arc<MetricsCollector>,
     total_transactions: std::sync::Arc<std::sync::atomic::AtomicU64>,
     contract_validator: ContractValidator,
+    tls_strategy_cache: proxyapi_v2::hybrid_tls_handler::TlsStrategyCache,
+    tls_config: proxyapi_v2::tls_config::SharedTlsConfig,
 ) -> (
     tokio::task::JoinHandle<()>,
     tokio::sync::oneshot::Sender<()>,
@@ -76,6 +78,8 @@ pub(super) fn spawn_proxy_task(
             total_transactions,
             default_passthrough_rx,
             contract_validator,
+            tls_strategy_cache,
+            tls_config,
         )
         .await
         {
