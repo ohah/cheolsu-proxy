@@ -25,7 +25,11 @@ function createTransaction(overrides: Partial<HttpTransaction> = {}): HttpTransa
       time: 1700000000000000000,
       id: "tx-1",
       data_type: "GraphQL",
-      body_json: { query: "query GetUser { user { name } }", operationName: "GetUser", variables: { id: "1" } },
+      body_json: {
+        query: "query GetUser { user { name } }",
+        operationName: "GetUser",
+        variables: { id: "1" },
+      },
       body_size: 100,
     },
     response: {
@@ -279,10 +283,7 @@ describe("extractGraphqlOperations", () => {
         time: 1700000000100000000,
         id: "tx-7",
         data_type: "JSON",
-        body_json: [
-          { data: { user: { name: "Alice" } } },
-          { data: { deleteUser: true } },
-        ],
+        body_json: [{ data: { user: { name: "Alice" } } }, { data: { deleteUser: true } }],
         body_size: 80,
       },
     });

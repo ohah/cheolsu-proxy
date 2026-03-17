@@ -30,10 +30,8 @@ function formatDuration(requestNanos: number, responseNanos: number | null): str
 
 const TYPE_COLORS: Record<string, string> = {
   query: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
-  mutation:
-    "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300",
-  subscription:
-    "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300",
+  mutation: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300",
+  subscription: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300",
 };
 
 const EDITOR_OPTIONS = {
@@ -61,8 +59,7 @@ export const GraphqlOperationDetail = memo(
     const { t } = useLingui();
     const { resolvedTheme } = useTheme();
 
-    const hasErrors =
-      operation.responseErrors && operation.responseErrors.length > 0;
+    const hasErrors = operation.responseErrors && operation.responseErrors.length > 0;
 
     const [activeTab, setActiveTab] = useState<DetailTab>("query");
 
@@ -80,10 +77,7 @@ export const GraphqlOperationDetail = memo(
         { label: t`Time`, value: formatTimeFull(operation.requestTime) },
         {
           label: t`Duration`,
-          value: formatDuration(
-            operation.requestTime,
-            operation.responseTime,
-          ),
+          value: formatDuration(operation.requestTime, operation.responseTime),
         },
       ];
 
@@ -123,8 +117,7 @@ export const GraphqlOperationDetail = memo(
     }, [operation.responseData]);
 
     const formattedErrors = useMemo(() => {
-      if (!operation.responseErrors || operation.responseErrors.length === 0)
-        return null;
+      if (!operation.responseErrors || operation.responseErrors.length === 0) return null;
       try {
         return JSON.stringify(operation.responseErrors, null, 2);
       } catch {
@@ -132,28 +125,27 @@ export const GraphqlOperationDetail = memo(
       }
     }, [operation.responseErrors]);
 
-    const tabs: { id: DetailTab; label: string; available: boolean }[] =
-      useMemo(
-        () => [
-          { id: "query", label: t`Query`, available: true },
-          {
-            id: "variables",
-            label: t`Variables`,
-            available: formattedVariables != null,
-          },
-          {
-            id: "response",
-            label: t`Response`,
-            available: formattedResponseData != null,
-          },
-          {
-            id: "errors",
-            label: t`Errors`,
-            available: hasErrors ?? false,
-          },
-        ],
-        [t, formattedVariables, formattedResponseData, hasErrors],
-      );
+    const tabs: { id: DetailTab; label: string; available: boolean }[] = useMemo(
+      () => [
+        { id: "query", label: t`Query`, available: true },
+        {
+          id: "variables",
+          label: t`Variables`,
+          available: formattedVariables != null,
+        },
+        {
+          id: "response",
+          label: t`Response`,
+          available: formattedResponseData != null,
+        },
+        {
+          id: "errors",
+          label: t`Errors`,
+          available: hasErrors ?? false,
+        },
+      ],
+      [t, formattedVariables, formattedResponseData, hasErrors],
+    );
 
     const editorTheme = resolvedTheme === "dark" ? "vs-dark" : "vs";
 
@@ -173,19 +165,12 @@ export const GraphqlOperationDetail = memo(
             <span className="font-mono text-foreground">
               {operation.operationName ?? "(anonymous)"}
             </span>
-            {hasErrors && (
-              <AlertTriangle className="w-3.5 h-3.5 text-destructive" />
-            )}
+            {hasErrors && <AlertTriangle className="w-3.5 h-3.5 text-destructive" />}
           </div>
           <div className="flex items-center gap-1">
             <Tooltip>
               <TooltipTrigger render={<div />}>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 w-6 p-0"
-                  onClick={onClose}
-                >
+                <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={onClose}>
                   <X className="w-3.5 h-3.5" />
                 </Button>
               </TooltipTrigger>
@@ -201,16 +186,11 @@ export const GraphqlOperationDetail = memo(
           <table className="w-full text-xs">
             <tbody>
               {metaItems.map((item) => (
-                <tr
-                  key={item.label}
-                  className="border-b border-border/30 last:border-b-0"
-                >
+                <tr key={item.label} className="border-b border-border/30 last:border-b-0">
                   <td className="px-3 py-1 text-muted-foreground font-medium whitespace-nowrap w-24 align-top">
                     {item.label}
                   </td>
-                  <td className="px-3 py-1 font-mono text-foreground break-all">
-                    {item.value}
-                  </td>
+                  <td className="px-3 py-1 font-mono text-foreground break-all">{item.value}</td>
                 </tr>
               ))}
             </tbody>
@@ -278,8 +258,7 @@ export const GraphqlOperationDetail = memo(
                 <div className="flex items-center gap-2 text-xs text-destructive font-medium">
                   <AlertTriangle className="w-3.5 h-3.5" />
                   <span>
-                    {operation.responseErrors!.length}{" "}
-                    <Trans>error(s)</Trans>
+                    {operation.responseErrors!.length} <Trans>error(s)</Trans>
                   </span>
                 </div>
               </div>

@@ -1,9 +1,5 @@
 import { create } from "zustand";
-import type {
-  GraphqlOperation,
-  GraphqlOperationType,
-  GraphqlError,
-} from "@/entities/graphql";
+import type { GraphqlOperation, GraphqlOperationType, GraphqlError } from "@/entities/graphql";
 import type { HttpTransaction } from "@/entities/proxy";
 
 interface GraphqlStoreState {
@@ -47,17 +43,14 @@ function parseOperationName(query: string): string | null {
   if (rest === null) return null;
 
   rest = rest.trimStart();
-  if (rest.startsWith("{") || rest.startsWith("(") || rest.length === 0)
-    return null;
+  if (rest.startsWith("{") || rest.startsWith("(") || rest.length === 0) return null;
 
   const match = rest.match(/^([a-zA-Z_]\w*)/);
   return match ? match[1] : null;
 }
 
 /** HttpTransaction에서 GraphQL 오퍼레이션을 추출 */
-export function extractGraphqlOperations(
-  tx: HttpTransaction,
-): GraphqlOperation[] {
+export function extractGraphqlOperations(tx: HttpTransaction): GraphqlOperation[] {
   const req = tx.request;
   if (!req || req.data_type !== "GraphQL") return [];
 
@@ -68,9 +61,7 @@ export function extractGraphqlOperations(
     | undefined;
   if (!bodyJson) return [];
 
-  const operations: Record<string, unknown>[] = Array.isArray(bodyJson)
-    ? bodyJson
-    : [bodyJson];
+  const operations: Record<string, unknown>[] = Array.isArray(bodyJson) ? bodyJson : [bodyJson];
   const isBatch = Array.isArray(bodyJson) && bodyJson.length > 1;
 
   // 응답 파싱
@@ -88,8 +79,7 @@ export function extractGraphqlOperations(
   return operations
     .map((op, index) => {
       const query = (op.query as string) || "";
-      const operationName =
-        (op.operationName as string) || parseOperationName(query);
+      const operationName = (op.operationName as string) || parseOperationName(query);
       const operationType = parseOperationType(query);
       const variables = op.variables ?? null;
 
