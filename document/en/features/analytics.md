@@ -87,7 +87,13 @@ Runs all analyses at once to generate a comprehensive report covering all captur
 
 Select **Analytics** from the sidebar to view analysis results in the dashboard.
 
+### TUI
+
+Navigate to the **Analytics** tab to view slow request analysis, error reports, and endpoint statistics.
+
 ### MCP
+
+Use AI assistants to query analysis results.
 
 ```
 "Analyze slow requests"

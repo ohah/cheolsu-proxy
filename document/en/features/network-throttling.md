@@ -63,6 +63,10 @@ Limit download speed to verify download progress bars, retry logic, and partial 
 
 Configure throttling presets or custom values in the Settings page.
 
+### TUI
+
+Configure throttling settings in the **Settings** tab.
+
 ### MCP
 
 ```

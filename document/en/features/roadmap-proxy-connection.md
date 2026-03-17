@@ -79,20 +79,22 @@ Optimize HTTP/2 stream multiplexing for same-host connections.
 
 Implement RFC 8305 Happy Eyeballs v2 for simultaneous IPv4/IPv6 connection attempts.
 
-### 7. Reverse Proxy Mode
+### ~~7. Reverse Proxy Mode~~ ✅
 
-Operate as a reverse proxy in front of specific backend servers for API development/testing.
+~~Operate as a reverse proxy in front of specific backend servers for API development/testing.~~
+
+Implemented. Host header based backend routing, virtual host pattern matching, Host header rewriting. See [Reverse Proxy](./reverse-proxy.md) for details.
 
 ---
 
 ## Priority Summary
 
-| Priority     | Feature                | Difficulty | User Impact | Status     |
-| ------------ | ---------------------- | ---------- | ----------- | ---------- |
-| **Tier 1-1** | Proxy Chaining         | High       | Medium      | 📋 Planned |
-| **Tier 1-2** | PAC File Support       | Medium     | Medium      | 📋 Planned |
-| **Tier 1-3** | Connection Pool Tuning | Low        | Low         | 📋 Planned |
-| Tier 2-1     | DNS-over-HTTPS         | Medium     | Low         | 📋 Planned |
-| Tier 2-2     | HTTP/2 Optimization    | High       | Low         | 📋 Planned |
-| Tier 2-3     | Happy Eyeballs         | Medium     | Low         | 📋 Planned |
-| Tier 2-4     | Reverse Proxy Mode     | High       | Low         | 📋 Planned |
+| Priority     | Feature                | Difficulty | User Impact | Status       |
+| ------------ | ---------------------- | ---------- | ----------- | ------------ |
+| **Tier 1-1** | Proxy Chaining         | High       | Medium      | 📋 Planned   |
+| **Tier 1-2** | PAC File Support       | Medium     | Medium      | 📋 Planned   |
+| **Tier 1-3** | Connection Pool Tuning | Low        | Low         | 📋 Planned   |
+| Tier 2-1     | DNS-over-HTTPS         | Medium     | Low         | 📋 Planned   |
+| Tier 2-2     | HTTP/2 Optimization    | High       | Low         | 📋 Planned   |
+| Tier 2-3     | Happy Eyeballs         | Medium     | Low         | 📋 Planned   |
+| ~~Tier 2-4~~ | ~~Reverse Proxy Mode~~ | ~~High~~   | ~~Low~~     | ✅ Completed |
