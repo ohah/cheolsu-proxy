@@ -50,12 +50,12 @@ fn main() {
             .and_then(|w| w[1].parse().ok())
             .unwrap_or(8100);
 
-        // Parse host (default 127.0.0.1)
+        // Parse host (default 0.0.0.0)
         let host = args
             .windows(2)
             .find(|w| w[0] == "--host")
             .map(|w| w[1].clone())
-            .unwrap_or_else(|| "127.0.0.1".to_string());
+            .unwrap_or_else(|| "0.0.0.0".to_string());
 
         // Run daemon without Tauri runtime
         proxy_daemon::run_daemon(port, host);

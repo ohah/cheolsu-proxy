@@ -37,7 +37,7 @@ struct Cli {
     port: u16,
 
     /// Proxy host
-    #[arg(short = 'b', long, default_value = "127.0.0.1")]
+    #[arg(short = 'b', long, default_value = "0.0.0.0")]
     host: String,
 
     /// Run as background daemon (internal use)
