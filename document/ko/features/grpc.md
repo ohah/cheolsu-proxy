@@ -19,28 +19,28 @@ Cheolsu Proxy는 gRPC 트래픽을 자동으로 감지하고, Protobuf 메시지
 
 ### 메타데이터
 
-| 항목 | 설명 |
-| --- | --- |
-| **서비스 이름** | URI 경로에서 추출 (예: `/package.ServiceName/MethodName`) |
-| **메서드 이름** | 호출된 RPC 메서드 |
-| **상태 코드** | gRPC 상태 코드 (OK, CANCELLED, UNKNOWN 등 16개) |
-| **상태 메시지** | gRPC 상태 메시지 (percent-encoding 자동 디코딩) |
-| **스트리밍 타입** | Unary, Server Streaming, Client Streaming, Bidirectional |
+| 항목              | 설명                                                      |
+| ----------------- | --------------------------------------------------------- |
+| **서비스 이름**   | URI 경로에서 추출 (예: `/package.ServiceName/MethodName`) |
+| **메서드 이름**   | 호출된 RPC 메서드                                         |
+| **상태 코드**     | gRPC 상태 코드 (OK, CANCELLED, UNKNOWN 등 16개)           |
+| **상태 메시지**   | gRPC 상태 메시지 (percent-encoding 자동 디코딩)           |
+| **스트리밍 타입** | Unary, Server Streaming, Client Streaming, Bidirectional  |
 
 ### gRPC 상태 코드
 
-| 코드 | 이름 | 설명 |
-| --- | --- | --- |
-| 0 | OK | 성공 |
-| 1 | CANCELLED | 요청 취소 |
-| 2 | UNKNOWN | 알 수 없는 오류 |
-| 3 | INVALID_ARGUMENT | 잘못된 인수 |
-| 4 | DEADLINE_EXCEEDED | 타임아웃 |
-| 5 | NOT_FOUND | 리소스 없음 |
-| 7 | PERMISSION_DENIED | 권한 거부 |
-| 13 | INTERNAL | 서버 내부 오류 |
-| 14 | UNAVAILABLE | 서비스 사용 불가 |
-| 16 | UNAUTHENTICATED | 인증 실패 |
+| 코드 | 이름              | 설명             |
+| ---- | ----------------- | ---------------- |
+| 0    | OK                | 성공             |
+| 1    | CANCELLED         | 요청 취소        |
+| 2    | UNKNOWN           | 알 수 없는 오류  |
+| 3    | INVALID_ARGUMENT  | 잘못된 인수      |
+| 4    | DEADLINE_EXCEEDED | 타임아웃         |
+| 5    | NOT_FOUND         | 리소스 없음      |
+| 7    | PERMISSION_DENIED | 권한 거부        |
+| 13   | INTERNAL          | 서버 내부 오류   |
+| 14   | UNAVAILABLE       | 서비스 사용 불가 |
+| 16   | UNAUTHENTICATED   | 인증 실패        |
 
 ### Protobuf 프레임 파싱
 

@@ -118,7 +118,10 @@ export async function saveAllSettings(
             host: data.upstreamProxy.host,
             port: Number.parseInt(data.upstreamProxy.port, 10) || 8080,
             auth: data.upstreamProxy.useAuth
-              ? { username: data.upstreamProxy.username, password: data.upstreamProxy.password }
+              ? {
+                  username: data.upstreamProxy.username,
+                  password: data.upstreamProxy.password,
+                }
               : null,
             bypass: data.upstreamProxy.bypass
               .split(",")

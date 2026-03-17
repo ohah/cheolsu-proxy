@@ -88,7 +88,12 @@ export function EndpointTab({ endpoints, sortBy, onSortChange }: EndpointTabProp
               <Trans>No endpoint data</Trans>
             </div>
           ) : (
-            <div style={{ height: `${rowVirtualizer.getTotalSize()}px`, position: "relative" }}>
+            <div
+              style={{
+                height: `${rowVirtualizer.getTotalSize()}px`,
+                position: "relative",
+              }}
+            >
               {rowVirtualizer.getVirtualItems().map((virtualRow) => {
                 const ep = endpoints[virtualRow.index];
                 return (

@@ -18,7 +18,9 @@ export function RequestClientCertSection() {
       filters: [{ name: "Certificate", extensions: ["pem", "crt", "cer"] }],
     });
     if (selected) {
-      setValue("requestClientCert.caCertPath", selected as string, { shouldDirty: true });
+      setValue("requestClientCert.caCertPath", selected as string, {
+        shouldDirty: true,
+      });
     }
   }, [setValue]);
 
@@ -62,7 +64,9 @@ export function RequestClientCertSection() {
                   variant="ghost"
                   size="sm"
                   onClick={() =>
-                    setValue("requestClientCert.caCertPath", "", { shouldDirty: true })
+                    setValue("requestClientCert.caCertPath", "", {
+                      shouldDirty: true,
+                    })
                   }
                 >
                   <Trans>Clear</Trans>

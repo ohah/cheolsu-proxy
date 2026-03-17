@@ -30,7 +30,11 @@ export interface ResponsePayload {
   data?: Record<string, unknown> | string;
 }
 
-export type GrpcStreamingType = "Unary" | "ServerStreaming" | "ClientStreaming" | "BidirectionalStreaming";
+export type GrpcStreamingType =
+  | "Unary"
+  | "ServerStreaming"
+  | "ClientStreaming"
+  | "BidirectionalStreaming";
 
 export interface GrpcMetadata {
   service: string | null;

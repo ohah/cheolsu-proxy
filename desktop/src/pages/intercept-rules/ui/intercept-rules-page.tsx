@@ -23,7 +23,10 @@ function getActionIcon(type: string) {
 
 const ACTION_LABELS: Record<
   string,
-  { labelKey: string; variant: "default" | "secondary" | "destructive" | "outline" }
+  {
+    labelKey: string;
+    variant: "default" | "secondary" | "destructive" | "outline";
+  }
 > = {
   block: { labelKey: "block", variant: "destructive" },
   modify_request: { labelKey: "modify_request", variant: "default" },

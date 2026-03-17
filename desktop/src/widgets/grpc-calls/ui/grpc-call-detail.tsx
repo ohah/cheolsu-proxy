@@ -54,7 +54,11 @@ export const GrpcCallDetail = memo(({ call, onClose }: GrpcCallDetailProps) => {
       });
     }
     if (call.statusMessage) {
-      items.push({ label: t`Status Message`, value: call.statusMessage, highlight: isError });
+      items.push({
+        label: t`Status Message`,
+        value: call.statusMessage,
+        highlight: isError,
+      });
     }
     if (call.httpStatus != null) {
       items.push({ label: t`HTTP Status`, value: String(call.httpStatus) });
@@ -90,7 +94,8 @@ export const GrpcCallDetail = memo(({ call, onClose }: GrpcCallDetailProps) => {
             <span
               className={cn(
                 "text-[10px] font-medium",
-                GRPC_STATUS_COLORS[call.statusName] ?? (isError ? "text-destructive" : "text-muted-foreground"),
+                GRPC_STATUS_COLORS[call.statusName] ??
+                  (isError ? "text-destructive" : "text-muted-foreground"),
               )}
             >
               {call.statusName}

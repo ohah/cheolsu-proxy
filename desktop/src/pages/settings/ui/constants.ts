@@ -4,12 +4,22 @@ export const THROTTLE_PRESETS = [
   {
     value: "gprs",
     label: "GPRS (50 KB/s)",
-    config: { enabled: true, download_rate: 50 * 1024, upload_rate: 20 * 1024, latency_ms: 500 },
+    config: {
+      enabled: true,
+      download_rate: 50 * 1024,
+      upload_rate: 20 * 1024,
+      latency_ms: 500,
+    },
   },
   {
     value: "slow3g",
     label: "Slow 3G (500 KB/s)",
-    config: { enabled: true, download_rate: 500 * 1024, upload_rate: 500 * 1024, latency_ms: 400 },
+    config: {
+      enabled: true,
+      download_rate: 500 * 1024,
+      upload_rate: 500 * 1024,
+      latency_ms: 400,
+    },
   },
   {
     value: "fast3g",

@@ -244,7 +244,9 @@ export function GeneralSettings() {
             <Switch
               checked={autosaveSession}
               onCheckedChange={(v) =>
-                setValue("quickSettings.autosaveSession", v, { shouldDirty: true })
+                setValue("quickSettings.autosaveSession", v, {
+                  shouldDirty: true,
+                })
               }
             />
           </div>
@@ -261,7 +263,9 @@ export function GeneralSettings() {
             <Switch
               checked={showConnectRequests}
               onCheckedChange={(v) =>
-                setValue("quickSettings.showConnectRequests", v, { shouldDirty: true })
+                setValue("quickSettings.showConnectRequests", v, {
+                  shouldDirty: true,
+                })
               }
             />
           </div>

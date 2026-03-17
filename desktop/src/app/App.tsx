@@ -201,12 +201,12 @@ const App: React.FC = () => {
 
   // 데몬에서 SSL Proxying 목록 변경 수신
   useEffect(() => {
-    const unlisten = listen<{ mode: SslProxyingMode; entries: SslProxyingEntry[] }>(
-      "ssl_proxying_list_updated",
-      (event) => {
-        setSslFromDaemon(event.payload.mode, event.payload.entries);
-      },
-    );
+    const unlisten = listen<{
+      mode: SslProxyingMode;
+      entries: SslProxyingEntry[];
+    }>("ssl_proxying_list_updated", (event) => {
+      setSslFromDaemon(event.payload.mode, event.payload.entries);
+    });
 
     return () => {
       unlisten.then((f) => f());

@@ -10,14 +10,14 @@ Useful when proxy configuration is difficult, or when you want to selectively ca
 
 ## Rule Configuration
 
-| Setting | Description |
-| --- | --- |
-| **Match Host** | Host header pattern (e.g., `api.myapp.local`, `*.local`) |
-| **Backend Scheme** | `http` or `https` (default: `http`) |
-| **Backend Host** | Backend server address |
-| **Backend Port** | Backend server port |
-| **Rewrite Host** | Rewrite Host header to backend address (default: yes) |
-| **Enabled** | Toggle rule on/off |
+| Setting            | Description                                              |
+| ------------------ | -------------------------------------------------------- |
+| **Match Host**     | Host header pattern (e.g., `api.myapp.local`, `*.local`) |
+| **Backend Scheme** | `http` or `https` (default: `http`)                      |
+| **Backend Host**   | Backend server address                                   |
+| **Backend Port**   | Backend server port                                      |
+| **Rewrite Host**   | Rewrite Host header to backend address (default: yes)    |
+| **Enabled**        | Toggle rule on/off                                       |
 
 ---
 

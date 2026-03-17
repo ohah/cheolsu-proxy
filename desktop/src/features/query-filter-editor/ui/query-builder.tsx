@@ -78,7 +78,10 @@ const ValueChipSelector = ({ options, selected, onToggle }: ValueChipSelectorPro
 };
 
 const METHOD_OPTIONS = HTTP_METHODS.map((m) => ({ value: m, label: m }));
-const STATUS_OPTIONS = STATUS_CODES.map((s) => ({ value: s.code, label: s.detail }));
+const STATUS_OPTIONS = STATUS_CODES.map((s) => ({
+  value: s.code,
+  label: s.detail,
+}));
 
 interface ConditionRowProps {
   condition: FilterCondition;

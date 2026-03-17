@@ -10,13 +10,13 @@ Useful for staging server testing, local development server connections, and ser
 
 ## Configuration
 
-| Setting | Description |
-| --- | --- |
+| Setting         | Description                                                             |
+| --------------- | ----------------------------------------------------------------------- |
 | **Source Host** | Domain pattern to match (wildcard supported, e.g., `*.api.example.com`) |
-| **Source Port** | Port to match (unset = any port) |
-| **Target Host** | IP address or domain to redirect to |
-| **Target Port** | Port to redirect to (unset = keep original) |
-| **Enabled** | Toggle rule on/off |
+| **Source Port** | Port to match (unset = any port)                                        |
+| **Target Host** | IP address or domain to redirect to                                     |
+| **Target Port** | Port to redirect to (unset = keep original)                             |
+| **Enabled**     | Toggle rule on/off                                                      |
 
 ---
 
@@ -24,10 +24,10 @@ Useful for staging server testing, local development server connections, and ser
 
 Use wildcard patterns in source hosts to map multiple subdomains at once.
 
-| Pattern | Match Examples |
-| --- | --- |
-| `api.example.com` | Exact domain match |
-| `*.example.com` | `api.example.com`, `cdn.example.com`, etc. |
+| Pattern             | Match Examples                                   |
+| ------------------- | ------------------------------------------------ |
+| `api.example.com`   | Exact domain match                               |
+| `*.example.com`     | `api.example.com`, `cdn.example.com`, etc.       |
 | `*.api.example.com` | `v1.api.example.com`, `v2.api.example.com`, etc. |
 
 ---

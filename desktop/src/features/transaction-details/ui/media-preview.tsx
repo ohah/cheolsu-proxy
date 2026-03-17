@@ -257,7 +257,9 @@ export const MediaPreview = ({
           const appCachePath = filePath.startsWith("com.cheolsu-proxy/")
             ? filePath.slice("com.cheolsu-proxy/".length)
             : filePath;
-          const rawData = await readFile(appCachePath, { baseDir: BaseDirectory.AppCache });
+          const rawData = await readFile(appCachePath, {
+            baseDir: BaseDirectory.AppCache,
+          });
           fileData = new Uint8Array(rawData);
         } else if (data) {
           fileData = data;
@@ -285,7 +287,9 @@ export const MediaPreview = ({
           setMediaUrl(`data:${cleanMimeType};base64,${base64}`);
         } else {
           // 비디오/오디오는 Blob URL 사용 (data URL은 스트리밍 미지원)
-          const blob = new Blob([fileData as BlobPart], { type: cleanMimeType });
+          const blob = new Blob([fileData as BlobPart], {
+            type: cleanMimeType,
+          });
           setMediaUrl(URL.createObjectURL(blob));
         }
       } catch (err) {

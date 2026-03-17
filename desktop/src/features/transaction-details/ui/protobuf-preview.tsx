@@ -107,7 +107,9 @@ const FieldValue = ({ value }: { value: ProtobufValue }) => {
     case "string":
       return (
         <span className="text-amber-600 dark:text-amber-400">
-          &quot;{value.value.length > 200 ? value.value.slice(0, 200) + "..." : value.value}&quot;
+          &quot;
+          {value.value.length > 200 ? value.value.slice(0, 200) + "..." : value.value}
+          &quot;
         </span>
       );
     case "bytes":
@@ -153,7 +155,9 @@ export const ProtobufPreview = ({
       const appCachePath = filePath.startsWith("com.cheolsu-proxy/")
         ? filePath.slice("com.cheolsu-proxy/".length)
         : filePath;
-      const rawData = await readFile(appCachePath, { baseDir: BaseDirectory.AppCache });
+      const rawData = await readFile(appCachePath, {
+        baseDir: BaseDirectory.AppCache,
+      });
       setFileData(new Uint8Array(rawData));
     } finally {
       setLoading(false);

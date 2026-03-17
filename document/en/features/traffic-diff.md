@@ -12,20 +12,20 @@ Useful for comparing API responses before and after changes, verifying differenc
 
 ### Request Comparison
 
-| Item | Description |
-| --- | --- |
+| Item            | Description                              |
+| --------------- | ---------------------------------------- |
 | **HTTP Method** | Detects method changes (GET, POST, etc.) |
-| **URL** | Request URL differences |
-| **Headers** | Added, removed, and modified headers |
-| **Body** | Request body differences |
+| **URL**         | Request URL differences                  |
+| **Headers**     | Added, removed, and modified headers     |
+| **Body**        | Request body differences                 |
 
 ### Response Comparison
 
-| Item | Description |
-| --- | --- |
-| **Status Code** | HTTP status code changes |
-| **Headers** | Added, removed, and modified response headers |
-| **Body** | Response body differences |
+| Item            | Description                                   |
+| --------------- | --------------------------------------------- |
+| **Status Code** | HTTP status code changes                      |
+| **Headers**     | Added, removed, and modified response headers |
+| **Body**        | Response body differences                     |
 
 ---
 

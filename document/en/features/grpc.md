@@ -19,28 +19,28 @@ gRPC traffic is automatically detected by:
 
 ### Metadata
 
-| Field | Description |
-| --- | --- |
-| **Service Name** | Extracted from URI path (e.g., `/package.ServiceName/MethodName`) |
-| **Method Name** | Called RPC method |
-| **Status Code** | gRPC status code (OK, CANCELLED, UNKNOWN, etc. — 16 codes) |
-| **Status Message** | gRPC status message (percent-encoding auto-decoded) |
-| **Streaming Type** | Unary, Server Streaming, Client Streaming, Bidirectional |
+| Field              | Description                                                       |
+| ------------------ | ----------------------------------------------------------------- |
+| **Service Name**   | Extracted from URI path (e.g., `/package.ServiceName/MethodName`) |
+| **Method Name**    | Called RPC method                                                 |
+| **Status Code**    | gRPC status code (OK, CANCELLED, UNKNOWN, etc. — 16 codes)        |
+| **Status Message** | gRPC status message (percent-encoding auto-decoded)               |
+| **Streaming Type** | Unary, Server Streaming, Client Streaming, Bidirectional          |
 
 ### gRPC Status Codes
 
-| Code | Name | Description |
-| --- | --- | --- |
-| 0 | OK | Success |
-| 1 | CANCELLED | Request cancelled |
-| 2 | UNKNOWN | Unknown error |
-| 3 | INVALID_ARGUMENT | Invalid argument |
-| 4 | DEADLINE_EXCEEDED | Timeout |
-| 5 | NOT_FOUND | Resource not found |
-| 7 | PERMISSION_DENIED | Permission denied |
-| 13 | INTERNAL | Internal server error |
-| 14 | UNAVAILABLE | Service unavailable |
-| 16 | UNAUTHENTICATED | Authentication failed |
+| Code | Name              | Description           |
+| ---- | ----------------- | --------------------- |
+| 0    | OK                | Success               |
+| 1    | CANCELLED         | Request cancelled     |
+| 2    | UNKNOWN           | Unknown error         |
+| 3    | INVALID_ARGUMENT  | Invalid argument      |
+| 4    | DEADLINE_EXCEEDED | Timeout               |
+| 5    | NOT_FOUND         | Resource not found    |
+| 7    | PERMISSION_DENIED | Permission denied     |
+| 13   | INTERNAL          | Internal server error |
+| 14   | UNAVAILABLE       | Service unavailable   |
+| 16   | UNAUTHENTICATED   | Authentication failed |
 
 ### Protobuf Frame Parsing
 

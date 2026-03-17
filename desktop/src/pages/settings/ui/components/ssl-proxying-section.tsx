@@ -36,7 +36,9 @@ function useEntryListHandlers(fieldPath: FormFieldPath, entries: SslProxyingEntr
   const handleAdd = useCallback(
     (pattern: string) => {
       if (!pattern || entries.some((e) => e.pattern === pattern)) return;
-      form.setValue(fieldPath, [...entries, { pattern, enabled: true }], { shouldDirty: true });
+      form.setValue(fieldPath, [...entries, { pattern, enabled: true }], {
+        shouldDirty: true,
+      });
     },
     [entries, form, fieldPath],
   );
@@ -133,14 +135,18 @@ export function SslProxyingSection() {
 
   const handleModeChange = useCallback(
     (v: string) => {
-      form.setValue("sslProxying.mode", v as "blacklist" | "whitelist", { shouldDirty: true });
+      form.setValue("sslProxying.mode", v as "blacklist" | "whitelist", {
+        shouldDirty: true,
+      });
     },
     [form],
   );
 
   const handleRestoreDefaults = useCallback(async () => {
     const defaults = await getDefaultPassthroughDomains();
-    form.setValue("sslProxying.defaultPassthroughEntries", defaults, { shouldDirty: true });
+    form.setValue("sslProxying.defaultPassthroughEntries", defaults, {
+      shouldDirty: true,
+    });
   }, [form]);
 
   const enabledCount = entries.filter((e) => e.enabled).length;

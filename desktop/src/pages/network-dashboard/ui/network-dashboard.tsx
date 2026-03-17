@@ -85,7 +85,9 @@ export const NetworkDashboard = () => {
   const detailsLayout = useAppSettingsStore((s) => s.detailsPanelLayout);
   const isBottomLayout = detailsLayout === "bottom";
 
-  const detailsPanelRef = useResizablePanelController({ isExpanded: !!selectedTransaction });
+  const detailsPanelRef = useResizablePanelController({
+    isExpanded: !!selectedTransaction,
+  });
 
   const layoutId = isBottomLayout ? "network-dashboard-layout-bottom" : "network-dashboard-layout";
 
