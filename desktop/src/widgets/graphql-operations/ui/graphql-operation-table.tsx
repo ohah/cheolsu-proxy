@@ -35,10 +35,8 @@ function formatDuration(requestNanos: number, responseNanos: number | null): str
 
 const TYPE_COLORS: Record<string, string> = {
   query: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
-  mutation:
-    "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300",
-  subscription:
-    "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300",
+  mutation: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300",
+  subscription: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300",
 };
 
 const GraphqlOperationRow = memo(
@@ -51,16 +49,13 @@ const GraphqlOperationRow = memo(
     isSelected: boolean;
     onSelect: () => void;
   }) => {
-    const hasErrors =
-      operation.responseErrors && operation.responseErrors.length > 0;
+    const hasErrors = operation.responseErrors && operation.responseErrors.length > 0;
 
     return (
       <div
         className={cn(
           "h-8 flex items-center cursor-pointer border-b border-border/50 text-xs transition-colors",
-          isSelected
-            ? "bg-accent text-accent-foreground"
-            : "hover:bg-muted/50",
+          isSelected ? "bg-accent text-accent-foreground" : "hover:bg-muted/50",
         )}
         onClick={onSelect}
       >
@@ -82,12 +77,7 @@ const GraphqlOperationRow = memo(
           )}
         </div>
         <div className="px-2 flex-1 truncate min-w-0">
-          <span
-            className={cn(
-              "font-mono text-foreground",
-              hasErrors && "text-destructive",
-            )}
-          >
+          <span className={cn("font-mono text-foreground", hasErrors && "text-destructive")}>
             {operation.operationName ?? "(anonymous)"}
           </span>
         </div>
@@ -96,9 +86,7 @@ const GraphqlOperationRow = memo(
             <span
               className={cn(
                 "text-[10px] font-mono",
-                operation.statusCode >= 400
-                  ? "text-destructive"
-                  : "text-muted-foreground",
+                operation.statusCode >= 400 ? "text-destructive" : "text-muted-foreground",
               )}
             >
               {operation.statusCode}
@@ -120,11 +108,7 @@ GraphqlOperationRow.displayName = "GraphqlOperationRow";
 const ROW_HEIGHT = 32;
 
 export const GraphqlOperationTable = memo(
-  ({
-    operations,
-    selectedOperation,
-    onSelectOperation,
-  }: GraphqlOperationTableProps) => {
+  ({ operations, selectedOperation, onSelectOperation }: GraphqlOperationTableProps) => {
     const { t } = useLingui();
     const viewportRef = useRef<HTMLDivElement>(null);
     const shouldAutoScroll = useRef(true);
@@ -132,8 +116,7 @@ export const GraphqlOperationTable = memo(
     const handleScroll = useCallback(() => {
       const el = viewportRef.current;
       if (!el) return;
-      const distFromBottom =
-        el.scrollHeight - el.scrollTop - el.clientHeight;
+      const distFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
       shouldAutoScroll.current = distFromBottom < 50;
     }, []);
 

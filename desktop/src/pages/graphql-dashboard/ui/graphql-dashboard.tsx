@@ -4,10 +4,7 @@ import { Trash2, Braces } from "lucide-react";
 
 import { useGraphqlStore, useTransactionStore } from "@/shared/stores";
 import { extractGraphqlOperations } from "@/shared/stores/graphql-store";
-import {
-  GraphqlOperationTable,
-  GraphqlOperationDetail,
-} from "@/widgets/graphql-operations";
+import { GraphqlOperationTable, GraphqlOperationDetail } from "@/widgets/graphql-operations";
 import {
   ResizableHandle,
   ResizablePanel,
@@ -49,18 +46,13 @@ export const GraphqlDashboard = () => {
   }, [operations]);
 
   const errorCount = useMemo(
-    () =>
-      operations.filter(
-        (op) => op.responseErrors && op.responseErrors.length > 0,
-      ).length,
+    () => operations.filter((op) => op.responseErrors && op.responseErrors.length > 0).length,
     [operations],
   );
 
   const handleSelectOperation = useCallback(
     (operation: GraphqlOperation) => {
-      setSelectedOperation(
-        selectedOperation?.id === operation.id ? null : operation,
-      );
+      setSelectedOperation(selectedOperation?.id === operation.id ? null : operation);
     },
     [selectedOperation, setSelectedOperation],
   );
@@ -137,10 +129,7 @@ export const GraphqlDashboard = () => {
           className="flex-1 flex bg-background"
         >
           {/* Operation table */}
-          <ResizablePanel
-            id="graphql-operations"
-            className="flex flex-1 h-full overflow-hidden"
-          >
+          <ResizablePanel id="graphql-operations" className="flex flex-1 h-full overflow-hidden">
             <GraphqlOperationTable
               operations={operations}
               selectedOperation={selectedOperation}
@@ -159,10 +148,7 @@ export const GraphqlDashboard = () => {
             className="h-full overflow-hidden"
           >
             {selectedOperation && (
-              <GraphqlOperationDetail
-                operation={selectedOperation}
-                onClose={handleCloseDetail}
-              />
+              <GraphqlOperationDetail operation={selectedOperation} onClose={handleCloseDetail} />
             )}
           </ResizablePanel>
         </ResizablePanelGroup>
