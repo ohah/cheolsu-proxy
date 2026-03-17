@@ -100,8 +100,8 @@ msgstr "Actual"
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:142
 #: src/pages/server-replay/ui/server-replay-page.tsx:170
 #: src/pages/settings/ui/components/client-tags-section.tsx:116
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:209
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:272
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:215
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:278
 msgid "Add"
 msgstr "Add"
 
@@ -109,7 +109,7 @@ msgstr "Add"
 msgid "Add breakpoint rules to pause HTTP requests/responses for inspection."
 msgstr "Add breakpoint rules to pause HTTP requests/responses for inspection."
 
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:259
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:265
 msgid "Add built-in domain pattern..."
 msgstr "Add built-in domain pattern..."
 
@@ -155,13 +155,13 @@ msgstr "Add Proto Files"
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:602
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:258
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:218
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:81
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:84
 #: src/pages/map-rules/ui/map-rules-page.tsx:72
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:164
 msgid "Add Rule"
 msgstr "Add Rule"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:78
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:81
 msgid "Add rules to intercept, block, or modify HTTP requests and responses."
 msgstr "Add rules to intercept, block, or modify HTTP requests and responses."
 
@@ -182,7 +182,7 @@ msgid "Add your first mapping"
 msgstr "Add your first mapping"
 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:277
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:80
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:83
 #: src/pages/map-rules/ui/map-rules-page.tsx:71
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:163
 msgid "Add your first rule"
@@ -222,15 +222,15 @@ msgstr "All entries cleared"
 msgid "All host mappings cleared"
 msgstr "All host mappings cleared"
 
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:169
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:175
 msgid "All HTTPS traffic is being intercepted (no whitelist configured)"
 msgstr "All HTTPS traffic is being intercepted (no whitelist configured)"
 
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:163
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:169
 msgid "All HTTPS traffic is intercepted except {enabledCount} excluded domain(s) and {defaultEnabledCount} built-in domain(s)."
 msgstr "All HTTPS traffic is intercepted except {enabledCount} excluded domain(s) and {defaultEnabledCount} built-in domain(s)."
 
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:158
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:164
 msgid "All HTTPS traffic is intercepted. {defaultEnabledCount} built-in domain(s) are automatically excluded."
 msgstr "All HTTPS traffic is intercepted. {defaultEnabledCount} built-in domain(s) are automatically excluded."
 
@@ -250,7 +250,7 @@ msgid "All reverse proxy rules cleared"
 msgstr "All reverse proxy rules cleared"
 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:159
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:68
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:71
 #: src/pages/map-rules/ui/map-rules-page.tsx:55
 msgid "All rules cleared"
 msgstr "All rules cleared"
@@ -267,7 +267,7 @@ msgstr "API Reference"
 msgid "Append the original request path to the target URL"
 msgstr "Append the original request path to the target URL"
 
-#: src/features/query-filter-editor/ui/query-builder.tsx:369
+#: src/features/query-filter-editor/ui/query-builder.tsx:372
 msgid "Apply"
 msgstr "Apply"
 
@@ -295,7 +295,7 @@ msgstr "Automatically save the current session when the app closes and restore i
 msgid "available"
 msgstr "available"
 
-#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:155
+#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:163
 msgid "Avg Response Time"
 msgstr "Avg Response Time"
 
@@ -331,13 +331,13 @@ msgstr "Base URL"
 msgid "Batch"
 msgstr "Batch"
 
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:192
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:198
 msgid "Blacklist (Exclude)"
 msgstr "Blacklist (Exclude)"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:318
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:318
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:43
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:46
 msgid "Block"
 msgstr "Block"
 
@@ -394,12 +394,12 @@ msgstr "Breakpoints"
 #: src/pages/settings/ui/components/custom-ca-section.tsx:224
 #: src/pages/settings/ui/components/custom-ca-section.tsx:240
 #: src/pages/settings/ui/components/custom-ca-section.tsx:259
-#: src/pages/settings/ui/components/request-client-cert-section.tsx:58
+#: src/pages/settings/ui/components/request-client-cert-section.tsx:60
 msgid "Browse"
 msgstr "Browse"
 
 #. placeholder {0}: defaultPassthroughEntries.length
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:243
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:249
 msgid "Built-in Passthrough Domains ({0})"
 msgstr "Built-in Passthrough Domains ({0})"
 
@@ -420,7 +420,7 @@ msgstr "CA Certificate"
 msgid "CA Certificate File"
 msgstr "CA Certificate File"
 
-#: src/pages/settings/ui/components/request-client-cert-section.tsx:45
+#: src/pages/settings/ui/components/request-client-cert-section.tsx:47
 msgid "CA Certificate File (optional)"
 msgstr "CA Certificate File (optional)"
 
@@ -476,7 +476,7 @@ msgstr "Certificate file"
 msgid "Certificate File"
 msgstr "Certificate File"
 
-#: src/pages/settings/ui/components/request-client-cert-section.tsx:93
+#: src/pages/settings/ui/components/request-client-cert-section.tsx:97
 msgid "Certificate is optional — clients without one can still connect"
 msgstr "Certificate is optional — clients without one can still connect"
 
@@ -504,10 +504,10 @@ msgstr "Choose which columns to display in the network table"
 msgid "Claude Code (CLI)"
 msgstr "Claude Code (CLI)"
 
-#: src/features/query-filter-editor/ui/query-builder.tsx:364
+#: src/features/query-filter-editor/ui/query-builder.tsx:367
 #: src/pages/log-viewer/ui/logs-page.tsx:255
 #: src/pages/script/ui/script-page.tsx:298
-#: src/pages/settings/ui/components/request-client-cert-section.tsx:68
+#: src/pages/settings/ui/components/request-client-cert-section.tsx:72
 msgid "Clear"
 msgstr "Clear"
 
@@ -534,7 +534,7 @@ msgid "Clear selection"
 msgstr "Clear selection"
 
 #. placeholder {0}: transactions.length
-#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:130
+#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:138
 msgid "Click \"Run Analysis\" to analyze {0} captured requests."
 msgstr "Click \"Run Analysis\" to analyze {0} captured requests."
 
@@ -550,15 +550,15 @@ msgstr "Client Tags"
 msgid "Clients must provide these credentials via Proxy-Authorization header (HTTP Basic) to use this proxy"
 msgstr "Clients must provide these credentials via Proxy-Authorization header (HTTP Basic) to use this proxy"
 
-#: src/pages/settings/ui/components/request-client-cert-section.tsx:91
+#: src/pages/settings/ui/components/request-client-cert-section.tsx:95
 msgid "Clients without a valid certificate will be rejected"
 msgstr "Clients without a valid certificate will be rejected"
 
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:370
-#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:240
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:241
 #: src/features/transaction-details/ui/transaction-header.tsx:63
 #: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:178
-#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:107
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:112
 #: src/widgets/sse-messages/ui/sse-message-detail.tsx:96
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:131
 msgid "Close"
@@ -598,7 +598,7 @@ msgstr "Compose Request"
 msgid "Concurrency"
 msgstr "Concurrency"
 
-#: src/features/query-filter-editor/ui/query-builder.tsx:353
+#: src/features/query-filter-editor/ui/query-builder.tsx:356
 msgid "Condition"
 msgstr "Condition"
 
@@ -626,7 +626,7 @@ msgstr "Connection Strategy"
 msgid "connections"
 msgstr "connections"
 
-#: src/pages/settings/ui/components/connection-strategy-section.tsx:53
+#: src/pages/settings/ui/components/connection-strategy-section.tsx:56
 msgid "Connects to the server only when needed (default, sequential sniffing)"
 msgstr "Connects to the server only when needed (default, sequential sniffing)"
 
@@ -696,7 +696,7 @@ msgstr "Curl command copied to clipboard"
 msgid "Custom"
 msgstr "Custom"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:134
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:137
 msgid "Custom body"
 msgstr "Custom body"
 
@@ -744,7 +744,7 @@ msgid "Delete mapping"
 msgstr "Delete mapping"
 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:315
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:158
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:161
 #: src/pages/map-rules/ui/map-rules-page.tsx:135
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:210
 msgid "Delete rule"
@@ -780,7 +780,7 @@ msgstr "Disabled"
 msgid "Disconnected"
 msgstr "Disconnected"
 
-#: src/pages/settings/ui/components/general-settings.tsx:258
+#: src/pages/settings/ui/components/general-settings.tsx:260
 msgid "Display CONNECT tunnel requests in the network list"
 msgstr "Display CONNECT tunnel requests in the network list"
 
@@ -796,7 +796,7 @@ msgstr "Domain-specific Certificates"
 msgid "Domain-specific TLS engine rules. Domains matched here use OpenSSL instead of rustls for compatibility."
 msgstr "Domain-specific TLS engine rules. Domains matched here use OpenSSL instead of rustls for compatibility."
 
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:214
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:220
 msgid "Domains in this list will NOT be intercepted (pass-through). Built-in domains can be managed below."
 msgstr "Domains in this list will NOT be intercepted (pass-through). Built-in domains can be managed below."
 
@@ -825,7 +825,7 @@ msgstr "Download Speed (KB/s)"
 msgid "Drop"
 msgstr "Drop"
 
-#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:178
+#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:186
 msgid "Duplicate Requests"
 msgstr "Duplicate Requests"
 
@@ -833,11 +833,11 @@ msgstr "Duplicate Requests"
 #: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:79
 #: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:177
 #: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:45
-#: src/widgets/grpc-calls/ui/grpc-call-table.tsx:159
+#: src/widgets/grpc-calls/ui/grpc-call-table.tsx:156
 msgid "Duration"
 msgstr "Duration"
 
-#: src/features/query-filter-editor/ui/query-builder.tsx:220
+#: src/features/query-filter-editor/ui/query-builder.tsx:223
 msgid "e.g. 192.168.1.1, MyPhone, username"
 msgstr "e.g. 192.168.1.1, MyPhone, username"
 
@@ -845,7 +845,7 @@ msgstr "e.g. 192.168.1.1, MyPhone, username"
 msgid "e.g. 192.168.1.100"
 msgstr "e.g. 192.168.1.100"
 
-#: src/features/query-filter-editor/ui/query-builder.tsx:212
+#: src/features/query-filter-editor/ui/query-builder.tsx:215
 msgid "e.g. api.example.com, /api/v1, /users/\\d+"
 msgstr "e.g. api.example.com, /api/v1, /users/\\d+"
 
@@ -866,7 +866,7 @@ msgstr "Edit & Forward"
 msgid "Edit Map Rule"
 msgstr "Edit Map Rule"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:150
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:153
 #: src/pages/map-rules/ui/map-rules-page.tsx:127
 msgid "Edit rule"
 msgstr "Edit rule"
@@ -889,7 +889,7 @@ msgstr "Enable full trust for the Cheolsu Proxy CA certificate"
 msgid "Enabled"
 msgstr "Enabled"
 
-#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:63
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:67
 msgid "Encoding"
 msgstr "Encoding"
 
@@ -902,7 +902,7 @@ msgstr "Endpoint"
 msgid "endpoints"
 msgstr "endpoints"
 
-#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:175
+#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:183
 msgid "Endpoints"
 msgstr "Endpoints"
 
@@ -910,7 +910,7 @@ msgstr "Endpoints"
 msgid "entries"
 msgstr "entries"
 
-#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:149
+#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:157
 #: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:38
 #: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:79
 #: src/pages/analytics-dashboard/ui/error-tab.tsx:78
@@ -932,7 +932,7 @@ msgstr "error(s)"
 msgid "errors"
 msgstr "errors"
 
-#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:172
+#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:180
 #: src/pages/analytics-dashboard/ui/error-tab.tsx:72
 #: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:143
 msgid "Errors"
@@ -955,7 +955,7 @@ msgstr "Event Type"
 msgid "events"
 msgstr "events"
 
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:202
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:208
 msgid "example.com, *.example.com, or example.com:443"
 msgstr "example.com, *.example.com, or example.com:443"
 
@@ -1128,23 +1128,23 @@ msgstr "gRPC Proto Files"
 msgid "gRPC Status"
 msgstr "gRPC Status"
 
-#: src/widgets/grpc-calls/ui/grpc-call-table.tsx:148
+#: src/widgets/grpc-calls/ui/grpc-call-table.tsx:145
 msgid "gRPC 호출을 기다리는 중..."
 msgstr "gRPC 호출을 기다리는 중..."
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:165
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:167
 msgid "HAR export failed"
 msgstr "HAR export failed"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:162
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:164
 msgid "HAR exported successfully"
 msgstr "HAR exported successfully"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:254
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:256
 msgid "HAR import failed"
 msgstr "HAR import failed"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:251
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:253
 msgid "HAR imported successfully"
 msgstr "HAR imported successfully"
 
@@ -1161,7 +1161,7 @@ msgstr "Header name"
 msgid "Header name to remove"
 msgstr "Header name to remove"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:127
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:130
 #: src/pages/server-replay/ui/server-replay-page.tsx:225
 msgid "headers"
 msgstr "headers"
@@ -1206,7 +1206,7 @@ msgstr "HTTP connection (no TLS)"
 msgid "HTTP requests and responses"
 msgstr "HTTP requests and responses"
 
-#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:60
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:64
 msgid "HTTP Status"
 msgstr "HTTP Status"
 
@@ -1214,7 +1214,7 @@ msgstr "HTTP Status"
 msgid "HTTPie"
 msgstr "HTTPie"
 
-#: src/pages/settings/ui/components/request-client-cert-section.tsx:73
+#: src/pages/settings/ui/components/request-client-cert-section.tsx:77
 msgid "If not specified, any client certificate will be accepted without verification"
 msgstr "If not specified, any client certificate will be accepted without verification"
 
@@ -1273,7 +1273,7 @@ msgstr "Installed"
 msgid "Installing..."
 msgstr "Installing..."
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:73
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:76
 #: src/shared/app-sidebar/model/consts.ts:64
 msgid "Intercept Rules"
 msgstr "Intercept Rules"
@@ -1376,7 +1376,7 @@ msgstr "Load and manage proxy scripts"
 msgid "Load Session"
 msgstr "Load Session"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:200
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:202
 msgid "Load transactions"
 msgstr "Load transactions"
 
@@ -1421,7 +1421,7 @@ msgstr "Logs"
 msgid "Manage request/response intercept rules"
 msgstr "Manage request/response intercept rules"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:74
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:77
 msgid "Manage wildcard-based request/response intercept rules"
 msgstr "Manage wildcard-based request/response intercept rules"
 
@@ -1435,7 +1435,7 @@ msgstr "Map DNS hostnames to different targets"
 
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:239
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:239
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:46
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:49
 #: src/pages/map-rules/ui/map-rules-page.tsx:34
 msgid "Map Local"
 msgstr "Map Local"
@@ -1454,7 +1454,7 @@ msgstr "Map Local: respond with local files. Map Remote: redirect requests to an
 
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:242
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:243
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:47
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:50
 #: src/pages/map-rules/ui/map-rules-page.tsx:35
 msgid "Map Remote"
 msgstr "Map Remote"
@@ -1527,11 +1527,11 @@ msgstr "messages"
 #: src/pages/analytics-dashboard/ui/misc-tab.tsx:132
 #: src/pages/analytics-dashboard/ui/performance-tab.tsx:44
 #: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:40
-#: src/widgets/grpc-calls/ui/grpc-call-table.tsx:158
+#: src/widgets/grpc-calls/ui/grpc-call-table.tsx:155
 msgid "Method"
 msgstr "Method"
 
-#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:184
+#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:192
 msgid "Misc"
 msgstr "Misc"
 
@@ -1543,7 +1543,7 @@ msgstr "Mixed Content Warnings"
 msgid "Mobile Certificate Install"
 msgstr "Mobile Certificate Install"
 
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:179
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:185
 msgid "Mode"
 msgstr "Mode"
 
@@ -1557,13 +1557,13 @@ msgstr "Modify & Forward"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:321
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:322
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:44
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:47
 msgid "Modify Request"
 msgstr "Modify Request"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:325
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:326
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:45
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:48
 msgid "Modify Response"
 msgstr "Modify Response"
 
@@ -1575,7 +1575,7 @@ msgstr "msgs"
 msgid "Multiple conditions:"
 msgstr "Multiple conditions:"
 
-#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:181
+#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:189
 msgid "N+1"
 msgstr "N+1"
 
@@ -1666,7 +1666,7 @@ msgstr "No Gzip"
 msgid "No host mappings"
 msgstr "No host mappings"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:76
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:79
 msgid "No intercept rules"
 msgstr "No intercept rules"
 
@@ -1734,7 +1734,7 @@ msgstr "No timing data available"
 msgid "No TLS passthrough entries"
 msgstr "No TLS passthrough entries"
 
-#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:128
+#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:136
 msgid "No traffic data available. Start the proxy to capture requests."
 msgstr "No traffic data available. Start the proxy to capture requests."
 
@@ -1782,7 +1782,7 @@ msgstr "Number of simultaneous requests (1-100)"
 msgid "Number of times to send the request (1-10000)"
 msgstr "Number of times to send the request (1-10000)"
 
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:219
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:225
 msgid "Only domains in this list will be intercepted. When the list is empty, all domains are intercepted."
 msgstr "Only domains in this list will be intercepted. When the list is empty, all domains are intercepted."
 
@@ -1790,7 +1790,7 @@ msgstr "Only domains in this list will be intercepted. When the list is empty, a
 msgid "Only http:// and https:// URLs are allowed"
 msgstr "Only http:// and https:// URLs are allowed"
 
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:171
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:177
 msgid "Only whitelisted domains ({enabledCount}) will have HTTPS traffic intercepted"
 msgstr "Only whitelisted domains ({enabledCount}) will have HTTPS traffic intercepted"
 
@@ -1818,12 +1818,12 @@ msgstr "Open File"
 msgid "Open this URL in your mobile browser after setting the Wi-Fi proxy. The page automatically detects your device and provides the correct certificate format."
 msgstr "Open this URL in your mobile browser after setting the Wi-Fi proxy. The page automatically detects your device and provides the correct certificate format."
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:345
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:347
 msgid "OpenAPI export failed"
 msgstr "OpenAPI export failed"
 
 #. placeholder {0}: targetTransactions.length
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:342
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:344
 msgid "OpenAPI spec exported successfully ({0} transactions)"
 msgstr "OpenAPI spec exported successfully ({0} transactions)"
 
@@ -1858,7 +1858,7 @@ msgstr "Organization"
 msgid "Original"
 msgstr "Original"
 
-#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:160
+#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:168
 msgid "P95 Response Time"
 msgstr "P95 Response Time"
 
@@ -1911,7 +1911,7 @@ msgstr "pending"
 msgid "Pending Breakpoints"
 msgstr "Pending Breakpoints"
 
-#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:169
+#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:177
 msgid "Performance"
 msgstr "Performance"
 
@@ -2077,7 +2077,7 @@ msgid "Remote Device Certificate"
 msgstr "Remote Device Certificate"
 
 #: src/pages/settings/ui/components/client-certificate-section.tsx:351
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:78
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:80
 msgid "Remove"
 msgstr "Remove"
 
@@ -2108,7 +2108,7 @@ msgstr "Removed"
 
 #. placeholder {0}: transactions.length
 #. placeholder {1}: loaded.length
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:199
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:201
 msgid "Replace {0} existing transactions with {1} new ones? Cancel to append instead."
 msgstr "Replace {0} existing transactions with {1} new ones? Cancel to append instead."
 
@@ -2138,11 +2138,11 @@ msgstr "Replay request"
 #: src/features/transaction-details/ui/replay-dialog.tsx:373
 #: src/features/transaction-details/ui/transaction-body-side-by-side.tsx:16
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:296
-#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:66
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:70
 msgid "Request"
 msgstr "Request"
 
-#: src/pages/settings/ui/components/request-client-cert-section.tsx:33
+#: src/pages/settings/ui/components/request-client-cert-section.tsx:35
 msgid "Request a client certificate from connecting clients (mTLS server-side)"
 msgstr "Request a client certificate from connecting clients (mTLS server-side)"
 
@@ -2157,7 +2157,7 @@ msgstr "Request aborted"
 msgid "Request Body"
 msgstr "Request Body"
 
-#: src/pages/settings/ui/components/request-client-cert-section.tsx:30
+#: src/pages/settings/ui/components/request-client-cert-section.tsx:32
 msgid "Request Client Certificate"
 msgstr "Request Client Certificate"
 
@@ -2193,7 +2193,7 @@ msgstr "Request Lifecycle"
 msgid "Request/Response body"
 msgstr "Request/Response body"
 
-#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:111
+#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:119
 #: src/pages/analytics-dashboard/ui/nplus-one-tab.tsx:30
 msgid "requests"
 msgstr "requests"
@@ -2206,7 +2206,7 @@ msgstr "Requests/sec"
 msgid "Require authentication to use this proxy server"
 msgstr "Require authentication to use this proxy server"
 
-#: src/pages/settings/ui/components/request-client-cert-section.tsx:87
+#: src/pages/settings/ui/components/request-client-cert-section.tsx:91
 msgid "Require certificate"
 msgstr "Require certificate"
 
@@ -2214,7 +2214,7 @@ msgstr "Require certificate"
 #: src/features/transaction-details/ui/transaction-body-side-by-side.tsx:24
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:301
 #: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:138
-#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:70
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:74
 msgid "Response"
 msgstr "Response"
 
@@ -2261,7 +2261,7 @@ msgstr "Restart proxy to apply changes"
 msgid "Restart proxy to use auto-generated CA"
 msgstr "Restart proxy to use auto-generated CA"
 
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:246
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:252
 msgid "Restore Defaults"
 msgstr "Restore Defaults"
 
@@ -2297,7 +2297,7 @@ msgstr "Reverse proxy rule deleted"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:327
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:327
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:48
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:51
 msgid "Rewrite"
 msgstr "Rewrite"
 
@@ -2332,7 +2332,7 @@ msgid "Rule added"
 msgstr "Rule added"
 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:154
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:63
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:66
 #: src/pages/map-rules/ui/map-rules-page.tsx:50
 msgid "Rule deleted"
 msgstr "Rule deleted"
@@ -2348,7 +2348,7 @@ msgid "Rule updated"
 msgstr "Rule updated"
 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:208
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:75
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:78
 #: src/pages/map-rules/ui/map-rules-page.tsx:66
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:156
 msgid "rules"
@@ -2362,7 +2362,7 @@ msgstr "Rules"
 msgid "Run"
 msgstr "Run"
 
-#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:117
+#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:125
 msgid "Run Analysis"
 msgstr "Run Analysis"
 
@@ -2431,7 +2431,7 @@ msgstr "Select a log file to view its contents"
 msgid "Select CA certificate (.pem, .crt, .cer, .der)"
 msgstr "Select CA certificate (.pem, .crt, .cer, .der)"
 
-#: src/pages/settings/ui/components/request-client-cert-section.tsx:50
+#: src/pages/settings/ui/components/request-client-cert-section.tsx:52
 msgid "Select CA certificate to verify clients (.pem, .crt)"
 msgstr "Select CA certificate to verify clients (.pem, .crt)"
 
@@ -2492,7 +2492,7 @@ msgid "Sending requests sequentially..."
 msgstr "Sending requests sequentially..."
 
 #: src/features/transaction-details/ui/replay-dialog.tsx:538
-#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:229
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:230
 #: src/features/websocket-replay/ui/ws-replay-dialog.tsx:190
 msgid "Sending..."
 msgstr "Sending..."
@@ -2541,19 +2541,19 @@ msgstr "Service"
 msgid "services"
 msgstr "services"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:231
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:233
 msgid "Session load failed"
 msgstr "Session load failed"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:228
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:230
 msgid "Session loaded successfully"
 msgstr "Session loaded successfully"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:189
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:191
 msgid "Session save failed"
 msgstr "Session save failed"
 
-#: src/pages/network-dashboard/ui/network-dashboard.tsx:186
+#: src/pages/network-dashboard/ui/network-dashboard.tsx:188
 msgid "Session saved successfully"
 msgstr "Session saved successfully"
 
@@ -2586,7 +2586,7 @@ msgstr "SHA-256 Fingerprint"
 msgid "Shortcut Key"
 msgstr "Shortcut Key"
 
-#: src/pages/settings/ui/components/general-settings.tsx:255
+#: src/pages/settings/ui/components/general-settings.tsx:257
 msgid "Show CONNECT Requests"
 msgstr "Show CONNECT Requests"
 
@@ -2627,7 +2627,7 @@ msgstr "Spec removed"
 msgid "SSE"
 msgstr "SSE"
 
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:153
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:159
 msgid "SSL Proxying"
 msgstr "SSL Proxying"
 
@@ -2640,21 +2640,21 @@ msgstr "Start"
 msgid "Start proxy first"
 msgstr "Start proxy first"
 
-#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:234
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:235
 msgid "Start Replay"
 msgstr "Start Replay"
 
-#: src/pages/settings/ui/components/connection-strategy-section.tsx:56
+#: src/pages/settings/ui/components/connection-strategy-section.tsx:59
 msgid "Starts background server connection immediately after ClientHello detection"
 msgstr "Starts background server connection immediately after ClientHello detection"
 
 #: src/pages/analytics-dashboard/ui/performance-tab.tsx:51
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:115
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:120
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:118
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:123
 #: src/shared/app-sidebar/ui/sidebar-status.tsx:39
 #: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:86
 #: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:176
-#: src/widgets/grpc-calls/ui/grpc-call-table.tsx:157
+#: src/widgets/grpc-calls/ui/grpc-call-table.tsx:154
 msgid "Status"
 msgstr "Status"
 
@@ -2669,7 +2669,7 @@ msgstr "Status Code"
 msgid "Status Code Distribution"
 msgstr "Status Code Distribution"
 
-#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:57
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:58
 msgid "Status Message"
 msgstr "Status Message"
 
@@ -2742,7 +2742,7 @@ msgstr "The DER certificate file will download automatically"
 msgid "Theme"
 msgstr "Theme"
 
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:250
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:256
 msgid "These domains are automatically excluded from HTTPS interception to prevent OAuth/authentication failures. You can toggle, add, or remove domains."
 msgstr "These domains are automatically excluded from HTTPS interception to prevent OAuth/authentication failures. You can toggle, add, or remove domains."
 
@@ -2761,7 +2761,7 @@ msgstr "Throughput"
 #: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:77
 #: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:178
 #: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:43
-#: src/widgets/grpc-calls/ui/grpc-call-table.tsx:160
+#: src/widgets/grpc-calls/ui/grpc-call-table.tsx:157
 #: src/widgets/sse-messages/ui/sse-message-detail.tsx:63
 #: src/widgets/sse-messages/ui/sse-message-table.tsx:148
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:63
@@ -2791,7 +2791,7 @@ msgstr "To Client (Server → Client)"
 msgid "To Server (Client → Server)"
 msgstr "To Server (Client → Server)"
 
-#: src/features/query-filter-editor/ui/query-builder.tsx:158
+#: src/features/query-filter-editor/ui/query-builder.tsx:161
 msgid "Toggle AND/OR"
 msgstr "Toggle AND/OR"
 
@@ -2817,7 +2817,7 @@ msgstr "Total"
 msgid "Total {0}ms"
 msgstr "Total {0}ms"
 
-#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:144
+#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:152
 msgid "Total Requests"
 msgstr "Total Requests"
 
@@ -2825,7 +2825,7 @@ msgstr "Total Requests"
 msgid "Total Time"
 msgstr "Total Time"
 
-#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:107
+#: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:115
 #: src/shared/app-sidebar/model/consts.ts:120
 msgid "Traffic Analysis"
 msgstr "Traffic Analysis"
@@ -2846,7 +2846,7 @@ msgstr "Transaction pinned to top"
 msgid "Transaction unpinned"
 msgstr "Transaction unpinned"
 
-#: src/pages/settings/ui/components/connection-strategy-section.tsx:61
+#: src/pages/settings/ui/components/connection-strategy-section.tsx:64
 msgid "Tries Eager first, falls back to Lazy on failure"
 msgstr "Tries Eager first, falls back to Lazy on failure"
 
@@ -3024,11 +3024,11 @@ msgstr "WebSocket connections and messages"
 msgid "WebSocket Replay"
 msgstr "WebSocket Replay"
 
-#: src/features/query-filter-editor/ui/query-builder.tsx:151
+#: src/features/query-filter-editor/ui/query-builder.tsx:154
 msgid "Where"
 msgstr "Where"
 
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:195
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:201
 msgid "Whitelist (Include)"
 msgstr "Whitelist (Include)"
 
