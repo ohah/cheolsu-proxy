@@ -1,6 +1,7 @@
 export * from "./class-name";
 export * from "./data-type";
 export * from "./format-bytes";
+export * from "./format-time";
 export * from "./curl";
 export * from "./fetch";
 export * from "./httpie";

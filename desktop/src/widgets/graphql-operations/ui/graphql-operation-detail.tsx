@@ -6,6 +6,7 @@ import { Editor } from "@monaco-editor/react";
 import { useTheme } from "next-themes";
 import { Button, Tooltip, TooltipTrigger, TooltipContent } from "@/shared/ui";
 import { cn } from "@/shared/lib";
+import { formatTimeFull, formatDuration } from "@/shared/lib/format-time";
 import type { GraphqlOperation } from "@/entities/graphql";
 
 interface GraphqlOperationDetailProps {
@@ -14,19 +15,6 @@ interface GraphqlOperationDetailProps {
 }
 
 type DetailTab = "query" | "variables" | "response" | "errors";
-
-function formatTimeFull(nanos: number): string {
-  const ms = nanos / 1_000_000;
-  return new Date(ms).toLocaleString();
-}
-
-function formatDuration(requestNanos: number, responseNanos: number | null): string {
-  if (responseNanos == null) return "-";
-  const ms = (responseNanos - requestNanos) / 1_000_000;
-  if (ms < 1) return "<1ms";
-  if (ms < 1000) return `${Math.round(ms)}ms`;
-  return `${(ms / 1000).toFixed(1)}s`;
-}
 
 const TYPE_COLORS: Record<string, string> = {
   query: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",

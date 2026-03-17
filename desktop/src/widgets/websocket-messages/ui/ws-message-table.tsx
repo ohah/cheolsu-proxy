@@ -6,25 +6,13 @@ import { ArrowUp, ArrowDown } from "lucide-react";
 import { cn } from "@/shared/lib";
 import { ScrollArea } from "@/shared/ui";
 import { getMqttSummary } from "@/shared/lib/ws-content-view";
+import { formatTime } from "@/shared/lib/format-time";
 import type { WsMessageInfo } from "@/entities/websocket";
 
 interface WsMessageTableProps {
   messages: WsMessageInfo[];
   selectedMessage: WsMessageInfo | null;
   onSelectMessage: (message: WsMessageInfo) => void;
-}
-
-function formatTime(nanos: number): string {
-  const ms = nanos / 1_000_000;
-  const date = new Date(ms);
-  const hms = date.toLocaleTimeString("en-US", {
-    hour12: false,
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
-  const millis = String(date.getMilliseconds()).padStart(3, "0");
-  return `${hms}.${millis}`;
 }
 
 function formatSize(bytes: number): string {
