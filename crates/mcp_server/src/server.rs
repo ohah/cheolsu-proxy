@@ -122,6 +122,20 @@ impl CheolsuMcpServer {
             ))
             // Export
             .with_route((Self::export_har_tool_attr(), Self::export_har))
+            // Analytics
+            .with_route((
+                Self::analyze_performance_tool_attr(),
+                Self::analyze_performance,
+            ))
+            .with_route((Self::analyze_errors_tool_attr(), Self::analyze_errors))
+            .with_route((Self::analyze_endpoints_tool_attr(), Self::analyze_endpoints))
+            .with_route((Self::detect_duplicates_tool_attr(), Self::detect_duplicates))
+            .with_route((Self::detect_n_plus_one_tool_attr(), Self::detect_n_plus_one))
+            .with_route((
+                Self::analyze_traffic_timeline_tool_attr(),
+                Self::analyze_traffic_timeline,
+            ))
+            .with_route((Self::analyze_full_tool_attr(), Self::analyze_full))
     }
 
     pub(crate) async fn send_rules(&self) -> Result<(), String> {

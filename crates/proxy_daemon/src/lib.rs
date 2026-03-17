@@ -1,3 +1,4 @@
+pub mod analytics;
 pub(crate) mod breakpoint;
 pub(crate) mod breakpoint_handler;
 pub(crate) mod cert_distribution;
