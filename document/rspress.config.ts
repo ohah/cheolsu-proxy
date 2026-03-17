@@ -154,6 +154,23 @@ export default defineConfig({
               text: "Contract Testing",
               link: "/features/contract-testing",
             },
+            {
+              text: "gRPC / Protobuf",
+              link: "/features/grpc",
+            },
+          ],
+        },
+        {
+          text: "로드맵",
+          items: [
+            {
+              text: "프록시 연결 로드맵",
+              link: "/features/roadmap-proxy-connection",
+            },
+            {
+              text: "QA/기업 환경 로드맵",
+              link: "/features/roadmap-qa-enterprise",
+            },
           ],
         },
       ],
@@ -224,6 +241,19 @@ export default defineConfig({
             {
               text: "Contract Testing",
               link: "/en/features/contract-testing",
+            },
+            {
+              text: "gRPC / Protobuf",
+              link: "/en/features/grpc",
+            },
+          ],
+        },
+        {
+          text: "Roadmap",
+          items: [
+            {
+              text: "Proxy Connection Roadmap",
+              link: "/en/features/roadmap-proxy-connection",
             },
           ],
         },
