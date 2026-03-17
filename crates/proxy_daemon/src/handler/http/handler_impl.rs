@@ -111,9 +111,7 @@ impl HttpHandler for LoggingHandler {
         self.request.proxy_auth_user = extract_basic_auth_username(req.headers());
 
         // 서버 TLS 인증서 정보 저장
-        self.request.server_cert_der = ctx.server_cert_der.clone();
-        self.request.server_cert_chain_length = ctx.server_cert_chain_length;
-        self.request.server_cert_alpn = ctx.server_cert_alpn.clone();
+        self.request.server_cert = ctx.server_cert.clone();
 
         // 초기 파이프라인: 인증, 바디 크기 제한, 인증서 다운로드, WebSocket 확장 제거
         if let Some(action) = self.run_early_pipeline(&mut req).await {

@@ -177,6 +177,7 @@ mod tests {
             sans_dns: vec!["example.com".to_string(), "www.example.com".to_string()],
             sans_ip: vec![],
             negotiated_alpn: Some(b"h2".to_vec()),
+            ..Default::default()
         };
 
         let cert_der = ca.gen_cert(&authority, Some(&upstream)).unwrap();

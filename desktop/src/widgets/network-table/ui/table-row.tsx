@@ -180,9 +180,7 @@ export const TableRow = memo(function TableRow({
             >
               <Trans>Node.js Fetch</Trans>
             </ContextMenuItem>
-            <ContextMenuItem
-              onClick={() => handleCopyAs(generatePowerShellCommand, "PowerShell")}
-            >
+            <ContextMenuItem onClick={() => handleCopyAs(generatePowerShellCommand, "PowerShell")}>
               <Trans>PowerShell</Trans>
             </ContextMenuItem>
             <ContextMenuItem onClick={() => handleCopyAs(generateHttpieCommand, "HTTPie")}>

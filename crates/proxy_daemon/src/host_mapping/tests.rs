@@ -461,6 +461,7 @@ async fn create_test_handler() -> LoggingHandler {
             request_start: None,
             response_header_time: None,
             proxy_auth_user: None,
+            server_cert: None,
         },
         config: crate::handler::ProxyConfig {
             cache_dir: None,

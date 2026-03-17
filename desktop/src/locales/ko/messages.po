@@ -18,7 +18,7 @@ msgid " (preserve path)"
 msgstr " (경로 유지)"
 
 #. placeholder {0}: serverCert.chain_length
-#: src/features/transaction-details/ui/transaction-certificate.tsx:218
+#: src/features/transaction-details/ui/transaction-certificate.tsx:230
 msgid "{0} certificate(s)"
 msgstr "{0}개 인증서"
 
@@ -131,7 +131,7 @@ msgstr "트래픽에서 추가"
 msgid "Add Headers"
 msgstr "헤더 추가"
 
-#: src/widgets/network-table/ui/table-row.tsx:209
+#: src/widgets/network-table/ui/table-row.tsx:207
 msgid "Add Intercept Rule"
 msgstr "인터셉트 규칙 추가"
 
@@ -197,7 +197,7 @@ msgid "Added to server replay"
 msgstr "서버 리플레이에 추가되었습니다"
 
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:135
-#: src/widgets/network-table/ui/table-row.tsx:200
+#: src/widgets/network-table/ui/table-row.tsx:198
 msgid "Advanced Repeat"
 msgstr "고급 반복"
 
@@ -411,7 +411,7 @@ msgstr "바이패스 목록"
 msgid "bytes body"
 msgstr "바이트 본문"
 
-#: src/features/transaction-details/ui/transaction-certificate.tsx:92
+#: src/features/transaction-details/ui/transaction-certificate.tsx:90
 #: src/pages/settings/ui/components/certificate-settings.tsx:116
 msgid "CA Certificate"
 msgstr "CA 인증서"
@@ -447,11 +447,11 @@ msgstr "추가할 수 없습니다: 응답 데이터 없음"
 msgid "Certificate"
 msgstr "인증서"
 
-#: src/features/transaction-details/ui/transaction-certificate.tsx:217
+#: src/features/transaction-details/ui/transaction-certificate.tsx:229
 msgid "Certificate Chain"
 msgstr "인증서 체인"
 
-#: src/features/transaction-details/ui/transaction-certificate.tsx:192
+#: src/features/transaction-details/ui/transaction-certificate.tsx:199
 #: src/pages/settings/ui/components/client-certificate-section.tsx:188
 msgid "Certificate Details"
 msgstr "인증서 상세 정보"
@@ -575,7 +575,7 @@ msgid "Command copied to clipboard"
 msgstr "명령어가 클립보드에 복사되었습니다"
 
 #: src/features/transaction-details/ui/transaction-certificate.tsx:80
-#: src/features/transaction-details/ui/transaction-certificate.tsx:107
+#: src/features/transaction-details/ui/transaction-certificate.tsx:111
 msgid "Common Name (CN)"
 msgstr "일반 이름 (CN)"
 
@@ -606,7 +606,7 @@ msgstr "연결됨"
 msgid "Connection"
 msgstr "연결"
 
-#: src/features/transaction-details/ui/transaction-certificate.tsx:215
+#: src/features/transaction-details/ui/transaction-certificate.tsx:226
 msgid "Connection Info"
 msgstr "연결 정보"
 
@@ -744,7 +744,7 @@ msgid "Delete rule"
 msgstr "규칙 삭제"
 
 #: src/widgets/network-table/ui/cells/action-cell.tsx:21
-#: src/widgets/network-table/ui/table-row.tsx:204
+#: src/widgets/network-table/ui/table-row.tsx:202
 msgid "Delete Transaction"
 msgstr "트랜잭션 삭제"
 
@@ -957,7 +957,7 @@ msgstr "사이드바 펼치기"
 msgid "Expected"
 msgstr "기대값"
 
-#: src/features/transaction-details/ui/transaction-certificate.tsx:143
+#: src/features/transaction-details/ui/transaction-certificate.tsx:147
 msgid "Expired"
 msgstr "만료됨"
 
@@ -1158,7 +1158,7 @@ msgstr "호스트 매핑이 삭제되었습니다"
 msgid "Host Tree"
 msgstr "호스트 트리"
 
-#: src/features/transaction-details/ui/transaction-certificate.tsx:68
+#: src/features/transaction-details/ui/transaction-certificate.tsx:66
 msgid "HTTP connection (no TLS)"
 msgstr "HTTP 연결 (TLS 없음)"
 
@@ -1166,7 +1166,7 @@ msgstr "HTTP 연결 (TLS 없음)"
 msgid "HTTP requests and responses"
 msgstr "HTTP 요청 및 응답"
 
-#: src/widgets/network-table/ui/table-row.tsx:189
+#: src/widgets/network-table/ui/table-row.tsx:187
 msgid "HTTPie"
 msgstr "HTTPie"
 
@@ -1246,12 +1246,12 @@ msgstr "IP 주소"
 msgid "Issue"
 msgstr "문제"
 
-#: src/features/transaction-details/ui/transaction-certificate.tsx:104
+#: src/features/transaction-details/ui/transaction-certificate.tsx:107
 #: src/pages/settings/ui/components/client-certificate-section.tsx:200
 msgid "Issuer"
 msgstr "발급자"
 
-#: src/features/transaction-details/ui/transaction-certificate.tsx:112
+#: src/features/transaction-details/ui/transaction-certificate.tsx:114
 msgid "Issuer information not available"
 msgstr "발급자 정보를 사용할 수 없습니다"
 
@@ -1531,7 +1531,7 @@ msgstr "N+1"
 msgid "Name"
 msgstr "이름"
 
-#: src/features/transaction-details/ui/transaction-certificate.tsx:221
+#: src/features/transaction-details/ui/transaction-certificate.tsx:233
 msgid "Negotiated ALPN"
 msgstr "협상된 ALPN"
 
@@ -1548,7 +1548,7 @@ msgstr "네트워크 테이블 컬럼"
 msgid "Network Throttling"
 msgstr "네트워크 쓰로틀링"
 
-#: src/features/transaction-details/ui/transaction-certificate.tsx:96
+#: src/features/transaction-details/ui/transaction-certificate.tsx:97
 msgid "No"
 msgstr "아니오"
 
@@ -1692,11 +1692,11 @@ msgstr "리플레이할 유효한 요청이 없습니다"
 msgid "Node.js Fetch"
 msgstr "Node.js Fetch"
 
-#: src/features/transaction-details/ui/transaction-certificate.tsx:135
+#: src/features/transaction-details/ui/transaction-certificate.tsx:139
 msgid "Not After"
 msgstr "만료일"
 
-#: src/features/transaction-details/ui/transaction-certificate.tsx:123
+#: src/features/transaction-details/ui/transaction-certificate.tsx:127
 msgid "Not Before"
 msgstr "발급일"
 
@@ -1704,7 +1704,7 @@ msgstr "발급일"
 msgid "Not Trusted"
 msgstr "신뢰되지 않음"
 
-#: src/features/transaction-details/ui/transaction-certificate.tsx:129
+#: src/features/transaction-details/ui/transaction-certificate.tsx:133
 msgid "Not yet valid"
 msgstr "아직 유효하지 않음"
 
@@ -1882,7 +1882,7 @@ msgstr "포트는 1에서 65535 사이여야 합니다"
 msgid "Port number for the proxy server to listen on. Changes take effect on next app restart."
 msgstr "프록시 서버가 수신할 포트 번호입니다. 변경 사항은 앱을 다시 시작하면 적용됩니다."
 
-#: src/widgets/network-table/ui/table-row.tsx:186
+#: src/widgets/network-table/ui/table-row.tsx:184
 msgid "PowerShell"
 msgstr "PowerShell"
 
@@ -1942,7 +1942,7 @@ msgstr "프록시 설정 및 구성"
 msgid "proxy.company.com"
 msgstr "proxy.company.com"
 
-#: src/widgets/network-table/ui/table-row.tsx:194
+#: src/widgets/network-table/ui/table-row.tsx:192
 msgid "Python Requests"
 msgstr "Python Requests"
 
@@ -2447,7 +2447,7 @@ msgstr "시퀀스 리플레이 ({0}개 요청)"
 msgid "Sequence replay failed"
 msgstr "시퀀스 리플레이 실패"
 
-#: src/features/transaction-details/ui/transaction-certificate.tsx:195
+#: src/features/transaction-details/ui/transaction-certificate.tsx:203
 #: src/pages/settings/ui/components/client-certificate-section.tsx:239
 msgid "Serial Number"
 msgstr "시리얼 번호"
@@ -2498,7 +2498,7 @@ msgstr "설정"
 msgid "Setup Instructions:"
 msgstr "설정 방법:"
 
-#: src/features/transaction-details/ui/transaction-certificate.tsx:203
+#: src/features/transaction-details/ui/transaction-certificate.tsx:211
 msgid "SHA-256 Fingerprint"
 msgstr "SHA-256 지문"
 
@@ -2592,11 +2592,11 @@ msgstr "상태 코드 분포"
 msgid "Strategy"
 msgstr "전략"
 
-#: src/features/transaction-details/ui/transaction-certificate.tsx:77
+#: src/features/transaction-details/ui/transaction-certificate.tsx:76
 msgid "Subject"
 msgstr "주체"
 
-#: src/features/transaction-details/ui/transaction-certificate.tsx:160
+#: src/features/transaction-details/ui/transaction-certificate.tsx:165
 msgid "Subject Alternative Names (SAN)"
 msgstr "주체 대체 이름 (SAN)"
 
@@ -2846,7 +2846,7 @@ msgstr "자동 생성된 CA 대신 직접 CA 인증서를 사용합니다"
 msgid "Username"
 msgstr "사용자 이름"
 
-#: src/features/transaction-details/ui/transaction-certificate.tsx:148
+#: src/features/transaction-details/ui/transaction-certificate.tsx:152
 msgid "Valid"
 msgstr "유효"
 
@@ -2867,7 +2867,7 @@ msgstr "OpenAPI 스펙 기반 API 응답 검증"
 msgid "Validation Report"
 msgstr "검증 리포트"
 
-#: src/features/transaction-details/ui/transaction-certificate.tsx:120
+#: src/features/transaction-details/ui/transaction-certificate.tsx:123
 msgid "Validity Period"
 msgstr "유효 기간"
 
@@ -2946,6 +2946,6 @@ msgstr "시간 범위"
 msgid "Write or load JavaScript/TypeScript proxy scripts"
 msgstr "JavaScript/TypeScript 프록시 스크립트 작성 또는 로드"
 
-#: src/features/transaction-details/ui/transaction-certificate.tsx:94
+#: src/features/transaction-details/ui/transaction-certificate.tsx:93
 msgid "Yes"
 msgstr "예"

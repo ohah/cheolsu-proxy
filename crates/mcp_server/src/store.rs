@@ -143,6 +143,7 @@ mod tests {
             request: None,
             response: None,
             validations: None,
+            server_cert: None,
         }
     }
 

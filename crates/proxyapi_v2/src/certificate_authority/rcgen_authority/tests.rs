@@ -120,6 +120,7 @@ mod tests {
             ],
             sans_ip: vec!["93.184.216.34".parse().unwrap()],
             negotiated_alpn: Some(b"h2".to_vec()),
+            ..Default::default()
         };
 
         let cert_der = ca.gen_cert(&authority, Some(&upstream)).unwrap();

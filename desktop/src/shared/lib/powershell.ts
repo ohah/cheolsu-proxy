@@ -22,7 +22,10 @@ export const generatePowerShellCommand = (transaction: HttpTransaction): string 
   const headerEntries = Object.entries(headers);
   if (headerEntries.length > 0) {
     const headerPairs = headerEntries
-      .map(([key, value]) => `    '${escapePowerShellString(key)}' = '${escapePowerShellString(value)}'`)
+      .map(
+        ([key, value]) =>
+          `    '${escapePowerShellString(key)}' = '${escapePowerShellString(value)}'`,
+      )
       .join("\n");
     // 이전 줄에 백틱 추가
     lines[lines.length - 1] += " `";

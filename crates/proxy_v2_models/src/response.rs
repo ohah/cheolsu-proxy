@@ -316,7 +316,7 @@ impl ClientResponse {
 }
 
 /// 서버 TLS 인증서 상세 정보
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Hash)]
 pub struct ServerCertInfo {
     /// Subject Common Name
     pub subject_cn: Option<String>,
@@ -489,6 +489,7 @@ mod tests {
             request: None,
             response: None,
             validations: None,
+            server_cert: None,
         };
         assert!(info.request.is_none());
         assert!(info.response.is_none());

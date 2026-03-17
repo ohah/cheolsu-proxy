@@ -26,6 +26,7 @@ fn make_empty_request_info() -> RequestInfo {
         request: None,
         response: None,
         validations: None,
+        server_cert: None,
     }
 }
 

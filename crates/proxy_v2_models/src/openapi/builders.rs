@@ -240,6 +240,7 @@ mod tests {
             request: Some(client_req),
             response: Some(client_res),
             validations: None,
+            server_cert: None,
         }
     }
 
