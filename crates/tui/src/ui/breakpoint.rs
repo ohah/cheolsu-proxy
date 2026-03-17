@@ -287,7 +287,7 @@ pub fn draw_bp_edit_form(f: &mut Frame, app: &App, area: Rect) {
     let block = Block::default()
         .borders(Borders::ALL)
         .border_style(Style::default().fg(Color::Cyan))
-        .title(" Edit & Forward (Enter: send, Esc: cancel, Tab: next field) ");
+        .title(" Edit & Forward (Enter: send, Shift+Enter: newline, Tab: next, Esc: cancel) ");
 
     let inner = block.inner(popup_area);
     f.render_widget(block, popup_area);
