@@ -302,7 +302,7 @@ msgstr "Backend port must be between 1 and 65535"
 msgid "Backend Scheme"
 msgstr "Backend Scheme"
 
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:99
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:93
 msgid "Batch"
 msgstr "Batch"
 
@@ -492,7 +492,7 @@ msgstr "Clear All"
 msgid "Clear all transactions"
 msgstr "Clear all transactions"
 
-#: src/pages/graphql-dashboard/ui/graphql-dashboard.tsx:122
+#: src/pages/graphql-dashboard/ui/graphql-dashboard.tsx:114
 msgid "Clear selection"
 msgstr "Clear selection"
 
@@ -515,7 +515,7 @@ msgstr "Clients without a valid certificate will be rejected"
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:370
 #: src/features/transaction-details/ui/sequence-replay-dialog.tsx:240
 #: src/features/transaction-details/ui/transaction-header.tsx:63
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:193
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:178
 #: src/widgets/sse-messages/ui/sse-message-detail.tsx:96
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:131
 msgid "Close"
@@ -753,8 +753,8 @@ msgstr "Download Speed (KB/s)"
 msgid "Drop"
 msgstr "Drop"
 
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:82
-#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:194
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:79
+#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:177
 msgid "Duration"
 msgstr "Duration"
 
@@ -810,11 +810,11 @@ msgstr "Enable full trust for the Cheolsu Proxy CA certificate"
 msgid "Enabled"
 msgstr "Enabled"
 
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:79
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:76
 msgid "Endpoint"
 msgstr "Endpoint"
 
-#: src/pages/graphql-dashboard/ui/graphql-dashboard.tsx:105
+#: src/pages/graphql-dashboard/ui/graphql-dashboard.tsx:97
 msgid "endpoints"
 msgstr "endpoints"
 
@@ -822,17 +822,17 @@ msgstr "endpoints"
 msgid "entries"
 msgstr "entries"
 
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:282
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:261
 msgid "error(s)"
 msgstr "error(s)"
 
 #: src/features/transaction-details/ui/transaction-validation.tsx:93
 #: src/pages/contract-testing/ui/contract-testing-page.tsx:162
-#: src/pages/graphql-dashboard/ui/graphql-dashboard.tsx:110
+#: src/pages/graphql-dashboard/ui/graphql-dashboard.tsx:102
 msgid "errors"
 msgstr "errors"
 
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:151
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:143
 msgid "Errors"
 msgstr "Errors"
 
@@ -984,7 +984,7 @@ msgstr "Go to <0>Settings → General → VPN & Device Management</0>"
 msgid "Go to <0>Settings → Security → Encryption & credentials</0>"
 msgstr "Go to <0>Settings → Security → Encryption & credentials</0>"
 
-#: src/pages/graphql-dashboard/ui/graphql-dashboard.tsx:98
+#: src/pages/graphql-dashboard/ui/graphql-dashboard.tsx:90
 #: src/shared/app-sidebar/model/consts.ts:48
 msgid "GraphQL"
 msgstr "GraphQL"
@@ -993,7 +993,7 @@ msgstr "GraphQL"
 msgid "GraphQL operations viewer"
 msgstr "GraphQL operations viewer"
 
-#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:182
+#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:165
 msgid "GraphQL 오퍼레이션을 기다리는 중..."
 msgstr "GraphQL 오퍼레이션을 기다리는 중..."
 
@@ -1397,7 +1397,7 @@ msgstr "Multiple conditions:"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:264
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:178
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:76
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:73
 msgid "Name"
 msgstr "Name"
 
@@ -1575,11 +1575,11 @@ msgstr "OpenAPI spec loaded"
 msgid "OpenAPI Specs"
 msgstr "OpenAPI Specs"
 
-#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:192
+#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:175
 msgid "Operation"
 msgstr "Operation"
 
-#: src/pages/graphql-dashboard/ui/graphql-dashboard.tsx:101
+#: src/pages/graphql-dashboard/ui/graphql-dashboard.tsx:93
 msgid "operations"
 msgstr "operations"
 
@@ -1734,7 +1734,7 @@ msgstr "proxy.company.com"
 msgid "Python Requests"
 msgstr "Python Requests"
 
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:138
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:130
 msgid "Query"
 msgstr "Query"
 
@@ -1921,7 +1921,7 @@ msgstr "Require certificate"
 #: src/features/transaction-details/ui/replay-dialog.tsx:387
 #: src/features/transaction-details/ui/transaction-body-side-by-side.tsx:24
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:301
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:146
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:138
 msgid "Response"
 msgstr "Response"
 
@@ -2335,8 +2335,8 @@ msgstr "Starts background server connection immediately after ClientHello detect
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:115
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:120
 #: src/shared/app-sidebar/ui/sidebar-status.tsx:39
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:92
-#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:193
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:86
+#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:176
 msgid "Status"
 msgstr "Status"
 
@@ -2425,8 +2425,8 @@ msgstr "Throttle"
 msgid "Throughput"
 msgstr "Throughput"
 
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:80
-#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:195
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:77
+#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:178
 #: src/widgets/sse-messages/ui/sse-message-detail.tsx:63
 #: src/widgets/sse-messages/ui/sse-message-table.tsx:148
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:63
@@ -2498,8 +2498,8 @@ msgid "Trusted"
 msgstr "Trusted"
 
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:229
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:72
-#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:191
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:69
+#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:174
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:59
 #: src/widgets/websocket-messages/ui/ws-message-table.tsx:201
 msgid "Type"
@@ -2609,7 +2609,7 @@ msgstr "Validation Report"
 msgid "Value"
 msgstr "Value"
 
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:141
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:133
 msgid "Variables"
 msgstr "Variables"
 

@@ -302,7 +302,7 @@ msgstr "백엔드 포트는 1~65535 사이여야 합니다"
 msgid "Backend Scheme"
 msgstr "백엔드 스킴"
 
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:99
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:93
 msgid "Batch"
 msgstr "배치"
 
@@ -492,7 +492,7 @@ msgstr "전체 삭제"
 msgid "Clear all transactions"
 msgstr "모든 트랜잭션 삭제"
 
-#: src/pages/graphql-dashboard/ui/graphql-dashboard.tsx:122
+#: src/pages/graphql-dashboard/ui/graphql-dashboard.tsx:114
 msgid "Clear selection"
 msgstr "선택 해제"
 
@@ -515,7 +515,7 @@ msgstr "유효한 인증서가 없는 클라이언트는 거부됩니다"
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:370
 #: src/features/transaction-details/ui/sequence-replay-dialog.tsx:240
 #: src/features/transaction-details/ui/transaction-header.tsx:63
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:193
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:178
 #: src/widgets/sse-messages/ui/sse-message-detail.tsx:96
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:131
 msgid "Close"
@@ -753,8 +753,8 @@ msgstr "다운로드 속도 (KB/s)"
 msgid "Drop"
 msgstr "드롭"
 
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:82
-#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:194
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:79
+#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:177
 msgid "Duration"
 msgstr "소요 시간"
 
@@ -810,11 +810,11 @@ msgstr "Cheolsu Proxy CA 인증서에 대한 완전 신뢰를 활성화하세요
 msgid "Enabled"
 msgstr "활성"
 
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:79
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:76
 msgid "Endpoint"
 msgstr "엔드포인트"
 
-#: src/pages/graphql-dashboard/ui/graphql-dashboard.tsx:105
+#: src/pages/graphql-dashboard/ui/graphql-dashboard.tsx:97
 msgid "endpoints"
 msgstr "엔드포인트"
 
@@ -822,17 +822,17 @@ msgstr "엔드포인트"
 msgid "entries"
 msgstr "개 엔트리"
 
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:282
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:261
 msgid "error(s)"
 msgstr "에러"
 
 #: src/features/transaction-details/ui/transaction-validation.tsx:93
 #: src/pages/contract-testing/ui/contract-testing-page.tsx:162
-#: src/pages/graphql-dashboard/ui/graphql-dashboard.tsx:110
+#: src/pages/graphql-dashboard/ui/graphql-dashboard.tsx:102
 msgid "errors"
 msgstr "오류"
 
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:151
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:143
 msgid "Errors"
 msgstr "에러"
 
@@ -984,7 +984,7 @@ msgstr "<0>설정 → 일반 → VPN 및 기기 관리</0>로 이동하세요"
 msgid "Go to <0>Settings → Security → Encryption & credentials</0>"
 msgstr "<0>설정 → 보안 → 암호화 및 자격증명</0>으로 이동하세요"
 
-#: src/pages/graphql-dashboard/ui/graphql-dashboard.tsx:98
+#: src/pages/graphql-dashboard/ui/graphql-dashboard.tsx:90
 #: src/shared/app-sidebar/model/consts.ts:48
 msgid "GraphQL"
 msgstr "GraphQL"
@@ -993,7 +993,7 @@ msgstr "GraphQL"
 msgid "GraphQL operations viewer"
 msgstr "GraphQL 오퍼레이션 뷰어"
 
-#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:182
+#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:165
 msgid "GraphQL 오퍼레이션을 기다리는 중..."
 msgstr "GraphQL 오퍼레이션을 기다리는 중..."
 
@@ -1397,7 +1397,7 @@ msgstr "복합 조건:"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:264
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:178
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:76
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:73
 msgid "Name"
 msgstr "이름"
 
@@ -1575,11 +1575,11 @@ msgstr "OpenAPI 스펙 로드 완료"
 msgid "OpenAPI Specs"
 msgstr "OpenAPI 스펙"
 
-#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:192
+#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:175
 msgid "Operation"
 msgstr "오퍼레이션"
 
-#: src/pages/graphql-dashboard/ui/graphql-dashboard.tsx:101
+#: src/pages/graphql-dashboard/ui/graphql-dashboard.tsx:93
 msgid "operations"
 msgstr "오퍼레이션"
 
@@ -1734,7 +1734,7 @@ msgstr "proxy.company.com"
 msgid "Python Requests"
 msgstr "Python Requests"
 
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:138
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:130
 msgid "Query"
 msgstr "쿼리"
 
@@ -1921,7 +1921,7 @@ msgstr "인증서 필수"
 #: src/features/transaction-details/ui/replay-dialog.tsx:387
 #: src/features/transaction-details/ui/transaction-body-side-by-side.tsx:24
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:301
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:146
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:138
 msgid "Response"
 msgstr "응답"
 
@@ -2335,8 +2335,8 @@ msgstr "ClientHello 감지 직후 백그라운드에서 서버 연결을 시작�
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:115
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:120
 #: src/shared/app-sidebar/ui/sidebar-status.tsx:39
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:92
-#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:193
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:86
+#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:176
 msgid "Status"
 msgstr "상태"
 
@@ -2425,8 +2425,8 @@ msgstr "스로틀"
 msgid "Throughput"
 msgstr "처리량"
 
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:80
-#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:195
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:77
+#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:178
 #: src/widgets/sse-messages/ui/sse-message-detail.tsx:63
 #: src/widgets/sse-messages/ui/sse-message-table.tsx:148
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:63
@@ -2498,8 +2498,8 @@ msgid "Trusted"
 msgstr "신뢰됨"
 
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:229
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:72
-#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:191
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:69
+#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:174
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:59
 #: src/widgets/websocket-messages/ui/ws-message-table.tsx:201
 msgid "Type"
@@ -2609,7 +2609,7 @@ msgstr "검증 리포트"
 msgid "Value"
 msgstr "값"
 
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:141
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:133
 msgid "Variables"
 msgstr "변수"
 
