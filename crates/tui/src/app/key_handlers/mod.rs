@@ -14,6 +14,12 @@ use crate::tabs::Tab;
 
 impl App {
     pub(crate) async fn handle_key(&mut self, key: KeyEvent) {
+        // If breakpoint edit form is open, handle form input
+        if self.bp_edit_form.is_some() {
+            self.handle_bp_edit_form_key(key).await;
+            return;
+        }
+
         // If breakpoint add form is open, handle form input
         if self.bp_add_form.is_some() {
             self.handle_bp_add_form_key(key).await;

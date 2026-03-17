@@ -3,7 +3,10 @@ use crossterm::event::{KeyCode, KeyEvent};
 
 use proxy_daemon::BreakpointAction;
 
-use crate::app::{App, BreakpointAddForm, BreakpointFocus, BreakpointFormField};
+use crate::app::{
+    App, BreakpointAddForm, BreakpointEditField, BreakpointEditForm, BreakpointFocus,
+    BreakpointFormField,
+};
 
 impl App {
     pub(in crate::app) async fn handle_breakpoint_key(&mut self, key: KeyEvent) {
@@ -98,6 +101,13 @@ impl App {
             KeyCode::Char('b') if self.bp_focus == BreakpointFocus::Pending => {
                 self.send_breakpoint_resolve(BreakpointAction::Abort).await;
             }
+            KeyCode::Char('e') if self.bp_focus == BreakpointFocus::Pending => {
+                if let Some(idx) = self.selected_pending_bp {
+                    if let Some(bp) = self.pending_breakpoints.get(idx) {
+                        self.bp_edit_form = Some(BreakpointEditForm::from_pending(bp));
+                    }
+                }
+            }
             _ => {}
         }
     }
@@ -159,6 +169,104 @@ impl App {
                         form.break_on_response = !form.break_on_response;
                     }
                 }
+            },
+        }
+    }
+
+    pub(in crate::app) async fn handle_bp_edit_form_key(&mut self, key: KeyEvent) {
+        let Some(form) = self.bp_edit_form.as_mut() else {
+            return;
+        };
+
+        match key.code {
+            KeyCode::Esc => {
+                self.bp_edit_form = None;
+            }
+            KeyCode::Tab => {
+                form.field = match form.field {
+                    BreakpointEditField::Headers => BreakpointEditField::Body,
+                    BreakpointEditField::Body => {
+                        if form.phase == proxy_daemon::BreakpointPhase::Response {
+                            BreakpointEditField::Status
+                        } else {
+                            BreakpointEditField::Headers
+                        }
+                    }
+                    BreakpointEditField::Status => BreakpointEditField::Headers,
+                };
+            }
+            KeyCode::Enter => {
+                let headers = form.parse_headers();
+                let body = if form.body.is_empty() {
+                    None
+                } else {
+                    Some(form.body.clone())
+                };
+                let status = if form.status.is_empty() {
+                    None
+                } else {
+                    match form.status.parse::<u16>() {
+                        Ok(s) if (100..=599).contains(&s) => Some(s),
+                        _ => {
+                            self.set_status("Invalid status code (100-599)");
+                            return;
+                        }
+                    }
+                };
+
+                let action = BreakpointAction::ModifyAndForward {
+                    headers: if headers.is_empty() {
+                        None
+                    } else {
+                        Some(headers)
+                    },
+                    body,
+                    status,
+                };
+
+                // bp_edit_form에서 bp_id를 꺼내서 직접 resolve
+                let bp_id = form.bp_id.clone();
+                self.bp_edit_form = None;
+
+                if let Some(pos) = self.pending_breakpoints.iter().position(|b| b.id == bp_id) {
+                    if let Some(conn) = &self.conn {
+                        let cmd =
+                            proxy_daemon::ClientCommand::ResolveBreakpoint { id: bp_id, action };
+                        let _ = conn.send_command(&cmd).await;
+                    }
+                    self.pending_breakpoints.remove(pos);
+                    if self.pending_breakpoints.is_empty() {
+                        self.selected_pending_bp = None;
+                    } else if pos >= self.pending_breakpoints.len() {
+                        self.selected_pending_bp = Some(self.pending_breakpoints.len() - 1);
+                    }
+                    self.set_status("Breakpoint modified & forwarded");
+                } else {
+                    self.set_status("Breakpoint is no longer pending");
+                }
+            }
+            _ => match form.field {
+                BreakpointEditField::Headers => match key.code {
+                    KeyCode::Char(c) => form.headers_text.push(c),
+                    KeyCode::Backspace => {
+                        form.headers_text.pop();
+                    }
+                    _ => {}
+                },
+                BreakpointEditField::Body => match key.code {
+                    KeyCode::Char(c) => form.body.push(c),
+                    KeyCode::Backspace => {
+                        form.body.pop();
+                    }
+                    _ => {}
+                },
+                BreakpointEditField::Status => match key.code {
+                    KeyCode::Char(c) if c.is_ascii_digit() => form.status.push(c),
+                    KeyCode::Backspace => {
+                        form.status.pop();
+                    }
+                    _ => {}
+                },
             },
         }
     }
