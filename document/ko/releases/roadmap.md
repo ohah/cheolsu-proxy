@@ -27,6 +27,12 @@ Cheolsu Proxy의 향후 지원 예정 기능들을 확인할 수 있습니다.
 - **트래픽 비교 (Diff)**: 헤더/바디/JSON 구조적 diff
 - **모바일 CA 인증서 배포**: 웹 기반 인증서 다운로드 페이지, iOS/Android 설치 가이드
 - **클라이언트 트래픽 분리**: IP 태깅, 사용자 태그/라벨, Basic Auth 사용자명 추출, 필터링
+- **네트워크 스로틀링**: GPRS/3G/LTE/WiFi 프리셋, 커스텀 대역폭/지연 시간 설정
+- **Server-Sent Events**: SSE 스트림 캡처, 이벤트 파싱, 스크립팅 연동
+- **GraphQL 분석**: 작업 타입/이름 자동 감지, 배치 쿼리, 에러 추적
+- **트래픽 분석 (Analytics)**: 느린 요청, 에러율, N+1 감지, 중복 요청, CORS/Mixed Content 경고
+- **Contract Testing**: OpenAPI 스펙 기반 실시간 검증
+- **Reverse Proxy**: Host 헤더 기반 백엔드 라우팅
 
 ### 추후 지원 예정 기능
 
@@ -34,7 +40,6 @@ Cheolsu Proxy의 향후 지원 예정 기능들을 확인할 수 있습니다.
   - Windows 지원
 
 - **프록시 모드**:
-  - Reverse Proxy
   - Transparent Proxy
 
 - **확장 기능**:

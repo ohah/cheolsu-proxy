@@ -118,6 +118,42 @@ export default defineConfig({
               text: "TLS 지원",
               link: "/features/tls-support",
             },
+            {
+              text: "Breakpoint",
+              link: "/features/breakpoint",
+            },
+            {
+              text: "네트워크 스로틀링",
+              link: "/features/network-throttling",
+            },
+            {
+              text: "Server-Sent Events",
+              link: "/features/sse",
+            },
+            {
+              text: "GraphQL",
+              link: "/features/graphql",
+            },
+            {
+              text: "Host Mapping",
+              link: "/features/host-mapping",
+            },
+            {
+              text: "Reverse Proxy",
+              link: "/features/reverse-proxy",
+            },
+            {
+              text: "Traffic Diff",
+              link: "/features/traffic-diff",
+            },
+            {
+              text: "트래픽 분석",
+              link: "/features/analytics",
+            },
+            {
+              text: "Contract Testing",
+              link: "/features/contract-testing",
+            },
           ],
         },
       ],
@@ -152,6 +188,42 @@ export default defineConfig({
             {
               text: "TLS Support",
               link: "/en/features/tls-support",
+            },
+            {
+              text: "Breakpoint",
+              link: "/en/features/breakpoint",
+            },
+            {
+              text: "Network Throttling",
+              link: "/en/features/network-throttling",
+            },
+            {
+              text: "Server-Sent Events",
+              link: "/en/features/sse",
+            },
+            {
+              text: "GraphQL",
+              link: "/en/features/graphql",
+            },
+            {
+              text: "Host Mapping",
+              link: "/en/features/host-mapping",
+            },
+            {
+              text: "Reverse Proxy",
+              link: "/en/features/reverse-proxy",
+            },
+            {
+              text: "Traffic Diff",
+              link: "/en/features/traffic-diff",
+            },
+            {
+              text: "Traffic Analytics",
+              link: "/en/features/analytics",
+            },
+            {
+              text: "Contract Testing",
+              link: "/en/features/contract-testing",
             },
           ],
         },

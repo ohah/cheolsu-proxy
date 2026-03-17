@@ -26,6 +26,12 @@ Check the upcoming features planned for Cheolsu Proxy.
 - **Protobuf Decoding**: Wire type based auto-decoding, gRPC Content-Type detection
 - **Traffic Diff**: Header/body/JSON structural diff
 - **Mobile CA Certificate Distribution**: Web-based certificate download page, iOS/Android installation guide
+- **Network Throttling**: GPRS/3G/LTE/WiFi presets, custom bandwidth/latency settings
+- **Server-Sent Events**: SSE stream capture, event parsing, scripting integration
+- **GraphQL Analysis**: Auto-detection of operation type/name, batch queries, error tracking
+- **Traffic Analytics**: Slow requests, error rate, N+1 detection, duplicate requests, CORS/Mixed Content warnings
+- **Contract Testing**: Real-time validation against OpenAPI specs
+- **Reverse Proxy**: Host header based backend routing
 
 ### Planned Features
 
@@ -33,7 +39,6 @@ Check the upcoming features planned for Cheolsu Proxy.
   - Windows support
 
 - **Proxy Modes**:
-  - Reverse Proxy
   - Transparent Proxy
 
 - **Extension Features**:
