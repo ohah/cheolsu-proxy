@@ -437,7 +437,8 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bo
         }
         ClientCommand::GetTlsConfigRules => {
             if let Some(tls_config) = &s.tls_config {
-                let rules = tls_config.rules().to_vec();
+                let guard = tls_config.read().await;
+                let rules = guard.rules().to_vec();
                 let response = DaemonMessage::TlsConfigRules { rules };
                 ctx.send_message(&response).await;
             } else {
@@ -448,13 +449,17 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bo
         ClientCommand::UpdateTlsConfigRules { rules } => {
             info!("TLS config rules updated: {} rules", rules.len());
             if let Some(tls_config) = &s.tls_config {
-                // SharedTlsConfig은 Arc<TlsConfigManager>이므로 직접 수정 불가
-                // 새 매니저를 생성하여 교체하는 방식 대신, 현재는 로그만 남김
-                // TODO: Arc<RwLock<TlsConfigManager>>로 변경하면 런타임 수정 가능
-                warn!(
-                    "TLS config rules update requested but SharedTlsConfig is immutable (Arc). {} rules received, current: {} rules",
-                    rules.len(),
-                    tls_config.rules().len()
+                let mut guard = tls_config.write().await;
+                // 기존 규칙을 모두 제거하고 새 규칙으로 교체
+                let old_count = guard.rules().len();
+                *guard = proxyapi_v2::tls_config::TlsConfigManager::new();
+                for rule in &rules {
+                    guard.add_rule(rule.clone());
+                }
+                info!(
+                    "TLS config rules replaced: {} -> {} rules",
+                    old_count,
+                    guard.rules().len()
                 );
             }
             let response = DaemonMessage::TlsConfigRules { rules };

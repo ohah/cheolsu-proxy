@@ -84,12 +84,17 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
     }
 
     /// TLS 처리 전략을 결정합니다
-    fn determine_tls_strategy(
+    async fn determine_tls_strategy(
         &self,
         authority: &Authority,
         tls_info: &TlsConnectionInfo,
     ) -> TlsStrategy {
-        determine_tls_strategy(authority, tls_info, self.tls_config.as_deref())
+        if let Some(config) = &self.tls_config {
+            let guard = config.read().await;
+            determine_tls_strategy(authority, tls_info, Some(&guard))
+        } else {
+            determine_tls_strategy(authority, tls_info, None)
+        }
     }
 
     /// TLS 버전을 감지하고 적절한 TLS 핸들러를 선택합니다 (Upgraded 스트림 전용)
@@ -119,7 +124,7 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
 
         // 2단계: 전략 선택 (학습된 전략 우선)
         let host = authority.host();
-        let analyzed_strategy = self.determine_tls_strategy(authority, &tls_info);
+        let analyzed_strategy = self.determine_tls_strategy(authority, &tls_info).await;
         let learned = self.get_learned_strategy(host).await;
         let strategy = if let Some(learned_strategy) = learned {
             if learned_strategy != analyzed_strategy {

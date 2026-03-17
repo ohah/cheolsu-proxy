@@ -53,7 +53,8 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
         let mut ssl = openssl::ssl::Ssl::new(&ctx)?;
 
         // 개선된 SSL 설정
-        self.configure_ssl_for_connection(&mut ssl, &tls_info, authority)?;
+        self.configure_ssl_for_connection(&mut ssl, &tls_info, authority)
+            .await?;
 
         let mut stream = SslStream::new(ssl, upgraded)?;
 
@@ -64,7 +65,8 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
 
         // 도메인별 핸드셰이크 타임아웃 설정
         let timeout_secs = if let Some(ref tls_config) = self.tls_config {
-            tls_config.handshake_timeout(authority.host()).unwrap_or(10)
+            let guard = tls_config.read().await;
+            guard.handshake_timeout(authority.host()).unwrap_or(10)
         } else if authority.as_str().contains("apple.com")
             || authority.as_str().contains("icloud.com")
         {
@@ -117,7 +119,7 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
 
     /// SSL 객체를 연결 특성에 맞게 설정합니다
     #[cfg(feature = "openssl-ca")]
-    pub(super) fn configure_ssl_for_connection(
+    pub(super) async fn configure_ssl_for_connection(
         &self,
         ssl: &mut openssl::ssl::Ssl,
         tls_info: &TlsConnectionInfo,
@@ -127,7 +129,8 @@ impl<CA: CertificateAuthority> HybridTlsHandler<CA> {
 
         // TlsConfigManager가 있으면 규칙 기반 설정, 없으면 기존 하드코딩 동작
         if let Some(ref tls_config) = self.tls_config {
-            let resolved = tls_config.resolve(authority.host());
+            let guard = tls_config.read().await;
+            let resolved = guard.resolve(authority.host());
             let client_cfg = &resolved.client_config;
 
             // 클라이언트가 요청한 TLS 버전에 맞춰 설정 (클라이언트 요청 버전을 존중)
