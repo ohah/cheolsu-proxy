@@ -35,6 +35,11 @@ pub fn draw(f: &mut Frame, app: &mut App) {
     if app.bp_add_form.is_some() {
         breakpoint::draw_bp_add_form(f, app, f.area());
     }
+
+    // Draw breakpoint edit form overlay if open
+    if app.bp_edit_form.is_some() {
+        breakpoint::draw_bp_edit_form(f, app, f.area());
+    }
 }
 
 fn draw_tabs(f: &mut Frame, app: &App, area: Rect) {
@@ -100,7 +105,7 @@ fn draw_status_bar(f: &mut Frame, app: &App, area: Rect) {
         Tab::WebSocket => "  j/k: nav | y: copy URI | Y: copy msgs | c: clear",
         Tab::InterceptRules => "  j/k: nav | a: add | t: toggle | d: delete | C: clear all",
         Tab::Script => "  l: load | u: unload | r: reload | c: clear | j/k: scroll",
-        Tab::Breakpoint => "  a: add | t: toggle | d: del | f: fwd | x: drop | b: abort",
+        Tab::Breakpoint => "  a: add | t: toggle | d: del | e: edit | f: fwd | x: drop | b: abort",
         Tab::Settings => "  j/k: nav | Enter/Space: toggle/edit | Esc: cancel",
         Tab::Logs => "  j/k: scroll | h/l: file | /: filter | r: refresh | C: clear",
     };

@@ -2,7 +2,7 @@ use proxy_daemon::BreakpointPhase;
 use ratatui::prelude::*;
 use ratatui::widgets::*;
 
-use crate::app::{App, BreakpointFocus, BreakpointFormField};
+use crate::app::{App, BreakpointEditField, BreakpointFocus, BreakpointFormField};
 
 pub fn draw(f: &mut Frame, app: &mut App, area: Rect) {
     let chunks = Layout::default()
@@ -179,7 +179,7 @@ fn draw_pending_panel(f: &mut Frame, app: &mut App, area: Rect) {
             .border_style(Style::default().fg(border_color))
             .title(format!(" Pending ({}) ", app.pending_breakpoints.len()))
             .title_bottom(
-                Line::from(" f: forward | x: drop | b: abort ")
+                Line::from(" e: edit | f: forward | x: drop | b: abort ")
                     .style(Style::default().fg(Color::Cyan)),
             ),
     );
@@ -272,6 +272,102 @@ pub fn draw_bp_add_form(f: &mut Frame, app: &App, area: Rect) {
             .title(" Break on Response "),
     );
     f.render_widget(res, chunks[2]);
+}
+
+pub fn draw_bp_edit_form(f: &mut Frame, app: &App, area: Rect) {
+    let form = match &app.bp_edit_form {
+        Some(form) => form,
+        None => return,
+    };
+
+    let is_response = form.phase == BreakpointPhase::Response;
+    let popup_area = centered_rect(70, 70, area);
+    f.render_widget(Clear, popup_area);
+
+    let block = Block::default()
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(Color::Cyan))
+        .title(" Edit & Forward (Enter: send, Esc: cancel, Tab: next field) ");
+
+    let inner = block.inner(popup_area);
+    f.render_widget(block, popup_area);
+
+    let mut constraints = vec![
+        Constraint::Length(8), // Headers
+        Constraint::Length(6), // Body
+    ];
+    if is_response {
+        constraints.push(Constraint::Length(3)); // Status
+    }
+    constraints.push(Constraint::Min(0)); // Spacer
+
+    let chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints(constraints)
+        .split(inner);
+
+    // Headers
+    let headers_border = if form.field == BreakpointEditField::Headers {
+        Style::default().fg(Color::Cyan)
+    } else {
+        Style::default().fg(Color::Gray)
+    };
+    let headers_display = if form.field == BreakpointEditField::Headers {
+        format!("{}|", form.headers_text)
+    } else {
+        form.headers_text.clone()
+    };
+    let headers = Paragraph::new(headers_display)
+        .wrap(Wrap { trim: false })
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .border_style(headers_border)
+                .title(" Headers (key: value per line) "),
+        );
+    f.render_widget(headers, chunks[0]);
+
+    // Body
+    let body_border = if form.field == BreakpointEditField::Body {
+        Style::default().fg(Color::Cyan)
+    } else {
+        Style::default().fg(Color::Gray)
+    };
+    let body_display = if form.field == BreakpointEditField::Body {
+        format!("{}|", form.body)
+    } else {
+        form.body.clone()
+    };
+    let body = Paragraph::new(body_display)
+        .wrap(Wrap { trim: false })
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .border_style(body_border)
+                .title(" Body "),
+        );
+    f.render_widget(body, chunks[1]);
+
+    // Status (response only)
+    if is_response {
+        let status_border = if form.field == BreakpointEditField::Status {
+            Style::default().fg(Color::Cyan)
+        } else {
+            Style::default().fg(Color::Gray)
+        };
+        let status_display = if form.field == BreakpointEditField::Status {
+            format!("{}|", form.status)
+        } else {
+            form.status.clone()
+        };
+        let status = Paragraph::new(status_display).block(
+            Block::default()
+                .borders(Borders::ALL)
+                .border_style(status_border)
+                .title(" Status Code "),
+        );
+        f.render_widget(status, chunks[2]);
+    }
 }
 
 fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {

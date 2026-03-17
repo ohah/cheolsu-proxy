@@ -70,6 +70,57 @@ impl BreakpointAddForm {
     }
 }
 
+/// Breakpoint 수정 후 전달 폼
+#[derive(Debug, Clone)]
+pub struct BreakpointEditForm {
+    pub bp_id: String,
+    pub phase: BreakpointPhase,
+    pub headers_text: String,
+    pub body: String,
+    pub status: String,
+    pub field: BreakpointEditField,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum BreakpointEditField {
+    Headers,
+    Body,
+    Status,
+}
+
+impl BreakpointEditForm {
+    pub fn from_pending(entry: &PendingBreakpointEntry) -> Self {
+        let headers_text = entry
+            .data
+            .headers
+            .iter()
+            .map(|(k, v)| format!("{}: {}", k, v))
+            .collect::<Vec<_>>()
+            .join("\n");
+        Self {
+            bp_id: entry.id.clone(),
+            phase: entry.phase.clone(),
+            headers_text,
+            body: entry.data.body.clone().unwrap_or_default(),
+            status: entry.data.status.map(|s| s.to_string()).unwrap_or_default(),
+            field: BreakpointEditField::Headers,
+        }
+    }
+
+    pub fn parse_headers(&self) -> std::collections::HashMap<String, String> {
+        let mut map = std::collections::HashMap::new();
+        for line in self.headers_text.lines() {
+            if let Some((k, v)) = line.split_once(':') {
+                let k = k.trim();
+                if !k.is_empty() {
+                    map.insert(k.to_string(), v.trim().to_string());
+                }
+            }
+        }
+        map
+    }
+}
+
 /// 로그 파일 엔트리 (TUI 표시용)
 #[derive(Debug, Clone)]
 pub struct LogFileEntry {
@@ -120,6 +171,7 @@ pub struct App {
     pub bp_pending_table_state: TableState,
     pub bp_focus: BreakpointFocus,
     pub bp_add_form: Option<BreakpointAddForm>,
+    pub bp_edit_form: Option<BreakpointEditForm>,
 
     // Table states (for scroll)
     pub network_table_state: TableState,
@@ -232,6 +284,7 @@ impl App {
             bp_pending_table_state: TableState::default(),
             bp_focus: BreakpointFocus::Rules,
             bp_add_form: None,
+            bp_edit_form: None,
             network_table_state: TableState::default(),
             ws_conn_table_state: TableState::default(),
             rules_table_state: TableState::default(),
