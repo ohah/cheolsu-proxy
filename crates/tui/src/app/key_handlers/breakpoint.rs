@@ -1,5 +1,5 @@
 /// Breakpoint 탭 키 핸들러
-use crossterm::event::{KeyCode, KeyEvent};
+use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
 use proxy_daemon::BreakpointAction;
 
@@ -177,6 +177,16 @@ impl App {
         let Some(form) = self.bp_edit_form.as_mut() else {
             return;
         };
+
+        // Shift+Enter: 현재 필드에 개행 삽입
+        if key.code == KeyCode::Enter && key.modifiers.contains(KeyModifiers::SHIFT) {
+            match form.field {
+                BreakpointEditField::Headers => form.headers_text.push('\n'),
+                BreakpointEditField::Body => form.body.push('\n'),
+                BreakpointEditField::Status => {}
+            }
+            return;
+        }
 
         match key.code {
             KeyCode::Esc => {
