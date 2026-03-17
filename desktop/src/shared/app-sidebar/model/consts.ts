@@ -13,6 +13,7 @@ import {
   Globe,
   ScrollText,
   ArrowLeftRight,
+  BarChart3,
 } from "lucide-react";
 import { msg } from "@lingui/core/macro";
 
@@ -104,6 +105,13 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
     label: msg`Contract Testing`,
     icon: FileCheck,
     description: msg`Validate API responses against OpenAPI specs`,
+  },
+  {
+    id: "analytics",
+    path: "/analytics",
+    label: msg`Traffic Analysis`,
+    icon: BarChart3,
+    description: msg`Analyze traffic patterns and performance`,
   },
   {
     id: "settings",
