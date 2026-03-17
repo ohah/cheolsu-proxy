@@ -1,0 +1,1 @@
+export { GrpcDashboard } from "./ui";

@@ -255,7 +255,7 @@ msgstr "모든 리버스 프록시 규칙이 삭제되었습니다"
 msgid "All rules cleared"
 msgstr "모든 규칙이 삭제되었습니다"
 
-#: src/shared/app-sidebar/model/consts.ts:114
+#: src/shared/app-sidebar/model/consts.ts:122
 msgid "Analyze traffic patterns and performance"
 msgstr "트래픽 패턴 및 성능 분석"
 
@@ -382,7 +382,7 @@ msgid "Breakpoint rule added"
 msgstr "Breakpoint 규칙이 추가되었습니다"
 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:195
-#: src/shared/app-sidebar/model/consts.ts:77
+#: src/shared/app-sidebar/model/consts.ts:85
 msgid "Breakpoints"
 msgstr "Breakpoints"
 
@@ -427,6 +427,10 @@ msgstr "CA 인증서 파일 (선택사항)"
 #: src/pages/settings/ui/components/custom-ca-section.tsx:230
 msgid "CA Key File"
 msgstr "CA 키 파일"
+
+#: src/pages/grpc-dashboard/ui/grpc-dashboard.tsx:88
+msgid "calls"
+msgstr "호출"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:599
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:255
@@ -525,6 +529,7 @@ msgid "Clear all transactions"
 msgstr "모든 트랜잭션 삭제"
 
 #: src/pages/graphql-dashboard/ui/graphql-dashboard.tsx:114
+#: src/pages/grpc-dashboard/ui/grpc-dashboard.tsx:109
 msgid "Clear selection"
 msgstr "선택 해제"
 
@@ -553,6 +558,7 @@ msgstr "유효한 인증서가 없는 클라이언트는 거부됩니다"
 #: src/features/transaction-details/ui/sequence-replay-dialog.tsx:240
 #: src/features/transaction-details/ui/transaction-header.tsx:63
 #: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:178
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:120
 #: src/widgets/sse-messages/ui/sse-message-detail.tsx:96
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:131
 msgid "Close"
@@ -629,7 +635,7 @@ msgid "Console"
 msgstr "콘솔"
 
 #: src/pages/contract-testing/ui/contract-testing-page.tsx:86
-#: src/shared/app-sidebar/model/consts.ts:105
+#: src/shared/app-sidebar/model/consts.ts:113
 msgid "Contract Testing"
 msgstr "API 검증"
 
@@ -826,6 +832,8 @@ msgstr "중복 요청"
 #: src/pages/analytics-dashboard/ui/performance-tab.tsx:48
 #: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:79
 #: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:177
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:58
+#: src/widgets/grpc-calls/ui/grpc-call-table.tsx:171
 msgid "Duration"
 msgstr "소요 시간"
 
@@ -881,7 +889,12 @@ msgstr "Cheolsu Proxy CA 인증서에 대한 완전 신뢰를 활성화하세요
 msgid "Enabled"
 msgstr "활성"
 
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:76
+msgid "Encoding"
+msgstr ""
+
 #: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:76
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:55
 msgid "Endpoint"
 msgstr "엔드포인트"
 
@@ -915,6 +928,7 @@ msgstr "에러"
 #: src/features/transaction-details/ui/transaction-validation.tsx:93
 #: src/pages/contract-testing/ui/contract-testing-page.tsx:162
 #: src/pages/graphql-dashboard/ui/graphql-dashboard.tsx:102
+#: src/pages/grpc-dashboard/ui/grpc-dashboard.tsx:97
 msgid "errors"
 msgstr "오류"
 
@@ -1085,11 +1099,11 @@ msgid "Go to <0>Settings → Security → Encryption & credentials</0>"
 msgstr "<0>설정 → 보안 → 암호화 및 자격증명</0>으로 이동하세요"
 
 #: src/pages/graphql-dashboard/ui/graphql-dashboard.tsx:90
-#: src/shared/app-sidebar/model/consts.ts:49
+#: src/shared/app-sidebar/model/consts.ts:50
 msgid "GraphQL"
 msgstr "GraphQL"
 
-#: src/shared/app-sidebar/model/consts.ts:51
+#: src/shared/app-sidebar/model/consts.ts:52
 msgid "GraphQL operations viewer"
 msgstr "GraphQL 오퍼레이션 뷰어"
 
@@ -1097,9 +1111,26 @@ msgstr "GraphQL 오퍼레이션 뷰어"
 msgid "GraphQL 오퍼레이션을 기다리는 중..."
 msgstr "GraphQL 오퍼레이션을 기다리는 중..."
 
+#: src/pages/grpc-dashboard/ui/grpc-dashboard.tsx:85
+#: src/shared/app-sidebar/model/consts.ts:57
+msgid "gRPC"
+msgstr "gRPC"
+
+#: src/shared/app-sidebar/model/consts.ts:59
+msgid "gRPC calls and service methods"
+msgstr "gRPC 호출 및 서비스 메서드"
+
 #: src/pages/settings/ui/components/proto-files-section.tsx:65
 msgid "gRPC Proto Files"
 msgstr "gRPC Proto 파일"
+
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:64
+msgid "gRPC Status"
+msgstr ""
+
+#: src/widgets/grpc-calls/ui/grpc-call-table.tsx:160
+msgid "gRPC 호출을 기다리는 중..."
+msgstr ""
 
 #: src/pages/network-dashboard/ui/network-dashboard.tsx:165
 msgid "HAR export failed"
@@ -1151,7 +1182,7 @@ msgid "Host"
 msgstr "호스트"
 
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:150
-#: src/shared/app-sidebar/model/consts.ts:84
+#: src/shared/app-sidebar/model/consts.ts:92
 msgid "Host Mapping"
 msgstr "호스트 매핑"
 
@@ -1171,9 +1202,13 @@ msgstr "호스트 트리"
 msgid "HTTP connection (no TLS)"
 msgstr "HTTP 연결 (TLS 없음)"
 
-#: src/shared/app-sidebar/model/consts.ts:30
+#: src/shared/app-sidebar/model/consts.ts:31
 msgid "HTTP requests and responses"
 msgstr "HTTP 요청 및 응답"
+
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:73
+msgid "HTTP Status"
+msgstr ""
 
 #: src/widgets/network-table/ui/table-row.tsx:190
 msgid "HTTPie"
@@ -1239,7 +1274,7 @@ msgid "Installing..."
 msgstr "설치 중..."
 
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:73
-#: src/shared/app-sidebar/model/consts.ts:56
+#: src/shared/app-sidebar/model/consts.ts:64
 msgid "Intercept Rules"
 msgstr "인터셉트 규칙"
 
@@ -1333,7 +1368,7 @@ msgstr "디스크에서 스크립트 파일을 로드합니다. 파일 변경 �
 msgid "Load an OpenAPI spec to enable contract testing"
 msgstr "API 검증을 사용하려면 OpenAPI 스펙을 로드하세요"
 
-#: src/shared/app-sidebar/model/consts.ts:100
+#: src/shared/app-sidebar/model/consts.ts:108
 msgid "Load and manage proxy scripts"
 msgstr "프록시 스크립트 로드 및 관리"
 
@@ -1378,11 +1413,11 @@ msgid "Logical OR:"
 msgstr "논리 OR:"
 
 #: src/pages/log-viewer/ui/logs-page.tsx:240
-#: src/shared/app-sidebar/model/consts.ts:126
+#: src/shared/app-sidebar/model/consts.ts:134
 msgid "Logs"
 msgstr "로그"
 
-#: src/shared/app-sidebar/model/consts.ts:58
+#: src/shared/app-sidebar/model/consts.ts:66
 msgid "Manage request/response intercept rules"
 msgstr "요청/응답 인터셉트 규칙 관리"
 
@@ -1394,7 +1429,7 @@ msgstr "와일드카드 기반 요청/응답 인터셉트 규칙 관리"
 msgid "Map DNS hostnames to different target hosts for testing and development"
 msgstr "테스트 및 개발을 위해 DNS 호스트명을 다른 대상 호스트로 매핑"
 
-#: src/shared/app-sidebar/model/consts.ts:86
+#: src/shared/app-sidebar/model/consts.ts:94
 msgid "Map DNS hostnames to different targets"
 msgstr "DNS 호스트명을 다른 대상으로 매핑"
 
@@ -1405,7 +1440,7 @@ msgstr "DNS 호스트명을 다른 대상으로 매핑"
 msgid "Map Local"
 msgstr "로컬 매핑"
 
-#: src/shared/app-sidebar/model/consts.ts:65
+#: src/shared/app-sidebar/model/consts.ts:73
 msgid "Map Local / Map Remote rules"
 msgstr "로컬 매핑 / 원격 매핑 규칙"
 
@@ -1425,7 +1460,7 @@ msgid "Map Remote"
 msgstr "원격 매핑"
 
 #: src/pages/map-rules/ui/map-rules-page.tsx:60
-#: src/shared/app-sidebar/model/consts.ts:63
+#: src/shared/app-sidebar/model/consts.ts:71
 msgid "Map Rules"
 msgstr "맵 규칙"
 
@@ -1491,6 +1526,8 @@ msgstr "메시지"
 #: src/pages/analytics-dashboard/ui/misc-tab.tsx:39
 #: src/pages/analytics-dashboard/ui/misc-tab.tsx:132
 #: src/pages/analytics-dashboard/ui/performance-tab.tsx:44
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:53
+#: src/widgets/grpc-calls/ui/grpc-call-table.tsx:170
 msgid "Method"
 msgstr "메서드"
 
@@ -1553,7 +1590,7 @@ msgid "Negotiated ALPN"
 msgstr "협상된 ALPN"
 
 #: src/pages/settings/ui/settings-page.tsx:115
-#: src/shared/app-sidebar/model/consts.ts:28
+#: src/shared/app-sidebar/model/consts.ts:29
 msgid "Network"
 msgstr "네트워크"
 
@@ -1854,7 +1891,7 @@ msgstr "패턴은 필수입니다"
 msgid "Pause and inspect HTTP requests/responses in real-time"
 msgstr "실시간으로 HTTP 요청/응답을 일시 정지하고 검사"
 
-#: src/shared/app-sidebar/model/consts.ts:79
+#: src/shared/app-sidebar/model/consts.ts:87
 msgid "Pause and inspect requests/responses"
 msgstr "요청/응답 일시 정지 및 검사"
 
@@ -1967,7 +2004,7 @@ msgstr "프록시 설정 및 환경설정"
 msgid "Proxy Port"
 msgstr "프록시 포트"
 
-#: src/shared/app-sidebar/model/consts.ts:121
+#: src/shared/app-sidebar/model/consts.ts:129
 msgid "Proxy settings and configuration"
 msgstr "프록시 설정 및 구성"
 
@@ -2101,6 +2138,7 @@ msgstr "요청 리플레이"
 #: src/features/transaction-details/ui/replay-dialog.tsx:373
 #: src/features/transaction-details/ui/transaction-body-side-by-side.tsx:16
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:296
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:79
 msgid "Request"
 msgstr "요청"
 
@@ -2176,6 +2214,7 @@ msgstr "인증서 필수"
 #: src/features/transaction-details/ui/transaction-body-side-by-side.tsx:24
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:301
 #: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:138
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:83
 msgid "Response"
 msgstr "응답"
 
@@ -2235,7 +2274,7 @@ msgstr "기록 재개"
 msgid "Retry"
 msgstr "재시도"
 
-#: src/shared/app-sidebar/model/consts.ts:72
+#: src/shared/app-sidebar/model/consts.ts:80
 msgid "Return cached responses for matching requests"
 msgstr "매칭되는 요청에 캐시된 응답 반환"
 
@@ -2244,7 +2283,7 @@ msgid "Return cached responses for matching requests instead of forwarding to th
 msgstr "서버로 전달하지 않고 매칭되는 요청에 캐시된 응답을 반환합니다"
 
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:152
-#: src/shared/app-sidebar/model/consts.ts:91
+#: src/shared/app-sidebar/model/consts.ts:99
 msgid "Reverse Proxy"
 msgstr "리버스 프록시"
 
@@ -2279,7 +2318,7 @@ msgstr "오른쪽"
 msgid "Route incoming requests to backend servers based on Host header matching"
 msgstr "Host 헤더 매칭을 기반으로 수신 요청을 백엔드 서버에 전달"
 
-#: src/shared/app-sidebar/model/consts.ts:93
+#: src/shared/app-sidebar/model/consts.ts:101
 msgid "Route requests to backend servers by Host header"
 msgstr "Host 헤더 기반으로 백엔드 서버에 요청 전달"
 
@@ -2356,7 +2395,7 @@ msgid "Scan for proxy info"
 msgstr "프록시 정보 스캔"
 
 #: src/pages/script/ui/script-page.tsx:162
-#: src/shared/app-sidebar/model/consts.ts:98
+#: src/shared/app-sidebar/model/consts.ts:106
 msgid "Script"
 msgstr "스크립트"
 
@@ -2486,13 +2525,21 @@ msgid "Serial Number"
 msgstr "시리얼 번호"
 
 #: src/pages/server-replay/ui/server-replay-page.tsx:84
-#: src/shared/app-sidebar/model/consts.ts:70
+#: src/shared/app-sidebar/model/consts.ts:78
 msgid "Server Replay"
 msgstr "서버 리플레이"
 
-#: src/shared/app-sidebar/model/consts.ts:44
+#: src/shared/app-sidebar/model/consts.ts:45
 msgid "Server-Sent Events streams"
 msgstr "Server-Sent Events 스트림"
+
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:50
+msgid "Service"
+msgstr ""
+
+#: src/pages/grpc-dashboard/ui/grpc-dashboard.tsx:92
+msgid "services"
+msgstr "서비스"
 
 #: src/pages/network-dashboard/ui/network-dashboard.tsx:231
 msgid "Session load failed"
@@ -2523,7 +2570,7 @@ msgid "Set Wi-Fi proxy on your device to <0>{0}:{1}</0>"
 msgstr "기기의 Wi-Fi 프록시를 <0>{0}:{1}</0>로 설정"
 
 #: src/pages/settings/ui/settings-page.tsx:146
-#: src/shared/app-sidebar/model/consts.ts:119
+#: src/shared/app-sidebar/model/consts.ts:127
 msgid "Settings"
 msgstr "설정"
 
@@ -2576,7 +2623,7 @@ msgid "Spec removed"
 msgstr "스펙 제거 완료"
 
 #: src/pages/sse-dashboard/ui/sse-dashboard.tsx:87
-#: src/shared/app-sidebar/model/consts.ts:42
+#: src/shared/app-sidebar/model/consts.ts:43
 msgid "SSE"
 msgstr "SSE"
 
@@ -2607,6 +2654,7 @@ msgstr "ClientHello 감지 직후 백그라운드에서 서버 연결을 시작�
 #: src/shared/app-sidebar/ui/sidebar-status.tsx:39
 #: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:86
 #: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:176
+#: src/widgets/grpc-calls/ui/grpc-call-table.tsx:169
 msgid "Status"
 msgstr "상태"
 
@@ -2620,6 +2668,10 @@ msgstr "상태 코드"
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:321
 msgid "Status Code Distribution"
 msgstr "상태 코드 분포"
+
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:70
+msgid "Status Message"
+msgstr ""
 
 #: src/pages/settings/ui/components/connection-strategy-section.tsx:31
 msgid "Strategy"
@@ -2708,6 +2760,8 @@ msgstr "처리량"
 #: src/pages/analytics-dashboard/ui/performance-tab.tsx:54
 #: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:77
 #: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:178
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:56
+#: src/widgets/grpc-calls/ui/grpc-call-table.tsx:172
 #: src/widgets/sse-messages/ui/sse-message-detail.tsx:63
 #: src/widgets/sse-messages/ui/sse-message-table.tsx:148
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:63
@@ -2772,7 +2826,7 @@ msgid "Total Time"
 msgstr "총 시간"
 
 #: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:107
-#: src/shared/app-sidebar/model/consts.ts:112
+#: src/shared/app-sidebar/model/consts.ts:120
 msgid "Traffic Analysis"
 msgstr "트래픽 분석"
 
@@ -2900,7 +2954,7 @@ msgstr "유효 기간 시작"
 msgid "Valid Until"
 msgstr "유효 기간 만료"
 
-#: src/shared/app-sidebar/model/consts.ts:107
+#: src/shared/app-sidebar/model/consts.ts:115
 msgid "Validate API responses against OpenAPI specs"
 msgstr "OpenAPI 스펙 기반 API 응답 검증"
 
@@ -2932,7 +2986,7 @@ msgstr "버전"
 msgid "View and manage application log files"
 msgstr "애플리케이션 로그 파일 조회 및 관리"
 
-#: src/shared/app-sidebar/model/consts.ts:128
+#: src/shared/app-sidebar/model/consts.ts:136
 msgid "View application log files"
 msgstr "애플리케이션 로그 파일 조회"
 
@@ -2958,11 +3012,11 @@ msgid "warnings"
 msgstr "경고"
 
 #: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:95
-#: src/shared/app-sidebar/model/consts.ts:35
+#: src/shared/app-sidebar/model/consts.ts:36
 msgid "WebSocket"
 msgstr "WebSocket"
 
-#: src/shared/app-sidebar/model/consts.ts:37
+#: src/shared/app-sidebar/model/consts.ts:38
 msgid "WebSocket connections and messages"
 msgstr "WebSocket 연결 및 메시지"
 

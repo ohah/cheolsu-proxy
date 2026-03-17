@@ -14,5 +14,6 @@ export {
   isCompressedDataType,
   isBinaryDataType,
   isProtobufDataType,
+  isGrpcDataType,
   isMediaDataType,
 } from "@/shared/lib/data-type";

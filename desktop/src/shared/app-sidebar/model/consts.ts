@@ -5,6 +5,7 @@ import {
   Plug,
   Radio,
   Braces,
+  Box,
   Settings,
   Database,
   FileCode,
@@ -49,6 +50,13 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
     label: msg`GraphQL`,
     icon: Braces,
     description: msg`GraphQL operations viewer`,
+  },
+  {
+    id: "grpc",
+    path: "/grpc",
+    label: msg`gRPC`,
+    icon: Box,
+    description: msg`gRPC calls and service methods`,
   },
   {
     id: "intercept-rules",

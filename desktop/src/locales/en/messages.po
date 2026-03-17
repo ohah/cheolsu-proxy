@@ -255,7 +255,7 @@ msgstr "All reverse proxy rules cleared"
 msgid "All rules cleared"
 msgstr "All rules cleared"
 
-#: src/shared/app-sidebar/model/consts.ts:114
+#: src/shared/app-sidebar/model/consts.ts:122
 msgid "Analyze traffic patterns and performance"
 msgstr "Analyze traffic patterns and performance"
 
@@ -382,7 +382,7 @@ msgid "Breakpoint rule added"
 msgstr "Breakpoint rule added"
 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:195
-#: src/shared/app-sidebar/model/consts.ts:77
+#: src/shared/app-sidebar/model/consts.ts:85
 msgid "Breakpoints"
 msgstr "Breakpoints"
 
@@ -427,6 +427,10 @@ msgstr "CA Certificate File (optional)"
 #: src/pages/settings/ui/components/custom-ca-section.tsx:230
 msgid "CA Key File"
 msgstr "CA Key File"
+
+#: src/pages/grpc-dashboard/ui/grpc-dashboard.tsx:88
+msgid "calls"
+msgstr "calls"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:599
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:255
@@ -525,6 +529,7 @@ msgid "Clear all transactions"
 msgstr "Clear all transactions"
 
 #: src/pages/graphql-dashboard/ui/graphql-dashboard.tsx:114
+#: src/pages/grpc-dashboard/ui/grpc-dashboard.tsx:109
 msgid "Clear selection"
 msgstr "Clear selection"
 
@@ -553,6 +558,7 @@ msgstr "Clients without a valid certificate will be rejected"
 #: src/features/transaction-details/ui/sequence-replay-dialog.tsx:240
 #: src/features/transaction-details/ui/transaction-header.tsx:63
 #: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:178
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:120
 #: src/widgets/sse-messages/ui/sse-message-detail.tsx:96
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:131
 msgid "Close"
@@ -629,7 +635,7 @@ msgid "Console"
 msgstr "Console"
 
 #: src/pages/contract-testing/ui/contract-testing-page.tsx:86
-#: src/shared/app-sidebar/model/consts.ts:105
+#: src/shared/app-sidebar/model/consts.ts:113
 msgid "Contract Testing"
 msgstr "Contract Testing"
 
@@ -826,6 +832,8 @@ msgstr "Duplicate Requests"
 #: src/pages/analytics-dashboard/ui/performance-tab.tsx:48
 #: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:79
 #: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:177
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:58
+#: src/widgets/grpc-calls/ui/grpc-call-table.tsx:171
 msgid "Duration"
 msgstr "Duration"
 
@@ -881,7 +889,12 @@ msgstr "Enable full trust for the Cheolsu Proxy CA certificate"
 msgid "Enabled"
 msgstr "Enabled"
 
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:76
+msgid "Encoding"
+msgstr "Encoding"
+
 #: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:76
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:55
 msgid "Endpoint"
 msgstr "Endpoint"
 
@@ -915,6 +928,7 @@ msgstr "error(s)"
 #: src/features/transaction-details/ui/transaction-validation.tsx:93
 #: src/pages/contract-testing/ui/contract-testing-page.tsx:162
 #: src/pages/graphql-dashboard/ui/graphql-dashboard.tsx:102
+#: src/pages/grpc-dashboard/ui/grpc-dashboard.tsx:97
 msgid "errors"
 msgstr "errors"
 
@@ -1085,11 +1099,11 @@ msgid "Go to <0>Settings → Security → Encryption & credentials</0>"
 msgstr "Go to <0>Settings → Security → Encryption & credentials</0>"
 
 #: src/pages/graphql-dashboard/ui/graphql-dashboard.tsx:90
-#: src/shared/app-sidebar/model/consts.ts:49
+#: src/shared/app-sidebar/model/consts.ts:50
 msgid "GraphQL"
 msgstr "GraphQL"
 
-#: src/shared/app-sidebar/model/consts.ts:51
+#: src/shared/app-sidebar/model/consts.ts:52
 msgid "GraphQL operations viewer"
 msgstr "GraphQL operations viewer"
 
@@ -1097,9 +1111,26 @@ msgstr "GraphQL operations viewer"
 msgid "GraphQL 오퍼레이션을 기다리는 중..."
 msgstr "GraphQL 오퍼레이션을 기다리는 중..."
 
+#: src/pages/grpc-dashboard/ui/grpc-dashboard.tsx:85
+#: src/shared/app-sidebar/model/consts.ts:57
+msgid "gRPC"
+msgstr "gRPC"
+
+#: src/shared/app-sidebar/model/consts.ts:59
+msgid "gRPC calls and service methods"
+msgstr "gRPC calls and service methods"
+
 #: src/pages/settings/ui/components/proto-files-section.tsx:65
 msgid "gRPC Proto Files"
 msgstr "gRPC Proto Files"
+
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:64
+msgid "gRPC Status"
+msgstr "gRPC Status"
+
+#: src/widgets/grpc-calls/ui/grpc-call-table.tsx:160
+msgid "gRPC 호출을 기다리는 중..."
+msgstr "gRPC 호출을 기다리는 중..."
 
 #: src/pages/network-dashboard/ui/network-dashboard.tsx:165
 msgid "HAR export failed"
@@ -1151,7 +1182,7 @@ msgid "Host"
 msgstr "Host"
 
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:150
-#: src/shared/app-sidebar/model/consts.ts:84
+#: src/shared/app-sidebar/model/consts.ts:92
 msgid "Host Mapping"
 msgstr "Host Mapping"
 
@@ -1171,9 +1202,13 @@ msgstr "Host Tree"
 msgid "HTTP connection (no TLS)"
 msgstr "HTTP connection (no TLS)"
 
-#: src/shared/app-sidebar/model/consts.ts:30
+#: src/shared/app-sidebar/model/consts.ts:31
 msgid "HTTP requests and responses"
 msgstr "HTTP requests and responses"
+
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:73
+msgid "HTTP Status"
+msgstr "HTTP Status"
 
 #: src/widgets/network-table/ui/table-row.tsx:190
 msgid "HTTPie"
@@ -1239,7 +1274,7 @@ msgid "Installing..."
 msgstr "Installing..."
 
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:73
-#: src/shared/app-sidebar/model/consts.ts:56
+#: src/shared/app-sidebar/model/consts.ts:64
 msgid "Intercept Rules"
 msgstr "Intercept Rules"
 
@@ -1333,7 +1368,7 @@ msgstr "Load a script file from disk. The file will be watched for changes and a
 msgid "Load an OpenAPI spec to enable contract testing"
 msgstr "Load an OpenAPI spec to enable contract testing"
 
-#: src/shared/app-sidebar/model/consts.ts:100
+#: src/shared/app-sidebar/model/consts.ts:108
 msgid "Load and manage proxy scripts"
 msgstr "Load and manage proxy scripts"
 
@@ -1378,11 +1413,11 @@ msgid "Logical OR:"
 msgstr "Logical OR:"
 
 #: src/pages/log-viewer/ui/logs-page.tsx:240
-#: src/shared/app-sidebar/model/consts.ts:126
+#: src/shared/app-sidebar/model/consts.ts:134
 msgid "Logs"
 msgstr "Logs"
 
-#: src/shared/app-sidebar/model/consts.ts:58
+#: src/shared/app-sidebar/model/consts.ts:66
 msgid "Manage request/response intercept rules"
 msgstr "Manage request/response intercept rules"
 
@@ -1394,7 +1429,7 @@ msgstr "Manage wildcard-based request/response intercept rules"
 msgid "Map DNS hostnames to different target hosts for testing and development"
 msgstr "Map DNS hostnames to different target hosts for testing and development"
 
-#: src/shared/app-sidebar/model/consts.ts:86
+#: src/shared/app-sidebar/model/consts.ts:94
 msgid "Map DNS hostnames to different targets"
 msgstr "Map DNS hostnames to different targets"
 
@@ -1405,7 +1440,7 @@ msgstr "Map DNS hostnames to different targets"
 msgid "Map Local"
 msgstr "Map Local"
 
-#: src/shared/app-sidebar/model/consts.ts:65
+#: src/shared/app-sidebar/model/consts.ts:73
 msgid "Map Local / Map Remote rules"
 msgstr "Map Local / Map Remote rules"
 
@@ -1425,7 +1460,7 @@ msgid "Map Remote"
 msgstr "Map Remote"
 
 #: src/pages/map-rules/ui/map-rules-page.tsx:60
-#: src/shared/app-sidebar/model/consts.ts:63
+#: src/shared/app-sidebar/model/consts.ts:71
 msgid "Map Rules"
 msgstr "Map Rules"
 
@@ -1491,6 +1526,8 @@ msgstr "messages"
 #: src/pages/analytics-dashboard/ui/misc-tab.tsx:39
 #: src/pages/analytics-dashboard/ui/misc-tab.tsx:132
 #: src/pages/analytics-dashboard/ui/performance-tab.tsx:44
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:53
+#: src/widgets/grpc-calls/ui/grpc-call-table.tsx:170
 msgid "Method"
 msgstr "Method"
 
@@ -1553,7 +1590,7 @@ msgid "Negotiated ALPN"
 msgstr "Negotiated ALPN"
 
 #: src/pages/settings/ui/settings-page.tsx:115
-#: src/shared/app-sidebar/model/consts.ts:28
+#: src/shared/app-sidebar/model/consts.ts:29
 msgid "Network"
 msgstr "Network"
 
@@ -1854,7 +1891,7 @@ msgstr "Pattern is required"
 msgid "Pause and inspect HTTP requests/responses in real-time"
 msgstr "Pause and inspect HTTP requests/responses in real-time"
 
-#: src/shared/app-sidebar/model/consts.ts:79
+#: src/shared/app-sidebar/model/consts.ts:87
 msgid "Pause and inspect requests/responses"
 msgstr "Pause and inspect requests/responses"
 
@@ -1967,7 +2004,7 @@ msgstr "Proxy configuration and preferences"
 msgid "Proxy Port"
 msgstr "Proxy Port"
 
-#: src/shared/app-sidebar/model/consts.ts:121
+#: src/shared/app-sidebar/model/consts.ts:129
 msgid "Proxy settings and configuration"
 msgstr "Proxy settings and configuration"
 
@@ -2101,6 +2138,7 @@ msgstr "Replay request"
 #: src/features/transaction-details/ui/replay-dialog.tsx:373
 #: src/features/transaction-details/ui/transaction-body-side-by-side.tsx:16
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:296
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:79
 msgid "Request"
 msgstr "Request"
 
@@ -2176,6 +2214,7 @@ msgstr "Require certificate"
 #: src/features/transaction-details/ui/transaction-body-side-by-side.tsx:24
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:301
 #: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:138
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:83
 msgid "Response"
 msgstr "Response"
 
@@ -2235,7 +2274,7 @@ msgstr "Resume recording"
 msgid "Retry"
 msgstr "Retry"
 
-#: src/shared/app-sidebar/model/consts.ts:72
+#: src/shared/app-sidebar/model/consts.ts:80
 msgid "Return cached responses for matching requests"
 msgstr "Return cached responses for matching requests"
 
@@ -2244,7 +2283,7 @@ msgid "Return cached responses for matching requests instead of forwarding to th
 msgstr "Return cached responses for matching requests instead of forwarding to the server"
 
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:152
-#: src/shared/app-sidebar/model/consts.ts:91
+#: src/shared/app-sidebar/model/consts.ts:99
 msgid "Reverse Proxy"
 msgstr "Reverse Proxy"
 
@@ -2279,7 +2318,7 @@ msgstr "Right"
 msgid "Route incoming requests to backend servers based on Host header matching"
 msgstr "Route incoming requests to backend servers based on Host header matching"
 
-#: src/shared/app-sidebar/model/consts.ts:93
+#: src/shared/app-sidebar/model/consts.ts:101
 msgid "Route requests to backend servers by Host header"
 msgstr "Route requests to backend servers by Host header"
 
@@ -2356,7 +2395,7 @@ msgid "Scan for proxy info"
 msgstr "Scan for proxy info"
 
 #: src/pages/script/ui/script-page.tsx:162
-#: src/shared/app-sidebar/model/consts.ts:98
+#: src/shared/app-sidebar/model/consts.ts:106
 msgid "Script"
 msgstr "Script"
 
@@ -2486,13 +2525,21 @@ msgid "Serial Number"
 msgstr "Serial Number"
 
 #: src/pages/server-replay/ui/server-replay-page.tsx:84
-#: src/shared/app-sidebar/model/consts.ts:70
+#: src/shared/app-sidebar/model/consts.ts:78
 msgid "Server Replay"
 msgstr "Server Replay"
 
-#: src/shared/app-sidebar/model/consts.ts:44
+#: src/shared/app-sidebar/model/consts.ts:45
 msgid "Server-Sent Events streams"
 msgstr "Server-Sent Events streams"
+
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:50
+msgid "Service"
+msgstr "Service"
+
+#: src/pages/grpc-dashboard/ui/grpc-dashboard.tsx:92
+msgid "services"
+msgstr "services"
 
 #: src/pages/network-dashboard/ui/network-dashboard.tsx:231
 msgid "Session load failed"
@@ -2523,7 +2570,7 @@ msgid "Set Wi-Fi proxy on your device to <0>{0}:{1}</0>"
 msgstr "Set Wi-Fi proxy on your device to <0>{0}:{1}</0>"
 
 #: src/pages/settings/ui/settings-page.tsx:146
-#: src/shared/app-sidebar/model/consts.ts:119
+#: src/shared/app-sidebar/model/consts.ts:127
 msgid "Settings"
 msgstr "Settings"
 
@@ -2576,7 +2623,7 @@ msgid "Spec removed"
 msgstr "Spec removed"
 
 #: src/pages/sse-dashboard/ui/sse-dashboard.tsx:87
-#: src/shared/app-sidebar/model/consts.ts:42
+#: src/shared/app-sidebar/model/consts.ts:43
 msgid "SSE"
 msgstr "SSE"
 
@@ -2607,6 +2654,7 @@ msgstr "Starts background server connection immediately after ClientHello detect
 #: src/shared/app-sidebar/ui/sidebar-status.tsx:39
 #: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:86
 #: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:176
+#: src/widgets/grpc-calls/ui/grpc-call-table.tsx:169
 msgid "Status"
 msgstr "Status"
 
@@ -2620,6 +2668,10 @@ msgstr "Status Code"
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:321
 msgid "Status Code Distribution"
 msgstr "Status Code Distribution"
+
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:70
+msgid "Status Message"
+msgstr "Status Message"
 
 #: src/pages/settings/ui/components/connection-strategy-section.tsx:31
 msgid "Strategy"
@@ -2708,6 +2760,8 @@ msgstr "Throughput"
 #: src/pages/analytics-dashboard/ui/performance-tab.tsx:54
 #: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:77
 #: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:178
+#: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:56
+#: src/widgets/grpc-calls/ui/grpc-call-table.tsx:172
 #: src/widgets/sse-messages/ui/sse-message-detail.tsx:63
 #: src/widgets/sse-messages/ui/sse-message-table.tsx:148
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:63
@@ -2772,7 +2826,7 @@ msgid "Total Time"
 msgstr "Total Time"
 
 #: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:107
-#: src/shared/app-sidebar/model/consts.ts:112
+#: src/shared/app-sidebar/model/consts.ts:120
 msgid "Traffic Analysis"
 msgstr "Traffic Analysis"
 
@@ -2900,7 +2954,7 @@ msgstr "Valid From"
 msgid "Valid Until"
 msgstr "Valid Until"
 
-#: src/shared/app-sidebar/model/consts.ts:107
+#: src/shared/app-sidebar/model/consts.ts:115
 msgid "Validate API responses against OpenAPI specs"
 msgstr "Validate API responses against OpenAPI specs"
 
@@ -2932,7 +2986,7 @@ msgstr "Version"
 msgid "View and manage application log files"
 msgstr "View and manage application log files"
 
-#: src/shared/app-sidebar/model/consts.ts:128
+#: src/shared/app-sidebar/model/consts.ts:136
 msgid "View application log files"
 msgstr "View application log files"
 
@@ -2958,11 +3012,11 @@ msgid "warnings"
 msgstr "warnings"
 
 #: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:95
-#: src/shared/app-sidebar/model/consts.ts:35
+#: src/shared/app-sidebar/model/consts.ts:36
 msgid "WebSocket"
 msgstr "WebSocket"
 
-#: src/shared/app-sidebar/model/consts.ts:37
+#: src/shared/app-sidebar/model/consts.ts:38
 msgid "WebSocket connections and messages"
 msgstr "WebSocket connections and messages"
 
