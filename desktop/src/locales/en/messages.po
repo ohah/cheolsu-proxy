@@ -250,7 +250,7 @@ msgstr "All reverse proxy rules cleared"
 msgid "All rules cleared"
 msgstr "All rules cleared"
 
-#: src/shared/app-sidebar/model/consts.ts:106
+#: src/shared/app-sidebar/model/consts.ts:114
 msgid "Analyze traffic patterns and performance"
 msgstr "Analyze traffic patterns and performance"
 
@@ -322,6 +322,10 @@ msgstr "Backend Scheme"
 msgid "Base URL"
 msgstr "Base URL"
 
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:93
+msgid "Batch"
+msgstr "Batch"
+
 #: src/pages/settings/ui/components/ssl-proxying-section.tsx:192
 msgid "Blacklist (Exclude)"
 msgstr "Blacklist (Exclude)"
@@ -373,7 +377,7 @@ msgid "Breakpoint rule added"
 msgstr "Breakpoint rule added"
 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:195
-#: src/shared/app-sidebar/model/consts.ts:69
+#: src/shared/app-sidebar/model/consts.ts:77
 msgid "Breakpoints"
 msgstr "Breakpoints"
 
@@ -508,6 +512,10 @@ msgstr "Clear All"
 msgid "Clear all transactions"
 msgstr "Clear all transactions"
 
+#: src/pages/graphql-dashboard/ui/graphql-dashboard.tsx:114
+msgid "Clear selection"
+msgstr "Clear selection"
+
 #. placeholder {0}: transactions.length
 #: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:130
 msgid "Click \"Run Analysis\" to analyze {0} captured requests."
@@ -532,6 +540,7 @@ msgstr "Clients without a valid certificate will be rejected"
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:370
 #: src/features/transaction-details/ui/sequence-replay-dialog.tsx:240
 #: src/features/transaction-details/ui/transaction-header.tsx:63
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:178
 #: src/widgets/sse-messages/ui/sse-message-detail.tsx:96
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:131
 msgid "Close"
@@ -599,7 +608,7 @@ msgid "Console"
 msgstr "Console"
 
 #: src/pages/contract-testing/ui/contract-testing-page.tsx:86
-#: src/shared/app-sidebar/model/consts.ts:97
+#: src/shared/app-sidebar/model/consts.ts:105
 msgid "Contract Testing"
 msgstr "Contract Testing"
 
@@ -784,6 +793,8 @@ msgid "Duplicate Requests"
 msgstr "Duplicate Requests"
 
 #: src/pages/analytics-dashboard/ui/performance-tab.tsx:48
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:79
+#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:177
 msgid "Duration"
 msgstr "Duration"
 
@@ -839,6 +850,14 @@ msgstr "Enable full trust for the Cheolsu Proxy CA certificate"
 msgid "Enabled"
 msgstr "Enabled"
 
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:76
+msgid "Endpoint"
+msgstr "Endpoint"
+
+#: src/pages/graphql-dashboard/ui/graphql-dashboard.tsx:97
+msgid "endpoints"
+msgstr "endpoints"
+
 #: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:175
 msgid "Endpoints"
 msgstr "Endpoints"
@@ -858,13 +877,19 @@ msgstr "Error Rate"
 msgid "Error Status Code Distribution"
 msgstr "Error Status Code Distribution"
 
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:261
+msgid "error(s)"
+msgstr "error(s)"
+
 #: src/features/transaction-details/ui/transaction-validation.tsx:93
 #: src/pages/contract-testing/ui/contract-testing-page.tsx:162
+#: src/pages/graphql-dashboard/ui/graphql-dashboard.tsx:102
 msgid "errors"
 msgstr "errors"
 
 #: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:172
 #: src/pages/analytics-dashboard/ui/error-tab.tsx:72
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:143
 msgid "Errors"
 msgstr "Errors"
 
@@ -1024,6 +1049,19 @@ msgstr "Go to <0>Settings → General → VPN & Device Management</0>"
 msgid "Go to <0>Settings → Security → Encryption & credentials</0>"
 msgstr "Go to <0>Settings → Security → Encryption & credentials</0>"
 
+#: src/pages/graphql-dashboard/ui/graphql-dashboard.tsx:90
+#: src/shared/app-sidebar/model/consts.ts:49
+msgid "GraphQL"
+msgstr "GraphQL"
+
+#: src/shared/app-sidebar/model/consts.ts:51
+msgid "GraphQL operations viewer"
+msgstr "GraphQL operations viewer"
+
+#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:165
+msgid "GraphQL 오퍼레이션을 기다리는 중..."
+msgstr "GraphQL 오퍼레이션을 기다리는 중..."
+
 #: src/pages/settings/ui/components/proto-files-section.tsx:65
 msgid "gRPC Proto Files"
 msgstr "gRPC Proto Files"
@@ -1078,7 +1116,7 @@ msgid "Host"
 msgstr "Host"
 
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:150
-#: src/shared/app-sidebar/model/consts.ts:76
+#: src/shared/app-sidebar/model/consts.ts:84
 msgid "Host Mapping"
 msgstr "Host Mapping"
 
@@ -1094,7 +1132,7 @@ msgstr "Host mapping deleted"
 msgid "Host Tree"
 msgstr "Host Tree"
 
-#: src/shared/app-sidebar/model/consts.ts:29
+#: src/shared/app-sidebar/model/consts.ts:30
 msgid "HTTP requests and responses"
 msgstr "HTTP requests and responses"
 
@@ -1162,7 +1200,7 @@ msgid "Installing..."
 msgstr "Installing..."
 
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:73
-#: src/shared/app-sidebar/model/consts.ts:48
+#: src/shared/app-sidebar/model/consts.ts:56
 msgid "Intercept Rules"
 msgstr "Intercept Rules"
 
@@ -1243,7 +1281,7 @@ msgstr "Load a script file from disk. The file will be watched for changes and a
 msgid "Load an OpenAPI spec to enable contract testing"
 msgstr "Load an OpenAPI spec to enable contract testing"
 
-#: src/shared/app-sidebar/model/consts.ts:92
+#: src/shared/app-sidebar/model/consts.ts:100
 msgid "Load and manage proxy scripts"
 msgstr "Load and manage proxy scripts"
 
@@ -1288,11 +1326,11 @@ msgid "Logical OR:"
 msgstr "Logical OR:"
 
 #: src/pages/log-viewer/ui/logs-page.tsx:240
-#: src/shared/app-sidebar/model/consts.ts:118
+#: src/shared/app-sidebar/model/consts.ts:126
 msgid "Logs"
 msgstr "Logs"
 
-#: src/shared/app-sidebar/model/consts.ts:50
+#: src/shared/app-sidebar/model/consts.ts:58
 msgid "Manage request/response intercept rules"
 msgstr "Manage request/response intercept rules"
 
@@ -1304,7 +1342,7 @@ msgstr "Manage wildcard-based request/response intercept rules"
 msgid "Map DNS hostnames to different target hosts for testing and development"
 msgstr "Map DNS hostnames to different target hosts for testing and development"
 
-#: src/shared/app-sidebar/model/consts.ts:78
+#: src/shared/app-sidebar/model/consts.ts:86
 msgid "Map DNS hostnames to different targets"
 msgstr "Map DNS hostnames to different targets"
 
@@ -1315,7 +1353,7 @@ msgstr "Map DNS hostnames to different targets"
 msgid "Map Local"
 msgstr "Map Local"
 
-#: src/shared/app-sidebar/model/consts.ts:57
+#: src/shared/app-sidebar/model/consts.ts:65
 msgid "Map Local / Map Remote rules"
 msgstr "Map Local / Map Remote rules"
 
@@ -1335,7 +1373,7 @@ msgid "Map Remote"
 msgstr "Map Remote"
 
 #: src/pages/map-rules/ui/map-rules-page.tsx:60
-#: src/shared/app-sidebar/model/consts.ts:55
+#: src/shared/app-sidebar/model/consts.ts:63
 msgid "Map Rules"
 msgstr "Map Rules"
 
@@ -1454,11 +1492,12 @@ msgstr "N+1"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:264
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:178
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:73
 msgid "Name"
 msgstr "Name"
 
 #: src/pages/settings/ui/settings-page.tsx:114
-#: src/shared/app-sidebar/model/consts.ts:27
+#: src/shared/app-sidebar/model/consts.ts:28
 msgid "Network"
 msgstr "Network"
 
@@ -1671,6 +1710,14 @@ msgstr "OpenAPI spec loaded"
 msgid "OpenAPI Specs"
 msgstr "OpenAPI Specs"
 
+#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:175
+msgid "Operation"
+msgstr "Operation"
+
+#: src/pages/graphql-dashboard/ui/graphql-dashboard.tsx:93
+msgid "operations"
+msgstr "operations"
+
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:98
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:124
 msgid "optional"
@@ -1718,7 +1765,7 @@ msgstr "Pattern is required"
 msgid "Pause and inspect HTTP requests/responses in real-time"
 msgstr "Pause and inspect HTTP requests/responses in real-time"
 
-#: src/shared/app-sidebar/model/consts.ts:71
+#: src/shared/app-sidebar/model/consts.ts:79
 msgid "Pause and inspect requests/responses"
 msgstr "Pause and inspect requests/responses"
 
@@ -1823,7 +1870,7 @@ msgstr "Proxy configuration and preferences"
 msgid "Proxy Port"
 msgstr "Proxy Port"
 
-#: src/shared/app-sidebar/model/consts.ts:113
+#: src/shared/app-sidebar/model/consts.ts:121
 msgid "Proxy settings and configuration"
 msgstr "Proxy settings and configuration"
 
@@ -1834,6 +1881,10 @@ msgstr "proxy.company.com"
 #: src/widgets/network-table/ui/table-row.tsx:182
 msgid "Python Requests"
 msgstr "Python Requests"
+
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:130
+msgid "Query"
+msgstr "Query"
 
 #: src/features/query-filter-editor/ui/filter-help-tooltip.tsx:28
 msgid "Query Syntax Guide"
@@ -2027,6 +2078,7 @@ msgstr "Require certificate"
 #: src/features/transaction-details/ui/replay-dialog.tsx:387
 #: src/features/transaction-details/ui/transaction-body-side-by-side.tsx:24
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:301
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:138
 msgid "Response"
 msgstr "Response"
 
@@ -2086,7 +2138,7 @@ msgstr "Resume recording"
 msgid "Retry"
 msgstr "Retry"
 
-#: src/shared/app-sidebar/model/consts.ts:64
+#: src/shared/app-sidebar/model/consts.ts:72
 msgid "Return cached responses for matching requests"
 msgstr "Return cached responses for matching requests"
 
@@ -2095,7 +2147,7 @@ msgid "Return cached responses for matching requests instead of forwarding to th
 msgstr "Return cached responses for matching requests instead of forwarding to the server"
 
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:152
-#: src/shared/app-sidebar/model/consts.ts:83
+#: src/shared/app-sidebar/model/consts.ts:91
 msgid "Reverse Proxy"
 msgstr "Reverse Proxy"
 
@@ -2130,7 +2182,7 @@ msgstr "Right"
 msgid "Route incoming requests to backend servers based on Host header matching"
 msgstr "Route incoming requests to backend servers based on Host header matching"
 
-#: src/shared/app-sidebar/model/consts.ts:85
+#: src/shared/app-sidebar/model/consts.ts:93
 msgid "Route requests to backend servers by Host header"
 msgstr "Route requests to backend servers by Host header"
 
@@ -2207,7 +2259,7 @@ msgid "Scan for proxy info"
 msgstr "Scan for proxy info"
 
 #: src/pages/script/ui/script-page.tsx:162
-#: src/shared/app-sidebar/model/consts.ts:90
+#: src/shared/app-sidebar/model/consts.ts:98
 msgid "Script"
 msgstr "Script"
 
@@ -2336,11 +2388,11 @@ msgid "Serial Number"
 msgstr "Serial Number"
 
 #: src/pages/server-replay/ui/server-replay-page.tsx:84
-#: src/shared/app-sidebar/model/consts.ts:62
+#: src/shared/app-sidebar/model/consts.ts:70
 msgid "Server Replay"
 msgstr "Server Replay"
 
-#: src/shared/app-sidebar/model/consts.ts:43
+#: src/shared/app-sidebar/model/consts.ts:44
 msgid "Server-Sent Events streams"
 msgstr "Server-Sent Events streams"
 
@@ -2373,7 +2425,7 @@ msgid "Set Wi-Fi proxy on your device to <0>{0}:{1}</0>"
 msgstr "Set Wi-Fi proxy on your device to <0>{0}:{1}</0>"
 
 #: src/pages/settings/ui/settings-page.tsx:145
-#: src/shared/app-sidebar/model/consts.ts:111
+#: src/shared/app-sidebar/model/consts.ts:119
 msgid "Settings"
 msgstr "Settings"
 
@@ -2422,7 +2474,7 @@ msgid "Spec removed"
 msgstr "Spec removed"
 
 #: src/pages/sse-dashboard/ui/sse-dashboard.tsx:87
-#: src/shared/app-sidebar/model/consts.ts:41
+#: src/shared/app-sidebar/model/consts.ts:42
 msgid "SSE"
 msgstr "SSE"
 
@@ -2451,6 +2503,8 @@ msgstr "Starts background server connection immediately after ClientHello detect
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:115
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:120
 #: src/shared/app-sidebar/ui/sidebar-status.tsx:39
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:86
+#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:176
 msgid "Status"
 msgstr "Status"
 
@@ -2542,6 +2596,8 @@ msgstr "Throughput"
 #: src/pages/analytics-dashboard/ui/misc-tab.tsx:46
 #: src/pages/analytics-dashboard/ui/misc-tab.tsx:96
 #: src/pages/analytics-dashboard/ui/performance-tab.tsx:54
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:77
+#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:178
 #: src/widgets/sse-messages/ui/sse-message-detail.tsx:63
 #: src/widgets/sse-messages/ui/sse-message-table.tsx:148
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:63
@@ -2598,7 +2654,7 @@ msgid "Total Time"
 msgstr "Total Time"
 
 #: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:107
-#: src/shared/app-sidebar/model/consts.ts:104
+#: src/shared/app-sidebar/model/consts.ts:112
 msgid "Traffic Analysis"
 msgstr "Traffic Analysis"
 
@@ -2627,6 +2683,8 @@ msgid "Trusted"
 msgstr "Trusted"
 
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:229
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:69
+#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:174
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:59
 #: src/widgets/websocket-messages/ui/ws-message-table.tsx:201
 msgid "Type"
@@ -2720,7 +2778,7 @@ msgstr "Valid From"
 msgid "Valid Until"
 msgstr "Valid Until"
 
-#: src/shared/app-sidebar/model/consts.ts:99
+#: src/shared/app-sidebar/model/consts.ts:107
 msgid "Validate API responses against OpenAPI specs"
 msgstr "Validate API responses against OpenAPI specs"
 
@@ -2736,6 +2794,10 @@ msgstr "Validation Report"
 msgid "Value"
 msgstr "Value"
 
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:133
+msgid "Variables"
+msgstr "Variables"
+
 #: src/shared/app-sidebar/ui/sidebar-status.tsx:48
 msgid "Version"
 msgstr "Version"
@@ -2744,7 +2806,7 @@ msgstr "Version"
 msgid "View and manage application log files"
 msgstr "View and manage application log files"
 
-#: src/shared/app-sidebar/model/consts.ts:120
+#: src/shared/app-sidebar/model/consts.ts:128
 msgid "View application log files"
 msgstr "View application log files"
 
@@ -2766,11 +2828,11 @@ msgid "warnings"
 msgstr "warnings"
 
 #: src/pages/websocket-dashboard/ui/websocket-dashboard.tsx:95
-#: src/shared/app-sidebar/model/consts.ts:34
+#: src/shared/app-sidebar/model/consts.ts:35
 msgid "WebSocket"
 msgstr "WebSocket"
 
-#: src/shared/app-sidebar/model/consts.ts:36
+#: src/shared/app-sidebar/model/consts.ts:37
 msgid "WebSocket connections and messages"
 msgstr "WebSocket connections and messages"
 
