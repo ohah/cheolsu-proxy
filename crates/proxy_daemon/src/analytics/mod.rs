@@ -1,5 +1,11 @@
 //! 트래픽 분석 엔진 — 캡처된 HTTP 트래픽을 분석하여 구조화된 리포트를 생성합니다.
 
+mod endpoint_stats;
+mod error_analysis;
+mod pattern_detection;
+mod performance;
+mod security;
+
 use proxy_v2_models::RequestInfo;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -279,600 +285,6 @@ fn normalize_path_pattern(path: &str) -> String {
 pub struct TrafficAnalytics;
 
 impl TrafficAnalytics {
-    /// 느린 요청 분석
-    pub fn slow_requests(
-        entries: &[RequestInfo],
-        threshold_ms: u64,
-        limit: usize,
-    ) -> SlowRequestReport {
-        let mut durations: Vec<u64> = Vec::new();
-        let mut slow: Vec<SlowRequest> = Vec::new();
-
-        for info in entries {
-            let Some(req) = &info.request else {
-                continue;
-            };
-            let Some(dur) = get_duration_ms(info) else {
-                continue;
-            };
-            durations.push(dur);
-
-            if dur >= threshold_ms {
-                slow.push(SlowRequest {
-                    url: req.uri().to_string(),
-                    method: req.method().to_string(),
-                    duration_ms: dur,
-                    status: info.response.as_ref().map(|r| r.status().as_u16()),
-                    timestamp: req.time(),
-                });
-            }
-        }
-
-        // duration 내림차순 정렬
-        slow.sort_by(|a, b| b.duration_ms.cmp(&a.duration_ms));
-        let total_slow = slow.len();
-        slow.truncate(limit);
-
-        durations.sort();
-
-        SlowRequestReport {
-            threshold_ms,
-            total_slow,
-            requests: slow,
-            p50_ms: percentile(&durations, 50.0),
-            p95_ms: percentile(&durations, 95.0),
-            p99_ms: percentile(&durations, 99.0),
-        }
-    }
-
-    /// 에러율 분석
-    pub fn error_analysis(entries: &[RequestInfo]) -> ErrorReport {
-        let mut total = 0usize;
-        let mut error_count = 0usize;
-        let mut by_status: HashMap<u16, usize> = HashMap::new();
-        let mut endpoint_map: HashMap<(String, String), (usize, usize)> = HashMap::new();
-        let mut recent_errors: Vec<ErrorEntry> = Vec::new();
-
-        for info in entries {
-            let Some(req) = &info.request else {
-                continue;
-            };
-            let Some(res) = &info.response else {
-                continue;
-            };
-            total += 1;
-            let status = res.status().as_u16();
-            let path = extract_path(&req.uri().to_string());
-            let method = req.method().to_string();
-
-            let entry = endpoint_map.entry((method.clone(), path)).or_insert((0, 0));
-            entry.0 += 1;
-
-            if is_error_status(status) {
-                error_count += 1;
-                *by_status.entry(status).or_insert(0) += 1;
-                entry.1 += 1;
-
-                recent_errors.push(ErrorEntry {
-                    url: req.uri().to_string(),
-                    method,
-                    status,
-                    timestamp: req.time(),
-                });
-            }
-        }
-
-        // 최근 에러 20개
-        recent_errors.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
-        recent_errors.truncate(20);
-
-        // 에러율이 높은 엔드포인트 순으로
-        let mut by_endpoint: Vec<EndpointErrorStat> = endpoint_map
-            .into_iter()
-            .filter(|(_, (_, errors))| *errors > 0)
-            .map(|((method, path), (total, errors))| EndpointErrorStat {
-                method,
-                path,
-                total,
-                errors,
-                error_rate: if total > 0 {
-                    errors as f64 / total as f64 * 100.0
-                } else {
-                    0.0
-                },
-            })
-            .collect();
-        by_endpoint.sort_by(|a, b| {
-            b.error_rate
-                .partial_cmp(&a.error_rate)
-                .unwrap_or(std::cmp::Ordering::Equal)
-        });
-        by_endpoint.truncate(20);
-
-        ErrorReport {
-            total_requests: total,
-            error_count,
-            error_rate: if total > 0 {
-                error_count as f64 / total as f64 * 100.0
-            } else {
-                0.0
-            },
-            by_status,
-            by_endpoint,
-            recent_errors,
-        }
-    }
-
-    /// 엔드포인트별 통계
-    pub fn endpoint_stats(entries: &[RequestInfo]) -> Vec<EndpointStat> {
-        let mut map: HashMap<(String, String), Vec<(u64, bool, u64)>> = HashMap::new();
-
-        for info in entries {
-            let Some(req) = &info.request else {
-                continue;
-            };
-            let Some(res) = &info.response else {
-                continue;
-            };
-            let dur = get_duration_ms(info).unwrap_or(0);
-            let method = req.method().to_string();
-            let path = normalize_path_pattern(&extract_path(&req.uri().to_string()));
-            let is_err = is_error_status(res.status().as_u16());
-            let resp_size = res.body_size() as u64;
-
-            map.entry((method, path))
-                .or_default()
-                .push((dur, is_err, resp_size));
-        }
-
-        let mut stats: Vec<EndpointStat> = map
-            .into_iter()
-            .map(|((method, path), values)| {
-                let count = values.len();
-                let total_dur: u64 = values.iter().map(|(d, _, _)| d).sum();
-                let error_count = values.iter().filter(|(_, e, _)| *e).count();
-                let total_size: u64 = values.iter().map(|(_, _, s)| s).sum();
-
-                let mut sorted_dur: Vec<u64> = values.iter().map(|(d, _, _)| *d).collect();
-                sorted_dur.sort();
-
-                EndpointStat {
-                    method,
-                    path,
-                    count,
-                    avg_duration_ms: if count > 0 {
-                        total_dur as f64 / count as f64
-                    } else {
-                        0.0
-                    },
-                    p95_duration_ms: percentile(&sorted_dur, 95.0),
-                    error_rate: if count > 0 {
-                        error_count as f64 / count as f64 * 100.0
-                    } else {
-                        0.0
-                    },
-                    avg_response_size: if count > 0 {
-                        total_size / count as u64
-                    } else {
-                        0
-                    },
-                }
-            })
-            .collect();
-
-        stats.sort_by(|a, b| b.count.cmp(&a.count));
-        stats
-    }
-
-    /// 중복 요청 감지
-    pub fn duplicate_requests(entries: &[RequestInfo], window_ms: u64) -> Vec<DuplicateGroup> {
-        // (method, url) -> 타임스탬프 목록
-        let mut groups: HashMap<(String, String), Vec<i64>> = HashMap::new();
-
-        for info in entries {
-            let Some(req) = &info.request else {
-                continue;
-            };
-            let key = (req.method().to_string(), req.uri().to_string());
-            groups.entry(key).or_default().push(req.time());
-        }
-
-        let mut result: Vec<DuplicateGroup> = Vec::new();
-        let window = window_ms as i64;
-
-        for ((method, url), times) in &groups {
-            if times.len() < 2 {
-                continue;
-            }
-            let mut sorted = times.clone();
-            sorted.sort();
-
-            // 슬라이딩 윈도우로 같은 window 내의 요청 그룹 찾기
-            let mut i = 0;
-            while i < sorted.len() {
-                let start = sorted[i];
-                let mut j = i + 1;
-                while j < sorted.len() && (sorted[j] - start) <= window {
-                    j += 1;
-                }
-                let count = j - i;
-                if count >= 2 {
-                    result.push(DuplicateGroup {
-                        method: method.clone(),
-                        url: url.clone(),
-                        count,
-                        window_ms,
-                        first_seen: sorted[i],
-                        last_seen: sorted[j - 1],
-                    });
-                }
-                i = j;
-            }
-        }
-
-        result.sort_by(|a, b| b.count.cmp(&a.count));
-        result
-    }
-
-    /// N+1 쿼리 패턴 감지
-    pub fn n_plus_one_detection(entries: &[RequestInfo]) -> Vec<NPlus1Pattern> {
-        // 정규화된 path 패턴별로 연속 호출 감지
-        let mut pattern_groups: HashMap<(String, String), Vec<i64>> = HashMap::new();
-
-        for info in entries {
-            let Some(req) = &info.request else {
-                continue;
-            };
-            let uri = req.uri().to_string();
-            let path = extract_path(&uri);
-            let normalized = normalize_path_pattern(&path);
-
-            // {id} 포함 패턴만 대상 (리소스 개별 조회 패턴)
-            if normalized.contains("{id}") {
-                let base_url = extract_domain(&uri);
-                let key = (base_url, normalized);
-                pattern_groups.entry(key).or_default().push(req.time());
-            }
-        }
-
-        let mut result: Vec<NPlus1Pattern> = Vec::new();
-
-        for ((base_url, pattern), times) in &pattern_groups {
-            if times.len() < 3 {
-                continue;
-            }
-            let mut sorted = times.clone();
-            sorted.sort();
-
-            // 5초 윈도우 내에 3개 이상 연속 호출이면 N+1 의심
-            let window = 5000i64;
-            let mut i = 0;
-            while i < sorted.len() {
-                let start = sorted[i];
-                let mut j = i + 1;
-                while j < sorted.len() && (sorted[j] - start) <= window {
-                    j += 1;
-                }
-                let count = j - i;
-                if count >= 3 {
-                    let elapsed = if j > i + 1 {
-                        (sorted[j - 1] - sorted[i]) as u64
-                    } else {
-                        0
-                    };
-                    result.push(NPlus1Pattern {
-                        base_url: base_url.clone(),
-                        pattern: pattern.clone(),
-                        count,
-                        window_ms: elapsed,
-                        suggestion: format!(
-                            "Consider using a batch/list endpoint instead of {} individual requests to {}",
-                            count, pattern
-                        ),
-                    });
-                }
-                i = j;
-            }
-        }
-
-        result.sort_by(|a, b| b.count.cmp(&a.count));
-        result
-    }
-
-    /// 시간대별 트래픽 분포
-    pub fn traffic_timeline(entries: &[RequestInfo], bucket_seconds: u64) -> Vec<TimelineBucket> {
-        if entries.is_empty() {
-            return Vec::new();
-        }
-
-        let bucket_ms = (bucket_seconds * 1000) as i64;
-
-        // 타임스탬프 기반으로 버킷에 넣기
-        let mut buckets: HashMap<i64, (usize, usize, Vec<u64>)> = HashMap::new();
-
-        for info in entries {
-            let Some(req) = &info.request else {
-                continue;
-            };
-            let time = req.time();
-            let bucket_key = (time / bucket_ms) * bucket_ms;
-            let dur = get_duration_ms(info).unwrap_or(0);
-            let is_err = info
-                .response
-                .as_ref()
-                .map(|r| is_error_status(r.status().as_u16()))
-                .unwrap_or(false);
-
-            let entry = buckets.entry(bucket_key).or_insert((0, 0, Vec::new()));
-            entry.0 += 1;
-            if is_err {
-                entry.1 += 1;
-            }
-            entry.2.push(dur);
-        }
-
-        let mut timeline: Vec<TimelineBucket> = buckets
-            .into_iter()
-            .map(|(ts, (req_count, err_count, durs))| {
-                let avg_dur = if durs.is_empty() {
-                    0.0
-                } else {
-                    durs.iter().sum::<u64>() as f64 / durs.len() as f64
-                };
-                TimelineBucket {
-                    timestamp: ts,
-                    request_count: req_count,
-                    error_count: err_count,
-                    avg_duration_ms: avg_dur,
-                }
-            })
-            .collect();
-
-        timeline.sort_by_key(|b| b.timestamp);
-        timeline
-    }
-
-    /// 도메인별 통계
-    pub fn domain_breakdown(entries: &[RequestInfo]) -> Vec<DomainStat> {
-        let mut map: HashMap<String, (usize, usize, Vec<u64>, u64, u64)> = HashMap::new();
-
-        for info in entries {
-            let Some(req) = &info.request else {
-                continue;
-            };
-            let domain = extract_domain(&req.uri().to_string());
-            let dur = get_duration_ms(info).unwrap_or(0);
-            let is_err = info
-                .response
-                .as_ref()
-                .map(|r| is_error_status(r.status().as_u16()))
-                .unwrap_or(false);
-            let req_size = req.body_size() as u64;
-            let res_size = info
-                .response
-                .as_ref()
-                .map(|r| r.body_size() as u64)
-                .unwrap_or(0);
-
-            let entry = map.entry(domain).or_insert((0, 0, Vec::new(), 0, 0));
-            entry.0 += 1;
-            if is_err {
-                entry.1 += 1;
-            }
-            entry.2.push(dur);
-            entry.3 += req_size;
-            entry.4 += res_size;
-        }
-
-        let mut stats: Vec<DomainStat> = map
-            .into_iter()
-            .map(|(domain, (count, errors, durs, sent, recv))| {
-                let avg_dur = if durs.is_empty() {
-                    0.0
-                } else {
-                    durs.iter().sum::<u64>() as f64 / durs.len() as f64
-                };
-                DomainStat {
-                    domain,
-                    request_count: count,
-                    error_count: errors,
-                    avg_duration_ms: avg_dur,
-                    total_bytes_sent: sent,
-                    total_bytes_received: recv,
-                }
-            })
-            .collect();
-
-        stats.sort_by(|a, b| b.request_count.cmp(&a.request_count));
-        stats
-    }
-
-    /// 페이로드 크기 분석
-    pub fn payload_size_analysis(entries: &[RequestInfo]) -> PayloadReport {
-        let mut total = 0usize;
-        let mut total_req_size = 0u64;
-        let mut total_res_size = 0u64;
-        let mut max_req_size = 0u64;
-        let mut max_res_size = 0u64;
-        let mut req_entries: Vec<PayloadEntry> = Vec::new();
-        let mut res_entries: Vec<PayloadEntry> = Vec::new();
-
-        for info in entries {
-            let Some(req) = &info.request else {
-                continue;
-            };
-            total += 1;
-            let req_size = req.body_size() as u64;
-            let res_size = info
-                .response
-                .as_ref()
-                .map(|r| r.body_size() as u64)
-                .unwrap_or(0);
-
-            total_req_size += req_size;
-            total_res_size += res_size;
-
-            if req_size > max_req_size {
-                max_req_size = req_size;
-            }
-            if res_size > max_res_size {
-                max_res_size = res_size;
-            }
-
-            req_entries.push(PayloadEntry {
-                url: req.uri().to_string(),
-                method: req.method().to_string(),
-                size: req_size,
-            });
-            res_entries.push(PayloadEntry {
-                url: req.uri().to_string(),
-                method: req.method().to_string(),
-                size: res_size,
-            });
-        }
-
-        req_entries.sort_by(|a, b| b.size.cmp(&a.size));
-        res_entries.sort_by(|a, b| b.size.cmp(&a.size));
-        req_entries.truncate(10);
-        res_entries.truncate(10);
-
-        PayloadReport {
-            total_requests: total,
-            avg_request_size: if total > 0 {
-                total_req_size / total as u64
-            } else {
-                0
-            },
-            avg_response_size: if total > 0 {
-                total_res_size / total as u64
-            } else {
-                0
-            },
-            max_request_size: max_req_size,
-            max_response_size: max_res_size,
-            largest_requests: req_entries,
-            largest_responses: res_entries,
-        }
-    }
-
-    /// CORS 문제 감지
-    pub fn cors_issues(entries: &[RequestInfo]) -> Vec<CorsIssue> {
-        let mut issues: Vec<CorsIssue> = Vec::new();
-
-        for info in entries {
-            let Some(req) = &info.request else {
-                continue;
-            };
-            let Some(res) = &info.response else {
-                continue;
-            };
-
-            let url = req.uri().to_string();
-            let has_origin = req.headers().get("origin").is_some();
-
-            if !has_origin {
-                continue;
-            }
-
-            // OPTIONS 프리플라이트 체크
-            if req.method() == "OPTIONS" {
-                let has_allow_origin = res.headers().get("access-control-allow-origin").is_some();
-                let has_allow_methods = res.headers().get("access-control-allow-methods").is_some();
-
-                if !has_allow_origin {
-                    issues.push(CorsIssue {
-                        url: url.clone(),
-                        issue_type: "preflight_missing_allow_origin".to_string(),
-                        details: "OPTIONS preflight response is missing Access-Control-Allow-Origin header".to_string(),
-                    });
-                }
-                if !has_allow_methods {
-                    issues.push(CorsIssue {
-                        url: url.clone(),
-                        issue_type: "preflight_missing_allow_methods".to_string(),
-                        details: "OPTIONS preflight response is missing Access-Control-Allow-Methods header".to_string(),
-                    });
-                }
-                if is_error_status(res.status().as_u16()) {
-                    issues.push(CorsIssue {
-                        url: url.clone(),
-                        issue_type: "preflight_failed".to_string(),
-                        details: format!(
-                            "OPTIONS preflight returned error status {}",
-                            res.status().as_u16()
-                        ),
-                    });
-                }
-            } else {
-                // 일반 CORS 요청
-                let has_allow_origin = res.headers().get("access-control-allow-origin").is_some();
-                if !has_allow_origin {
-                    issues.push(CorsIssue {
-                        url,
-                        issue_type: "missing_allow_origin".to_string(),
-                        details: "Cross-origin request response is missing Access-Control-Allow-Origin header".to_string(),
-                    });
-                }
-            }
-        }
-
-        issues
-    }
-
-    /// Mixed Content 경고
-    pub fn mixed_content_warnings(entries: &[RequestInfo]) -> Vec<MixedContentWarning> {
-        let mut warnings: Vec<MixedContentWarning> = Vec::new();
-
-        // HTTPS 페이지에서 HTTP 리소스를 로드하는 패턴 감지
-        // Referer 헤더로 부모 페이지 추적
-        for info in entries {
-            let Some(req) = &info.request else {
-                continue;
-            };
-            let url = req.uri().to_string();
-            let scheme = extract_scheme(&url);
-
-            if scheme == "http" {
-                // Referer가 HTTPS인지 확인
-                if let Some(referer) = req.headers().get("referer") {
-                    if let Ok(referer_str) = referer.to_str() {
-                        if referer_str.starts_with("https://") {
-                            // Content-Type으로 리소스 타입 추론
-                            let resource_type = info
-                                .response
-                                .as_ref()
-                                .and_then(|r| r.headers().get("content-type"))
-                                .and_then(|ct| ct.to_str().ok())
-                                .map(|ct| {
-                                    if ct.starts_with("image/") {
-                                        "image"
-                                    } else if ct.starts_with("text/css") {
-                                        "stylesheet"
-                                    } else if ct.contains("javascript") {
-                                        "script"
-                                    } else if ct.starts_with("font/") {
-                                        "font"
-                                    } else {
-                                        "other"
-                                    }
-                                })
-                                .unwrap_or("unknown")
-                                .to_string();
-
-                            warnings.push(MixedContentWarning {
-                                secure_page: referer_str.to_string(),
-                                insecure_resource: url,
-                                resource_type,
-                            });
-                        }
-                    }
-                }
-            }
-        }
-
-        warnings
-    }
-
     /// 전체 분석 보고서
     pub fn full_report(entries: &[RequestInfo]) -> FullReport {
         let mut endpoint_stats = Self::endpoint_stats(entries);
@@ -900,8 +312,6 @@ mod tests {
     use proxy_v2_models::{ClientRequest, ClientResponse, RequestInfo};
 
     fn make_client_request(method: &str, uri: &str, time: i64) -> ClientRequest {
-        // ClientRequest를 ProxiedRequest::for_client로 만들어야 하지만
-        // 테스트에서는 직접 생성
         let req = proxy_v2_models::ProxiedRequest::new(
             method.parse::<Method>().unwrap(),
             uri.parse::<Uri>().unwrap(),
@@ -1144,7 +554,6 @@ mod tests {
     #[test]
     fn test_percentile() {
         let values = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-        // p50 of 10 elements: index = round(0.5 * 9) = round(4.5) = 5 -> values[5] = 6
         assert_eq!(percentile(&values, 50.0), 6.0);
         assert_eq!(percentile(&values, 100.0), 10.0);
         assert_eq!(percentile(&[], 50.0), 0.0);
@@ -1306,7 +715,6 @@ mod tests {
     fn test_single_request_percentiles() {
         let entries = vec![make_info("GET", "http://example.com/a", 200, 1000, 1150)];
         let report = TrafficAnalytics::slow_requests(&entries, 0, 10);
-        // 단일 값이면 P50/P95/P99 모두 같아야 함
         assert_eq!(report.p50_ms, report.p95_ms);
         assert_eq!(report.p95_ms, report.p99_ms);
         assert_eq!(report.total_slow, 1);
@@ -1336,13 +744,12 @@ mod tests {
 
     #[test]
     fn test_very_large_duration() {
-        // res_time - req_time = i64::MAX에 가까운 값
         let entries = vec![make_info(
             "GET",
             "http://example.com/slow",
             200,
             0,
-            1_000_000_000, // 10^9 ms = ~11.5일
+            1_000_000_000,
         )];
         let report = TrafficAnalytics::slow_requests(&entries, 1000, 10);
         assert_eq!(report.total_slow, 1);
@@ -1393,7 +800,6 @@ mod tests {
             make_info("GET", "http://example.com/c", 200, 1000, 1100),
         ];
         let timeline = TrafficAnalytics::traffic_timeline(&entries, 60);
-        // 모두 같은 버킷에 들어가야 함
         assert_eq!(timeline.len(), 1);
         assert_eq!(timeline[0].request_count, 3);
     }
@@ -1402,14 +808,12 @@ mod tests {
 
     #[test]
     fn test_duplicate_with_query_params() {
-        // 쿼리 파라미터가 다르면 다른 URL로 취급됨 (현재 구현 기준)
         let entries = vec![
             make_info("GET", "http://example.com/api?page=1", 200, 1000, 1100),
             make_info("GET", "http://example.com/api?page=1", 200, 1500, 1600),
             make_info("GET", "http://example.com/api?page=2", 200, 2000, 2100),
         ];
         let dupes = TrafficAnalytics::duplicate_requests(&entries, 3000);
-        // ?page=1 이 2번이므로 1개 그룹
         assert_eq!(dupes.len(), 1);
         assert_eq!(dupes[0].count, 2);
         assert!(dupes[0].url.contains("page=1"));
@@ -1477,7 +881,6 @@ mod tests {
         ];
         let patterns = TrafficAnalytics::n_plus_one_detection(&entries);
         assert!(!patterns.is_empty());
-        // /api/users/{id}/posts/{id} 패턴이 감지되어야 함
         assert!(patterns[0].pattern.contains("{id}"));
         assert_eq!(patterns[0].count, 3);
     }
@@ -1493,7 +896,6 @@ mod tests {
             server_cert: None,
             tls_fallback_used: None,
         }];
-        // 모든 분석 함수가 패닉 없이 빈 결과를 반환해야 함
         let slow = TrafficAnalytics::slow_requests(&entries, 1000, 10);
         assert_eq!(slow.total_slow, 0);
         let errors = TrafficAnalytics::error_analysis(&entries);
@@ -1519,13 +921,10 @@ mod tests {
             server_cert: None,
             tls_fallback_used: None,
         }];
-        // slow_requests: response가 없으면 duration 계산 불가 -> 스킵
         let slow = TrafficAnalytics::slow_requests(&entries, 0, 10);
         assert_eq!(slow.total_slow, 0);
-        // error_analysis: response가 없으면 스킵
         let errors = TrafficAnalytics::error_analysis(&entries);
         assert_eq!(errors.total_requests, 0);
-        // endpoint_stats: response가 없으면 스킵
         let stats = TrafficAnalytics::endpoint_stats(&entries);
         assert!(stats.is_empty());
     }
@@ -1541,13 +940,11 @@ mod tests {
                 "http://example.com/slow",
                 200,
                 i * 1000,
-                i * 1000 + 2000, // 2000ms duration > 500ms threshold
+                i * 1000 + 2000,
             ));
         }
         let report = TrafficAnalytics::slow_requests(&entries, 500, 5);
-        // total_slow는 limit 적용 전의 개수여야 함
         assert_eq!(report.total_slow, 20);
-        // requests는 limit으로 잘려야 함
         assert_eq!(report.requests.len(), 5);
     }
 
@@ -1556,10 +953,8 @@ mod tests {
     #[test]
     fn test_percentile_two_values() {
         let values = vec![10, 20];
-        // P50: round(0.5 * 1) = round(0.5) = 1 -> values[1] = 20
-        // (round rounds .5 to nearest even = 0, but Rust's f64::round rounds .5 away from zero = 1)
         let p50 = percentile(&values, 50.0);
-        assert!(p50 == 10.0 || p50 == 20.0); // 구현에 따라 다를 수 있음
+        assert!(p50 == 10.0 || p50 == 20.0);
         assert_eq!(percentile(&values, 0.0), 10.0);
         assert_eq!(percentile(&values, 100.0), 20.0);
     }
@@ -1568,7 +963,6 @@ mod tests {
     fn test_percentile_p99_large_dataset() {
         let values: Vec<u64> = (1..=100).collect();
         let p99 = percentile(&values, 99.0);
-        // idx = round(0.99 * 99) = round(98.01) = 98 -> values[98] = 99
         assert_eq!(p99, 99.0);
     }
 
@@ -1615,21 +1009,16 @@ mod tests {
 
     #[test]
     fn test_normalize_path_pattern_various() {
-        // 순수 숫자
         assert_eq!(normalize_path_pattern("/api/users/42"), "/api/users/{id}");
-        // 짧은 UUID (32자 미만)
         assert_eq!(
             normalize_path_pattern("/api/users/abc123"),
             "/api/users/abc123"
         );
-        // 경로 없음
         assert_eq!(normalize_path_pattern("/"), "/");
-        // 여러 ID 세그먼트
         assert_eq!(
             normalize_path_pattern("/api/users/1/posts/2"),
             "/api/users/{id}/posts/{id}"
         );
-        // 빈 세그먼트는 건드리지 않음
         assert_eq!(normalize_path_pattern("/api//users"), "/api//users");
     }
 
@@ -1638,29 +1027,26 @@ mod tests {
     #[test]
     fn test_realistic_api_traffic_simulation() {
         let mut entries = Vec::new();
-        let base_time = 1_700_000_000_000i64; // 임의의 Unix ms 타임스탬프
+        let base_time = 1_700_000_000_000i64;
 
-        // 정상 GET 요청 (빠름)
         for i in 0..50 {
             entries.push(make_info(
                 "GET",
                 "http://api.example.com/api/users",
                 200,
                 base_time + i * 100,
-                base_time + i * 100 + 50, // 50ms
+                base_time + i * 100 + 50,
             ));
         }
-        // 느린 GET 요청
         for i in 0..5 {
             entries.push(make_info(
                 "GET",
                 "http://api.example.com/api/reports",
                 200,
                 base_time + 5000 + i * 200,
-                base_time + 5000 + i * 200 + 3000, // 3000ms
+                base_time + 5000 + i * 200 + 3000,
             ));
         }
-        // 에러 요청
         for i in 0..10 {
             entries.push(make_info(
                 "POST",
@@ -1670,7 +1056,6 @@ mod tests {
                 base_time + 10000 + i * 100 + 100,
             ));
         }
-        // 404 요청
         for i in 0..3 {
             entries.push(make_info(
                 "GET",
@@ -1683,15 +1068,10 @@ mod tests {
 
         let report = TrafficAnalytics::full_report(&entries);
 
-        // 검증
-        assert_eq!(report.errors.total_requests, 68); // 50 + 5 + 10 + 3
-        assert_eq!(report.errors.error_count, 13); // 10 + 3
+        assert_eq!(report.errors.total_requests, 68);
+        assert_eq!(report.errors.error_count, 13);
         assert!(report.errors.error_rate > 15.0 && report.errors.error_rate < 25.0);
-
-        // 느린 요청 검출
         assert!(report.slow_requests.total_slow > 0);
-
-        // 도메인은 1개
         assert_eq!(report.domain_breakdown.len(), 1);
         assert_eq!(report.domain_breakdown[0].domain, "api.example.com");
     }
@@ -1708,17 +1088,17 @@ mod tests {
                 "http://example.com/api/data",
                 status,
                 i * 10,
-                i * 10 + (i % 50) + 1, // 1~50ms 다양한 duration
+                i * 10 + (i % 50) + 1,
             ));
         }
 
         let report = TrafficAnalytics::error_analysis(&entries);
         assert_eq!(report.total_requests, 1000);
-        assert_eq!(report.error_count, 100); // 1000 / 10
+        assert_eq!(report.error_count, 100);
         assert!((report.error_rate - 10.0).abs() < 0.01);
 
         let slow = TrafficAnalytics::slow_requests(&entries, 0, 1000);
-        assert_eq!(slow.total_slow, 1000); // 모든 요청이 0ms 이상
+        assert_eq!(slow.total_slow, 1000);
         assert!(slow.p50_ms >= 0.0);
         assert!(slow.p95_ms >= slow.p50_ms);
         assert!(slow.p99_ms >= slow.p95_ms);
@@ -1729,23 +1109,18 @@ mod tests {
     #[test]
     fn test_endpoint_stats_sorting() {
         let entries = vec![
-            // /fast: 빠르지만 많이 호출
             make_info("GET", "http://example.com/fast", 200, 1000, 1010),
             make_info("GET", "http://example.com/fast", 200, 2000, 2010),
             make_info("GET", "http://example.com/fast", 200, 3000, 3010),
-            // /slow: 느리지만 적게 호출
             make_info("GET", "http://example.com/slow", 200, 4000, 5000),
-            // /error: 에러율 높음
             make_info("GET", "http://example.com/error", 500, 6000, 6100),
             make_info("GET", "http://example.com/error", 200, 7000, 7100),
         ];
 
         let mut stats = TrafficAnalytics::endpoint_stats(&entries);
-        // 기본 정렬: count 내림차순
         assert_eq!(stats[0].path, "/fast");
         assert_eq!(stats[0].count, 3);
 
-        // duration 정렬
         stats.sort_by(|a, b| {
             b.avg_duration_ms
                 .partial_cmp(&a.avg_duration_ms)
@@ -1753,7 +1128,6 @@ mod tests {
         });
         assert_eq!(stats[0].path, "/slow");
 
-        // error_rate 정렬
         stats.sort_by(|a, b| {
             b.error_rate
                 .partial_cmp(&a.error_rate)
@@ -1767,34 +1141,28 @@ mod tests {
 
     #[test]
     fn test_traffic_timeline_bucket_boundaries() {
-        let bucket_seconds = 10u64; // 10초 = 10000ms 버킷
+        let bucket_seconds = 10u64;
         let bucket_ms = (bucket_seconds * 1000) as i64;
 
         let entries = vec![
-            // 버킷 0: [0, 10000)
             make_info("GET", "http://example.com/a", 200, 0, 100),
             make_info("GET", "http://example.com/b", 200, 9999, 10050),
-            // 버킷 1: [10000, 20000)
             make_info("GET", "http://example.com/c", 500, 10000, 10100),
             make_info("GET", "http://example.com/d", 200, 15000, 15100),
-            // 버킷 2: [20000, 30000)
             make_info("GET", "http://example.com/e", 200, 20000, 20100),
         ];
 
         let timeline = TrafficAnalytics::traffic_timeline(&entries, bucket_seconds);
         assert_eq!(timeline.len(), 3);
 
-        // 첫 번째 버킷
         assert_eq!(timeline[0].timestamp, 0);
         assert_eq!(timeline[0].request_count, 2);
         assert_eq!(timeline[0].error_count, 0);
 
-        // 두 번째 버킷
         assert_eq!(timeline[1].timestamp, bucket_ms);
         assert_eq!(timeline[1].request_count, 2);
         assert_eq!(timeline[1].error_count, 1);
 
-        // 세 번째 버킷
         assert_eq!(timeline[2].timestamp, bucket_ms * 2);
         assert_eq!(timeline[2].request_count, 1);
     }
@@ -1803,7 +1171,6 @@ mod tests {
 
     #[test]
     fn test_cors_preflight_and_actual_request_pair() {
-        // preflight OPTIONS (CORS 헤더 없는 응답)
         let preflight_req_headers = {
             let mut h = HeaderMap::new();
             h.insert("origin", HeaderValue::from_static("http://localhost:3000"));
@@ -1816,10 +1183,9 @@ mod tests {
             1000,
             1050,
             preflight_req_headers,
-            HeaderMap::new(), // CORS 헤더 없음
+            HeaderMap::new(),
         );
 
-        // 실제 요청 (CORS 헤더 없는 응답)
         let actual_req_headers = {
             let mut h = HeaderMap::new();
             h.insert("origin", HeaderValue::from_static("http://localhost:3000"));
@@ -1832,14 +1198,12 @@ mod tests {
             1100,
             1200,
             actual_req_headers,
-            HeaderMap::new(), // CORS 헤더 없음
+            HeaderMap::new(),
         );
 
         let entries = vec![preflight, actual];
         let issues = TrafficAnalytics::cors_issues(&entries);
 
-        // preflight: missing_allow_origin + missing_allow_methods
-        // actual: missing_allow_origin
         assert!(issues.len() >= 3);
 
         let preflight_issues: Vec<_> = issues
@@ -1982,7 +1346,6 @@ mod tests {
             make_info("GET", "http://example.com/api/data", 200, 1000, 1100),
             make_info("GET", "http://example.com/api/data", 200, 5000, 5100),
         ];
-        // window 1000ms -> 두 요청 사이 간격 4000ms이므로 중복 아님
         let dupes = TrafficAnalytics::duplicate_requests(&entries, 1000);
         assert!(dupes.is_empty());
     }
@@ -2011,7 +1374,6 @@ mod tests {
             make_info("GET", "http://example.com/api/users/2", 200, 1200, 1300),
         ];
         let patterns = TrafficAnalytics::n_plus_one_detection(&entries);
-        // 3개 미만이므로 감지되지 않음
         assert!(patterns.is_empty());
     }
 
@@ -2041,9 +1403,7 @@ mod tests {
         ];
         let report = TrafficAnalytics::payload_size_analysis(&entries);
         assert_eq!(report.total_requests, 2);
-        // 최대 요청 크기: "request2" = 8 bytes
         assert_eq!(report.max_request_size, 8);
-        // 최대 응답 크기: "response1" = 9 bytes
         assert_eq!(report.max_response_size, 9);
     }
 
@@ -2059,7 +1419,6 @@ mod tests {
             1100,
         )];
         let issues = TrafficAnalytics::cors_issues(&entries);
-        // origin 헤더 없으면 CORS 검사 안 함
         assert!(issues.is_empty());
     }
 
@@ -2100,7 +1459,6 @@ mod tests {
             make_info("GET", "http://example.com:9090/c", 200, 3000, 3100),
         ];
         let stats = TrafficAnalytics::domain_breakdown(&entries);
-        // 포트가 다르면 같은 도메인으로 추출됨 (extract_domain은 포트 제거)
         assert_eq!(stats.len(), 1);
         assert_eq!(stats[0].domain, "example.com");
         assert_eq!(stats[0].request_count, 3);
@@ -2111,26 +1469,22 @@ mod tests {
     #[test]
     fn test_traffic_timeline_large_volume() {
         let mut entries = Vec::new();
-        // 100초 동안 매 100ms마다 요청 (1000건)
         for i in 0..1000 {
             let status = if i % 20 == 0 { 500 } else { 200 };
             entries.push(make_info(
                 "GET",
                 "http://example.com/api/data",
                 status,
-                i * 100,      // 0, 100, 200, ...
-                i * 100 + 50, // 50ms duration
+                i * 100,
+                i * 100 + 50,
             ));
         }
 
-        let timeline = TrafficAnalytics::traffic_timeline(&entries, 10); // 10초 버킷
-                                                                         // 100초 / 10초 = 10개 버킷
+        let timeline = TrafficAnalytics::traffic_timeline(&entries, 10);
         assert_eq!(timeline.len(), 10);
 
-        // 각 버킷에 100개 요청
         for bucket in &timeline {
             assert_eq!(bucket.request_count, 100);
-            // 5% 에러율 (20건 중 1건)
             assert_eq!(bucket.error_count, 5);
         }
     }
@@ -2139,11 +1493,8 @@ mod tests {
 
     #[test]
     fn test_extract_path_edge_cases() {
-        // fragment
         assert_eq!(extract_path("http://example.com/path?q=1"), "/path");
-        // 빈 경로
         assert_eq!(extract_path("http://example.com"), "/");
-        // 여러 쿼리 파라미터
         assert_eq!(
             extract_path("http://example.com/api/v1/users?page=1&size=20&sort=name"),
             "/api/v1/users"
