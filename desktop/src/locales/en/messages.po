@@ -299,11 +299,11 @@ msgstr "available"
 msgid "Avg Response Time"
 msgstr "Avg Response Time"
 
-#: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:82
+#: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:75
 msgid "Avg Size"
 msgstr "Avg Size"
 
-#: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:75
+#: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:68
 msgid "Avg Time"
 msgstr "Avg Time"
 
@@ -674,12 +674,12 @@ msgstr "Copy to clipboard"
 msgid "Copy URL"
 msgstr "Copy URL"
 
-#: src/pages/analytics-dashboard/ui/misc-tab.tsx:24
+#: src/pages/analytics-dashboard/ui/misc-tab.tsx:17
 msgid "CORS Issues"
 msgstr "CORS Issues"
 
 #: src/pages/analytics-dashboard/ui/duplicate-tab.tsx:25
-#: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:72
+#: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:65
 msgid "Count"
 msgstr "Count"
 
@@ -764,7 +764,7 @@ msgid "Dir"
 msgstr "Dir"
 
 #: src/features/websocket-replay/ui/ws-replay-dialog.tsx:123
-#: src/pages/analytics-dashboard/ui/misc-tab.tsx:136
+#: src/pages/analytics-dashboard/ui/misc-tab.tsx:129
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:46
 msgid "Direction"
 msgstr "Direction"
@@ -911,8 +911,8 @@ msgid "entries"
 msgstr "entries"
 
 #: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:157
-#: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:38
-#: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:79
+#: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:31
+#: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:72
 #: src/pages/analytics-dashboard/ui/error-tab.tsx:78
 msgid "Error Rate"
 msgstr "Error Rate"
@@ -1070,7 +1070,7 @@ msgstr "format"
 msgid "Forward"
 msgstr "Forward"
 
-#: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:36
+#: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:29
 msgid "Frequency"
 msgstr "Frequency"
 
@@ -1286,7 +1286,7 @@ msgstr "Invalid status code"
 msgid "IP Address"
 msgstr "IP Address"
 
-#: src/pages/analytics-dashboard/ui/misc-tab.tsx:43
+#: src/pages/analytics-dashboard/ui/misc-tab.tsx:36
 msgid "Issue"
 msgstr "Issue"
 
@@ -1331,7 +1331,7 @@ msgstr "Label"
 msgid "Language"
 msgstr "Language"
 
-#: src/pages/analytics-dashboard/ui/misc-tab.tsx:122
+#: src/pages/analytics-dashboard/ui/misc-tab.tsx:115
 msgid "Largest Payloads (Top 10)"
 msgstr "Largest Payloads (Top 10)"
 
@@ -1521,10 +1521,10 @@ msgstr "messages"
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:288
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:203
 #: src/pages/analytics-dashboard/ui/duplicate-tab.tsx:21
-#: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:66
+#: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:59
 #: src/pages/analytics-dashboard/ui/error-tab.tsx:66
-#: src/pages/analytics-dashboard/ui/misc-tab.tsx:39
-#: src/pages/analytics-dashboard/ui/misc-tab.tsx:132
+#: src/pages/analytics-dashboard/ui/misc-tab.tsx:32
+#: src/pages/analytics-dashboard/ui/misc-tab.tsx:125
 #: src/pages/analytics-dashboard/ui/performance-tab.tsx:44
 #: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:28
 #: src/widgets/grpc-calls/ui/grpc-call-table.tsx:135
@@ -1535,7 +1535,7 @@ msgstr "Method"
 msgid "Misc"
 msgstr "Misc"
 
-#: src/pages/analytics-dashboard/ui/misc-tab.tsx:77
+#: src/pages/analytics-dashboard/ui/misc-tab.tsx:70
 msgid "Mixed Content Warnings"
 msgstr "Mixed Content Warnings"
 
@@ -1638,7 +1638,7 @@ msgstr "No console output yet"
 msgid "No contract validation results"
 msgstr "No contract validation results"
 
-#: src/pages/analytics-dashboard/ui/misc-tab.tsx:33
+#: src/pages/analytics-dashboard/ui/misc-tab.tsx:26
 msgid "No CORS issues detected"
 msgstr "No CORS issues detected"
 
@@ -1646,7 +1646,7 @@ msgstr "No CORS issues detected"
 msgid "No duplicate requests detected"
 msgstr "No duplicate requests detected"
 
-#: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:88
+#: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:81
 msgid "No endpoint data"
 msgstr "No endpoint data"
 
@@ -1682,7 +1682,7 @@ msgstr "No log files found"
 msgid "No map rules"
 msgstr "No map rules"
 
-#: src/pages/analytics-dashboard/ui/misc-tab.tsx:86
+#: src/pages/analytics-dashboard/ui/misc-tab.tsx:79
 msgid "No mixed content warnings"
 msgstr "No mixed content warnings"
 
@@ -1690,7 +1690,7 @@ msgstr "No mixed content warnings"
 msgid "No N+1 patterns detected"
 msgstr "No N+1 patterns detected"
 
-#: src/pages/analytics-dashboard/ui/misc-tab.tsx:126
+#: src/pages/analytics-dashboard/ui/misc-tab.tsx:119
 msgid "No payload data"
 msgstr "No payload data"
 
@@ -1869,7 +1869,7 @@ msgstr "P95 Response Time"
 msgid "Password"
 msgstr "Password"
 
-#: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:69
+#: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:62
 #: src/pages/analytics-dashboard/ui/error-tab.tsx:69
 msgid "Path"
 msgstr "Path"
@@ -2044,7 +2044,7 @@ msgstr "Received"
 msgid "Received (Server → Client)"
 msgstr "Received (Server → Client)"
 
-#: src/pages/analytics-dashboard/ui/misc-tab.tsx:93
+#: src/pages/analytics-dashboard/ui/misc-tab.tsx:86
 msgid "Referrer"
 msgstr "Referrer"
 
@@ -2249,7 +2249,7 @@ msgid "Response Status Code"
 msgstr "Response Status Code"
 
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:269
-#: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:37
+#: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:30
 msgid "Response Time"
 msgstr "Response Time"
 
@@ -2594,7 +2594,7 @@ msgstr "Show CONNECT Requests"
 msgid "Simulate slow network conditions for testing"
 msgstr "Simulate slow network conditions for testing"
 
-#: src/pages/analytics-dashboard/ui/misc-tab.tsx:139
+#: src/pages/analytics-dashboard/ui/misc-tab.tsx:132
 #: src/widgets/sse-messages/ui/sse-message-detail.tsx:53
 #: src/widgets/sse-messages/ui/sse-message-table.tsx:129
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:53
@@ -2602,7 +2602,7 @@ msgstr "Simulate slow network conditions for testing"
 msgid "Size"
 msgstr "Size"
 
-#: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:47
+#: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:40
 msgid "Sort by"
 msgstr "Sort by"
 
@@ -2755,8 +2755,8 @@ msgstr "Throttle"
 msgid "Throughput"
 msgstr "Throughput"
 
-#: src/pages/analytics-dashboard/ui/misc-tab.tsx:46
-#: src/pages/analytics-dashboard/ui/misc-tab.tsx:96
+#: src/pages/analytics-dashboard/ui/misc-tab.tsx:39
+#: src/pages/analytics-dashboard/ui/misc-tab.tsx:89
 #: src/pages/analytics-dashboard/ui/performance-tab.tsx:54
 #: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:60
 #: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:153
