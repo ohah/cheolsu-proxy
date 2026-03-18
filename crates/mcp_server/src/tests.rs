@@ -2,7 +2,9 @@ use proxy_daemon::{InterceptAction, InterceptRule};
 use proxy_v2_models::{RequestInfo, WsConnectionEvent, WsDirection, WsMessageInfo};
 use rmcp::{handler::server::wrapper::Parameters, model::*};
 
-use crate::helpers::{format_size, next_rule_id, read_body_text, tool_error, tool_ok};
+use crate::helpers::{
+    compute_time_stats, format_size, next_rule_id, read_body_text, tool_error, tool_ok,
+};
 use crate::params::*;
 use crate::server::CheolsuMcpServer;
 use crate::store::{Store, MAX_TRANSACTIONS, MAX_WS_MESSAGES};
@@ -469,4 +471,47 @@ async fn test_server_remove_rule_not_found() {
     };
     let result = server.remove_rule(Parameters(params)).await.unwrap();
     assert!(result.is_error.unwrap_or(false));
+}
+
+// --- compute_time_stats() 테스트 ---
+
+#[test]
+fn test_compute_time_stats_empty_returns_zeros() {
+    let (avg, min, max) = compute_time_stats(&[]);
+    assert_eq!(avg, 0.0);
+    assert_eq!(min, 0.0);
+    assert_eq!(max, 0.0);
+}
+
+#[test]
+fn test_compute_time_stats_single_value() {
+    let (avg, min, max) = compute_time_stats(&[42.0]);
+    assert!((avg - 42.0).abs() < f64::EPSILON);
+    assert!((min - 42.0).abs() < f64::EPSILON);
+    assert!((max - 42.0).abs() < f64::EPSILON);
+}
+
+#[test]
+fn test_compute_time_stats_multiple_values() {
+    let (avg, min, max) = compute_time_stats(&[10.0, 20.0, 30.0]);
+    assert!((avg - 20.0).abs() < f64::EPSILON);
+    assert!((min - 10.0).abs() < f64::EPSILON);
+    assert!((max - 30.0).abs() < f64::EPSILON);
+}
+
+#[test]
+fn test_compute_time_stats_same_values() {
+    let (avg, min, max) = compute_time_stats(&[5.0, 5.0, 5.0]);
+    assert!((avg - 5.0).abs() < f64::EPSILON);
+    assert!((min - 5.0).abs() < f64::EPSILON);
+    assert!((max - 5.0).abs() < f64::EPSILON);
+}
+
+#[test]
+fn test_compute_time_stats_no_nan() {
+    // 빈 벡터에서 NaN이 발생하지 않는지 확인
+    let (avg, min, max) = compute_time_stats(&[]);
+    assert!(!avg.is_nan());
+    assert!(!min.is_nan());
+    assert!(!max.is_nan());
 }

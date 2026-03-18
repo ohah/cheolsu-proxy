@@ -134,6 +134,20 @@ pub async fn with_daemon_conn(
     conn.send_command(cmd).await.map_err(|e| e.to_string())
 }
 
+/// 응답 시간 통계를 계산합니다.
+/// `times`가 비어있으면 (0.0, 0.0, 0.0)을 반환하여 NaN을 방지합니다.
+pub fn compute_time_stats(times: &[f64]) -> (f64, f64, f64) {
+    if times.is_empty() {
+        (0.0, 0.0, 0.0)
+    } else {
+        (
+            times.iter().sum::<f64>() / times.len() as f64,
+            times.iter().cloned().fold(f64::MAX, f64::min),
+            times.iter().cloned().fold(0.0f64, f64::max),
+        )
+    }
+}
+
 pub fn read_body_text(file_path: &Option<String>, data_type: &proxy_v2_models::DataType) -> String {
     let Some(path) = file_path else {
         return "(body not available)".to_string();
