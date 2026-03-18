@@ -36,6 +36,29 @@
   --bg-input: #373737;
   --shadow-color: 240deg 4% 14%;
 }
+/* Custom themes inherit dark method colors */
+.dracula,
+.nord,
+.monokai,
+.solarized-dark,
+.github-dark {
+  --font-color-emphasis: rgba(255, 255, 255, 0.87);
+  --font-color: rgba(255, 255, 255, 0.6);
+  --bg-color: var(--background);
+  --bg-color-secondary: var(--card);
+  --post: #49cc90;
+  --get: #61affe;
+  --put: #fca130;
+  --delete: #f93e3e;
+  --options: #0d5aa7;
+  --head: #9012fe;
+  --patch: #50e3c2;
+  --method: lightgray;
+  --little-contrast: var(--border);
+  --bg-input: var(--input);
+  --shadow-color: 240deg 4% 14%;
+}
+
 [data-theme="dark"],
 [data-theme="light"] {
   --box-shadow:

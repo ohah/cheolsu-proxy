@@ -9,9 +9,11 @@ import { Badge, TooltipProvider } from "@/shared/ui";
 
 import { useMonacoEditor } from "../hooks";
 import { FilterHelpTooltip } from "./filter-help-tooltip";
+import { FilterPresetMenu } from "./filter-preset-menu";
 import { Separator } from "@/shared/ui/separator";
 import { serializeBuilderState } from "../lib/query-serializer";
 import type { BuilderState } from "../lib/query-serializer";
+import { getMonacoThemeName } from "../model/themes";
 
 export type EditorMode = "code" | "builder";
 
@@ -94,6 +96,16 @@ export const QueryFilterEditor = ({
             </button>
 
             <Separator orientation="vertical" />
+
+            <FilterPresetMenu
+              currentQuery={serializeBuilderState(builderState)}
+              onSelectPreset={(query) => {
+                onChange(query);
+                onApply(query);
+              }}
+            />
+
+            <Separator orientation="vertical" />
             <Badge className="mx-2 text-[10px] font-mono shrink-0 bg-accent text-accent-foreground">
               {statsText}
             </Badge>
@@ -124,7 +136,7 @@ export const QueryFilterEditor = ({
               value={value}
               onChange={(value) => onChange(value || "")}
               onMount={handleEditorDidMount}
-              theme={resolvedTheme === "dark" ? "cheolsu-dark" : "cheolsu-light"}
+              theme={getMonacoThemeName(resolvedTheme)}
               options={{
                 minimap: { enabled: false },
                 lineNumbers: "off",
@@ -183,6 +195,16 @@ export const QueryFilterEditor = ({
           >
             <LayoutList className="w-3.5 h-3.5 text-muted-foreground" />
           </button>
+
+          <Separator orientation="vertical" />
+
+          <FilterPresetMenu
+            currentQuery={appliedValue}
+            onSelectPreset={(query) => {
+              onChange(query);
+              onApply(query);
+            }}
+          />
 
           <Separator orientation="vertical" />
           <Badge className="mx-2 text-[10px] font-mono shrink-0 bg-accent text-accent-foreground">

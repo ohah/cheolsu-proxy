@@ -22,7 +22,30 @@ const App: React.FC = () => {
   useMenuNavigation();
 
   return (
-    <ThemeProvider attribute={["class", "data-theme"]} defaultTheme="system" enableSystem>
+    <ThemeProvider
+      attribute={["class", "data-theme"]}
+      defaultTheme="system"
+      enableSystem
+      themes={[
+        "light",
+        "dark",
+        "system",
+        "dracula",
+        "nord",
+        "monokai",
+        "solarized-dark",
+        "github-dark",
+      ]}
+      value={{
+        light: "light",
+        dark: "dark",
+        dracula: "dark dracula",
+        nord: "dark nord",
+        monokai: "dark monokai",
+        "solarized-dark": "dark solarized-dark",
+        "github-dark": "dark github-dark",
+      }}
+    >
       <div className="App">
         <RouterProvider />
         <Toaster richColors />

@@ -12,6 +12,11 @@ const THEME_OPTIONS = [
   { value: "system", label: "System" },
   { value: "light", label: "Light" },
   { value: "dark", label: "Dark" },
+  { value: "dracula", label: "Dracula" },
+  { value: "nord", label: "Nord" },
+  { value: "monokai", label: "Monokai" },
+  { value: "solarized-dark", label: "Solarized Dark" },
+  { value: "github-dark", label: "GitHub Dark" },
 ] as const;
 
 export function GeneralSettings() {
@@ -98,8 +103,12 @@ export function GeneralSettings() {
           </SelectTrigger>
           <SelectContent>
             {THEME_OPTIONS.map((opt) => {
-              const label =
-                opt.value === "system" ? t`System` : opt.value === "light" ? t`Light` : t`Dark`;
+              const themeLabels: Record<string, string> = {
+                system: t`System`,
+                light: t`Light`,
+                dark: t`Dark`,
+              };
+              const label = themeLabels[opt.value] ?? opt.label;
               return (
                 <SelectItem key={opt.value} value={opt.value} label={label}>
                   {label}
