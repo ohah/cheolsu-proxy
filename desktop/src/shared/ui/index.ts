@@ -20,4 +20,6 @@ export * from "./popover";
 export * from "./separator";
 export * from "./label";
 export * from "./form";
+export * from "./alert";
+export * from "./progress";
 export * from "./rule-list-page";

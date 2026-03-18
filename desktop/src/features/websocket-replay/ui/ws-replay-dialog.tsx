@@ -19,6 +19,8 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  Alert,
+  AlertDescription,
 } from "@/shared/ui";
 
 interface WsReplayDialogProps {
@@ -170,12 +172,16 @@ export function WsReplayDialog({ message, open, onOpenChange }: WsReplayDialogPr
 
           {/* Status messages */}
           {error && (
-            <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm">{error}</div>
+            <Alert variant="destructive">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
           )}
           {success && (
-            <div className="p-3 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-sm">
-              <Trans>Message sent successfully</Trans>
-            </div>
+            <Alert variant="success">
+              <AlertDescription>
+                <Trans>Message sent successfully</Trans>
+              </AlertDescription>
+            </Alert>
           )}
 
           {/* Send button */}

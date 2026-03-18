@@ -22,6 +22,9 @@ import {
   Badge,
   Input,
   Separator,
+  Alert,
+  AlertDescription,
+  Progress,
 } from "@/shared/ui";
 import { sanitizeHopByHopHeaders } from "@/shared/lib/http-headers";
 import { uint8ArrayToString } from "../lib";
@@ -195,9 +198,9 @@ export function AdvancedRepeatDialog({
             </div>
 
             {error && (
-              <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm">
-                {error}
-              </div>
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
             )}
           </div>
         )}
@@ -214,13 +217,7 @@ export function AdvancedRepeatDialog({
                   {progress?.completed ?? 0} / {progress?.total ?? iterations}
                 </span>
               </div>
-              {/* Progress bar */}
-              <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-primary transition-all duration-150"
-                  style={{ width: `${progressPercent}%` }}
-                />
-              </div>
+              <Progress value={progressPercent} />
               <div className="text-xs text-muted-foreground text-center">{progressPercent}%</div>
             </div>
 
@@ -334,9 +331,9 @@ export function AdvancedRepeatDialog({
             )}
 
             {error && (
-              <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm">
-                {error}
-              </div>
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
             )}
           </div>
         )}

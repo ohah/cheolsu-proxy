@@ -35,6 +35,8 @@ import {
   Tooltip,
   TooltipTrigger,
   TooltipContent,
+  Alert,
+  AlertDescription,
 } from "@/shared/ui";
 import { getStatusColor } from "@/entities/transaction";
 import { uint8ArrayToString } from "../lib";
@@ -526,9 +528,9 @@ export function ReplayDialog({
 
               <div className="flex-shrink-0 pt-4 space-y-3">
                 {error && (
-                  <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm">
-                    {error}
-                  </div>
+                  <Alert variant="destructive">
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
                 )}
                 <Button onClick={handleReplay} disabled={loading || !url} className="w-full">
                   {loading ? (
