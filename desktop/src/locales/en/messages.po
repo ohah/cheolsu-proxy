@@ -66,8 +66,8 @@ msgstr "* = any string, ? = single character"
 msgid "200 (optional)"
 msgstr "200 (optional)"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:402
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:406
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:388
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:392
 msgid "Abort"
 msgstr "Abort"
 
@@ -94,8 +94,8 @@ msgstr "Actual"
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:404
 #: src/features/map-rule-form/ui/map-local-fields.tsx:73
 #: src/features/transaction-details/ui/replay-dialog.tsx:433
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:239
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:459
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:225
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:445
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:140
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:142
 #: src/pages/server-replay/ui/server-replay-page.tsx:170
@@ -106,7 +106,7 @@ msgstr "Actual"
 msgid "Add"
 msgstr "Add"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:273
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:259
 msgid "Add breakpoint rules to pause HTTP requests/responses for inspection."
 msgstr "Add breakpoint rules to pause HTTP requests/responses for inspection."
 
@@ -155,7 +155,7 @@ msgstr "Add Proto Files"
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:250
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:601
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:257
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:218
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:204
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:84
 #: src/pages/map-rules/ui/map-rules-page.tsx:72
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:164
@@ -182,7 +182,7 @@ msgstr "Add Spec"
 msgid "Add your first mapping"
 msgstr "Add your first mapping"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:277
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:263
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:83
 #: src/pages/map-rules/ui/map-rules-page.tsx:71
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:163
@@ -250,7 +250,7 @@ msgstr "All requests match the spec"
 msgid "All reverse proxy rules cleared"
 msgstr "All reverse proxy rules cleared"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:159
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:145
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:71
 #: src/pages/map-rules/ui/map-rules-page.tsx:55
 msgid "All rules cleared"
@@ -353,7 +353,7 @@ msgstr "Block Cookies"
 #: src/features/transaction-details/ui/replay-dialog.tsx:128
 #: src/features/transaction-details/ui/replay-dialog.tsx:199
 #: src/features/transaction-details/ui/replay-dialog.tsx:482
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:493
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:479
 msgid "Body"
 msgstr "Body"
 
@@ -362,27 +362,27 @@ msgstr "Body"
 msgid "Bottom"
 msgstr "Bottom"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:248
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:234
 msgid "Break on Request"
 msgstr "Break on Request"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:252
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:238
 msgid "Break on Response"
 msgstr "Break on Response"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:165
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:151
 msgid "Breakpoint forwarded"
 msgstr "Breakpoint forwarded"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:86
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:72
 msgid "Breakpoint is no longer pending"
 msgstr "Breakpoint is no longer pending"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:149
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:135
 msgid "Breakpoint rule added"
 msgstr "Breakpoint rule added"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:195
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:181
 #: src/shared/app-sidebar/model/consts.ts:85
 msgid "Breakpoints"
 msgstr "Breakpoints"
@@ -435,8 +435,8 @@ msgstr "calls"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:598
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:254
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:242
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:506
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:228
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:492
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:137
 #: src/pages/log-viewer/ui/logs-page.tsx:495
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:139
@@ -517,7 +517,7 @@ msgstr "Clear"
 msgid "Clear all"
 msgstr "Clear all"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:213
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:199
 #: src/pages/log-viewer/ui/logs-page.tsx:292
 #: src/pages/server-replay/ui/server-replay-page.tsx:105
 #: src/pages/settings/ui/components/tls-config-section.tsx:121
@@ -744,7 +744,7 @@ msgstr "Delete Log File"
 msgid "Delete mapping"
 msgstr "Delete mapping"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:315
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:301
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:161
 #: src/pages/map-rules/ui/map-rules-page.tsx:135
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:210
@@ -825,8 +825,8 @@ msgstr "Download (KB/s)"
 msgid "Download Speed (KB/s)"
 msgstr "Download Speed (KB/s)"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:393
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:396
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:379
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:382
 msgid "Drop"
 msgstr "Drop"
 
@@ -858,12 +858,12 @@ msgstr "e.g. api.example.com, /api/v1, /users/\\d+"
 msgid "e.g. iPhone, Android, QA Team"
 msgstr "e.g. iPhone, Android, QA Team"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:378
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:364
 msgid "Edit"
 msgstr "Edit"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:375
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:423
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:361
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:409
 msgid "Edit & Forward"
 msgstr "Edit & Forward"
 
@@ -1005,15 +1005,15 @@ msgstr "Export OpenAPI Spec"
 msgid "Failed"
 msgstr "Failed"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:185
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:171
 msgid "Failed to abort request"
 msgstr "Failed to abort request"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:176
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:162
 msgid "Failed to drop request"
 msgstr "Failed to drop request"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:167
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:153
 msgid "Failed to forward breakpoint"
 msgstr "Failed to forward breakpoint"
 
@@ -1022,7 +1022,7 @@ msgstr "Failed to forward breakpoint"
 msgid "Failed to load spec: {0}"
 msgstr "Failed to load spec: {0}"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:110
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:96
 msgid "Failed to modify and forward"
 msgstr "Failed to modify and forward"
 
@@ -1078,8 +1078,8 @@ msgstr "For Cursor, Claude Desktop, and other MCP-compatible clients:"
 msgid "format"
 msgstr "format"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:384
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:387
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:370
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:373
 msgid "Forward"
 msgstr "Forward"
 
@@ -1165,7 +1165,7 @@ msgstr "HAR imported successfully"
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:379
 #: src/features/map-rule-form/ui/map-local-fields.tsx:79
 #: src/features/transaction-details/ui/replay-dialog.tsx:445
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:468
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:454
 msgid "Header name"
 msgstr "Header name"
 
@@ -1179,7 +1179,7 @@ msgstr "Header name to remove"
 msgid "headers"
 msgstr "headers"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:455
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:441
 msgid "Headers"
 msgstr "Headers"
 
@@ -1291,7 +1291,7 @@ msgstr "Installing..."
 msgid "Intercept Rules"
 msgstr "Intercept Rules"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:95
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:81
 msgid "Invalid status code"
 msgstr "Invalid status code"
 
@@ -1560,11 +1560,11 @@ msgstr "Mobile Certificate Install"
 msgid "Mode"
 msgstr "Mode"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:108
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:94
 msgid "Modified and forwarded"
 msgstr "Modified and forwarded"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:510
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:496
 msgid "Modify & Forward"
 msgstr "Modify & Forward"
 
@@ -1631,7 +1631,7 @@ msgstr "No active SSE connections"
 msgid "No active WebSocket connections"
 msgstr "No active WebSocket connections"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:270
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:256
 msgid "No breakpoint rules"
 msgstr "No breakpoint rules"
 
@@ -1715,11 +1715,11 @@ msgstr "No N+1 patterns detected"
 msgid "No payload data"
 msgstr "No payload data"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:342
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:328
 msgid "No pending breakpoints. Matched requests will appear here."
 msgstr "No pending breakpoints. Matched requests will appear here."
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:306
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:292
 msgid "No phase selected"
 msgstr "No phase selected"
 
@@ -1904,11 +1904,11 @@ msgid "Pattern"
 msgstr "Pattern"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:207
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:134
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:120
 msgid "Pattern is required"
 msgstr "Pattern is required"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:198
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:184
 msgid "Pause and inspect HTTP requests/responses in real-time"
 msgstr "Pause and inspect HTTP requests/responses in real-time"
 
@@ -1924,11 +1924,11 @@ msgstr "Pause recording"
 msgid "Payload"
 msgstr "Payload"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:204
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:190
 msgid "pending"
 msgstr "pending"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:331
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:317
 msgid "Pending Breakpoints"
 msgstr "Pending Breakpoints"
 
@@ -2158,7 +2158,7 @@ msgstr "Replay request"
 
 #: src/features/transaction-details/ui/replay-dialog.tsx:372
 #: src/features/transaction-details/ui/transaction-body-side-by-side.tsx:16
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:296
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:282
 #: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:58
 msgid "Request"
 msgstr "Request"
@@ -2167,7 +2167,7 @@ msgstr "Request"
 msgid "Request a client certificate from connecting clients (mTLS server-side)"
 msgstr "Request a client certificate from connecting clients (mTLS server-side)"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:183
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:169
 msgid "Request aborted"
 msgstr "Request aborted"
 
@@ -2186,7 +2186,7 @@ msgstr "Request Client Certificate"
 msgid "Request Details"
 msgstr "Request Details"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:174
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:160
 msgid "Request dropped"
 msgstr "Request dropped"
 
@@ -2210,7 +2210,7 @@ msgstr "Request Headers"
 msgid "Request Lifecycle"
 msgstr "Request Lifecycle"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:498
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:484
 msgid "Request/Response body"
 msgstr "Request/Response body"
 
@@ -2233,7 +2233,7 @@ msgstr "Require certificate"
 
 #: src/features/transaction-details/ui/replay-dialog.tsx:386
 #: src/features/transaction-details/ui/transaction-body-side-by-side.tsx:24
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:301
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:287
 #: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:121
 #: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:62
 msgid "Response"
@@ -2352,7 +2352,7 @@ msgstr "Route traffic through an external proxy server"
 msgid "Rule added"
 msgstr "Rule added"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:154
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:140
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:66
 #: src/pages/map-rules/ui/map-rules-page.tsx:50
 msgid "Rule deleted"
@@ -2368,14 +2368,14 @@ msgstr "Rule name (optional)"
 msgid "Rule updated"
 msgstr "Rule updated"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:208
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:194
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:78
 #: src/pages/map-rules/ui/map-rules-page.tsx:66
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:156
 msgid "rules"
 msgstr "rules"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:265
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:251
 msgid "Rules"
 msgstr "Rules"
 
@@ -2682,7 +2682,7 @@ msgstr "Status"
 #: src/features/intercept-rule-form/ui/block-action-fields.tsx:15
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:337
 #: src/features/map-rule-form/ui/map-local-fields.tsx:56
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:439
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:425
 msgid "Status Code"
 msgstr "Status Code"
 
@@ -2940,7 +2940,7 @@ msgstr "URL contains \"api\""
 msgid "URL Pattern"
 msgstr "URL Pattern"
 
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:232
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:218
 msgid "URL pattern (e.g., *api.example.com*)"
 msgstr "URL pattern (e.g., *api.example.com*)"
 
@@ -2995,7 +2995,7 @@ msgstr "Validity Period"
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:385
 #: src/features/map-rule-form/ui/map-local-fields.tsx:84
 #: src/features/transaction-details/ui/replay-dialog.tsx:453
-#: src/pages/breakpoint/ui/breakpoint-page.tsx:474
+#: src/pages/breakpoint/ui/breakpoint-page.tsx:460
 msgid "Value"
 msgstr "Value"
 
