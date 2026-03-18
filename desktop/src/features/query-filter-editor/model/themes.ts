@@ -1,5 +1,95 @@
 import type { editor } from "monaco-editor";
 
+/** Custom dark themes are registered with per-theme background/foreground colors */
+const CUSTOM_DARK_THEMES: Record<
+  string,
+  {
+    bg: string;
+    fg: string;
+    widgetBg: string;
+    widgetBorder: string;
+    selectBg: string;
+    hoverBg: string;
+  }
+> = {
+  dracula: {
+    bg: "#282a36",
+    fg: "#f8f8f2",
+    widgetBg: "#21222c",
+    widgetBorder: "#44475a",
+    selectBg: "#44475a",
+    hoverBg: "#44475a",
+  },
+  nord: {
+    bg: "#2e3440",
+    fg: "#d8dee9",
+    widgetBg: "#3b4252",
+    widgetBorder: "#4c566a",
+    selectBg: "#4c566a",
+    hoverBg: "#3b4252",
+  },
+  monokai: {
+    bg: "#272822",
+    fg: "#f8f8f2",
+    widgetBg: "#1e1f1c",
+    widgetBorder: "#3e3d32",
+    selectBg: "#3e3d32",
+    hoverBg: "#3e3d32",
+  },
+  "solarized-dark": {
+    bg: "#002b36",
+    fg: "#839496",
+    widgetBg: "#073642",
+    widgetBorder: "#073642",
+    selectBg: "#073642",
+    hoverBg: "#073642",
+  },
+  "github-dark": {
+    bg: "#0d1117",
+    fg: "#c9d1d9",
+    widgetBg: "#161b22",
+    widgetBorder: "#30363d",
+    selectBg: "#30363d",
+    hoverBg: "#161b22",
+  },
+};
+
+export function getMonacoThemeName(resolvedTheme: string | undefined): string {
+  if (!resolvedTheme || resolvedTheme === "light") return "cheolsu-light";
+  if (resolvedTheme === "dark") return "cheolsu-dark";
+  return `cheolsu-${resolvedTheme}`;
+}
+
+export function buildCustomMonacoTheme(themeKey: string): editor.IStandaloneThemeData | null {
+  const colors = CUSTOM_DARK_THEMES[themeKey];
+  if (!colors) return null;
+  return {
+    base: "vs-dark",
+    inherit: true,
+    rules: DARK_THEME.rules,
+    colors: {
+      ...DARK_THEME.colors,
+      "editor.background": colors.bg,
+      "editor.foreground": colors.fg,
+      "editorWidget.background": colors.widgetBg,
+      "editorWidget.border": colors.widgetBorder,
+      "editorWidget.foreground": colors.fg,
+      "editorSuggestWidget.background": colors.widgetBg,
+      "editorSuggestWidget.border": colors.widgetBorder,
+      "editorSuggestWidget.foreground": colors.fg,
+      "editorSuggestWidget.selectedBackground": colors.selectBg,
+      "editorSuggestWidget.selectedForeground": colors.fg,
+      "list.hoverBackground": colors.hoverBg,
+      "list.hoverForeground": colors.fg,
+      "list.activeSelectionBackground": colors.selectBg,
+      "list.activeSelectionForeground": colors.fg,
+      "list.inactiveSelectionBackground": colors.hoverBg,
+      "list.focusBackground": colors.selectBg,
+      "list.focusForeground": colors.fg,
+    },
+  };
+}
+
 export const LIGHT_THEME: editor.IStandaloneThemeData = {
   base: "vs",
   inherit: true,
