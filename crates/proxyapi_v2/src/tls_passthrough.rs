@@ -122,23 +122,70 @@ impl TlsPassthrough {
         self.failures.contains_key(host)
     }
 
-    /// 변경 사항을 알림 채널로 전송
-    fn notify_change(&self) {
+    /// failures 스냅샷 생성
+    fn snapshot_failures(&self) -> Vec<(String, u32)> {
+        self.failures
+            .iter()
+            .map(|entry| (entry.key().clone(), *entry.value()))
+            .collect()
+    }
+
+    /// never_passthrough 스냅샷 생성
+    fn snapshot_never_passthrough(&self) -> Vec<String> {
+        self.never_passthrough
+            .iter()
+            .map(|e| e.key().clone())
+            .collect()
+    }
+
+    /// 변경 사항을 파일 저장 + 알림 채널로 전송 (스냅샷 1회로 통합)
+    fn persist_and_notify_failures(&self) {
+        let snapshot = self.snapshot_failures();
+
+        if let Some(ref path) = self.file_path {
+            if let Some(parent) = path.parent() {
+                let _ = std::fs::create_dir_all(parent);
+            }
+            let map: HashMap<String, u32> = snapshot.iter().cloned().collect();
+            match serde_json::to_string_pretty(&map) {
+                Ok(json) => {
+                    if let Err(e) = std::fs::write(path, json) {
+                        warn!("[TLS-PASSTHROUGH] 파일 저장 실패: {}", e);
+                    }
+                }
+                Err(e) => {
+                    warn!("[TLS-PASSTHROUGH] JSON 직렬화 실패: {}", e);
+                }
+            }
+        }
+
         if let Some(ref tx) = self.change_tx {
-            let entries: Vec<(String, u32)> = self
-                .failures
-                .iter()
-                .map(|entry| (entry.key().clone(), *entry.value()))
-                .collect();
-            let _ = tx.try_send(entries);
+            let _ = tx.try_send(snapshot);
         }
     }
 
-    /// Never Passthrough 변경 알림
-    fn notify_never_passthrough_change(&self) {
+    /// Never Passthrough 변경 사항을 파일 저장 + 알림 (스냅샷 1회로 통합)
+    fn persist_and_notify_never_passthrough(&self) {
+        let snapshot = self.snapshot_never_passthrough();
+
+        if let Some(ref path) = self.never_passthrough_file {
+            if let Some(parent) = path.parent() {
+                let _ = std::fs::create_dir_all(parent);
+            }
+            match serde_json::to_string_pretty(&snapshot) {
+                Ok(json) => {
+                    if let Err(e) = std::fs::write(path, json) {
+                        warn!("[NEVER-PASSTHROUGH] 파일 저장 실패: {}", e);
+                    }
+                }
+                Err(e) => {
+                    warn!("[NEVER-PASSTHROUGH] JSON 직렬화 실패: {}", e);
+                }
+            }
+        }
+
         if let Some(ref tx) = self.never_passthrough_change_tx {
-            let list: Vec<String> = self.never_passthrough.iter().map(|e| e.clone()).collect();
-            let _ = tx.try_send(list);
+            let _ = tx.try_send(snapshot);
         }
     }
 
@@ -173,8 +220,7 @@ impl TlsPassthrough {
             );
         }
 
-        self.save_to_file();
-        self.notify_change();
+        self.persist_and_notify_failures();
     }
 
     /// 해당 도메인을 바이패스해야 하는지 확인 (1회 이상 실패 && never_passthrough 아닌 경우)
@@ -190,15 +236,16 @@ impl TlsPassthrough {
             return false;
         }
 
-        let bypass = self.failures.contains_key(host);
-        if bypass {
-            debug!(
-                "[TLS-PASSTHROUGH] 바이패스 적용: {} (이전 실패 {}회)",
-                host,
-                self.failures.get(host).map(|v| *v).unwrap_or(0)
-            );
+        match self.failures.get(host) {
+            Some(count) => {
+                debug!(
+                    "[TLS-PASSTHROUGH] 바이패스 적용: {} (이전 실패 {}회)",
+                    host, *count
+                );
+                true
+            }
+            None => false,
         }
-        bypass
     }
 
     /// 핸드셰이크 성공 시 실패 기록에서 제거
@@ -206,93 +253,46 @@ impl TlsPassthrough {
         let host = authority.host().to_string();
         if self.failures.remove(&host).is_some() {
             info!("[TLS-PASSTHROUGH] 성공으로 바이패스 해제: {}", host);
-            self.save_to_file();
-            self.notify_change();
+            self.persist_and_notify_failures();
         }
     }
 
     /// 현재 바이패스 목록 조회
     pub fn list_bypassed(&self) -> Vec<(String, u32)> {
-        self.failures
-            .iter()
-            .map(|entry| (entry.key().clone(), *entry.value()))
-            .collect()
+        self.snapshot_failures()
     }
 
     /// 특정 도메인 바이패스 해제
     pub fn clear_domain(&self, host: &str) {
         self.failures.remove(host);
-        self.save_to_file();
-        self.notify_change();
+        self.persist_and_notify_failures();
     }
 
     /// 전체 바이패스 기록 초기화
     pub fn clear_all(&self) {
         self.failures.clear();
-        self.save_to_file();
-        self.notify_change();
+        self.persist_and_notify_failures();
         info!("[TLS-PASSTHROUGH] 전체 바이패스 기록 초기화");
     }
 
     /// Never Passthrough 목록 설정 (전체 교체)
     pub fn set_never_passthrough(&self, entries: Vec<String>) {
-        self.never_passthrough.clear();
+        // 새 항목을 먼저 삽입한 뒤 기존 항목을 제거 (빈 상태 노출 방지)
         for entry in &entries {
             self.never_passthrough.insert(entry.clone());
         }
+        self.never_passthrough
+            .retain(|existing| entries.iter().any(|e| e == existing.as_str()));
         info!(
             "[NEVER-PASSTHROUGH] 목록 업데이트: {}개 도메인",
             entries.len()
         );
-        self.save_never_passthrough_to_file();
-        self.notify_never_passthrough_change();
+        self.persist_and_notify_never_passthrough();
     }
 
     /// Never Passthrough 목록 조회
     pub fn list_never_passthrough(&self) -> Vec<String> {
-        self.never_passthrough.iter().map(|e| e.clone()).collect()
-    }
-
-    fn save_to_file(&self) {
-        if let Some(ref path) = self.file_path {
-            if let Some(parent) = path.parent() {
-                let _ = std::fs::create_dir_all(parent);
-            }
-            let snapshot: HashMap<String, u32> = self
-                .failures
-                .iter()
-                .map(|entry| (entry.key().clone(), *entry.value()))
-                .collect();
-            match serde_json::to_string_pretty(&snapshot) {
-                Ok(json) => {
-                    if let Err(e) = std::fs::write(path, json) {
-                        warn!("[TLS-PASSTHROUGH] 파일 저장 실패: {}", e);
-                    }
-                }
-                Err(e) => {
-                    warn!("[TLS-PASSTHROUGH] JSON 직렬화 실패: {}", e);
-                }
-            }
-        }
-    }
-
-    fn save_never_passthrough_to_file(&self) {
-        if let Some(ref path) = self.never_passthrough_file {
-            if let Some(parent) = path.parent() {
-                let _ = std::fs::create_dir_all(parent);
-            }
-            let list: Vec<String> = self.never_passthrough.iter().map(|e| e.clone()).collect();
-            match serde_json::to_string_pretty(&list) {
-                Ok(json) => {
-                    if let Err(e) = std::fs::write(path, json) {
-                        warn!("[NEVER-PASSTHROUGH] 파일 저장 실패: {}", e);
-                    }
-                }
-                Err(e) => {
-                    warn!("[NEVER-PASSTHROUGH] JSON 직렬화 실패: {}", e);
-                }
-            }
-        }
+        self.snapshot_never_passthrough()
     }
 }
 
