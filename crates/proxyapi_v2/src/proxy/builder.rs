@@ -12,12 +12,21 @@ use std::{
     future::{Pending, pending},
     net::SocketAddr,
     sync::{Arc, atomic::AtomicU8},
+    time::Duration,
 };
 use thiserror::Error;
 use tokio::net::TcpListener;
 use tokio_rustls::rustls::{ClientConfig, crypto::CryptoProvider};
 use tokio_tungstenite::Connector;
 use tracing::{debug, error, info, warn};
+
+/// 유휴 연결 풀 타임아웃 (초)
+/// 이 시간 동안 재사용되지 않은 유휴 연결은 자동 해제됨
+const POOL_IDLE_TIMEOUT_SECS: u64 = 90;
+
+/// 호스트당 최대 유휴 연결 수
+/// 리소스 고갈 방지를 위해 호스트별 유휴 연결 수를 제한
+const POOL_MAX_IDLE_PER_HOST: usize = 32;
 
 #[derive(Debug, Error)]
 #[non_exhaustive]
@@ -235,6 +244,8 @@ impl<CA: CertificateAuthority> ProxyBuilder<WantsClient<CA>> {
             client: Ok(Client::builder(TokioExecutor::new())
                 .http1_title_case_headers(true)
                 .http1_preserve_header_case(true)
+                .pool_idle_timeout(Duration::from_secs(POOL_IDLE_TIMEOUT_SECS))
+                .pool_max_idle_per_host(POOL_MAX_IDLE_PER_HOST)
                 .build(https)),
             http_handler: NoopHandler::new(),
             websocket_handler: NoopHandler::new(),
@@ -280,6 +291,8 @@ impl<CA: CertificateAuthority> ProxyBuilder<WantsClient<CA>> {
             client: Ok(Client::builder(TokioExecutor::new())
                 .http1_title_case_headers(true)
                 .http1_preserve_header_case(true)
+                .pool_idle_timeout(Duration::from_secs(POOL_IDLE_TIMEOUT_SECS))
+                .pool_max_idle_per_host(POOL_MAX_IDLE_PER_HOST)
                 .build(https)),
             http_handler: NoopHandler::new(),
             websocket_handler: NoopHandler::new(),
