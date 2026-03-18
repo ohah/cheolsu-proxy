@@ -5,20 +5,13 @@ import { ArrowUpDown } from "lucide-react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 
 import { Badge, Button } from "@/shared/ui";
+import { formatBytes } from "@/shared/lib/format-bytes";
 import type { EndpointStat, EndpointSortKey } from "../lib";
 
 interface EndpointTabProps {
   endpoints: EndpointStat[];
   sortBy: EndpointSortKey;
   onSortChange: (sort: EndpointSortKey) => void;
-}
-
-function formatBytes(bytes: number): string {
-  if (bytes === 0) return "0 B";
-  const units = ["B", "KB", "MB", "GB"];
-  const k = 1024;
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return `${(bytes / k ** i).toFixed(1)} ${units[i]}`;
 }
 
 export function EndpointTab({ endpoints, sortBy, onSortChange }: EndpointTabProps) {
