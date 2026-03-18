@@ -1,6 +1,6 @@
 use rmcp::{handler::server::wrapper::Parameters, model::*, tool, ErrorData as McpError};
 
-use crate::helpers::{format_size, tool_error, tool_ok};
+use crate::helpers::{compute_time_stats, format_size, tool_error, tool_ok};
 use crate::params::*;
 use crate::server::CheolsuMcpServer;
 
@@ -217,15 +217,7 @@ impl CheolsuMcpServer {
             .iter()
             .map(|(_, _, d)| d.as_secs_f64() * 1000.0)
             .collect();
-        let (avg_ms, min_ms, max_ms) = if times.is_empty() {
-            (0.0, 0.0, 0.0)
-        } else {
-            (
-                times.iter().sum::<f64>() / times.len() as f64,
-                times.iter().cloned().fold(f64::MAX, f64::min),
-                times.iter().cloned().fold(0.0f64, f64::max),
-            )
-        };
+        let (avg_ms, min_ms, max_ms) = compute_time_stats(&times);
         let wall_secs = wall_elapsed.as_secs_f64();
         let rps = if wall_secs > 0.0 {
             iterations as f64 / wall_secs

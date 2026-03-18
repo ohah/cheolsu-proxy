@@ -1043,4 +1043,251 @@ mod tests {
         let result = resolve_ref("#/components/schemas/NonExistent", None);
         assert!(result.is_none());
     }
+
+    // --- violation() 헬퍼 테스트 ---
+
+    #[test]
+    fn test_violation_creates_correct_fields() {
+        let v = violation(
+            ViolationType::MissingField,
+            "$.body.name",
+            "Field 'name' is missing",
+            Some("name".to_string()),
+            None,
+            Severity::Error,
+        );
+        assert_eq!(v.violation_type, ViolationType::MissingField);
+        assert_eq!(v.path, "$.body.name");
+        assert_eq!(v.message, "Field 'name' is missing");
+        assert_eq!(v.expected, Some("name".to_string()));
+        assert_eq!(v.actual, None);
+        assert_eq!(v.severity, Severity::Error);
+    }
+
+    #[test]
+    fn test_violation_with_warning_severity() {
+        let v = violation(
+            ViolationType::ExtraField,
+            "$.body.extra",
+            "Extra field",
+            None,
+            Some("extra".to_string()),
+            Severity::Warning,
+        );
+        assert_eq!(v.severity, Severity::Warning);
+        assert_eq!(v.actual, Some("extra".to_string()));
+        assert_eq!(v.expected, None);
+    }
+
+    #[test]
+    fn test_violation_accepts_string_and_str_for_path() {
+        let v1 = violation(
+            ViolationType::PathNotFound,
+            "$",
+            "not found",
+            None,
+            None,
+            Severity::Warning,
+        );
+        let v2 = violation(
+            ViolationType::PathNotFound,
+            String::from("$.nested"),
+            String::from("not found"),
+            None,
+            None,
+            Severity::Warning,
+        );
+        assert_eq!(v1.path, "$");
+        assert_eq!(v2.path, "$.nested");
+    }
+
+    // --- type_mismatch() 헬퍼 테스트 ---
+
+    #[test]
+    fn test_type_mismatch_creates_correct_violation() {
+        let v = type_mismatch("$.body.id", "integer", "string");
+        assert_eq!(v.violation_type, ViolationType::TypeMismatch);
+        assert_eq!(v.path, "$.body.id");
+        assert_eq!(v.message, "Expected type 'integer', got 'string'");
+        assert_eq!(v.expected, Some("integer".to_string()));
+        assert_eq!(v.actual, Some("string".to_string()));
+        assert_eq!(v.severity, Severity::Error);
+    }
+
+    #[test]
+    fn test_type_mismatch_always_error_severity() {
+        let v = type_mismatch("$", "object", "array");
+        assert_eq!(v.severity, Severity::Error);
+    }
+
+    // --- validate_object() 직접 테스트 ---
+
+    #[test]
+    fn test_validate_object_with_valid_object() {
+        let s = SchemaObject {
+            schema_type: Some("object".to_string()),
+            properties: Some(BTreeMap::from([
+                ("id".to_string(), schema("integer")),
+                ("name".to_string(), schema("string")),
+            ])),
+            items: None,
+            nullable: None,
+            example: None,
+            required: Some(vec!["id".to_string(), "name".to_string()]),
+            ref_path: None,
+        };
+        let value = serde_json::json!({"id": 1, "name": "Alice"});
+        let mut violations = Vec::new();
+        validate_object(&value, &s, "$.body", "object", &mut violations, None, 0);
+        assert!(
+            violations.is_empty(),
+            "Expected no violations, got: {:?}",
+            violations
+        );
+    }
+
+    #[test]
+    fn test_validate_object_missing_required_fields() {
+        let s = SchemaObject {
+            schema_type: Some("object".to_string()),
+            properties: Some(BTreeMap::from([
+                ("id".to_string(), schema("integer")),
+                ("name".to_string(), schema("string")),
+            ])),
+            items: None,
+            nullable: None,
+            example: None,
+            required: Some(vec!["id".to_string(), "name".to_string()]),
+            ref_path: None,
+        };
+        let value = serde_json::json!({}); // 모든 필수 필드 누락
+        let mut violations = Vec::new();
+        validate_object(&value, &s, "$.body", "object", &mut violations, None, 0);
+        assert_eq!(violations.len(), 2);
+        assert!(violations
+            .iter()
+            .all(|v| v.violation_type == ViolationType::MissingField));
+        assert!(violations.iter().any(|v| v.path.contains("id")));
+        assert!(violations.iter().any(|v| v.path.contains("name")));
+    }
+
+    #[test]
+    fn test_validate_object_extra_fields() {
+        let s = SchemaObject {
+            schema_type: Some("object".to_string()),
+            properties: Some(BTreeMap::from([("id".to_string(), schema("integer"))])),
+            items: None,
+            nullable: None,
+            example: None,
+            required: None,
+            ref_path: None,
+        };
+        let value = serde_json::json!({"id": 1, "extra1": "a", "extra2": "b"});
+        let mut violations = Vec::new();
+        validate_object(&value, &s, "$.body", "object", &mut violations, None, 0);
+        let extra_violations: Vec<_> = violations
+            .iter()
+            .filter(|v| v.violation_type == ViolationType::ExtraField)
+            .collect();
+        assert_eq!(extra_violations.len(), 2);
+        assert!(extra_violations.iter().any(|v| v.path.contains("extra1")));
+        assert!(extra_violations.iter().any(|v| v.path.contains("extra2")));
+    }
+
+    #[test]
+    fn test_validate_object_type_mismatch_not_object() {
+        let s = SchemaObject {
+            schema_type: Some("object".to_string()),
+            properties: Some(BTreeMap::new()),
+            items: None,
+            nullable: None,
+            example: None,
+            required: None,
+            ref_path: None,
+        };
+        let value = serde_json::json!("not an object");
+        let mut violations = Vec::new();
+        validate_object(&value, &s, "$.body", "string", &mut violations, None, 0);
+        assert_eq!(violations.len(), 1);
+        assert_eq!(violations[0].violation_type, ViolationType::TypeMismatch);
+        assert_eq!(violations[0].expected, Some("object".to_string()));
+        assert_eq!(violations[0].actual, Some("string".to_string()));
+    }
+
+    // --- validate_array() 직접 테스트 ---
+
+    #[test]
+    fn test_validate_array_with_valid_array() {
+        let s = SchemaObject {
+            schema_type: Some("array".to_string()),
+            properties: None,
+            items: Some(Box::new(schema("string"))),
+            nullable: None,
+            example: None,
+            required: None,
+            ref_path: None,
+        };
+        let value = serde_json::json!(["hello", "world"]);
+        let mut violations = Vec::new();
+        validate_array(&value, &s, "$.body", "array", &mut violations, None, 0);
+        assert!(violations.is_empty());
+    }
+
+    #[test]
+    fn test_validate_array_empty_array_no_violations() {
+        let s = SchemaObject {
+            schema_type: Some("array".to_string()),
+            properties: None,
+            items: Some(Box::new(schema("string"))),
+            nullable: None,
+            example: None,
+            required: None,
+            ref_path: None,
+        };
+        let value = serde_json::json!([]);
+        let mut violations = Vec::new();
+        validate_array(&value, &s, "$.body", "array", &mut violations, None, 0);
+        assert!(
+            violations.is_empty(),
+            "Empty array should have no violations"
+        );
+    }
+
+    #[test]
+    fn test_validate_array_wrong_item_type() {
+        let s = SchemaObject {
+            schema_type: Some("array".to_string()),
+            properties: None,
+            items: Some(Box::new(schema("integer"))),
+            nullable: None,
+            example: None,
+            required: None,
+            ref_path: None,
+        };
+        let value = serde_json::json!(["not-an-integer"]);
+        let mut violations = Vec::new();
+        validate_array(&value, &s, "$.body", "array", &mut violations, None, 0);
+        assert_eq!(violations.len(), 1);
+        assert_eq!(violations[0].violation_type, ViolationType::TypeMismatch);
+        assert_eq!(violations[0].path, "$.body[0]");
+    }
+
+    #[test]
+    fn test_validate_array_type_mismatch_not_array() {
+        let s = SchemaObject {
+            schema_type: Some("array".to_string()),
+            properties: None,
+            items: Some(Box::new(schema("string"))),
+            nullable: None,
+            example: None,
+            required: None,
+            ref_path: None,
+        };
+        let value = serde_json::json!({"not": "array"});
+        let mut violations = Vec::new();
+        validate_array(&value, &s, "$.body", "object", &mut violations, None, 0);
+        assert_eq!(violations.len(), 1);
+        assert_eq!(violations[0].violation_type, ViolationType::TypeMismatch);
+        assert_eq!(violations[0].expected, Some("array".to_string()));
+    }
 }
