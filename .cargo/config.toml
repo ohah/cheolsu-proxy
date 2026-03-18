@@ -2,3 +2,13 @@
 # macOS: openssl-sys가 번들용 dylib(@rpath install_name)을 링크하도록 설정
 # build-mcp.sh가 이 디렉토리에 패치된 dylib + 헤더 심볼릭 링크를 준비함
 OPENSSL_DIR = { value = "desktop/src-tauri/openssl-bundle", relative = true }
+
+[target.'cfg(target_os = "macos")']
+# 번들 OpenSSL dylib가 @rpath install_name을 사용하므로,
+# 테스트·바이너리 실행 시 dyld가 찾을 수 있도록 rpath를 설정
+# - target/debug/deps/ 하위 바이너리용 (테스트)
+# - target/debug/ 하위 바이너리용 (일반 실행)
+rustflags = [
+    "-C", "link-arg=-Wl,-rpath,@executable_path/../../../desktop/src-tauri/openssl-bundle/lib",
+    "-C", "link-arg=-Wl,-rpath,@executable_path/../../desktop/src-tauri/openssl-bundle/lib",
+]
