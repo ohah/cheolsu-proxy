@@ -100,6 +100,7 @@ msgstr "Actual"
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:142
 #: src/pages/server-replay/ui/server-replay-page.tsx:170
 #: src/pages/settings/ui/components/client-tags-section.tsx:116
+#: src/pages/settings/ui/components/never-passthrough-section.tsx:74
 #: src/pages/settings/ui/components/ssl-proxying-section.tsx:215
 #: src/pages/settings/ui/components/ssl-proxying-section.tsx:278
 msgid "Add"
@@ -437,7 +438,7 @@ msgstr "calls"
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:242
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:506
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:137
-#: src/pages/log-viewer/ui/logs-page.tsx:468
+#: src/pages/log-viewer/ui/logs-page.tsx:495
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:139
 #: src/pages/settings/ui/components/shortcut-section.tsx:117
 msgid "Cancel"
@@ -447,7 +448,7 @@ msgstr "Cancel"
 msgid "Cannot add: no response data"
 msgstr "Cannot add: no response data"
 
-#: src/pages/settings/ui/settings-page.tsx:114
+#: src/pages/settings/ui/settings-page.tsx:115
 msgid "Certificate"
 msgstr "Certificate"
 
@@ -505,7 +506,7 @@ msgid "Claude Code (CLI)"
 msgstr "Claude Code (CLI)"
 
 #: src/features/query-filter-editor/ui/query-builder.tsx:367
-#: src/pages/log-viewer/ui/logs-page.tsx:255
+#: src/pages/log-viewer/ui/logs-page.tsx:262
 #: src/pages/script/ui/script-page.tsx:298
 #: src/pages/settings/ui/components/request-client-cert-section.tsx:72
 msgid "Clear"
@@ -517,7 +518,7 @@ msgid "Clear all"
 msgstr "Clear all"
 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:213
-#: src/pages/log-viewer/ui/logs-page.tsx:285
+#: src/pages/log-viewer/ui/logs-page.tsx:292
 #: src/pages/server-replay/ui/server-replay-page.tsx:105
 #: src/pages/settings/ui/components/tls-config-section.tsx:121
 #: src/shared/ui/rule-list-page.tsx:69
@@ -725,17 +726,17 @@ msgstr "Delay before forwarding the request (milliseconds)"
 msgid "Delay between requests (ms)"
 msgstr "Delay between requests (ms)"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:264
-#: src/pages/log-viewer/ui/logs-page.tsx:472
+#: src/pages/log-viewer/ui/logs-page.tsx:271
+#: src/pages/log-viewer/ui/logs-page.tsx:499
 msgid "Delete"
 msgstr "Delete"
 
 #. placeholder {0}: selectedFile?.name
-#: src/pages/log-viewer/ui/logs-page.tsx:462
+#: src/pages/log-viewer/ui/logs-page.tsx:489
 msgid "Delete \"{0}\"? This action cannot be undone."
 msgstr "Delete \"{0}\"? This action cannot be undone."
 
-#: src/pages/log-viewer/ui/logs-page.tsx:459
+#: src/pages/log-viewer/ui/logs-page.tsx:486
 msgid "Delete Log File"
 msgstr "Delete Log File"
 
@@ -784,7 +785,7 @@ msgstr "Disconnected"
 msgid "Display CONNECT tunnel requests in the network list"
 msgstr "Display CONNECT tunnel requests in the network list"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:418
+#: src/pages/log-viewer/ui/logs-page.tsx:445
 msgid "Domain"
 msgstr "Domain"
 
@@ -796,11 +797,15 @@ msgstr "Domain-specific Certificates"
 msgid "Domain-specific TLS engine rules. Domains matched here use OpenSSL instead of rustls for compatibility."
 msgstr "Domain-specific TLS engine rules. Domains matched here use OpenSSL instead of rustls for compatibility."
 
+#: src/pages/settings/ui/components/never-passthrough-section.tsx:58
+msgid "Domains in this list will never fall back to passthrough when TLS handshake fails. The proxy will keep trying to intercept these domains, allowing you to see the actual error instead of silently bypassing."
+msgstr "Domains in this list will never fall back to passthrough when TLS handshake fails. The proxy will keep trying to intercept these domains, allowing you to see the actual error instead of silently bypassing."
+
 #: src/pages/settings/ui/components/ssl-proxying-section.tsx:220
 msgid "Domains in this list will NOT be intercepted (pass-through). Built-in domains can be managed below."
 msgstr "Domains in this list will NOT be intercepted (pass-through). Built-in domains can be managed below."
 
-#: src/pages/log-viewer/ui/logs-page.tsx:402
+#: src/pages/log-viewer/ui/logs-page.tsx:409
 msgid "Domains that failed TLS handshake are automatically tunneled without MITM decryption. You can remove entries to retry MITM for specific domains."
 msgstr "Domains that failed TLS handshake are automatically tunneled without MITM decryption. You can remove entries to retry MITM for specific domains."
 
@@ -955,6 +960,10 @@ msgstr "Event Type"
 msgid "events"
 msgstr "events"
 
+#: src/pages/settings/ui/components/never-passthrough-section.tsx:67
+msgid "example.com or *.example.com"
+msgstr "example.com or *.example.com"
+
 #: src/pages/settings/ui/components/ssl-proxying-section.tsx:208
 msgid "example.com, *.example.com, or example.com:443"
 msgstr "example.com, *.example.com, or example.com:443"
@@ -1036,7 +1045,7 @@ msgstr "Failed to send"
 msgid "Failed to toggle spec: {0}"
 msgstr "Failed to toggle spec: {0}"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:421
+#: src/pages/log-viewer/ui/logs-page.tsx:448
 msgid "Failures"
 msgstr "Failures"
 
@@ -1048,7 +1057,11 @@ msgstr "File"
 msgid "Filter by client IP, tag, or auth user"
 msgstr "Filter by client IP, tag, or auth user"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:366
+#: src/pages/log-viewer/ui/logs-page.tsx:418
+msgid "Filter domains..."
+msgstr "Filter domains..."
+
+#: src/pages/log-viewer/ui/logs-page.tsx:373
 msgid "Filter log lines..."
 msgstr "Filter log lines..."
 
@@ -1078,7 +1091,7 @@ msgstr "Frequency"
 msgid "Fullscreen"
 msgstr "Fullscreen"
 
-#: src/pages/settings/ui/settings-page.tsx:113
+#: src/pages/settings/ui/settings-page.tsx:114
 msgid "General"
 msgstr "General"
 
@@ -1352,7 +1365,7 @@ msgstr "Learned TLS Strategies"
 msgid "Light"
 msgstr "Light"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:373
+#: src/pages/log-viewer/ui/logs-page.tsx:380
 msgid "lines"
 msgstr "lines"
 
@@ -1403,8 +1416,8 @@ msgstr "Local File Path"
 msgid "localhost, 127.0.0.1, *.internal.com"
 msgstr "localhost, 127.0.0.1, *.internal.com"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:302
-#: src/pages/log-viewer/ui/logs-page.tsx:329
+#: src/pages/log-viewer/ui/logs-page.tsx:309
+#: src/pages/log-viewer/ui/logs-page.tsx:336
 msgid "Log Files"
 msgstr "Log Files"
 
@@ -1412,7 +1425,7 @@ msgstr "Log Files"
 msgid "Logical OR:"
 msgstr "Logical OR:"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:240
+#: src/pages/log-viewer/ui/logs-page.tsx:247
 #: src/shared/app-sidebar/model/consts.ts:134
 msgid "Logs"
 msgstr "Logs"
@@ -1589,7 +1602,7 @@ msgstr "Name"
 msgid "Negotiated ALPN"
 msgstr "Negotiated ALPN"
 
-#: src/pages/settings/ui/settings-page.tsx:115
+#: src/pages/settings/ui/settings-page.tsx:116
 #: src/shared/app-sidebar/model/consts.ts:29
 msgid "Network"
 msgstr "Network"
@@ -1601,6 +1614,10 @@ msgstr "Network Table Columns"
 #: src/pages/settings/ui/components/throttle-section.tsx:19
 msgid "Network Throttling"
 msgstr "Network Throttling"
+
+#: src/pages/settings/ui/components/never-passthrough-section.tsx:55
+msgid "Never Passthrough"
+msgstr "Never Passthrough"
 
 #: src/features/transaction-details/ui/transaction-certificate.tsx:97
 msgid "No"
@@ -1674,13 +1691,17 @@ msgstr "No intercept rules"
 msgid "No learned strategies yet. They will appear after TLS fallback events."
 msgstr "No learned strategies yet. They will appear after TLS fallback events."
 
-#: src/pages/log-viewer/ui/logs-page.tsx:334
+#: src/pages/log-viewer/ui/logs-page.tsx:341
 msgid "No log files found"
 msgstr "No log files found"
 
 #: src/pages/map-rules/ui/map-rules-page.tsx:67
 msgid "No map rules"
 msgstr "No map rules"
+
+#: src/pages/log-viewer/ui/logs-page.tsx:437
+msgid "No matching domains"
+msgstr "No matching domains"
 
 #: src/pages/analytics-dashboard/ui/misc-tab.tsx:79
 msgid "No mixed content warnings"
@@ -1730,7 +1751,7 @@ msgstr "No specs loaded. Add an OpenAPI/Swagger spec file to start contract test
 msgid "No timing data available"
 msgstr "No timing data available"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:410
+#: src/pages/log-viewer/ui/logs-page.tsx:433
 msgid "No TLS passthrough entries"
 msgstr "No TLS passthrough entries"
 
@@ -1806,7 +1827,7 @@ msgstr "Open <0>{CERT_DOWNLOAD_URL}</0> in Safari"
 msgid "Open <0>{CERT_DOWNLOAD_URL}</0> in your device browser"
 msgstr "Open <0>{CERT_DOWNLOAD_URL}</0> in your device browser"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:268
+#: src/pages/log-viewer/ui/logs-page.tsx:275
 msgid "Open Directory"
 msgstr "Open Directory"
 
@@ -1996,7 +2017,7 @@ msgstr "Proxy Address"
 msgid "Proxy Authentication"
 msgstr "Proxy Authentication"
 
-#: src/pages/settings/ui/settings-page.tsx:149
+#: src/pages/settings/ui/settings-page.tsx:150
 msgid "Proxy configuration and preferences"
 msgstr "Proxy configuration and preferences"
 
@@ -2048,8 +2069,8 @@ msgstr "Received (Server → Client)"
 msgid "Referrer"
 msgstr "Referrer"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:251
-#: src/pages/log-viewer/ui/logs-page.tsx:276
+#: src/pages/log-viewer/ui/logs-page.tsx:258
+#: src/pages/log-viewer/ui/logs-page.tsx:283
 #: src/pages/settings/ui/components/certificate-settings.tsx:406
 msgid "Refresh"
 msgstr "Refresh"
@@ -2370,11 +2391,11 @@ msgstr "Run Analysis"
 msgid "Running..."
 msgstr "Running..."
 
-#: src/pages/settings/ui/settings-page.tsx:165
+#: src/pages/settings/ui/settings-page.tsx:166
 msgid "Save Changes"
 msgstr "Save Changes"
 
-#: src/pages/settings/ui/settings-page.tsx:160
+#: src/pages/settings/ui/settings-page.tsx:161
 msgid "Save failed"
 msgstr "Save failed"
 
@@ -2382,11 +2403,11 @@ msgstr "Save failed"
 msgid "Save Session"
 msgstr "Save Session"
 
-#: src/pages/settings/ui/settings-page.tsx:155
+#: src/pages/settings/ui/settings-page.tsx:156
 msgid "Saved"
 msgstr "Saved"
 
-#: src/pages/settings/ui/settings-page.tsx:165
+#: src/pages/settings/ui/settings-page.tsx:166
 msgid "Saving..."
 msgstr "Saving..."
 
@@ -2419,11 +2440,11 @@ msgstr "Script reloaded"
 msgid "Script unloaded"
 msgstr "Script unloaded"
 
-#: src/pages/settings/ui/settings-page.tsx:116
+#: src/pages/settings/ui/settings-page.tsx:117
 msgid "Security"
 msgstr "Security"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:389
+#: src/pages/log-viewer/ui/logs-page.tsx:396
 msgid "Select a log file to view its contents"
 msgstr "Select a log file to view its contents"
 
@@ -2569,7 +2590,7 @@ msgstr "Set body (optional)"
 msgid "Set Wi-Fi proxy on your device to <0>{0}:{1}</0>"
 msgstr "Set Wi-Fi proxy on your device to <0>{0}:{1}</0>"
 
-#: src/pages/settings/ui/settings-page.tsx:146
+#: src/pages/settings/ui/settings-page.tsx:147
 #: src/shared/app-sidebar/model/consts.ts:127
 msgid "Settings"
 msgstr "Settings"
@@ -2689,6 +2710,10 @@ msgstr "Subject Alternative Names (SAN)"
 msgid "Supports PEM-encoded certificates and keys (RSA, ECDSA, PKCS#8)"
 msgstr "Supports PEM-encoded certificates and keys (RSA, ECDSA, PKCS#8)"
 
+#: src/pages/settings/ui/components/never-passthrough-section.tsx:78
+msgid "Supports wildcard patterns: * matches any string, ? matches a single character"
+msgstr "Supports wildcard patterns: * matches any string, ? matches a single character"
+
 #: src/features/query-filter-editor/ui/query-filter-editor.tsx:182
 msgid "Switch to Builder mode"
 msgstr "Switch to Builder mode"
@@ -2777,7 +2802,7 @@ msgstr "TLS Engine Rules"
 msgid "TLS fallback — learned strategy used"
 msgstr "TLS fallback — learned strategy used"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:313
+#: src/pages/log-viewer/ui/logs-page.tsx:320
 msgid "TLS Passthrough"
 msgstr "TLS Passthrough"
 
@@ -2799,7 +2824,7 @@ msgstr "Toggle AND/OR"
 msgid "Toggle proxy on/off with a global keyboard shortcut"
 msgstr "Toggle proxy on/off with a global keyboard shortcut"
 
-#: src/pages/settings/ui/settings-page.tsx:117
+#: src/pages/settings/ui/settings-page.tsx:118
 msgid "Tools"
 msgstr "Tools"
 
@@ -2982,7 +3007,7 @@ msgstr "Variables"
 msgid "Version"
 msgstr "Version"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:243
+#: src/pages/log-viewer/ui/logs-page.tsx:250
 msgid "View and manage application log files"
 msgstr "View and manage application log files"
 
