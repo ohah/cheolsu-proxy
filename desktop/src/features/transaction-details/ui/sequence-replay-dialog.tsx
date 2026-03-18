@@ -20,6 +20,8 @@ import {
   Badge,
   ScrollArea,
   Separator,
+  Alert,
+  AlertDescription,
 } from "@/shared/ui";
 import { sanitizeHopByHopHeaders } from "@/shared/lib/http-headers";
 import { getStatusColor } from "@/entities/transaction";
@@ -133,9 +135,9 @@ export function SequenceReplayDialog({
             </ScrollArea>
 
             {error && (
-              <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm">
-                {error}
-              </div>
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
             )}
           </div>
         )}

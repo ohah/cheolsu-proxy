@@ -23,21 +23,21 @@ msgid "{0} certificate(s)"
 msgstr "{0} certificate(s)"
 
 #. placeholder {0}: result.failure_count
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:257
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:254
 msgid "{0} failed"
 msgstr "{0} failed"
 
 #. placeholder {0}: transactions.length
-#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:116
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:118
 msgid "{0} requests will be sent sequentially."
 msgstr "{0} requests will be sent sequentially."
 
 #. placeholder {0}: result.success_count
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:250
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:247
 msgid "{0} succeeded"
 msgstr "{0} succeeded"
 
-#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:165
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:167
 msgid "{failCount} failed"
 msgstr "{failCount} failed"
 
@@ -49,7 +49,7 @@ msgstr "{filteredCount} of {totalCount} transactions"
 msgid "{label} copied to clipboard"
 msgstr "{label} copied to clipboard"
 
-#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:158
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:160
 msgid "{successCount} succeeded"
 msgstr "{successCount} succeeded"
 
@@ -90,7 +90,7 @@ msgstr "Actual"
 #: src/features/intercept-rule-form/ui/headers-fields.tsx:59
 #: src/features/intercept-rule-form/ui/headers-fields.tsx:88
 #: src/features/map-rule-form/ui/map-local-fields.tsx:73
-#: src/features/transaction-details/ui/replay-dialog.tsx:433
+#: src/features/transaction-details/ui/replay-dialog.tsx:435
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:225
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:445
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:140
@@ -193,12 +193,12 @@ msgstr "Added"
 msgid "Added to server replay"
 msgstr "Added to server replay"
 
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:135
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:138
 #: src/widgets/network-table/ui/table-row.tsx:211
 msgid "Advanced Repeat"
 msgstr "Advanced Repeat"
 
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:112
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:115
 msgid "Advanced repeat failed"
 msgstr "Advanced repeat failed"
 
@@ -345,9 +345,9 @@ msgstr "Block Cookies"
 #: src/features/intercept-rule-form/ui/block-action-fields.tsx:22
 #: src/features/intercept-rule-form/ui/modify-request-fields.tsx:18
 #: src/features/intercept-rule-form/ui/modify-response-fields.tsx:29
-#: src/features/transaction-details/ui/replay-dialog.tsx:128
-#: src/features/transaction-details/ui/replay-dialog.tsx:199
-#: src/features/transaction-details/ui/replay-dialog.tsx:482
+#: src/features/transaction-details/ui/replay-dialog.tsx:130
+#: src/features/transaction-details/ui/replay-dialog.tsx:201
+#: src/features/transaction-details/ui/replay-dialog.tsx:484
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:479
 msgid "Body"
 msgstr "Body"
@@ -574,8 +574,8 @@ msgstr "Clients must provide these credentials via Proxy-Authorization header (H
 msgid "Clients without a valid certificate will be rejected"
 msgstr "Clients without a valid certificate will be rejected"
 
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:370
-#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:241
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:367
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:243
 #: src/features/transaction-details/ui/transaction-header.tsx:63
 #: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:161
 #: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:100
@@ -584,8 +584,8 @@ msgstr "Clients without a valid certificate will be rejected"
 msgid "Close"
 msgstr "Close"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:132
-#: src/features/transaction-details/ui/replay-dialog.tsx:492
+#: src/features/transaction-details/ui/replay-dialog.tsx:134
+#: src/features/transaction-details/ui/replay-dialog.tsx:494
 msgid "Collapse"
 msgstr "Collapse"
 
@@ -610,11 +610,11 @@ msgstr "Common Name (CN)"
 msgid "Compose request"
 msgstr "Compose request"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:359
+#: src/features/transaction-details/ui/replay-dialog.tsx:361
 msgid "Compose Request"
 msgstr "Compose Request"
 
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:169
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:172
 msgid "Concurrency"
 msgstr "Concurrency"
 
@@ -627,7 +627,7 @@ msgstr "Condition"
 msgid "Connected"
 msgstr "Connected"
 
-#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:110
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:112
 #: src/widgets/sse-messages/ui/sse-message-detail.tsx:55
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:55
 msgid "Connection"
@@ -745,7 +745,7 @@ msgstr "Default port is 8100. Make sure your system proxy is configured to use p
 msgid "Delay before forwarding the request (milliseconds)"
 msgstr "Delay before forwarding the request (milliseconds)"
 
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:186
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:189
 msgid "Delay between requests (ms)"
 msgstr "Delay between requests (ms)"
 
@@ -788,7 +788,7 @@ msgstr "Details Panel Layout"
 msgid "Dir"
 msgstr "Dir"
 
-#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:123
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:125
 #: src/pages/analytics-dashboard/ui/misc-tab.tsx:129
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:46
 msgid "Direction"
@@ -1000,8 +1000,8 @@ msgstr "Exclude OPTIONS method"
 msgid "Exit fullscreen"
 msgstr "Exit fullscreen"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:203
-#: src/features/transaction-details/ui/replay-dialog.tsx:497
+#: src/features/transaction-details/ui/replay-dialog.tsx:205
+#: src/features/transaction-details/ui/replay-dialog.tsx:499
 msgid "Expand"
 msgstr "Expand"
 
@@ -1060,7 +1060,7 @@ msgstr "Failed to read file: {0}"
 msgid "Failed to remove spec: {0}"
 msgstr "Failed to remove spec: {0}"
 
-#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:88
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:90
 msgid "Failed to send"
 msgstr "Failed to send"
 
@@ -1192,7 +1192,7 @@ msgstr "HAR imported successfully"
 
 #: src/features/intercept-rule-form/ui/headers-fields.tsx:65
 #: src/features/map-rule-form/ui/map-local-fields.tsx:79
-#: src/features/transaction-details/ui/replay-dialog.tsx:445
+#: src/features/transaction-details/ui/replay-dialog.tsx:447
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:454
 msgid "Header name"
 msgstr "Header name"
@@ -1212,8 +1212,8 @@ msgstr "Headers"
 
 #. placeholder {0}: headerEntries.length
 #. placeholder {0}: headers.length
-#: src/features/transaction-details/ui/replay-dialog.tsx:175
-#: src/features/transaction-details/ui/replay-dialog.tsx:430
+#: src/features/transaction-details/ui/replay-dialog.tsx:177
+#: src/features/transaction-details/ui/replay-dialog.tsx:432
 msgid "Headers ({0})"
 msgstr "Headers ({0})"
 
@@ -1343,7 +1343,7 @@ msgstr "Issuer"
 msgid "Issuer information not available"
 msgstr "Issuer information not available"
 
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:152
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:155
 msgid "Iterations"
 msgstr "Iterations"
 
@@ -1557,7 +1557,7 @@ msgstr "MCP Server"
 msgid "MCP Server Configuration"
 msgstr "MCP Server Configuration"
 
-#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:177
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:182
 msgid "Message sent successfully"
 msgstr "Message sent successfully"
 
@@ -1801,11 +1801,11 @@ msgstr "No traffic data available. Start the proxy to capture requests."
 msgid "No transactions to display"
 msgstr "No transactions to display"
 
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:83
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:86
 msgid "No valid request to replay"
 msgstr "No valid request to replay"
 
-#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:77
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:79
 msgid "No valid requests to replay"
 msgstr "No valid requests to replay"
 
@@ -1833,11 +1833,11 @@ msgstr "Not Trusted"
 msgid "Not yet valid"
 msgstr "Not yet valid"
 
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:179
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:182
 msgid "Number of simultaneous requests (1-100)"
 msgstr "Number of simultaneous requests (1-100)"
 
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:162
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:165
 msgid "Number of times to send the request (1-10000)"
 msgstr "Number of times to send the request (1-10000)"
 
@@ -1845,7 +1845,7 @@ msgstr "Number of times to send the request (1-10000)"
 msgid "Only domains in this list will be intercepted. When the list is empty, all domains are intercepted."
 msgstr "Only domains in this list will be intercepted. When the list is empty, all domains are intercepted."
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:305
+#: src/features/transaction-details/ui/replay-dialog.tsx:307
 msgid "Only http:// and https:// URLs are allowed"
 msgstr "Only http:// and https:// URLs are allowed"
 
@@ -1913,7 +1913,7 @@ msgstr "optional"
 msgid "Organization"
 msgstr "Organization"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:376
+#: src/features/transaction-details/ui/replay-dialog.tsx:378
 msgid "Original"
 msgstr "Original"
 
@@ -1957,7 +1957,7 @@ msgstr "Pause and inspect requests/responses"
 msgid "Pause recording"
 msgstr "Pause recording"
 
-#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:148
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:150
 msgid "Payload"
 msgstr "Payload"
 
@@ -2046,7 +2046,7 @@ msgstr "Prevent caching by removing conditional headers and adding no-cache dire
 msgid "Profile"
 msgstr "Profile"
 
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:211
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:214
 msgid "Progress"
 msgstr "Progress"
 
@@ -2184,7 +2184,7 @@ msgstr "Replace With"
 msgid "Replacement string (supports $1, $2 capture groups)"
 msgstr "Replacement string (supports $1, $2 capture groups)"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:386
+#: src/features/transaction-details/ui/replay-dialog.tsx:388
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:113
 msgid "Replay"
 msgstr "Replay"
@@ -2193,11 +2193,11 @@ msgstr "Replay"
 msgid "Replay message"
 msgstr "Replay message"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:350
+#: src/features/transaction-details/ui/replay-dialog.tsx:352
 msgid "Replay request"
 msgstr "Replay request"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:372
+#: src/features/transaction-details/ui/replay-dialog.tsx:374
 #: src/features/transaction-details/ui/transaction-body-side-by-side.tsx:16
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:282
 #: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:58
@@ -2229,7 +2229,7 @@ msgstr "Request Details"
 msgid "Request dropped"
 msgstr "Request dropped"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:327
+#: src/features/transaction-details/ui/replay-dialog.tsx:329
 msgid "Request failed"
 msgstr "Request failed"
 
@@ -2256,7 +2256,7 @@ msgstr "Request/Response body"
 msgid "requests"
 msgstr "requests"
 
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:306
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:303
 msgid "Requests/sec"
 msgstr "Requests/sec"
 
@@ -2268,7 +2268,7 @@ msgstr "Require authentication to use this proxy server"
 msgid "Require certificate"
 msgstr "Require certificate"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:386
+#: src/features/transaction-details/ui/replay-dialog.tsx:388
 #: src/features/transaction-details/ui/transaction-body-side-by-side.tsx:24
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:287
 #: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:121
@@ -2300,7 +2300,7 @@ msgstr "Response Headers"
 msgid "Response Status Code"
 msgstr "Response Status Code"
 
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:269
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:266
 #: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:30
 msgid "Response Time"
 msgstr "Response Time"
@@ -2321,7 +2321,7 @@ msgstr "Restore Defaults"
 msgid "Resume recording"
 msgstr "Resume recording"
 
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:367
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:364
 #: src/widgets/sse-messages/ui/sse-message-detail.tsx:63
 msgid "Retry"
 msgstr "Retry"
@@ -2418,7 +2418,7 @@ msgstr "Run"
 msgid "Run Analysis"
 msgstr "Run Analysis"
 
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:354
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:351
 msgid "Running..."
 msgstr "Running..."
 
@@ -2531,29 +2531,29 @@ msgstr "Select the downloaded certificate file and confirm"
 msgid "Select the downloaded profile and tap \"Install\""
 msgstr "Select the downloaded profile and tap \"Install\""
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:574
+#: src/features/transaction-details/ui/replay-dialog.tsx:576
 msgid "Send a request to see the replay response"
 msgstr "Send a request to see the replay response"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:572
+#: src/features/transaction-details/ui/replay-dialog.tsx:574
 msgid "Send a request to see the response"
 msgstr "Send a request to see the response"
 
-#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:195
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:201
 msgid "Send Message"
 msgstr "Send Message"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:542
+#: src/features/transaction-details/ui/replay-dialog.tsx:544
 msgid "Send Request"
 msgstr "Send Request"
 
-#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:147
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:149
 msgid "Sending requests sequentially..."
 msgstr "Sending requests sequentially..."
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:537
-#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:230
-#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:190
+#: src/features/transaction-details/ui/replay-dialog.tsx:539
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:232
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:196
 msgid "Sending..."
 msgstr "Sending..."
 
@@ -2571,11 +2571,11 @@ msgid "Sequence"
 msgstr "Sequence"
 
 #. placeholder {0}: transactions.length
-#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:109
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:111
 msgid "Sequence Replay ({0} requests)"
 msgstr "Sequence Replay ({0} requests)"
 
-#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:87
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:89
 msgid "Sequence replay failed"
 msgstr "Sequence replay failed"
 
@@ -2690,7 +2690,7 @@ msgstr "SSE"
 msgid "SSL Proxying"
 msgstr "SSL Proxying"
 
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:348
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:345
 msgid "Start"
 msgstr "Start"
 
@@ -2699,7 +2699,7 @@ msgstr "Start"
 msgid "Start proxy first"
 msgstr "Start proxy first"
 
-#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:235
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:237
 msgid "Start Replay"
 msgstr "Start Replay"
 
@@ -2723,7 +2723,7 @@ msgstr "Status"
 msgid "Status Code"
 msgstr "Status Code"
 
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:321
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:318
 msgid "Status Code Distribution"
 msgstr "Status Code Distribution"
 
@@ -2812,7 +2812,7 @@ msgstr "These domains are automatically excluded from HTTPS interception to prev
 msgid "Throttle"
 msgstr "Throttle"
 
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:295
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:292
 msgid "Throughput"
 msgstr "Throughput"
 
@@ -2842,13 +2842,13 @@ msgstr "TLS fallback — learned strategy used"
 msgid "TLS Passthrough"
 msgstr "TLS Passthrough"
 
-#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:139
-#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:140
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:141
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:142
 msgid "To Client (Server → Client)"
 msgstr "To Client (Server → Client)"
 
-#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:135
-#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:136
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:137
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:138
 msgid "To Server (Client → Server)"
 msgstr "To Server (Client → Server)"
 
@@ -2874,7 +2874,7 @@ msgid "Total"
 msgstr "Total"
 
 #. placeholder {0}: results.reduce((sum, r) => sum + (r.response?.elapsed_ms ?? 0), 0)
-#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:171
+#: src/features/transaction-details/ui/sequence-replay-dialog.tsx:173
 msgid "Total {0}ms"
 msgstr "Total {0}ms"
 
@@ -2882,7 +2882,7 @@ msgstr "Total {0}ms"
 msgid "Total Requests"
 msgstr "Total Requests"
 
-#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:300
+#: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:297
 msgid "Total Time"
 msgstr "Total Time"
 
@@ -2891,7 +2891,7 @@ msgstr "Total Time"
 msgid "Traffic Analysis"
 msgstr "Traffic Analysis"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:359
+#: src/features/transaction-details/ui/replay-dialog.tsx:361
 msgid "Traffic Replay"
 msgstr "Traffic Replay"
 
@@ -2965,7 +2965,7 @@ msgstr "Upload Speed (KB/s)"
 msgid "Upstream Proxy"
 msgstr "Upstream Proxy"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:423
+#: src/features/transaction-details/ui/replay-dialog.tsx:425
 msgid "URL"
 msgstr "URL"
 
@@ -3030,7 +3030,7 @@ msgstr "Validity Period"
 
 #: src/features/intercept-rule-form/ui/headers-fields.tsx:70
 #: src/features/map-rule-form/ui/map-local-fields.tsx:84
-#: src/features/transaction-details/ui/replay-dialog.tsx:453
+#: src/features/transaction-details/ui/replay-dialog.tsx:455
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:460
 msgid "Value"
 msgstr "Value"
@@ -3081,7 +3081,7 @@ msgstr "WebSocket"
 msgid "WebSocket connections and messages"
 msgstr "WebSocket connections and messages"
 
-#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:102
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:104
 msgid "WebSocket Replay"
 msgstr "WebSocket Replay"
 
