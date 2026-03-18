@@ -332,4 +332,26 @@ mod tests {
         };
         assert_eq!(config.address(), "proxy.example.com:3128");
     }
+
+    #[tokio::test]
+    async fn tcp_connect_timeout_on_unreachable() {
+        // RFC 5737 TEST-NET: 라우팅 불가 주소로 타임아웃 검증
+        let result = tcp_connect_with_timeout("192.0.2.1:1").await;
+        assert!(
+            matches!(&result, Err(UpstreamProxyError::Timeout(_)))
+                || matches!(&result, Err(UpstreamProxyError::Connect(_))),
+            "unreachable 주소에 대해 Timeout 또는 Connect 에러가 발생해야 함: {:?}",
+            result
+        );
+    }
+
+    #[tokio::test]
+    async fn tcp_connect_error_on_refused() {
+        // localhost의 미사용 포트로 연결 거부 검증
+        let result = tcp_connect_with_timeout("127.0.0.1:1").await;
+        assert!(
+            matches!(result, Err(UpstreamProxyError::Connect(_))),
+            "연결 거부 시 Connect 에러가 발생해야 함"
+        );
+    }
 }
