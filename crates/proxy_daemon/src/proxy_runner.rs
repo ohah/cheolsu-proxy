@@ -18,6 +18,11 @@ use proxyapi_v2::throttle::ThrottleConfig;
 use proxyapi_v2::upstream_proxy::UpstreamProxyConfig;
 use proxyapi_v2::websocket_registry::WebSocketRegistry;
 
+/// 프록시 이벤트 채널 용량 (HTTP 트랜잭션, WebSocket, SSE 공통)
+/// 핸들러에서 세션으로 이벤트를 전달하는 mpsc 채널의 버퍼 크기.
+/// 동시 다수 요청 처리 시 백프레셔를 방지하기 위한 크기.
+const PROXY_EVENT_CHANNEL_CAPACITY: usize = 256;
+
 pub async fn run_proxy(
     addr: SocketAddr,
     event_tx: broadcast::Sender<String>,
@@ -98,12 +103,13 @@ pub async fn run_proxy(
     let cache_dir = get_cache_storage_dir(&session_hash)
         .map_err(|e| DaemonError::Proxy(format!("Cache dir failed: {}", e)))?;
 
-    let (tx, mut rx) = tokio::sync::mpsc::channel::<proxy_v2_models::RequestInfo>(256);
+    let (tx, mut rx) =
+        tokio::sync::mpsc::channel::<proxy_v2_models::RequestInfo>(PROXY_EVENT_CHANNEL_CAPACITY);
     let (tunnel_tx, mut tunnel_rx) =
-        tokio::sync::mpsc::channel::<proxy_v2_models::RequestInfo>(256);
+        tokio::sync::mpsc::channel::<proxy_v2_models::RequestInfo>(PROXY_EVENT_CHANNEL_CAPACITY);
 
-    let (ws_tx, mut ws_rx) = tokio::sync::mpsc::channel::<WsEvent>(256);
-    let (sse_tx, mut sse_rx) = tokio::sync::mpsc::channel::<SseEvent>(256);
+    let (ws_tx, mut ws_rx) = tokio::sync::mpsc::channel::<WsEvent>(PROXY_EVENT_CHANNEL_CAPACITY);
+    let (sse_tx, mut sse_rx) = tokio::sync::mpsc::channel::<SseEvent>(PROXY_EVENT_CHANNEL_CAPACITY);
 
     let ca_cert_der = ca.get_ca_cert_der().unwrap_or_default();
 

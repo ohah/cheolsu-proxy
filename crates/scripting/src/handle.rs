@@ -50,6 +50,16 @@ enum ScriptCommand {
     Shutdown,
 }
 
+/// 스크립트 커맨드 채널 용량
+/// 스크립트 실행 요청을 큐잉하는 mpsc 채널의 버퍼 크기.
+/// 동시 다발적인 요청 처리 시에도 백프레셔 없이 수용할 수 있는 충분한 크기.
+const SCRIPT_COMMAND_CHANNEL_CAPACITY: usize = 128;
+
+/// 스크립트 로그 브로드캐스트 채널 용량
+/// 여러 구독자에게 스크립트 로그를 전송하는 broadcast 채널의 버퍼 크기.
+/// 빠른 로그 출력 시에도 구독자 lag를 최소화하기 위한 크기.
+const SCRIPT_LOG_CHANNEL_CAPACITY: usize = 256;
+
 /// 스크립트 엔진에 대한 Send + Sync 핸들 (채널 기반)
 #[derive(Clone)]
 pub struct ScriptHandle {
@@ -62,9 +72,9 @@ pub struct ScriptHandle {
 impl ScriptHandle {
     /// 새 스크립트 핸들 생성 (전용 스레드에서 엔진 실행)
     pub fn new() -> Self {
-        let (tx, rx) = mpsc::channel(128);
+        let (tx, rx) = mpsc::channel(SCRIPT_COMMAND_CHANNEL_CAPACITY);
         let active = Arc::new(std::sync::atomic::AtomicBool::new(false));
-        let (log_tx, _) = broadcast::channel(256);
+        let (log_tx, _) = broadcast::channel(SCRIPT_LOG_CHANNEL_CAPACITY);
 
         let active_clone = active.clone();
         let log_tx_clone = log_tx.clone();
