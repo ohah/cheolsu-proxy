@@ -57,14 +57,23 @@ export const QueryFilterEditor = ({
     return `${totalCount}`;
   }, [totalCount, filteredCount]);
 
+  const handlePresetSelect = useCallback(
+    (query: string) => {
+      onChange(query);
+      onApply(query);
+    },
+    [onChange, onApply],
+  );
+
+  const serializedBuilderQuery = useMemo(() => serializeBuilderState(builderState), [builderState]);
+
   const handleSwitchToCode = useCallback(() => {
-    const query = serializeBuilderState(builderState);
-    onChange(query);
+    onChange(serializedBuilderQuery);
     onModeChange("code");
-  }, [builderState, onChange, onModeChange]);
+  }, [serializedBuilderQuery, onChange, onModeChange]);
 
   if (mode === "builder") {
-    const previewText = serializeBuilderState(builderState) || t`No conditions`;
+    const previewText = serializedBuilderQuery || t`No conditions`;
 
     return (
       <div className="relative w-full h-[36px] min-w-0 flex items-center">
@@ -75,9 +84,7 @@ export const QueryFilterEditor = ({
               <span
                 className={cn(
                   "text-xs font-mono truncate",
-                  serializeBuilderState(builderState)
-                    ? "text-muted-foreground"
-                    : "text-muted-foreground/40",
+                  serializedBuilderQuery ? "text-muted-foreground" : "text-muted-foreground/40",
                 )}
               >
                 {previewText}
@@ -98,11 +105,8 @@ export const QueryFilterEditor = ({
             <Separator orientation="vertical" />
 
             <FilterPresetMenu
-              currentQuery={serializeBuilderState(builderState)}
-              onSelectPreset={(query) => {
-                onChange(query);
-                onApply(query);
-              }}
+              currentQuery={serializedBuilderQuery}
+              onSelectPreset={handlePresetSelect}
             />
 
             <Separator orientation="vertical" />
@@ -198,13 +202,7 @@ export const QueryFilterEditor = ({
 
           <Separator orientation="vertical" />
 
-          <FilterPresetMenu
-            currentQuery={appliedValue}
-            onSelectPreset={(query) => {
-              onChange(query);
-              onApply(query);
-            }}
-          />
+          <FilterPresetMenu currentQuery={appliedValue} onSelectPreset={handlePresetSelect} />
 
           <Separator orientation="vertical" />
           <Badge className="mx-2 text-[10px] font-mono shrink-0 bg-accent text-accent-foreground">

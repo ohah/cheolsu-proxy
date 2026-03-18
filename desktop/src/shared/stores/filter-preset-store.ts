@@ -11,7 +11,6 @@ export interface FilterPreset {
 interface FilterPresetState {
   presets: FilterPreset[];
   addPreset: (preset: Omit<FilterPreset, "id">) => void;
-  updatePreset: (id: string, updates: Partial<Omit<FilterPreset, "id">>) => void;
   deletePreset: (id: string) => void;
 }
 
@@ -23,11 +22,6 @@ export const useFilterPresetStore = create<FilterPresetState>()(
       addPreset: (preset) =>
         set((state) => ({
           presets: [...state.presets, { ...preset, id: crypto.randomUUID() }],
-        })),
-
-      updatePreset: (id, updates) =>
-        set((state) => ({
-          presets: state.presets.map((p) => (p.id === id ? { ...p, ...updates } : p)),
         })),
 
       deletePreset: (id) =>

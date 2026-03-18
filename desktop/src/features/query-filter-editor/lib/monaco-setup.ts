@@ -4,6 +4,7 @@ import {
   DARK_THEME,
   FILTER_KEYWORDS,
   LOGICAL_OPERATORS,
+  CUSTOM_THEME_KEYS,
   buildCustomMonacoTheme,
 } from "../model";
 
@@ -50,8 +51,7 @@ export const setupMonacoLanguage = (monaco: Monaco): void => {
   monaco.editor.defineTheme("cheolsu-dark", DARK_THEME);
 
   // 커스텀 다크 테마 등록
-  const customThemeKeys = ["dracula", "nord", "monokai", "solarized-dark", "github-dark"];
-  for (const key of customThemeKeys) {
+  for (const key of CUSTOM_THEME_KEYS) {
     const theme = buildCustomMonacoTheme(key);
     if (theme) {
       monaco.editor.defineTheme(`cheolsu-${key}`, theme);

@@ -4,7 +4,7 @@ import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
 
 import { cn } from "@/shared/lib";
-import { Popover, PopoverTrigger, PopoverContent } from "@/shared/ui";
+import { Input, Popover, PopoverTrigger, PopoverContent } from "@/shared/ui";
 import { useFilterPresetStore, type FilterPreset } from "@/shared/stores/filter-preset-store";
 
 interface FilterPresetMenuProps {
@@ -103,9 +103,9 @@ export function FilterPresetMenu({ currentQuery, onSelectPreset }: FilterPresetM
 
         {isAdding ? (
           <div className="flex items-center gap-1 mt-1 px-1">
-            <input
+            <Input
               type="text"
-              className="flex-1 text-sm bg-input border border-input-border rounded px-2 py-1 outline-none focus:border-accent"
+              className="flex-1 h-7 text-sm"
               placeholder={t`Preset name`}
               value={newName}
               onChange={(e) => setNewName(e.target.value)}

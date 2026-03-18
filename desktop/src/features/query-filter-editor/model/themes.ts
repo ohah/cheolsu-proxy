@@ -1,5 +1,16 @@
 import type { editor } from "monaco-editor";
 
+/** Custom dark theme keys — single source of truth for all theme registrations */
+export const CUSTOM_THEME_KEYS = [
+  "dracula",
+  "nord",
+  "monokai",
+  "solarized-dark",
+  "github-dark",
+] as const;
+
+export type CustomThemeKey = (typeof CUSTOM_THEME_KEYS)[number];
+
 /** Custom dark themes are registered with per-theme background/foreground colors */
 const CUSTOM_DARK_THEMES: Record<
   string,

@@ -6,17 +6,23 @@ import { loadCatalog, locales, type Locale } from "@/shared/lib/i18n";
 import { useAppSettingsStore, type DetailsPanelLayout } from "@/shared/stores/app-settings-store";
 import { Switch, Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/shared/ui";
 import { TABLE_COLUMNS, type ColumnKey } from "@/widgets/network-table/model";
+import { CUSTOM_THEME_KEYS } from "@/features/query-filter-editor/model/themes";
 import { useSettingsForm } from "../settings-form";
+
+/** Theme display names — custom themes use their key with title case as label (proper nouns, not translated) */
+const CUSTOM_THEME_LABELS: Record<string, string> = {
+  dracula: "Dracula",
+  nord: "Nord",
+  monokai: "Monokai",
+  "solarized-dark": "Solarized Dark",
+  "github-dark": "GitHub Dark",
+};
 
 const THEME_OPTIONS = [
   { value: "system", label: "System" },
   { value: "light", label: "Light" },
   { value: "dark", label: "Dark" },
-  { value: "dracula", label: "Dracula" },
-  { value: "nord", label: "Nord" },
-  { value: "monokai", label: "Monokai" },
-  { value: "solarized-dark", label: "Solarized Dark" },
-  { value: "github-dark", label: "GitHub Dark" },
+  ...CUSTOM_THEME_KEYS.map((key) => ({ value: key, label: CUSTOM_THEME_LABELS[key] ?? key })),
 ] as const;
 
 export function GeneralSettings() {
