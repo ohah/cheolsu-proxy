@@ -20,31 +20,17 @@ import {
 import { Plus, Trash2, Eraser, Play, XCircle, StopCircle, Pencil, Send } from "lucide-react";
 import { toast } from "sonner";
 import type { BreakpointRule, PendingBreakpoint } from "@/entities/breakpoint";
+import { entriesToHeaders, type HeaderEntry } from "@/shared/hooks/use-header-editor";
 
-interface HeaderEntry {
-  id: string;
-  key: string;
-  value: string;
-}
+type IdentifiableHeaderEntry = Required<HeaderEntry>;
 
-function headersToEntries(headers: Record<string, string>): HeaderEntry[] {
+function headersToEntriesWithId(headers: Record<string, string>): IdentifiableHeaderEntry[] {
   const entries = Object.entries(headers).map(([key, value]) => ({
     id: crypto.randomUUID(),
     key,
     value,
   }));
   return entries.length > 0 ? entries : [{ id: crypto.randomUUID(), key: "", value: "" }];
-}
-
-function entriesToHeaders(entries: HeaderEntry[]): Record<string, string> {
-  const result: Record<string, string> = {};
-  for (const entry of entries) {
-    const key = entry.key.trim();
-    if (key) {
-      result[key] = entry.value;
-    }
-  }
-  return result;
 }
 
 export const BreakpointPage = () => {
@@ -65,7 +51,7 @@ export const BreakpointPage = () => {
   const [breakOnResponse, setBreakOnResponse] = useState(false);
 
   const [editTarget, setEditTarget] = useState<PendingBreakpoint | null>(null);
-  const [editHeaders, setEditHeaders] = useState<HeaderEntry[]>([
+  const [editHeaders, setEditHeaders] = useState<IdentifiableHeaderEntry[]>([
     { id: crypto.randomUUID(), key: "", value: "" },
   ]);
   const [editBody, setEditBody] = useState("");
@@ -73,7 +59,7 @@ export const BreakpointPage = () => {
 
   const openEditDialog = useCallback((bp: PendingBreakpoint) => {
     setEditTarget(bp);
-    setEditHeaders(headersToEntries(bp.data.headers));
+    setEditHeaders(headersToEntriesWithId(bp.data.headers));
     setEditBody(bp.data.body ?? "");
     setEditStatus(bp.data.status ? String(bp.data.status) : "");
   }, []);

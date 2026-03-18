@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 
 export interface HeaderEntry {
+  id?: string;
   key: string;
   value: string;
 }
