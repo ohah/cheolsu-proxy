@@ -442,6 +442,9 @@ async fn daemon_main(port: u16, host: String) -> i32 {
 
     run_accept_loop(uds_listener, &mut shutdown_rx, &ctx, port).await;
 
+    // TLS passthrough dirty 데이터를 파일에 저장
+    ctx.tls_passthrough.flush_all();
+
     // 프록시 태스크에 graceful shutdown 신호 전송
     info!("Sending graceful shutdown signal to proxy task...");
     let _ = proxy_shutdown_tx.send(());
