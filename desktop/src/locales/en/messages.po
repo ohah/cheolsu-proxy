@@ -70,7 +70,7 @@ msgstr "200 (optional)"
 msgid "Abort"
 msgstr "Abort"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:195
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:192
 msgid "Action"
 msgstr "Action"
 
@@ -148,8 +148,8 @@ msgstr "Add mappings to redirect DNS hostnames to different target hosts for tes
 msgid "Add Proto Files"
 msgstr "Add Proto Files"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:139
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:246
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:136
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:240
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:257
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:204
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:84
@@ -231,8 +231,8 @@ msgstr "All HTTPS traffic is intercepted except {enabledCount} excluded domain(s
 msgid "All HTTPS traffic is intercepted. {defaultEnabledCount} built-in domain(s) are automatically excluded."
 msgstr "All HTTPS traffic is intercepted. {defaultEnabledCount} built-in domain(s) are automatically excluded."
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:181
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:181
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:178
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:178
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:214
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:214
 msgid "All Methods"
@@ -332,8 +332,8 @@ msgstr "Batch"
 msgid "Blacklist (Exclude)"
 msgstr "Blacklist (Exclude)"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:213
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:213
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:210
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:210
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:46
 msgid "Block"
 msgstr "Block"
@@ -428,7 +428,7 @@ msgstr "CA Key File"
 msgid "calls"
 msgstr "calls"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:243
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:237
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:254
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:228
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:492
@@ -687,8 +687,8 @@ msgstr "cURL"
 msgid "Curl command copied to clipboard"
 msgstr "Curl command copied to clipboard"
 
-#: src/features/intercept-rule-form/ui/throttle-action-fields.tsx:74
-#: src/features/intercept-rule-form/ui/throttle-action-fields.tsx:74
+#: src/features/intercept-rule-form/ui/throttle-action-fields.tsx:66
+#: src/features/intercept-rule-form/ui/throttle-action-fields.tsx:66
 msgid "Custom"
 msgstr "Custom"
 
@@ -871,7 +871,7 @@ msgstr "Edit Map Rule"
 msgid "Edit rule"
 msgstr "Edit rule"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:139
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:136
 msgid "Edit Rule"
 msgstr "Edit Rule"
 
@@ -1519,7 +1519,7 @@ msgstr "Message sent successfully"
 msgid "messages"
 msgstr "messages"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:170
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:167
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:203
 #: src/pages/analytics-dashboard/ui/duplicate-tab.tsx:21
 #: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:59
@@ -1556,14 +1556,14 @@ msgstr "Modified and forwarded"
 msgid "Modify & Forward"
 msgstr "Modify & Forward"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:216
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:217
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:213
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:214
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:47
 msgid "Modify Request"
 msgstr "Modify Request"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:220
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:221
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:217
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:218
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:48
 msgid "Modify Response"
 msgstr "Modify Response"
@@ -1580,7 +1580,7 @@ msgstr "Multiple conditions:"
 msgid "N+1"
 msgstr "N+1"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:153
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:150
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:177
 #: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:56
 msgid "Name"
@@ -1887,7 +1887,7 @@ msgstr "Path"
 msgid "paths"
 msgstr "paths"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:161
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:158
 msgid "Pattern"
 msgstr "Pattern"
 
@@ -1939,7 +1939,7 @@ msgstr "PKCS12 password (leave empty if none)"
 msgid "Playwright Test"
 msgstr "Playwright Test"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:131
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:128
 msgid "Please fill in all required fields"
 msgstr "Please fill in all required fields"
 
@@ -1976,7 +1976,7 @@ msgstr "Present a client certificate when connecting to servers that require mTL
 msgid "Preserve Path"
 msgstr "Preserve Path"
 
-#: src/features/intercept-rule-form/ui/throttle-action-fields.tsx:52
+#: src/features/intercept-rule-form/ui/throttle-action-fields.tsx:48
 msgid "Preset"
 msgstr "Preset"
 
@@ -2293,8 +2293,8 @@ msgstr "Reverse proxy rule added"
 msgid "Reverse proxy rule deleted"
 msgstr "Reverse proxy rule deleted"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:222
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:222
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:219
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:219
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:51
 msgid "Rewrite"
 msgstr "Rewrite"
@@ -2324,7 +2324,7 @@ msgstr "Route requests to backend servers by Host header"
 msgid "Route traffic through an external proxy server"
 msgstr "Route traffic through an external proxy server"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:124
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:121
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:152
 msgid "Rule added"
 msgstr "Rule added"
@@ -2335,12 +2335,12 @@ msgstr "Rule added"
 msgid "Rule deleted"
 msgstr "Rule deleted"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:155
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:152
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:179
 msgid "Rule name (optional)"
 msgstr "Rule name (optional)"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:121
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:118
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:149
 msgid "Rule updated"
 msgstr "Rule updated"
@@ -2457,7 +2457,7 @@ msgstr "Select local file"
 msgid "Select PKCS12 file (.p12, .pfx)"
 msgstr "Select PKCS12 file (.p12, .pfx)"
 
-#: src/features/intercept-rule-form/ui/throttle-action-fields.tsx:71
+#: src/features/intercept-rule-form/ui/throttle-action-fields.tsx:63
 msgid "Select preset..."
 msgstr "Select preset..."
 
@@ -2745,8 +2745,8 @@ msgstr "Theme"
 msgid "These domains are automatically excluded from HTTPS interception to prevent OAuth/authentication failures. You can toggle, add, or remove domains."
 msgstr "These domains are automatically excluded from HTTPS interception to prevent OAuth/authentication failures. You can toggle, add, or remove domains."
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:225
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:226
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:220
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:220
 msgid "Throttle"
 msgstr "Throttle"
 
@@ -2870,8 +2870,8 @@ msgstr "Uninstall"
 msgid "Universal format"
 msgstr "Universal format"
 
-#: src/features/intercept-rule-form/ui/throttle-action-fields.tsx:38
-#: src/features/intercept-rule-form/ui/throttle-action-fields.tsx:46
+#: src/features/intercept-rule-form/ui/throttle-action-fields.tsx:36
+#: src/features/intercept-rule-form/ui/throttle-action-fields.tsx:42
 #: src/pages/settings/ui/components/throttle-section.tsx:62
 #: src/pages/settings/ui/components/throttle-section.tsx:70
 msgid "Unlimited"
@@ -2885,7 +2885,7 @@ msgstr "Unload"
 msgid "Unpin from Top"
 msgstr "Unpin from Top"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:246
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:240
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:257
 msgid "Update"
 msgstr "Update"
@@ -2894,7 +2894,7 @@ msgstr "Update"
 msgid "Upload (KB/s)"
 msgstr "Upload (KB/s)"
 
-#: src/features/intercept-rule-form/ui/throttle-action-fields.tsx:44
+#: src/features/intercept-rule-form/ui/throttle-action-fields.tsx:40
 msgid "Upload Speed (KB/s)"
 msgstr "Upload Speed (KB/s)"
 
@@ -2926,7 +2926,7 @@ msgstr "Use different client certificates for specific domains. Supports wildcar
 msgid "Use tags in the filter with client=\"tag_name\" to filter traffic by device"
 msgstr "Use tags in the filter with client=\"tag_name\" to filter traffic by device"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:142
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:139
 msgid "Use wildcard patterns: * matches any string, ? matches a single character."
 msgstr "Use wildcard patterns: * matches any string, ? matches a single character."
 
