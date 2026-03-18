@@ -6,18 +6,13 @@ import { cn } from "@/shared/lib";
 import { ScrollArea } from "@/shared/ui";
 import { formatTime, formatDuration } from "@/shared/lib/format-time";
 import type { GraphqlOperation } from "@/entities/graphql";
+import { TYPE_COLORS } from "./graphql-type-colors";
 
 interface GraphqlOperationTableProps {
   operations: GraphqlOperation[];
   selectedOperation: GraphqlOperation | null;
   onSelectOperation: (op: GraphqlOperation) => void;
 }
-
-const TYPE_COLORS: Record<string, string> = {
-  query: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
-  mutation: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300",
-  subscription: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300",
-};
 
 const GraphqlOperationRow = memo(
   ({

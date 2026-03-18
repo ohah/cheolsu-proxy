@@ -8,6 +8,7 @@ import { Button, Tooltip, TooltipTrigger, TooltipContent } from "@/shared/ui";
 import { cn } from "@/shared/lib";
 import { formatTimeFull, formatDuration } from "@/shared/lib/format-time";
 import type { GraphqlOperation } from "@/entities/graphql";
+import { TYPE_COLORS } from "./graphql-type-colors";
 
 interface GraphqlOperationDetailProps {
   operation: GraphqlOperation;
@@ -15,12 +16,6 @@ interface GraphqlOperationDetailProps {
 }
 
 type DetailTab = "query" | "variables" | "response" | "errors";
-
-const TYPE_COLORS: Record<string, string> = {
-  query: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
-  mutation: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300",
-  subscription: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300",
-};
 
 const EDITOR_OPTIONS = {
   readOnly: true,
