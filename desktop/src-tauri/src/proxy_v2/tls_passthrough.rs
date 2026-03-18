@@ -92,3 +92,32 @@ pub(crate) async fn clear_learned_tls_strategies(
         .await
         .map_err(|e| format!("학습된 TLS 전략 초기화 실패: {}", e))
 }
+
+#[tauri::command]
+pub(crate) async fn update_never_passthrough_domains(
+    proxy: State<'_, ProxyV2State>,
+    entries: Vec<String>,
+) -> Result<(), String> {
+    let sender = get_command_sender(&proxy).await?;
+    sender
+        .send_command(&ClientCommand::UpdateNeverPassthroughDomains { entries })
+        .await
+        .map_err(|e| format!("Never Passthrough 도메인 업데이트 실패: {}", e))
+}
+
+#[tauri::command]
+pub(crate) async fn get_never_passthrough_domains(
+    _proxy: State<'_, ProxyV2State>,
+) -> Result<Vec<String>, String> {
+    let path = proxy_daemon::daemon::app_support_dir()
+        .map(|d| d.join("never_passthrough.json"))
+        .map_err(|e| format!("데이터 디렉토리를 찾을 수 없습니다: {}", e))?;
+    if !path.exists() {
+        return Ok(Vec::new());
+    }
+    let data = std::fs::read_to_string(&path)
+        .map_err(|e| format!("Never Passthrough 파일 읽기 실패: {}", e))?;
+    let entries: Vec<String> =
+        serde_json::from_str(&data).map_err(|e| format!("JSON 파싱 실패: {}", e))?;
+    Ok(entries)
+}
