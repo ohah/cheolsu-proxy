@@ -1,5 +1,5 @@
 import type { ProxyEventPayload } from "@/entities/proxy";
-import { MOCK_TRANSACTIONS } from "./mock-data";
+import { MOCK_TRANSACTIONS } from "./index";
 
 type UnlistenFn = () => void;
 type EventCallback<T> = (event: { payload: T }) => void;
