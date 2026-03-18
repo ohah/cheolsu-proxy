@@ -92,6 +92,12 @@ export function GeneralSettings() {
     [setLocale],
   );
 
+  const themeLabels: Record<string, string> = {
+    system: t`System`,
+    light: t`Light`,
+    dark: t`Dark`,
+  };
+
   return (
     <>
       {/* Language Section */}
@@ -133,11 +139,6 @@ export function GeneralSettings() {
           </SelectTrigger>
           <SelectContent>
             {THEME_OPTIONS.map((opt) => {
-              const themeLabels: Record<string, string> = {
-                system: t`System`,
-                light: t`Light`,
-                dark: t`Dark`,
-              };
               const label = themeLabels[opt.value] ?? opt.label;
               return (
                 <SelectItem key={opt.value} value={opt.value} label={label}>

@@ -13,7 +13,7 @@ export type CustomThemeKey = (typeof CUSTOM_THEME_KEYS)[number];
 
 /** Custom dark themes are registered with per-theme background/foreground colors */
 const CUSTOM_DARK_THEMES: Record<
-  string,
+  CustomThemeKey,
   {
     bg: string;
     fg: string;
@@ -71,7 +71,9 @@ export function getMonacoThemeName(resolvedTheme: string | undefined): string {
   return `cheolsu-${resolvedTheme}`;
 }
 
-export function buildCustomMonacoTheme(themeKey: string): editor.IStandaloneThemeData | null {
+export function buildCustomMonacoTheme(
+  themeKey: CustomThemeKey,
+): editor.IStandaloneThemeData | null {
   const colors = CUSTOM_DARK_THEMES[themeKey];
   if (!colors) return null;
   return {
