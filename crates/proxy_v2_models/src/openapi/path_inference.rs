@@ -20,7 +20,7 @@ pub fn infer_path_template(paths: &[String]) -> BTreeMap<String, Vec<String>> {
 
     let mut templates: BTreeMap<String, Vec<String>> = BTreeMap::new();
 
-    for (_key, segment_groups) in &groups {
+    for segment_groups in groups.values() {
         if segment_groups.is_empty() {
             continue;
         }

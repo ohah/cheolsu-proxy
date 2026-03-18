@@ -166,15 +166,10 @@ fn parse_operation_type(query: &str) -> GraphqlOperationType {
 fn parse_operation_name_from_query(query: &str) -> Option<String> {
     let trimmed = skip_comments_and_whitespace(query);
     // "query OperationName" 또는 "mutation OperationName" 패턴 파싱
-    let after_keyword = if trimmed.starts_with("query") {
-        Some(&trimmed[5..])
-    } else if trimmed.starts_with("mutation") {
-        Some(&trimmed[8..])
-    } else if trimmed.starts_with("subscription") {
-        Some(&trimmed[12..])
-    } else {
-        None
-    };
+    let after_keyword = trimmed
+        .strip_prefix("query")
+        .or_else(|| trimmed.strip_prefix("mutation"))
+        .or_else(|| trimmed.strip_prefix("subscription"));
 
     if let Some(rest) = after_keyword {
         let rest = rest.trim_start();

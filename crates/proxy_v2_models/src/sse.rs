@@ -153,11 +153,9 @@ impl SseParser {
                 "event" => {
                     self.event_type = Some(value.to_string());
                 }
-                "id" => {
-                    // id 필드에 NUL 문자가 있으면 무시 (SSE 사양)
-                    if !value.contains('\0') {
-                        self.last_event_id = Some(value.to_string());
-                    }
+                // id 필드에 NUL 문자가 있으면 무시 (SSE 사양)
+                "id" if !value.contains('\0') => {
+                    self.last_event_id = Some(value.to_string());
                 }
                 "retry" => {
                     if let Ok(ms) = value.parse::<u64>() {
