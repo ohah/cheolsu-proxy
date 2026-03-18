@@ -49,5 +49,6 @@ pub(crate) use settings::{
 pub(crate) use state::ProxyV2State;
 pub(crate) use tls_passthrough::{
     clear_learned_tls_strategies, clear_tls_passthrough, get_learned_tls_strategies,
-    get_tls_config_rules, get_tls_passthrough_list, remove_tls_passthrough,
+    get_never_passthrough_domains, get_tls_config_rules, get_tls_passthrough_list,
+    remove_tls_passthrough, update_never_passthrough_domains,
 };

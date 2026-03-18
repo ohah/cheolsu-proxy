@@ -149,6 +149,16 @@ pub(crate) async fn start_proxy_v2<R: Runtime>(
                                 tracing::warn!("emit tls_passthrough_updated 실패: {}", e);
                             }
                         }
+                        DaemonMessage::NeverPassthroughDomainsUpdated { entries } => {
+                            if let Err(e) =
+                                app.emit("never_passthrough_domains_updated", entries)
+                            {
+                                tracing::warn!(
+                                    "emit never_passthrough_domains_updated 실패: {}",
+                                    e
+                                );
+                            }
+                        }
                         DaemonMessage::Disconnected { reason } => {
                             tracing::warn!("데몬 연결 끊김: {}", reason);
                             if let Err(e) = app.emit(
