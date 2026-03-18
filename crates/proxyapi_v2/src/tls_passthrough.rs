@@ -1,7 +1,7 @@
 use dashmap::DashMap;
 use dashmap::DashSet;
 use http::uri::Authority;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -147,7 +147,7 @@ impl TlsPassthrough {
 
     /// 변경 사항을 알림만 전송하고 파일 저장은 dirty 마킹 (hot-path용)
     fn notify_failures_and_mark_dirty(&self) {
-        self.failures_dirty.store(true, Ordering::Relaxed);
+        self.failures_dirty.store(true, Ordering::Release);
         if let Some(ref tx) = self.change_tx {
             let _ = tx.try_send(self.snapshot_failures());
         }
@@ -155,58 +155,70 @@ impl TlsPassthrough {
 
     /// 변경 사항을 파일 저장 + 알림 채널로 전송 (즉시 저장이 필요한 경우)
     fn persist_and_notify_failures(&self) {
-        self.flush_failures();
+        self.failures_dirty.store(true, Ordering::Release);
+        let snapshot = self.flush_failures_inner();
         if let Some(ref tx) = self.change_tx {
-            let _ = tx.try_send(self.snapshot_failures());
+            let _ = tx.try_send(snapshot);
         }
     }
 
     /// dirty 상태인 failures를 파일에 저장
     pub fn flush_failures(&self) {
-        if !self.failures_dirty.swap(false, Ordering::Relaxed) && self.file_path.is_some() {
-            return; // dirty가 아니면 스킵
-        }
-        if let Some(ref path) = self.file_path {
-            if let Some(parent) = path.parent() {
-                let _ = std::fs::create_dir_all(parent);
-            }
-            let map: HashMap<String, u32> = self.snapshot_failures().into_iter().collect();
-            match serde_json::to_string_pretty(&map) {
-                Ok(json) => {
-                    if let Err(e) = std::fs::write(path, json) {
-                        warn!("[TLS-PASSTHROUGH] 파일 저장 실패: {}", e);
+        self.flush_failures_inner();
+    }
+
+    /// flush 내부 구현 — 스냅샷을 반환하여 재사용 가능
+    fn flush_failures_inner(&self) -> Vec<(String, u32)> {
+        let was_dirty = self.failures_dirty.swap(false, Ordering::Acquire);
+        let snapshot = self.snapshot_failures();
+        if was_dirty {
+            if let Some(ref path) = self.file_path {
+                if let Some(parent) = path.parent() {
+                    let _ = std::fs::create_dir_all(parent);
+                }
+                let map: HashMap<String, u32> = snapshot.iter().cloned().collect();
+                match serde_json::to_string_pretty(&map) {
+                    Ok(json) => {
+                        if let Err(e) = std::fs::write(path, json) {
+                            warn!("[TLS-PASSTHROUGH] 파일 저장 실패: {}", e);
+                        }
+                    }
+                    Err(e) => {
+                        warn!("[TLS-PASSTHROUGH] JSON 직렬화 실패: {}", e);
                     }
                 }
-                Err(e) => {
-                    warn!("[TLS-PASSTHROUGH] JSON 직렬화 실패: {}", e);
-                }
             }
         }
+        snapshot
     }
 
     /// dirty 상태인 never_passthrough를 파일에 저장
     pub fn flush_never_passthrough(&self) {
-        if !self.never_passthrough_dirty.swap(false, Ordering::Relaxed)
-            && self.never_passthrough_file.is_some()
-        {
-            return;
-        }
-        if let Some(ref path) = self.never_passthrough_file {
-            if let Some(parent) = path.parent() {
-                let _ = std::fs::create_dir_all(parent);
-            }
-            let list = self.snapshot_never_passthrough();
-            match serde_json::to_string_pretty(&list) {
-                Ok(json) => {
-                    if let Err(e) = std::fs::write(path, json) {
-                        warn!("[NEVER-PASSTHROUGH] 파일 저장 실패: {}", e);
+        self.flush_never_passthrough_inner();
+    }
+
+    /// flush 내부 구현 — 스냅샷을 반환하여 재사용 가능
+    fn flush_never_passthrough_inner(&self) -> Vec<String> {
+        let was_dirty = self.never_passthrough_dirty.swap(false, Ordering::Acquire);
+        let snapshot = self.snapshot_never_passthrough();
+        if was_dirty {
+            if let Some(ref path) = self.never_passthrough_file {
+                if let Some(parent) = path.parent() {
+                    let _ = std::fs::create_dir_all(parent);
+                }
+                match serde_json::to_string_pretty(&snapshot) {
+                    Ok(json) => {
+                        if let Err(e) = std::fs::write(path, json) {
+                            warn!("[NEVER-PASSTHROUGH] 파일 저장 실패: {}", e);
+                        }
+                    }
+                    Err(e) => {
+                        warn!("[NEVER-PASSTHROUGH] JSON 직렬화 실패: {}", e);
                     }
                 }
-                Err(e) => {
-                    warn!("[NEVER-PASSTHROUGH] JSON 직렬화 실패: {}", e);
-                }
             }
         }
+        snapshot
     }
 
     /// 모든 dirty 상태를 파일에 저장
@@ -217,10 +229,10 @@ impl TlsPassthrough {
 
     /// Never Passthrough 변경 사항을 파일 저장 + 알림 (저빈도 호출용, 즉시 저장)
     fn persist_and_notify_never_passthrough(&self) {
-        self.never_passthrough_dirty.store(true, Ordering::Relaxed);
-        self.flush_never_passthrough();
+        self.never_passthrough_dirty.store(true, Ordering::Release);
+        let snapshot = self.flush_never_passthrough_inner();
         if let Some(ref tx) = self.never_passthrough_change_tx {
-            let _ = tx.try_send(self.snapshot_never_passthrough());
+            let _ = tx.try_send(snapshot);
         }
     }
 
@@ -316,8 +328,9 @@ impl TlsPassthrough {
         for entry in &entries {
             self.never_passthrough.insert(entry.clone());
         }
+        let entries_set: HashSet<&str> = entries.iter().map(|s| s.as_str()).collect();
         self.never_passthrough
-            .retain(|existing| entries.iter().any(|e| e == existing.as_str()));
+            .retain(|existing| entries_set.contains(existing.as_str()));
         info!(
             "[NEVER-PASSTHROUGH] 목록 업데이트: {}개 도메인",
             entries.len()
