@@ -62,6 +62,7 @@ export function LogsPage() {
   // TLS Passthrough state
   const [tlsEntries, setTlsEntries] = useState<TlsPassthroughEntry[]>([]);
   const [tlsLoading, setTlsLoading] = useState(false);
+  const [tlsFilter, setTlsFilter] = useState("");
 
   const selectedFileRef = useRef(selectedFile);
   selectedFileRef.current = selectedFile;
@@ -231,6 +232,12 @@ export function LogsPage() {
     return lines.filter((line) => line.toLowerCase().includes(lowerFilter));
   }, [logContent, filter]);
 
+  const filteredTlsEntries = useMemo(() => {
+    if (!tlsFilter.trim()) return tlsEntries;
+    const lowerFilter = tlsFilter.toLowerCase();
+    return tlsEntries.filter((e) => e.host.toLowerCase().includes(lowerFilter));
+  }, [tlsEntries, tlsFilter]);
+
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden">
       <div className="p-6 pb-3">
@@ -397,17 +404,37 @@ export function LogsPage() {
       {activeTab === "tls-passthrough" && (
         <div className="flex-1 flex flex-col overflow-hidden px-6 pb-6">
           <div className="border rounded-lg overflow-hidden flex-1 flex flex-col">
-            <div className="p-3 border-b">
+            <div className="p-3 border-b space-y-2">
               <p className="text-sm text-muted-foreground">
                 <Trans>
                   Domains that failed TLS handshake are automatically tunneled without MITM
                   decryption. You can remove entries to retry MITM for specific domains.
                 </Trans>
               </p>
+              {tlsEntries.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <Search className="w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder={t`Filter domains...`}
+                    value={tlsFilter}
+                    onChange={(e) => setTlsFilter(e.target.value)}
+                    className="h-8 text-sm"
+                  />
+                  {tlsFilter && (
+                    <Badge variant="secondary" className="text-xs shrink-0">
+                      {filteredTlsEntries.length} / {tlsEntries.length}
+                    </Badge>
+                  )}
+                </div>
+              )}
             </div>
             {tlsEntries.length === 0 ? (
               <div className="flex-1 flex items-center justify-center text-sm text-muted-foreground">
                 <Trans>No TLS passthrough entries</Trans>
+              </div>
+            ) : filteredTlsEntries.length === 0 ? (
+              <div className="flex-1 flex items-center justify-center text-sm text-muted-foreground">
+                <Trans>No matching domains</Trans>
               </div>
             ) : (
               <div className="flex-1 overflow-auto">
@@ -424,7 +451,7 @@ export function LogsPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y">
-                    {tlsEntries.map((entry) => (
+                    {filteredTlsEntries.map((entry) => (
                       <tr key={entry.host} className="hover:bg-accent/50 transition-colors">
                         <td className="p-3 text-sm font-mono">{entry.host}</td>
                         <td className="p-3">
