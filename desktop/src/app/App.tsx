@@ -10,6 +10,13 @@ import {
   useSessionPersistence,
   useMenuNavigation,
 } from "./hooks";
+import { CUSTOM_THEME_KEYS } from "@/features/query-filter-editor/model/themes";
+
+const THEME_VALUE_MAP = Object.fromEntries([
+  ["light", "light"],
+  ["dark", "dark"],
+  ...CUSTOM_THEME_KEYS.map((key) => [key, `dark ${key}`]),
+]);
 
 const App: React.FC = () => {
   useGlobalShortcut();
@@ -26,25 +33,8 @@ const App: React.FC = () => {
       attribute={["class", "data-theme"]}
       defaultTheme="system"
       enableSystem
-      themes={[
-        "light",
-        "dark",
-        "system",
-        "dracula",
-        "nord",
-        "monokai",
-        "solarized-dark",
-        "github-dark",
-      ]}
-      value={{
-        light: "light",
-        dark: "dark",
-        dracula: "dark dracula",
-        nord: "dark nord",
-        monokai: "dark monokai",
-        "solarized-dark": "dark solarized-dark",
-        "github-dark": "dark github-dark",
-      }}
+      themes={["light", "dark", "system", ...CUSTOM_THEME_KEYS]}
+      value={THEME_VALUE_MAP}
     >
       <div className="App">
         <RouterProvider />
