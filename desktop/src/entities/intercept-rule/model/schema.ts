@@ -29,11 +29,19 @@ const rewriteActionSchema = z.object({
   replace_with: z.string(),
 });
 
+const throttleActionSchema = z.object({
+  type: z.literal("throttle"),
+  latency_ms: z.string(),
+  download_speed: z.string(),
+  upload_speed: z.string(),
+});
+
 const actionSchema = z.discriminatedUnion("type", [
   blockActionSchema,
   modifyRequestActionSchema,
   modifyResponseActionSchema,
   rewriteActionSchema,
+  throttleActionSchema,
 ]);
 
 export const interceptRuleFormSchema = z.object({
@@ -58,6 +66,10 @@ export type ModifyResponseFormValues = BaseFormFields & {
 
 export type RewriteFormValues = BaseFormFields & {
   action: z.infer<typeof rewriteActionSchema>;
+};
+
+export type ThrottleFormValues = BaseFormFields & {
+  action: z.infer<typeof throttleActionSchema>;
 };
 
 export const defaultInterceptRuleFormValues: InterceptRuleFormValues = {

@@ -1,6 +1,8 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
+import { useForm, FormProvider, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Dialog,
   DialogContent,
@@ -15,24 +17,27 @@ import {
   SelectValue,
   SelectContent,
   SelectItem,
-  Textarea,
 } from "@/shared/ui";
-import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useInterceptRuleStore } from "@/shared/stores";
-import {
-  useHeaderEditor,
-  headersToEntries,
-  entriesToHeaders,
-} from "@/shared/hooks/use-header-editor";
+import { interceptRuleFormSchema, defaultInterceptRuleFormValues } from "@/entities/intercept-rule";
 import type {
   InterceptRule,
-  InterceptAction,
   InterceptActionType,
-  RewriteTarget,
+  InterceptRuleFormValues,
 } from "@/entities/intercept-rule";
 import type { InterceptRuleInitialValues } from "@/shared/stores";
 import { HTTP_METHODS } from "@/shared/lib/http-constants";
+import {
+  ruleToFormValues,
+  formValuesToAction,
+  initialValuesToFormValues,
+} from "../lib/form-converters";
+import { BlockActionFields } from "./block-action-fields";
+import { ModifyRequestFields } from "./modify-request-fields";
+import { ModifyResponseFields } from "./modify-response-fields";
+import { RewriteActionFields } from "./rewrite-action-fields";
+import { ThrottleActionFields } from "./throttle-action-fields";
 
 interface RuleFormDialogProps {
   open: boolean;
@@ -40,6 +45,27 @@ interface RuleFormDialogProps {
   editingRule: InterceptRule | null;
   initialValues?: InterceptRuleInitialValues | null;
 }
+
+const ACTION_TYPE_DEFAULTS: Record<InterceptActionType, InterceptRuleFormValues["action"]> = {
+  block: { type: "block", status_code: "403", body: "" },
+  modify_request: { type: "modify_request", headers: [], remove_headers: [], body: "" },
+  modify_response: {
+    type: "modify_response",
+    response_status: "",
+    headers: [],
+    remove_headers: [],
+    body: "",
+  },
+  rewrite: {
+    type: "rewrite",
+    rewrite_target: "request_header",
+    match_pattern: "",
+    replace_with: "",
+  },
+  throttle: { type: "throttle", latency_ms: "0", download_speed: "", upload_speed: "" },
+  map_local: { type: "block", status_code: "403", body: "" },
+  map_remote: { type: "block", status_code: "403", body: "" },
+};
 
 export const RuleFormDialog = ({
   open,
@@ -50,176 +76,41 @@ export const RuleFormDialog = ({
   const { t } = useLingui();
   const { addRule, updateRule } = useInterceptRuleStore();
 
-  const [name, setName] = useState("");
-  const [pattern, setPattern] = useState("");
-  const [method, setMethod] = useState<string>("*");
-  const [actionType, setActionType] = useState<InterceptActionType>("block");
-  const [statusCode, setStatusCode] = useState("403");
-  const [body, setBody] = useState("");
-  const [responseStatus, setResponseStatus] = useState("");
-  const { headers, addHeader, removeHeader, updateHeader, resetHeaders } = useHeaderEditor();
-  const [removeHeaders, setRemoveHeaders] = useState<string[]>([]);
-  const [rewriteTarget, setRewriteTarget] = useState<RewriteTarget>("request_header");
-  const [matchPattern, setMatchPattern] = useState("");
-  const [replaceWith, setReplaceWith] = useState("");
-  const [throttleLatency, setThrottleLatency] = useState("0");
-  const [throttleDownload, setThrottleDownload] = useState("");
-  const [throttleUpload, setThrottleUpload] = useState("");
+  const methods = useForm<InterceptRuleFormValues>({
+    resolver: zodResolver(interceptRuleFormSchema),
+    defaultValues: defaultInterceptRuleFormValues,
+  });
+
+  const { reset, handleSubmit, watch, setValue, register, control } = methods;
+  const actionType = watch("action.type");
 
   useEffect(() => {
     if (!open) return;
 
     if (editingRule) {
-      setName(editingRule.name);
-      setPattern(editingRule.pattern);
-      setMethod(editingRule.method ?? "*");
-      setActionType(editingRule.action.type);
-
-      if (editingRule.action.type === "block") {
-        setStatusCode(String(editingRule.action.status_code));
-        setBody(editingRule.action.body);
-        resetHeaders([]);
-        setRemoveHeaders([]);
-        setResponseStatus("");
-      } else if (editingRule.action.type === "modify_request") {
-        setBody(editingRule.action.set_body ?? "");
-        resetHeaders(headersToEntries(editingRule.action.add_headers));
-        setRemoveHeaders(editingRule.action.remove_headers);
-        setStatusCode("403");
-        setResponseStatus("");
-      } else if (editingRule.action.type === "modify_response") {
-        setResponseStatus(
-          editingRule.action.set_status ? String(editingRule.action.set_status) : "",
-        );
-        setBody(editingRule.action.set_body ?? "");
-        resetHeaders(headersToEntries(editingRule.action.add_headers));
-        setRemoveHeaders(editingRule.action.remove_headers);
-        setStatusCode("403");
-      } else if (editingRule.action.type === "rewrite") {
-        setRewriteTarget(editingRule.action.target);
-        setMatchPattern(editingRule.action.match_pattern);
-        setReplaceWith(editingRule.action.replace_with);
-        setStatusCode("403");
-        setBody("");
-        setResponseStatus("");
-        resetHeaders([]);
-        setRemoveHeaders([]);
-      } else if (editingRule.action.type === "throttle") {
-        setThrottleLatency(String(editingRule.action.latency_ms));
-        setThrottleDownload(
-          editingRule.action.download_rate ? String(editingRule.action.download_rate / 1024) : "",
-        );
-        setThrottleUpload(
-          editingRule.action.upload_rate ? String(editingRule.action.upload_rate / 1024) : "",
-        );
-        setStatusCode("403");
-        setBody("");
-        setResponseStatus("");
-        resetHeaders([]);
-        setRemoveHeaders([]);
-      }
+      reset(ruleToFormValues(editingRule));
     } else if (initialValues) {
-      setName("");
-      setPattern(initialValues.pattern);
-      setMethod(initialValues.method ?? "*");
-      setActionType("block");
-      setStatusCode("403");
-      setBody("");
-      setResponseStatus("");
-      resetHeaders([]);
-      setRemoveHeaders([]);
-      setRewriteTarget("request_header");
-      setMatchPattern("");
-      setReplaceWith("");
-      setThrottleLatency("0");
-      setThrottleDownload("");
-      setThrottleUpload("");
+      reset(initialValuesToFormValues(initialValues));
     } else {
-      setName("");
-      setPattern("");
-      setMethod("*");
-      setActionType("block");
-      setStatusCode("403");
-      setBody("");
-      setResponseStatus("");
-      resetHeaders([]);
-      setRemoveHeaders([]);
-      setRewriteTarget("request_header");
-      setMatchPattern("");
-      setReplaceWith("");
-      setThrottleLatency("0");
-      setThrottleDownload("");
-      setThrottleUpload("");
+      reset(defaultInterceptRuleFormValues);
     }
-  }, [open, editingRule, initialValues]);
+  }, [open, editingRule, initialValues, reset]);
 
-  const buildAction = (): InterceptAction => {
-    switch (actionType) {
-      case "block":
-        return {
-          type: "block",
-          status_code: parseInt(statusCode) || 403,
-          body,
-        };
-      case "modify_request":
-        return {
-          type: "modify_request",
-          add_headers: entriesToHeaders(headers),
-          remove_headers: removeHeaders.filter((h) => h.trim()),
-          set_body: body.trim() || null,
-        };
-      case "modify_response":
-        return {
-          type: "modify_response",
-          set_status: responseStatus ? parseInt(responseStatus) || null : null,
-          add_headers: entriesToHeaders(headers),
-          remove_headers: removeHeaders.filter((h) => h.trim()),
-          set_body: body.trim() || null,
-        };
-      case "rewrite":
-        return {
-          type: "rewrite",
-          target: rewriteTarget,
-          match_pattern: matchPattern,
-          replace_with: replaceWith,
-        };
-      case "throttle": {
-        const dlRate = throttleDownload ? parseInt(throttleDownload) * 1024 : null;
-        const ulRate = throttleUpload ? parseInt(throttleUpload) * 1024 : null;
-        return {
-          type: "throttle",
-          download_rate: dlRate && dlRate > 0 ? dlRate : null,
-          upload_rate: ulRate && ulRate > 0 ? ulRate : null,
-          latency_ms: parseInt(throttleLatency) || 0,
-        };
-      }
-      default:
-        return {
-          type: "block",
-          status_code: 403,
-          body: "",
-        };
+  const onActionTypeChange = (newType: InterceptActionType) => {
+    const defaults = ACTION_TYPE_DEFAULTS[newType];
+    if (defaults) {
+      setValue("action", defaults);
     }
   };
 
-  const handleSubmit = () => {
-    if (!pattern.trim()) {
-      toast.error(t`Pattern is required`);
-      return;
-    }
-
-    if (actionType === "rewrite" && !matchPattern.trim()) {
-      toast.error(t`Match pattern is required`);
-      return;
-    }
-
+  const onSubmit = (values: InterceptRuleFormValues) => {
     const rule: InterceptRule = {
       id: editingRule?.id ?? crypto.randomUUID(),
-      name: name.trim() || pattern.trim(),
+      name: values.name.trim() || values.pattern.trim(),
       enabled: editingRule?.enabled ?? true,
-      pattern: pattern.trim(),
-      method: method === "*" ? null : method,
-      action: buildAction(),
+      pattern: values.pattern.trim(),
+      method: values.method === "*" ? null : values.method,
+      action: formValuesToAction(values),
     };
 
     if (editingRule) {
@@ -233,13 +124,8 @@ export const RuleFormDialog = ({
     onOpenChange(false);
   };
 
-  const addRemoveHeader = () => setRemoveHeaders([...removeHeaders, ""]);
-  const deleteRemoveHeader = (index: number) =>
-    setRemoveHeaders(removeHeaders.filter((_, i) => i !== index));
-  const updateRemoveHeader = (index: number, value: string) => {
-    const updated = [...removeHeaders];
-    updated[index] = value;
-    setRemoveHeaders(updated);
+  const onError = () => {
+    toast.error(t`Please fill in all required fields`);
   };
 
   return (
@@ -256,351 +142,106 @@ export const RuleFormDialog = ({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
-          {/* Name */}
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium">
-              <Trans>Name</Trans>
-            </label>
-            <Input
-              placeholder={t`Rule name (optional)`}
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-          </div>
-
-          {/* Pattern */}
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium">
-              <Trans>Pattern</Trans> <span className="text-destructive">*</span>
-            </label>
-            <Input
-              placeholder="*.example.com/api/*"
-              value={pattern}
-              onChange={(e) => setPattern(e.target.value)}
-            />
-          </div>
-
-          {/* Method & Action Type */}
-          <div className="grid grid-cols-2 gap-3">
+        <FormProvider {...methods}>
+          <form onSubmit={handleSubmit(onSubmit, onError)} className="space-y-4">
+            {/* Name */}
             <div className="space-y-1.5">
               <label className="text-sm font-medium">
-                <Trans>Method</Trans>
+                <Trans>Name</Trans>
               </label>
-              <Select value={method} onValueChange={(v) => v && setMethod(v)}>
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="*" label={t`All Methods`}>{t`All Methods`}</SelectItem>
-                  {HTTP_METHODS.map((m) => (
-                    <SelectItem key={m} value={m}>
-                      {m}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Input placeholder={t`Rule name (optional)`} {...register("name")} />
             </div>
 
+            {/* Pattern */}
             <div className="space-y-1.5">
               <label className="text-sm font-medium">
-                <Trans>Action</Trans>
+                <Trans>Pattern</Trans> <span className="text-destructive">*</span>
               </label>
-              <Select
-                value={actionType}
-                onValueChange={(v) => v && setActionType(v as InterceptActionType)}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="block" label={t`Block`}>{t`Block`}</SelectItem>
-                  <SelectItem
-                    value="modify_request"
-                    label={t`Modify Request`}
-                  >{t`Modify Request`}</SelectItem>
-                  <SelectItem
-                    value="modify_response"
-                    label={t`Modify Response`}
-                  >{t`Modify Response`}</SelectItem>
-                  <SelectItem value="rewrite" label={t`Rewrite`}>{t`Rewrite`}</SelectItem>
-                  <SelectItem value="throttle" label={t`Throttle`}>{t`Throttle`}</SelectItem>
-                </SelectContent>
-              </Select>
+              <Input placeholder="*.example.com/api/*" {...register("pattern")} />
             </div>
-          </div>
 
-          {/* Block-specific: status code */}
-          {actionType === "block" && (
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium">
-                <Trans>Status Code</Trans>
-              </label>
-              <Input
-                type="number"
-                placeholder="403"
-                value={statusCode}
-                onChange={(e) => setStatusCode(e.target.value)}
-              />
-            </div>
-          )}
-
-          {/* ModifyResponse: status code */}
-          {actionType === "modify_response" && (
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium">
-                <Trans>Response Status Code</Trans>
-              </label>
-              <Input
-                type="number"
-                placeholder={t`200 (optional)`}
-                value={responseStatus}
-                onChange={(e) => setResponseStatus(e.target.value)}
-              />
-            </div>
-          )}
-
-          {/* Headers (for modify_request / modify_response) */}
-          {(actionType === "modify_request" || actionType === "modify_response") && (
-            <>
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium">
-                    <Trans>Add Headers</Trans>
-                  </label>
-                  <Button variant="ghost" size="sm" onClick={addHeader}>
-                    <Plus className="w-3.5 h-3.5 mr-1" />
-                    <Trans>Add</Trans>
-                  </Button>
-                </div>
-                {headers.map((header, i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    <Input
-                      placeholder={t`Header name`}
-                      value={header.key}
-                      onChange={(e) => updateHeader(i, "key", e.target.value)}
-                      className="flex-1"
-                    />
-                    <Input
-                      placeholder={t`Value`}
-                      value={header.value}
-                      onChange={(e) => updateHeader(i, "value", e.target.value)}
-                      className="flex-1"
-                    />
-                    <Button variant="ghost" size="sm" onClick={() => removeHeader(i)}>
-                      <Trash2 className="w-3.5 h-3.5 text-destructive" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium">
-                    <Trans>Remove Headers</Trans>
-                  </label>
-                  <Button variant="ghost" size="sm" onClick={addRemoveHeader}>
-                    <Plus className="w-3.5 h-3.5 mr-1" />
-                    <Trans>Add</Trans>
-                  </Button>
-                </div>
-                {removeHeaders.map((header, i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    <Input
-                      placeholder={t`Header name to remove`}
-                      value={header}
-                      onChange={(e) => updateRemoveHeader(i, e.target.value)}
-                      className="flex-1"
-                    />
-                    <Button variant="ghost" size="sm" onClick={() => deleteRemoveHeader(i)}>
-                      <Trash2 className="w-3.5 h-3.5 text-destructive" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
-
-          {/* Rewrite fields */}
-          {actionType === "rewrite" && (
-            <>
+            {/* Method & Action Type */}
+            <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <label className="text-sm font-medium">
-                  <Trans>Target</Trans>
+                  <Trans>Method</Trans>
                 </label>
-                <Select
-                  value={rewriteTarget}
-                  onValueChange={(v) => v && setRewriteTarget(v as RewriteTarget)}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem
-                      value="request_header"
-                      label={t`Request Header`}
-                    >{t`Request Header`}</SelectItem>
-                    <SelectItem
-                      value="response_header"
-                      label={t`Response Header`}
-                    >{t`Response Header`}</SelectItem>
-                    <SelectItem
-                      value="request_body"
-                      label={t`Request Body`}
-                    >{t`Request Body`}</SelectItem>
-                    <SelectItem
-                      value="response_body"
-                      label={t`Response Body`}
-                    >{t`Response Body`}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium">
-                  <Trans>Match Pattern</Trans> <span className="text-destructive">*</span>
-                </label>
-                <Input
-                  placeholder={t`Regex pattern (e.g. old-domain\\.com)`}
-                  value={matchPattern}
-                  onChange={(e) => setMatchPattern(e.target.value)}
-                  className="font-mono text-xs"
+                <Controller
+                  control={control}
+                  name="method"
+                  render={({ field }) => (
+                    <Select value={field.value} onValueChange={(v) => v && field.onChange(v)}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="*" label={t`All Methods`}>{t`All Methods`}</SelectItem>
+                        {HTTP_METHODS.map((m) => (
+                          <SelectItem key={m} value={m}>
+                            {m}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 />
               </div>
 
               <div className="space-y-1.5">
                 <label className="text-sm font-medium">
-                  <Trans>Replace With</Trans>
+                  <Trans>Action</Trans>
                 </label>
-                <Input
-                  placeholder={t`Replacement string (supports $1, $2 capture groups)`}
-                  value={replaceWith}
-                  onChange={(e) => setReplaceWith(e.target.value)}
-                  className="font-mono text-xs"
+                <Controller
+                  control={control}
+                  name="action.type"
+                  render={({ field }) => (
+                    <Select
+                      value={field.value}
+                      onValueChange={(v) => {
+                        if (v) {
+                          onActionTypeChange(v as InterceptActionType);
+                        }
+                      }}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="block" label={t`Block`}>{t`Block`}</SelectItem>
+                        <SelectItem
+                          value="modify_request"
+                          label={t`Modify Request`}
+                        >{t`Modify Request`}</SelectItem>
+                        <SelectItem
+                          value="modify_response"
+                          label={t`Modify Response`}
+                        >{t`Modify Response`}</SelectItem>
+                        <SelectItem value="rewrite" label={t`Rewrite`}>{t`Rewrite`}</SelectItem>
+                        <SelectItem value="throttle" label={t`Throttle`}>{t`Throttle`}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
                 />
               </div>
-            </>
-          )}
-
-          {/* Throttle fields */}
-          {actionType === "throttle" && (
-            <>
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium">
-                  <Trans>Latency (ms)</Trans>
-                </label>
-                <Input
-                  type="number"
-                  placeholder="0"
-                  value={throttleLatency}
-                  onChange={(e) => setThrottleLatency(e.target.value)}
-                />
-                <p className="text-xs text-muted-foreground">
-                  <Trans>Delay before forwarding the request (milliseconds)</Trans>
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium">
-                    <Trans>Download Speed (KB/s)</Trans>
-                  </label>
-                  <Input
-                    type="number"
-                    placeholder={t`Unlimited`}
-                    value={throttleDownload}
-                    onChange={(e) => setThrottleDownload(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium">
-                    <Trans>Upload Speed (KB/s)</Trans>
-                  </label>
-                  <Input
-                    type="number"
-                    placeholder={t`Unlimited`}
-                    value={throttleUpload}
-                    onChange={(e) => setThrottleUpload(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium">
-                  <Trans>Preset</Trans>
-                </label>
-                <Select
-                  value="custom"
-                  onValueChange={(v) => {
-                    if (!v || v === "custom") return;
-                    const presets: Record<string, { dl: string; ul: string; lat: string }> = {
-                      gprs: { dl: "50", ul: "20", lat: "500" },
-                      slow3g: { dl: "500", ul: "500", lat: "400" },
-                      fast3g: { dl: "1600", ul: "768", lat: "150" },
-                      lte: { dl: "4096", ul: "3072", lat: "50" },
-                      wifi: { dl: "30720", ul: "15360", lat: "2" },
-                    };
-                    const p = presets[v];
-                    if (p) {
-                      setThrottleDownload(p.dl);
-                      setThrottleUpload(p.ul);
-                      setThrottleLatency(p.lat);
-                    }
-                  }}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder={t`Select preset...`} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="custom" label={t`Custom`}>{t`Custom`}</SelectItem>
-                    <SelectItem value="gprs" label="GPRS (50KB/s)">
-                      GPRS (50KB/s, 500ms)
-                    </SelectItem>
-                    <SelectItem value="slow3g" label="Slow 3G (500KB/s)">
-                      Slow 3G (500KB/s, 400ms)
-                    </SelectItem>
-                    <SelectItem value="fast3g" label="Fast 3G (1.6MB/s)">
-                      Fast 3G (1.6MB/s, 150ms)
-                    </SelectItem>
-                    <SelectItem value="lte" label="LTE (4MB/s)">
-                      LTE (4MB/s, 50ms)
-                    </SelectItem>
-                    <SelectItem value="wifi" label="WiFi (30MB/s)">
-                      WiFi (30MB/s, 2ms)
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </>
-          )}
-
-          {/* Body */}
-          {actionType !== "rewrite" && actionType !== "throttle" && (
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium">
-                <Trans>Body</Trans>
-              </label>
-              <Textarea
-                placeholder={
-                  actionType === "block" ? t`Response body (optional)` : t`Set body (optional)`
-                }
-                value={body}
-                onChange={(e) => setBody(e.target.value)}
-                rows={4}
-                className="font-mono text-xs"
-              />
             </div>
-          )}
-        </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            <Trans>Cancel</Trans>
-          </Button>
-          <Button onClick={handleSubmit}>
-            {editingRule ? <Trans>Update</Trans> : <Trans>Add Rule</Trans>}
-          </Button>
-        </DialogFooter>
+            {/* Action-specific fields */}
+            {actionType === "block" && <BlockActionFields />}
+            {actionType === "modify_request" && <ModifyRequestFields />}
+            {actionType === "modify_response" && <ModifyResponseFields />}
+            {actionType === "rewrite" && <RewriteActionFields />}
+            {actionType === "throttle" && <ThrottleActionFields />}
+
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                <Trans>Cancel</Trans>
+              </Button>
+              <Button type="submit">
+                {editingRule ? <Trans>Update</Trans> : <Trans>Add Rule</Trans>}
+              </Button>
+            </DialogFooter>
+          </form>
+        </FormProvider>
       </DialogContent>
     </Dialog>
   );
