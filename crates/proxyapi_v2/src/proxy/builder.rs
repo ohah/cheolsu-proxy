@@ -20,9 +20,9 @@ use tokio_rustls::rustls::{ClientConfig, crypto::CryptoProvider};
 use tokio_tungstenite::Connector;
 use tracing::{debug, error, info, warn};
 
-/// 유휴 연결 풀 타임아웃 (초)
+/// 유휴 연결 풀 타임아웃
 /// 이 시간 동안 재사용되지 않은 유휴 연결은 자동 해제됨
-const POOL_IDLE_TIMEOUT_SECS: u64 = 90;
+const POOL_IDLE_TIMEOUT: Duration = Duration::from_secs(90);
 
 /// 호스트당 최대 유휴 연결 수
 /// 리소스 고갈 방지를 위해 호스트별 유휴 연결 수를 제한
@@ -244,7 +244,7 @@ impl<CA: CertificateAuthority> ProxyBuilder<WantsClient<CA>> {
             client: Ok(Client::builder(TokioExecutor::new())
                 .http1_title_case_headers(true)
                 .http1_preserve_header_case(true)
-                .pool_idle_timeout(Duration::from_secs(POOL_IDLE_TIMEOUT_SECS))
+                .pool_idle_timeout(POOL_IDLE_TIMEOUT)
                 .pool_max_idle_per_host(POOL_MAX_IDLE_PER_HOST)
                 .build(https)),
             http_handler: NoopHandler::new(),
@@ -291,7 +291,7 @@ impl<CA: CertificateAuthority> ProxyBuilder<WantsClient<CA>> {
             client: Ok(Client::builder(TokioExecutor::new())
                 .http1_title_case_headers(true)
                 .http1_preserve_header_case(true)
-                .pool_idle_timeout(Duration::from_secs(POOL_IDLE_TIMEOUT_SECS))
+                .pool_idle_timeout(POOL_IDLE_TIMEOUT)
                 .pool_max_idle_per_host(POOL_MAX_IDLE_PER_HOST)
                 .build(https)),
             http_handler: NoopHandler::new(),
