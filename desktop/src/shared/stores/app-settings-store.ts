@@ -94,6 +94,10 @@ interface AppSettingsState {
   // Client tags (IP → label mapping)
   clientTags: Record<string, string>;
   setClientTags: (tags: Record<string, string>) => void;
+
+  // Cache limit (bytes) — 0 means unlimited
+  cacheLimitBytes: number;
+  setCacheLimitBytes: (bytes: number) => void;
 }
 
 const DEFAULT_THROTTLE_CONFIG: ThrottleConfigState = {
@@ -167,6 +171,9 @@ export const useAppSettingsStore = create<AppSettingsState>()(
 
       clientTags: {} as Record<string, string>,
       setClientTags: (tags) => set({ clientTags: tags }),
+
+      cacheLimitBytes: 5 * 1024 * 1024 * 1024, // 5 GB
+      setCacheLimitBytes: (bytes) => set({ cacheLimitBytes: bytes }),
     }),
     {
       name: "cheolsu-app-settings",
