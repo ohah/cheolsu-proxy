@@ -9,6 +9,8 @@ OPENSSL_DIR = { value = "desktop/src-tauri/openssl-bundle", relative = true }
 # - target/debug/deps/ 하위 바이너리용 (테스트)
 # - target/debug/ 하위 바이너리용 (일반 실행)
 rustflags = [
-    "-C", "link-arg=-Wl,-rpath,@executable_path/../../../desktop/src-tauri/openssl-bundle/lib",
-    "-C", "link-arg=-Wl,-rpath,@executable_path/../../desktop/src-tauri/openssl-bundle/lib",
+  "-C",
+  "link-arg=-Wl,-rpath,@executable_path/../../../desktop/src-tauri/openssl-bundle/lib",
+  "-C",
+  "link-arg=-Wl,-rpath,@executable_path/../../desktop/src-tauri/openssl-bundle/lib",
 ]

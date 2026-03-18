@@ -1,8 +1,5 @@
 import { useEffect, useRef } from "react";
-import {
-  useProxyStore,
-  useTransactionStore,
-} from "@/shared/stores";
+import { useProxyStore, useTransactionStore } from "@/shared/stores";
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
 import type { ProxyEventPayload } from "@/entities/proxy";
