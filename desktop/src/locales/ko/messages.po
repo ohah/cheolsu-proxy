@@ -508,11 +508,11 @@ msgstr "네트워크 테이블에 표시할 컬럼을 선택하세요"
 msgid "Claude Code (CLI)"
 msgstr "Claude Code (CLI)"
 
-#: src/pages/settings/ui/components/general-settings.tsx:405
+#: src/pages/settings/ui/components/general-settings.tsx:404
 msgid "Cleaned!"
 msgstr "정리 완료!"
 
-#: src/pages/settings/ui/components/general-settings.tsx:403
+#: src/pages/settings/ui/components/general-settings.tsx:402
 msgid "Cleaning..."
 msgstr "정리 중..."
 
@@ -540,7 +540,7 @@ msgstr "전체 삭제"
 msgid "Clear all transactions"
 msgstr "모든 트랜잭션 삭제"
 
-#: src/pages/settings/ui/components/general-settings.tsx:407
+#: src/pages/settings/ui/components/general-settings.tsx:406
 msgid "Clear File Cache"
 msgstr "파일 캐시 삭제"
 
@@ -549,7 +549,7 @@ msgstr "파일 캐시 삭제"
 msgid "Clear selection"
 msgstr "선택 해제"
 
-#: src/pages/settings/ui/components/general-settings.tsx:385
+#: src/pages/settings/ui/components/general-settings.tsx:384
 msgid "Clear Transaction Records"
 msgstr "트랜잭션 기록 삭제"
 
@@ -728,7 +728,7 @@ msgstr "커스텀 본문"
 msgid "Custom CA Certificate"
 msgstr "커스텀 CA 인증서"
 
-#: src/pages/settings/ui/components/general-settings.tsx:140
+#: src/pages/settings/ui/components/general-settings.tsx:98
 msgid "Dark"
 msgstr "다크"
 
@@ -1371,7 +1371,7 @@ msgstr "키 파일"
 msgid "Label"
 msgstr "라벨"
 
-#: src/pages/settings/ui/components/general-settings.tsx:102
+#: src/pages/settings/ui/components/general-settings.tsx:107
 msgid "Language"
 msgstr "언어"
 
@@ -1392,7 +1392,7 @@ msgstr "지연 (ms)"
 msgid "Learned TLS Strategies"
 msgstr "학습된 TLS 전략"
 
-#: src/pages/settings/ui/components/general-settings.tsx:139
+#: src/pages/settings/ui/components/general-settings.tsx:97
 msgid "Light"
 msgstr "라이트"
 
@@ -2759,7 +2759,7 @@ msgstr "빌더 모드로 전환"
 msgid "Switch to Code mode"
 msgstr "코드 모드로 전환"
 
-#: src/pages/settings/ui/components/general-settings.tsx:138
+#: src/pages/settings/ui/components/general-settings.tsx:96
 msgid "System"
 msgstr "시스템"
 
@@ -2799,7 +2799,7 @@ msgstr "인증서는 CA 인증서여야 합니다 (BasicConstraints CA=true). �
 msgid "The DER certificate file will download automatically"
 msgstr "DER 인증서 파일이 자동으로 다운로드됩니다"
 
-#: src/pages/settings/ui/components/general-settings.tsx:123
+#: src/pages/settings/ui/components/general-settings.tsx:128
 msgid "Theme"
 msgstr "테마"
 
@@ -2934,7 +2934,7 @@ msgstr "범용 형식"
 
 #: src/features/intercept-rule-form/ui/throttle-action-fields.tsx:36
 #: src/features/intercept-rule-form/ui/throttle-action-fields.tsx:42
-#: src/pages/settings/ui/components/general-settings.tsx:365
+#: src/pages/settings/ui/components/general-settings.tsx:364
 #: src/pages/settings/ui/components/throttle-section.tsx:62
 #: src/pages/settings/ui/components/throttle-section.tsx:70
 msgid "Unlimited"

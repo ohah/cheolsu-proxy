@@ -508,11 +508,11 @@ msgstr "Choose which columns to display in the network table"
 msgid "Claude Code (CLI)"
 msgstr "Claude Code (CLI)"
 
-#: src/pages/settings/ui/components/general-settings.tsx:405
+#: src/pages/settings/ui/components/general-settings.tsx:404
 msgid "Cleaned!"
 msgstr "Cleaned!"
 
-#: src/pages/settings/ui/components/general-settings.tsx:403
+#: src/pages/settings/ui/components/general-settings.tsx:402
 msgid "Cleaning..."
 msgstr "Cleaning..."
 
@@ -540,7 +540,7 @@ msgstr "Clear All"
 msgid "Clear all transactions"
 msgstr "Clear all transactions"
 
-#: src/pages/settings/ui/components/general-settings.tsx:407
+#: src/pages/settings/ui/components/general-settings.tsx:406
 msgid "Clear File Cache"
 msgstr "Clear File Cache"
 
@@ -549,7 +549,7 @@ msgstr "Clear File Cache"
 msgid "Clear selection"
 msgstr "Clear selection"
 
-#: src/pages/settings/ui/components/general-settings.tsx:385
+#: src/pages/settings/ui/components/general-settings.tsx:384
 msgid "Clear Transaction Records"
 msgstr "Clear Transaction Records"
 
@@ -728,7 +728,7 @@ msgstr "Custom body"
 msgid "Custom CA Certificate"
 msgstr "Custom CA Certificate"
 
-#: src/pages/settings/ui/components/general-settings.tsx:140
+#: src/pages/settings/ui/components/general-settings.tsx:98
 msgid "Dark"
 msgstr "Dark"
 
@@ -1371,7 +1371,7 @@ msgstr "Key File"
 msgid "Label"
 msgstr "Label"
 
-#: src/pages/settings/ui/components/general-settings.tsx:102
+#: src/pages/settings/ui/components/general-settings.tsx:107
 msgid "Language"
 msgstr "Language"
 
@@ -1392,7 +1392,7 @@ msgstr "Latency (ms)"
 msgid "Learned TLS Strategies"
 msgstr "Learned TLS Strategies"
 
-#: src/pages/settings/ui/components/general-settings.tsx:139
+#: src/pages/settings/ui/components/general-settings.tsx:97
 msgid "Light"
 msgstr "Light"
 
@@ -2759,7 +2759,7 @@ msgstr "Switch to Builder mode"
 msgid "Switch to Code mode"
 msgstr "Switch to Code mode"
 
-#: src/pages/settings/ui/components/general-settings.tsx:138
+#: src/pages/settings/ui/components/general-settings.tsx:96
 msgid "System"
 msgstr "System"
 
@@ -2799,7 +2799,7 @@ msgstr "The certificate must be a CA certificate (BasicConstraints CA=true). Aft
 msgid "The DER certificate file will download automatically"
 msgstr "The DER certificate file will download automatically"
 
-#: src/pages/settings/ui/components/general-settings.tsx:123
+#: src/pages/settings/ui/components/general-settings.tsx:128
 msgid "Theme"
 msgstr "Theme"
 
@@ -2934,7 +2934,7 @@ msgstr "Universal format"
 
 #: src/features/intercept-rule-form/ui/throttle-action-fields.tsx:36
 #: src/features/intercept-rule-form/ui/throttle-action-fields.tsx:42
-#: src/pages/settings/ui/components/general-settings.tsx:365
+#: src/pages/settings/ui/components/general-settings.tsx:364
 #: src/pages/settings/ui/components/throttle-section.tsx:62
 #: src/pages/settings/ui/components/throttle-section.tsx:70
 msgid "Unlimited"
