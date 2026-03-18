@@ -172,10 +172,13 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bo
                 no_caching, block_cookies, no_gzip
             );
             {
-                let mut settings = s.quick_settings.write().await;
-                settings.no_caching = no_caching;
-                settings.block_cookies = block_cookies;
-                settings.no_gzip = no_gzip;
+                let settings = crate::handler::QuickSettings {
+                    no_caching,
+                    block_cookies,
+                    no_gzip,
+                };
+                s.quick_settings
+                    .store(settings.to_bits(), std::sync::atomic::Ordering::Relaxed);
             }
         }
         ClientCommand::UpdateProxyAuth { config } => {

@@ -27,7 +27,7 @@ use tracing_subscriber::prelude::*;
 
 use crate::breakpoint::BreakpointManager;
 use crate::error::DaemonError;
-use crate::handler::QuickSettings;
+
 use crate::metrics_aggregator::MetricsAggregator;
 use crate::protocol::DaemonMessage;
 use crate::system_proxy::set_proxy;
@@ -183,7 +183,7 @@ pub(crate) struct DaemonContext {
     pub(crate) breakpoint_manager: BreakpointManager,
     pub(crate) ws_registry: WebSocketRegistry,
     pub(crate) script_handle: scripting::ScriptHandle,
-    pub(crate) quick_settings: Arc<tokio::sync::RwLock<QuickSettings>>,
+    pub(crate) quick_settings: Arc<std::sync::atomic::AtomicU8>,
     pub(crate) proxy_auth: Arc<tokio::sync::RwLock<Option<crate::protocol::ProxyAuthConfig>>>,
     pub(crate) tls_passthrough: proxyapi_v2::tls_passthrough::TlsPassthrough,
     pub(crate) connection_strategy: Arc<std::sync::atomic::AtomicU8>,
@@ -288,7 +288,7 @@ async fn daemon_main(port: u16, host: String) -> i32 {
 
     let ws_registry = WebSocketRegistry::new();
     let script_handle = scripting::ScriptHandle::new();
-    let quick_settings = Arc::new(tokio::sync::RwLock::new(QuickSettings::default()));
+    let quick_settings = Arc::new(std::sync::atomic::AtomicU8::new(0));
     let proxy_auth = Arc::new(tokio::sync::RwLock::new(
         None::<crate::protocol::ProxyAuthConfig>,
     ));

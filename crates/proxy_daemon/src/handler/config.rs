@@ -33,14 +33,28 @@ pub struct QuickSettings {
     pub no_gzip: bool,
 }
 
+impl QuickSettings {
+    pub fn to_bits(self) -> u8 {
+        (self.no_caching as u8) | ((self.block_cookies as u8) << 1) | ((self.no_gzip as u8) << 2)
+    }
+
+    pub fn from_bits(bits: u8) -> Self {
+        Self {
+            no_caching: bits & 1 != 0,
+            block_cookies: bits & 2 != 0,
+            no_gzip: bits & 4 != 0,
+        }
+    }
+}
+
 /// 프록시 전역 설정 (세션 수명 동안 유지)
 #[derive(Clone)]
 pub(crate) struct ProxyConfig {
     pub(crate) cache_dir: Option<std::path::PathBuf>,
     /// CA 인증서 DER 바이트 (외부 기기 인증서 다운로드용, zero-copy)
     pub(crate) ca_cert_der: Option<Bytes>,
-    /// 빠른 설정 (No Caching, Block Cookies)
-    pub(crate) quick_settings: Arc<tokio::sync::RwLock<QuickSettings>>,
+    /// 빠른 설정 (No Caching, Block Cookies) — lock-free atomic 접근
+    pub(crate) quick_settings: Arc<std::sync::atomic::AtomicU8>,
     /// 프록시 인증 설정
     pub(crate) proxy_auth: Arc<tokio::sync::RwLock<Option<crate::protocol::ProxyAuthConfig>>>,
     /// 요청 바디 최대 크기 (None이면 제한 없음)
@@ -99,7 +113,7 @@ impl LoggingHandler {
             config: ProxyConfig {
                 cache_dir: Some(cache_dir),
                 ca_cert_der: None,
-                quick_settings: Arc::new(tokio::sync::RwLock::new(QuickSettings::default())),
+                quick_settings: Arc::new(std::sync::atomic::AtomicU8::new(0)),
                 proxy_auth: Arc::new(tokio::sync::RwLock::new(None)),
                 max_body_size: None,
             },
@@ -158,10 +172,7 @@ impl LoggingHandler {
         self
     }
 
-    pub fn with_quick_settings(
-        mut self,
-        quick_settings: Arc<tokio::sync::RwLock<QuickSettings>>,
-    ) -> Self {
+    pub fn with_quick_settings(mut self, quick_settings: Arc<std::sync::atomic::AtomicU8>) -> Self {
         self.config.quick_settings = quick_settings;
         self
     }

@@ -427,7 +427,7 @@ impl LoggingHandler {
 #[cfg(test)]
 mod tests_reverse_proxy {
     use super::*;
-    use crate::handler::config::{InterceptEngine, ProxyConfig, QuickSettings, RequestState};
+    use crate::handler::config::{InterceptEngine, ProxyConfig, RequestState};
     use crate::handler::{SseState, WebSocketState};
     use crate::protocol::ReverseProxyRule;
     use std::sync::Arc;
@@ -449,7 +449,7 @@ mod tests_reverse_proxy {
             config: ProxyConfig {
                 cache_dir: None,
                 ca_cert_der: None,
-                quick_settings: Arc::new(tokio::sync::RwLock::new(QuickSettings::default())),
+                quick_settings: Arc::new(std::sync::atomic::AtomicU8::new(0)),
                 proxy_auth: Arc::new(tokio::sync::RwLock::new(None)),
                 max_body_size: None,
             },

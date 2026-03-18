@@ -6,7 +6,7 @@ use tracing::info;
 use crate::breakpoint::BreakpointManager;
 use crate::contract_validator::ContractValidator;
 use crate::error::DaemonError;
-use crate::handler::{LoggingHandler, QuickSettings, SseEvent, WsEvent};
+use crate::handler::{LoggingHandler, SseEvent, WsEvent};
 use crate::protocol::{
     BreakpointRule, ClientCertConfig, DaemonMessage, HostMapping, InterceptRule,
     RequestClientCertConfig, ReverseProxyRule, ServerReplayEntry, SslProxyingEntry,
@@ -33,7 +33,7 @@ pub async fn run_proxy(
     client_cert_rx: watch::Receiver<Option<ClientCertConfig>>,
     ws_registry: WebSocketRegistry,
     script_handle: scripting::ScriptHandle,
-    quick_settings: std::sync::Arc<tokio::sync::RwLock<QuickSettings>>,
+    quick_settings: std::sync::Arc<std::sync::atomic::AtomicU8>,
     proxy_auth: std::sync::Arc<tokio::sync::RwLock<Option<crate::protocol::ProxyAuthConfig>>>,
     shutdown_signal: tokio::sync::oneshot::Receiver<()>,
     max_concurrent_connections: Option<usize>,

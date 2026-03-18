@@ -243,7 +243,7 @@ mod tests {
 
     /// quick_settings를 지정하여 테스트용 핸들러를 생성하는 헬퍼
     fn make_handler_with_quick_settings(settings: QuickSettings) -> LoggingHandler {
-        let qs = Arc::new(tokio::sync::RwLock::new(settings));
+        let qs = Arc::new(std::sync::atomic::AtomicU8::new(settings.to_bits()));
         let handler = make_test_handler(None).with_quick_settings(qs);
         handler
     }
@@ -261,7 +261,7 @@ mod tests {
             .body(Body::from(""))
             .unwrap();
 
-        let req = handler.apply_quick_settings_on_request(req).await;
+        let req = handler.apply_quick_settings_on_request(req);
 
         assert_eq!(
             req.headers().get("cache-control").unwrap(),
@@ -285,7 +285,7 @@ mod tests {
             .body(Body::from(""))
             .unwrap();
 
-        let req = handler.apply_quick_settings_on_request(req).await;
+        let req = handler.apply_quick_settings_on_request(req);
 
         assert!(req.headers().get("if-modified-since").is_none());
         assert!(req.headers().get("if-none-match").is_none());
@@ -305,7 +305,7 @@ mod tests {
             .body(Body::from(""))
             .unwrap();
 
-        let req = handler.apply_quick_settings_on_request(req).await;
+        let req = handler.apply_quick_settings_on_request(req);
 
         assert!(req.headers().get("cookie").is_none());
     }
@@ -325,7 +325,7 @@ mod tests {
             .body(Body::from(""))
             .unwrap();
 
-        let res = handler.apply_quick_settings_on_response(res).await;
+        let res = handler.apply_quick_settings_on_response(res);
 
         assert!(res.headers().get("set-cookie").is_none());
         // 다른 헤더는 영향받지 않아야 함
@@ -348,7 +348,7 @@ mod tests {
             .body(Body::from(""))
             .unwrap();
 
-        let req = handler.apply_quick_settings_on_request(req).await;
+        let req = handler.apply_quick_settings_on_request(req);
 
         assert!(req.headers().get("if-modified-since").is_some());
         assert!(req.headers().get("if-none-match").is_some());
@@ -361,7 +361,7 @@ mod tests {
             .body(Body::from(""))
             .unwrap();
 
-        let res = handler.apply_quick_settings_on_response(res).await;
+        let res = handler.apply_quick_settings_on_response(res);
 
         assert!(res.headers().get("set-cookie").is_some());
     }
@@ -382,7 +382,7 @@ mod tests {
             .body(Body::from(""))
             .unwrap();
 
-        let req = handler.apply_quick_settings_on_request(req).await;
+        let req = handler.apply_quick_settings_on_request(req);
 
         // No Caching 적용 확인
         assert!(req.headers().get("if-modified-since").is_none());
@@ -401,7 +401,7 @@ mod tests {
             .body(Body::from(""))
             .unwrap();
 
-        let res = handler.apply_quick_settings_on_response(res).await;
+        let res = handler.apply_quick_settings_on_response(res);
 
         assert!(res.headers().get("set-cookie").is_none());
     }
@@ -409,11 +409,7 @@ mod tests {
     /// 동시 읽기/쓰기 시 데드락이 발생하지 않는지 검증
     #[tokio::test]
     async fn concurrent_quick_settings_read_write_no_deadlock() {
-        let qs = Arc::new(tokio::sync::RwLock::new(QuickSettings {
-            no_caching: false,
-            block_cookies: false,
-            no_gzip: false,
-        }));
+        let qs = Arc::new(std::sync::atomic::AtomicU8::new(0));
 
         let mut handles = Vec::new();
 
@@ -422,8 +418,9 @@ mod tests {
             let qs_clone = qs.clone();
             handles.push(tokio::spawn(async move {
                 for _ in 0..100 {
-                    let settings = { *qs_clone.read().await };
-                    // 읽은 값이 유효한지 확인 (bool이므로 항상 유효)
+                    let settings = QuickSettings::from_bits(
+                        qs_clone.load(std::sync::atomic::Ordering::Relaxed),
+                    );
                     let _ = settings.no_caching;
                     let _ = settings.block_cookies;
                     tokio::task::yield_now().await;
@@ -436,10 +433,12 @@ mod tests {
             let qs_clone = qs.clone();
             handles.push(tokio::spawn(async move {
                 for _ in 0..100 {
-                    let mut settings = qs_clone.write().await;
-                    settings.no_caching = i % 2 == 0;
-                    settings.block_cookies = i % 2 == 1;
-                    drop(settings);
+                    let settings = QuickSettings {
+                        no_caching: i % 2 == 0,
+                        block_cookies: i % 2 == 1,
+                        no_gzip: false,
+                    };
+                    qs_clone.store(settings.to_bits(), std::sync::atomic::Ordering::Relaxed);
                     tokio::task::yield_now().await;
                 }
             }));
@@ -479,7 +478,7 @@ mod tests {
                         .header("If-None-Match", "\"etag\"")
                         .body(Body::from(""))
                         .unwrap();
-                    let req = h.apply_quick_settings_on_request(req).await;
+                    let req = h.apply_quick_settings_on_request(req);
                     assert!(req.headers().get("cookie").is_none());
 
                     let res = Response::builder()
@@ -487,7 +486,7 @@ mod tests {
                         .header("Set-Cookie", "session=abc; Path=/")
                         .body(Body::from(""))
                         .unwrap();
-                    let res = h.apply_quick_settings_on_response(res).await;
+                    let res = h.apply_quick_settings_on_response(res);
                     assert!(res.headers().get("set-cookie").is_none());
 
                     tokio::task::yield_now().await;
@@ -521,7 +520,7 @@ mod tests {
             .body(Body::from(""))
             .unwrap();
 
-        let req = handler.apply_quick_settings_on_request(req).await;
+        let req = handler.apply_quick_settings_on_request(req);
 
         assert!(req.headers().get("accept-encoding").is_none());
     }
@@ -540,7 +539,7 @@ mod tests {
             .body(Body::from(""))
             .unwrap();
 
-        let req = handler.apply_quick_settings_on_request(req).await;
+        let req = handler.apply_quick_settings_on_request(req);
 
         assert!(req.headers().get("accept-encoding").is_some());
     }
@@ -561,7 +560,7 @@ mod tests {
             .body(Body::from(""))
             .unwrap();
 
-        let req = handler.apply_quick_settings_on_request(req).await;
+        let req = handler.apply_quick_settings_on_request(req);
 
         // No Caching
         assert!(req.headers().get("if-modified-since").is_none());

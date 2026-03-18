@@ -467,9 +467,7 @@ async fn create_test_handler() -> LoggingHandler {
         config: crate::handler::ProxyConfig {
             cache_dir: None,
             ca_cert_der: None,
-            quick_settings: Arc::new(tokio::sync::RwLock::new(
-                crate::handler::QuickSettings::default(),
-            )),
+            quick_settings: Arc::new(std::sync::atomic::AtomicU8::new(0)),
             proxy_auth: Arc::new(tokio::sync::RwLock::new(None)),
             max_body_size: None,
         },
