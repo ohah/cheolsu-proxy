@@ -6,10 +6,7 @@ import {
   ReplayDialog,
   AdvancedRepeatDialog,
 } from "@/features/transaction-details";
-import {
-  QueryFilterEditor,
-  QueryBuilder,
-} from "@/features/query-filter-editor";
+import { QueryFilterEditor, QueryBuilder } from "@/features/query-filter-editor";
 import { RuleFormDialog } from "@/features/intercept-rule-form";
 import { DiffView } from "@/features/traffic-diff";
 
@@ -116,13 +113,10 @@ export const NetworkDashboard = () => {
     appendTransactions,
   });
 
-  const {
-    diffResult,
-    diffLoading,
-    canCompare,
-    handleCompare,
-    closeDiff,
-  } = useNetworkDiff({ checkedTransactionIds, checkedTransactions });
+  const { diffResult, diffLoading, canCompare, handleCompare, closeDiff } = useNetworkDiff({
+    checkedTransactionIds,
+    checkedTransactions,
+  });
 
   const interceptRuleDialogOpen = useInterceptRuleDialogStore((s) => s.open);
   const interceptRuleInitialValues = useInterceptRuleDialogStore((s) => s.initialValues);
