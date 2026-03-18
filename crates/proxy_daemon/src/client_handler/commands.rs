@@ -318,7 +318,7 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bo
             ctx.send_message(&response).await;
         }
         ClientCommand::GetTlsPassthroughList => {
-            let list = s.tls_passthrough.list_bypassed().await;
+            let list = s.tls_passthrough.list_bypassed();
             let entries: Vec<TlsPassthroughEntry> = list
                 .into_iter()
                 .map(|(host, failure_count)| TlsPassthroughEntry {
@@ -331,11 +331,11 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bo
         }
         ClientCommand::RemoveTlsPassthrough { host } => {
             info!("TLS Passthrough 바이패스 해제: {}", host);
-            s.tls_passthrough.clear_domain(&host).await;
+            s.tls_passthrough.clear_domain(&host);
         }
         ClientCommand::ClearTlsPassthrough => {
             info!("TLS Passthrough 전체 초기화");
-            s.tls_passthrough.clear_all().await;
+            s.tls_passthrough.clear_all();
         }
         ClientCommand::UpdateRequestClientCert { config } => {
             info!(
@@ -490,13 +490,11 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bo
         }
         ClientCommand::UpdateNeverPassthroughDomains { entries } => {
             info!("Never Passthrough 도메인 업데이트: {}개", entries.len());
-            s.tls_passthrough
-                .set_never_passthrough(entries.clone())
-                .await;
+            s.tls_passthrough.set_never_passthrough(entries.clone());
             s.broadcast_event(&DaemonMessage::NeverPassthroughDomainsUpdated { entries });
         }
         ClientCommand::GetNeverPassthroughDomains => {
-            let entries = s.tls_passthrough.list_never_passthrough().await;
+            let entries = s.tls_passthrough.list_never_passthrough();
             let response = DaemonMessage::NeverPassthroughDomainsUpdated { entries };
             ctx.send_message(&response).await;
         }
