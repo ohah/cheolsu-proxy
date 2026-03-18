@@ -24,6 +24,7 @@ const mockAliases = isMock
   : {};
 
 export default defineConfig({
+  appType: "mpa",
   plugins: [
     react({
       babel: {
