@@ -189,17 +189,17 @@ pub fn validate_transaction(
     let (matched_path, path_item) = match match_path_template(request_path, &spec.paths) {
         Some((p, item)) => (Some(p), item),
         None => {
-            violations.push(ContractViolation {
-                violation_type: ViolationType::PathNotFound,
-                path: "$".to_string(),
-                message: format!(
+            violations.push(violation(
+                ViolationType::PathNotFound,
+                "$",
+                format!(
                     "Path '{}' is not defined in the spec '{}'",
                     request_path, spec.info.title
                 ),
-                expected: None,
-                actual: Some(request_path.to_string()),
-                severity: Severity::Warning,
-            });
+                None,
+                Some(request_path.to_string()),
+                Severity::Warning,
+            ));
             return (violations, None, None);
         }
     };
@@ -210,18 +210,18 @@ pub fn validate_transaction(
     let operation = match get_operation_for_method(path_item, method) {
         Some(op) => op,
         None => {
-            violations.push(ContractViolation {
-                violation_type: ViolationType::MethodNotAllowed,
-                path: "$".to_string(),
-                message: format!(
+            violations.push(violation(
+                ViolationType::MethodNotAllowed,
+                "$",
+                format!(
                     "Method '{}' is not defined for path '{}'",
                     method.to_uppercase(),
                     matched_path.as_deref().unwrap_or(request_path)
                 ),
-                expected: None,
-                actual: Some(method.to_uppercase()),
-                severity: Severity::Error,
-            });
+                None,
+                Some(method.to_uppercase()),
+                Severity::Error,
+            ));
             return (violations, matched_path, matched_operation);
         }
     };
@@ -249,14 +249,14 @@ pub fn validate_transaction(
             }
         } else if request_body_spec.required == Some(true) {
             // 필수 요청 body가 없음
-            violations.push(ContractViolation {
-                violation_type: ViolationType::MissingField,
-                path: "$.request.body".to_string(),
-                message: "Request body is required but not provided".to_string(),
-                expected: Some("request body".to_string()),
-                actual: None,
-                severity: Severity::Error,
-            });
+            violations.push(violation(
+                ViolationType::MissingField,
+                "$.request.body",
+                "Request body is required but not provided",
+                Some("request body".to_string()),
+                None,
+                Severity::Error,
+            ));
         }
     }
 
@@ -267,18 +267,18 @@ pub fn validate_transaction(
 
     if !has_status {
         let defined_statuses: Vec<String> = operation.responses.keys().cloned().collect();
-        violations.push(ContractViolation {
-            violation_type: ViolationType::StatusCodeMismatch,
-            path: "$.status".to_string(),
-            message: format!(
+        violations.push(violation(
+            ViolationType::StatusCodeMismatch,
+            "$.status",
+            format!(
                 "Status code {} is not defined in the spec. Defined: [{}]",
                 status,
                 defined_statuses.join(", ")
             ),
-            expected: Some(defined_statuses.join(", ")),
-            actual: Some(status_str.clone()),
-            severity: Severity::Error,
-        });
+            Some(defined_statuses.join(", ")),
+            Some(status_str.clone()),
+            Severity::Error,
+        ));
     }
 
     // 5. Response body 스키마 검증
@@ -340,14 +340,7 @@ fn validate_against_schema_inner(
             return;
         }
         if let Some(expected_type) = &schema.schema_type {
-            violations.push(ContractViolation {
-                violation_type: ViolationType::TypeMismatch,
-                path: json_path.to_string(),
-                message: format!("Expected type '{}', got null", expected_type),
-                expected: Some(expected_type.clone()),
-                actual: Some("null".to_string()),
-                severity: Severity::Error,
-            });
+            violations.push(type_mismatch(json_path, expected_type, "null"));
         }
         return;
     }
@@ -360,135 +353,166 @@ fn validate_against_schema_inner(
 
     match expected_type.as_str() {
         "object" => {
-            if !value.is_object() {
-                violations.push(ContractViolation {
-                    violation_type: ViolationType::TypeMismatch,
-                    path: json_path.to_string(),
-                    message: format!("Expected type 'object', got '{}'", actual_type),
-                    expected: Some("object".to_string()),
-                    actual: Some(actual_type.to_string()),
-                    severity: Severity::Error,
-                });
-                return;
-            }
-
-            let obj = value.as_object().unwrap();
-
-            if let Some(properties) = &schema.properties {
-                for (prop_name, prop_schema) in properties {
-                    if let Some(prop_value) = obj.get(prop_name) {
-                        let child_path = format!("{}.{}", json_path, prop_name);
-                        validate_against_schema_inner(
-                            prop_value,
-                            prop_schema,
-                            &child_path,
-                            violations,
-                            components,
-                            depth + 1,
-                        );
-                    }
-                }
-
-                // required 필드 누락 검사
-                if let Some(required_fields) = &schema.required {
-                    for field in required_fields {
-                        if !obj.contains_key(field) {
-                            violations.push(ContractViolation {
-                                violation_type: ViolationType::MissingField,
-                                path: format!("{}.{}", json_path, field),
-                                message: format!("Required field '{}' is missing", field),
-                                expected: Some(field.clone()),
-                                actual: None,
-                                severity: Severity::Error,
-                            });
-                        }
-                    }
-                }
-
-                // 스펙에 정의되지 않은 추가 필드 검사 (Warning)
-                for key in obj.keys() {
-                    if !properties.contains_key(key) {
-                        violations.push(ContractViolation {
-                            violation_type: ViolationType::ExtraField,
-                            path: format!("{}.{}", json_path, key),
-                            message: format!("Field '{}' is not defined in the spec", key),
-                            expected: None,
-                            actual: Some(key.clone()),
-                            severity: Severity::Warning,
-                        });
-                    }
-                }
-            }
+            validate_object(
+                value,
+                schema,
+                json_path,
+                actual_type,
+                violations,
+                components,
+                depth,
+            );
         }
         "array" => {
-            if !value.is_array() {
-                violations.push(ContractViolation {
-                    violation_type: ViolationType::TypeMismatch,
-                    path: json_path.to_string(),
-                    message: format!("Expected type 'array', got '{}'", actual_type),
-                    expected: Some("array".to_string()),
-                    actual: Some(actual_type.to_string()),
-                    severity: Severity::Error,
-                });
-                return;
-            }
-
-            if let Some(items_schema) = &schema.items {
-                if let Some(first) = value.as_array().and_then(|arr| arr.first()) {
-                    let child_path = format!("{}[0]", json_path);
-                    validate_against_schema_inner(
-                        first,
-                        items_schema,
-                        &child_path,
-                        violations,
-                        components,
-                        depth + 1,
-                    );
-                }
-            }
+            validate_array(
+                value,
+                schema,
+                json_path,
+                actual_type,
+                violations,
+                components,
+                depth,
+            );
         }
         "string" if !value.is_string() => {
-            violations.push(ContractViolation {
-                violation_type: ViolationType::TypeMismatch,
-                path: json_path.to_string(),
-                message: format!("Expected type 'string', got '{}'", actual_type),
-                expected: Some("string".to_string()),
-                actual: Some(actual_type.to_string()),
-                severity: Severity::Error,
-            });
+            violations.push(type_mismatch(json_path, "string", actual_type));
         }
         "integer" if !value.is_i64() && !value.is_u64() => {
-            violations.push(ContractViolation {
-                violation_type: ViolationType::TypeMismatch,
-                path: json_path.to_string(),
-                message: format!("Expected type 'integer', got '{}'", actual_type),
-                expected: Some("integer".to_string()),
-                actual: Some(actual_type.to_string()),
-                severity: Severity::Error,
-            });
+            violations.push(type_mismatch(json_path, "integer", actual_type));
         }
         "number" if !value.is_number() => {
-            violations.push(ContractViolation {
-                violation_type: ViolationType::TypeMismatch,
-                path: json_path.to_string(),
-                message: format!("Expected type 'number', got '{}'", actual_type),
-                expected: Some("number".to_string()),
-                actual: Some(actual_type.to_string()),
-                severity: Severity::Error,
-            });
+            violations.push(type_mismatch(json_path, "number", actual_type));
         }
         "boolean" if !value.is_boolean() => {
-            violations.push(ContractViolation {
-                violation_type: ViolationType::TypeMismatch,
-                path: json_path.to_string(),
-                message: format!("Expected type 'boolean', got '{}'", actual_type),
-                expected: Some("boolean".to_string()),
-                actual: Some(actual_type.to_string()),
-                severity: Severity::Error,
-            });
+            violations.push(type_mismatch(json_path, "boolean", actual_type));
         }
         _ => {}
     }
+}
+
+/// object 타입 스키마 검증 (프로퍼티, required, 추가 필드 검사)
+fn validate_object(
+    value: &serde_json::Value,
+    schema: &SchemaObject,
+    json_path: &str,
+    actual_type: &str,
+    violations: &mut Vec<ContractViolation>,
+    components: Option<&super::types::Components>,
+    depth: usize,
+) {
+    if !value.is_object() {
+        violations.push(type_mismatch(json_path, "object", actual_type));
+        return;
+    }
+
+    let obj = value.as_object().unwrap();
+
+    if let Some(properties) = &schema.properties {
+        for (prop_name, prop_schema) in properties {
+            if let Some(prop_value) = obj.get(prop_name) {
+                let child_path = format!("{}.{}", json_path, prop_name);
+                validate_against_schema_inner(
+                    prop_value,
+                    prop_schema,
+                    &child_path,
+                    violations,
+                    components,
+                    depth + 1,
+                );
+            }
+        }
+
+        // required 필드 누락 검사
+        if let Some(required_fields) = &schema.required {
+            for field in required_fields {
+                if !obj.contains_key(field) {
+                    violations.push(violation(
+                        ViolationType::MissingField,
+                        format!("{}.{}", json_path, field),
+                        format!("Required field '{}' is missing", field),
+                        Some(field.clone()),
+                        None,
+                        Severity::Error,
+                    ));
+                }
+            }
+        }
+
+        // 스펙에 정의되지 않은 추가 필드 검사 (Warning)
+        for key in obj.keys() {
+            if !properties.contains_key(key) {
+                violations.push(violation(
+                    ViolationType::ExtraField,
+                    format!("{}.{}", json_path, key),
+                    format!("Field '{}' is not defined in the spec", key),
+                    None,
+                    Some(key.clone()),
+                    Severity::Warning,
+                ));
+            }
+        }
+    }
+}
+
+/// array 타입 스키마 검증 (첫 번째 요소 검사)
+fn validate_array(
+    value: &serde_json::Value,
+    schema: &SchemaObject,
+    json_path: &str,
+    actual_type: &str,
+    violations: &mut Vec<ContractViolation>,
+    components: Option<&super::types::Components>,
+    depth: usize,
+) {
+    if !value.is_array() {
+        violations.push(type_mismatch(json_path, "array", actual_type));
+        return;
+    }
+
+    if let Some(items_schema) = &schema.items {
+        if let Some(first) = value.as_array().and_then(|arr| arr.first()) {
+            let child_path = format!("{}[0]", json_path);
+            validate_against_schema_inner(
+                first,
+                items_schema,
+                &child_path,
+                violations,
+                components,
+                depth + 1,
+            );
+        }
+    }
+}
+
+/// ContractViolation을 간편하게 생성하는 헬퍼 함수
+fn violation(
+    violation_type: ViolationType,
+    path: impl Into<String>,
+    message: impl Into<String>,
+    expected: Option<String>,
+    actual: Option<String>,
+    severity: Severity,
+) -> ContractViolation {
+    ContractViolation {
+        violation_type,
+        path: path.into(),
+        message: message.into(),
+        expected,
+        actual,
+        severity,
+    }
+}
+
+/// 타입 불일치 위반을 생성하는 헬퍼 함수
+fn type_mismatch(json_path: &str, expected_type: &str, actual_type: &str) -> ContractViolation {
+    violation(
+        ViolationType::TypeMismatch,
+        json_path,
+        format!("Expected type '{}', got '{}'", expected_type, actual_type),
+        Some(expected_type.to_string()),
+        Some(actual_type.to_string()),
+        Severity::Error,
+    )
 }
 
 /// JSON 값의 타입 문자열을 반환합니다.
