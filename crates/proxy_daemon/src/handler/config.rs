@@ -34,6 +34,7 @@ pub struct QuickSettings {
 }
 
 impl QuickSettings {
+    /// 비트 레이아웃: [bit2: no_gzip | bit1: block_cookies | bit0: no_caching]
     pub fn to_bits(self) -> u8 {
         (self.no_caching as u8) | ((self.block_cookies as u8) << 1) | ((self.no_gzip as u8) << 2)
     }
