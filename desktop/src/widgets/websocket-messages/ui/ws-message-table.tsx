@@ -5,6 +5,7 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { ArrowUp, ArrowDown } from "lucide-react";
 import { cn } from "@/shared/lib";
 import { ScrollArea } from "@/shared/ui";
+import { formatBytes } from "@/shared/lib/format-bytes";
 import { getMqttSummary } from "@/shared/lib/ws-content-view";
 import { formatTime } from "@/shared/lib/format-time";
 import type { WsMessageInfo } from "@/entities/websocket";
@@ -13,12 +14,6 @@ interface WsMessageTableProps {
   messages: WsMessageInfo[];
   selectedMessage: WsMessageInfo | null;
   onSelectMessage: (message: WsMessageInfo) => void;
-}
-
-function formatSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 function messageTypeLabel(type: string): string {
@@ -103,7 +98,7 @@ const WsMessageRow = memo(
           )}
         </div>
         <div className="px-2 w-20 text-right text-muted-foreground flex-shrink-0">
-          {formatSize(message.size)}
+          {formatBytes(message.size)}
         </div>
         <div className="px-2 flex-1 truncate min-w-0">
           <span className="text-foreground truncate block">

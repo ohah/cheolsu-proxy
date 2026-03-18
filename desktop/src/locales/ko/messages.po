@@ -559,8 +559,8 @@ msgstr "유효한 인증서가 없는 클라이언트는 거부됩니다"
 #: src/features/transaction-details/ui/transaction-header.tsx:63
 #: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:166
 #: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:100
-#: src/widgets/sse-messages/ui/sse-message-detail.tsx:92
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:127
+#: src/widgets/sse-messages/ui/sse-message-detail.tsx:87
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:122
 msgid "Close"
 msgstr "닫기"
 
@@ -608,8 +608,8 @@ msgid "Connected"
 msgstr "연결됨"
 
 #: src/features/websocket-replay/ui/ws-replay-dialog.tsx:110
-#: src/widgets/sse-messages/ui/sse-message-detail.tsx:60
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:60
+#: src/widgets/sse-messages/ui/sse-message-detail.tsx:55
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:55
 msgid "Connection"
 msgstr "연결"
 
@@ -708,8 +708,8 @@ msgstr "커스텀 CA 인증서"
 msgid "Dark"
 msgstr "다크"
 
-#: src/widgets/sse-messages/ui/sse-message-table.tsx:135
-#: src/widgets/websocket-messages/ui/ws-message-table.tsx:191
+#: src/widgets/sse-messages/ui/sse-message-table.tsx:130
+#: src/widgets/websocket-messages/ui/ws-message-table.tsx:186
 msgid "Data"
 msgstr "데이터"
 
@@ -759,13 +759,13 @@ msgstr "트랜잭션 삭제"
 msgid "Details Panel Layout"
 msgstr "상세 패널 레이아웃"
 
-#: src/widgets/websocket-messages/ui/ws-message-table.tsx:188
+#: src/widgets/websocket-messages/ui/ws-message-table.tsx:183
 msgid "Dir"
 msgstr "방향"
 
 #: src/features/websocket-replay/ui/ws-replay-dialog.tsx:123
 #: src/pages/analytics-dashboard/ui/misc-tab.tsx:136
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:51
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:46
 msgid "Direction"
 msgstr "방향"
 
@@ -938,15 +938,15 @@ msgstr "오류"
 msgid "Errors"
 msgstr "에러"
 
-#: src/widgets/sse-messages/ui/sse-message-table.tsx:133
+#: src/widgets/sse-messages/ui/sse-message-table.tsx:128
 msgid "Event"
 msgstr "이벤트"
 
-#: src/widgets/sse-messages/ui/sse-message-detail.tsx:65
+#: src/widgets/sse-messages/ui/sse-message-detail.tsx:60
 msgid "Event ID"
 msgstr "이벤트 ID"
 
-#: src/widgets/sse-messages/ui/sse-message-detail.tsx:57
+#: src/widgets/sse-messages/ui/sse-message-detail.tsx:52
 msgid "Event Type"
 msgstr "이벤트 타입"
 
@@ -2036,11 +2036,11 @@ msgstr "빠른 설정"
 msgid "Quick toggles for common proxy behaviors"
 msgstr "자주 사용하는 프록시 동작을 빠르게 전환합니다"
 
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:83
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:78
 msgid "Received"
 msgstr "수신"
 
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:52
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:47
 msgid "Received (Server → Client)"
 msgstr "수신 (서버 → 클라이언트)"
 
@@ -2123,11 +2123,11 @@ msgid "Replacement string (supports $1, $2 capture groups)"
 msgstr "치환 문자열 ($1, $2 캡처 그룹 지원)"
 
 #: src/features/transaction-details/ui/replay-dialog.tsx:387
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:118
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:113
 msgid "Replay"
 msgstr "리플레이"
 
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:114
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:109
 msgid "Replay message"
 msgstr "메시지 리플레이"
 
@@ -2270,7 +2270,7 @@ msgid "Resume recording"
 msgstr "기록 재개"
 
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:367
-#: src/widgets/sse-messages/ui/sse-message-detail.tsx:68
+#: src/widgets/sse-messages/ui/sse-message-detail.tsx:63
 msgid "Retry"
 msgstr "재시도"
 
@@ -2497,16 +2497,16 @@ msgstr "요청을 순서대로 전송 중..."
 msgid "Sending..."
 msgstr "전송 중..."
 
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:83
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:78
 msgid "Sent"
 msgstr "송신"
 
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:52
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:47
 msgid "Sent (Client → Server)"
 msgstr "송신 (클라이언트 → 서버)"
 
-#: src/widgets/sse-messages/ui/sse-message-detail.tsx:61
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:61
+#: src/widgets/sse-messages/ui/sse-message-detail.tsx:56
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:56
 msgid "Sequence"
 msgstr "시퀀스"
 
@@ -2595,10 +2595,10 @@ msgid "Simulate slow network conditions for testing"
 msgstr "테스트를 위한 저속 네트워크 환경 시뮬레이션"
 
 #: src/pages/analytics-dashboard/ui/misc-tab.tsx:139
-#: src/widgets/sse-messages/ui/sse-message-detail.tsx:58
-#: src/widgets/sse-messages/ui/sse-message-table.tsx:134
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:58
-#: src/widgets/websocket-messages/ui/ws-message-table.tsx:190
+#: src/widgets/sse-messages/ui/sse-message-detail.tsx:53
+#: src/widgets/sse-messages/ui/sse-message-table.tsx:129
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:53
+#: src/widgets/websocket-messages/ui/ws-message-table.tsx:185
 msgid "Size"
 msgstr "크기"
 
@@ -2762,10 +2762,10 @@ msgstr "처리량"
 #: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:158
 #: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:31
 #: src/widgets/grpc-calls/ui/grpc-call-table.tsx:137
-#: src/widgets/sse-messages/ui/sse-message-detail.tsx:59
-#: src/widgets/sse-messages/ui/sse-message-table.tsx:136
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:59
-#: src/widgets/websocket-messages/ui/ws-message-table.tsx:192
+#: src/widgets/sse-messages/ui/sse-message-detail.tsx:54
+#: src/widgets/sse-messages/ui/sse-message-table.tsx:131
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:54
+#: src/widgets/websocket-messages/ui/ws-message-table.tsx:187
 msgid "Time"
 msgstr "시간"
 
@@ -2857,8 +2857,8 @@ msgstr "신뢰됨"
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:229
 #: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:57
 #: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:154
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:55
-#: src/widgets/websocket-messages/ui/ws-message-table.tsx:189
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:50
+#: src/widgets/websocket-messages/ui/ws-message-table.tsx:184
 msgid "Type"
 msgstr "타입"
 
@@ -2998,11 +2998,11 @@ msgstr "위반 사항"
 msgid "Vitest/Jest Test"
 msgstr "Vitest/Jest 테스트"
 
-#: src/widgets/sse-messages/ui/sse-message-table.tsx:124
+#: src/widgets/sse-messages/ui/sse-message-table.tsx:119
 msgid "Waiting for SSE events..."
 msgstr "SSE 이벤트 대기 중..."
 
-#: src/widgets/websocket-messages/ui/ws-message-table.tsx:179
+#: src/widgets/websocket-messages/ui/ws-message-table.tsx:174
 msgid "Waiting for WebSocket messages..."
 msgstr "WebSocket 메시지 대기 중..."
 

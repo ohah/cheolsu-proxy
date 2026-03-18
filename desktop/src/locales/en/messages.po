@@ -559,8 +559,8 @@ msgstr "Clients without a valid certificate will be rejected"
 #: src/features/transaction-details/ui/transaction-header.tsx:63
 #: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:166
 #: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:100
-#: src/widgets/sse-messages/ui/sse-message-detail.tsx:92
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:127
+#: src/widgets/sse-messages/ui/sse-message-detail.tsx:87
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:122
 msgid "Close"
 msgstr "Close"
 
@@ -608,8 +608,8 @@ msgid "Connected"
 msgstr "Connected"
 
 #: src/features/websocket-replay/ui/ws-replay-dialog.tsx:110
-#: src/widgets/sse-messages/ui/sse-message-detail.tsx:60
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:60
+#: src/widgets/sse-messages/ui/sse-message-detail.tsx:55
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:55
 msgid "Connection"
 msgstr "Connection"
 
@@ -708,8 +708,8 @@ msgstr "Custom CA Certificate"
 msgid "Dark"
 msgstr "Dark"
 
-#: src/widgets/sse-messages/ui/sse-message-table.tsx:135
-#: src/widgets/websocket-messages/ui/ws-message-table.tsx:191
+#: src/widgets/sse-messages/ui/sse-message-table.tsx:130
+#: src/widgets/websocket-messages/ui/ws-message-table.tsx:186
 msgid "Data"
 msgstr "Data"
 
@@ -759,13 +759,13 @@ msgstr "Delete Transaction"
 msgid "Details Panel Layout"
 msgstr "Details Panel Layout"
 
-#: src/widgets/websocket-messages/ui/ws-message-table.tsx:188
+#: src/widgets/websocket-messages/ui/ws-message-table.tsx:183
 msgid "Dir"
 msgstr "Dir"
 
 #: src/features/websocket-replay/ui/ws-replay-dialog.tsx:123
 #: src/pages/analytics-dashboard/ui/misc-tab.tsx:136
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:51
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:46
 msgid "Direction"
 msgstr "Direction"
 
@@ -938,15 +938,15 @@ msgstr "errors"
 msgid "Errors"
 msgstr "Errors"
 
-#: src/widgets/sse-messages/ui/sse-message-table.tsx:133
+#: src/widgets/sse-messages/ui/sse-message-table.tsx:128
 msgid "Event"
 msgstr "Event"
 
-#: src/widgets/sse-messages/ui/sse-message-detail.tsx:65
+#: src/widgets/sse-messages/ui/sse-message-detail.tsx:60
 msgid "Event ID"
 msgstr "Event ID"
 
-#: src/widgets/sse-messages/ui/sse-message-detail.tsx:57
+#: src/widgets/sse-messages/ui/sse-message-detail.tsx:52
 msgid "Event Type"
 msgstr "Event Type"
 
@@ -2036,11 +2036,11 @@ msgstr "Quick Settings"
 msgid "Quick toggles for common proxy behaviors"
 msgstr "Quick toggles for common proxy behaviors"
 
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:83
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:78
 msgid "Received"
 msgstr "Received"
 
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:52
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:47
 msgid "Received (Server → Client)"
 msgstr "Received (Server → Client)"
 
@@ -2123,11 +2123,11 @@ msgid "Replacement string (supports $1, $2 capture groups)"
 msgstr "Replacement string (supports $1, $2 capture groups)"
 
 #: src/features/transaction-details/ui/replay-dialog.tsx:387
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:118
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:113
 msgid "Replay"
 msgstr "Replay"
 
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:114
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:109
 msgid "Replay message"
 msgstr "Replay message"
 
@@ -2270,7 +2270,7 @@ msgid "Resume recording"
 msgstr "Resume recording"
 
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:367
-#: src/widgets/sse-messages/ui/sse-message-detail.tsx:68
+#: src/widgets/sse-messages/ui/sse-message-detail.tsx:63
 msgid "Retry"
 msgstr "Retry"
 
@@ -2497,16 +2497,16 @@ msgstr "Sending requests sequentially..."
 msgid "Sending..."
 msgstr "Sending..."
 
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:83
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:78
 msgid "Sent"
 msgstr "Sent"
 
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:52
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:47
 msgid "Sent (Client → Server)"
 msgstr "Sent (Client → Server)"
 
-#: src/widgets/sse-messages/ui/sse-message-detail.tsx:61
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:61
+#: src/widgets/sse-messages/ui/sse-message-detail.tsx:56
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:56
 msgid "Sequence"
 msgstr "Sequence"
 
@@ -2595,10 +2595,10 @@ msgid "Simulate slow network conditions for testing"
 msgstr "Simulate slow network conditions for testing"
 
 #: src/pages/analytics-dashboard/ui/misc-tab.tsx:139
-#: src/widgets/sse-messages/ui/sse-message-detail.tsx:58
-#: src/widgets/sse-messages/ui/sse-message-table.tsx:134
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:58
-#: src/widgets/websocket-messages/ui/ws-message-table.tsx:190
+#: src/widgets/sse-messages/ui/sse-message-detail.tsx:53
+#: src/widgets/sse-messages/ui/sse-message-table.tsx:129
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:53
+#: src/widgets/websocket-messages/ui/ws-message-table.tsx:185
 msgid "Size"
 msgstr "Size"
 
@@ -2762,10 +2762,10 @@ msgstr "Throughput"
 #: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:158
 #: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:31
 #: src/widgets/grpc-calls/ui/grpc-call-table.tsx:137
-#: src/widgets/sse-messages/ui/sse-message-detail.tsx:59
-#: src/widgets/sse-messages/ui/sse-message-table.tsx:136
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:59
-#: src/widgets/websocket-messages/ui/ws-message-table.tsx:192
+#: src/widgets/sse-messages/ui/sse-message-detail.tsx:54
+#: src/widgets/sse-messages/ui/sse-message-table.tsx:131
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:54
+#: src/widgets/websocket-messages/ui/ws-message-table.tsx:187
 msgid "Time"
 msgstr "Time"
 
@@ -2857,8 +2857,8 @@ msgstr "Trusted"
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:229
 #: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:57
 #: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:154
-#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:55
-#: src/widgets/websocket-messages/ui/ws-message-table.tsx:189
+#: src/widgets/websocket-messages/ui/ws-message-detail.tsx:50
+#: src/widgets/websocket-messages/ui/ws-message-table.tsx:184
 msgid "Type"
 msgstr "Type"
 
@@ -2998,11 +2998,11 @@ msgstr "Violations"
 msgid "Vitest/Jest Test"
 msgstr "Vitest/Jest Test"
 
-#: src/widgets/sse-messages/ui/sse-message-table.tsx:124
+#: src/widgets/sse-messages/ui/sse-message-table.tsx:119
 msgid "Waiting for SSE events..."
 msgstr "Waiting for SSE events..."
 
-#: src/widgets/websocket-messages/ui/ws-message-table.tsx:179
+#: src/widgets/websocket-messages/ui/ws-message-table.tsx:174
 msgid "Waiting for WebSocket messages..."
 msgstr "Waiting for WebSocket messages..."
 

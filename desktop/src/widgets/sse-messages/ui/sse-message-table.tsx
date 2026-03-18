@@ -4,6 +4,7 @@ import { useLingui } from "@lingui/react/macro";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { cn } from "@/shared/lib";
 import { ScrollArea } from "@/shared/ui";
+import { formatBytes } from "@/shared/lib/format-bytes";
 import { formatTime } from "@/shared/lib/format-time";
 import type { SseEventInfo } from "@/entities/sse";
 
@@ -11,12 +12,6 @@ interface SseMessageTableProps {
   events: SseEventInfo[];
   selectedEvent: SseEventInfo | null;
   onSelectEvent: (event: SseEventInfo) => void;
-}
-
-function formatSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 const SseEventRow = memo(
@@ -50,7 +45,7 @@ const SseEventRow = memo(
           </span>
         </div>
         <div className="px-2 w-20 text-right text-muted-foreground flex-shrink-0">
-          {formatSize(event.size)}
+          {formatBytes(event.size)}
         </div>
         <div className="px-2 flex-1 truncate min-w-0">
           <span className="text-foreground truncate block">{event.data}</span>

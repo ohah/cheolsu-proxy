@@ -6,6 +6,7 @@ import { Editor } from "@monaco-editor/react";
 import { useTheme } from "next-themes";
 import { Button, Tooltip, TooltipTrigger, TooltipContent } from "@/shared/ui";
 import { cn } from "@/shared/lib";
+import { formatBytes } from "@/shared/lib/format-bytes";
 import { getWsContentView, parseMqtt } from "@/shared/lib/ws-content-view";
 import { formatTimeFull } from "@/shared/lib/format-time";
 import type { WsMessageInfo } from "@/entities/websocket";
@@ -14,12 +15,6 @@ interface WsMessageDetailProps {
   message: WsMessageInfo;
   onClose: () => void;
   onReplayRequest: (message: WsMessageInfo) => void;
-}
-
-function formatSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 export const WsMessageDetail = memo(
@@ -55,7 +50,7 @@ export const WsMessageDetail = memo(
           label: t`Type`,
           value: mqttParsed ? `MQTT ${mqttParsed.meta.packetType}` : message.message_type,
         },
-        { label: t`Size`, value: formatSize(message.size) },
+        { label: t`Size`, value: formatBytes(message.size) },
         { label: t`Time`, value: formatTimeFull(message.time) },
         { label: t`Connection`, value: message.connection_id },
         { label: t`Sequence`, value: `#${message.sequence}` },
@@ -104,7 +99,7 @@ export const WsMessageDetail = memo(
                 {message.content_type === "socket_io" ? "Socket.IO" : "MQTT"}
               </span>
             )}
-            <span className="text-muted-foreground">{formatSize(message.size)}</span>
+            <span className="text-muted-foreground">{formatBytes(message.size)}</span>
           </div>
           <div className="flex items-center gap-1">
             <Button
