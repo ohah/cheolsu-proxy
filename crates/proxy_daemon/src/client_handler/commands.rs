@@ -488,6 +488,18 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bo
                 info!("Learned TLS strategies cleared: {} entries removed", count);
             }
         }
+        ClientCommand::UpdateNeverPassthroughDomains { entries } => {
+            info!("Never Passthrough 도메인 업데이트: {}개", entries.len());
+            s.tls_passthrough
+                .set_never_passthrough(entries.clone())
+                .await;
+            s.broadcast_event(&DaemonMessage::NeverPassthroughDomainsUpdated { entries });
+        }
+        ClientCommand::GetNeverPassthroughDomains => {
+            let entries = s.tls_passthrough.list_never_passthrough().await;
+            let response = DaemonMessage::NeverPassthroughDomainsUpdated { entries };
+            ctx.send_message(&response).await;
+        }
         ClientCommand::Stop => {
             return true;
         }

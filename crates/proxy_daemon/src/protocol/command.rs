@@ -163,6 +163,9 @@ pub enum DaemonMessage {
     /// 학습된 TLS 전략 목록
     #[serde(rename = "learned_tls_strategies")]
     LearnedTlsStrategies { strategies: Vec<LearnedTlsStrategy> },
+    /// Never Passthrough 도메인 목록 업데이트됨
+    #[serde(rename = "never_passthrough_domains_updated")]
+    NeverPassthroughDomainsUpdated { entries: Vec<String> },
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -308,6 +311,12 @@ pub enum ClientCommand {
     /// 학습된 TLS 전략 초기화
     #[serde(rename = "clear_learned_tls_strategies")]
     ClearLearnedTlsStrategies,
+    /// Never Passthrough 도메인 목록 업데이트
+    #[serde(rename = "update_never_passthrough_domains")]
+    UpdateNeverPassthroughDomains { entries: Vec<String> },
+    /// Never Passthrough 도메인 목록 조회
+    #[serde(rename = "get_never_passthrough_domains")]
+    GetNeverPassthroughDomains,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

@@ -312,8 +312,19 @@ async fn daemon_main(port: u16, host: String) -> i32 {
     let passthrough_path = app_support_dir()
         .ok()
         .map(|dir| dir.join("tls_passthrough.json"));
-    let tls_passthrough = proxyapi_v2::tls_passthrough::TlsPassthrough::new(passthrough_path)
-        .with_change_notifier(tls_change_tx);
+    // Never Passthrough 변경 알림 채널
+    let (never_pt_change_tx, mut never_pt_change_rx) =
+        tokio::sync::mpsc::channel::<Vec<String>>(TLS_CHANGE_CHANNEL_CAPACITY);
+    let never_passthrough_path = app_support_dir()
+        .ok()
+        .map(|dir| dir.join("never_passthrough.json"));
+
+    let mut tls_passthrough = proxyapi_v2::tls_passthrough::TlsPassthrough::new(passthrough_path)
+        .with_change_notifier(tls_change_tx)
+        .with_never_passthrough_notifier(never_pt_change_tx);
+    if let Some(np_path) = never_passthrough_path {
+        tls_passthrough = tls_passthrough.with_never_passthrough_file(np_path);
+    }
 
     let started_at = std::time::Instant::now();
     let total_transactions = Arc::new(AtomicU64::new(0));
@@ -337,6 +348,19 @@ async fn daemon_main(port: u16, host: String) -> i32 {
                 };
                 if let Ok(json) = serde_json::to_string(&msg) {
                     let _ = event_tx_tls.send(json);
+                }
+            }
+        });
+    }
+
+    // Never Passthrough 변경 시 이벤트 브로드캐스트
+    {
+        let event_tx_np = event_tx.clone();
+        tokio::spawn(async move {
+            while let Some(entries) = never_pt_change_rx.recv().await {
+                let msg = DaemonMessage::NeverPassthroughDomainsUpdated { entries };
+                if let Ok(json) = serde_json::to_string(&msg) {
+                    let _ = event_tx_np.send(json);
                 }
             }
         });

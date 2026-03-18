@@ -86,12 +86,20 @@ where
         // 자동 학습 바이패스 체크 (이전에 TLS 핸드셰이크 실패한 도메인)
         // should_intercept()가 true를 반환하면(사용자가 SSL Proxying으로 명시적 인터셉트 요청)
         // 자동 바이패스를 무시합니다.
-        let has_prior_failure = self
+        // never_passthrough에 해당하면 실패 기록이 있어도 바이패스하지 않습니다.
+        let is_never_passthrough = self
             .ctx
             .tls_passthrough
             .as_ref()
-            .and_then(|pt| pt.failures_ref().try_read().ok())
-            .is_some_and(|failures| failures.contains_key(authority.host()));
+            .is_some_and(|pt| pt.is_never_passthrough_sync(authority.host()));
+
+        let has_prior_failure = !is_never_passthrough
+            && self
+                .ctx
+                .tls_passthrough
+                .as_ref()
+                .and_then(|pt| pt.failures_ref().try_read().ok())
+                .is_some_and(|failures| failures.contains_key(authority.host()));
 
         let span = info_span!("process_connect");
         let fut = async move {
