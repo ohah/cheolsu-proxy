@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useProxyStore, useTransactionStore } from "@/shared/stores";
+import { getTransactionSize } from "@/shared/stores/transaction-store";
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
 import type { ProxyEventPayload } from "@/entities/proxy";
@@ -20,7 +21,7 @@ export function useProxyEventListeners() {
   // 트레이에서 받은 이벤트로 paused가 바뀐 경우 Rust 역동기화를 스킵하기 위한 플래그
   const pausedFromTrayRef = useRef(false);
 
-  // 캐시 한계 초과 시 오래된 트랜잭션 삭제
+  // 캐시 한계 초과 시 오래된 트랜잭션 배치 삭제
   const enforceCacheLimit = useCallback(() => {
     const { cacheLimitBytes } = useAppSettingsStore.getState();
     if (cacheLimitBytes <= 0) return;
@@ -31,20 +32,17 @@ export function useProxyEventListeners() {
     // 핀 고정된 트랜잭션은 보존하면서 오래된 것부터 삭제
     const pinned = store.pinnedTransactionIds;
     let currentSize = store.totalSizeBytes;
-    const idsToRemove: string[] = [];
+    const idsToRemove = new Set<string>();
 
     for (const t of store.transactions) {
       if (currentSize <= cacheLimitBytes) break;
       const id = t.request?.id;
       if (!id || pinned.has(id)) continue;
-      const size = (t.request?.body_size ?? 0) + (t.response?.body_size ?? 0);
-      idsToRemove.push(id);
-      currentSize -= size;
+      idsToRemove.add(id);
+      currentSize -= getTransactionSize(t);
     }
 
-    for (const id of idsToRemove) {
-      store.deleteTransaction(id);
-    }
+    store.deleteTransactionsBatch(idsToRemove);
   }, []);
 
   // 앱 시작 시 프록시 초기화 → 데몬 규칙 수신 대기 → 저장된 규칙 동기화
