@@ -56,7 +56,8 @@ const METRIC_EVENT_CHANNEL_CAPACITY: usize = 1024;
 const TLS_CHANGE_CHANNEL_CAPACITY: usize = 64;
 
 /// 프록시 태스크 graceful shutdown 대기 시간 (초)
-const PROXY_SHUTDOWN_TIMEOUT_SECS: u64 = 5;
+/// in-flight 요청의 안전한 완료를 위해 충분한 여유를 둠
+const PROXY_SHUTDOWN_TIMEOUT_SECS: u64 = 10;
 
 /// 프록시 설정 전파용 watch 채널 송신자 그룹
 #[derive(Clone)]
