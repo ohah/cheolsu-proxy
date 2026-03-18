@@ -91,15 +91,14 @@ where
             .ctx
             .tls_passthrough
             .as_ref()
-            .is_some_and(|pt| pt.is_never_passthrough_sync(authority.host()));
+            .is_some_and(|pt| pt.is_never_passthrough(authority.host()));
 
         let has_prior_failure = !is_never_passthrough
             && self
                 .ctx
                 .tls_passthrough
                 .as_ref()
-                .and_then(|pt| pt.failures_ref().try_read().ok())
-                .is_some_and(|failures| failures.contains_key(authority.host()));
+                .is_some_and(|pt| pt.has_failure(authority.host()));
 
         let span = info_span!("process_connect");
         let fut = async move {
@@ -406,7 +405,7 @@ where
                             timeout_secs = TLS_HANDSHAKE_TIMEOUT_SECS,
                             "TLS 핸드셰이크 타임아웃"
                         );
-                        self.record_tls_failure(authority).await;
+                        self.record_tls_failure(authority);
                         return;
                     }
                     Ok(Err(e)) => {
@@ -420,12 +419,12 @@ where
                             tls_hint = tls_error_hint(&error_str),
                             "하이브리드 TLS 연결 실패"
                         );
-                        self.record_tls_failure(authority).await;
+                        self.record_tls_failure(authority);
                     }
                     Ok(Ok((hybrid_stream, fallback_used))) => {
                         info!(%version, fallback_used, "하이브리드 TLS 연결 성공");
                         self.tls_fallback_used = if fallback_used { Some(true) } else { None };
-                        self.record_tls_success(authority).await;
+                        self.record_tls_success(authority);
                         if let Err(e) = self
                             .serve_stream(
                                 TokioIo::new(hybrid_stream),
@@ -476,12 +475,12 @@ where
                     tls_hint = tls_error_hint(&error_str),
                     "TLS 핸드셰이크 실패"
                 );
-                self.record_tls_failure(authority).await;
+                self.record_tls_failure(authority);
                 return;
             }
         };
 
-        self.record_tls_success(authority).await;
+        self.record_tls_success(authority);
 
         if let Err(e) = self
             .serve_stream(stream, Scheme::HTTPS, authority.clone())
@@ -492,16 +491,16 @@ where
     }
 
     /// TLS 실패 도메인을 자동 학습 바이패스에 기록
-    async fn record_tls_failure(&self, authority: &Authority) {
+    fn record_tls_failure(&self, authority: &Authority) {
         if let Some(ref passthrough) = self.ctx.tls_passthrough {
-            passthrough.record_failure(authority).await;
+            passthrough.record_failure(authority);
         }
     }
 
     /// TLS 성공 시 이전 실패 기록을 제거하여 바이패스 해제
-    async fn record_tls_success(&self, authority: &Authority) {
+    fn record_tls_success(&self, authority: &Authority) {
         if let Some(ref passthrough) = self.ctx.tls_passthrough {
-            passthrough.record_success(authority).await;
+            passthrough.record_success(authority);
         }
     }
 

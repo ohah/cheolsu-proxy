@@ -33,6 +33,7 @@ http-body-util = "0.1.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 bytes = "1.0"
+dashmap = "6"
 proxy_v2_models = { path = "../proxy_v2_models" }
 hyper = "1.1.0"
 hyper-rustls = { version = "0.27.7", default-features = false, features = [
