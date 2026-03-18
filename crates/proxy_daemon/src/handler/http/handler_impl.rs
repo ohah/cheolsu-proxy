@@ -153,7 +153,10 @@ impl HttpHandler for LoggingHandler {
         let restored_req = match self
             .apply_script_on_request(
                 restored_req,
-                self.request.req.as_ref().unwrap(),
+                self.request
+                    .req
+                    .as_ref()
+                    .expect("proxied_request set above"),
                 &method,
                 &url,
             )
