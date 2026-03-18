@@ -57,12 +57,12 @@ msgstr "{successCount} succeeded"
 msgid "{totalCount} transactions"
 msgstr "{totalCount} transactions"
 
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:193
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:192
 msgid "* = any string, ? = single character"
 msgstr "* = any string, ? = single character"
 
 #: src/features/intercept-rule-form/ui/modify-response-fields.tsx:20
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:357
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:356
 msgid "200 (optional)"
 msgstr "200 (optional)"
 
@@ -71,7 +71,7 @@ msgstr "200 (optional)"
 msgid "Abort"
 msgstr "Abort"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:308
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:307
 msgid "Action"
 msgstr "Action"
 
@@ -90,10 +90,10 @@ msgstr "Actual"
 
 #: src/features/intercept-rule-form/ui/headers-fields.tsx:59
 #: src/features/intercept-rule-form/ui/headers-fields.tsx:88
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:374
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:405
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:373
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:404
 #: src/features/map-rule-form/ui/map-local-fields.tsx:73
-#: src/features/transaction-details/ui/replay-dialog.tsx:434
+#: src/features/transaction-details/ui/replay-dialog.tsx:433
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:239
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:459
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:140
@@ -127,7 +127,7 @@ msgid "Add from Traffic"
 msgstr "Add from Traffic"
 
 #: src/features/intercept-rule-form/ui/headers-fields.tsx:50
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:370
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:369
 msgid "Add Headers"
 msgstr "Add Headers"
 
@@ -135,7 +135,7 @@ msgstr "Add Headers"
 msgid "Add Intercept Rule"
 msgstr "Add Intercept Rule"
 
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:164
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:163
 msgid "Add Map Rule"
 msgstr "Add Map Rule"
 
@@ -151,9 +151,9 @@ msgstr "Add mappings to redirect DNS hostnames to different target hosts for tes
 msgid "Add Proto Files"
 msgstr "Add Proto Files"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:251
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:602
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:258
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:250
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:601
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:257
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:218
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:84
 #: src/pages/map-rules/ui/map-rules-page.tsx:72
@@ -234,10 +234,10 @@ msgstr "All HTTPS traffic is intercepted except {enabledCount} excluded domain(s
 msgid "All HTTPS traffic is intercepted. {defaultEnabledCount} built-in domain(s) are automatically excluded."
 msgstr "All HTTPS traffic is intercepted. {defaultEnabledCount} built-in domain(s) are automatically excluded."
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:296
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:296
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:215
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:215
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:295
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:295
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:214
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:214
 msgid "All Methods"
 msgstr "All Methods"
 
@@ -327,7 +327,7 @@ msgstr "Backend Scheme"
 msgid "Base URL"
 msgstr "Base URL"
 
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:81
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:76
 msgid "Batch"
 msgstr "Batch"
 
@@ -335,8 +335,8 @@ msgstr "Batch"
 msgid "Blacklist (Exclude)"
 msgstr "Blacklist (Exclude)"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:318
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:318
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:317
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:317
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:46
 msgid "Block"
 msgstr "Block"
@@ -348,10 +348,10 @@ msgstr "Block Cookies"
 #: src/features/intercept-rule-form/ui/block-action-fields.tsx:22
 #: src/features/intercept-rule-form/ui/modify-request-fields.tsx:18
 #: src/features/intercept-rule-form/ui/modify-response-fields.tsx:29
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:582
-#: src/features/transaction-details/ui/replay-dialog.tsx:129
-#: src/features/transaction-details/ui/replay-dialog.tsx:200
-#: src/features/transaction-details/ui/replay-dialog.tsx:483
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:581
+#: src/features/transaction-details/ui/replay-dialog.tsx:128
+#: src/features/transaction-details/ui/replay-dialog.tsx:199
+#: src/features/transaction-details/ui/replay-dialog.tsx:482
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:493
 msgid "Body"
 msgstr "Body"
@@ -432,8 +432,8 @@ msgstr "CA Key File"
 msgid "calls"
 msgstr "calls"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:599
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:255
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:598
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:254
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:242
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:506
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:137
@@ -557,15 +557,15 @@ msgstr "Clients without a valid certificate will be rejected"
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:370
 #: src/features/transaction-details/ui/sequence-replay-dialog.tsx:241
 #: src/features/transaction-details/ui/transaction-header.tsx:63
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:166
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:161
 #: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:100
 #: src/widgets/sse-messages/ui/sse-message-detail.tsx:87
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:122
 msgid "Close"
 msgstr "Close"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:133
-#: src/features/transaction-details/ui/replay-dialog.tsx:493
+#: src/features/transaction-details/ui/replay-dialog.tsx:132
+#: src/features/transaction-details/ui/replay-dialog.tsx:492
 msgid "Collapse"
 msgstr "Collapse"
 
@@ -590,7 +590,7 @@ msgstr "Common Name (CN)"
 msgid "Compose request"
 msgstr "Compose request"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:360
+#: src/features/transaction-details/ui/replay-dialog.tsx:359
 msgid "Compose Request"
 msgstr "Compose Request"
 
@@ -691,8 +691,8 @@ msgstr "cURL"
 msgid "Curl command copied to clipboard"
 msgstr "Curl command copied to clipboard"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:556
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:556
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:555
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:555
 msgid "Custom"
 msgstr "Custom"
 
@@ -717,7 +717,7 @@ msgstr "Data"
 msgid "Default port is 8100. Make sure your system proxy is configured to use port {port}."
 msgstr "Default port is 8100. Make sure your system proxy is configured to use port {port}."
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:500
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:499
 msgid "Delay before forwarding the request (milliseconds)"
 msgstr "Delay before forwarding the request (milliseconds)"
 
@@ -816,7 +816,7 @@ msgstr "Download"
 msgid "Download (KB/s)"
 msgstr "Download (KB/s)"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:507
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:506
 msgid "Download Speed (KB/s)"
 msgstr "Download Speed (KB/s)"
 
@@ -830,8 +830,8 @@ msgid "Duplicate Requests"
 msgstr "Duplicate Requests"
 
 #: src/pages/analytics-dashboard/ui/performance-tab.tsx:48
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:67
-#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:157
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:62
+#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:152
 #: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:33
 #: src/widgets/grpc-calls/ui/grpc-call-table.tsx:136
 msgid "Duration"
@@ -862,7 +862,7 @@ msgstr "Edit"
 msgid "Edit & Forward"
 msgstr "Edit & Forward"
 
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:164
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:163
 msgid "Edit Map Rule"
 msgstr "Edit Map Rule"
 
@@ -871,7 +871,7 @@ msgstr "Edit Map Rule"
 msgid "Edit rule"
 msgstr "Edit rule"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:251
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:250
 msgid "Edit Rule"
 msgstr "Edit Rule"
 
@@ -893,7 +893,7 @@ msgstr "Enabled"
 msgid "Encoding"
 msgstr "Encoding"
 
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:64
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:59
 #: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:30
 msgid "Endpoint"
 msgstr "Endpoint"
@@ -921,7 +921,7 @@ msgstr "Error Rate"
 msgid "Error Status Code Distribution"
 msgstr "Error Status Code Distribution"
 
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:249
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:244
 msgid "error(s)"
 msgstr "error(s)"
 
@@ -934,7 +934,7 @@ msgstr "errors"
 
 #: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:180
 #: src/pages/analytics-dashboard/ui/error-tab.tsx:72
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:131
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:126
 msgid "Errors"
 msgstr "Errors"
 
@@ -967,8 +967,8 @@ msgstr "Exclude OPTIONS method"
 msgid "Exit fullscreen"
 msgstr "Exit fullscreen"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:204
-#: src/features/transaction-details/ui/replay-dialog.tsx:498
+#: src/features/transaction-details/ui/replay-dialog.tsx:203
+#: src/features/transaction-details/ui/replay-dialog.tsx:497
 msgid "Expand"
 msgstr "Expand"
 
@@ -1107,7 +1107,7 @@ msgstr "GraphQL"
 msgid "GraphQL operations viewer"
 msgstr "GraphQL operations viewer"
 
-#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:145
+#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:140
 msgid "GraphQL 오퍼레이션을 기다리는 중..."
 msgstr "GraphQL 오퍼레이션을 기다리는 중..."
 
@@ -1149,15 +1149,15 @@ msgid "HAR imported successfully"
 msgstr "HAR imported successfully"
 
 #: src/features/intercept-rule-form/ui/headers-fields.tsx:65
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:380
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:379
 #: src/features/map-rule-form/ui/map-local-fields.tsx:79
-#: src/features/transaction-details/ui/replay-dialog.tsx:446
+#: src/features/transaction-details/ui/replay-dialog.tsx:445
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:468
 msgid "Header name"
 msgstr "Header name"
 
 #: src/features/intercept-rule-form/ui/headers-fields.tsx:94
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:411
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:410
 msgid "Header name to remove"
 msgstr "Header name to remove"
 
@@ -1172,8 +1172,8 @@ msgstr "Headers"
 
 #. placeholder {0}: headerEntries.length
 #. placeholder {0}: headers.length
-#: src/features/transaction-details/ui/replay-dialog.tsx:176
-#: src/features/transaction-details/ui/replay-dialog.tsx:431
+#: src/features/transaction-details/ui/replay-dialog.tsx:175
+#: src/features/transaction-details/ui/replay-dialog.tsx:430
 msgid "Headers ({0})"
 msgstr "Headers ({0})"
 
@@ -1339,7 +1339,7 @@ msgstr "Largest Payloads (Top 10)"
 msgid "Last Seen"
 msgstr "Last Seen"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:491
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:490
 #: src/pages/settings/ui/components/throttle-section.tsx:74
 msgid "Latency (ms)"
 msgstr "Latency (ms)"
@@ -1433,8 +1433,8 @@ msgstr "Map DNS hostnames to different target hosts for testing and development"
 msgid "Map DNS hostnames to different targets"
 msgstr "Map DNS hostnames to different targets"
 
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:239
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:239
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:238
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:238
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:49
 #: src/pages/map-rules/ui/map-rules-page.tsx:34
 msgid "Map Local"
@@ -1444,7 +1444,7 @@ msgstr "Map Local"
 msgid "Map Local / Map Remote rules"
 msgstr "Map Local / Map Remote rules"
 
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:167
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:166
 msgid "Map Local: respond with a local file. Map Remote: redirect to another URL."
 msgstr "Map Local: respond with a local file. Map Remote: redirect to another URL."
 
@@ -1452,8 +1452,8 @@ msgstr "Map Local: respond with a local file. Map Remote: redirect to another UR
 msgid "Map Local: respond with local files. Map Remote: redirect requests to another URL."
 msgstr "Map Local: respond with local files. Map Remote: redirect requests to another URL."
 
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:241
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:242
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:243
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:50
 #: src/pages/map-rules/ui/map-rules-page.tsx:35
 msgid "Map Remote"
@@ -1485,11 +1485,11 @@ msgid "Match host and backend host are required"
 msgstr "Match host and backend host are required"
 
 #: src/features/intercept-rule-form/ui/rewrite-action-fields.tsx:50
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:462
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:461
 msgid "Match Pattern"
 msgstr "Match Pattern"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:213
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:212
 msgid "Match pattern is required"
 msgstr "Match pattern is required"
 
@@ -1518,8 +1518,8 @@ msgstr "Message sent successfully"
 msgid "messages"
 msgstr "messages"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:289
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:204
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:288
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:203
 #: src/pages/analytics-dashboard/ui/duplicate-tab.tsx:21
 #: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:66
 #: src/pages/analytics-dashboard/ui/error-tab.tsx:66
@@ -1555,14 +1555,14 @@ msgstr "Modified and forwarded"
 msgid "Modify & Forward"
 msgstr "Modify & Forward"
 
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:320
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:321
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:322
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:47
 msgid "Modify Request"
 msgstr "Modify Request"
 
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:324
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:325
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:326
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:48
 msgid "Modify Response"
 msgstr "Modify Response"
@@ -1579,9 +1579,9 @@ msgstr "Multiple conditions:"
 msgid "N+1"
 msgstr "N+1"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:264
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:178
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:61
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:263
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:177
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:56
 msgid "Name"
 msgstr "Name"
 
@@ -1786,7 +1786,7 @@ msgstr "Number of times to send the request (1-10000)"
 msgid "Only domains in this list will be intercepted. When the list is empty, all domains are intercepted."
 msgstr "Only domains in this list will be intercepted. When the list is empty, all domains are intercepted."
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:306
+#: src/features/transaction-details/ui/replay-dialog.tsx:305
 msgid "Only http:// and https:// URLs are allowed"
 msgstr "Only http:// and https:// URLs are allowed"
 
@@ -1835,7 +1835,7 @@ msgstr "OpenAPI spec loaded"
 msgid "OpenAPI Specs"
 msgstr "OpenAPI Specs"
 
-#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:155
+#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:150
 msgid "Operation"
 msgstr "Operation"
 
@@ -1854,7 +1854,7 @@ msgstr "optional"
 msgid "Organization"
 msgstr "Organization"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:377
+#: src/features/transaction-details/ui/replay-dialog.tsx:376
 msgid "Original"
 msgstr "Original"
 
@@ -1878,11 +1878,11 @@ msgstr "Path"
 msgid "paths"
 msgstr "paths"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:276
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:275
 msgid "Pattern"
 msgstr "Pattern"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:208
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:207
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:134
 msgid "Pattern is required"
 msgstr "Pattern is required"
@@ -1964,7 +1964,7 @@ msgstr "Present a client certificate when connecting to servers that require mTL
 msgid "Preserve Path"
 msgstr "Preserve Path"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:531
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:530
 msgid "Preset"
 msgstr "Preset"
 
@@ -2016,7 +2016,7 @@ msgstr "proxy.company.com"
 msgid "Python Requests"
 msgstr "Python Requests"
 
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:118
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:113
 msgid "Query"
 msgstr "Query"
 
@@ -2055,7 +2055,7 @@ msgid "Refresh"
 msgstr "Refresh"
 
 #: src/features/intercept-rule-form/ui/rewrite-action-fields.tsx:53
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:465
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:464
 msgid "Regex pattern (e.g. old-domain\\.com)"
 msgstr "Regex pattern (e.g. old-domain\\.com)"
 
@@ -2098,7 +2098,7 @@ msgid "Remove entry"
 msgstr "Remove entry"
 
 #: src/features/intercept-rule-form/ui/headers-fields.tsx:84
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:401
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:400
 msgid "Remove Headers"
 msgstr "Remove Headers"
 
@@ -2113,16 +2113,16 @@ msgid "Replace {0} existing transactions with {1} new ones? Cancel to append ins
 msgstr "Replace {0} existing transactions with {1} new ones? Cancel to append instead."
 
 #: src/features/intercept-rule-form/ui/rewrite-action-fields.tsx:61
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:474
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:473
 msgid "Replace With"
 msgstr "Replace With"
 
 #: src/features/intercept-rule-form/ui/rewrite-action-fields.tsx:64
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:477
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:476
 msgid "Replacement string (supports $1, $2 capture groups)"
-msgstr "Replacement string (supports $1, $2 capture groups)"
+msgstr "Replacement string (supports $1, $2 capture groups)<<<<<<< HEAD"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:387
+#: src/features/transaction-details/ui/replay-dialog.tsx:386
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:113
 msgid "Replay"
 msgstr "Replay"
@@ -2131,11 +2131,11 @@ msgstr "Replay"
 msgid "Replay message"
 msgstr "Replay message"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:351
+#: src/features/transaction-details/ui/replay-dialog.tsx:350
 msgid "Replay request"
 msgstr "Replay request"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:373
+#: src/features/transaction-details/ui/replay-dialog.tsx:372
 #: src/features/transaction-details/ui/transaction-body-side-by-side.tsx:16
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:296
 #: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:58
@@ -2152,8 +2152,8 @@ msgstr "Request aborted"
 
 #: src/features/intercept-rule-form/ui/rewrite-action-fields.tsx:36
 #: src/features/intercept-rule-form/ui/rewrite-action-fields.tsx:37
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:449
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:450
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:451
 msgid "Request Body"
 msgstr "Request Body"
 
@@ -2169,14 +2169,14 @@ msgstr "Request Details"
 msgid "Request dropped"
 msgstr "Request dropped"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:328
+#: src/features/transaction-details/ui/replay-dialog.tsx:327
 msgid "Request failed"
 msgstr "Request failed"
 
 #: src/features/intercept-rule-form/ui/rewrite-action-fields.tsx:28
 #: src/features/intercept-rule-form/ui/rewrite-action-fields.tsx:29
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:441
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:442
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:443
 msgid "Request Header"
 msgstr "Request Header"
 
@@ -2210,30 +2210,30 @@ msgstr "Require authentication to use this proxy server"
 msgid "Require certificate"
 msgstr "Require certificate"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:387
+#: src/features/transaction-details/ui/replay-dialog.tsx:386
 #: src/features/transaction-details/ui/transaction-body-side-by-side.tsx:24
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:301
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:126
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:121
 #: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:62
 msgid "Response"
 msgstr "Response"
 
 #: src/features/intercept-rule-form/ui/rewrite-action-fields.tsx:40
 #: src/features/intercept-rule-form/ui/rewrite-action-fields.tsx:41
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:453
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:454
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:455
 msgid "Response Body"
 msgstr "Response Body"
 
 #: src/features/intercept-rule-form/ui/block-action-fields.tsx:25
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:586
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:585
 msgid "Response body (optional)"
 msgstr "Response body (optional)"
 
 #: src/features/intercept-rule-form/ui/rewrite-action-fields.tsx:32
 #: src/features/intercept-rule-form/ui/rewrite-action-fields.tsx:33
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:445
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:446
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:447
 msgid "Response Header"
 msgstr "Response Header"
 
@@ -2244,7 +2244,7 @@ msgid "Response Headers"
 msgstr "Response Headers"
 
 #: src/features/intercept-rule-form/ui/modify-response-fields.tsx:16
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:353
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:352
 msgid "Response Status Code"
 msgstr "Response Status Code"
 
@@ -2295,8 +2295,8 @@ msgstr "Reverse proxy rule added"
 msgid "Reverse proxy rule deleted"
 msgstr "Reverse proxy rule deleted"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:327
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:327
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:326
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:326
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:51
 msgid "Rewrite"
 msgstr "Rewrite"
@@ -2326,8 +2326,8 @@ msgstr "Route requests to backend servers by Host header"
 msgid "Route traffic through an external proxy server"
 msgstr "Route traffic through an external proxy server"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:231
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:153
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:230
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:152
 msgid "Rule added"
 msgstr "Rule added"
 
@@ -2337,13 +2337,13 @@ msgstr "Rule added"
 msgid "Rule deleted"
 msgstr "Rule deleted"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:267
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:180
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:266
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:179
 msgid "Rule name (optional)"
 msgstr "Rule name (optional)"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:228
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:150
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:227
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:149
 msgid "Rule updated"
 msgstr "Rule updated"
 
@@ -2459,7 +2459,7 @@ msgstr "Select local file"
 msgid "Select PKCS12 file (.p12, .pfx)"
 msgstr "Select PKCS12 file (.p12, .pfx)"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:553
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:552
 msgid "Select preset..."
 msgstr "Select preset..."
 
@@ -2471,11 +2471,11 @@ msgstr "Select the downloaded certificate file and confirm"
 msgid "Select the downloaded profile and tap \"Install\""
 msgstr "Select the downloaded profile and tap \"Install\""
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:575
+#: src/features/transaction-details/ui/replay-dialog.tsx:574
 msgid "Send a request to see the replay response"
 msgstr "Send a request to see the replay response"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:573
+#: src/features/transaction-details/ui/replay-dialog.tsx:572
 msgid "Send a request to see the response"
 msgstr "Send a request to see the response"
 
@@ -2483,7 +2483,7 @@ msgstr "Send a request to see the response"
 msgid "Send Message"
 msgstr "Send Message"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:543
+#: src/features/transaction-details/ui/replay-dialog.tsx:542
 msgid "Send Request"
 msgstr "Send Request"
 
@@ -2491,7 +2491,7 @@ msgstr "Send Request"
 msgid "Sending requests sequentially..."
 msgstr "Sending requests sequentially..."
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:538
+#: src/features/transaction-details/ui/replay-dialog.tsx:537
 #: src/features/transaction-details/ui/sequence-replay-dialog.tsx:230
 #: src/features/websocket-replay/ui/ws-replay-dialog.tsx:190
 msgid "Sending..."
@@ -2559,7 +2559,7 @@ msgstr "Session saved successfully"
 
 #: src/features/intercept-rule-form/ui/modify-request-fields.tsx:21
 #: src/features/intercept-rule-form/ui/modify-response-fields.tsx:32
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:586
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:585
 msgid "Set body (optional)"
 msgstr "Set body (optional)"
 
@@ -2652,14 +2652,14 @@ msgstr "Starts background server connection immediately after ClientHello detect
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:118
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:123
 #: src/shared/app-sidebar/ui/sidebar-status.tsx:39
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:74
-#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:156
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:69
+#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:151
 #: src/widgets/grpc-calls/ui/grpc-call-table.tsx:134
 msgid "Status"
 msgstr "Status"
 
 #: src/features/intercept-rule-form/ui/block-action-fields.tsx:15
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:338
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:337
 #: src/features/map-rule-form/ui/map-local-fields.tsx:56
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:439
 msgid "Status Code"
@@ -2710,7 +2710,7 @@ msgid "Tap \"Install a certificate\" → \"CA certificate\""
 msgstr "Tap \"Install a certificate\" → \"CA certificate\""
 
 #: src/features/intercept-rule-form/ui/rewrite-action-fields.tsx:15
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:430
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:429
 msgid "Target"
 msgstr "Target"
 
@@ -2746,8 +2746,8 @@ msgstr "Theme"
 msgid "These domains are automatically excluded from HTTPS interception to prevent OAuth/authentication failures. You can toggle, add, or remove domains."
 msgstr "These domains are automatically excluded from HTTPS interception to prevent OAuth/authentication failures. You can toggle, add, or remove domains."
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:328
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:328
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:327
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:327
 msgid "Throttle"
 msgstr "Throttle"
 
@@ -2758,8 +2758,8 @@ msgstr "Throughput"
 #: src/pages/analytics-dashboard/ui/misc-tab.tsx:46
 #: src/pages/analytics-dashboard/ui/misc-tab.tsx:96
 #: src/pages/analytics-dashboard/ui/performance-tab.tsx:54
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:65
-#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:158
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:60
+#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:153
 #: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:31
 #: src/widgets/grpc-calls/ui/grpc-call-table.tsx:137
 #: src/widgets/sse-messages/ui/sse-message-detail.tsx:54
@@ -2830,7 +2830,7 @@ msgstr "Total Time"
 msgid "Traffic Analysis"
 msgstr "Traffic Analysis"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:360
+#: src/features/transaction-details/ui/replay-dialog.tsx:359
 msgid "Traffic Replay"
 msgstr "Traffic Replay"
 
@@ -2852,11 +2852,11 @@ msgstr "Tries Eager first, falls back to Lazy on failure"
 
 #: src/pages/settings/ui/components/certificate-settings.tsx:138
 msgid "Trusted"
-msgstr "Trusted"
+msgstr "Trusted<<<<<<< HEAD"
 
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:229
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:57
-#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:154
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:228
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:52
+#: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:149
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:50
 #: src/widgets/websocket-messages/ui/ws-message-table.tsx:184
 msgid "Type"
@@ -2871,8 +2871,8 @@ msgstr "Uninstall"
 msgid "Universal format"
 msgstr "Universal format"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:511
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:522
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:510
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:521
 #: src/pages/settings/ui/components/throttle-section.tsx:62
 #: src/pages/settings/ui/components/throttle-section.tsx:70
 msgid "Unlimited"
@@ -2886,8 +2886,8 @@ msgstr "Unload"
 msgid "Unpin from Top"
 msgstr "Unpin from Top"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:602
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:258
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:601
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:257
 msgid "Update"
 msgstr "Update"
 
@@ -2895,7 +2895,7 @@ msgstr "Update"
 msgid "Upload (KB/s)"
 msgstr "Upload (KB/s)"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:518
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:517
 msgid "Upload Speed (KB/s)"
 msgstr "Upload Speed (KB/s)"
 
@@ -2903,7 +2903,7 @@ msgstr "Upload Speed (KB/s)"
 msgid "Upstream Proxy"
 msgstr "Upstream Proxy"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:424
+#: src/features/transaction-details/ui/replay-dialog.tsx:423
 msgid "URL"
 msgstr "URL"
 
@@ -2911,7 +2911,7 @@ msgstr "URL"
 msgid "URL contains \"api\""
 msgstr "URL contains \"api\""
 
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:186
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:185
 msgid "URL Pattern"
 msgstr "URL Pattern"
 
@@ -2927,7 +2927,7 @@ msgstr "Use different client certificates for specific domains. Supports wildcar
 msgid "Use tags in the filter with client=\"tag_name\" to filter traffic by device"
 msgstr "Use tags in the filter with client=\"tag_name\" to filter traffic by device"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:254
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:253
 msgid "Use wildcard patterns: * matches any string, ? matches a single character."
 msgstr "Use wildcard patterns: * matches any string, ? matches a single character."
 
@@ -2967,14 +2967,14 @@ msgid "Validity Period"
 msgstr "Validity Period"
 
 #: src/features/intercept-rule-form/ui/headers-fields.tsx:70
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:386
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:385
 #: src/features/map-rule-form/ui/map-local-fields.tsx:84
-#: src/features/transaction-details/ui/replay-dialog.tsx:454
+#: src/features/transaction-details/ui/replay-dialog.tsx:453
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:474
 msgid "Value"
 msgstr "Value"
 
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:121
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:116
 msgid "Variables"
 msgstr "Variables"
 
