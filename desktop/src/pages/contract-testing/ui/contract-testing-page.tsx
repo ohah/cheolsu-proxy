@@ -148,7 +148,7 @@ export const ContractTestingPage = () => {
             <Trans>Validation Report</Trans>
           </h2>
 
-          <div className="flex items-center gap-6 mb-4">
+          <div className="flex items-center justify-center gap-6 mb-4">
             <div className="text-center">
               <div className="text-2xl font-bold">{violationTransactions.length}</div>
               <div className="text-xs text-muted-foreground">
