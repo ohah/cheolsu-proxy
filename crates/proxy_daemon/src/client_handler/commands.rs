@@ -178,7 +178,7 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bo
                     no_gzip,
                 };
                 s.quick_settings
-                    .store(settings.to_bits(), std::sync::atomic::Ordering::Relaxed);
+                    .store(settings.to_bits(), std::sync::atomic::Ordering::Release);
             }
         }
         ClientCommand::UpdateProxyAuth { config } => {

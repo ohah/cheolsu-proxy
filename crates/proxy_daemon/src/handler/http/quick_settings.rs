@@ -12,7 +12,7 @@ impl LoggingHandler {
         QuickSettings::from_bits(
             self.config
                 .quick_settings
-                .load(std::sync::atomic::Ordering::Relaxed),
+                .load(std::sync::atomic::Ordering::Acquire),
         )
     }
 
