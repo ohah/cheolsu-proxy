@@ -32,6 +32,7 @@ import type {
   RewriteTarget,
 } from "@/entities/intercept-rule";
 import type { InterceptRuleInitialValues } from "@/shared/stores";
+import { HTTP_METHODS } from "@/features/query-filter-editor/model/constants";
 
 interface RuleFormDialogProps {
   open: boolean;
@@ -39,8 +40,6 @@ interface RuleFormDialogProps {
   editingRule: InterceptRule | null;
   initialValues?: InterceptRuleInitialValues | null;
 }
-
-const HTTP_METHODS = ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"];
 
 export const RuleFormDialog = ({
   open,
