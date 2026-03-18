@@ -100,7 +100,7 @@ msgstr "Actual"
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:142
 #: src/pages/server-replay/ui/server-replay-page.tsx:170
 #: src/pages/settings/ui/components/client-tags-section.tsx:116
-#: src/pages/settings/ui/components/never-passthrough-section.tsx:74
+#: src/pages/settings/ui/components/never-passthrough-section.tsx:77
 #: src/pages/settings/ui/components/ssl-proxying-section.tsx:215
 #: src/pages/settings/ui/components/ssl-proxying-section.tsx:278
 msgid "Add"
@@ -797,7 +797,7 @@ msgstr "Domain-specific Certificates"
 msgid "Domain-specific TLS engine rules. Domains matched here use OpenSSL instead of rustls for compatibility."
 msgstr "Domain-specific TLS engine rules. Domains matched here use OpenSSL instead of rustls for compatibility."
 
-#: src/pages/settings/ui/components/never-passthrough-section.tsx:58
+#: src/pages/settings/ui/components/never-passthrough-section.tsx:61
 msgid "Domains in this list will never fall back to passthrough when TLS handshake fails. The proxy will keep trying to intercept these domains, allowing you to see the actual error instead of silently bypassing."
 msgstr "Domains in this list will never fall back to passthrough when TLS handshake fails. The proxy will keep trying to intercept these domains, allowing you to see the actual error instead of silently bypassing."
 
@@ -960,7 +960,7 @@ msgstr "Event Type"
 msgid "events"
 msgstr "events"
 
-#: src/pages/settings/ui/components/never-passthrough-section.tsx:67
+#: src/pages/settings/ui/components/never-passthrough-section.tsx:70
 msgid "example.com or *.example.com"
 msgstr "example.com or *.example.com"
 
@@ -1615,7 +1615,7 @@ msgstr "Network Table Columns"
 msgid "Network Throttling"
 msgstr "Network Throttling"
 
-#: src/pages/settings/ui/components/never-passthrough-section.tsx:55
+#: src/pages/settings/ui/components/never-passthrough-section.tsx:58
 msgid "Never Passthrough"
 msgstr "Never Passthrough"
 
@@ -2710,7 +2710,7 @@ msgstr "Subject Alternative Names (SAN)"
 msgid "Supports PEM-encoded certificates and keys (RSA, ECDSA, PKCS#8)"
 msgstr "Supports PEM-encoded certificates and keys (RSA, ECDSA, PKCS#8)"
 
-#: src/pages/settings/ui/components/never-passthrough-section.tsx:78
+#: src/pages/settings/ui/components/never-passthrough-section.tsx:81
 msgid "Supports wildcard patterns: * matches any string, ? matches a single character"
 msgstr "Supports wildcard patterns: * matches any string, ? matches a single character"
 

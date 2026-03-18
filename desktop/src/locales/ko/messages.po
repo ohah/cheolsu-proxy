@@ -100,7 +100,7 @@ msgstr "실제값"
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:142
 #: src/pages/server-replay/ui/server-replay-page.tsx:170
 #: src/pages/settings/ui/components/client-tags-section.tsx:116
-#: src/pages/settings/ui/components/never-passthrough-section.tsx:74
+#: src/pages/settings/ui/components/never-passthrough-section.tsx:77
 #: src/pages/settings/ui/components/ssl-proxying-section.tsx:215
 #: src/pages/settings/ui/components/ssl-proxying-section.tsx:278
 msgid "Add"
@@ -797,7 +797,7 @@ msgstr "도메인별 인증서"
 msgid "Domain-specific TLS engine rules. Domains matched here use OpenSSL instead of rustls for compatibility."
 msgstr "도메인별 TLS 엔진 규칙입니다. 호환성을 위해 여기에 매칭된 도메인은 rustls 대신 OpenSSL을 사용합니다."
 
-#: src/pages/settings/ui/components/never-passthrough-section.tsx:58
+#: src/pages/settings/ui/components/never-passthrough-section.tsx:61
 msgid "Domains in this list will never fall back to passthrough when TLS handshake fails. The proxy will keep trying to intercept these domains, allowing you to see the actual error instead of silently bypassing."
 msgstr "이 목록의 도메인은 TLS 핸드셰이크 실패 시에도 패스스루로 우회하지 않습니다. 프록시가 계속 인터셉트를 시도하여 자동 우회 대신 실제 오류를 확인할 수 있습니다."
 
@@ -960,7 +960,7 @@ msgstr "이벤트 타입"
 msgid "events"
 msgstr "이벤트"
 
-#: src/pages/settings/ui/components/never-passthrough-section.tsx:67
+#: src/pages/settings/ui/components/never-passthrough-section.tsx:70
 msgid "example.com or *.example.com"
 msgstr "example.com 또는 *.example.com"
 
@@ -1615,7 +1615,7 @@ msgstr "네트워크 테이블 컬럼"
 msgid "Network Throttling"
 msgstr "네트워크 쓰로틀링"
 
-#: src/pages/settings/ui/components/never-passthrough-section.tsx:55
+#: src/pages/settings/ui/components/never-passthrough-section.tsx:58
 msgid "Never Passthrough"
 msgstr "패스스루 금지"
 
@@ -2710,7 +2710,7 @@ msgstr "주체 대체 이름 (SAN)"
 msgid "Supports PEM-encoded certificates and keys (RSA, ECDSA, PKCS#8)"
 msgstr "PEM 인코딩된 인증서 및 키를 지원합니다 (RSA, ECDSA, PKCS#8)"
 
-#: src/pages/settings/ui/components/never-passthrough-section.tsx:78
+#: src/pages/settings/ui/components/never-passthrough-section.tsx:81
 msgid "Supports wildcard patterns: * matches any string, ? matches a single character"
 msgstr "와일드카드 패턴 지원: *는 모든 문자열, ?는 단일 문자를 매칭합니다"
 
