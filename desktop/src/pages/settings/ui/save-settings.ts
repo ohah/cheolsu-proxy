@@ -8,6 +8,7 @@ import {
   updateThrottle,
   updateConnectionStrategy,
   updateQuickSettings,
+  updateNeverPassthroughDomains,
   type ThrottleConfig,
 } from "@/shared/api/proxy";
 import {
@@ -237,6 +238,16 @@ export async function saveAllSettings(
       results.push({ section: "sslProxying", success: true });
     } catch (error) {
       results.push({ section: "sslProxying", success: false, error });
+    }
+  }
+
+  // Never Passthrough
+  if (dirtyFields.neverPassthrough) {
+    try {
+      await updateNeverPassthroughDomains(data.neverPassthrough.entries);
+      results.push({ section: "neverPassthrough", success: true });
+    } catch (error) {
+      results.push({ section: "neverPassthrough", success: false, error });
     }
   }
 

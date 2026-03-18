@@ -75,6 +75,11 @@ export interface SettingsFormValues {
     entries: SslProxyingEntry[];
     defaultPassthroughEntries: SslProxyingEntry[];
   };
+
+  // Never Passthrough
+  neverPassthrough: {
+    entries: string[];
+  };
 }
 
 export function getDefaultValues(): SettingsFormValues {
@@ -129,6 +134,9 @@ export function getDefaultValues(): SettingsFormValues {
       mode: useSslProxyingStore.getState().mode,
       entries: useSslProxyingStore.getState().entries,
       defaultPassthroughEntries: useSslProxyingStore.getState().defaultPassthroughEntries,
+    },
+    neverPassthrough: {
+      entries: [],
     },
   };
 }

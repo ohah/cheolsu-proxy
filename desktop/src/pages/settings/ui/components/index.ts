@@ -13,3 +13,4 @@ export { SslProxyingSection } from "./ssl-proxying-section";
 export { ProtoFilesSection } from "./proto-files-section";
 export { ClientTagsSection } from "./client-tags-section";
 export { TlsConfigSection } from "./tls-config-section";
+export { NeverPassthroughSection } from "./never-passthrough-section";

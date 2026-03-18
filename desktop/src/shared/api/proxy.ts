@@ -358,6 +358,16 @@ export async function getDefaultPassthroughDomains(): Promise<SslProxyingEntry[]
   return invoke("get_default_passthrough_domains");
 }
 
+// ─── Never Passthrough ────────────────────────────────
+
+export async function updateNeverPassthroughDomains(entries: string[]): Promise<void> {
+  return invoke("update_never_passthrough_domains", { entries });
+}
+
+export async function getNeverPassthroughDomains(): Promise<string[]> {
+  return invoke("get_never_passthrough_domains");
+}
+
 // ─── Proxy Authentication ────────────────────────────────
 
 export interface ProxyAuthConfig {
