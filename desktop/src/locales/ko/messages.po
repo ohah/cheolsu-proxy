@@ -70,7 +70,7 @@ msgstr "200 (선택사항)"
 msgid "Abort"
 msgstr "중단"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:195
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:192
 msgid "Action"
 msgstr "동작"
 
@@ -148,8 +148,8 @@ msgstr "테스트를 위해 DNS 호스트명을 다른 대상 호스트로 리�
 msgid "Add Proto Files"
 msgstr "Proto 파일 추가"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:139
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:246
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:136
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:240
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:257
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:204
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:84
@@ -231,8 +231,8 @@ msgstr "모든 HTTPS 트래픽이 인터셉트됩니다. {enabledCount}개 제�
 msgid "All HTTPS traffic is intercepted. {defaultEnabledCount} built-in domain(s) are automatically excluded."
 msgstr "모든 HTTPS 트래픽이 인터셉트됩니다. {defaultEnabledCount}개 기본 도메인은 자동으로 제외됩니다."
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:181
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:181
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:178
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:178
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:214
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:214
 msgid "All Methods"
@@ -332,8 +332,8 @@ msgstr "배치"
 msgid "Blacklist (Exclude)"
 msgstr "블랙리스트 (제외)"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:213
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:213
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:210
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:210
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:46
 msgid "Block"
 msgstr "차단"
@@ -428,7 +428,7 @@ msgstr "CA 키 파일"
 msgid "calls"
 msgstr "호출"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:243
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:237
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:254
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:228
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:492
@@ -687,8 +687,8 @@ msgstr "cURL"
 msgid "Curl command copied to clipboard"
 msgstr "Curl 명령어가 클립보드에 복사되었습니다"
 
-#: src/features/intercept-rule-form/ui/throttle-action-fields.tsx:74
-#: src/features/intercept-rule-form/ui/throttle-action-fields.tsx:74
+#: src/features/intercept-rule-form/ui/throttle-action-fields.tsx:66
+#: src/features/intercept-rule-form/ui/throttle-action-fields.tsx:66
 msgid "Custom"
 msgstr "사용자 지정"
 
@@ -871,7 +871,7 @@ msgstr "맵 규칙 수정"
 msgid "Edit rule"
 msgstr "규칙 수정"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:139
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:136
 msgid "Edit Rule"
 msgstr "규칙 수정"
 
@@ -1519,7 +1519,7 @@ msgstr "메시지가 전송되었습니다"
 msgid "messages"
 msgstr "메시지"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:170
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:167
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:203
 #: src/pages/analytics-dashboard/ui/duplicate-tab.tsx:21
 #: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:59
@@ -1556,14 +1556,14 @@ msgstr "수정 후 전달되었습니다"
 msgid "Modify & Forward"
 msgstr "수정 후 전달"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:216
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:217
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:213
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:214
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:47
 msgid "Modify Request"
 msgstr "요청 수정"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:220
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:221
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:217
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:218
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:48
 msgid "Modify Response"
 msgstr "응답 수정"
@@ -1580,7 +1580,7 @@ msgstr "복합 조건:"
 msgid "N+1"
 msgstr "N+1"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:153
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:150
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:177
 #: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:56
 msgid "Name"
@@ -1887,7 +1887,7 @@ msgstr "경로"
 msgid "paths"
 msgstr "경로"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:161
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:158
 msgid "Pattern"
 msgstr "패턴"
 
@@ -1939,9 +1939,9 @@ msgstr "PKCS12 비밀번호 (없으면 비워두세요)"
 msgid "Playwright Test"
 msgstr "Playwright 테스트"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:131
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:128
 msgid "Please fill in all required fields"
-msgstr ""
+msgstr "모든 필수 필드를 입력해 주세요"
 
 #: src/pages/settings/ui/components/custom-ca-section.tsx:89
 msgid "Please select a PKCS12 file"
@@ -1976,7 +1976,7 @@ msgstr "mTLS 인증이 필요한 서버에 연결할 때 클라이언트 인증�
 msgid "Preserve Path"
 msgstr "경로 유지"
 
-#: src/features/intercept-rule-form/ui/throttle-action-fields.tsx:52
+#: src/features/intercept-rule-form/ui/throttle-action-fields.tsx:48
 msgid "Preset"
 msgstr "프리셋"
 
@@ -2293,8 +2293,8 @@ msgstr "리버스 프록시 규칙이 추가되었습니다"
 msgid "Reverse proxy rule deleted"
 msgstr "리버스 프록시 규칙이 삭제되었습니다"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:222
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:222
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:219
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:219
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:51
 msgid "Rewrite"
 msgstr "재작성"
@@ -2324,7 +2324,7 @@ msgstr "Host 헤더 기반으로 백엔드 서버에 요청 전달"
 msgid "Route traffic through an external proxy server"
 msgstr "외부 프록시 서버를 통해 트래픽 라우팅"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:124
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:121
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:152
 msgid "Rule added"
 msgstr "규칙이 추가되었습니다"
@@ -2335,12 +2335,12 @@ msgstr "규칙이 추가되었습니다"
 msgid "Rule deleted"
 msgstr "규칙이 삭제되었습니다"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:155
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:152
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:179
 msgid "Rule name (optional)"
 msgstr "규칙 이름 (선택사항)"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:121
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:118
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:149
 msgid "Rule updated"
 msgstr "규칙이 수정되었습니다"
@@ -2457,7 +2457,7 @@ msgstr "로컬 파일 선택"
 msgid "Select PKCS12 file (.p12, .pfx)"
 msgstr "PKCS12 파일 선택 (.p12, .pfx)"
 
-#: src/features/intercept-rule-form/ui/throttle-action-fields.tsx:71
+#: src/features/intercept-rule-form/ui/throttle-action-fields.tsx:63
 msgid "Select preset..."
 msgstr "프리셋 선택..."
 
@@ -2745,8 +2745,8 @@ msgstr "테마"
 msgid "These domains are automatically excluded from HTTPS interception to prevent OAuth/authentication failures. You can toggle, add, or remove domains."
 msgstr "OAuth/인증 실패를 방지하기 위해 HTTPS 인터셉트에서 자동으로 제외되는 도메인입니다. 토글, 추가, 삭제가 가능합니다."
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:225
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:226
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:220
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:220
 msgid "Throttle"
 msgstr "스로틀"
 
@@ -2870,8 +2870,8 @@ msgstr "제거"
 msgid "Universal format"
 msgstr "범용 형식"
 
-#: src/features/intercept-rule-form/ui/throttle-action-fields.tsx:38
-#: src/features/intercept-rule-form/ui/throttle-action-fields.tsx:46
+#: src/features/intercept-rule-form/ui/throttle-action-fields.tsx:36
+#: src/features/intercept-rule-form/ui/throttle-action-fields.tsx:42
 #: src/pages/settings/ui/components/throttle-section.tsx:62
 #: src/pages/settings/ui/components/throttle-section.tsx:70
 msgid "Unlimited"
@@ -2885,7 +2885,7 @@ msgstr "언로드"
 msgid "Unpin from Top"
 msgstr "상단 고정 해제"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:246
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:240
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:257
 msgid "Update"
 msgstr "수정"
@@ -2894,7 +2894,7 @@ msgstr "수정"
 msgid "Upload (KB/s)"
 msgstr "업로드 (KB/s)"
 
-#: src/features/intercept-rule-form/ui/throttle-action-fields.tsx:44
+#: src/features/intercept-rule-form/ui/throttle-action-fields.tsx:40
 msgid "Upload Speed (KB/s)"
 msgstr "업로드 속도 (KB/s)"
 
@@ -2926,7 +2926,7 @@ msgstr "특정 도메인에 다른 클라이언트 인증서를 사용합니다.
 msgid "Use tags in the filter with client=\"tag_name\" to filter traffic by device"
 msgstr "필터에서 client=\"태그명\"을 사용하여 기기별 트래픽을 필터링할 수 있습니다"
 
-#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:142
+#: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:139
 msgid "Use wildcard patterns: * matches any string, ? matches a single character."
 msgstr "와일드카드 패턴 사용: *는 모든 문자열, ?는 단일 문자를 매칭합니다."
 
