@@ -15,6 +15,7 @@ import {
   ClientCertificateSection,
   RequestClientCertSection,
   SslProxyingSection,
+  NeverPassthroughSection,
   ProtoFilesSection,
   ClientTagsSection,
   TlsConfigSection,
@@ -206,6 +207,7 @@ function SettingsPageInner() {
             <ThrottleSection />
             <ConnectionStrategySection />
             <SslProxyingSection />
+            <NeverPassthroughSection />
             <TlsConfigSection />
             <UpstreamProxySection />
             <ClientTagsSection />
