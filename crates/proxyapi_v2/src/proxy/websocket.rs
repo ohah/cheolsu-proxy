@@ -30,6 +30,17 @@ const WS_BUFFER_SIZE: usize = 256 * 1024;
 /// WebSocket 메시지 주입 채널 용량
 const WS_INJECT_CHANNEL_CAPACITY: usize = 32;
 
+/// 공통 WebSocket 설정을 생성합니다.
+fn default_ws_config() -> WebSocketConfig {
+    let mut config = WebSocketConfig::default();
+    config.accept_unmasked_frames = true;
+    config.max_frame_size = Some(MAX_FRAME_SIZE);
+    config.max_message_size = Some(MAX_MESSAGE_SIZE);
+    config.read_buffer_size = WS_BUFFER_SIZE;
+    config.write_buffer_size = WS_BUFFER_SIZE;
+    config
+}
+
 impl<C, CA, H, W> InternalProxy<C, CA, H, W>
 where
     C: Connect + Clone + Send + Sync + 'static,
@@ -74,13 +85,7 @@ where
             .and_then(|h| h.to_str().ok())
             .map(|s| s.to_string());
 
-        let mut config = WebSocketConfig::default();
-        // WebSocket 설정
-        config.accept_unmasked_frames = true;
-        config.max_frame_size = Some(MAX_FRAME_SIZE);
-        config.max_message_size = Some(MAX_MESSAGE_SIZE);
-
-        match hyper_tungstenite::upgrade(&mut req, Some(config)) {
+        match hyper_tungstenite::upgrade(&mut req, Some(default_ws_config())) {
             Ok((mut res, websocket)) => {
                 // 클라이언트가 요청한 프로토콜이 있으면 응답에 포함
                 if let Some(protocol) = requested_protocol {
@@ -141,12 +146,7 @@ where
         #[cfg(any(feature = "rustls-client", feature = "native-tls-client"))]
         let (server_socket, response) = {
             debug!("TLS 클라이언트 기능 활성화됨");
-            let mut ws_config = WebSocketConfig::default();
-            ws_config.accept_unmasked_frames = true;
-            ws_config.max_frame_size = Some(MAX_FRAME_SIZE);
-            ws_config.max_message_size = Some(MAX_MESSAGE_SIZE);
-            ws_config.read_buffer_size = WS_BUFFER_SIZE;
-            ws_config.write_buffer_size = WS_BUFFER_SIZE;
+            let ws_config = default_ws_config();
 
             debug!(config = ?ws_config, "서버 연결용 WebSocket 설정");
 
@@ -178,12 +178,7 @@ where
         #[cfg(not(any(feature = "rustls-client", feature = "native-tls-client")))]
         let (server_socket, response) = {
             debug!("일반 WebSocket 연결 (TLS 기능 비활성화)");
-            let mut ws_config = WebSocketConfig::default();
-            ws_config.accept_unmasked_frames = true;
-            ws_config.max_frame_size = Some(MAX_FRAME_SIZE);
-            ws_config.max_message_size = Some(MAX_MESSAGE_SIZE);
-            ws_config.read_buffer_size = WS_BUFFER_SIZE;
-            ws_config.write_buffer_size = WS_BUFFER_SIZE;
+            let ws_config = default_ws_config();
 
             debug!(config = ?ws_config, "일반 연결용 WebSocket 설정");
 
@@ -569,14 +564,13 @@ mod tests {
     #[test]
     fn websocket_config_values() {
         // WebSocket 설정 값이 코드에서 사용하는 값과 일치하는지 확인
-        let mut config = WebSocketConfig::default();
-        config.accept_unmasked_frames = true;
-        config.max_frame_size = Some(MAX_FRAME_SIZE);
-        config.max_message_size = Some(MAX_MESSAGE_SIZE);
+        let config = default_ws_config();
 
         assert!(config.accept_unmasked_frames);
         assert_eq!(config.max_frame_size, Some(16 * 1024 * 1024));
         assert_eq!(config.max_message_size, Some(64 * 1024 * 1024));
+        assert_eq!(config.read_buffer_size, 256 * 1024);
+        assert_eq!(config.write_buffer_size, 256 * 1024);
     }
 
     #[test]
