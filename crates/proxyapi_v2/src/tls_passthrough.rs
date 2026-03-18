@@ -155,11 +155,14 @@ impl TlsPassthrough {
     /// 핸드셰이크 실패 기록
     pub async fn record_failure(&self, authority: &Authority) {
         let host = authority.host().to_string();
+
+        // never_passthrough 체크를 먼저 수행 (failures write lock 전에)
+        let is_never = self.is_never_passthrough(&host).await;
+
         let mut failures = self.failures.write().await;
         let count = failures.entry(host.clone()).or_insert(0);
         *count += 1;
 
-        let is_never = self.is_never_passthrough(&host).await;
         if is_never {
             warn!(
                 "[TLS-PASSTHROUGH] 핸드셰이크 실패 기록: {} ({}회) — never_passthrough 설정으로 바이패스 안 함",
@@ -275,7 +278,7 @@ impl TlsPassthrough {
             if let Some(parent) = path.parent() {
                 let _ = std::fs::create_dir_all(parent);
             }
-            let list: Vec<&String> = entries.iter().collect();
+            let list: Vec<&str> = entries.iter().map(|s| s.as_str()).collect();
             match serde_json::to_string_pretty(&list) {
                 Ok(json) => {
                     if let Err(e) = std::fs::write(path, json) {

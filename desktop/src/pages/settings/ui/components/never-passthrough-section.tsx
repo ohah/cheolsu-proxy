@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
 import { getNeverPassthroughDomains } from "@/shared/api/proxy";
@@ -12,9 +12,12 @@ export function NeverPassthroughSection() {
   const entries: string[] = form.watch("neverPassthrough.entries");
   const [newPattern, setNewPattern] = useState("");
 
+  const loaded = useRef(false);
   useEffect(() => {
+    if (loaded.current) return;
+    loaded.current = true;
     getNeverPassthroughDomains().then((domains) => {
-      form.setValue("neverPassthrough.entries", domains);
+      form.setValue("neverPassthrough.entries", domains, { shouldDirty: false });
     });
   }, [form]);
 

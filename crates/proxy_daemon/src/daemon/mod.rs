@@ -309,14 +309,13 @@ async fn daemon_main(port: u16, host: String) -> i32 {
     // TLS 자동 학습 바이패스 초기화 (변경 알림 채널 포함)
     let (tls_change_tx, mut tls_change_rx) =
         tokio::sync::mpsc::channel::<Vec<(String, u32)>>(TLS_CHANGE_CHANNEL_CAPACITY);
-    let passthrough_path = app_support_dir()
-        .ok()
-        .map(|dir| dir.join("tls_passthrough.json"));
+    let app_dir = app_support_dir().ok();
+    let passthrough_path = app_dir.as_ref().map(|dir| dir.join("tls_passthrough.json"));
     // Never Passthrough 변경 알림 채널
     let (never_pt_change_tx, mut never_pt_change_rx) =
         tokio::sync::mpsc::channel::<Vec<String>>(TLS_CHANGE_CHANNEL_CAPACITY);
-    let never_passthrough_path = app_support_dir()
-        .ok()
+    let never_passthrough_path = app_dir
+        .as_ref()
         .map(|dir| dir.join("never_passthrough.json"));
 
     let mut tls_passthrough = proxyapi_v2::tls_passthrough::TlsPassthrough::new(passthrough_path)
