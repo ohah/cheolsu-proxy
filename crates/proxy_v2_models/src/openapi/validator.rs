@@ -115,7 +115,7 @@ pub fn match_path_template<'a>(
             // static 세그먼트가 더 많은 것이 더 구체적인 매칭
             if best_match
                 .as_ref()
-                .map_or(true, |(_, _, best_static)| static_count > *best_static)
+                .is_none_or(|(_, _, best_static)| static_count > *best_static)
             {
                 best_match = Some((template.clone(), item, static_count));
             }
@@ -447,53 +447,45 @@ fn validate_against_schema_inner(
                 }
             }
         }
-        "string" => {
-            if !value.is_string() {
-                violations.push(ContractViolation {
-                    violation_type: ViolationType::TypeMismatch,
-                    path: json_path.to_string(),
-                    message: format!("Expected type 'string', got '{}'", actual_type),
-                    expected: Some("string".to_string()),
-                    actual: Some(actual_type.to_string()),
-                    severity: Severity::Error,
-                });
-            }
+        "string" if !value.is_string() => {
+            violations.push(ContractViolation {
+                violation_type: ViolationType::TypeMismatch,
+                path: json_path.to_string(),
+                message: format!("Expected type 'string', got '{}'", actual_type),
+                expected: Some("string".to_string()),
+                actual: Some(actual_type.to_string()),
+                severity: Severity::Error,
+            });
         }
-        "integer" => {
-            if !value.is_i64() && !value.is_u64() {
-                violations.push(ContractViolation {
-                    violation_type: ViolationType::TypeMismatch,
-                    path: json_path.to_string(),
-                    message: format!("Expected type 'integer', got '{}'", actual_type),
-                    expected: Some("integer".to_string()),
-                    actual: Some(actual_type.to_string()),
-                    severity: Severity::Error,
-                });
-            }
+        "integer" if !value.is_i64() && !value.is_u64() => {
+            violations.push(ContractViolation {
+                violation_type: ViolationType::TypeMismatch,
+                path: json_path.to_string(),
+                message: format!("Expected type 'integer', got '{}'", actual_type),
+                expected: Some("integer".to_string()),
+                actual: Some(actual_type.to_string()),
+                severity: Severity::Error,
+            });
         }
-        "number" => {
-            if !value.is_number() {
-                violations.push(ContractViolation {
-                    violation_type: ViolationType::TypeMismatch,
-                    path: json_path.to_string(),
-                    message: format!("Expected type 'number', got '{}'", actual_type),
-                    expected: Some("number".to_string()),
-                    actual: Some(actual_type.to_string()),
-                    severity: Severity::Error,
-                });
-            }
+        "number" if !value.is_number() => {
+            violations.push(ContractViolation {
+                violation_type: ViolationType::TypeMismatch,
+                path: json_path.to_string(),
+                message: format!("Expected type 'number', got '{}'", actual_type),
+                expected: Some("number".to_string()),
+                actual: Some(actual_type.to_string()),
+                severity: Severity::Error,
+            });
         }
-        "boolean" => {
-            if !value.is_boolean() {
-                violations.push(ContractViolation {
-                    violation_type: ViolationType::TypeMismatch,
-                    path: json_path.to_string(),
-                    message: format!("Expected type 'boolean', got '{}'", actual_type),
-                    expected: Some("boolean".to_string()),
-                    actual: Some(actual_type.to_string()),
-                    severity: Severity::Error,
-                });
-            }
+        "boolean" if !value.is_boolean() => {
+            violations.push(ContractViolation {
+                violation_type: ViolationType::TypeMismatch,
+                path: json_path.to_string(),
+                message: format!("Expected type 'boolean', got '{}'", actual_type),
+                expected: Some("boolean".to_string()),
+                actual: Some(actual_type.to_string()),
+                severity: Severity::Error,
+            });
         }
         _ => {}
     }
