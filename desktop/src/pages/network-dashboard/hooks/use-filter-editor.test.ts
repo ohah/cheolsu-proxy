@@ -63,9 +63,7 @@ describe("useFilterEditor", () => {
     const onApplyFilter = mock(() => {});
 
     const { result } = renderHook(() =>
-      useFilterEditor(
-        createParams({ onFilterQueryChange, onApplyFilter }),
-      ),
+      useFilterEditor(createParams({ onFilterQueryChange, onApplyFilter })),
     );
 
     act(() => {
@@ -79,9 +77,7 @@ describe("useFilterEditor", () => {
   test("handleBuilderStateChange가 builderState를 업데이트하고 쿼리를 동기화한다", () => {
     const onFilterQueryChange = mock(() => {});
 
-    const { result } = renderHook(() =>
-      useFilterEditor(createParams({ onFilterQueryChange })),
-    );
+    const { result } = renderHook(() => useFilterEditor(createParams({ onFilterQueryChange })));
 
     const newState = {
       conditions: [

@@ -228,7 +228,12 @@ describe("formValuesToAction", () => {
     });
 
     test("모든 rewrite target 타입을 지원한다", () => {
-      const targets = ["request_header", "response_header", "request_body", "response_body"] as const;
+      const targets = [
+        "request_header",
+        "response_header",
+        "request_body",
+        "response_body",
+      ] as const;
 
       for (const target of targets) {
         const result = formValuesToAction({
