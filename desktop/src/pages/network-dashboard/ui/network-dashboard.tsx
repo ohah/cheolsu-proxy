@@ -1,8 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
-import { save, open, confirm } from "@tauri-apps/plugin-dialog";
-import { invoke } from "@tauri-apps/api/core";
-import { toast } from "sonner";
-import { useLingui } from "@lingui/react/macro";
+import { useCallback, useMemo } from "react";
 
 import {
   TransactionDetails,
@@ -10,17 +6,10 @@ import {
   ReplayDialog,
   AdvancedRepeatDialog,
 } from "@/features/transaction-details";
-import { buildHarLog } from "@/features/har-export";
 import {
   QueryFilterEditor,
   QueryBuilder,
-  type EditorMode,
-  type BuilderState,
-  createEmptyCondition,
-  parsedQueryToBuilderState,
-  serializeBuilderState,
 } from "@/features/query-filter-editor";
-import { parseFilterQuery } from "@/shared/lib/query-parser";
 import { RuleFormDialog } from "@/features/intercept-rule-form";
 import { DiffView } from "@/features/traffic-diff";
 
@@ -32,28 +21,20 @@ import { ResizableHandle, ResizablePanel, ResizablePanelGroup, Button } from "@/
 import { useDefaultLayout } from "react-resizable-panels";
 import { Play, X, GitCompareArrows } from "lucide-react";
 
-import type { HttpTransaction, ProxyEventPayload } from "@/entities/proxy";
 import {
-  diffTransactionPairs,
-  saveSession,
-  loadSession,
-  importHarFile,
-  type DiffTransactionPair,
-  type TrafficDiff,
-} from "@/shared/api/proxy";
-
-import { useTransactionFilters, useResizablePanelController } from "../hooks";
+  useTransactionFilters,
+  useResizablePanelController,
+  useNetworkDialogs,
+  useNetworkExport,
+  useNetworkDiff,
+  useFilterEditor,
+} from "../hooks";
 import { useInterceptRuleDialogStore, useAppSettingsStore } from "@/shared/stores";
 import {
   useTransactionData,
   useTransactionActions,
   useTransactionSelection,
 } from "@/shared/hooks/use-transaction-selectors";
-
-function parseTransactionsJson(json: string): HttpTransaction[] {
-  const items: ProxyEventPayload[] = JSON.parse(json);
-  return items;
-}
 
 export const NetworkDashboard = () => {
   const { transactions, selectedTransaction, pinnedTransactionIds, checkedTransactionIds, paused } =
@@ -96,168 +77,52 @@ export const NetworkDashboard = () => {
     storage: localStorage,
   });
 
-  const { t } = useLingui();
+  const {
+    editorMode,
+    setEditorMode,
+    builderState,
+    handleModeChange,
+    handleBuilderStateChange,
+    handleBuilderApply,
+  } = useFilterEditor({ filterQueryString, onFilterQueryChange, onApplyFilter });
 
-  const [editorMode, setEditorMode] = useState<EditorMode>("code");
-  const [builderState, setBuilderState] = useState<BuilderState>(() => ({
-    conditions: [createEmptyCondition()],
-  }));
+  const {
+    sequenceReplayOpen,
+    setSequenceReplayOpen,
+    composeOpen,
+    setComposeOpen,
+    advancedRepeatTarget,
+    setAdvancedRepeatTarget,
+  } = useNetworkDialogs();
 
-  const handleModeChange = useCallback(
-    (newMode: EditorMode) => {
-      if (newMode === "builder") {
-        const parsed = parseFilterQuery(filterQueryString);
-        const state = parsedQueryToBuilderState(parsed);
-        if (state.conditions.length === 0) {
-          state.conditions = [createEmptyCondition()];
-        }
-        setBuilderState(state);
-      }
-      setEditorMode(newMode);
-    },
-    [filterQueryString],
+  const checkedTransactions = useMemo(
+    () => transactions.filter((t) => t.request?.id && checkedTransactionIds.has(t.request.id)),
+    [transactions, checkedTransactionIds],
   );
 
-  const handleBuilderStateChange = useCallback(
-    (state: BuilderState) => {
-      setBuilderState(state);
-      const query = serializeBuilderState(state);
-      onFilterQueryChange(query);
-    },
-    [onFilterQueryChange],
-  );
+  const {
+    busy,
+    handleExportHar,
+    handleSaveSession,
+    handleLoadSession,
+    handleImportHar,
+    handleExportOpenApi,
+  } = useNetworkExport({
+    transactions,
+    filteredTransactions,
+    checkedTransactions,
+    appliedQueryString,
+    setTransactions,
+    appendTransactions,
+  });
 
-  const handleBuilderApply = useCallback(
-    (query: string) => {
-      onFilterQueryChange(query);
-      onApplyFilter(query);
-    },
-    [onFilterQueryChange, onApplyFilter],
-  );
-
-  const [sequenceReplayOpen, setSequenceReplayOpen] = useState(false);
-  const [composeOpen, setComposeOpen] = useState(false);
-  const [advancedRepeatTarget, setAdvancedRepeatTarget] = useState<HttpTransaction | null>(null);
-  const [exporting, setExporting] = useState(false);
-  const [diffResult, setDiffResult] = useState<TrafficDiff | null>(null);
-  const [diffLoading, setDiffLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [loading, setLoading] = useState(false);
-
-  const busy = exporting || saving || loading;
-
-  const handleExportHar = useCallback(async () => {
-    if (filteredTransactions.length === 0 || busy) return;
-
-    try {
-      setExporting(true);
-
-      const filePath = await save({
-        defaultPath: "traffic.har",
-        filters: [{ name: "HAR", extensions: ["har"] }],
-      });
-      if (!filePath) return;
-
-      const har = await buildHarLog(filteredTransactions);
-      const content = JSON.stringify(har, null, 2);
-      await invoke("export_har_file", { path: filePath, content });
-      toast.success(t`HAR exported successfully`);
-    } catch (err) {
-      console.error("HAR export failed:", err);
-      toast.error(t`HAR export failed`);
-    } finally {
-      setExporting(false);
-    }
-  }, [filteredTransactions, busy, t]);
-
-  const handleSaveSession = useCallback(async () => {
-    if (filteredTransactions.length === 0 || busy) return;
-
-    try {
-      setSaving(true);
-
-      const filePath = await save({
-        defaultPath: "session.cheolsu",
-        filters: [{ name: "Cheolsu Session", extensions: ["cheolsu", "cheolsu.gz"] }],
-      });
-      if (!filePath) return;
-
-      const tuples = filteredTransactions.map((tx) => [tx.request, tx.response]);
-      const transactionsJson = JSON.stringify(tuples);
-      await saveSession(filePath, transactionsJson);
-      toast.success(t`Session saved successfully`);
-    } catch (err) {
-      console.error("Session save failed:", err);
-      toast.error(t`Session save failed`);
-    } finally {
-      setSaving(false);
-    }
-  }, [filteredTransactions, busy, t]);
-
-  const mergeOrReplaceTransactions = useCallback(
-    async (loaded: HttpTransaction[]) => {
-      if (transactions.length > 0) {
-        const shouldReplace = await confirm(
-          t`Replace ${transactions.length} existing transactions with ${loaded.length} new ones? Cancel to append instead.`,
-          { title: t`Load transactions`, kind: "warning" },
-        );
-        if (shouldReplace) {
-          setTransactions(loaded);
-        } else {
-          appendTransactions(loaded);
-        }
-      } else {
-        setTransactions(loaded);
-      }
-    },
-    [transactions.length, setTransactions, appendTransactions, t],
-  );
-
-  const handleLoadSession = useCallback(async () => {
-    if (loading) return;
-
-    try {
-      const filePath = await open({
-        filters: [{ name: "Cheolsu Session", extensions: ["cheolsu", "cheolsu.gz"] }],
-        multiple: false,
-      });
-      if (!filePath) return;
-
-      setLoading(true);
-      const result = await loadSession(filePath);
-      const loaded = parseTransactionsJson(result.transactions_json);
-      await mergeOrReplaceTransactions(loaded);
-      toast.success(t`Session loaded successfully`);
-    } catch (err) {
-      console.error("Session load failed:", err);
-      toast.error(t`Session load failed`);
-    } finally {
-      setLoading(false);
-    }
-  }, [loading, mergeOrReplaceTransactions, t]);
-
-  const handleImportHar = useCallback(async () => {
-    if (loading) return;
-
-    try {
-      const filePath = await open({
-        filters: [{ name: "HAR", extensions: ["har"] }],
-        multiple: false,
-      });
-      if (!filePath) return;
-
-      setLoading(true);
-      const json = await importHarFile(filePath);
-      const loaded = parseTransactionsJson(json);
-      await mergeOrReplaceTransactions(loaded);
-      toast.success(t`HAR imported successfully`);
-    } catch (err) {
-      console.error("HAR import failed:", err);
-      toast.error(t`HAR import failed`);
-    } finally {
-      setLoading(false);
-    }
-  }, [loading, mergeOrReplaceTransactions, t]);
+  const {
+    diffResult,
+    diffLoading,
+    canCompare,
+    handleCompare,
+    closeDiff,
+  } = useNetworkDiff({ checkedTransactionIds, checkedTransactions });
 
   const interceptRuleDialogOpen = useInterceptRuleDialogStore((s) => s.open);
   const interceptRuleInitialValues = useInterceptRuleDialogStore((s) => s.initialValues);
@@ -308,92 +173,6 @@ export const NetworkDashboard = () => {
       .filter((id): id is string => !!id);
     checkAllTransactions(allIds);
   }, [filteredTransactions, checkAllTransactions]);
-
-  const checkedTransactions = useMemo(
-    () => transactions.filter((t) => t.request?.id && checkedTransactionIds.has(t.request.id)),
-    [transactions, checkedTransactionIds],
-  );
-
-  const handleExportOpenApi = useCallback(async () => {
-    if (transactions.length === 0 || busy) return;
-
-    // 우선순위: 체크된 것 > 필터된 것 > 전체
-    const targetTransactions =
-      checkedTransactions.length > 0
-        ? checkedTransactions
-        : appliedQueryString
-          ? filteredTransactions
-          : transactions;
-
-    if (targetTransactions.length === 0) return;
-
-    try {
-      setExporting(true);
-
-      const filePath = await save({
-        defaultPath: "openapi.json",
-        filters: [{ name: "OpenAPI Spec", extensions: ["json", "yaml"] }],
-      });
-      if (!filePath) return;
-
-      const content = await invoke<string>("generate_openapi_from_transactions", {
-        transactionsJson: JSON.stringify(targetTransactions.map((tx) => [tx.request, tx.response])),
-      });
-      await invoke("export_har_file", { path: filePath, content });
-      toast.success(
-        t`OpenAPI spec exported successfully (${targetTransactions.length} transactions)`,
-      );
-    } catch (err) {
-      toast.error(t`OpenAPI export failed`);
-    } finally {
-      setExporting(false);
-    }
-  }, [transactions, filteredTransactions, checkedTransactions, appliedQueryString, busy, t]);
-
-  const canCompare = checkedTransactionIds.size === 2;
-
-  const handleCompare = useCallback(async () => {
-    if (!canCompare || diffLoading) return;
-
-    const checked = checkedTransactions;
-    if (checked.length !== 2) return;
-
-    const toPair = (tx: HttpTransaction): DiffTransactionPair => {
-      const req = tx.request;
-      const res = tx.response;
-      return {
-        request: req
-          ? {
-              method: req.method,
-              uri: req.uri,
-              headers: Object.entries(req.headers ?? {}),
-              body: req.body_json != null ? JSON.stringify(req.body_json) : undefined,
-              body_size: req.body_size ?? 0,
-              data_type: req.data_type,
-            }
-          : undefined,
-        response: res
-          ? {
-              status: res.status,
-              headers: Object.entries(res.headers ?? {}),
-              body: res.body_json != null ? JSON.stringify(res.body_json) : undefined,
-              body_size: res.body_size ?? 0,
-              data_type: res.data_type,
-            }
-          : undefined,
-      };
-    };
-
-    try {
-      setDiffLoading(true);
-      const result = await diffTransactionPairs(toPair(checked[0]), toPair(checked[1]));
-      setDiffResult(result);
-    } catch (err) {
-      console.error("Diff failed:", err);
-    } finally {
-      setDiffLoading(false);
-    }
-  }, [canCompare, diffLoading, checkedTransactions]);
 
   const networkTableProps = {
     transactions: filteredTransactions,
@@ -590,7 +369,7 @@ export const NetworkDashboard = () => {
 
           {diffResult && (
             <div className="absolute inset-0 z-20 bg-background border rounded-lg shadow-xl overflow-hidden">
-              <DiffView diff={diffResult} onClose={() => setDiffResult(null)} />
+              <DiffView diff={diffResult} onClose={closeDiff} />
             </div>
           )}
         </div>
