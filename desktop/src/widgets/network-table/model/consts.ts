@@ -27,7 +27,7 @@ export function buildGridTemplate(visibleColumns: Set<ColumnKey>): string {
 }
 
 export const ROW_BASE_CLASSES =
-  "grid gap-4 px-3 py-3 border-b border-border border-l-4 border-l-transparent cursor-pointer hover:bg-muted/50 transition-colors";
+  "grid items-center gap-4 px-3 py-3 border-b border-border border-l-4 border-l-transparent cursor-pointer hover:bg-muted/50 transition-colors";
 export const SELECTED_ROW_CLASSES = "bg-accent/10 !border-l-accent";
 export const PINNED_ROW_CLASSES = "!border-l-slate-600";
 export const HEADER_CLASSES = "text-xs font-medium text-muted-foreground uppercase tracking-wide";
