@@ -14,5 +14,6 @@ export * from "./breakpoint-store";
 export * from "./host-mapping-store";
 export * from "./reverse-proxy-store";
 export * from "./app-settings-store";
+export * from "./filter-preset-store";
 export * from "./graphql-store";
 export * from "./grpc-store";
