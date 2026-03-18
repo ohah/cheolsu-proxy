@@ -26,7 +26,7 @@ pub(crate) struct SharedDaemonState {
     pub(crate) event_tx: broadcast::Sender<String>,
     pub(crate) ws_registry: WebSocketRegistry,
     pub(crate) script_handle: scripting::ScriptHandle,
-    pub(crate) quick_settings: Arc<tokio::sync::RwLock<crate::handler::QuickSettings>>,
+    pub(crate) quick_settings: Arc<std::sync::atomic::AtomicU8>,
     pub(crate) proxy_auth: Arc<tokio::sync::RwLock<Option<ProxyAuthConfig>>>,
     pub(crate) metrics: DaemonMetrics,
     pub(crate) client_count: Arc<std::sync::atomic::AtomicUsize>,

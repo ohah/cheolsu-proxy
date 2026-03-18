@@ -7,7 +7,7 @@ use tracing::{error, warn};
 use super::WatchReceivers;
 use crate::breakpoint::BreakpointManager;
 use crate::contract_validator::ContractValidator;
-use crate::handler::QuickSettings;
+
 use crate::proxy_runner::run_proxy;
 use proxyapi_v2::metrics::MetricsCollector;
 use proxyapi_v2::websocket_registry::WebSocketRegistry;
@@ -21,7 +21,7 @@ pub(super) fn spawn_proxy_task(
     breakpoint_manager: BreakpointManager,
     ws_registry: WebSocketRegistry,
     script_handle: scripting::ScriptHandle,
-    quick_settings: Arc<tokio::sync::RwLock<QuickSettings>>,
+    quick_settings: Arc<std::sync::atomic::AtomicU8>,
     proxy_auth: Arc<tokio::sync::RwLock<Option<crate::protocol::ProxyAuthConfig>>>,
     max_concurrent_connections: Option<usize>,
     max_body_size: Option<usize>,

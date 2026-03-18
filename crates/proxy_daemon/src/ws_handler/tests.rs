@@ -1,6 +1,6 @@
 use super::*;
 use crate::handler::ProxyConfig;
-use crate::handler::{InterceptEngine, LoggingHandler, QuickSettings, RequestState};
+use crate::handler::{InterceptEngine, LoggingHandler, RequestState};
 use crate::sse_handler::SseState;
 use bytes::Bytes;
 use proxy_v2_models::{WsDirection, WsMessageType};
@@ -131,7 +131,7 @@ fn emit_ws_event_sends_to_channel() {
         config: ProxyConfig {
             cache_dir: None,
             ca_cert_der: None,
-            quick_settings: Arc::new(tokio::sync::RwLock::new(QuickSettings::default())),
+            quick_settings: Arc::new(std::sync::atomic::AtomicU8::new(0)),
             proxy_auth: Arc::new(tokio::sync::RwLock::new(None)),
             max_body_size: None,
         },
@@ -202,7 +202,7 @@ fn emit_ws_event_increments_sequence() {
         config: ProxyConfig {
             cache_dir: None,
             ca_cert_der: None,
-            quick_settings: Arc::new(tokio::sync::RwLock::new(QuickSettings::default())),
+            quick_settings: Arc::new(std::sync::atomic::AtomicU8::new(0)),
             proxy_auth: Arc::new(tokio::sync::RwLock::new(None)),
             max_body_size: None,
         },

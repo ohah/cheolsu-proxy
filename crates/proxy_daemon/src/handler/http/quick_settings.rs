@@ -3,19 +3,26 @@ use proxyapi_v2::{
     Body,
 };
 
+use super::super::config::QuickSettings;
 use super::super::LoggingHandler;
 
 impl LoggingHandler {
+    /// 현재 QuickSettings를 lock-free로 읽기
+    fn quick_settings(&self) -> QuickSettings {
+        QuickSettings::from_bits(
+            self.config
+                .quick_settings
+                .load(std::sync::atomic::Ordering::Relaxed),
+        )
+    }
+
     /// No Caching / Block Cookies / No Gzip 설정을 요청에 적용
-    pub(crate) async fn apply_quick_settings_on_request(
-        &self,
-        mut req: Request<Body>,
-    ) -> Request<Body> {
+    pub(crate) fn apply_quick_settings_on_request(&self, mut req: Request<Body>) -> Request<Body> {
         use proxyapi_v2::hyper::header::{
             ACCEPT_ENCODING, CACHE_CONTROL, COOKIE, IF_MODIFIED_SINCE, IF_NONE_MATCH, PRAGMA,
         };
 
-        let settings = { *self.config.quick_settings.read().await };
+        let settings = self.quick_settings();
 
         if settings.no_caching {
             req.headers_mut().remove(IF_MODIFIED_SINCE);
@@ -40,13 +47,13 @@ impl LoggingHandler {
     }
 
     /// Block Cookies 설정을 응답에 적용 (Set-Cookie 제거)
-    pub(crate) async fn apply_quick_settings_on_response(
+    pub(crate) fn apply_quick_settings_on_response(
         &self,
         mut res: Response<Body>,
     ) -> Response<Body> {
         use proxyapi_v2::hyper::header::SET_COOKIE;
 
-        let settings = { *self.config.quick_settings.read().await };
+        let settings = self.quick_settings();
 
         if settings.block_cookies {
             res.headers_mut().remove(SET_COOKIE);

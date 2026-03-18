@@ -188,7 +188,7 @@ impl HttpHandler for LoggingHandler {
         let restored_req = self.apply_reverse_proxy_if_needed(restored_req).await;
         let restored_req = self.apply_host_mapping_if_needed(restored_req).await;
 
-        let restored_req = self.apply_quick_settings_on_request(restored_req).await;
+        let restored_req = self.apply_quick_settings_on_request(restored_req);
 
         let result = self
             .apply_request_intercept(restored_req, &url, &method)
@@ -226,7 +226,7 @@ impl HttpHandler for LoggingHandler {
         }
 
         let res = self.apply_response_intercept_if_needed(res).await;
-        let res = self.apply_quick_settings_on_response(res).await;
+        let res = self.apply_quick_settings_on_response(res);
         let res = self.apply_script_on_response(res).await;
 
         let res = if let Some(req) = &self.request.req {

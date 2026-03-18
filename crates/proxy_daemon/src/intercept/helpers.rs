@@ -27,8 +27,9 @@ pub(crate) fn cached_regex(pattern: &str) -> Result<Regex, regex::Error> {
             return Ok(re.clone());
         }
         let re = Regex::new(pattern)?;
-        cache.put(pattern.to_string(), re.clone());
-        Ok(re)
+        let result = re.clone();
+        cache.put(pattern.to_string(), re);
+        Ok(result)
     })
 }
 
