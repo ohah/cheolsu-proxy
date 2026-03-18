@@ -38,8 +38,7 @@ import {
 } from "@/shared/ui";
 import { getStatusColor } from "@/entities/transaction";
 import { uint8ArrayToString } from "../lib";
-
-const HTTP_METHODS = ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"] as const;
+import { HTTP_METHODS } from "@/features/query-filter-editor/model/constants";
 
 interface ReplayDialogProps {
   transaction?: HttpTransaction;

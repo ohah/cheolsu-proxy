@@ -26,6 +26,7 @@ import {
   defaultMapRuleFormValues,
   type MapRuleFormValues,
 } from "@/entities/intercept-rule";
+import { HTTP_METHODS } from "@/features/query-filter-editor/model/constants";
 import { MapLocalFields } from "./map-local-fields";
 import { MapRemoteFields } from "./map-remote-fields";
 
@@ -36,8 +37,6 @@ interface MapRuleFormDialogProps {
   onOpenChange: (open: boolean) => void;
   editingRule: InterceptRule | null;
 }
-
-const HTTP_METHODS = ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"];
 
 const editingRuleToFormValues = (rule: InterceptRule): MapRuleFormValues => {
   const base = {
