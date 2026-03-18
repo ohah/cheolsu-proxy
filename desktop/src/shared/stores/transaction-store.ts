@@ -2,7 +2,7 @@ import { create } from "zustand";
 
 import type { HttpTransaction } from "@/entities/proxy";
 
-function getTransactionSize(t: HttpTransaction): number {
+export function getTransactionSize(t: HttpTransaction): number {
   return (t.request?.body_size ?? 0) + (t.response?.body_size ?? 0);
 }
 
@@ -17,6 +17,7 @@ interface TransactionStoreState {
   addTransaction: (transaction: HttpTransaction) => void;
   clearTransactions: () => void;
   deleteTransaction: (id: string) => void;
+  deleteTransactionsBatch: (ids: Set<string>) => void;
   setSelectedTransaction: (transaction: HttpTransaction | null) => void;
   toggleSelectedTransaction: (transaction: HttpTransaction) => void;
   clearSelectedTransaction: () => void;
@@ -75,6 +76,35 @@ export const useTransactionStore = create<TransactionStoreState>()((set) => ({
       checkedTransactionIds.delete(id);
       return {
         transactions: state.transactions.filter((t) => t.request?.id !== id),
+        transactionIds,
+        totalSizeBytes: Math.max(0, state.totalSizeBytes - removedSize),
+        pinnedTransactionIds,
+        checkedTransactionIds,
+      };
+    }),
+
+  deleteTransactionsBatch: (ids) =>
+    set((state) => {
+      if (ids.size === 0) return state;
+      let removedSize = 0;
+      const transactions = state.transactions.filter((t) => {
+        const id = t.request?.id;
+        if (id && ids.has(id)) {
+          removedSize += getTransactionSize(t);
+          return false;
+        }
+        return true;
+      });
+      const transactionIds = new Set(state.transactionIds);
+      const pinnedTransactionIds = new Set(state.pinnedTransactionIds);
+      const checkedTransactionIds = new Set(state.checkedTransactionIds);
+      for (const id of ids) {
+        transactionIds.delete(id);
+        pinnedTransactionIds.delete(id);
+        checkedTransactionIds.delete(id);
+      }
+      return {
+        transactions,
         transactionIds,
         totalSizeBytes: Math.max(0, state.totalSizeBytes - removedSize),
         pinnedTransactionIds,
