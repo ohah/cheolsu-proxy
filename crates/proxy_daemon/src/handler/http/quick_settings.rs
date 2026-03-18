@@ -29,10 +29,12 @@ impl LoggingHandler {
             req.headers_mut().remove(IF_NONE_MATCH);
             req.headers_mut().insert(
                 CACHE_CONTROL,
-                "no-cache, no-store, must-revalidate".parse().unwrap(),
+                "no-cache, no-store, must-revalidate"
+                    .parse()
+                    .expect("static header value"),
             );
             req.headers_mut()
-                .insert(PRAGMA, "no-cache".parse().unwrap());
+                .insert(PRAGMA, "no-cache".parse().expect("static header value"));
         }
 
         if settings.block_cookies {

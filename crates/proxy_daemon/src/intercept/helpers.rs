@@ -15,7 +15,7 @@ const REGEX_CACHE_SIZE: usize = 256;
 // 캐시가 가득 차면 가장 오래 사용되지 않은 항목부터 제거(LRU eviction)된다.
 thread_local! {
     static REGEX_CACHE: RefCell<LruCache<String, Regex>> =
-        RefCell::new(LruCache::new(NonZeroUsize::new(REGEX_CACHE_SIZE).unwrap()));
+        RefCell::new(LruCache::new(NonZeroUsize::new(REGEX_CACHE_SIZE).expect("REGEX_CACHE_SIZE is non-zero")));
 }
 
 /// 캐싱된 정규식 컴파일. 동일 패턴은 스레드 로컬 LRU 캐시에서 반환한다.

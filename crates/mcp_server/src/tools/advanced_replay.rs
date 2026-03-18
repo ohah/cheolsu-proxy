@@ -165,7 +165,13 @@ impl CheolsuMcpServer {
             let res = results.clone();
 
             let handle = tokio::spawn(async move {
-                let _permit = sem.acquire().await.unwrap();
+                let _permit = match sem.acquire().await {
+                    Ok(permit) => permit,
+                    Err(_) => {
+                        tracing::warn!("semaphore closed during replay — skipping iteration");
+                        return;
+                    }
+                };
 
                 if delay_ms > 0 {
                     tokio::time::sleep(std::time::Duration::from_millis(delay_ms)).await;
