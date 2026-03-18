@@ -5,18 +5,13 @@ import { X } from "lucide-react";
 import { Editor } from "@monaco-editor/react";
 import { useTheme } from "next-themes";
 import { Button, Tooltip, TooltipTrigger, TooltipContent } from "@/shared/ui";
+import { formatBytes } from "@/shared/lib/format-bytes";
 import { formatTimeFull } from "@/shared/lib/format-time";
 import type { SseEventInfo } from "@/entities/sse";
 
 interface SseMessageDetailProps {
   event: SseEventInfo;
   onClose: () => void;
-}
-
-function formatSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 function detectLanguage(data: string): string {
@@ -55,7 +50,7 @@ export const SseMessageDetail = memo(({ event, onClose }: SseMessageDetailProps)
   const metaItems = useMemo(() => {
     const items = [
       { label: t`Event Type`, value: event.event_type ?? "message" },
-      { label: t`Size`, value: formatSize(event.size) },
+      { label: t`Size`, value: formatBytes(event.size) },
       { label: t`Time`, value: formatTimeFull(event.time) },
       { label: t`Connection`, value: event.connection_id },
       { label: t`Sequence`, value: `#${event.sequence}` },
@@ -79,7 +74,7 @@ export const SseMessageDetail = memo(({ event, onClose }: SseMessageDetailProps)
           <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
             {event.event_type ?? "message"}
           </span>
-          <span className="text-muted-foreground">{formatSize(event.size)}</span>
+          <span className="text-muted-foreground">{formatBytes(event.size)}</span>
         </div>
         <div className="flex items-center gap-1">
           <Tooltip>
