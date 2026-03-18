@@ -2,9 +2,14 @@ import { create } from "zustand";
 
 import type { HttpTransaction } from "@/entities/proxy";
 
+function getTransactionSize(t: HttpTransaction): number {
+  return (t.request?.body_size ?? 0) + (t.response?.body_size ?? 0);
+}
+
 interface TransactionStoreState {
   transactions: HttpTransaction[];
   transactionIds: Set<string>;
+  totalSizeBytes: number;
   selectedTransaction: HttpTransaction | null;
   pinnedTransactionIds: Set<string>;
   checkedTransactionIds: Set<string>;
@@ -28,6 +33,7 @@ interface TransactionStoreState {
 export const useTransactionStore = create<TransactionStoreState>()((set) => ({
   transactions: [],
   transactionIds: new Set(),
+  totalSizeBytes: 0,
   selectedTransaction: null,
   pinnedTransactionIds: new Set(),
   checkedTransactionIds: new Set(),
@@ -39,9 +45,11 @@ export const useTransactionStore = create<TransactionStoreState>()((set) => ({
       if (id && state.transactionIds.has(id)) return state;
       const transactionIds = new Set(state.transactionIds);
       if (id) transactionIds.add(id);
+      const newSize = getTransactionSize(transaction);
       return {
         transactions: [...state.transactions, transaction],
         transactionIds,
+        totalSizeBytes: state.totalSizeBytes + newSize,
       };
     }),
 
@@ -49,6 +57,7 @@ export const useTransactionStore = create<TransactionStoreState>()((set) => ({
     set({
       transactions: [],
       transactionIds: new Set(),
+      totalSizeBytes: 0,
       selectedTransaction: null,
       pinnedTransactionIds: new Set(),
       checkedTransactionIds: new Set(),
@@ -56,6 +65,8 @@ export const useTransactionStore = create<TransactionStoreState>()((set) => ({
 
   deleteTransaction: (id) =>
     set((state) => {
+      const target = state.transactions.find((t) => t.request?.id === id);
+      const removedSize = target ? getTransactionSize(target) : 0;
       const transactionIds = new Set(state.transactionIds);
       transactionIds.delete(id);
       const pinnedTransactionIds = new Set(state.pinnedTransactionIds);
@@ -65,6 +76,7 @@ export const useTransactionStore = create<TransactionStoreState>()((set) => ({
       return {
         transactions: state.transactions.filter((t) => t.request?.id !== id),
         transactionIds,
+        totalSizeBytes: Math.max(0, state.totalSizeBytes - removedSize),
         pinnedTransactionIds,
         checkedTransactionIds,
       };
@@ -116,6 +128,7 @@ export const useTransactionStore = create<TransactionStoreState>()((set) => ({
       transactionIds: new Set(
         transactions.map((t) => t.request?.id).filter((id): id is string => !!id),
       ),
+      totalSizeBytes: transactions.reduce((acc, t) => acc + getTransactionSize(t), 0),
       selectedTransaction: null,
       pinnedTransactionIds: new Set(),
       checkedTransactionIds: new Set(),
@@ -131,9 +144,11 @@ export const useTransactionStore = create<TransactionStoreState>()((set) => ({
         return true;
       });
       if (filtered.length === 0) return state;
+      const addedSize = filtered.reduce((acc, t) => acc + getTransactionSize(t), 0);
       return {
         transactions: [...state.transactions, ...filtered],
         transactionIds,
+        totalSizeBytes: state.totalSizeBytes + addedSize,
       };
     }),
 

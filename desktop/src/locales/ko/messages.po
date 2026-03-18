@@ -280,11 +280,11 @@ msgstr "클라이언트 IP 주소에 라벨을 지정하여 쉽게 식별하고 
 msgid "Authentication"
 msgstr "인증"
 
-#: src/pages/settings/ui/components/general-settings.tsx:244
+#: src/pages/settings/ui/components/general-settings.tsx:275
 msgid "Auto Save Session"
 msgstr "자동 세션 저장"
 
-#: src/pages/settings/ui/components/general-settings.tsx:247
+#: src/pages/settings/ui/components/general-settings.tsx:278
 msgid "Automatically save the current session when the app closes and restore it on next launch"
 msgstr "앱 종료 시 현재 세션을 자동으로 저장하고 다음 실행 시 복원합니다"
 
@@ -338,7 +338,7 @@ msgstr "블랙리스트 (제외)"
 msgid "Block"
 msgstr "차단"
 
-#: src/pages/settings/ui/components/general-settings.tsx:208
+#: src/pages/settings/ui/components/general-settings.tsx:239
 msgid "Block Cookies"
 msgstr "쿠키 차단"
 
@@ -352,8 +352,8 @@ msgstr "쿠키 차단"
 msgid "Body"
 msgstr "본문"
 
-#: src/pages/settings/ui/components/general-settings.tsx:145
-#: src/pages/settings/ui/components/general-settings.tsx:146
+#: src/pages/settings/ui/components/general-settings.tsx:176
+#: src/pages/settings/ui/components/general-settings.tsx:177
 msgid "Bottom"
 msgstr "하단"
 
@@ -424,6 +424,14 @@ msgstr "CA 인증서 파일 (선택사항)"
 msgid "CA Key File"
 msgstr "CA 키 파일"
 
+#: src/pages/settings/ui/components/general-settings.tsx:347
+msgid "Cache Limit"
+msgstr "캐시 한도"
+
+#: src/pages/settings/ui/components/general-settings.tsx:319
+msgid "Cache Management"
+msgstr "캐시 관리"
+
 #: src/pages/grpc-dashboard/ui/grpc-dashboard.tsx:88
 msgid "calls"
 msgstr "호출"
@@ -488,17 +496,25 @@ msgstr "변경"
 msgid "Cheolsu Proxy Logo"
 msgstr "Cheolsu Proxy 로고"
 
-#: src/pages/settings/ui/components/general-settings.tsx:129
+#: src/pages/settings/ui/components/general-settings.tsx:160
 msgid "Choose where the transaction details panel appears"
 msgstr "트랜잭션 상세 패널의 표시 위치를 선택하세요"
 
-#: src/pages/settings/ui/components/general-settings.tsx:159
+#: src/pages/settings/ui/components/general-settings.tsx:190
 msgid "Choose which columns to display in the network table"
 msgstr "네트워크 테이블에 표시할 컬럼을 선택하세요"
 
 #: src/shared/app-sidebar/ui/sidebar-mcp.tsx:104
 msgid "Claude Code (CLI)"
 msgstr "Claude Code (CLI)"
+
+#: src/pages/settings/ui/components/general-settings.tsx:405
+msgid "Cleaned!"
+msgstr "정리 완료!"
+
+#: src/pages/settings/ui/components/general-settings.tsx:403
+msgid "Cleaning..."
+msgstr "정리 중..."
 
 #: src/features/query-filter-editor/ui/query-builder.tsx:367
 #: src/pages/log-viewer/ui/logs-page.tsx:262
@@ -524,10 +540,18 @@ msgstr "전체 삭제"
 msgid "Clear all transactions"
 msgstr "모든 트랜잭션 삭제"
 
+#: src/pages/settings/ui/components/general-settings.tsx:407
+msgid "Clear File Cache"
+msgstr "파일 캐시 삭제"
+
 #: src/pages/graphql-dashboard/ui/graphql-dashboard.tsx:114
 #: src/pages/grpc-dashboard/ui/grpc-dashboard.tsx:109
 msgid "Clear selection"
 msgstr "선택 해제"
+
+#: src/pages/settings/ui/components/general-settings.tsx:385
+msgid "Clear Transaction Records"
+msgstr "트랜잭션 기록 삭제"
 
 #. placeholder {0}: transactions.length
 #: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:138
@@ -687,6 +711,10 @@ msgstr "cURL"
 msgid "Curl command copied to clipboard"
 msgstr "Curl 명령어가 클립보드에 복사되었습니다"
 
+#: src/pages/settings/ui/components/general-settings.tsx:331
+msgid "Current Usage"
+msgstr "현재 사용량"
+
 #: src/features/intercept-rule-form/ui/throttle-action-fields.tsx:66
 #: src/features/intercept-rule-form/ui/throttle-action-fields.tsx:66
 msgid "Custom"
@@ -700,7 +728,7 @@ msgstr "커스텀 본문"
 msgid "Custom CA Certificate"
 msgstr "커스텀 CA 인증서"
 
-#: src/pages/settings/ui/components/general-settings.tsx:109
+#: src/pages/settings/ui/components/general-settings.tsx:140
 msgid "Dark"
 msgstr "다크"
 
@@ -752,7 +780,7 @@ msgstr "규칙 삭제"
 msgid "Delete Transaction"
 msgstr "트랜잭션 삭제"
 
-#: src/pages/settings/ui/components/general-settings.tsx:126
+#: src/pages/settings/ui/components/general-settings.tsx:157
 msgid "Details Panel Layout"
 msgstr "상세 패널 레이아웃"
 
@@ -777,7 +805,7 @@ msgstr "비활성"
 msgid "Disconnected"
 msgstr "연결 끊김"
 
-#: src/pages/settings/ui/components/general-settings.tsx:269
+#: src/pages/settings/ui/components/general-settings.tsx:300
 msgid "Display CONNECT tunnel requests in the network list"
 msgstr "CONNECT 터널 요청을 네트워크 목록에 표시합니다"
 
@@ -1246,6 +1274,10 @@ msgstr "임포트 완료"
 msgid "Importing..."
 msgstr "임포트 중..."
 
+#: src/pages/settings/ui/components/general-settings.tsx:334
+msgid "In-memory transaction data size"
+msgstr "메모리 내 트랜잭션 데이터 크기"
+
 #: src/pages/script/ui/script-page.tsx:170
 msgid "Inactive"
 msgstr "비활성"
@@ -1339,7 +1371,7 @@ msgstr "키 파일"
 msgid "Label"
 msgstr "라벨"
 
-#: src/pages/settings/ui/components/general-settings.tsx:71
+#: src/pages/settings/ui/components/general-settings.tsx:102
 msgid "Language"
 msgstr "언어"
 
@@ -1360,7 +1392,7 @@ msgstr "지연 (ms)"
 msgid "Learned TLS Strategies"
 msgstr "학습된 TLS 전략"
 
-#: src/pages/settings/ui/components/general-settings.tsx:108
+#: src/pages/settings/ui/components/general-settings.tsx:139
 msgid "Light"
 msgstr "라이트"
 
@@ -1428,6 +1460,10 @@ msgstr "논리 OR:"
 #: src/shared/app-sidebar/model/consts.ts:134
 msgid "Logs"
 msgstr "로그"
+
+#: src/pages/settings/ui/components/general-settings.tsx:322
+msgid "Manage network transaction storage and file cache"
+msgstr "네트워크 트랜잭션 저장소 및 파일 캐시 관리"
 
 #: src/shared/app-sidebar/model/consts.ts:66
 msgid "Manage request/response intercept rules"
@@ -1503,6 +1539,10 @@ msgstr "매칭 패턴"
 #: src/features/transaction-details/ui/transaction-validation.tsx:108
 msgid "Matched"
 msgstr "일치"
+
+#: src/pages/settings/ui/components/general-settings.tsx:350
+msgid "Maximum memory for network transaction records"
+msgstr "네트워크 트랜잭션 기록 최대 메모리"
 
 #: src/shared/app-sidebar/ui/sidebar-mcp.tsx:56
 msgid "MCP configuration copied to clipboard"
@@ -1601,7 +1641,7 @@ msgstr "협상된 ALPN"
 msgid "Network"
 msgstr "네트워크"
 
-#: src/pages/settings/ui/components/general-settings.tsx:156
+#: src/pages/settings/ui/components/general-settings.tsx:187
 msgid "Network Table Columns"
 msgstr "네트워크 테이블 컬럼"
 
@@ -1629,7 +1669,7 @@ msgstr "활성 WebSocket 연결 없음"
 msgid "No breakpoint rules"
 msgstr "Breakpoint 규칙 없음"
 
-#: src/pages/settings/ui/components/general-settings.tsx:191
+#: src/pages/settings/ui/components/general-settings.tsx:222
 msgid "No Caching"
 msgstr "캐시 비활성화"
 
@@ -1637,7 +1677,7 @@ msgstr "캐시 비활성화"
 msgid "No captured traffic with responses available. Capture some traffic first."
 msgstr "응답이 있는 캡처된 트래픽이 없습니다. 먼저 트래픽을 캡처하세요."
 
-#: src/features/query-filter-editor/ui/query-filter-editor.tsx:67
+#: src/features/query-filter-editor/ui/query-filter-editor.tsx:76
 msgid "No conditions"
 msgstr "조건 없음"
 
@@ -1669,7 +1709,7 @@ msgstr "에러 엔드포인트가 감지되지 않았습니다"
 msgid "No errors detected"
 msgstr "에러가 감지되지 않았습니다"
 
-#: src/pages/settings/ui/components/general-settings.tsx:227
+#: src/pages/settings/ui/components/general-settings.tsx:258
 msgid "No Gzip"
 msgstr "Gzip 비활성화"
 
@@ -1998,7 +2038,7 @@ msgstr "프리셋 이름"
 msgid "Press a key combination..."
 msgstr "키 조합을 눌러주세요..."
 
-#: src/pages/settings/ui/components/general-settings.tsx:194
+#: src/pages/settings/ui/components/general-settings.tsx:225
 msgid "Prevent caching by removing conditional headers and adding no-cache directives"
 msgstr "조건부 헤더를 제거하고 no-cache 지시어를 추가하여 캐싱을 방지합니다"
 
@@ -2054,11 +2094,11 @@ msgstr "쿼리 문법 가이드"
 msgid "Query syntax help"
 msgstr "쿼리 문법 도움말"
 
-#: src/pages/settings/ui/components/general-settings.tsx:180
+#: src/pages/settings/ui/components/general-settings.tsx:211
 msgid "Quick Settings"
 msgstr "빠른 설정"
 
-#: src/pages/settings/ui/components/general-settings.tsx:183
+#: src/pages/settings/ui/components/general-settings.tsx:214
 msgid "Quick toggles for common proxy behaviors"
 msgstr "자주 사용하는 프록시 동작을 빠르게 전환합니다"
 
@@ -2106,11 +2146,11 @@ msgstr "외부 기기 인증서"
 msgid "Remove"
 msgstr "삭제"
 
-#: src/pages/settings/ui/components/general-settings.tsx:230
+#: src/pages/settings/ui/components/general-settings.tsx:261
 msgid "Remove Accept-Encoding header from requests to prevent compressed responses"
 msgstr "압축된 응답을 방지하기 위해 요청에서 Accept-Encoding 헤더를 제거합니다"
 
-#: src/pages/settings/ui/components/general-settings.tsx:211
+#: src/pages/settings/ui/components/general-settings.tsx:242
 msgid "Remove Cookie headers from requests and Set-Cookie headers from responses"
 msgstr "요청에서 Cookie 헤더를 제거하고 응답에서 Set-Cookie 헤더를 제거합니다"
 
@@ -2321,8 +2361,8 @@ msgstr "Host 재작성"
 msgid "Rewrite Host header to backend address"
 msgstr "Host 헤더를 백엔드 주소로 재작성"
 
-#: src/pages/settings/ui/components/general-settings.tsx:142
-#: src/pages/settings/ui/components/general-settings.tsx:143
+#: src/pages/settings/ui/components/general-settings.tsx:173
+#: src/pages/settings/ui/components/general-settings.tsx:174
 msgid "Right"
 msgstr "오른쪽"
 
@@ -2605,7 +2645,7 @@ msgstr "SHA-256 지문"
 msgid "Shortcut Key"
 msgstr "단축키"
 
-#: src/pages/settings/ui/components/general-settings.tsx:266
+#: src/pages/settings/ui/components/general-settings.tsx:297
 msgid "Show CONNECT Requests"
 msgstr "CONNECT 요청 표시"
 
@@ -2711,15 +2751,15 @@ msgstr "PEM 인코딩된 인증서 및 키를 지원합니다 (RSA, ECDSA, PKCS#
 msgid "Supports wildcard patterns: * matches any string, ? matches a single character"
 msgstr "와일드카드 패턴 지원: *는 모든 문자열, ?는 단일 문자를 매칭합니다"
 
-#: src/features/query-filter-editor/ui/query-filter-editor.tsx:194
+#: src/features/query-filter-editor/ui/query-filter-editor.tsx:198
 msgid "Switch to Builder mode"
 msgstr "빌더 모드로 전환"
 
-#: src/features/query-filter-editor/ui/query-filter-editor.tsx:93
+#: src/features/query-filter-editor/ui/query-filter-editor.tsx:100
 msgid "Switch to Code mode"
 msgstr "코드 모드로 전환"
 
-#: src/pages/settings/ui/components/general-settings.tsx:107
+#: src/pages/settings/ui/components/general-settings.tsx:138
 msgid "System"
 msgstr "시스템"
 
@@ -2759,7 +2799,7 @@ msgstr "인증서는 CA 인증서여야 합니다 (BasicConstraints CA=true). �
 msgid "The DER certificate file will download automatically"
 msgstr "DER 인증서 파일이 자동으로 다운로드됩니다"
 
-#: src/pages/settings/ui/components/general-settings.tsx:92
+#: src/pages/settings/ui/components/general-settings.tsx:123
 msgid "Theme"
 msgstr "테마"
 
@@ -2894,6 +2934,7 @@ msgstr "범용 형식"
 
 #: src/features/intercept-rule-form/ui/throttle-action-fields.tsx:36
 #: src/features/intercept-rule-form/ui/throttle-action-fields.tsx:42
+#: src/pages/settings/ui/components/general-settings.tsx:365
 #: src/pages/settings/ui/components/throttle-section.tsx:62
 #: src/pages/settings/ui/components/throttle-section.tsx:70
 msgid "Unlimited"

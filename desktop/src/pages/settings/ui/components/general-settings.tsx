@@ -1,12 +1,23 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
 import { useTheme } from "next-themes";
 import { loadCatalog, locales, type Locale } from "@/shared/lib/i18n";
 import { useAppSettingsStore, type DetailsPanelLayout } from "@/shared/stores/app-settings-store";
-import { Switch, Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/shared/ui";
+import { useTransactionStore } from "@/shared/stores";
+import {
+  Switch,
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+  Button,
+} from "@/shared/ui";
 import { TABLE_COLUMNS, type ColumnKey } from "@/widgets/network-table/model";
 import { CUSTOM_THEME_KEYS } from "@/features/query-filter-editor/model/themes";
+import { formatBytes } from "@/shared/lib/format-bytes";
+import { cleanOldProxyCache } from "@/shared/api/proxy";
 import { useSettingsForm } from "../settings-form";
 
 /** Theme display names — custom themes use their key with title case as label (proper nouns, not translated) */
@@ -25,6 +36,14 @@ const THEME_OPTIONS = [
   ...CUSTOM_THEME_KEYS.map((key) => ({ value: key, label: CUSTOM_THEME_LABELS[key] ?? key })),
 ] as const;
 
+const CACHE_LIMIT_OPTIONS = [
+  { value: 1, label: "1 GB" },
+  { value: 2, label: "2 GB" },
+  { value: 5, label: "5 GB" },
+  { value: 10, label: "10 GB" },
+  { value: 0, label: "Unlimited" },
+] as const;
+
 export function GeneralSettings() {
   const { t } = useLingui();
   const { theme, setTheme } = useTheme();
@@ -36,6 +55,11 @@ export function GeneralSettings() {
   const storedColumns = useAppSettingsStore((s) => s.visibleColumns);
   const setStoredColumns = useAppSettingsStore((s) => s.setVisibleColumns);
   const visibleColumnsSet = useMemo(() => new Set(storedColumns as ColumnKey[]), [storedColumns]);
+  const cacheLimitBytes = useAppSettingsStore((s) => s.cacheLimitBytes);
+  const setCacheLimitBytes = useAppSettingsStore((s) => s.setCacheLimitBytes);
+  const totalSizeBytes = useTransactionStore((s) => s.totalSizeBytes);
+  const clearTransactions = useTransactionStore((s) => s.clearTransactions);
+  const [cacheCleanStatus, setCacheCleanStatus] = useState<"idle" | "cleaning" | "done">("idle");
 
   const handleToggleColumn = useCallback(
     (key: ColumnKey, checked: boolean) => {
@@ -283,6 +307,104 @@ export function GeneralSettings() {
                 })
               }
             />
+          </div>
+        </div>
+      </div>
+
+      {/* Cache Management Section */}
+      <div className="border rounded-lg p-5 space-y-5">
+        <div>
+          <h2 className="text-lg font-semibold">
+            <Trans>Cache Management</Trans>
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            <Trans>Manage network transaction storage and file cache</Trans>
+          </p>
+        </div>
+
+        <div className="space-y-4">
+          {/* Current usage */}
+          <div className="flex items-center justify-between">
+            <div>
+              <label className="text-sm font-medium">
+                <Trans>Current Usage</Trans>
+              </label>
+              <p className="text-xs text-muted-foreground">
+                <Trans>In-memory transaction data size</Trans>
+              </p>
+            </div>
+            <span className="text-sm font-mono">
+              {formatBytes(totalSizeBytes)}
+              {cacheLimitBytes > 0 && ` / ${formatBytes(cacheLimitBytes)}`}
+            </span>
+          </div>
+
+          {/* Cache limit */}
+          <div className="flex items-center justify-between">
+            <div>
+              <label className="text-sm font-medium">
+                <Trans>Cache Limit</Trans>
+              </label>
+              <p className="text-xs text-muted-foreground">
+                <Trans>Maximum memory for network transaction records</Trans>
+              </p>
+            </div>
+            <Select
+              value={String(cacheLimitBytes / (1024 * 1024 * 1024))}
+              onValueChange={(v) => {
+                if (v) setCacheLimitBytes(Number(v) * 1024 * 1024 * 1024);
+              }}
+            >
+              <SelectTrigger className="w-36">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {CACHE_LIMIT_OPTIONS.map((opt) => {
+                  const label = opt.value === 0 ? t`Unlimited` : opt.label;
+                  return (
+                    <SelectItem key={opt.value} value={String(opt.value)} label={label}>
+                      {label}
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Clear buttons */}
+          <div className="flex gap-2 pt-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                clearTransactions();
+              }}
+            >
+              <Trans>Clear Transaction Records</Trans>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={cacheCleanStatus === "cleaning"}
+              onClick={async () => {
+                setCacheCleanStatus("cleaning");
+                try {
+                  await cleanOldProxyCache(0);
+                  setCacheCleanStatus("done");
+                  setTimeout(() => setCacheCleanStatus("idle"), 2000);
+                } catch {
+                  setCacheCleanStatus("idle");
+                }
+              }}
+            >
+              {cacheCleanStatus === "cleaning" ? (
+                <Trans>Cleaning...</Trans>
+              ) : cacheCleanStatus === "done" ? (
+                <Trans>Cleaned!</Trans>
+              ) : (
+                <Trans>Clear File Cache</Trans>
+              )}
+            </Button>
           </div>
         </div>
       </div>
