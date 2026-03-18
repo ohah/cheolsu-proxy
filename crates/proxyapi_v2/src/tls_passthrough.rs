@@ -4,6 +4,7 @@ use http::uri::Authority;
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use tracing::{debug, info, warn};
 
 /// 와일드카드 도메인 패턴 매칭 (* = 임의 문자열, ? = 단일 문자)
@@ -45,6 +46,10 @@ pub struct TlsPassthrough {
     never_passthrough_file: Option<PathBuf>,
     /// never_passthrough 변경 알림 채널
     never_passthrough_change_tx: Option<tokio::sync::mpsc::Sender<Vec<String>>>,
+    /// failures 파일 저장이 필요한지 (dirty flag)
+    failures_dirty: Arc<AtomicBool>,
+    /// never_passthrough 파일 저장이 필요한지 (dirty flag)
+    never_passthrough_dirty: Arc<AtomicBool>,
 }
 
 impl TlsPassthrough {
@@ -75,6 +80,8 @@ impl TlsPassthrough {
             never_passthrough: Arc::new(DashSet::new()),
             never_passthrough_file: None,
             never_passthrough_change_tx: None,
+            failures_dirty: Arc::new(AtomicBool::new(false)),
+            never_passthrough_dirty: Arc::new(AtomicBool::new(false)),
         }
     }
 
@@ -138,15 +145,32 @@ impl TlsPassthrough {
             .collect()
     }
 
-    /// 변경 사항을 파일 저장 + 알림 채널로 전송 (스냅샷 1회로 통합)
-    fn persist_and_notify_failures(&self) {
-        let snapshot = self.snapshot_failures();
+    /// 변경 사항을 알림만 전송하고 파일 저장은 dirty 마킹 (hot-path용)
+    fn notify_failures_and_mark_dirty(&self) {
+        self.failures_dirty.store(true, Ordering::Relaxed);
+        if let Some(ref tx) = self.change_tx {
+            let _ = tx.try_send(self.snapshot_failures());
+        }
+    }
 
+    /// 변경 사항을 파일 저장 + 알림 채널로 전송 (즉시 저장이 필요한 경우)
+    fn persist_and_notify_failures(&self) {
+        self.flush_failures();
+        if let Some(ref tx) = self.change_tx {
+            let _ = tx.try_send(self.snapshot_failures());
+        }
+    }
+
+    /// dirty 상태인 failures를 파일에 저장
+    pub fn flush_failures(&self) {
+        if !self.failures_dirty.swap(false, Ordering::Relaxed) && self.file_path.is_some() {
+            return; // dirty가 아니면 스킵
+        }
         if let Some(ref path) = self.file_path {
             if let Some(parent) = path.parent() {
                 let _ = std::fs::create_dir_all(parent);
             }
-            let map: HashMap<String, u32> = snapshot.iter().cloned().collect();
+            let map: HashMap<String, u32> = self.snapshot_failures().into_iter().collect();
             match serde_json::to_string_pretty(&map) {
                 Ok(json) => {
                     if let Err(e) = std::fs::write(path, json) {
@@ -158,21 +182,21 @@ impl TlsPassthrough {
                 }
             }
         }
-
-        if let Some(ref tx) = self.change_tx {
-            let _ = tx.try_send(snapshot);
-        }
     }
 
-    /// Never Passthrough 변경 사항을 파일 저장 + 알림 (스냅샷 1회로 통합)
-    fn persist_and_notify_never_passthrough(&self) {
-        let snapshot = self.snapshot_never_passthrough();
-
+    /// dirty 상태인 never_passthrough를 파일에 저장
+    pub fn flush_never_passthrough(&self) {
+        if !self.never_passthrough_dirty.swap(false, Ordering::Relaxed)
+            && self.never_passthrough_file.is_some()
+        {
+            return;
+        }
         if let Some(ref path) = self.never_passthrough_file {
             if let Some(parent) = path.parent() {
                 let _ = std::fs::create_dir_all(parent);
             }
-            match serde_json::to_string_pretty(&snapshot) {
+            let list = self.snapshot_never_passthrough();
+            match serde_json::to_string_pretty(&list) {
                 Ok(json) => {
                     if let Err(e) = std::fs::write(path, json) {
                         warn!("[NEVER-PASSTHROUGH] 파일 저장 실패: {}", e);
@@ -183,9 +207,20 @@ impl TlsPassthrough {
                 }
             }
         }
+    }
 
+    /// 모든 dirty 상태를 파일에 저장
+    pub fn flush_all(&self) {
+        self.flush_failures();
+        self.flush_never_passthrough();
+    }
+
+    /// Never Passthrough 변경 사항을 파일 저장 + 알림 (저빈도 호출용, 즉시 저장)
+    fn persist_and_notify_never_passthrough(&self) {
+        self.never_passthrough_dirty.store(true, Ordering::Relaxed);
+        self.flush_never_passthrough();
         if let Some(ref tx) = self.never_passthrough_change_tx {
-            let _ = tx.try_send(snapshot);
+            let _ = tx.try_send(self.snapshot_never_passthrough());
         }
     }
 
@@ -220,7 +255,7 @@ impl TlsPassthrough {
             );
         }
 
-        self.persist_and_notify_failures();
+        self.notify_failures_and_mark_dirty();
     }
 
     /// 해당 도메인을 바이패스해야 하는지 확인 (1회 이상 실패 && never_passthrough 아닌 경우)
@@ -253,7 +288,7 @@ impl TlsPassthrough {
         let host = authority.host().to_string();
         if self.failures.remove(&host).is_some() {
             info!("[TLS-PASSTHROUGH] 성공으로 바이패스 해제: {}", host);
-            self.persist_and_notify_failures();
+            self.notify_failures_and_mark_dirty();
         }
     }
 
@@ -373,6 +408,7 @@ mod tests {
             let passthrough = TlsPassthrough::new(Some(file_path.clone()));
             let authority: Authority = "pinned.example.com:443".parse().unwrap();
             passthrough.record_failure(&authority);
+            passthrough.flush_all();
         }
 
         // 새 인스턴스에서 로드
