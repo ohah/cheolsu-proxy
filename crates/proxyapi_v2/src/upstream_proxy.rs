@@ -9,11 +9,15 @@ use std::io;
 use std::pin::Pin;
 use std::sync::Arc;
 use std::task::{Context, Poll};
+use std::time::Duration;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::net::TcpStream;
 use tokio::sync::watch;
 use tower::Service;
 use tracing::{debug, error};
+
+/// TCP 연결 타임아웃
+const TCP_CONNECT_TIMEOUT: Duration = Duration::from_secs(30);
 
 /// Upstream proxy 에러 타입
 #[derive(Debug, thiserror::Error)]
@@ -26,6 +30,9 @@ pub enum UpstreamProxyError {
 
     #[error("스트림 재조립 실패: {0}")]
     Reunite(#[from] tokio::net::tcp::ReuniteError),
+
+    #[error("연결 타임아웃 ({0:?} 초과)")]
+    Timeout(Duration),
 }
 
 /// Upstream proxy 설정
@@ -76,6 +83,20 @@ impl UpstreamProxyConfig {
 }
 
 // ---------------------------------------------------------------------------
+// TCP 연결 헬퍼
+// ---------------------------------------------------------------------------
+
+/// 타임아웃이 적용된 TCP 연결
+async fn tcp_connect_with_timeout(
+    addr: impl tokio::net::ToSocketAddrs,
+) -> Result<TcpStream, UpstreamProxyError> {
+    tokio::time::timeout(TCP_CONNECT_TIMEOUT, TcpStream::connect(addr))
+        .await
+        .map_err(|_| UpstreamProxyError::Timeout(TCP_CONNECT_TIMEOUT))?
+        .map_err(UpstreamProxyError::Connect)
+}
+
+// ---------------------------------------------------------------------------
 // TCP 연결 헬퍼 (CONNECT 터널용)
 // ---------------------------------------------------------------------------
 
@@ -95,7 +116,7 @@ pub async fn connect_to_target(
             );
             connect_via_upstream(config, target).await
         }
-        _ => Ok(TcpStream::connect(target).await?),
+        _ => tcp_connect_with_timeout(target).await,
     }
 }
 
@@ -104,14 +125,15 @@ async fn connect_via_upstream(
     config: &UpstreamProxyConfig,
     target: &str,
 ) -> Result<TcpStream, UpstreamProxyError> {
-    let stream = TcpStream::connect(config.address()).await.map_err(|e| {
-        error!(
-            upstream = %config.address(),
-            error = %e,
-            "Upstream proxy 연결 실패"
-        );
-        e
-    })?;
+    let stream = tcp_connect_with_timeout(config.address())
+        .await
+        .inspect_err(|e| {
+            error!(
+                upstream = %config.address(),
+                error = %e,
+                "Upstream proxy 연결 실패"
+            );
+        })?;
 
     let mut connect_req = format!("CONNECT {} HTTP/1.1\r\nHost: {}\r\n", target, target);
 
@@ -244,12 +266,12 @@ impl Service<Uri> for ProxyHttpConnector {
                     connect_via_upstream(config, &target).await?
                 } else {
                     // HTTP: upstream proxy에 직접 연결 (hyper가 full URL로 요청 전송)
-                    TcpStream::connect(config.address()).await?
+                    tcp_connect_with_timeout(config.address()).await?
                 }
             } else {
                 // 직접 연결 (바이패스 또는 upstream 미설정)
                 let addr = format!("{}:{}", host, port);
-                TcpStream::connect(&addr).await?
+                tcp_connect_with_timeout(&addr).await?
             };
 
             Ok(UpstreamStream(TokioIo::new(stream)))
