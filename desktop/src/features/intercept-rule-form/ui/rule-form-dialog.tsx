@@ -32,7 +32,7 @@ import type {
   RewriteTarget,
 } from "@/entities/intercept-rule";
 import type { InterceptRuleInitialValues } from "@/shared/stores";
-import { HTTP_METHODS } from "@/features/query-filter-editor/model/constants";
+import { HTTP_METHODS } from "@/shared/lib/http-constants";
 
 interface RuleFormDialogProps {
   open: boolean;

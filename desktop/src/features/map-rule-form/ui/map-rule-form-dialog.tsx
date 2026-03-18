@@ -26,7 +26,7 @@ import {
   defaultMapRuleFormValues,
   type MapRuleFormValues,
 } from "@/entities/intercept-rule";
-import { HTTP_METHODS } from "@/features/query-filter-editor/model/constants";
+import { HTTP_METHODS } from "@/shared/lib/http-constants";
 import { MapLocalFields } from "./map-local-fields";
 import { MapRemoteFields } from "./map-remote-fields";
 

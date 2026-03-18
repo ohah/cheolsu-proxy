@@ -38,7 +38,7 @@ import {
 } from "@/shared/ui";
 import { getStatusColor } from "@/entities/transaction";
 import { uint8ArrayToString } from "../lib";
-import { HTTP_METHODS } from "@/features/query-filter-editor/model/constants";
+import { HTTP_METHODS } from "@/shared/lib/http-constants";
 
 interface ReplayDialogProps {
   transaction?: HttpTransaction;
