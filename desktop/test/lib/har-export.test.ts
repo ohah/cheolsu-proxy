@@ -174,10 +174,11 @@ describe("buildHarLog", () => {
       [503, "Service Unavailable"],
     ];
 
-    for (const [status, text] of statusMap) {
-      const txs = [createTx("1", { status })];
-      const result = await buildHarLog(txs);
-      expect(result.log.entries[0].response.statusText).toBe(text);
+    const txs = statusMap.map(([status], i) => createTx(String(i), { status }));
+    const result = await buildHarLog(txs);
+    expect(result.log.entries).toHaveLength(statusMap.length);
+    for (let i = 0; i < statusMap.length; i++) {
+      expect(result.log.entries[i].response.statusText).toBe(statusMap[i][1]);
     }
   });
 
