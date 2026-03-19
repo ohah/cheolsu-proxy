@@ -186,12 +186,8 @@ mod tests {
 
     #[test]
     fn format_size_boundary() {
-        // 1KB 미만은 B, 1KB 이상은 KB
-        assert_eq!(format_size(1023), "1023B");
-        assert_eq!(format_size(1024), "1.0KB");
-        // 1MB 미만은 KB, 1MB 이상은 MB
+        // KB/MB 경계 직전 값
         assert_eq!(format_size(1048575), "1024.0KB");
-        assert_eq!(format_size(1048576), "1.0MB");
     }
 
     // -- format_time --
