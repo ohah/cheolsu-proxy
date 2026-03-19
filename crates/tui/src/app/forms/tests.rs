@@ -434,3 +434,497 @@ fn throttle_form_to_config_custom_invalid_input() {
     assert!(config.upload_rate.is_none());
     assert_eq!(config.latency_ms, 0);
 }
+
+// ── RuleFormField ──
+
+#[test]
+fn rule_form_field_next_block() {
+    // Block: Name → Pattern → Method → ActionType → StatusCode → Body → Name
+    let path = [
+        RuleFormField::Name,
+        RuleFormField::Pattern,
+        RuleFormField::Method,
+        RuleFormField::ActionType,
+        RuleFormField::StatusCode,
+        RuleFormField::Body,
+    ];
+    let mut field = RuleFormField::Name;
+    for expected in &path[1..] {
+        field = field.next(ActionType::Block);
+        assert_eq!(field, *expected);
+    }
+    // Body → Name (loop back)
+    assert_eq!(
+        RuleFormField::Body.next(ActionType::Block),
+        RuleFormField::Name
+    );
+}
+
+#[test]
+fn rule_form_field_next_map_remote() {
+    // MapRemote: ActionType → TargetUrl → Name
+    assert_eq!(
+        RuleFormField::ActionType.next(ActionType::MapRemote),
+        RuleFormField::TargetUrl
+    );
+    assert_eq!(
+        RuleFormField::TargetUrl.next(ActionType::MapRemote),
+        RuleFormField::Name
+    );
+}
+
+#[test]
+fn rule_form_field_next_map_local() {
+    // MapLocal: ActionType → FilePath → StatusCode → Body → Name
+    assert_eq!(
+        RuleFormField::ActionType.next(ActionType::MapLocal),
+        RuleFormField::FilePath
+    );
+    assert_eq!(
+        RuleFormField::FilePath.next(ActionType::MapLocal),
+        RuleFormField::StatusCode
+    );
+}
+
+#[test]
+fn rule_form_field_next_modify_request() {
+    // ModifyRequest: ActionType → Body → Name
+    assert_eq!(
+        RuleFormField::ActionType.next(ActionType::ModifyRequest),
+        RuleFormField::Body
+    );
+}
+
+#[test]
+fn rule_form_field_prev_block() {
+    // Block: Name ← Body ← StatusCode ← ActionType ← Method ← Pattern ← Name
+    assert_eq!(
+        RuleFormField::Name.prev(ActionType::Block),
+        RuleFormField::Body
+    );
+    assert_eq!(
+        RuleFormField::Body.prev(ActionType::Block),
+        RuleFormField::StatusCode
+    );
+    assert_eq!(
+        RuleFormField::StatusCode.prev(ActionType::Block),
+        RuleFormField::ActionType
+    );
+}
+
+#[test]
+fn rule_form_field_prev_map_remote() {
+    assert_eq!(
+        RuleFormField::Name.prev(ActionType::MapRemote),
+        RuleFormField::TargetUrl
+    );
+    assert_eq!(
+        RuleFormField::TargetUrl.prev(ActionType::MapRemote),
+        RuleFormField::ActionType
+    );
+}
+
+#[test]
+fn rule_form_field_prev_map_local() {
+    assert_eq!(
+        RuleFormField::Name.prev(ActionType::MapLocal),
+        RuleFormField::StatusCode
+    );
+    assert_eq!(
+        RuleFormField::StatusCode.prev(ActionType::MapLocal),
+        RuleFormField::FilePath
+    );
+}
+
+// ── ActionType ──
+
+#[test]
+fn action_type_all_labels_not_empty() {
+    for action in ActionType::ALL {
+        assert!(!action.label().is_empty());
+    }
+}
+
+#[test]
+fn action_type_full_cycle() {
+    let mut action = ActionType::Block;
+    for _ in 0..ActionType::ALL.len() {
+        action = action.next();
+    }
+    assert_eq!(action, ActionType::Block);
+
+    for _ in 0..ActionType::ALL.len() {
+        action = action.prev();
+    }
+    assert_eq!(action, ActionType::Block);
+}
+
+// ── RuleForm ──
+
+#[test]
+fn rule_form_new_defaults() {
+    let form = RuleForm::new();
+    assert_eq!(form.field, RuleFormField::Name);
+    assert!(form.name.is_empty());
+    assert!(form.pattern.is_empty());
+    assert!(form.method.is_none());
+    assert_eq!(form.action_type, ActionType::Block);
+    assert_eq!(form.status_code, "403");
+}
+
+#[test]
+fn rule_form_to_rule_none_when_pattern_empty() {
+    let form = RuleForm::new();
+    assert!(form.to_rule().is_none());
+}
+
+#[test]
+fn rule_form_to_rule_block() {
+    let mut form = RuleForm::new();
+    form.pattern = "*.example.com".to_string();
+    form.name = "Block example".to_string();
+    form.status_code = "404".to_string();
+    form.body = "Not Found".to_string();
+
+    let rule = form.to_rule().unwrap();
+    assert_eq!(rule.name, "Block example");
+    assert_eq!(rule.pattern, "*.example.com");
+    assert!(rule.enabled);
+    match &rule.action {
+        proxy_daemon::InterceptAction::Block { status_code, body } => {
+            assert_eq!(*status_code, 404);
+            assert_eq!(body, "Not Found");
+        }
+        _ => panic!("Expected Block action"),
+    }
+}
+
+#[test]
+fn rule_form_to_rule_uses_pattern_as_name_when_name_empty() {
+    let mut form = RuleForm::new();
+    form.pattern = "*.test.com".to_string();
+
+    let rule = form.to_rule().unwrap();
+    assert_eq!(rule.name, "*.test.com");
+}
+
+#[test]
+fn rule_form_to_rule_invalid_status_defaults_to_403() {
+    let mut form = RuleForm::new();
+    form.pattern = "test".to_string();
+    form.status_code = "invalid".to_string();
+
+    let rule = form.to_rule().unwrap();
+    match &rule.action {
+        proxy_daemon::InterceptAction::Block { status_code, .. } => {
+            assert_eq!(*status_code, 403);
+        }
+        _ => panic!("Expected Block action"),
+    }
+}
+
+#[test]
+fn rule_form_to_rule_map_remote() {
+    let mut form = RuleForm::new();
+    form.pattern = "*.api.com".to_string();
+    form.action_type = ActionType::MapRemote;
+    form.target_url = "http://localhost:3000".to_string();
+
+    let rule = form.to_rule().unwrap();
+    match &rule.action {
+        proxy_daemon::InterceptAction::MapRemote {
+            target_url,
+            preserve_path,
+        } => {
+            assert_eq!(target_url, "http://localhost:3000");
+            assert!(*preserve_path);
+        }
+        _ => panic!("Expected MapRemote action"),
+    }
+}
+
+#[test]
+fn rule_form_to_rule_map_local() {
+    let mut form = RuleForm::new();
+    form.pattern = "*.css".to_string();
+    form.action_type = ActionType::MapLocal;
+    form.file_path = "/tmp/local.css".to_string();
+    form.status_code = "200".to_string();
+
+    let rule = form.to_rule().unwrap();
+    match &rule.action {
+        proxy_daemon::InterceptAction::MapLocal {
+            file_path,
+            status_code,
+            ..
+        } => {
+            assert_eq!(file_path, "/tmp/local.css");
+            assert_eq!(*status_code, 200);
+        }
+        _ => panic!("Expected MapLocal action"),
+    }
+}
+
+#[test]
+fn rule_form_to_rule_modify_request_empty_body() {
+    let mut form = RuleForm::new();
+    form.pattern = "test".to_string();
+    form.action_type = ActionType::ModifyRequest;
+    form.body = "".to_string();
+
+    let rule = form.to_rule().unwrap();
+    match &rule.action {
+        proxy_daemon::InterceptAction::ModifyRequest { set_body, .. } => {
+            assert!(set_body.is_none());
+        }
+        _ => panic!("Expected ModifyRequest action"),
+    }
+}
+
+#[test]
+fn rule_form_to_rule_modify_request_with_body() {
+    let mut form = RuleForm::new();
+    form.pattern = "test".to_string();
+    form.action_type = ActionType::ModifyRequest;
+    form.body = r#"{"injected":true}"#.to_string();
+
+    let rule = form.to_rule().unwrap();
+    match &rule.action {
+        proxy_daemon::InterceptAction::ModifyRequest { set_body, .. } => {
+            assert_eq!(set_body.as_deref(), Some(r#"{"injected":true}"#));
+        }
+        _ => panic!("Expected ModifyRequest action"),
+    }
+}
+
+#[test]
+fn rule_form_to_rule_modify_response() {
+    let mut form = RuleForm::new();
+    form.pattern = "test".to_string();
+    form.action_type = ActionType::ModifyResponse;
+    form.status_code = "201".to_string();
+    form.body = "created".to_string();
+
+    let rule = form.to_rule().unwrap();
+    match &rule.action {
+        proxy_daemon::InterceptAction::ModifyResponse {
+            set_status,
+            set_body,
+            ..
+        } => {
+            assert_eq!(*set_status, Some(201));
+            assert_eq!(set_body.as_deref(), Some("created"));
+        }
+        _ => panic!("Expected ModifyResponse action"),
+    }
+}
+
+// ── HostMappingForm ──
+
+#[test]
+fn host_mapping_field_full_cycle() {
+    let mut field = HostMappingField::SourceHost;
+    for _ in 0..HostMappingField::ALL.len() {
+        field = field.next();
+    }
+    assert_eq!(field, HostMappingField::SourceHost);
+}
+
+#[test]
+fn host_mapping_field_labels_not_empty() {
+    for field in HostMappingField::ALL {
+        assert!(!field.label().is_empty());
+    }
+}
+
+#[test]
+fn host_mapping_form_new_defaults() {
+    let form = HostMappingForm::new();
+    assert_eq!(form.field, HostMappingField::SourceHost);
+    assert!(form.source_host.is_empty());
+    assert!(form.source_port.is_empty());
+    assert!(form.target_host.is_empty());
+    assert!(form.target_port.is_empty());
+}
+
+#[test]
+fn host_mapping_to_mapping_none_when_source_empty() {
+    let form = HostMappingForm::new();
+    assert!(form.to_mapping().is_none());
+}
+
+#[test]
+fn host_mapping_to_mapping_none_when_target_empty() {
+    let mut form = HostMappingForm::new();
+    form.source_host = "example.com".to_string();
+    assert!(form.to_mapping().is_none());
+}
+
+#[test]
+fn host_mapping_to_mapping_basic() {
+    let mut form = HostMappingForm::new();
+    form.source_host = "api.example.com".to_string();
+    form.target_host = "localhost".to_string();
+
+    let mapping = form.to_mapping().unwrap();
+    assert_eq!(mapping.source_host, "api.example.com");
+    assert_eq!(mapping.target_host, "localhost");
+    assert!(mapping.source_port.is_none());
+    assert!(mapping.target_port.is_none());
+    assert!(mapping.enabled);
+    assert!(mapping.id.starts_with("hm_"));
+}
+
+#[test]
+fn host_mapping_to_mapping_with_ports() {
+    let mut form = HostMappingForm::new();
+    form.source_host = "api.com".to_string();
+    form.source_port = "443".to_string();
+    form.target_host = "localhost".to_string();
+    form.target_port = "3000".to_string();
+
+    let mapping = form.to_mapping().unwrap();
+    assert_eq!(mapping.source_port, Some(443));
+    assert_eq!(mapping.target_port, Some(3000));
+}
+
+#[test]
+fn host_mapping_to_mapping_invalid_port() {
+    let mut form = HostMappingForm::new();
+    form.source_host = "api.com".to_string();
+    form.source_port = "invalid".to_string();
+    form.target_host = "localhost".to_string();
+
+    let mapping = form.to_mapping().unwrap();
+    assert!(mapping.source_port.is_none());
+}
+
+#[test]
+fn host_mapping_clear() {
+    let mut form = HostMappingForm::new();
+    form.source_host = "api.com".to_string();
+    form.target_host = "localhost".to_string();
+    form.field = HostMappingField::TargetHost;
+
+    form.clear();
+    assert!(form.source_host.is_empty());
+    assert!(form.target_host.is_empty());
+    assert_eq!(form.field, HostMappingField::SourceHost);
+}
+
+// ── ClientCertForm ──
+
+#[test]
+fn client_cert_field_full_cycle() {
+    let mut field = ClientCertField::Enabled;
+    for _ in 0..ClientCertField::ALL.len() {
+        field = field.next();
+    }
+    assert_eq!(field, ClientCertField::Enabled);
+}
+
+#[test]
+fn client_cert_field_labels_not_empty() {
+    for field in ClientCertField::ALL {
+        assert!(!field.label().is_empty());
+    }
+}
+
+#[test]
+fn client_cert_form_new_defaults() {
+    let form = ClientCertForm::new();
+    assert!(!form.enabled);
+    assert!(form.cert_path.is_empty());
+    assert!(form.key_path.is_empty());
+    assert_eq!(form.field, ClientCertField::Enabled);
+    assert!(!form.editing);
+}
+
+#[test]
+fn client_cert_to_config_none_when_disabled() {
+    let mut form = ClientCertForm::new();
+    form.cert_path = "/cert.pem".to_string();
+    form.key_path = "/key.pem".to_string();
+    assert!(form.to_config().is_none());
+}
+
+#[test]
+fn client_cert_to_config_none_when_cert_empty() {
+    let mut form = ClientCertForm::new();
+    form.enabled = true;
+    form.key_path = "/key.pem".to_string();
+    assert!(form.to_config().is_none());
+}
+
+#[test]
+fn client_cert_to_config_none_when_key_empty() {
+    let mut form = ClientCertForm::new();
+    form.enabled = true;
+    form.cert_path = "/cert.pem".to_string();
+    assert!(form.to_config().is_none());
+}
+
+#[test]
+fn client_cert_to_config_valid() {
+    let mut form = ClientCertForm::new();
+    form.enabled = true;
+    form.cert_path = "/cert.pem".to_string();
+    form.key_path = "/key.pem".to_string();
+
+    let config = form.to_config().unwrap();
+    assert!(config.enabled);
+    assert_eq!(config.cert_path, "/cert.pem");
+    assert_eq!(config.key_path, "/key.pem");
+    assert!(config.domain_certs.is_empty());
+}
+
+// ── SslProxyingAddForm ──
+
+#[test]
+fn ssl_proxying_add_form_new_defaults() {
+    let form = SslProxyingAddForm::new();
+    assert!(form.pattern.is_empty());
+}
+
+#[test]
+fn ssl_proxying_to_entry_none_when_empty() {
+    let form = SslProxyingAddForm::new();
+    assert!(form.to_entry().is_none());
+}
+
+#[test]
+fn ssl_proxying_to_entry_valid() {
+    let mut form = SslProxyingAddForm::new();
+    form.pattern = "*.example.com".to_string();
+
+    let entry = form.to_entry().unwrap();
+    assert_eq!(entry.pattern, "*.example.com");
+    assert!(entry.enabled);
+}
+
+// ── QuickSettingsForm ──
+
+#[test]
+fn quick_settings_field_full_cycle() {
+    let mut field = QuickSettingsField::NoCaching;
+    for _ in 0..QuickSettingsField::ALL.len() {
+        field = field.next();
+    }
+    assert_eq!(field, QuickSettingsField::NoCaching);
+}
+
+#[test]
+fn quick_settings_field_labels_not_empty() {
+    for field in QuickSettingsField::ALL {
+        assert!(!field.label().is_empty());
+    }
+}
+
+#[test]
+fn quick_settings_form_new_defaults() {
+    let form = QuickSettingsForm::new();
+    assert!(!form.no_caching);
+    assert!(!form.block_cookies);
+    assert!(!form.no_gzip);
+    assert_eq!(form.field, QuickSettingsField::NoCaching);
+}
