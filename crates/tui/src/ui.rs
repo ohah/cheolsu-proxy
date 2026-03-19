@@ -154,3 +154,78 @@ pub fn format_time(nanos: i64) -> String {
     let s = secs % 60;
     format!("{:02}:{:02}:{:02}", h, m, s)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // -- format_size --
+
+    #[test]
+    fn format_size_zero() {
+        assert_eq!(format_size(0), "0B");
+    }
+
+    #[test]
+    fn format_size_bytes() {
+        assert_eq!(format_size(500), "500B");
+        assert_eq!(format_size(1023), "1023B");
+    }
+
+    #[test]
+    fn format_size_kilobytes() {
+        assert_eq!(format_size(1024), "1.0KB");
+        assert_eq!(format_size(1536), "1.5KB");
+    }
+
+    #[test]
+    fn format_size_megabytes() {
+        assert_eq!(format_size(1048576), "1.0MB");
+        assert_eq!(format_size(2621440), "2.5MB");
+    }
+
+    #[test]
+    fn format_size_boundary() {
+        // 1KB 미만은 B, 1KB 이상은 KB
+        assert_eq!(format_size(1023), "1023B");
+        assert_eq!(format_size(1024), "1.0KB");
+        // 1MB 미만은 KB, 1MB 이상은 MB
+        assert_eq!(format_size(1048575), "1024.0KB");
+        assert_eq!(format_size(1048576), "1.0MB");
+    }
+
+    // -- format_time --
+
+    #[test]
+    fn format_time_zero() {
+        assert_eq!(format_time(0), "00:00:00");
+    }
+
+    #[test]
+    fn format_time_seconds() {
+        assert_eq!(format_time(5_000_000_000), "00:00:05");
+    }
+
+    #[test]
+    fn format_time_minutes() {
+        assert_eq!(format_time(90_000_000_000), "00:01:30");
+    }
+
+    #[test]
+    fn format_time_hours() {
+        assert_eq!(format_time(3_661_000_000_000), "01:01:01");
+    }
+
+    #[test]
+    fn format_time_wraps_at_24h() {
+        // 25시간 = 1시간으로 표시 (% 24)
+        let nanos_25h = 25 * 3600 * 1_000_000_000_i64;
+        assert_eq!(format_time(nanos_25h), "01:00:00");
+    }
+
+    #[test]
+    fn format_time_padding() {
+        // 한 자리 숫자도 두 자리로 패딩
+        assert_eq!(format_time(1_000_000_000), "00:00:01");
+    }
+}
