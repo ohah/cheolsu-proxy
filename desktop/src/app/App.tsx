@@ -11,14 +11,29 @@ import {
   useMenuNavigation,
 } from "./hooks";
 import { CUSTOM_THEME_KEYS } from "@/features/query-filter-editor/model/themes";
+import { useTheme } from "next-themes";
+import { useEffect } from "react";
 
-const THEME_VALUE_MAP = Object.fromEntries([
-  ["light", "light"],
-  ["dark", "dark"],
-  ...CUSTOM_THEME_KEYS.map((key) => [key, `dark ${key}`]),
-]);
+const CUSTOM_THEME_SET = new Set<string>(CUSTOM_THEME_KEYS);
 
-const App: React.FC = () => {
+/** Sync dark + theme-specific classes on <html> based on resolved theme */
+function useThemeClassSync() {
+  const { resolvedTheme } = useTheme();
+
+  useEffect(() => {
+    const el = document.documentElement;
+    el.classList.toggle(
+      "dark",
+      resolvedTheme === "dark" || CUSTOM_THEME_SET.has(resolvedTheme ?? ""),
+    );
+    for (const key of CUSTOM_THEME_KEYS) {
+      el.classList.toggle(key, resolvedTheme === key);
+    }
+  }, [resolvedTheme]);
+}
+
+const AppContent: React.FC = () => {
+  useThemeClassSync();
   useGlobalShortcut();
   useProxyEventListeners();
   useWebSocketListeners();
@@ -29,19 +44,22 @@ const App: React.FC = () => {
   useMenuNavigation();
 
   return (
-    <ThemeProvider
-      attribute={["class", "data-theme"]}
-      defaultTheme="system"
-      enableSystem
-      themes={["light", "dark", "system", ...CUSTOM_THEME_KEYS]}
-      value={THEME_VALUE_MAP}
-    >
-      <div className="App">
-        <RouterProvider />
-        <Toaster richColors />
-      </div>
-    </ThemeProvider>
+    <div className="App">
+      <RouterProvider />
+      <Toaster richColors />
+    </div>
   );
 };
+
+const App: React.FC = () => (
+  <ThemeProvider
+    attribute="data-theme"
+    defaultTheme="system"
+    enableSystem
+    themes={["light", "dark", "system", ...CUSTOM_THEME_KEYS]}
+  >
+    <AppContent />
+  </ThemeProvider>
+);
 
 export default App;

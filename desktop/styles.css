@@ -60,7 +60,12 @@
 }
 
 [data-theme="dark"],
-[data-theme="light"] {
+[data-theme="light"],
+.dracula,
+.nord,
+.monokai,
+.solarized-dark,
+.github-dark {
   --box-shadow:
     1px 2px 2px hsl(var(--shadow-color) / 0.2), 2px 4px 4px hsl(var(--shadow-color) / 0.2),
     4px 8px 8px hsl(var(--shadow-color) / 0.2), 8px 8px 16px hsl(var(--shadow-color) / 0.2),
