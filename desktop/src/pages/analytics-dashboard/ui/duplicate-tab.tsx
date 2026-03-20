@@ -1,6 +1,7 @@
 import { Trans } from "@lingui/react/macro";
 
 import { Badge } from "@/shared/ui";
+import { formatTime } from "@/shared/lib/format-time";
 import type { DuplicateRequestGroup } from "../lib";
 
 interface DuplicateTabProps {
@@ -57,11 +58,9 @@ export function DuplicateTab({ groups }: DuplicateTabProps) {
                   {group.windowMs} ms
                 </div>
                 <div className="text-right text-muted-foreground">
-                  {new Date(group.firstSeen).toLocaleTimeString()}
+                  {formatTime(group.firstSeen)}
                 </div>
-                <div className="text-right text-muted-foreground">
-                  {new Date(group.lastSeen).toLocaleTimeString()}
-                </div>
+                <div className="text-right text-muted-foreground">{formatTime(group.lastSeen)}</div>
               </div>
             ))}
           </div>

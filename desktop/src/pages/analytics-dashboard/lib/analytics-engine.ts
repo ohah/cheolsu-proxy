@@ -1,4 +1,5 @@
 import type { HttpTransaction } from "@/entities/proxy";
+import { NANOS_PER_MS } from "@/shared/lib/format-time";
 
 // ── Report Types ──
 
@@ -100,7 +101,7 @@ export interface MiscReport {
 
 function getDuration(tx: HttpTransaction): number | null {
   if (!tx.request || !tx.response) return null;
-  return tx.response.time - tx.request.time;
+  return (tx.response.time - tx.request.time) / NANOS_PER_MS;
 }
 
 function getPath(uri: string): string {
@@ -309,6 +310,7 @@ export function detectDuplicateRequests(
   }
 
   const results: DuplicateRequestGroup[] = [];
+  const windowNs = windowMs * NANOS_PER_MS;
 
   for (const group of groups.values()) {
     if (group.timestamps.length < 2) continue;
@@ -319,7 +321,7 @@ export function detectDuplicateRequests(
     for (let i = 1; i <= group.timestamps.length; i += 1) {
       if (
         i === group.timestamps.length ||
-        group.timestamps[i] - group.timestamps[i - 1] > windowMs
+        group.timestamps[i] - group.timestamps[i - 1] > windowNs
       ) {
         const clusterSize = i - clusterStart;
         if (clusterSize >= 2) {

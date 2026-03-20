@@ -10,6 +10,7 @@ import {
   detectNPlusOne,
   analyzeMisc,
 } from "../../src/pages/analytics-dashboard/lib/analytics-engine";
+import { NANOS_PER_MS as MS } from "../../src/shared/lib/format-time";
 
 function createTx(
   id: string,
@@ -25,8 +26,8 @@ function createTx(
     resHeaders?: Record<string, string>;
   } = {},
 ): HttpTransaction {
-  const reqTime = opts.reqTime ?? 1000;
-  const resTime = opts.resTime ?? reqTime + 100;
+  const reqTime = opts.reqTime ?? 1000 * MS;
+  const resTime = opts.resTime ?? reqTime + 100 * MS;
   return {
     request: {
       id,
@@ -66,9 +67,9 @@ describe("computeSummary", () => {
 
   test("computes correct metrics", () => {
     const txs = [
-      createTx("1", { reqTime: 0, resTime: 100, status: 200 }),
-      createTx("2", { reqTime: 0, resTime: 200, status: 200 }),
-      createTx("3", { reqTime: 0, resTime: 300, status: 500 }),
+      createTx("1", { reqTime: 0, resTime: 100 * MS, status: 200 }),
+      createTx("2", { reqTime: 0, resTime: 200 * MS, status: 200 }),
+      createTx("3", { reqTime: 0, resTime: 300 * MS, status: 500 }),
     ];
     const result = computeSummary(txs);
     expect(result.totalRequests).toBe(3);
@@ -87,9 +88,9 @@ describe("computeSummary", () => {
 describe("analyzePerformance", () => {
   test("returns slow requests sorted by duration", () => {
     const txs = [
-      createTx("1", { reqTime: 0, resTime: 50, status: 200 }),
-      createTx("2", { reqTime: 0, resTime: 500, status: 200 }),
-      createTx("3", { reqTime: 0, resTime: 200, status: 200 }),
+      createTx("1", { reqTime: 0, resTime: 50 * MS, status: 200 }),
+      createTx("2", { reqTime: 0, resTime: 500 * MS, status: 200 }),
+      createTx("3", { reqTime: 0, resTime: 200 * MS, status: 200 }),
     ];
     const result = analyzePerformance(txs, 2);
     expect(result.slowRequests.length).toBe(2);
@@ -99,7 +100,7 @@ describe("analyzePerformance", () => {
 
   test("computes percentiles correctly", () => {
     const txs = Array.from({ length: 100 }, (_, i) =>
-      createTx(String(i), { reqTime: 0, resTime: i + 1, status: 200 }),
+      createTx(String(i), { reqTime: 0, resTime: (i + 1) * MS, status: 200 }),
     );
     const result = analyzePerformance(txs);
     expect(result.p50).toBe(50);
@@ -137,21 +138,21 @@ describe("analyzeEndpoints", () => {
         method: "GET",
         uri: "http://a.com/api/users",
         reqTime: 0,
-        resTime: 100,
+        resTime: 100 * MS,
         status: 200,
       }),
       createTx("2", {
         method: "GET",
         uri: "http://a.com/api/users",
         reqTime: 0,
-        resTime: 200,
+        resTime: 200 * MS,
         status: 200,
       }),
       createTx("3", {
         method: "POST",
         uri: "http://a.com/api/users",
         reqTime: 0,
-        resTime: 50,
+        resTime: 50 * MS,
         status: 201,
       }),
     ];
@@ -168,14 +169,14 @@ describe("analyzeEndpoints", () => {
         method: "GET",
         uri: "http://a.com/a",
         reqTime: 0,
-        resTime: 500,
+        resTime: 500 * MS,
         status: 200,
       }),
       createTx("2", {
         method: "GET",
         uri: "http://a.com/b",
         reqTime: 0,
-        resTime: 100,
+        resTime: 100 * MS,
         status: 500,
       }),
     ];
@@ -189,9 +190,9 @@ describe("analyzeEndpoints", () => {
 describe("detectDuplicateRequests", () => {
   test("detects duplicates within window", () => {
     const txs = [
-      createTx("1", { method: "GET", uri: "http://a.com/api", reqTime: 1000 }),
-      createTx("2", { method: "GET", uri: "http://a.com/api", reqTime: 1100 }),
-      createTx("3", { method: "GET", uri: "http://a.com/api", reqTime: 1200 }),
+      createTx("1", { method: "GET", uri: "http://a.com/api", reqTime: 1000 * MS }),
+      createTx("2", { method: "GET", uri: "http://a.com/api", reqTime: 1100 * MS }),
+      createTx("3", { method: "GET", uri: "http://a.com/api", reqTime: 1200 * MS }),
     ];
     const result = detectDuplicateRequests(txs, 500);
     expect(result.length).toBe(1);
@@ -200,8 +201,8 @@ describe("detectDuplicateRequests", () => {
 
   test("does not detect non-duplicates", () => {
     const txs = [
-      createTx("1", { method: "GET", uri: "http://a.com/api", reqTime: 1000 }),
-      createTx("2", { method: "GET", uri: "http://a.com/api", reqTime: 5000 }),
+      createTx("1", { method: "GET", uri: "http://a.com/api", reqTime: 1000 * MS }),
+      createTx("2", { method: "GET", uri: "http://a.com/api", reqTime: 5000 * MS }),
     ];
     const result = detectDuplicateRequests(txs, 500);
     expect(result.length).toBe(0);
@@ -211,10 +212,10 @@ describe("detectDuplicateRequests", () => {
 describe("detectNPlusOne", () => {
   test("detects N+1 patterns", () => {
     const txs = [
-      createTx("1", { method: "GET", uri: "http://a.com/api/users/1", reqTime: 100 }),
-      createTx("2", { method: "GET", uri: "http://a.com/api/users/2", reqTime: 200 }),
-      createTx("3", { method: "GET", uri: "http://a.com/api/users/3", reqTime: 300 }),
-      createTx("4", { method: "GET", uri: "http://a.com/api/users/4", reqTime: 400 }),
+      createTx("1", { method: "GET", uri: "http://a.com/api/users/1", reqTime: 100 * MS }),
+      createTx("2", { method: "GET", uri: "http://a.com/api/users/2", reqTime: 200 * MS }),
+      createTx("3", { method: "GET", uri: "http://a.com/api/users/3", reqTime: 300 * MS }),
+      createTx("4", { method: "GET", uri: "http://a.com/api/users/4", reqTime: 400 * MS }),
     ];
     const result = detectNPlusOne(txs, 3);
     expect(result.length).toBe(1);
@@ -224,8 +225,8 @@ describe("detectNPlusOne", () => {
 
   test("does not detect when below threshold", () => {
     const txs = [
-      createTx("1", { method: "GET", uri: "http://a.com/api/users/1", reqTime: 100 }),
-      createTx("2", { method: "GET", uri: "http://a.com/api/users/2", reqTime: 200 }),
+      createTx("1", { method: "GET", uri: "http://a.com/api/users/1", reqTime: 100 * MS }),
+      createTx("2", { method: "GET", uri: "http://a.com/api/users/2", reqTime: 200 * MS }),
     ];
     const result = detectNPlusOne(txs, 3);
     expect(result.length).toBe(0);
