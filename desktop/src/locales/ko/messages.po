@@ -698,7 +698,7 @@ msgstr "URL 복사"
 msgid "CORS Issues"
 msgstr "CORS 문제"
 
-#: src/pages/analytics-dashboard/ui/duplicate-tab.tsx:25
+#: src/pages/analytics-dashboard/ui/duplicate-tab.tsx:26
 #: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:65
 msgid "Count"
 msgstr "횟수"
@@ -1094,7 +1094,7 @@ msgstr "로그 라인 필터..."
 msgid "Filter Presets"
 msgstr "필터 프리셋"
 
-#: src/pages/analytics-dashboard/ui/duplicate-tab.tsx:31
+#: src/pages/analytics-dashboard/ui/duplicate-tab.tsx:32
 msgid "First Seen"
 msgstr "최초 발견"
 
@@ -1379,7 +1379,7 @@ msgstr "언어"
 msgid "Largest Payloads (Top 10)"
 msgstr "가장 큰 페이로드 (Top 10)"
 
-#: src/pages/analytics-dashboard/ui/duplicate-tab.tsx:34
+#: src/pages/analytics-dashboard/ui/duplicate-tab.tsx:35
 msgid "Last Seen"
 msgstr "마지막 발견"
 
@@ -1567,7 +1567,7 @@ msgstr "메시지"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:167
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:203
-#: src/pages/analytics-dashboard/ui/duplicate-tab.tsx:21
+#: src/pages/analytics-dashboard/ui/duplicate-tab.tsx:22
 #: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:59
 #: src/pages/analytics-dashboard/ui/error-tab.tsx:66
 #: src/pages/analytics-dashboard/ui/misc-tab.tsx:32
@@ -1693,7 +1693,7 @@ msgstr "API 검증 결과 없음"
 msgid "No CORS issues detected"
 msgstr "CORS 문제가 감지되지 않았습니다"
 
-#: src/pages/analytics-dashboard/ui/duplicate-tab.tsx:15
+#: src/pages/analytics-dashboard/ui/duplicate-tab.tsx:16
 msgid "No duplicate requests detected"
 msgstr "중복 요청이 감지되지 않았습니다"
 
@@ -3098,7 +3098,7 @@ msgstr "화이트리스트 (포함)"
 msgid "Wildcard"
 msgstr "와일드카드"
 
-#: src/pages/analytics-dashboard/ui/duplicate-tab.tsx:28
+#: src/pages/analytics-dashboard/ui/duplicate-tab.tsx:29
 msgid "Window"
 msgstr "시간 범위"
 

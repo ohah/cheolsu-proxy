@@ -698,7 +698,7 @@ msgstr "Copy URL"
 msgid "CORS Issues"
 msgstr "CORS Issues"
 
-#: src/pages/analytics-dashboard/ui/duplicate-tab.tsx:25
+#: src/pages/analytics-dashboard/ui/duplicate-tab.tsx:26
 #: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:65
 msgid "Count"
 msgstr "Count"
@@ -1094,7 +1094,7 @@ msgstr "Filter log lines..."
 msgid "Filter Presets"
 msgstr "Filter Presets"
 
-#: src/pages/analytics-dashboard/ui/duplicate-tab.tsx:31
+#: src/pages/analytics-dashboard/ui/duplicate-tab.tsx:32
 msgid "First Seen"
 msgstr "First Seen"
 
@@ -1379,7 +1379,7 @@ msgstr "Language"
 msgid "Largest Payloads (Top 10)"
 msgstr "Largest Payloads (Top 10)"
 
-#: src/pages/analytics-dashboard/ui/duplicate-tab.tsx:34
+#: src/pages/analytics-dashboard/ui/duplicate-tab.tsx:35
 msgid "Last Seen"
 msgstr "Last Seen"
 
@@ -1567,7 +1567,7 @@ msgstr "messages"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:167
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:203
-#: src/pages/analytics-dashboard/ui/duplicate-tab.tsx:21
+#: src/pages/analytics-dashboard/ui/duplicate-tab.tsx:22
 #: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:59
 #: src/pages/analytics-dashboard/ui/error-tab.tsx:66
 #: src/pages/analytics-dashboard/ui/misc-tab.tsx:32
@@ -1693,7 +1693,7 @@ msgstr "No contract validation results"
 msgid "No CORS issues detected"
 msgstr "No CORS issues detected"
 
-#: src/pages/analytics-dashboard/ui/duplicate-tab.tsx:15
+#: src/pages/analytics-dashboard/ui/duplicate-tab.tsx:16
 msgid "No duplicate requests detected"
 msgstr "No duplicate requests detected"
 
@@ -3098,7 +3098,7 @@ msgstr "Whitelist (Include)"
 msgid "Wildcard"
 msgstr "Wildcard"
 
-#: src/pages/analytics-dashboard/ui/duplicate-tab.tsx:28
+#: src/pages/analytics-dashboard/ui/duplicate-tab.tsx:29
 msgid "Window"
 msgstr "Window"
 
