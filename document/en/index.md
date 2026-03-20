@@ -44,7 +44,7 @@ Step-by-step guides to get you started with Cheolsu Proxy.
 
 ## Release Notes
 
-Check the latest update information and development roadmap.
+Check the latest update information.
 
 - [Release Notes](/en/releases/) - Version-by-version update history
 
