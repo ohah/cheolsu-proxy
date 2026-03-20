@@ -160,19 +160,6 @@ export default defineConfig({
             },
           ],
         },
-        {
-          text: "로드맵",
-          items: [
-            {
-              text: "프록시 연결 로드맵",
-              link: "/features/roadmap-proxy-connection",
-            },
-            {
-              text: "QA/기업 환경 로드맵",
-              link: "/features/roadmap-qa-enterprise",
-            },
-          ],
-        },
       ],
       "/en/features/": [
         {
@@ -245,15 +232,6 @@ export default defineConfig({
             {
               text: "gRPC / Protobuf",
               link: "/en/features/grpc",
-            },
-          ],
-        },
-        {
-          text: "Roadmap",
-          items: [
-            {
-              text: "Proxy Connection Roadmap",
-              link: "/en/features/roadmap-proxy-connection",
             },
           ],
         },
@@ -336,10 +314,6 @@ export default defineConfig({
               text: "릴리즈 노트",
               link: "/releases/",
             },
-            {
-              text: "지원 예정",
-              link: "/releases/roadmap",
-            },
           ],
         },
       ],
@@ -350,10 +324,6 @@ export default defineConfig({
             {
               text: "Release Notes",
               link: "/en/releases/",
-            },
-            {
-              text: "Planned Features",
-              link: "/en/releases/roadmap",
             },
           ],
         },
