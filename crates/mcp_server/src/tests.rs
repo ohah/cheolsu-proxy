@@ -174,8 +174,8 @@ fn test_format_size_megabytes() {
 fn test_next_rule_id_increments() {
     let id1 = next_rule_id();
     let id2 = next_rule_id();
-    assert!(id1.starts_with("mcp_"));
-    assert!(id2.starts_with("mcp_"));
+    assert!(id1.starts_with("rule_"));
+    assert!(id2.starts_with("rule_"));
     assert_ne!(id1, id2);
 }
 

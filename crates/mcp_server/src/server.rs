@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use cheolsu_ops::context::{OpsContext, OpsStore};
 use proxy_daemon::DaemonConnection;
 use rmcp::{handler::server::router::tool::ToolRouter, model::*, tool_handler, ServerHandler};
 use tokio::sync::Mutex as TokioMutex;
@@ -19,6 +20,24 @@ impl CheolsuMcpServer {
             store,
             daemon_conn: Arc::new(TokioMutex::new(conn)),
             tool_router: Self::tool_router(),
+        }
+    }
+
+    pub(crate) fn ops_ctx(&self) -> OpsContext {
+        OpsContext {
+            store: OpsStore {
+                transactions: self.store.transactions.clone(),
+                ws_messages: self.store.ws_messages.clone(),
+                ws_connections: self.store.ws_connections.clone(),
+                rules: self.store.rules.clone(),
+                breakpoint_rules: self.store.breakpoint_rules.clone(),
+                host_mappings: self.store.host_mappings.clone(),
+                sse_events: self.store.sse_events.clone(),
+                sse_connections: self.store.sse_connections.clone(),
+                server_replay_entries: self.store.server_replay_entries.clone(),
+                reverse_proxy_rules: self.store.reverse_proxy_rules.clone(),
+            },
+            daemon_conn: self.daemon_conn.clone(),
         }
     }
 
@@ -138,54 +157,27 @@ impl CheolsuMcpServer {
             .with_route((Self::analyze_full_tool_attr(), Self::analyze_full))
     }
 
+    // ─── send_* 위임 메서드 (아직 변환되지 않은 tools에서 사용) ───
+    // Phase 2에서 각 tool이 cheolsu_ops로 이동되면 제거
+
     pub(crate) async fn send_rules(&self) -> Result<(), String> {
-        let cmd = {
-            let rules = self.store.rules.lock();
-            proxy_daemon::ClientCommand::UpdateInterceptRules {
-                rules: rules.clone(),
-            }
-        };
-        crate::helpers::with_daemon_conn(&self.daemon_conn, &cmd).await
-    }
-
-    pub(crate) async fn send_host_mappings(&self) -> Result<(), String> {
-        let cmd = {
-            let mappings = self.store.host_mappings.lock();
-            proxy_daemon::ClientCommand::UpdateHostMappings {
-                mappings: mappings.clone(),
-            }
-        };
-        crate::helpers::with_daemon_conn(&self.daemon_conn, &cmd).await
-    }
-
-    pub(crate) async fn send_reverse_proxy_rules(&self) -> Result<(), String> {
-        let cmd = {
-            let rules = self.store.reverse_proxy_rules.lock();
-            proxy_daemon::ClientCommand::UpdateReverseProxyRules {
-                rules: rules.clone(),
-            }
-        };
-        crate::helpers::with_daemon_conn(&self.daemon_conn, &cmd).await
+        self.ops_ctx().send_rules().await
     }
 
     pub(crate) async fn send_breakpoint_rules(&self) -> Result<(), String> {
-        let cmd = {
-            let rules = self.store.breakpoint_rules.lock();
-            proxy_daemon::ClientCommand::UpdateBreakpointRules {
-                rules: rules.clone(),
-            }
-        };
-        crate::helpers::with_daemon_conn(&self.daemon_conn, &cmd).await
+        self.ops_ctx().send_breakpoint_rules().await
+    }
+
+    pub(crate) async fn send_host_mappings(&self) -> Result<(), String> {
+        self.ops_ctx().send_host_mappings().await
+    }
+
+    pub(crate) async fn send_reverse_proxy_rules(&self) -> Result<(), String> {
+        self.ops_ctx().send_reverse_proxy_rules().await
     }
 
     pub(crate) async fn send_server_replay(&self) -> Result<(), String> {
-        let cmd = {
-            let entries = self.store.server_replay_entries.lock();
-            proxy_daemon::ClientCommand::UpdateServerReplay {
-                entries: entries.clone(),
-            }
-        };
-        crate::helpers::with_daemon_conn(&self.daemon_conn, &cmd).await
+        self.ops_ctx().send_server_replay().await
     }
 }
 
