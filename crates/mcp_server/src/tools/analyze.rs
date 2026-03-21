@@ -1,11 +1,7 @@
-use proxy_daemon::analytics::TrafficAnalytics;
 use rmcp::{handler::server::wrapper::Parameters, model::*, tool, ErrorData as McpError};
 
-use crate::helpers::tool_ok;
-use crate::params::{
-    AnalyzeEndpointsParams, AnalyzeErrorsParams, AnalyzeFullParams, AnalyzePerformanceParams,
-    AnalyzeTimelineParams, DetectDuplicatesParams, DetectNPlus1Params,
-};
+use crate::helpers::op_result_to_mcp;
+use crate::params::*;
 use crate::server::CheolsuMcpServer;
 
 impl CheolsuMcpServer {
@@ -16,22 +12,9 @@ impl CheolsuMcpServer {
         &self,
         Parameters(p): Parameters<AnalyzePerformanceParams>,
     ) -> Result<CallToolResult, McpError> {
-        let txns = self.store.transactions.lock();
-        let entries: Vec<_> = txns.iter().cloned().collect();
-        drop(txns);
-
-        let threshold = p.threshold_ms.unwrap_or(1000);
-        let limit = p.limit.unwrap_or(20);
-        let report = TrafficAnalytics::slow_requests(&entries, threshold, limit);
-
-        let json = serde_json::to_string_pretty(&report)
-            .unwrap_or_else(|e| format!("Serialization error: {}", e));
-
-        tool_ok(format!(
-            "Performance analysis ({} total transactions, threshold {}ms):\n\n```json\n{}\n```",
-            entries.len(),
-            threshold,
-            json
+        op_result_to_mcp(cheolsu_ops::analyze::analyze_performance(
+            &self.ops_ctx(),
+            p,
         ))
     }
 
@@ -42,20 +25,7 @@ impl CheolsuMcpServer {
         &self,
         #[allow(unused_variables)] Parameters(_p): Parameters<AnalyzeErrorsParams>,
     ) -> Result<CallToolResult, McpError> {
-        let txns = self.store.transactions.lock();
-        let entries: Vec<_> = txns.iter().cloned().collect();
-        drop(txns);
-
-        let report = TrafficAnalytics::error_analysis(&entries);
-
-        let json = serde_json::to_string_pretty(&report)
-            .unwrap_or_else(|e| format!("Serialization error: {}", e));
-
-        tool_ok(format!(
-            "Error analysis ({} total transactions):\n\n```json\n{}\n```",
-            entries.len(),
-            json
-        ))
+        op_result_to_mcp(cheolsu_ops::analyze::analyze_errors(&self.ops_ctx()))
     }
 
     #[tool(
@@ -65,43 +35,7 @@ impl CheolsuMcpServer {
         &self,
         Parameters(p): Parameters<AnalyzeEndpointsParams>,
     ) -> Result<CallToolResult, McpError> {
-        let txns = self.store.transactions.lock();
-        let entries: Vec<_> = txns.iter().cloned().collect();
-        drop(txns);
-
-        let mut stats = TrafficAnalytics::endpoint_stats(&entries);
-
-        // 정렬
-        match p.sort_by.as_deref() {
-            Some("duration") => {
-                stats.sort_by(|a, b| {
-                    b.avg_duration_ms
-                        .partial_cmp(&a.avg_duration_ms)
-                        .unwrap_or(std::cmp::Ordering::Equal)
-                });
-            }
-            Some("error_rate") => {
-                stats.sort_by(|a, b| {
-                    b.error_rate
-                        .partial_cmp(&a.error_rate)
-                        .unwrap_or(std::cmp::Ordering::Equal)
-                });
-            }
-            _ => {} // 기본: count 순 (이미 정렬됨)
-        }
-
-        let limit = p.limit.unwrap_or(30);
-        stats.truncate(limit);
-
-        let json = serde_json::to_string_pretty(&stats)
-            .unwrap_or_else(|e| format!("Serialization error: {}", e));
-
-        tool_ok(format!(
-            "Endpoint statistics ({} endpoints from {} transactions):\n\n```json\n{}\n```",
-            stats.len(),
-            entries.len(),
-            json
-        ))
+        op_result_to_mcp(cheolsu_ops::analyze::analyze_endpoints(&self.ops_ctx(), p))
     }
 
     #[tool(
@@ -111,31 +45,7 @@ impl CheolsuMcpServer {
         &self,
         Parameters(p): Parameters<DetectDuplicatesParams>,
     ) -> Result<CallToolResult, McpError> {
-        let txns = self.store.transactions.lock();
-        let entries: Vec<_> = txns.iter().cloned().collect();
-        drop(txns);
-
-        let window = p.window_ms.unwrap_or(3000);
-        let dupes = TrafficAnalytics::duplicate_requests(&entries, window);
-
-        let json = serde_json::to_string_pretty(&dupes)
-            .unwrap_or_else(|e| format!("Serialization error: {}", e));
-
-        if dupes.is_empty() {
-            tool_ok(format!(
-                "No duplicate requests detected within {}ms window ({} transactions analyzed).",
-                window,
-                entries.len()
-            ))
-        } else {
-            tool_ok(format!(
-                "Found {} duplicate request groups (window {}ms, {} transactions):\n\n```json\n{}\n```",
-                dupes.len(),
-                window,
-                entries.len(),
-                json
-            ))
-        }
+        op_result_to_mcp(cheolsu_ops::analyze::detect_duplicates(&self.ops_ctx(), p))
     }
 
     #[tool(
@@ -145,28 +55,7 @@ impl CheolsuMcpServer {
         &self,
         #[allow(unused_variables)] Parameters(_p): Parameters<DetectNPlus1Params>,
     ) -> Result<CallToolResult, McpError> {
-        let txns = self.store.transactions.lock();
-        let entries: Vec<_> = txns.iter().cloned().collect();
-        drop(txns);
-
-        let patterns = TrafficAnalytics::n_plus_one_detection(&entries);
-
-        let json = serde_json::to_string_pretty(&patterns)
-            .unwrap_or_else(|e| format!("Serialization error: {}", e));
-
-        if patterns.is_empty() {
-            tool_ok(format!(
-                "No N+1 query patterns detected ({} transactions analyzed).",
-                entries.len()
-            ))
-        } else {
-            tool_ok(format!(
-                "Found {} potential N+1 patterns ({} transactions):\n\n```json\n{}\n```",
-                patterns.len(),
-                entries.len(),
-                json
-            ))
-        }
+        op_result_to_mcp(cheolsu_ops::analyze::detect_n_plus_one(&self.ops_ctx()))
     }
 
     #[tool(
@@ -176,22 +65,9 @@ impl CheolsuMcpServer {
         &self,
         Parameters(p): Parameters<AnalyzeTimelineParams>,
     ) -> Result<CallToolResult, McpError> {
-        let txns = self.store.transactions.lock();
-        let entries: Vec<_> = txns.iter().cloned().collect();
-        drop(txns);
-
-        let bucket_seconds = p.bucket_seconds.unwrap_or(60);
-        let timeline = TrafficAnalytics::traffic_timeline(&entries, bucket_seconds);
-
-        let json = serde_json::to_string_pretty(&timeline)
-            .unwrap_or_else(|e| format!("Serialization error: {}", e));
-
-        tool_ok(format!(
-            "Traffic timeline ({} buckets of {}s, {} transactions):\n\n```json\n{}\n```",
-            timeline.len(),
-            bucket_seconds,
-            entries.len(),
-            json
+        op_result_to_mcp(cheolsu_ops::analyze::analyze_traffic_timeline(
+            &self.ops_ctx(),
+            p,
         ))
     }
 
@@ -202,19 +78,6 @@ impl CheolsuMcpServer {
         &self,
         #[allow(unused_variables)] Parameters(_p): Parameters<AnalyzeFullParams>,
     ) -> Result<CallToolResult, McpError> {
-        let txns = self.store.transactions.lock();
-        let entries: Vec<_> = txns.iter().cloned().collect();
-        drop(txns);
-
-        let report = TrafficAnalytics::full_report(&entries);
-
-        let json = serde_json::to_string_pretty(&report)
-            .unwrap_or_else(|e| format!("Serialization error: {}", e));
-
-        tool_ok(format!(
-            "Full traffic analysis ({} transactions):\n\n```json\n{}\n```",
-            entries.len(),
-            json
-        ))
+        op_result_to_mcp(cheolsu_ops::analyze::analyze_full(&self.ops_ctx()))
     }
 }
