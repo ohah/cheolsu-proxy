@@ -15,7 +15,7 @@ const DEFAULT_SSL_PORT: u16 = 443;
 use x509_parser::oid_registry::{OID_X509_COMMON_NAME, OID_X509_ORGANIZATION_NAME};
 
 /// upstream 인증서의 공개키 타입
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum UpstreamKeyType {
     /// RSA 키 (비트 길이 포함)
     Rsa(u32),
@@ -28,7 +28,7 @@ pub enum UpstreamKeyType {
 }
 
 /// ECDSA 곡선 종류
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum EcCurve {
     P256,
     P384,

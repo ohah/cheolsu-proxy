@@ -79,32 +79,81 @@ mod tests {
     }
 }
 
-/// upstream 키 타입에 맞는 OpenSSL leaf 키페어를 동적 생성합니다.
-/// rcgen_authority/openssl_authority 양쪽의 cert_gen/openssl_context에서 공유합니다.
+/// upstream 키 타입을 정규화합니다 (캐시 키 용).
+/// RSA 비트 수를 2048/4096으로 정규화하고, Unknown은 ECDSA P-256으로 변환합니다.
+fn normalize_key_type(
+    upstream_cert: Option<&UpstreamCertInfo>,
+) -> crate::upstream_cert::UpstreamKeyType {
+    use crate::upstream_cert::{EcCurve, UpstreamKeyType};
+
+    match upstream_cert.map(|u| &u.key_type) {
+        Some(UpstreamKeyType::Rsa(bits)) => {
+            let bits = match *bits {
+                b if b >= 4096 => 4096,
+                _ => 2048,
+            };
+            UpstreamKeyType::Rsa(bits)
+        }
+        Some(UpstreamKeyType::Ecdsa(EcCurve::P521)) => {
+            // rcgen에서 P-521 미지원 → P-384로 정규화
+            UpstreamKeyType::Ecdsa(EcCurve::P384)
+        }
+        Some(kt) => kt.clone(),
+        None => UpstreamKeyType::Ecdsa(EcCurve::P256),
+    }
+}
+
+/// 키 타입별로 캐시된 OpenSSL leaf 키를 반환합니다.
+/// 동일 키 타입이면 이전에 생성한 키를 재사용하여 RSA 키 생성 비용(~100ms)을 회피합니다.
 #[cfg(feature = "openssl-ca")]
 pub(crate) fn generate_openssl_leaf_pkey(
     upstream_cert: Option<&UpstreamCertInfo>,
+) -> Result<openssl::pkey::PKey<openssl::pkey::Private>, openssl::error::ErrorStack> {
+    use crate::upstream_cert::UpstreamKeyType;
+    use std::collections::HashMap;
+    use std::sync::Mutex;
+
+    static CACHE: std::sync::LazyLock<
+        Mutex<HashMap<UpstreamKeyType, openssl::pkey::PKey<openssl::pkey::Private>>>,
+    > = std::sync::LazyLock::new(|| Mutex::new(HashMap::new()));
+
+    let normalized = normalize_key_type(upstream_cert);
+
+    // 캐시 히트
+    if let Ok(cache) = CACHE.lock() {
+        if let Some(cached) = cache.get(&normalized) {
+            return Ok(cached.clone());
+        }
+    }
+
+    // 캐시 미스 — 새 키 생성
+    let pkey = generate_openssl_leaf_pkey_uncached(&normalized)?;
+
+    // 캐시에 저장
+    if let Ok(mut cache) = CACHE.lock() {
+        cache.entry(normalized).or_insert_with(|| pkey.clone());
+    }
+
+    Ok(pkey)
+}
+
+#[cfg(feature = "openssl-ca")]
+fn generate_openssl_leaf_pkey_uncached(
+    key_type: &crate::upstream_cert::UpstreamKeyType,
 ) -> Result<openssl::pkey::PKey<openssl::pkey::Private>, openssl::error::ErrorStack> {
     use crate::upstream_cert::{EcCurve, UpstreamKeyType};
     use openssl::{
         ec::{EcGroup, EcKey},
         nid::Nid,
-        pkey::{PKey, Private},
+        pkey::PKey,
     };
 
-    let key_type = upstream_cert.map(|u| &u.key_type);
-
     match key_type {
-        Some(UpstreamKeyType::Rsa(bits)) => {
-            let bits = match *bits {
-                b if b >= 4096 => 4096,
-                b if b >= 2048 => 2048,
-                _ => 2048,
-            };
-            let rsa = openssl::rsa::Rsa::generate(bits)?;
+        UpstreamKeyType::Rsa(bits) => {
+            let rsa = openssl::rsa::Rsa::generate(*bits)?;
             PKey::from_rsa(rsa)
         }
-        Some(UpstreamKeyType::Ecdsa(curve)) => {
+        UpstreamKeyType::Ecdsa(curve) => {
             let nid = match curve {
                 EcCurve::P256 => Nid::X9_62_PRIME256V1,
                 EcCurve::P384 => Nid::SECP384R1,
@@ -114,8 +163,8 @@ pub(crate) fn generate_openssl_leaf_pkey(
             let ec_key = EcKey::generate(&group)?;
             PKey::from_ec_key(ec_key)
         }
-        Some(UpstreamKeyType::Ed25519) => PKey::generate_ed25519(),
-        Some(UpstreamKeyType::Unknown) | None => {
+        UpstreamKeyType::Ed25519 => PKey::generate_ed25519(),
+        UpstreamKeyType::Unknown => {
             let group = EcGroup::from_curve_name(Nid::X9_62_PRIME256V1)?;
             let ec_key = EcKey::generate(&group)?;
             PKey::from_ec_key(ec_key)
@@ -123,30 +172,63 @@ pub(crate) fn generate_openssl_leaf_pkey(
     }
 }
 
-/// upstream 키 타입에 맞는 rcgen leaf 키페어를 동적 생성합니다.
-/// rcgen_authority의 cert_gen/openssl_context에서 공유합니다.
+/// 키 타입별로 캐시된 rcgen leaf 키를 반환합니다.
 #[cfg(feature = "rcgen-ca")]
 pub(crate) fn generate_rcgen_leaf_key_pair(
     upstream_cert: Option<&UpstreamCertInfo>,
 ) -> Result<rcgen::KeyPair, rcgen::Error> {
-    use crate::upstream_cert::{EcCurve, UpstreamKeyType};
+    use crate::upstream_cert::UpstreamKeyType;
+    use std::collections::HashMap;
+    use std::sync::Mutex;
 
-    let key_type = upstream_cert.map(|u| &u.key_type);
+    // rcgen::KeyPair는 Clone을 구현하지 않으므로 DER 바이트를 캐시
+    static CACHE: std::sync::LazyLock<
+        Mutex<HashMap<UpstreamKeyType, (Vec<u8>, &'static rcgen::SignatureAlgorithm)>>,
+    > = std::sync::LazyLock::new(|| Mutex::new(HashMap::new()));
 
-    match key_type {
-        Some(UpstreamKeyType::Rsa(_)) => rcgen::KeyPair::generate_for(&rcgen::PKCS_RSA_SHA256),
-        Some(UpstreamKeyType::Ecdsa(EcCurve::P384)) => {
-            rcgen::KeyPair::generate_for(&rcgen::PKCS_ECDSA_P384_SHA384)
-        }
-        Some(UpstreamKeyType::Ecdsa(EcCurve::P521)) => {
-            // P-521 미지원 → P-384 폴백
-            rcgen::KeyPair::generate_for(&rcgen::PKCS_ECDSA_P384_SHA384)
-        }
-        Some(UpstreamKeyType::Ed25519) => rcgen::KeyPair::generate_for(&rcgen::PKCS_ED25519),
-        Some(UpstreamKeyType::Ecdsa(EcCurve::P256)) | Some(UpstreamKeyType::Unknown) | None => {
-            rcgen::KeyPair::generate_for(&rcgen::PKCS_ECDSA_P256_SHA256)
+    let normalized = normalize_key_type(upstream_cert);
+
+    // 캐시 히트 — DER에서 KeyPair 복원
+    if let Ok(cache) = CACHE.lock() {
+        if let Some((der_bytes, alg)) = cache.get(&normalized) {
+            use tokio_rustls::rustls::pki_types::{PrivateKeyDer, PrivatePkcs8KeyDer};
+            let pk_der = PrivateKeyDer::from(PrivatePkcs8KeyDer::from(der_bytes.clone()));
+            if let Ok(kp) = rcgen::KeyPair::from_der_and_sign_algo(&pk_der, alg) {
+                return Ok(kp);
+            }
         }
     }
+
+    // 캐시 미스 — 새 키 생성
+    let (kp, alg) = generate_rcgen_leaf_key_pair_uncached(&normalized)?;
+    let der_bytes = kp.serialize_der();
+
+    // 캐시에 저장
+    if let Ok(mut cache) = CACHE.lock() {
+        cache.entry(normalized).or_insert((der_bytes.clone(), alg));
+    }
+
+    Ok(kp)
+}
+
+#[cfg(feature = "rcgen-ca")]
+fn generate_rcgen_leaf_key_pair_uncached(
+    key_type: &crate::upstream_cert::UpstreamKeyType,
+) -> Result<(rcgen::KeyPair, &'static rcgen::SignatureAlgorithm), rcgen::Error> {
+    use crate::upstream_cert::{EcCurve, UpstreamKeyType};
+
+    let alg: &'static rcgen::SignatureAlgorithm = match key_type {
+        UpstreamKeyType::Rsa(_) => &rcgen::PKCS_RSA_SHA256,
+        UpstreamKeyType::Ecdsa(EcCurve::P384) => &rcgen::PKCS_ECDSA_P384_SHA384,
+        UpstreamKeyType::Ecdsa(EcCurve::P521) => &rcgen::PKCS_ECDSA_P384_SHA384,
+        UpstreamKeyType::Ed25519 => &rcgen::PKCS_ED25519,
+        UpstreamKeyType::Ecdsa(EcCurve::P256) | UpstreamKeyType::Unknown => {
+            &rcgen::PKCS_ECDSA_P256_SHA256
+        }
+    };
+
+    let kp = rcgen::KeyPair::generate_for(alg)?;
+    Ok((kp, alg))
 }
 
 /// Issues certificates for use when communicating with clients.
