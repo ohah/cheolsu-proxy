@@ -45,7 +45,6 @@ export const useHostMappingStore = create<HostMappingStoreState>()(
         get().syncToProxy();
       },
 
-      /** 데몬 이벤트로 수신한 매핑 반영 전용 — syncToProxy 호출 안 함 */
       setMappings: (mappings: HostMapping[]) => {
         set({ hostMappings: mappings });
       },

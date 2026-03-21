@@ -9,7 +9,7 @@ export function createDebouncedSync(delayMs = 300) {
     if (timer) clearTimeout(timer);
     timer = setTimeout(() => {
       timer = null;
-      fn();
+      fn().catch(() => {});
     }, delayMs);
   };
 }

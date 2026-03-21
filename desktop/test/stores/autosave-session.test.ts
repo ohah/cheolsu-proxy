@@ -1,6 +1,21 @@
 import { describe, test, expect, beforeEach, mock } from "bun:test";
 import "../../test/mocks/tauri";
 
+// bun 테스트 환경에 localStorage가 없으므로 간단한 polyfill 제공
+if (typeof globalThis.localStorage === "undefined") {
+  const store = new Map<string, string>();
+  globalThis.localStorage = {
+    getItem: (key: string) => store.get(key) ?? null,
+    setItem: (key: string, value: string) => store.set(key, value),
+    removeItem: (key: string) => store.delete(key),
+    clear: () => store.clear(),
+    get length() {
+      return store.size;
+    },
+    key: (index: number) => [...store.keys()][index] ?? null,
+  };
+}
+
 // autosave_session / autoload_session invoke mock
 const mockInvoke = mock((cmd: string, args?: Record<string, unknown>) => {
   if (cmd === "autosave_session") {

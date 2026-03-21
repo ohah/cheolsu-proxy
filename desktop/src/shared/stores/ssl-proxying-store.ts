@@ -27,15 +27,12 @@ interface SslProxyingStoreState {
   setDefaultPassthroughFromDaemon: (entries: SslProxyingEntry[]) => void;
   /** 기본 패스스루 도메인 목록 설정 및 데몬 동기화 */
   setDefaultPassthroughEntries: (entries: SslProxyingEntry[]) => void;
-  /** 기본 패스스루 도메인을 프록시에 동기화 */
   syncDefaultPassthroughToProxy: () => void;
   /** Rust 백엔드에서 기본값을 가져와 기본 패스스루 도메인을 복원 */
   restoreDefaultPassthrough: () => Promise<SslProxyingEntry[]>;
 }
 
-/** entries 동기화용 debounce */
 const debouncedSyncEntries = createDebouncedSync();
-/** defaultPassthrough 동기화용 debounce (별도 API 엔드포인트) */
 const debouncedSyncPassthrough = createDebouncedSync();
 
 export const useSslProxyingStore = create<SslProxyingStoreState>()(
@@ -71,7 +68,6 @@ export const useSslProxyingStore = create<SslProxyingStoreState>()(
         get().syncToProxy();
       },
 
-      /** 데몬 이벤트로 수신한 상태 반영 전용 -- syncToProxy 호출 안 함 */
       setFromDaemon: (mode: SslProxyingMode, entries: SslProxyingEntry[]) => {
         set({ mode, entries });
       },
@@ -92,7 +88,6 @@ export const useSslProxyingStore = create<SslProxyingStoreState>()(
         });
       },
 
-      /** 데몬 이벤트로 수신한 기본 패스스루 도메인 반영 전용 — sync 호출 안 함 */
       setDefaultPassthroughFromDaemon: (entries: SslProxyingEntry[]) => {
         set({ defaultPassthroughEntries: entries });
       },
@@ -125,9 +120,9 @@ export const useSslProxyingStore = create<SslProxyingStoreState>()(
       storage: createJSONStorage(() => createTauriStorage()),
       onRehydrateStorage: () => (state) => {
         if (!state) return;
-        // entries 동기화
-        state.syncToProxy();
-        // defaultPassthrough: persist에서 복원된 값이 있으면 동기화, 없으면 백엔드 기본값 로딩
+        if (state.entries.length) {
+          state.syncToProxy();
+        }
         if (state.defaultPassthroughEntries.length > 0) {
           state.syncDefaultPassthroughToProxy();
         } else {

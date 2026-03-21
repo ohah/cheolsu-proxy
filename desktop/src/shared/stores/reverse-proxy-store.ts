@@ -43,7 +43,6 @@ export const useReverseProxyStore = create<ReverseProxyStoreState>()(
         get().syncToProxy();
       },
 
-      /** 데몬 이벤트로 수신한 규칙 반영 전용 — syncToProxy 호출 안 함 */
       setRules: (rules: ReverseProxyRule[]) => {
         set({ rules });
       },
