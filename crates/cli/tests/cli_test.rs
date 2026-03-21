@@ -28,7 +28,8 @@ fn help_shows_all_subcommands() {
         .stdout(predicate::str::contains("export-har"))
         .stdout(predicate::str::contains("tui"))
         .stdout(predicate::str::contains("install-skills"))
-        .stdout(predicate::str::contains("uninstall-skills"));
+        .stdout(predicate::str::contains("uninstall-skills"))
+        .stdout(predicate::str::contains("completion"));
 }
 
 #[test]
@@ -187,4 +188,58 @@ fn uninstall_skills_succeeds() {
         .success()
         .stdout(predicate::str::contains("Removed"))
         .stdout(predicate::str::contains("uninstalled"));
+}
+
+#[test]
+fn install_skills_check() {
+    cheolsu().arg("install-skills").assert().success();
+    cheolsu()
+        .args(["install-skills", "--check"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("installed"));
+    // cleanup
+    cheolsu().arg("uninstall-skills").assert().success();
+}
+
+// ─── Version ─────────────────────────────────────────────
+
+#[test]
+fn version_flag() {
+    cheolsu()
+        .arg("--version")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("cheolsu"));
+}
+
+// ─── Output format ───────────────────────────────────────
+
+#[test]
+fn json_output_on_daemon_error() {
+    cheolsu()
+        .args(["--output", "json", "status"])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains(r#""status": "error""#));
+}
+
+// ─── Shell completion ────────────────────────────────────
+
+#[test]
+fn completion_zsh() {
+    cheolsu()
+        .args(["completion", "zsh"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("cheolsu"));
+}
+
+#[test]
+fn completion_bash() {
+    cheolsu()
+        .args(["completion", "bash"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("cheolsu"));
 }
