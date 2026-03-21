@@ -3,6 +3,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import { createTauriStorage } from "@/shared/lib/tauri-store-storage";
 import type { HostMapping } from "@/shared/api/proxy";
 import { updateHostMappings } from "@/shared/api/proxy";
+import { createDebouncedSync } from "./create-debounced-sync";
 
 interface HostMappingStoreState {
   hostMappings: HostMapping[];
@@ -16,16 +17,7 @@ interface HostMappingStoreState {
   syncToProxy: () => void;
 }
 
-let syncTimer: ReturnType<typeof setTimeout> | null = null;
-
-/** syncToProxy 연속 호출을 방지하기 위한 debounce (300ms) */
-function debouncedSync(fn: () => Promise<void>) {
-  if (syncTimer) clearTimeout(syncTimer);
-  syncTimer = setTimeout(() => {
-    syncTimer = null;
-    fn();
-  }, 300);
-}
+const debouncedSync = createDebouncedSync();
 
 export const useHostMappingStore = create<HostMappingStoreState>()(
   persist(
@@ -77,6 +69,11 @@ export const useHostMappingStore = create<HostMappingStoreState>()(
     {
       name: "cheolsu-host-mappings",
       storage: createJSONStorage(() => createTauriStorage()),
+      onRehydrateStorage: () => (state) => {
+        if (state?.hostMappings.length) {
+          state.syncToProxy();
+        }
+      },
     },
   ),
 );

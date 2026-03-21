@@ -7,6 +7,7 @@ import {
   updateDefaultPassthroughDomains,
   getDefaultPassthroughDomains,
 } from "@/shared/api/proxy";
+import { createDebouncedSync } from "./create-debounced-sync";
 
 interface SslProxyingStoreState {
   mode: SslProxyingMode;
@@ -22,15 +23,20 @@ interface SslProxyingStoreState {
   setFromDaemon: (mode: SslProxyingMode, entries: SslProxyingEntry[]) => void;
   clearEntries: () => void;
   syncToProxy: () => void;
-  /** 기본 패스스루 도메인 목록 설정 (UI 및 데몬 이벤트 공용) */
+  /** 데몬 이벤트로 수신한 기본 패스스루 도메인 반영 전용 — syncDefaultPassthroughToProxy 호출 안 함 */
+  setDefaultPassthroughFromDaemon: (entries: SslProxyingEntry[]) => void;
+  /** 기본 패스스루 도메인 목록 설정 및 데몬 동기화 */
   setDefaultPassthroughEntries: (entries: SslProxyingEntry[]) => void;
   /** 기본 패스스루 도메인을 프록시에 동기화 */
   syncDefaultPassthroughToProxy: () => void;
   /** Rust 백엔드에서 기본값을 가져와 기본 패스스루 도메인을 복원 */
   restoreDefaultPassthrough: () => Promise<SslProxyingEntry[]>;
-  /** persist에서 복원된 값이 없을 때 Rust 백엔드에서 기본값 로딩 */
-  initDefaultPassthrough: () => Promise<void>;
 }
+
+/** entries 동기화용 debounce */
+const debouncedSyncEntries = createDebouncedSync();
+/** defaultPassthrough 동기화용 debounce (별도 API 엔드포인트) */
+const debouncedSyncPassthrough = createDebouncedSync();
 
 export const useSslProxyingStore = create<SslProxyingStoreState>()(
   persist(
@@ -41,16 +47,19 @@ export const useSslProxyingStore = create<SslProxyingStoreState>()(
 
       setMode: (mode: SslProxyingMode) => {
         set({ mode });
+        get().syncToProxy();
       },
 
       addEntry: (entry: SslProxyingEntry) => {
         set((state) => ({ entries: [...state.entries, entry] }));
+        get().syncToProxy();
       },
 
       removeEntry: (pattern: string) => {
         set((state) => ({
           entries: state.entries.filter((e) => e.pattern !== pattern),
         }));
+        get().syncToProxy();
       },
 
       toggleEntry: (pattern: string) => {
@@ -59,6 +68,7 @@ export const useSslProxyingStore = create<SslProxyingStoreState>()(
             e.pattern === pattern ? { ...e, enabled: !e.enabled } : e,
           ),
         }));
+        get().syncToProxy();
       },
 
       /** 데몬 이벤트로 수신한 상태 반영 전용 -- syncToProxy 호출 안 함 */
@@ -68,52 +78,64 @@ export const useSslProxyingStore = create<SslProxyingStoreState>()(
 
       clearEntries: () => {
         set({ entries: [] });
+        get().syncToProxy();
       },
 
-      syncToProxy: async () => {
-        try {
-          const { mode, entries } = get();
-          await updateSslProxyingList(mode, entries);
-        } catch (error) {
-          console.error("Failed to sync SSL proxying list:", error);
-          throw error;
-        }
+      syncToProxy: () => {
+        debouncedSyncEntries(async () => {
+          try {
+            const { mode, entries } = get();
+            await updateSslProxyingList(mode, entries);
+          } catch (error) {
+            console.error("Failed to sync SSL proxying list:", error);
+          }
+        });
+      },
+
+      /** 데몬 이벤트로 수신한 기본 패스스루 도메인 반영 전용 — sync 호출 안 함 */
+      setDefaultPassthroughFromDaemon: (entries: SslProxyingEntry[]) => {
+        set({ defaultPassthroughEntries: entries });
       },
 
       setDefaultPassthroughEntries: (entries: SslProxyingEntry[]) => {
         set({ defaultPassthroughEntries: entries });
+        get().syncDefaultPassthroughToProxy();
       },
 
-      syncDefaultPassthroughToProxy: async () => {
-        try {
-          const { defaultPassthroughEntries } = get();
-          await updateDefaultPassthroughDomains(defaultPassthroughEntries);
-        } catch (error) {
-          console.error("Failed to sync default passthrough domains:", error);
-          throw error;
-        }
+      syncDefaultPassthroughToProxy: () => {
+        debouncedSyncPassthrough(async () => {
+          try {
+            const { defaultPassthroughEntries } = get();
+            await updateDefaultPassthroughDomains(defaultPassthroughEntries);
+          } catch (error) {
+            console.error("Failed to sync default passthrough domains:", error);
+          }
+        });
       },
 
       restoreDefaultPassthrough: async () => {
         const defaults = await getDefaultPassthroughDomains();
         set({ defaultPassthroughEntries: defaults });
+        get().syncDefaultPassthroughToProxy();
         return defaults;
-      },
-
-      initDefaultPassthrough: async () => {
-        const { defaultPassthroughEntries } = get();
-        if (defaultPassthroughEntries.length === 0) {
-          // persist에서 복원된 값이 없으면 Rust 백엔드에서 기본값 로딩
-          const defaults = await getDefaultPassthroughDomains();
-          set({ defaultPassthroughEntries: defaults });
-        }
-        // persist에서 복원된 값(비활성화 상태 포함)을 데몬에 동기화
-        await get().syncDefaultPassthroughToProxy();
       },
     }),
     {
       name: "cheolsu-ssl-proxying",
       storage: createJSONStorage(() => createTauriStorage()),
+      onRehydrateStorage: () => (state) => {
+        if (!state) return;
+        // entries 동기화
+        state.syncToProxy();
+        // defaultPassthrough: persist에서 복원된 값이 있으면 동기화, 없으면 백엔드 기본값 로딩
+        if (state.defaultPassthroughEntries.length > 0) {
+          state.syncDefaultPassthroughToProxy();
+        } else {
+          getDefaultPassthroughDomains().then((defaults) => {
+            state.setDefaultPassthroughEntries(defaults);
+          });
+        }
+      },
     },
   ),
 );

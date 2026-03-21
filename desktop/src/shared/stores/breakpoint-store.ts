@@ -12,6 +12,9 @@ import {
   resolveBreakpoint as resolveBreakpointApi,
 } from "@/shared/api/proxy";
 import { toast } from "sonner";
+import { createDebouncedSync } from "./create-debounced-sync";
+
+const debouncedSync = createDebouncedSync();
 
 export const useBreakpointStore = create<BreakpointStoreState>()(
   persist(
@@ -68,20 +71,27 @@ export const useBreakpointStore = create<BreakpointStoreState>()(
         }));
       },
 
-      syncToProxy: async () => {
-        try {
-          const { rules } = get();
-          await updateBreakpointRules(rules);
-        } catch (error) {
-          console.error("Failed to sync breakpoint rules:", error);
-          toast.warning("Failed to sync rules to proxy. Is the proxy running?");
-        }
+      syncToProxy: () => {
+        debouncedSync(async () => {
+          try {
+            const { rules } = get();
+            await updateBreakpointRules(rules);
+          } catch (error) {
+            console.error("Failed to sync breakpoint rules:", error);
+            toast.warning("Failed to sync rules to proxy. Is the proxy running?");
+          }
+        });
       },
     }),
     {
       name: "cheolsu-breakpoint-rules",
       storage: createJSONStorage(() => createTauriStorage()),
       partialize: (state) => ({ rules: state.rules }),
+      onRehydrateStorage: () => (state) => {
+        if (state?.rules.length) {
+          state.syncToProxy();
+        }
+      },
     },
   ),
 );

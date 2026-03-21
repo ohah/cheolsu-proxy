@@ -5,8 +5,6 @@ import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
 import type { ProxyEventPayload } from "@/entities/proxy";
 import { useAppSettingsStore } from "@/shared/stores/app-settings-store";
-import { useInterceptRuleStore } from "@/shared/stores";
-import { waitForDaemonRules } from "@/shared/stores/sync-rules";
 
 /**
  * 프록시 초기화, 프록시 이벤트 수신, 프록시 상태 동기화, 녹화 일시정지 동기화를 담당하는 훅
@@ -14,7 +12,6 @@ import { waitForDaemonRules } from "@/shared/stores/sync-rules";
 export function useProxyEventListeners() {
   const initializeProxy = useProxyStore((s) => s.initializeProxy);
   const setConnected = useProxyStore((s) => s.setConnected);
-  const syncToProxy = useInterceptRuleStore((s) => s.syncToProxy);
   const addTransaction = useTransactionStore((s) => s.addTransaction);
   const paused = useTransactionStore((s) => s.paused);
   const setPaused = useTransactionStore((s) => s.setPaused);
@@ -45,11 +42,11 @@ export function useProxyEventListeners() {
     store.deleteTransactionsBatch(idsToRemove);
   }, []);
 
-  // 앱 시작 시 프록시 초기화 → 데몬 규칙 수신 대기 → 저장된 규칙 동기화
+  // 앱 시작 시 프록시 초기화 (각 스토어가 onRehydrateStorage에서 자체 동기화)
   useEffect(() => {
     const port = useAppSettingsStore.getState().proxyPort;
-    initializeProxy(port).then(() => waitForDaemonRules().then(() => syncToProxy()));
-  }, [initializeProxy, syncToProxy]);
+    initializeProxy(port);
+  }, [initializeProxy]);
 
   // 프록시 이벤트를 전역적으로 수신하여 트랜잭션 store에 저장
   useEffect(() => {

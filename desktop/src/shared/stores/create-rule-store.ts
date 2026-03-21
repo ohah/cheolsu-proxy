@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { createTauriStorage } from "@/shared/lib/tauri-store-storage";
 import type { InterceptRule } from "@/entities/intercept-rule";
-import { registerRuleStore, syncAllRulesToProxy } from "./sync-rules";
+import { registerRuleStore, syncAllRulesToProxy, waitForDaemonRules } from "./sync-rules";
 
 export interface RuleStoreState {
   rules: InterceptRule[];
@@ -72,6 +72,12 @@ export function createRuleStore(config: RuleStoreConfig) {
       {
         name: config.storeName,
         storage: createJSONStorage(() => createTauriStorage()),
+        onRehydrateStorage: () => (state) => {
+          if (state?.rules.length) {
+            // 외부 규칙(MCP/TUI) 보존을 위해 데몬 규칙 수신 후 동기화
+            waitForDaemonRules().then(() => state.syncToProxy());
+          }
+        },
       },
     ),
   );

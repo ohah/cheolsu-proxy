@@ -32,8 +32,9 @@ export function useDaemonSyncListeners() {
   const setHostMappings = useHostMappingStore((s) => s.setMappings);
   const setReverseProxyRules = useReverseProxyStore((s) => s.setRules);
   const setSslFromDaemon = useSslProxyingStore((s) => s.setFromDaemon);
-  const setDefaultPassthroughEntries = useSslProxyingStore((s) => s.setDefaultPassthroughEntries);
-  const initDefaultPassthrough = useSslProxyingStore((s) => s.initDefaultPassthrough);
+  const setDefaultPassthroughFromDaemon = useSslProxyingStore(
+    (s) => s.setDefaultPassthroughFromDaemon,
+  );
   const setContractSpecs = useContractStore((s) => s.setSpecs);
 
   // 데몬에서 인터셉트 규칙 변경 수신 (MCP 등 외부 클라이언트에서 변경 시 동기화)
@@ -115,14 +116,14 @@ export function useDaemonSyncListeners() {
     const unlisten = listen<{ entries: SslProxyingEntry[] }>(
       "default_passthrough_domains_updated",
       (event) => {
-        setDefaultPassthroughEntries(event.payload.entries);
+        setDefaultPassthroughFromDaemon(event.payload.entries);
       },
     );
 
     return () => {
       unlisten.then((f) => f());
     };
-  }, [setDefaultPassthroughEntries]);
+  }, [setDefaultPassthroughFromDaemon]);
 
   // Contract Testing 스펙 업데이트 수신
   useEffect(() => {
@@ -134,9 +135,4 @@ export function useDaemonSyncListeners() {
       unlisten.then((f) => f());
     };
   }, [setContractSpecs]);
-
-  // persist에서 복원된 기본 패스스루 도메인이 없으면 Rust 백엔드에서 기본값 로딩
-  useEffect(() => {
-    initDefaultPassthrough();
-  }, [initDefaultPassthrough]);
 }
