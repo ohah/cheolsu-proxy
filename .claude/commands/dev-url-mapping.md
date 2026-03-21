@@ -11,6 +11,7 @@ Example: `/dev-url-mapping app.example.com localhost:3000`
 ## What This Does
 
 Sets up 3 proxy rules automatically:
+
 1. **MapRemote** — Redirects `https://app.example.com/*` → `http://localhost:3000/*`
 2. **SSL Proxying** — Enables HTTPS interception for the domain
 3. **Header Rewrite** — Rewrites Origin/Host headers so HMR works without dev server config changes
@@ -94,6 +95,7 @@ grep "<domain>" "$HOME/Library/Application Support/com.cheolsu-proxy/tls_passthr
 **Alternative: Configure dev server directly**
 
 Instead of proxy header rewrite, you can allow the host in dev server config:
+
 ```js
 // rspack / webpack
 devServer: { allowedHosts: 'all' }
@@ -108,6 +110,7 @@ module.exports: { allowedDevOrigins: ['<domain>'] }
 ### iOS Simulator SSL error (-1200)
 
 Install CA certificate:
+
 ```bash
 xcrun simctl keychain booted add-root-cert \
   "$HOME/Library/Application Support/com.cheolsu-proxy/cheolsu-proxy.cer"
