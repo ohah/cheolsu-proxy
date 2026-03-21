@@ -33,7 +33,7 @@
     "createUpdaterArtifacts": true,
     "targets": ["msi", "nsis", "dmg", "app"],
     "icon": ["icons/logo.png"],
-    "externalBin": ["binaries/cheolsu-proxy-mcp", "binaries/cheolsu"],
+    "externalBin": ["binaries/cheolsu-proxy-mcp", "binaries/cheolsu-tui"],
     "macOS": {
       "entitlements": null,
       "exceptionDomain": "",

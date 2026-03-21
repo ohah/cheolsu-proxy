@@ -6,7 +6,7 @@ use clap::{Args, Parser, Subcommand};
 use std::collections::HashMap;
 
 #[derive(Parser)]
-#[command(name = "cheolsu-cli", about = "Cheolsu Proxy CLI")]
+#[command(name = "cheolsu", about = "Cheolsu Proxy CLI")]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
@@ -63,6 +63,21 @@ enum Commands {
 
     /// HAR 파일로 내보내기
     ExportHar(ExportHarArgs),
+
+    /// TUI 모드로 실행
+    Tui(TuiArgs),
+}
+
+// ─── TUI ─────────────────────────────────────────────────
+
+#[derive(Args)]
+struct TuiArgs {
+    /// 프록시 포트
+    #[arg(short, long, default_value_t = 8100)]
+    port: u16,
+    /// 바인드 호스트
+    #[arg(short = 'b', long, default_value = "0.0.0.0")]
+    host: String,
 }
 
 // ─── Traffic ─────────────────────────────────────────────
@@ -470,6 +485,25 @@ struct ExportHarArgs {
     path: Option<String>,
 }
 
+// ─── TUI exec ────────────────────────────────────────────
+
+fn exec_tui(args: &TuiArgs) -> i32 {
+    let mut cmd = std::process::Command::new("cheolsu-tui");
+    cmd.arg("--port").arg(args.port.to_string());
+    cmd.arg("--host").arg(&args.host);
+    match cmd.status() {
+        Ok(status) => status.code().unwrap_or(1),
+        Err(e) => {
+            eprintln!(
+                "Error: cheolsu-tui를 실행할 수 없습니다: {}\n\
+                 cheolsu-tui가 PATH에 설치되어 있는지 확인해주세요.",
+                e
+            );
+            1
+        }
+    }
+}
+
 // ─── Main ────────────────────────────────────────────────
 
 #[tokio::main]
@@ -480,6 +514,11 @@ async fn main() {
 }
 
 async fn run(cli: Cli) -> i32 {
+    // tui 서브커맨드: cheolsu-tui 바이너리를 exec
+    if let Commands::Tui(args) = &cli.command {
+        return exec_tui(args);
+    }
+
     // replay request/repeat는 daemon 연결 불필요
     if let Commands::Replay(ReplayCommands::Request(args)) = &cli.command {
         let headers = if args.header.is_empty() {
@@ -872,6 +911,8 @@ async fn run(cli: Cli) -> i32 {
                 path: args.path,
             },
         ),
+
+        Commands::Tui(_) => unreachable!(),
     };
 
     output::print_result(result)

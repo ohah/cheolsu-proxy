@@ -30,7 +30,7 @@ use app::App;
 use clap::Parser;
 
 #[derive(Parser, Debug)]
-#[command(name = "cheolsu", about = "Cheolsu Proxy TUI")]
+#[command(name = "cheolsu-tui", about = "Cheolsu Proxy TUI")]
 struct Cli {
     /// Proxy port
     #[arg(short, long, default_value_t = 8100)]
