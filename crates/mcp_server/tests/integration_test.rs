@@ -448,8 +448,8 @@ fn format_size_megabytes() {
 fn next_rule_id_increments() {
     let id1 = next_rule_id();
     let id2 = next_rule_id();
-    assert!(id1.starts_with("mcp_"));
-    assert!(id2.starts_with("mcp_"));
+    assert!(id1.starts_with("rule_"));
+    assert!(id2.starts_with("rule_"));
     assert_ne!(id1, id2);
 }
 
@@ -457,8 +457,8 @@ fn next_rule_id_increments() {
 fn next_breakpoint_id_increments() {
     let id1 = next_breakpoint_id();
     let id2 = next_breakpoint_id();
-    assert!(id1.starts_with("mcp_bp_"));
-    assert!(id2.starts_with("mcp_bp_"));
+    assert!(id1.starts_with("bp_"));
+    assert!(id2.starts_with("bp_"));
     assert_ne!(id1, id2);
 }
 

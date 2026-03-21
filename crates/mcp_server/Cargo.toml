@@ -13,6 +13,7 @@ path = "src/main.rs"
 
 [dependencies]
 rmcp = { version = "1.1", features = ["server", "transport-io"] }
+cheolsu_ops = { path = "../cheolsu_ops", features = ["schema"] }
 proxy_daemon = { path = "../proxy_daemon" }
 proxy_v2_models = { path = "../proxy_v2_models" }
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
