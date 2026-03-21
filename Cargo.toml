@@ -6,6 +6,7 @@ members = [
   "crates/proxy_v2_models",
   "crates/proxy_daemon",
   "crates/cheolsu_ops",
+  "crates/cli",
   "crates/mcp_server",
   "crates/tui",
   "desktop/src-tauri",
