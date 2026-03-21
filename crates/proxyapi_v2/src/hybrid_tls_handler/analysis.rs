@@ -173,9 +173,7 @@ pub(crate) fn analyze_tls_connection(
     let mut supported_versions_max: Option<TlsVersion> = None;
     let mut supported_groups: Vec<u16> = Vec::new();
     let mut signature_algorithms: Vec<u16> = Vec::new();
-    let mut ec_point_formats: Vec<u8> = Vec::new();
     let mut alpn_protocols: Vec<Vec<u8>> = Vec::new();
-    let mut compression_methods: Vec<u8> = Vec::new();
 
     if initial_buffer.len() >= 43 {
         let session_id_length = initial_buffer[43] as usize;
@@ -205,17 +203,9 @@ pub(crate) fn analyze_tls_connection(
                 }
             }
 
-            // Compression Methods 분석
             let compression_methods_start = cipher_suites_start + 2 + cipher_suites_length;
             if initial_buffer.len() >= compression_methods_start + 1 {
                 let compression_methods_length = initial_buffer[compression_methods_start] as usize;
-                // compression methods 데이터 복사
-                let cm_data_start = compression_methods_start + 1;
-                if initial_buffer.len() >= cm_data_start + compression_methods_length {
-                    compression_methods = initial_buffer
-                        [cm_data_start..cm_data_start + compression_methods_length]
-                        .to_vec();
-                }
                 let extensions_start = compression_methods_start + 1 + compression_methods_length;
 
                 if initial_buffer.len() >= extensions_start + 2 {
@@ -235,26 +225,18 @@ pub(crate) fn analyze_tls_connection(
                                 as usize;
 
                         let extension_name = get_extension_name(extension_type);
-                        // extension 원본 데이터 복사
                         let ext_data = if pos + 4 + extension_length <= initial_buffer.len() {
                             initial_buffer[pos + 4..pos + 4 + extension_length].to_vec()
                         } else {
                             Vec::new()
                         };
-                        extensions.push(TlsExtension {
-                            extension_type,
-                            name: extension_name.clone(),
-                            length: extension_length as u16,
-                            data: ext_data.clone(),
-                        });
 
-                        // SNI Extension 감지
                         if extension_type == 0x0000 {
                             has_sni = true;
                             info!("  - ✅ SNI Extension 감지됨");
                         }
 
-                        // Supported Groups (0x000a) 파싱
+                        // Supported Groups (0x000a)
                         if extension_type == 0x000a && ext_data.len() >= 2 {
                             let list_len = u16::from_be_bytes([ext_data[0], ext_data[1]]) as usize;
                             for i in (2..2 + list_len).step_by(2) {
@@ -265,15 +247,7 @@ pub(crate) fn analyze_tls_connection(
                             }
                         }
 
-                        // EC Point Formats (0x000b) 파싱
-                        if extension_type == 0x000b && !ext_data.is_empty() {
-                            let fmt_len = ext_data[0] as usize;
-                            if ext_data.len() >= 1 + fmt_len {
-                                ec_point_formats = ext_data[1..1 + fmt_len].to_vec();
-                            }
-                        }
-
-                        // Signature Algorithms (0x000d) 파싱
+                        // Signature Algorithms (0x000d)
                         if extension_type == 0x000d && ext_data.len() >= 2 {
                             let list_len = u16::from_be_bytes([ext_data[0], ext_data[1]]) as usize;
                             for i in (2..2 + list_len).step_by(2) {
@@ -284,7 +258,7 @@ pub(crate) fn analyze_tls_connection(
                             }
                         }
 
-                        // ALPN (0x0010) 파싱
+                        // ALPN (0x0010)
                         if extension_type == 0x0010 && ext_data.len() >= 2 {
                             let list_len = u16::from_be_bytes([ext_data[0], ext_data[1]]) as usize;
                             let mut alpn_pos = 2;
@@ -298,6 +272,14 @@ pub(crate) fn analyze_tls_connection(
                                 alpn_pos += proto_len;
                             }
                         }
+
+                        // 파싱 완료 후 move (clone 회피)
+                        extensions.push(TlsExtension {
+                            extension_type,
+                            name: extension_name,
+                            length: extension_length as u16,
+                            data: ext_data,
+                        });
 
                         // supported_versions Extension 파싱 (0x002b)
                         // TLS 1.3 클라이언트는 client_version을 0x0303(TLS 1.2)으로 설정하고
@@ -372,9 +354,7 @@ pub(crate) fn analyze_tls_connection(
         complexity_score,
         supported_groups,
         signature_algorithms,
-        ec_point_formats,
         alpn_protocols,
-        compression_methods,
     })
 }
 

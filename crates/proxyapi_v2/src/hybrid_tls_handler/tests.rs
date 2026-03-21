@@ -345,24 +345,6 @@ fn test_analyze_extracts_alpn_protocols() {
 }
 
 #[test]
-fn test_analyze_extracts_ec_point_formats() {
-    // ec_point_formats extension (0x000b): fmt_count(1) + formats
-    let ec_data = vec![0x01, 0x00]; // 1 format: uncompressed
-
-    let buf = build_client_hello([0x03, 0x03], &[0xc02f], &[(0x000b, &ec_data)]);
-    let info = analyze_tls_connection(&buf).unwrap();
-    assert_eq!(info.ec_point_formats, vec![0x00]);
-}
-
-#[test]
-fn test_analyze_extracts_compression_methods() {
-    let buf = build_client_hello([0x03, 0x03], &[0xc02f], &[]);
-    let info = analyze_tls_connection(&buf).unwrap();
-    // build_client_hello는 compression method [0x00] (null)을 넣음
-    assert_eq!(info.compression_methods, vec![0x00]);
-}
-
-#[test]
 fn test_analyze_extension_data_preserved() {
     let dummy_data = vec![0x01, 0x02, 0x03, 0x04];
     let buf = build_client_hello(

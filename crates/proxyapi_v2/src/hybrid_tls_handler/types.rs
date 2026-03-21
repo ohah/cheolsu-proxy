@@ -42,12 +42,8 @@ pub struct TlsConnectionInfo {
     pub supported_groups: Vec<u16>,
     /// Signature Algorithms extension 데이터
     pub signature_algorithms: Vec<u16>,
-    /// EC Point Formats extension 데이터
-    pub ec_point_formats: Vec<u8>,
     /// ALPN 프로토콜 목록
     pub alpn_protocols: Vec<Vec<u8>>,
-    /// Compression methods
-    pub compression_methods: Vec<u8>,
 }
 
 /// TLS Extension 정보
