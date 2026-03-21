@@ -156,29 +156,6 @@ impl CheolsuMcpServer {
             ))
             .with_route((Self::analyze_full_tool_attr(), Self::analyze_full))
     }
-
-    // ─── send_* 위임 메서드 (아직 변환되지 않은 tools에서 사용) ───
-    // Phase 2에서 각 tool이 cheolsu_ops로 이동되면 제거
-
-    pub(crate) async fn send_rules(&self) -> Result<(), String> {
-        self.ops_ctx().send_rules().await
-    }
-
-    pub(crate) async fn send_breakpoint_rules(&self) -> Result<(), String> {
-        self.ops_ctx().send_breakpoint_rules().await
-    }
-
-    pub(crate) async fn send_host_mappings(&self) -> Result<(), String> {
-        self.ops_ctx().send_host_mappings().await
-    }
-
-    pub(crate) async fn send_reverse_proxy_rules(&self) -> Result<(), String> {
-        self.ops_ctx().send_reverse_proxy_rules().await
-    }
-
-    pub(crate) async fn send_server_replay(&self) -> Result<(), String> {
-        self.ops_ctx().send_server_replay().await
-    }
 }
 
 #[tool_handler]

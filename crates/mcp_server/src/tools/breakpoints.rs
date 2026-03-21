@@ -1,10 +1,6 @@
-use proxy_daemon::{BreakpointAction, BreakpointRule, ClientCommand};
 use rmcp::{handler::server::wrapper::Parameters, model::*, tool, ErrorData as McpError};
 
-use crate::helpers::{
-    add_and_sync, list_items, next_breakpoint_id, remove_and_sync, tool_error, tool_ok,
-    with_daemon_conn,
-};
+use crate::helpers::op_result_to_mcp;
 use crate::params::*;
 use crate::server::CheolsuMcpServer;
 
@@ -13,11 +9,7 @@ impl CheolsuMcpServer {
         description = "List all current breakpoint rules. Breakpoints pause matching requests/responses for manual inspection and editing."
     )]
     pub(crate) async fn list_breakpoints(&self) -> Result<CallToolResult, McpError> {
-        list_items(
-            &self.store.breakpoint_rules,
-            "breakpoint rules",
-            "No breakpoint rules configured.",
-        )
+        op_result_to_mcp(cheolsu_ops::breakpoints::list_breakpoints(&self.ops_ctx()))
     }
 
     #[tool(
@@ -27,23 +19,7 @@ impl CheolsuMcpServer {
         &self,
         Parameters(p): Parameters<AddBreakpointParams>,
     ) -> Result<CallToolResult, McpError> {
-        let id = next_breakpoint_id();
-        let rule = BreakpointRule {
-            id: id.clone(),
-            pattern: p.pattern,
-            break_on_request: p.break_on_request.unwrap_or(true),
-            break_on_response: p.break_on_response.unwrap_or(false),
-            enabled: true,
-        };
-
-        add_and_sync(
-            &self.store.breakpoint_rules,
-            rule,
-            &id,
-            "Breakpoint",
-            || self.send_breakpoint_rules(),
-        )
-        .await
+        op_result_to_mcp(cheolsu_ops::breakpoints::add_breakpoint(&self.ops_ctx(), p).await)
     }
 
     #[tool(description = "Remove a breakpoint rule by its ID.")]
@@ -51,25 +27,14 @@ impl CheolsuMcpServer {
         &self,
         Parameters(p): Parameters<RemoveBreakpointParams>,
     ) -> Result<CallToolResult, McpError> {
-        remove_and_sync(
-            &self.store.breakpoint_rules,
-            &p.id,
-            |r| &r.id,
-            "Breakpoint",
-            || self.send_breakpoint_rules(),
-        )
-        .await
+        op_result_to_mcp(cheolsu_ops::breakpoints::remove_breakpoint(&self.ops_ctx(), p).await)
     }
 
     #[tool(
         description = "List currently paused (pending) breakpoints waiting for resolution. Returns breakpoint IDs that can be used with resolve_breakpoint."
     )]
     pub(crate) async fn list_pending_breakpoints(&self) -> Result<CallToolResult, McpError> {
-        tool_ok(
-            "Pending breakpoints are shown as 'breakpoint_hit' events in the daemon stream. \
-             Use the breakpoint ID from those events with resolve_breakpoint to continue."
-                .to_string(),
-        )
+        op_result_to_mcp(cheolsu_ops::breakpoints::list_pending_breakpoints())
     }
 
     #[tool(
@@ -79,30 +44,6 @@ impl CheolsuMcpServer {
         &self,
         Parameters(p): Parameters<ResolveBreakpointParams>,
     ) -> Result<CallToolResult, McpError> {
-        let action = match p.action.as_str() {
-            "forward" => BreakpointAction::Forward,
-            "modify_and_forward" => BreakpointAction::ModifyAndForward {
-                headers: p.headers,
-                body: p.body,
-                status: p.status,
-            },
-            "drop" => BreakpointAction::Drop,
-            "abort" => BreakpointAction::Abort,
-            other => {
-                return tool_error(format!(
-                    "Unknown action '{}'. Use: forward, modify_and_forward, drop, abort",
-                    other
-                ));
-            }
-        };
-
-        let cmd = ClientCommand::ResolveBreakpoint {
-            id: p.id.clone(),
-            action,
-        };
-        match with_daemon_conn(&self.daemon_conn, &cmd).await {
-            Ok(()) => tool_ok(format!("Breakpoint '{}' resolved.", p.id)),
-            Err(e) => tool_error(format!("Failed to resolve breakpoint: {}", e)),
-        }
+        op_result_to_mcp(cheolsu_ops::breakpoints::resolve_breakpoint(&self.ops_ctx(), p).await)
     }
 }

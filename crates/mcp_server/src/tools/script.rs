@@ -1,7 +1,6 @@
-use proxy_daemon::ClientCommand;
 use rmcp::{handler::server::wrapper::Parameters, model::*, tool, ErrorData as McpError};
 
-use crate::helpers::{tool_error, tool_ok, with_daemon_conn};
+use crate::helpers::op_result_to_mcp;
 use crate::params::*;
 use crate::server::CheolsuMcpServer;
 
@@ -13,24 +12,7 @@ impl CheolsuMcpServer {
         &self,
         Parameters(p): Parameters<LoadScriptParams>,
     ) -> Result<CallToolResult, McpError> {
-        if p.path.is_none() && p.code.is_none() {
-            return tool_error("Either 'path' or 'code' must be provided.");
-        }
-        let cmd = ClientCommand::LoadScript {
-            path: p.path.clone(),
-            code: p.code.clone(),
-        };
-        match with_daemon_conn(&self.daemon_conn, &cmd).await {
-            Ok(()) => {
-                let source = if let Some(ref path) = p.path {
-                    format!("file '{}'", path)
-                } else {
-                    "inline code".to_string()
-                };
-                tool_ok(format!("Script loaded from {}.", source))
-            }
-            Err(e) => tool_error(format!("Failed to load script: {}", e)),
-        }
+        op_result_to_mcp(cheolsu_ops::script::load_script(&self.ops_ctx(), p).await)
     }
 
     #[tool(description = "Unload the currently loaded proxy script.")]
@@ -38,9 +20,6 @@ impl CheolsuMcpServer {
         &self,
         #[allow(unused_variables)] Parameters(_p): Parameters<UnloadScriptParams>,
     ) -> Result<CallToolResult, McpError> {
-        match with_daemon_conn(&self.daemon_conn, &ClientCommand::UnloadScript).await {
-            Ok(()) => tool_ok("Script unloaded."),
-            Err(e) => tool_error(format!("Failed to unload script: {}", e)),
-        }
+        op_result_to_mcp(cheolsu_ops::script::unload_script(&self.ops_ctx()).await)
     }
 }

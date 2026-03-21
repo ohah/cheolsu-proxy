@@ -1,7 +1,6 @@
-use proxy_daemon::HostMapping;
 use rmcp::{handler::server::wrapper::Parameters, model::*, tool, ErrorData as McpError};
 
-use crate::helpers::{add_and_sync, list_items, next_mapping_id, remove_and_sync};
+use crate::helpers::op_result_to_mcp;
 use crate::params::*;
 use crate::server::CheolsuMcpServer;
 
@@ -10,11 +9,9 @@ impl CheolsuMcpServer {
         description = "List all host mappings (DNS spoofing / remote host mapping rules). Maps source hosts to target hosts/IPs for testing without modifying hosts file."
     )]
     pub(crate) async fn list_host_mappings(&self) -> Result<CallToolResult, McpError> {
-        list_items(
-            &self.store.host_mappings,
-            "host mappings",
-            "No host mappings configured.",
-        )
+        op_result_to_mcp(cheolsu_ops::host_mappings::list_host_mappings(
+            &self.ops_ctx(),
+        ))
     }
 
     #[tool(
@@ -24,24 +21,7 @@ impl CheolsuMcpServer {
         &self,
         Parameters(p): Parameters<AddHostMappingParams>,
     ) -> Result<CallToolResult, McpError> {
-        let id = next_mapping_id();
-        let mapping = HostMapping {
-            id: id.clone(),
-            source_host: p.source_host,
-            source_port: p.source_port,
-            target_host: p.target_host,
-            target_port: p.target_port,
-            enabled: true,
-        };
-
-        add_and_sync(
-            &self.store.host_mappings,
-            mapping,
-            &id,
-            "Host mapping",
-            || self.send_host_mappings(),
-        )
-        .await
+        op_result_to_mcp(cheolsu_ops::host_mappings::add_host_mapping(&self.ops_ctx(), p).await)
     }
 
     #[tool(description = "Remove a host mapping rule by its ID.")]
@@ -49,13 +29,6 @@ impl CheolsuMcpServer {
         &self,
         Parameters(p): Parameters<RemoveHostMappingParams>,
     ) -> Result<CallToolResult, McpError> {
-        remove_and_sync(
-            &self.store.host_mappings,
-            &p.id,
-            |m| &m.id,
-            "Host mapping",
-            || self.send_host_mappings(),
-        )
-        .await
+        op_result_to_mcp(cheolsu_ops::host_mappings::remove_host_mapping(&self.ops_ctx(), p).await)
     }
 }
