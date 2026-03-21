@@ -2,14 +2,19 @@ mod connection;
 mod output;
 
 use cheolsu_ops::params::*;
-use clap::{Args, Parser, Subcommand};
+use clap::{Args, CommandFactory, Parser, Subcommand};
+use output::OutputFormat;
 use std::collections::HashMap;
 
 #[derive(Parser)]
-#[command(name = "cheolsu", about = "Cheolsu Proxy CLI")]
+#[command(name = "cheolsu", about = "Cheolsu Proxy CLI", version)]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
+
+    /// Output format: text (default), json
+    #[arg(long, global = true, value_enum, default_value_t = OutputFormat::Text)]
+    output: OutputFormat,
 }
 
 #[derive(Subcommand)]
@@ -68,10 +73,26 @@ enum Commands {
     Tui(TuiArgs),
 
     /// Claude Code 스킬을 ~/.claude/commands/에 설치
-    InstallSkills,
+    InstallSkills(InstallSkillsArgs),
 
     /// Claude Code 스킬을 ~/.claude/commands/에서 제거
     UninstallSkills,
+
+    /// Shell completion 스크립트 생성
+    Completion(CompletionArgs),
+}
+
+#[derive(Args)]
+struct InstallSkillsArgs {
+    /// 설치 상태만 확인 (실제 설치하지 않음)
+    #[arg(long)]
+    check: bool,
+}
+
+#[derive(Args)]
+struct CompletionArgs {
+    /// Shell 종류: bash, zsh, fish, powershell
+    shell: clap_complete::Shell,
 }
 
 // ─── TUI ─────────────────────────────────────────────────
@@ -523,13 +544,29 @@ const SKILL_FILES: &[(&str, &str)] = &[
     ),
 ];
 
-fn install_skills() -> i32 {
+fn install_skills(check: bool) -> i32 {
     let Some(home) = dirs_path() else {
         eprintln!("Error: HOME directory not found.");
         return 1;
     };
 
     let commands_dir = home.join(".claude").join("commands");
+
+    if check {
+        let mut all_installed = true;
+        for (name, _) in SKILL_FILES {
+            let path = commands_dir.join(name);
+            let status = if path.exists() {
+                "installed"
+            } else {
+                all_installed = false;
+                "not installed"
+            };
+            println!("  {} — {}", name, status);
+        }
+        return if all_installed { 0 } else { 1 };
+    }
+
     if let Err(e) = std::fs::create_dir_all(&commands_dir) {
         eprintln!("Error: Failed to create {}: {}", commands_dir.display(), e);
         return 1;
@@ -607,11 +644,22 @@ async fn main() {
 }
 
 async fn run(cli: Cli) -> i32 {
+    let format = cli.output;
+
     // daemon 불필요 커맨드 먼저 처리
     match &cli.command {
         Commands::Tui(args) => return exec_tui(args),
-        Commands::InstallSkills => return install_skills(),
+        Commands::InstallSkills(args) => return install_skills(args.check),
         Commands::UninstallSkills => return uninstall_skills(),
+        Commands::Completion(args) => {
+            clap_complete::generate(
+                args.shell,
+                &mut Cli::command(),
+                "cheolsu",
+                &mut std::io::stdout(),
+            );
+            return 0;
+        }
         _ => {}
     }
 
@@ -629,7 +677,7 @@ async fn run(cli: Cli) -> i32 {
             body: args.body.clone(),
         })
         .await;
-        return output::print_result(result);
+        return output::print_result(result, format);
     }
     if let Commands::Replay(ReplayCommands::Repeat(args)) = &cli.command {
         let headers = if args.header.is_empty() {
@@ -647,15 +695,14 @@ async fn run(cli: Cli) -> i32 {
             delay_ms: Some(args.delay_ms),
         })
         .await;
-        return output::print_result(result);
+        return output::print_result(result, format);
     }
 
     // 나머지 커맨드는 daemon 연결 필요
-    let ctx = match connection::connect_and_sync().await {
+    let ctx = match connection::connect().await {
         Ok(ctx) => ctx,
         Err(e) => {
-            eprintln!("Error: {}", e);
-            return 1;
+            return output::print_result(cheolsu_ops::result::OpResult::Err(e), format);
         }
     };
 
@@ -1008,8 +1055,11 @@ async fn run(cli: Cli) -> i32 {
             },
         ),
 
-        Commands::Tui(_) | Commands::InstallSkills | Commands::UninstallSkills => unreachable!(),
+        Commands::Tui(_)
+        | Commands::InstallSkills(_)
+        | Commands::UninstallSkills
+        | Commands::Completion(_) => unreachable!(),
     };
 
-    output::print_result(result)
+    output::print_result(result, format)
 }
