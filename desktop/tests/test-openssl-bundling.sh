@@ -100,7 +100,7 @@ fi
 # 7. sidecar 바이너리의 OpenSSL 참조 확인
 echo ""
 echo "[7] sidecar 바이너리 확인"
-for bin_name in "cheolsu-proxy-mcp" "cheolsu"; do
+for bin_name in "cheolsu-proxy-mcp" "cheolsu-tui"; do
     bin_path="$BINARIES_DIR/${bin_name}-${TARGET_TRIPLE}"
     if [ -f "$bin_path" ]; then
         SSL_REF=$(otool -L "$bin_path" | grep libssl | awk '{print $1}')
