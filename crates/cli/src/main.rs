@@ -320,6 +320,10 @@ enum SettingsCommands {
     ConnectionStrategy { strategy: String },
     /// 빠른 설정
     Quick(QuickSettingsArgs),
+    /// 클라이언트 인증서 설정 (mTLS)
+    ClientCertificate(ClientCertificateArgs),
+    /// SSL 프록싱 리스트 설정
+    SslProxyingList(SslProxyingListArgs),
 }
 
 #[derive(Args)]
@@ -370,6 +374,37 @@ struct QuickSettingsArgs {
     block_cookies: bool,
     #[arg(long)]
     no_gzip: bool,
+}
+
+#[derive(Args)]
+struct ClientCertificateArgs {
+    #[arg(long)]
+    enabled: bool,
+    #[arg(long)]
+    cert_path: Option<String>,
+    #[arg(long)]
+    key_path: Option<String>,
+}
+
+#[derive(Args)]
+struct SslProxyingListArgs {
+    /// Mode: blacklist or whitelist
+    #[arg(long, default_value = "blacklist")]
+    mode: String,
+    /// Entries in "pattern=enabled" format (e.g., "example.com=true")
+    #[arg(long, value_parser = parse_ssl_entry)]
+    entry: Vec<(String, bool)>,
+}
+
+fn parse_ssl_entry(s: &str) -> Result<(String, bool), String> {
+    let pos = s
+        .find('=')
+        .ok_or_else(|| format!("'pattern=true/false' 형식이 아닙니다: {}", s))?;
+    let pattern = s[..pos].to_string();
+    let enabled = s[pos + 1..]
+        .parse::<bool>()
+        .map_err(|_| format!("'true' 또는 'false'여야 합니다: {}", &s[pos + 1..]))?;
+    Ok((pattern, enabled))
 }
 
 // ─── Analyze ─────────────────────────────────────────────
@@ -958,6 +993,31 @@ async fn run(cli: Cli) -> i32 {
                         no_caching: args.no_caching,
                         block_cookies: args.block_cookies,
                         no_gzip: args.no_gzip,
+                    },
+                )
+                .await
+            }
+            SettingsCommands::ClientCertificate(args) => {
+                cheolsu_ops::settings::update_client_certificate(
+                    &ctx,
+                    UpdateClientCertificateParams {
+                        enabled: args.enabled,
+                        cert_path: args.cert_path,
+                        key_path: args.key_path,
+                    },
+                )
+                .await
+            }
+            SettingsCommands::SslProxyingList(args) => {
+                cheolsu_ops::settings::update_ssl_proxying_list(
+                    &ctx,
+                    UpdateSslProxyingListParams {
+                        mode: args.mode,
+                        entries: args
+                            .entry
+                            .into_iter()
+                            .map(|(pattern, enabled)| SslProxyingEntryParam { pattern, enabled })
+                            .collect(),
                     },
                 )
                 .await
