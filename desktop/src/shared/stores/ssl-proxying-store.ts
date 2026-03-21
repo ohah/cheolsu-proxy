@@ -102,10 +102,13 @@ export const useSslProxyingStore = create<SslProxyingStoreState>()(
 
       initDefaultPassthrough: async () => {
         const { defaultPassthroughEntries } = get();
-        // persist에서 복원된 값이 있으면 스킵
-        if (defaultPassthroughEntries.length > 0) return;
-        const defaults = await getDefaultPassthroughDomains();
-        set({ defaultPassthroughEntries: defaults });
+        if (defaultPassthroughEntries.length === 0) {
+          // persist에서 복원된 값이 없으면 Rust 백엔드에서 기본값 로딩
+          const defaults = await getDefaultPassthroughDomains();
+          set({ defaultPassthroughEntries: defaults });
+        }
+        // persist에서 복원된 값(비활성화 상태 포함)을 데몬에 동기화
+        await get().syncDefaultPassthroughToProxy();
       },
     }),
     {
