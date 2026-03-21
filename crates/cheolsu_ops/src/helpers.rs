@@ -1,8 +1,10 @@
+use std::collections::VecDeque;
 use std::fmt::Display;
 use std::sync::Arc;
 
 use parking_lot::Mutex;
 use proxy_daemon::{ClientCommand, DaemonConnection};
+use proxy_v2_models::RequestInfo;
 use tokio::sync::Mutex as TokioMutex;
 
 use crate::result::OpResult;
@@ -41,19 +43,44 @@ pub fn read_body_text(file_path: &Option<String>, data_type: &proxy_v2_models::D
         return format!("(binary, {:?})", data_type);
     }
     match String::from_utf8(bytes) {
-        Ok(text) => {
-            if text.len() > 10000 {
-                format!(
-                    "{}...\n(truncated, {} total)",
-                    &text[..10000],
-                    format_size(text.len())
-                )
-            } else {
-                text
-            }
-        }
+        Ok(text) => truncate_text(text, 10000),
         Err(_) => "(binary data)".to_string(),
     }
+}
+
+/// UTF-8 경계를 존중하여 텍스트를 잘라낸다.
+pub fn truncate_text(text: String, max_bytes: usize) -> String {
+    if text.len() <= max_bytes {
+        return text;
+    }
+    // UTF-8 문자 경계에서 자르기
+    let mut end = max_bytes;
+    while end > 0 && !text.is_char_boundary(end) {
+        end -= 1;
+    }
+    format!(
+        "{}...\n(truncated, {} total)",
+        &text[..end],
+        format_size(text.len())
+    )
+}
+
+/// VecDeque에서 request ID로 트랜잭션을 찾는다.
+pub fn find_transaction_by_id<'a>(
+    txns: &'a VecDeque<RequestInfo>,
+    id: &str,
+) -> Option<&'a RequestInfo> {
+    txns.iter()
+        .find(|info| info.request.as_ref().map(|r| r.id() == id).unwrap_or(false))
+}
+
+/// replay용 reqwest Client를 생성한다.
+pub fn build_replay_client() -> Result<reqwest::Client, String> {
+    reqwest::Client::builder()
+        .no_proxy()
+        .danger_accept_invalid_certs(true)
+        .build()
+        .map_err(|e| format!("Failed to create HTTP client: {}", e))
 }
 
 /// daemon_conn을 잠그고 연결을 확인한 뒤 커맨드를 전송하는 공통 헬퍼.

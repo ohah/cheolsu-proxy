@@ -1,6 +1,7 @@
 use proxy_daemon::ServerReplayEntry;
 
 use crate::context::OpsContext;
+use crate::helpers::{find_transaction_by_id, remove_and_sync};
 use crate::id::next_server_replay_id;
 use crate::params::*;
 use crate::result::OpResult;
@@ -36,14 +37,7 @@ pub fn list_server_replay(ctx: &OpsContext) -> OpResult {
 pub async fn add_server_replay(ctx: &OpsContext, p: AddServerReplayParams) -> OpResult {
     let entry = {
         let txns = ctx.store.transactions.lock();
-        let info = txns.iter().find(|info| {
-            info.request
-                .as_ref()
-                .map(|r| r.id() == p.transaction_id)
-                .unwrap_or(false)
-        });
-
-        let Some(info) = info else {
+        let Some(info) = find_transaction_by_id(&txns, &p.transaction_id) else {
             return OpResult::err(format!("Transaction '{}' not found.", p.transaction_id));
         };
 
@@ -97,24 +91,14 @@ pub async fn add_server_replay(ctx: &OpsContext, p: AddServerReplayParams) -> Op
 }
 
 pub async fn remove_server_replay(ctx: &OpsContext, p: RemoveServerReplayParams) -> OpResult {
-    let removed = {
-        let mut entries = ctx.store.server_replay_entries.lock();
-        let before = entries.len();
-        entries.retain(|e| e.id != p.id);
-        entries.len() < before
-    };
-
-    if !removed {
-        return OpResult::err(format!("Server replay entry '{}' not found.", p.id));
-    }
-
-    match ctx.send_server_replay().await {
-        Ok(()) => OpResult::ok(format!("Server replay entry '{}' removed.", p.id)),
-        Err(e) => OpResult::err(format!(
-            "Entry removed locally but failed to sync with daemon: {}",
-            e
-        )),
-    }
+    remove_and_sync(
+        &ctx.store.server_replay_entries,
+        &p.id,
+        |e| &e.id,
+        "Server replay entry",
+        || ctx.send_server_replay(),
+    )
+    .await
 }
 
 pub async fn clear_server_replay(ctx: &OpsContext) -> OpResult {
