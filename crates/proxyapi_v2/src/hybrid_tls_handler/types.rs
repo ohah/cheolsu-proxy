@@ -38,6 +38,18 @@ pub struct TlsConnectionInfo {
     pub message_size: usize,
     /// 연결 복잡도 점수 (높을수록 복잡한 연결)
     pub complexity_score: u8,
+    /// 원본 ClientHello 바이트 (upstream 미러링용)
+    pub raw_client_hello: Vec<u8>,
+    /// Supported Groups extension 데이터 (곡선 ID 목록)
+    pub supported_groups: Vec<u16>,
+    /// Signature Algorithms extension 데이터
+    pub signature_algorithms: Vec<u16>,
+    /// EC Point Formats extension 데이터
+    pub ec_point_formats: Vec<u8>,
+    /// ALPN 프로토콜 목록
+    pub alpn_protocols: Vec<Vec<u8>>,
+    /// Compression methods
+    pub compression_methods: Vec<u8>,
 }
 
 /// TLS Extension 정보
@@ -46,6 +58,8 @@ pub struct TlsExtension {
     pub extension_type: u16,
     pub name: String,
     pub length: u16,
+    /// extension 원본 데이터 (미러링용)
+    pub data: Vec<u8>,
 }
 
 /// TLS 처리 전략 — 결정적(deterministic) 선택만 사용

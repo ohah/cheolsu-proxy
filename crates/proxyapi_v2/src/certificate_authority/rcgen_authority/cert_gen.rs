@@ -1,24 +1,71 @@
 use super::RcgenAuthority;
 use crate::certificate_authority::{NOT_BEFORE_OFFSET, TTL_SECS, truncate_cn};
-use crate::upstream_cert::UpstreamCertInfo;
+use crate::upstream_cert::{EcCurve, UpstreamCertInfo, UpstreamKeyType};
 use http::uri::Authority;
 use rand::{Rng, rng};
 use rcgen::{
-    CertificateParams, DistinguishedName, DnType, ExtendedKeyUsagePurpose, Ia5String, SanType,
+    CertificateParams, DistinguishedName, DnType, ExtendedKeyUsagePurpose, Ia5String, KeyPair,
+    SanType,
 };
 use std::collections::HashSet;
 use std::net::IpAddr;
 use time::{Duration, OffsetDateTime};
-use tokio_rustls::rustls::pki_types::CertificateDer;
+use tokio_rustls::rustls::pki_types::{CertificateDer, PrivateKeyDer, PrivatePkcs8KeyDer};
 use tracing::{debug, error, info, warn};
 
 impl RcgenAuthority {
+    /// upstream 키 타입에 맞는 leaf 키페어를 동적 생성합니다.
+    /// CA 키와 별도로 leaf 인증서 전용 키를 생성하여 키 타입 미러링을 수행합니다.
+    fn generate_leaf_key_pair(
+        upstream_cert: Option<&UpstreamCertInfo>,
+    ) -> Result<KeyPair, rcgen::Error> {
+        let key_type = upstream_cert.map(|u| &u.key_type);
+
+        match key_type {
+            Some(UpstreamKeyType::Rsa(_bits)) => {
+                // RSA 키 생성 (PKCS_RSA_SHA256 사용)
+                info!("[CERT-GEN] RSA leaf 키페어 생성");
+                KeyPair::generate_for(&rcgen::PKCS_RSA_SHA256)
+            }
+            Some(UpstreamKeyType::Ecdsa(EcCurve::P384)) => {
+                info!("[CERT-GEN] ECDSA P-384 leaf 키페어 생성");
+                KeyPair::generate_for(&rcgen::PKCS_ECDSA_P384_SHA384)
+            }
+            Some(UpstreamKeyType::Ecdsa(EcCurve::P521)) => {
+                // P-521은 rcgen/ring에서 지원하지 않을 수 있으므로 P-384로 폴백
+                info!("[CERT-GEN] ECDSA P-521 요청 → P-384로 폴백");
+                KeyPair::generate_for(&rcgen::PKCS_ECDSA_P384_SHA384)
+            }
+            Some(UpstreamKeyType::Ed25519) => {
+                info!("[CERT-GEN] Ed25519 leaf 키페어 생성");
+                KeyPair::generate_for(&rcgen::PKCS_ED25519)
+            }
+            Some(UpstreamKeyType::Ecdsa(EcCurve::P256)) | Some(UpstreamKeyType::Unknown) | None => {
+                // 기본값: ECDSA P-256 (가장 일반적이고 빠름)
+                info!("[CERT-GEN] ECDSA P-256 leaf 키페어 생성 (기본값)");
+                KeyPair::generate_for(&rcgen::PKCS_ECDSA_P256_SHA256)
+            }
+        }
+    }
+
+    /// 인증서와 해당 leaf 키의 PrivateKeyDer를 함께 반환합니다.
     pub(super) fn gen_cert(
         &self,
         authority: &Authority,
         upstream_cert: Option<&UpstreamCertInfo>,
-    ) -> Result<CertificateDer<'static>, rcgen::Error> {
+    ) -> Result<(CertificateDer<'static>, PrivateKeyDer<'static>), rcgen::Error> {
         info!("Generating certificate for authority: {}", authority);
+
+        // upstream 키 타입에 맞는 leaf 키페어 생성
+        let leaf_key_pair = Self::generate_leaf_key_pair(upstream_cert).unwrap_or_else(|e| {
+            warn!("[CERT-GEN] leaf 키페어 생성 실패, CA 키로 폴백: {:?}", e);
+            // 폴백: CA 키페어의 알고리즘으로 새 키 생성
+            KeyPair::generate_for(&rcgen::PKCS_ECDSA_P256_SHA256)
+                .expect("ECDSA P-256 키 생성은 실패할 수 없음")
+        });
+
+        let leaf_private_key =
+            PrivateKeyDer::from(PrivatePkcs8KeyDer::from(leaf_key_pair.serialize_der()));
 
         let mut params = CertificateParams::default();
         params.serial_number = Some(rng().random::<u64>().into());
@@ -60,15 +107,20 @@ impl RcgenAuthority {
             self.add_san_entries(&mut params, host);
         }
 
+        // leaf 키페어로 서명 (CA 키페어가 서명자, leaf 키페어가 subject)
         let cert = params
-            .signed_by(&self.key_pair, &self.ca_cert, &self.key_pair)
+            .signed_by(&leaf_key_pair, &self.ca_cert, &self.key_pair)
             .map_err(|e| {
                 error!(authority = %authority, error = ?e, "Failed to sign certificate");
                 e
             })?;
 
-        info!("Successfully generated certificate for '{}'", authority);
-        Ok(cert.into())
+        info!(
+            "Successfully generated certificate for '{}' (key_type: {:?})",
+            authority,
+            upstream_cert.map(|u| &u.key_type)
+        );
+        Ok((cert.into(), leaf_private_key))
     }
 
     /// 상류 인증서의 SAN 정보를 복제하여 위조 인증서에 추가

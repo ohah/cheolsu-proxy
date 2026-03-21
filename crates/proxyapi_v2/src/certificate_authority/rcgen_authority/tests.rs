@@ -86,10 +86,10 @@ mod tests {
             "https//ad.aceplanet.co.kr/cgi-bin/PelicanC.dll?impr?pageid=06P0&campaignid=01sL&gothrough=nextgrade&out=iframe",
         );
 
-        let c1 = ca.gen_cert(&authority1, None).unwrap();
-        let c2 = ca.gen_cert(&authority2, None).unwrap();
-        let c3 = ca.gen_cert(&authority1, None).unwrap();
-        let c4 = ca.gen_cert(&authority2, None).unwrap();
+        let c1 = ca.gen_cert(&authority1, None).unwrap().0;
+        let c2 = ca.gen_cert(&authority2, None).unwrap().0;
+        let c3 = ca.gen_cert(&authority1, None).unwrap().0;
+        let c4 = ca.gen_cert(&authority2, None).unwrap().0;
 
         let (_, cert1) = x509_parser::parse_x509_certificate(&c1).unwrap();
         let (_, cert2) = x509_parser::parse_x509_certificate(&c2).unwrap();
@@ -123,7 +123,7 @@ mod tests {
             ..Default::default()
         };
 
-        let cert_der = ca.gen_cert(&authority, Some(&upstream)).unwrap();
+        let cert_der = ca.gen_cert(&authority, Some(&upstream)).unwrap().0;
         let (_, cert) = x509_parser::parse_x509_certificate(&cert_der).unwrap();
 
         // CN이 upstream의 CN인지 확인
@@ -158,7 +158,7 @@ mod tests {
         let ca = build_ca(0);
         let authority = Authority::from_static("fallback.example.com");
 
-        let cert_der = ca.gen_cert(&authority, None).unwrap();
+        let cert_der = ca.gen_cert(&authority, None).unwrap().0;
         let (_, cert) = x509_parser::parse_x509_certificate(&cert_der).unwrap();
 
         let cn = cert
@@ -176,7 +176,7 @@ mod tests {
         let ca = build_ca(0);
         let authority = Authority::from_static("aki-test.example.com");
 
-        let cert_der = ca.gen_cert(&authority, None).unwrap();
+        let cert_der = ca.gen_cert(&authority, None).unwrap().0;
         let (_, cert) = x509_parser::parse_x509_certificate(&cert_der).unwrap();
 
         // AKI extension (OID 2.5.29.35) 이 존재하는지 확인
@@ -191,12 +191,134 @@ mod tests {
     }
 
     #[test]
+    fn gen_cert_mirrors_rsa_key_type() {
+        use crate::upstream_cert::UpstreamKeyType;
+
+        let ca = build_ca(0);
+        let authority = Authority::from_static("rsa-test.example.com");
+        let upstream = UpstreamCertInfo {
+            key_type: UpstreamKeyType::Rsa(2048),
+            ..Default::default()
+        };
+
+        let (cert_der, _private_key) = ca.gen_cert(&authority, Some(&upstream)).unwrap();
+        let (_, cert) = x509_parser::parse_x509_certificate(&cert_der).unwrap();
+
+        // RSA 키 타입 확인
+        let pk = cert.public_key();
+        let alg_oid = pk.algorithm.algorithm.to_id_string();
+        // RSA OID: 1.2.840.113549.1.1.1
+        assert_eq!(alg_oid, "1.2.840.113549.1.1.1");
+    }
+
+    #[test]
+    fn gen_cert_mirrors_ecdsa_p256_key_type() {
+        use crate::upstream_cert::{EcCurve, UpstreamKeyType};
+
+        let ca = build_ca(0);
+        let authority = Authority::from_static("ecdsa-test.example.com");
+        let upstream = UpstreamCertInfo {
+            key_type: UpstreamKeyType::Ecdsa(EcCurve::P256),
+            ..Default::default()
+        };
+
+        let (cert_der, _private_key) = ca.gen_cert(&authority, Some(&upstream)).unwrap();
+        let (_, cert) = x509_parser::parse_x509_certificate(&cert_der).unwrap();
+
+        // ECDSA 키 타입 확인
+        let pk = cert.public_key();
+        let alg_oid = pk.algorithm.algorithm.to_id_string();
+        // EC public key OID: 1.2.840.10045.2.1
+        assert_eq!(alg_oid, "1.2.840.10045.2.1");
+    }
+
+    #[test]
+    fn gen_cert_mirrors_ecdsa_p384_key_type() {
+        use crate::upstream_cert::{EcCurve, UpstreamKeyType};
+
+        let ca = build_ca(0);
+        let authority = Authority::from_static("ecdsa384-test.example.com");
+        let upstream = UpstreamCertInfo {
+            key_type: UpstreamKeyType::Ecdsa(EcCurve::P384),
+            ..Default::default()
+        };
+
+        let (cert_der, _private_key) = ca.gen_cert(&authority, Some(&upstream)).unwrap();
+        let (_, cert) = x509_parser::parse_x509_certificate(&cert_der).unwrap();
+
+        let pk = cert.public_key();
+        let alg_oid = pk.algorithm.algorithm.to_id_string();
+        assert_eq!(alg_oid, "1.2.840.10045.2.1");
+
+        // P-384 곡선 확인
+        let curve_oid = pk.algorithm.parameters.as_ref().unwrap().as_oid().unwrap();
+        assert_eq!(curve_oid.to_id_string(), "1.3.132.0.34");
+    }
+
+    #[test]
+    fn gen_cert_mirrors_ed25519_key_type() {
+        use crate::upstream_cert::UpstreamKeyType;
+
+        let ca = build_ca(0);
+        let authority = Authority::from_static("ed25519-test.example.com");
+        let upstream = UpstreamCertInfo {
+            key_type: UpstreamKeyType::Ed25519,
+            ..Default::default()
+        };
+
+        let (cert_der, _private_key) = ca.gen_cert(&authority, Some(&upstream)).unwrap();
+        let (_, cert) = x509_parser::parse_x509_certificate(&cert_der).unwrap();
+
+        let pk = cert.public_key();
+        let alg_oid = pk.algorithm.algorithm.to_id_string();
+        // Ed25519 OID: 1.3.101.112
+        assert_eq!(alg_oid, "1.3.101.112");
+    }
+
+    #[test]
+    fn gen_cert_default_key_type_is_ecdsa_p256() {
+        let ca = build_ca(0);
+        let authority = Authority::from_static("default-key.example.com");
+
+        let (cert_der, _private_key) = ca.gen_cert(&authority, None).unwrap();
+        let (_, cert) = x509_parser::parse_x509_certificate(&cert_der).unwrap();
+
+        let pk = cert.public_key();
+        let alg_oid = pk.algorithm.algorithm.to_id_string();
+        // 기본값은 ECDSA
+        assert_eq!(alg_oid, "1.2.840.10045.2.1");
+        // P-256 곡선
+        let curve_oid = pk.algorithm.parameters.as_ref().unwrap().as_oid().unwrap();
+        assert_eq!(curve_oid.to_id_string(), "1.2.840.10045.3.1.7");
+    }
+
+    #[test]
+    fn gen_cert_leaf_key_differs_from_ca_key() {
+        let ca = build_ca(0);
+        let authority = Authority::from_static("leaf-key-diff.example.com");
+
+        let (_, key1) = ca.gen_cert(&authority, None).unwrap();
+        let (_, key2) = ca.gen_cert(&authority, None).unwrap();
+
+        // 매번 새로운 leaf 키가 생성되어야 함
+        let key1_bytes: &[u8] = match &key1 {
+            tokio_rustls::rustls::pki_types::PrivateKeyDer::Pkcs8(k) => k.secret_pkcs8_der(),
+            _ => panic!("unexpected key type"),
+        };
+        let key2_bytes: &[u8] = match &key2 {
+            tokio_rustls::rustls::pki_types::PrivateKeyDer::Pkcs8(k) => k.secret_pkcs8_der(),
+            _ => panic!("unexpected key type"),
+        };
+        assert_ne!(key1_bytes, key2_bytes);
+    }
+
+    #[test]
     fn gen_cert_cn_truncated_to_64_chars() {
         let ca = build_ca(0);
         let long_host = format!("{}.example.com", "a".repeat(80));
         let authority = Authority::try_from(long_host).unwrap();
 
-        let cert_der = ca.gen_cert(&authority, None).unwrap();
+        let cert_der = ca.gen_cert(&authority, None).unwrap().0;
         let (_, cert) = x509_parser::parse_x509_certificate(&cert_der).unwrap();
 
         let cn = cert

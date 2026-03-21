@@ -1,10 +1,13 @@
 use super::OpensslAuthority;
 use crate::certificate_authority::{NOT_BEFORE_OFFSET, TTL_SECS, truncate_cn};
-use crate::upstream_cert::UpstreamCertInfo;
+use crate::upstream_cert::{EcCurve, UpstreamCertInfo, UpstreamKeyType};
 use http::uri::Authority;
 use openssl::{
     asn1::{Asn1Integer, Asn1Time},
     bn::BigNum,
+    ec::{EcGroup, EcKey},
+    nid::Nid,
+    pkey::{PKey, Private},
     rand,
     x509::{
         X509Builder, X509NameBuilder,
@@ -14,7 +17,7 @@ use openssl::{
 use std::collections::HashSet;
 use std::sync::Arc;
 use std::time::SystemTime;
-use tracing::{debug, info};
+use tracing::{debug, info, warn};
 
 pub(super) async fn gen_openssl_context(
     this: &OpensslAuthority,
@@ -42,9 +45,21 @@ pub(super) async fn gen_openssl_context(
     // 인증서 생성 + OpenSSL 컨텍스트 빌드를 모두 spawn_blocking으로 오프로드
     let ctx = tokio::task::spawn_blocking(
         move || -> Result<openssl::ssl::SslContext, Box<dyn std::error::Error + Send + Sync>> {
-            // 인증서 생성
-            let pkey = openssl::pkey::PKey::private_key_from_der(&pkey_der)?;
+            // CA 키 및 인증서 로드
+            let ca_pkey = openssl::pkey::PKey::private_key_from_der(&pkey_der)?;
             let ca_cert = openssl::x509::X509::from_der(&ca_cert_der)?;
+
+            // upstream 키 타입에 맞는 leaf 키페어 생성
+            let leaf_pkey =
+                generate_leaf_pkey_for_context(upstream_cert.as_ref()).unwrap_or_else(|e| {
+                    warn!(
+                        "[OPENSSL-CONTEXT] leaf 키 생성 실패, 기본 ECDSA P-256: {:?}",
+                        e
+                    );
+                    let group = EcGroup::from_curve_name(Nid::X9_62_PRIME256V1).unwrap();
+                    let ec_key = EcKey::generate(&group).unwrap();
+                    PKey::from_ec_key(ec_key).unwrap()
+                });
 
             let mut name_builder = X509NameBuilder::new()?;
             if let Some(ref upstream) = upstream_cert {
@@ -73,14 +88,17 @@ pub(super) async fn gen_openssl_context(
             x509_builder.set_not_before(Asn1Time::from_unix(not_before)?.as_ref())?;
             x509_builder.set_not_after(Asn1Time::from_unix(not_before + TTL_SECS)?.as_ref())?;
 
-            x509_builder.set_pubkey(&pkey)?;
+            x509_builder.set_pubkey(&leaf_pkey)?;
             x509_builder.set_issuer_name(ca_cert.subject_name())?;
 
             // Authority Key Identifier (AKI) 추가
-            let aki = AuthorityKeyIdentifier::new()
-                .keyid(true)
-                .build(&x509_builder.x509v3_context(Some(&ca_cert), None))?;
-            x509_builder.append_extension(aki)?;
+            // keyid(false): CA에 SKI가 없어도 에러를 발생시키지 않음
+            if let Ok(aki) = AuthorityKeyIdentifier::new()
+                .keyid(false)
+                .build(&x509_builder.x509v3_context(Some(&ca_cert), None))
+            {
+                let _ = x509_builder.append_extension(aki);
+            }
 
             // SAN 설정 (RFC 5280: subject 비어있을 때만 critical)
             let mut san_builder = SubjectAlternativeName::new();
@@ -114,7 +132,7 @@ pub(super) async fn gen_openssl_context(
             let serial_number = Asn1Integer::from_bn(&serial_bn)?;
             x509_builder.set_serial_number(&serial_number)?;
 
-            x509_builder.sign(&pkey, hash)?;
+            x509_builder.sign(&ca_pkey, hash)?;
             let server_cert = x509_builder.build();
 
             // OpenSSL 컨텍스트 빌드
@@ -133,7 +151,7 @@ pub(super) async fn gen_openssl_context(
 
             ctx.set_certificate(&server_cert)?;
             ctx.add_extra_chain_cert(ca_cert)?;
-            ctx.set_private_key(&pkey)?;
+            ctx.set_private_key(&leaf_pkey)?;
 
             Ok(ctx.build())
         },
@@ -153,4 +171,39 @@ pub(super) async fn gen_openssl_context(
         authority
     );
     Ok(ctx)
+}
+
+/// upstream 키 타입에 맞는 leaf 키페어를 생성 (spawn_blocking 내부용)
+fn generate_leaf_pkey_for_context(
+    upstream_cert: Option<&UpstreamCertInfo>,
+) -> Result<PKey<Private>, openssl::error::ErrorStack> {
+    let key_type = upstream_cert.map(|u| &u.key_type);
+
+    match key_type {
+        Some(UpstreamKeyType::Rsa(bits)) => {
+            let bits = match *bits {
+                b if b >= 4096 => 4096,
+                b if b >= 2048 => 2048,
+                _ => 2048,
+            };
+            let rsa = openssl::rsa::Rsa::generate(bits)?;
+            PKey::from_rsa(rsa)
+        }
+        Some(UpstreamKeyType::Ecdsa(curve)) => {
+            let nid = match curve {
+                EcCurve::P256 => Nid::X9_62_PRIME256V1,
+                EcCurve::P384 => Nid::SECP384R1,
+                EcCurve::P521 => Nid::SECP521R1,
+            };
+            let group = EcGroup::from_curve_name(nid)?;
+            let ec_key = EcKey::generate(&group)?;
+            PKey::from_ec_key(ec_key)
+        }
+        Some(UpstreamKeyType::Ed25519) => PKey::generate_ed25519(),
+        Some(UpstreamKeyType::Unknown) | None => {
+            let group = EcGroup::from_curve_name(Nid::X9_62_PRIME256V1)?;
+            let ec_key = EcKey::generate(&group)?;
+            PKey::from_ec_key(ec_key)
+        }
+    }
 }
