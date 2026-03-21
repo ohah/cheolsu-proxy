@@ -226,10 +226,11 @@ export async function saveAllSettings(
     }
   }
 
-  // SSL Proxying — 각 setter가 debounced sync를 자동 트리거
+  // SSL Proxying
   if (dirtyFields.sslProxying) {
     try {
       const sslStore = useSslProxyingStore.getState();
+      // mode+entries를 한번에 설정(개별 setter의 중복 sync 방지)한 뒤 명시적 sync
       sslStore.setFromDaemon(data.sslProxying.mode, data.sslProxying.entries);
       sslStore.syncToProxy();
       sslStore.setDefaultPassthroughEntries(data.sslProxying.defaultPassthroughEntries);

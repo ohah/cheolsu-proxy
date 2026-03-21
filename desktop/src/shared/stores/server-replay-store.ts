@@ -11,7 +11,7 @@ interface ServerReplayStoreState {
   removeEntry: (id: string) => void;
   clearEntries: () => void;
   setEnabled: (enabled: boolean) => void;
-  syncToProxy: () => Promise<void>;
+  syncToProxy: () => void;
 }
 
 const debouncedSync = createDebouncedSync();
@@ -50,7 +50,7 @@ export const useServerReplayStore = create<ServerReplayStoreState>()(
         get().syncToProxy();
       },
 
-      syncToProxy: async () => {
+      syncToProxy: () => {
         debouncedSync(async () => {
           try {
             const { entries, enabled } = get();
