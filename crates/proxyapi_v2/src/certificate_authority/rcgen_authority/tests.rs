@@ -293,14 +293,14 @@ mod tests {
     }
 
     #[test]
-    fn gen_cert_leaf_key_differs_from_ca_key() {
+    fn gen_cert_same_key_type_reuses_cached_leaf_key() {
         let ca = build_ca(0);
-        let authority = Authority::from_static("leaf-key-diff.example.com");
+        let authority = Authority::from_static("cache-test.example.com");
 
         let (_, key1) = ca.gen_cert(&authority, None).unwrap();
         let (_, key2) = ca.gen_cert(&authority, None).unwrap();
 
-        // 매번 새로운 leaf 키가 생성되어야 함
+        // 같은 키 타입이면 캐시된 동일 키를 반환
         let key1_bytes: &[u8] = match &key1 {
             tokio_rustls::rustls::pki_types::PrivateKeyDer::Pkcs8(k) => k.secret_pkcs8_der(),
             _ => panic!("unexpected key type"),
@@ -309,7 +309,7 @@ mod tests {
             tokio_rustls::rustls::pki_types::PrivateKeyDer::Pkcs8(k) => k.secret_pkcs8_der(),
             _ => panic!("unexpected key type"),
         };
-        assert_ne!(key1_bytes, key2_bytes);
+        assert_eq!(key1_bytes, key2_bytes);
     }
 
     #[test]
