@@ -14,11 +14,7 @@ use openssl::{
     x509::X509,
 };
 use std::{sync::Arc, time::Duration};
-use tokio_rustls::rustls::{
-    ServerConfig,
-    crypto::CryptoProvider,
-    pki_types::{PrivateKeyDer, PrivatePkcs8KeyDer},
-};
+use tokio_rustls::rustls::{ServerConfig, crypto::CryptoProvider};
 
 /// Issues certificates for use when communicating with clients.
 ///
@@ -50,7 +46,6 @@ use tokio_rustls::rustls::{
 /// ```
 pub struct OpensslAuthority {
     pub(super) pkey: PKey<Private>,
-    pub(super) private_key: PrivateKeyDer<'static>,
     pub(super) ca_cert: X509,
     /// DER 형태의 CA 인증서 (spawn_blocking 전달용, 생성자에서 미리 캐시)
     pub(super) ca_cert_der: Vec<u8>,
@@ -72,10 +67,6 @@ impl OpensslAuthority {
         cache_size: u64,
         provider: CryptoProvider,
     ) -> Self {
-        let private_key = PrivateKeyDer::from(PrivatePkcs8KeyDer::from(
-            pkey.private_key_to_pkcs8()
-                .expect("Failed to encode private key"),
-        ));
         let ca_cert_der = ca_cert.to_der().expect("Failed to encode CA cert to DER");
         let pkey_der = pkey
             .private_key_to_der()
@@ -83,7 +74,6 @@ impl OpensslAuthority {
 
         Self {
             pkey,
-            private_key,
             ca_cert,
             ca_cert_der,
             pkey_der,

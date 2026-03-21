@@ -1,13 +1,10 @@
 use super::OpensslAuthority;
 use crate::certificate_authority::{NOT_BEFORE_OFFSET, TTL_SECS, truncate_cn};
-use crate::upstream_cert::{EcCurve, UpstreamCertInfo, UpstreamKeyType};
+use crate::upstream_cert::UpstreamCertInfo;
 use http::uri::Authority;
 use openssl::{
     asn1::{Asn1Integer, Asn1Time},
     bn::BigNum,
-    ec::{EcGroup, EcKey},
-    nid::Nid,
-    pkey::{PKey, Private},
     rand,
     x509::{
         X509Builder, X509NameBuilder,
@@ -51,15 +48,15 @@ pub(super) async fn gen_openssl_context(
 
             // upstream 키 타입에 맞는 leaf 키페어 생성
             let leaf_pkey =
-                generate_leaf_pkey_for_context(upstream_cert.as_ref()).unwrap_or_else(|e| {
-                    warn!(
-                        "[OPENSSL-CONTEXT] leaf 키 생성 실패, 기본 ECDSA P-256: {:?}",
-                        e
-                    );
-                    let group = EcGroup::from_curve_name(Nid::X9_62_PRIME256V1).unwrap();
-                    let ec_key = EcKey::generate(&group).unwrap();
-                    PKey::from_ec_key(ec_key).unwrap()
-                });
+                crate::certificate_authority::generate_openssl_leaf_pkey(upstream_cert.as_ref())
+                    .unwrap_or_else(|e| {
+                        warn!(
+                            "[OPENSSL-CONTEXT] leaf 키 생성 실패, 기본 ECDSA P-256: {:?}",
+                            e
+                        );
+                        crate::certificate_authority::generate_openssl_leaf_pkey(None)
+                            .expect("기본 ECDSA P-256 키 생성은 실패할 수 없음")
+                    });
 
             let mut name_builder = X509NameBuilder::new()?;
             if let Some(ref upstream) = upstream_cert {
@@ -171,39 +168,4 @@ pub(super) async fn gen_openssl_context(
         authority
     );
     Ok(ctx)
-}
-
-/// upstream 키 타입에 맞는 leaf 키페어를 생성 (spawn_blocking 내부용)
-fn generate_leaf_pkey_for_context(
-    upstream_cert: Option<&UpstreamCertInfo>,
-) -> Result<PKey<Private>, openssl::error::ErrorStack> {
-    let key_type = upstream_cert.map(|u| &u.key_type);
-
-    match key_type {
-        Some(UpstreamKeyType::Rsa(bits)) => {
-            let bits = match *bits {
-                b if b >= 4096 => 4096,
-                b if b >= 2048 => 2048,
-                _ => 2048,
-            };
-            let rsa = openssl::rsa::Rsa::generate(bits)?;
-            PKey::from_rsa(rsa)
-        }
-        Some(UpstreamKeyType::Ecdsa(curve)) => {
-            let nid = match curve {
-                EcCurve::P256 => Nid::X9_62_PRIME256V1,
-                EcCurve::P384 => Nid::SECP384R1,
-                EcCurve::P521 => Nid::SECP521R1,
-            };
-            let group = EcGroup::from_curve_name(nid)?;
-            let ec_key = EcKey::generate(&group)?;
-            PKey::from_ec_key(ec_key)
-        }
-        Some(UpstreamKeyType::Ed25519) => PKey::generate_ed25519(),
-        Some(UpstreamKeyType::Unknown) | None => {
-            let group = EcGroup::from_curve_name(Nid::X9_62_PRIME256V1)?;
-            let ec_key = EcKey::generate(&group)?;
-            PKey::from_ec_key(ec_key)
-        }
-    }
 }

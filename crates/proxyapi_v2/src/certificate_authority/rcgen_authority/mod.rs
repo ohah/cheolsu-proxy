@@ -10,11 +10,7 @@ use http::uri::Authority;
 use moka::future::Cache;
 use rcgen::{Certificate, KeyPair};
 use std::sync::Arc;
-use tokio_rustls::rustls::{
-    ServerConfig,
-    crypto::CryptoProvider,
-    pki_types::{PrivateKeyDer, PrivatePkcs8KeyDer},
-};
+use tokio_rustls::rustls::{ServerConfig, crypto::CryptoProvider};
 use tracing::info;
 
 /// 클라이언트 인증서 요청 설정 (프록시 → 클라이언트)
@@ -53,7 +49,6 @@ pub struct ClientCertVerifyConfig {
 pub struct RcgenAuthority {
     pub(super) key_pair: KeyPair,
     pub(super) ca_cert: Certificate,
-    pub(super) private_key: PrivateKeyDer<'static>,
     pub(super) cache: Cache<Authority, Arc<ServerConfig>>,
     #[cfg(feature = "openssl-ca")]
     pub(super) openssl_ctx_cache: Cache<Authority, Arc<openssl::ssl::SslContext>>,
@@ -70,12 +65,9 @@ impl RcgenAuthority {
         cache_size: u64,
         provider: CryptoProvider,
     ) -> Self {
-        let private_key = PrivateKeyDer::from(PrivatePkcs8KeyDer::from(key_pair.serialize_der()));
-
         Self {
             key_pair,
             ca_cert,
-            private_key,
             cache: Cache::builder()
                 .max_capacity(cache_size)
                 .time_to_live(std::time::Duration::from_secs(CACHE_TTL))

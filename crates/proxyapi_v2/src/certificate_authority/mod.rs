@@ -79,6 +79,76 @@ mod tests {
     }
 }
 
+/// upstream 키 타입에 맞는 OpenSSL leaf 키페어를 동적 생성합니다.
+/// rcgen_authority/openssl_authority 양쪽의 cert_gen/openssl_context에서 공유합니다.
+#[cfg(feature = "openssl-ca")]
+pub(crate) fn generate_openssl_leaf_pkey(
+    upstream_cert: Option<&UpstreamCertInfo>,
+) -> Result<openssl::pkey::PKey<openssl::pkey::Private>, openssl::error::ErrorStack> {
+    use crate::upstream_cert::{EcCurve, UpstreamKeyType};
+    use openssl::{
+        ec::{EcGroup, EcKey},
+        nid::Nid,
+        pkey::{PKey, Private},
+    };
+
+    let key_type = upstream_cert.map(|u| &u.key_type);
+
+    match key_type {
+        Some(UpstreamKeyType::Rsa(bits)) => {
+            let bits = match *bits {
+                b if b >= 4096 => 4096,
+                b if b >= 2048 => 2048,
+                _ => 2048,
+            };
+            let rsa = openssl::rsa::Rsa::generate(bits)?;
+            PKey::from_rsa(rsa)
+        }
+        Some(UpstreamKeyType::Ecdsa(curve)) => {
+            let nid = match curve {
+                EcCurve::P256 => Nid::X9_62_PRIME256V1,
+                EcCurve::P384 => Nid::SECP384R1,
+                EcCurve::P521 => Nid::SECP521R1,
+            };
+            let group = EcGroup::from_curve_name(nid)?;
+            let ec_key = EcKey::generate(&group)?;
+            PKey::from_ec_key(ec_key)
+        }
+        Some(UpstreamKeyType::Ed25519) => PKey::generate_ed25519(),
+        Some(UpstreamKeyType::Unknown) | None => {
+            let group = EcGroup::from_curve_name(Nid::X9_62_PRIME256V1)?;
+            let ec_key = EcKey::generate(&group)?;
+            PKey::from_ec_key(ec_key)
+        }
+    }
+}
+
+/// upstream 키 타입에 맞는 rcgen leaf 키페어를 동적 생성합니다.
+/// rcgen_authority의 cert_gen/openssl_context에서 공유합니다.
+#[cfg(feature = "rcgen-ca")]
+pub(crate) fn generate_rcgen_leaf_key_pair(
+    upstream_cert: Option<&UpstreamCertInfo>,
+) -> Result<rcgen::KeyPair, rcgen::Error> {
+    use crate::upstream_cert::{EcCurve, UpstreamKeyType};
+
+    let key_type = upstream_cert.map(|u| &u.key_type);
+
+    match key_type {
+        Some(UpstreamKeyType::Rsa(_)) => rcgen::KeyPair::generate_for(&rcgen::PKCS_RSA_SHA256),
+        Some(UpstreamKeyType::Ecdsa(EcCurve::P384)) => {
+            rcgen::KeyPair::generate_for(&rcgen::PKCS_ECDSA_P384_SHA384)
+        }
+        Some(UpstreamKeyType::Ecdsa(EcCurve::P521)) => {
+            // P-521 미지원 → P-384 폴백
+            rcgen::KeyPair::generate_for(&rcgen::PKCS_ECDSA_P384_SHA384)
+        }
+        Some(UpstreamKeyType::Ed25519) => rcgen::KeyPair::generate_for(&rcgen::PKCS_ED25519),
+        Some(UpstreamKeyType::Ecdsa(EcCurve::P256)) | Some(UpstreamKeyType::Unknown) | None => {
+            rcgen::KeyPair::generate_for(&rcgen::PKCS_ECDSA_P256_SHA256)
+        }
+    }
+}
+
 /// Issues certificates for use when communicating with clients.
 ///
 /// Clients should be configured to either trust the provided root certificate, or to ignore
