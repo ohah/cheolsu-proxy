@@ -1,14 +1,8 @@
-use proxy_daemon::{format_diff_text, TrafficDiff, TransactionPartDiff};
-use proxy_v2_models::WsDirection;
 use rmcp::{handler::server::wrapper::Parameters, model::*, tool, ErrorData as McpError};
 
-use crate::helpers::{format_size, read_body_text, tool_error, tool_ok};
-use crate::params::{
-    DiffTransactionsParams, GenerateOpenApiParams, GetTransactionParams, GetWsMessagesParams,
-    SearchTrafficParams,
-};
+use crate::helpers::op_result_to_mcp;
+use crate::params::*;
 use crate::server::CheolsuMcpServer;
-use crate::tools::diff_part;
 
 impl CheolsuMcpServer {
     #[tool(
@@ -18,80 +12,7 @@ impl CheolsuMcpServer {
         &self,
         Parameters(p): Parameters<SearchTrafficParams>,
     ) -> Result<CallToolResult, McpError> {
-        let txns = self.store.transactions.lock();
-        let limit = p.limit.unwrap_or(50);
-
-        let results: Vec<String> = txns
-            .iter()
-            .rev()
-            .filter(|info| {
-                let Some(req) = &info.request else {
-                    return false;
-                };
-                let uri = req.uri().to_string();
-
-                if let Some(ref host) = p.host {
-                    if !uri.to_lowercase().contains(&host.to_lowercase()) {
-                        return false;
-                    }
-                }
-                if let Some(ref method) = p.method {
-                    if !req.method().as_str().eq_ignore_ascii_case(method) {
-                        return false;
-                    }
-                }
-                if let Some(status) = p.status {
-                    match &info.response {
-                        Some(res) if res.status().as_u16() == status => {}
-                        _ => return false,
-                    }
-                }
-                if let Some(ref path) = p.path {
-                    if !uri.to_lowercase().contains(&path.to_lowercase()) {
-                        return false;
-                    }
-                }
-                true
-            })
-            .take(limit)
-            .filter_map(|info| {
-                let req = info.request.as_ref()?;
-                let status = info
-                    .response
-                    .as_ref()
-                    .map(|r| r.status().as_u16().to_string())
-                    .unwrap_or_else(|| "pending".to_string());
-                let size = info
-                    .response
-                    .as_ref()
-                    .map(|r| format_size(r.body_size()))
-                    .unwrap_or_default();
-                let dtype = info
-                    .response
-                    .as_ref()
-                    .map(|r| format!("{:?}", r.data_type()))
-                    .unwrap_or_default();
-                Some(format!(
-                    "[{}] {} {} → {} ({}) {}",
-                    req.id(),
-                    req.method(),
-                    req.uri(),
-                    status,
-                    size,
-                    dtype,
-                ))
-            })
-            .collect();
-
-        if results.is_empty() {
-            tool_ok("No matching transactions found.")
-        } else {
-            tool_ok(format!(
-                "Found {} transactions (most recent first):\n\n{}",
-                results.len(),
-                results.join("\n")
-            ))
-        }
+        op_result_to_mcp(cheolsu_ops::traffic::search_traffic(&self.ops_ctx(), p))
     }
 
     #[tool(
@@ -101,78 +22,7 @@ impl CheolsuMcpServer {
         &self,
         Parameters(p): Parameters<GetTransactionParams>,
     ) -> Result<CallToolResult, McpError> {
-        let txns = self.store.transactions.lock();
-        let info = txns.iter().find(|info| {
-            info.request
-                .as_ref()
-                .map(|r| r.id() == p.id)
-                .unwrap_or(false)
-        });
-
-        let Some(info) = info else {
-            return tool_error(format!("Transaction '{}' not found.", p.id));
-        };
-
-        let mut out = String::new();
-
-        if let Some(req) = &info.request {
-            out.push_str(&format!(
-                "## Request\n{} {} {:?}\n\n",
-                req.method(),
-                req.uri(),
-                req.version()
-            ));
-            out.push_str("### Headers\n```\n");
-            for (name, value) in req.headers().iter() {
-                out.push_str(&format!(
-                    "{}: {}\n",
-                    name,
-                    value.to_str().unwrap_or("<binary>")
-                ));
-            }
-            out.push_str("```\n\n");
-            out.push_str(&format!(
-                "### Body ({}, {:?})\n",
-                format_size(req.body_size()),
-                req.data_type()
-            ));
-            if req.body_size() == 0 {
-                out.push_str("(empty)\n");
-            } else {
-                let body = read_body_text(req.file_path(), req.data_type());
-                out.push_str(&format!("```\n{}\n```\n", body));
-            }
-        }
-
-        if let Some(res) = &info.response {
-            out.push_str(&format!(
-                "\n## Response\n{} {:?}\n\n",
-                res.status().as_u16(),
-                res.version()
-            ));
-            out.push_str("### Headers\n```\n");
-            for (name, value) in res.headers().iter() {
-                out.push_str(&format!(
-                    "{}: {}\n",
-                    name,
-                    value.to_str().unwrap_or("<binary>")
-                ));
-            }
-            out.push_str("```\n\n");
-            out.push_str(&format!(
-                "### Body ({}, {:?})\n",
-                format_size(res.body_size()),
-                res.data_type()
-            ));
-            if res.body_size() == 0 {
-                out.push_str("(empty)\n");
-            } else {
-                let body = read_body_text(res.file_path(), res.data_type());
-                out.push_str(&format!("```\n{}\n```\n", body));
-            }
-        }
-
-        tool_ok(out)
+        op_result_to_mcp(cheolsu_ops::traffic::get_transaction(&self.ops_ctx(), p))
     }
 
     #[tool(description = "Get captured WebSocket messages, optionally filtered by connection URI.")]
@@ -180,46 +30,10 @@ impl CheolsuMcpServer {
         &self,
         Parameters(p): Parameters<GetWsMessagesParams>,
     ) -> Result<CallToolResult, McpError> {
-        let msgs = self.store.ws_messages.lock();
-        let limit = p.limit.unwrap_or(100);
-
-        let results: Vec<String> = msgs
-            .iter()
-            .rev()
-            .filter(|msg| {
-                p.connection_id.as_ref().map_or(true, |cid| {
-                    msg.connection_id
-                        .to_lowercase()
-                        .contains(&cid.to_lowercase())
-                })
-            })
-            .take(limit)
-            .map(|msg| {
-                let dir = match msg.direction {
-                    WsDirection::ClientToServer => "→",
-                    WsDirection::ServerToClient => "←",
-                };
-                let payload = if msg.payload.len() > 200 {
-                    format!("{}...", &msg.payload[..200])
-                } else {
-                    msg.payload.clone()
-                };
-                format!(
-                    "{} {:?} ({} bytes) [{}]: {}",
-                    dir, msg.message_type, msg.size, msg.connection_id, payload,
-                )
-            })
-            .collect();
-
-        if results.is_empty() {
-            tool_ok("No WebSocket messages captured.")
-        } else {
-            tool_ok(format!(
-                "Found {} messages:\n\n{}",
-                results.len(),
-                results.join("\n\n")
-            ))
-        }
+        op_result_to_mcp(cheolsu_ops::traffic::get_websocket_messages(
+            &self.ops_ctx(),
+            p,
+        ))
     }
 
     #[tool(
@@ -229,139 +43,17 @@ impl CheolsuMcpServer {
         &self,
         Parameters(p): Parameters<DiffTransactionsParams>,
     ) -> Result<CallToolResult, McpError> {
-        let txns = self.store.transactions.lock();
-
-        let txn_a = txns.iter().find(|info| {
-            info.request
-                .as_ref()
-                .map(|r| r.id() == p.transaction_id_a)
-                .unwrap_or(false)
-        });
-        let txn_b = txns.iter().find(|info| {
-            info.request
-                .as_ref()
-                .map(|r| r.id() == p.transaction_id_b)
-                .unwrap_or(false)
-        });
-
-        let Some(txn_a) = txn_a else {
-            return tool_error(format!("Transaction '{}' not found.", p.transaction_id_a));
-        };
-        let Some(txn_b) = txn_b else {
-            return tool_error(format!("Transaction '{}' not found.", p.transaction_id_b));
-        };
-
-        let request_diff = match (&txn_a.request, &txn_b.request) {
-            (Some(req_a), Some(req_b)) => {
-                let method_diff = if req_a.method() != req_b.method() {
-                    Some((req_a.method().to_string(), req_b.method().to_string()))
-                } else {
-                    None
-                };
-
-                let url_diff = if req_a.uri().to_string() != req_b.uri().to_string() {
-                    Some((req_a.uri().to_string(), req_b.uri().to_string()))
-                } else {
-                    None
-                };
-
-                let (header_diffs, body_diff) = diff_part(
-                    req_a.headers(),
-                    req_b.headers(),
-                    req_a.body().map(|b| b.as_ref()),
-                    req_b.body().map(|b| b.as_ref()),
-                    req_a.body_size(),
-                    req_b.body_size(),
-                    req_a.file_path(),
-                    req_b.file_path(),
-                    req_a.data_type(),
-                    req_b.data_type(),
-                );
-
-                if method_diff.is_none()
-                    && url_diff.is_none()
-                    && header_diffs.is_empty()
-                    && body_diff.is_none()
-                {
-                    None
-                } else {
-                    Some(TransactionPartDiff {
-                        method_diff,
-                        url_diff,
-                        status_diff: None,
-                        header_diffs,
-                        body_diff,
-                    })
-                }
-            }
-            _ => None,
-        };
-
-        let response_diff = match (&txn_a.response, &txn_b.response) {
-            (Some(res_a), Some(res_b)) => {
-                let status_diff = if res_a.status() != res_b.status() {
-                    Some((res_a.status().as_u16(), res_b.status().as_u16()))
-                } else {
-                    None
-                };
-
-                let (header_diffs, body_diff) = diff_part(
-                    res_a.headers(),
-                    res_b.headers(),
-                    res_a.body().map(|b| b.as_ref()),
-                    res_b.body().map(|b| b.as_ref()),
-                    res_a.body_size(),
-                    res_b.body_size(),
-                    res_a.file_path(),
-                    res_b.file_path(),
-                    res_a.data_type(),
-                    res_b.data_type(),
-                );
-
-                if status_diff.is_none() && header_diffs.is_empty() && body_diff.is_none() {
-                    None
-                } else {
-                    Some(TransactionPartDiff {
-                        method_diff: None,
-                        url_diff: None,
-                        status_diff,
-                        header_diffs,
-                        body_diff,
-                    })
-                }
-            }
-            _ => None,
-        };
-
-        let diff = TrafficDiff {
-            request_diff,
-            response_diff,
-        };
-
-        tool_ok(format_diff_text(&diff))
+        op_result_to_mcp(cheolsu_ops::traffic::diff_transactions(&self.ops_ctx(), p))
     }
 
     #[tool(description = "Check proxy daemon status and traffic statistics.")]
     pub(crate) async fn proxy_status(&self) -> Result<CallToolResult, McpError> {
-        let connected = self.daemon_conn.lock().await.is_some();
-        let txn_count = self.store.transactions.lock().len();
-        let ws_msg_count = self.store.ws_messages.lock().len();
-        let ws_conn_count = self.store.ws_connections.lock().len();
-        let rule_count = self.store.rules.lock().len();
-        let daemon_running = proxy_daemon::is_daemon_running().is_some();
-
-        tool_ok(format!(
-            "Daemon running: {}\nMCP connected: {}\nCaptured transactions: {}\nWebSocket connections: {}\nWebSocket messages: {}\nIntercept rules: {}",
-            daemon_running, connected, txn_count, ws_conn_count, ws_msg_count, rule_count,
-        ))
+        op_result_to_mcp(cheolsu_ops::traffic::proxy_status(&self.ops_ctx()).await)
     }
 
     #[tool(description = "Clear all captured traffic data from memory.")]
     pub(crate) async fn clear_traffic(&self) -> Result<CallToolResult, McpError> {
-        self.store.transactions.lock().clear();
-        self.store.ws_messages.lock().clear();
-        self.store.ws_connections.lock().clear();
-        tool_ok("All captured traffic cleared.")
+        op_result_to_mcp(cheolsu_ops::traffic::clear_traffic(&self.ops_ctx()))
     }
 
     #[tool(
@@ -371,59 +63,9 @@ impl CheolsuMcpServer {
         &self,
         Parameters(p): Parameters<GenerateOpenApiParams>,
     ) -> Result<CallToolResult, McpError> {
-        let txns = self.store.transactions.lock();
-
-        // 필터링
-        let filtered: Vec<proxy_v2_models::RequestInfo> = txns
-            .iter()
-            .filter(|info| {
-                let Some(req) = &info.request else {
-                    return false;
-                };
-                let uri = req.uri().to_string();
-
-                if let Some(ref host) = p.host {
-                    if !uri.to_lowercase().contains(&host.to_lowercase()) {
-                        return false;
-                    }
-                }
-                if let Some(ref prefix) = p.path_prefix {
-                    let path = uri
-                        .parse::<http::Uri>()
-                        .ok()
-                        .and_then(|u| u.path_and_query().map(|pq| pq.path().to_string()))
-                        .unwrap_or_default();
-                    if !path.starts_with(prefix) {
-                        return false;
-                    }
-                }
-                true
-            })
-            .cloned()
-            .collect();
-
-        if filtered.is_empty() {
-            return tool_ok("No matching transactions found. Capture some HTTP traffic first.");
-        }
-
-        let mut spec = proxy_v2_models::openapi::build_openapi_spec(&filtered);
-
-        // 사용자 지정 제목
-        if let Some(title) = p.title {
-            spec.info.title = title;
-        }
-
-        let output = match p.format.as_deref() {
-            Some("yaml") => serde_json::to_string_pretty(&spec)
-                .unwrap_or_else(|e| format!("Serialization error: {}", e)),
-            _ => serde_json::to_string_pretty(&spec)
-                .unwrap_or_else(|e| format!("Serialization error: {}", e)),
-        };
-
-        tool_ok(format!(
-            "Generated OpenAPI 3.0 spec from {} transactions:\n\n```json\n{}\n```",
-            filtered.len(),
-            output
+        op_result_to_mcp(cheolsu_ops::traffic::generate_openapi_spec(
+            &self.ops_ctx(),
+            p,
         ))
     }
 }

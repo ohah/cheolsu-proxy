@@ -1,7 +1,6 @@
 mod advanced_replay;
 mod analyze;
 mod breakpoints;
-mod diff;
 mod export;
 mod host_mappings;
 mod replay;
@@ -13,5 +12,3 @@ mod session;
 mod settings;
 mod sse;
 mod traffic;
-
-pub(crate) use diff::diff_part;
