@@ -265,6 +265,10 @@ export default defineConfig({
               link: "/guide/sessions",
             },
             {
+              text: "CLI",
+              link: "/guide/cli",
+            },
+            {
               text: "문제 해결",
               link: "/guide/troubleshooting",
             },
@@ -298,6 +302,10 @@ export default defineConfig({
             {
               text: "Sessions",
               link: "/en/guide/sessions",
+            },
+            {
+              text: "CLI",
+              link: "/en/guide/cli",
             },
             {
               text: "Troubleshooting",
