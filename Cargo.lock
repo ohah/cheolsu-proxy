@@ -949,6 +949,7 @@ name = "cheolsu-proxy-mcp"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "cheolsu_ops",
  "http 1.4.0",
  "parking_lot",
  "proxy_daemon",
@@ -981,6 +982,21 @@ dependencies = [
  "tokio",
  "unicode-width 0.2.0",
  "uuid",
+]
+
+[[package]]
+name = "cheolsu_ops"
+version = "0.1.0"
+dependencies = [
+ "http 1.4.0",
+ "parking_lot",
+ "proxy_daemon",
+ "proxy_v2_models",
+ "reqwest 0.12.28",
+ "schemars 1.2.1",
+ "serde",
+ "serde_json",
+ "tokio",
 ]
 
 [[package]]
