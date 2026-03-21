@@ -26,7 +26,9 @@ fn help_shows_all_subcommands() {
         .stdout(predicate::str::contains("script"))
         .stdout(predicate::str::contains("status"))
         .stdout(predicate::str::contains("export-har"))
-        .stdout(predicate::str::contains("tui"));
+        .stdout(predicate::str::contains("tui"))
+        .stdout(predicate::str::contains("install-skills"))
+        .stdout(predicate::str::contains("uninstall-skills"));
 }
 
 #[test]
@@ -160,4 +162,29 @@ fn replay_request_missing_required_args() {
         .assert()
         .failure()
         .stderr(predicate::str::contains("required"));
+}
+
+// ─── Skills install/uninstall ────────────────────────────
+
+#[test]
+fn install_skills_succeeds() {
+    cheolsu()
+        .arg("install-skills")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Installed"))
+        .stdout(predicate::str::contains("cheolsu.md"))
+        .stdout(predicate::str::contains("dev-url-mapping.md"));
+}
+
+#[test]
+fn uninstall_skills_succeeds() {
+    // install first, then uninstall
+    cheolsu().arg("install-skills").assert().success();
+    cheolsu()
+        .arg("uninstall-skills")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Removed"))
+        .stdout(predicate::str::contains("uninstalled"));
 }
