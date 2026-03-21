@@ -125,6 +125,14 @@ cheolsu settings connection-strategy eager
 
 # Quick settings
 cheolsu settings quick --no-caching true --block-cookies true
+
+# Configure client certificate (mTLS)
+cheolsu settings client-certificate --enabled true --cert-path ./cert.pem --key-path ./key.pem
+
+# Configure SSL proxying list
+cheolsu settings ssl-proxying-list --mode whitelist \
+  --entry "api.example.com=true" \
+  --entry "api.example.com:8443=true"
 ```
 
 ### Session
