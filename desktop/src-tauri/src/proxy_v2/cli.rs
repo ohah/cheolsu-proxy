@@ -154,7 +154,7 @@ fn install_frameworks(app: &AppHandle<impl Runtime>) -> Result<(), String> {
 #[tauri::command]
 pub(crate) async fn install_cli(app: AppHandle<impl Runtime>) -> Result<String, String> {
     tokio::task::spawn_blocking(move || {
-        let tui_path = install_sidecar_binary(&app, "cheolsu", "cheolsu")?;
+        let tui_path = install_sidecar_binary(&app, "cheolsu-tui", "cheolsu-tui")?;
 
         #[cfg(target_os = "macos")]
         install_frameworks(&app)?;
