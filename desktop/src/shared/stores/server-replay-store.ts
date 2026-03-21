@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { createTauriStorage } from "@/shared/lib/tauri-store-storage";
 import { updateServerReplay, type ServerReplayEntry } from "@/shared/api/proxy";
+import { createDebouncedSync } from "./create-debounced-sync";
 
 interface ServerReplayStoreState {
   entries: ServerReplayEntry[];
@@ -12,6 +13,8 @@ interface ServerReplayStoreState {
   setEnabled: (enabled: boolean) => void;
   syncToProxy: () => Promise<void>;
 }
+
+const debouncedSync = createDebouncedSync();
 
 export const useServerReplayStore = create<ServerReplayStoreState>()(
   persist(
@@ -48,17 +51,24 @@ export const useServerReplayStore = create<ServerReplayStoreState>()(
       },
 
       syncToProxy: async () => {
-        try {
-          const { entries, enabled } = get();
-          await updateServerReplay(enabled ? entries : []);
-        } catch (error) {
-          console.error("Failed to sync server replay:", error);
-        }
+        debouncedSync(async () => {
+          try {
+            const { entries, enabled } = get();
+            await updateServerReplay(enabled ? entries : []);
+          } catch (error) {
+            console.error("Failed to sync server replay:", error);
+          }
+        });
       },
     }),
     {
       name: "cheolsu-server-replay",
       storage: createJSONStorage(() => createTauriStorage()),
+      onRehydrateStorage: () => (state) => {
+        if (state?.enabled && state.entries.length) {
+          state.syncToProxy();
+        }
+      },
     },
   ),
 );

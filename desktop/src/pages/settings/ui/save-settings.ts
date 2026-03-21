@@ -226,15 +226,13 @@ export async function saveAllSettings(
     }
   }
 
-  // SSL Proxying
+  // SSL Proxying — 각 setter가 debounced sync를 자동 트리거
   if (dirtyFields.sslProxying) {
     try {
       const sslStore = useSslProxyingStore.getState();
-      sslStore.setMode(data.sslProxying.mode);
       sslStore.setFromDaemon(data.sslProxying.mode, data.sslProxying.entries);
+      sslStore.syncToProxy();
       sslStore.setDefaultPassthroughEntries(data.sslProxying.defaultPassthroughEntries);
-      await sslStore.syncToProxy();
-      await sslStore.syncDefaultPassthroughToProxy();
       results.push({ section: "sslProxying", success: true });
     } catch (error) {
       results.push({ section: "sslProxying", success: false, error });

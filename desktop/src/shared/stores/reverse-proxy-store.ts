@@ -3,6 +3,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import { createTauriStorage } from "@/shared/lib/tauri-store-storage";
 import type { ReverseProxyRule } from "@/shared/api/proxy";
 import { updateReverseProxyRules } from "@/shared/api/proxy";
+import { createDebouncedSync } from "./create-debounced-sync";
 
 interface ReverseProxyStoreState {
   rules: ReverseProxyRule[];
@@ -16,16 +17,7 @@ interface ReverseProxyStoreState {
   syncToProxy: () => void;
 }
 
-let syncTimer: ReturnType<typeof setTimeout> | null = null;
-
-/** syncToProxy 연속 호출을 방지하기 위한 debounce (300ms) */
-function debouncedSync(fn: () => Promise<void>) {
-  if (syncTimer) clearTimeout(syncTimer);
-  syncTimer = setTimeout(() => {
-    syncTimer = null;
-    fn();
-  }, 300);
-}
+const debouncedSync = createDebouncedSync();
 
 export const useReverseProxyStore = create<ReverseProxyStoreState>()(
   persist(
@@ -75,6 +67,11 @@ export const useReverseProxyStore = create<ReverseProxyStoreState>()(
     {
       name: "cheolsu-reverse-proxy",
       storage: createJSONStorage(() => createTauriStorage()),
+      onRehydrateStorage: () => (state) => {
+        if (state?.rules.length) {
+          state.syncToProxy();
+        }
+      },
     },
   ),
 );
