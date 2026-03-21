@@ -95,11 +95,12 @@ fn normalize_key_type(
             UpstreamKeyType::Rsa(bits)
         }
         Some(UpstreamKeyType::Ecdsa(EcCurve::P521)) => {
-            // rcgen에서 P-521 미지원 → P-384로 정규화
+            // rcgen이 P-521 미지원이므로 P-384로 통일
             UpstreamKeyType::Ecdsa(EcCurve::P384)
         }
-        Some(kt) => kt.clone(),
-        None => UpstreamKeyType::Ecdsa(EcCurve::P256),
+        Some(UpstreamKeyType::Ecdsa(curve)) => UpstreamKeyType::Ecdsa(curve.clone()),
+        Some(UpstreamKeyType::Ed25519) => UpstreamKeyType::Ed25519,
+        Some(UpstreamKeyType::Unknown) | None => UpstreamKeyType::Ecdsa(EcCurve::P256),
     }
 }
 
@@ -119,17 +120,14 @@ pub(crate) fn generate_openssl_leaf_pkey(
 
     let normalized = normalize_key_type(upstream_cert);
 
-    // 캐시 히트
     if let Ok(cache) = CACHE.lock() {
         if let Some(cached) = cache.get(&normalized) {
             return Ok(cached.clone());
         }
     }
 
-    // 캐시 미스 — 새 키 생성
     let pkey = generate_openssl_leaf_pkey_uncached(&normalized)?;
 
-    // 캐시에 저장
     if let Ok(mut cache) = CACHE.lock() {
         cache.entry(normalized).or_insert_with(|| pkey.clone());
     }
@@ -164,11 +162,8 @@ fn generate_openssl_leaf_pkey_uncached(
             PKey::from_ec_key(ec_key)
         }
         UpstreamKeyType::Ed25519 => PKey::generate_ed25519(),
-        UpstreamKeyType::Unknown => {
-            let group = EcGroup::from_curve_name(Nid::X9_62_PRIME256V1)?;
-            let ec_key = EcKey::generate(&group)?;
-            PKey::from_ec_key(ec_key)
-        }
+        // normalize_key_type이 Unknown을 Ecdsa(P256)으로 변환하므로 여기 도달하지 않음
+        UpstreamKeyType::Unknown => unreachable!("normalize_key_type handles Unknown"),
     }
 }
 
@@ -220,10 +215,11 @@ fn generate_rcgen_leaf_key_pair_uncached(
     let alg: &'static rcgen::SignatureAlgorithm = match key_type {
         UpstreamKeyType::Rsa(_) => &rcgen::PKCS_RSA_SHA256,
         UpstreamKeyType::Ecdsa(EcCurve::P384) => &rcgen::PKCS_ECDSA_P384_SHA384,
-        UpstreamKeyType::Ecdsa(EcCurve::P521) => &rcgen::PKCS_ECDSA_P384_SHA384,
         UpstreamKeyType::Ed25519 => &rcgen::PKCS_ED25519,
-        UpstreamKeyType::Ecdsa(EcCurve::P256) | UpstreamKeyType::Unknown => {
-            &rcgen::PKCS_ECDSA_P256_SHA256
+        UpstreamKeyType::Ecdsa(EcCurve::P256) => &rcgen::PKCS_ECDSA_P256_SHA256,
+        // normalize_key_type이 P521→P384, Unknown→P256으로 변환하므로 여기 도달하지 않음
+        UpstreamKeyType::Ecdsa(EcCurve::P521) | UpstreamKeyType::Unknown => {
+            unreachable!("normalize_key_type handles P521 and Unknown")
         }
     };
 
