@@ -63,10 +63,6 @@ pub fn save_session(ctx: &OpsContext, p: SaveSessionParams) -> OpResult {
 
 pub fn load_session(ctx: &OpsContext, p: LoadSessionParams) -> OpResult {
     let file_path = std::path::Path::new(&p.path);
-    if !file_path.exists() {
-        return OpResult::err(format!("File not found: {}", p.path));
-    }
-
     let is_har = p.path.to_lowercase().ends_with(".har");
 
     let (transactions, ws_messages, rules) = if is_har {
@@ -96,18 +92,8 @@ pub fn load_session(ctx: &OpsContext, p: LoadSessionParams) -> OpResult {
         ctx.store.ws_connections.lock().clear();
     }
 
-    {
-        let mut txns = ctx.store.transactions.lock();
-        for txn in transactions {
-            txns.push_back(txn);
-        }
-    }
-    {
-        let mut msgs = ctx.store.ws_messages.lock();
-        for msg in ws_messages {
-            msgs.push_back(msg);
-        }
-    }
+    ctx.store.transactions.lock().extend(transactions);
+    ctx.store.ws_messages.lock().extend(ws_messages);
 
     if !rules.is_empty() {
         let mut current_rules = ctx.store.rules.lock();

@@ -3,7 +3,7 @@ use proxy_v2_models::WsDirection;
 
 use crate::context::OpsContext;
 use crate::diff::diff_part;
-use crate::helpers::{format_size, read_body_text};
+use crate::helpers::{find_transaction_by_id, format_size, read_body_text};
 use crate::params::*;
 use crate::result::OpResult;
 
@@ -86,14 +86,7 @@ pub fn search_traffic(ctx: &OpsContext, p: SearchTrafficParams) -> OpResult {
 
 pub fn get_transaction(ctx: &OpsContext, p: GetTransactionParams) -> OpResult {
     let txns = ctx.store.transactions.lock();
-    let info = txns.iter().find(|info| {
-        info.request
-            .as_ref()
-            .map(|r| r.id() == p.id)
-            .unwrap_or(false)
-    });
-
-    let Some(info) = info else {
+    let Some(info) = find_transaction_by_id(&txns, &p.id) else {
         return OpResult::err(format!("Transaction '{}' not found.", p.id));
     };
 
@@ -205,23 +198,10 @@ pub fn get_websocket_messages(ctx: &OpsContext, p: GetWsMessagesParams) -> OpRes
 pub fn diff_transactions(ctx: &OpsContext, p: DiffTransactionsParams) -> OpResult {
     let txns = ctx.store.transactions.lock();
 
-    let txn_a = txns.iter().find(|info| {
-        info.request
-            .as_ref()
-            .map(|r| r.id() == p.transaction_id_a)
-            .unwrap_or(false)
-    });
-    let txn_b = txns.iter().find(|info| {
-        info.request
-            .as_ref()
-            .map(|r| r.id() == p.transaction_id_b)
-            .unwrap_or(false)
-    });
-
-    let Some(txn_a) = txn_a else {
+    let Some(txn_a) = find_transaction_by_id(&txns, &p.transaction_id_a) else {
         return OpResult::err(format!("Transaction '{}' not found.", p.transaction_id_a));
     };
-    let Some(txn_b) = txn_b else {
+    let Some(txn_b) = find_transaction_by_id(&txns, &p.transaction_id_b) else {
         return OpResult::err(format!("Transaction '{}' not found.", p.transaction_id_b));
     };
 

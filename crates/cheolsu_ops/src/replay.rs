@@ -1,16 +1,14 @@
 use crate::context::OpsContext;
-use crate::helpers::{compute_time_stats, format_size};
+use crate::helpers::{
+    build_replay_client, compute_time_stats, find_transaction_by_id, format_size, truncate_text,
+};
 use crate::params::*;
 use crate::result::OpResult;
 
 pub async fn replay_request(p: ReplayRequestParams) -> OpResult {
-    let client = match reqwest::Client::builder()
-        .no_proxy()
-        .danger_accept_invalid_certs(true)
-        .build()
-    {
+    let client = match build_replay_client() {
         Ok(c) => c,
-        Err(e) => return OpResult::err(format!("Failed to create HTTP client: {}", e)),
+        Err(e) => return OpResult::err(e),
     };
 
     let method: reqwest::Method = match p.method.parse() {
@@ -48,15 +46,7 @@ pub async fn replay_request(p: ReplayRequestParams) -> OpResult {
 
     let body_text = String::from_utf8(body_bytes.to_vec())
         .unwrap_or_else(|_| format!("<binary, {} bytes>", body_bytes.len()));
-    let body_display = if body_text.len() > 10000 {
-        format!(
-            "{}...\n(truncated, {} total)",
-            &body_text[..10000],
-            format_size(body_text.len())
-        )
-    } else {
-        body_text
-    };
+    let body_display = truncate_text(body_text, 10000);
 
     OpResult::ok(format!(
         "## Response\nStatus: {}\nTime: {:.0?}\nSize: {}\n\n### Headers\n```\n{}\n```\n\n### Body\n```\n{}\n```",
@@ -77,13 +67,7 @@ pub async fn replay_sequence(ctx: &OpsContext, p: ReplaySequenceParams) -> OpRes
         let txns = ctx.store.transactions.lock();
         let mut reqs = Vec::new();
         for id in &p.transaction_ids {
-            let info = txns.iter().find(|info| {
-                info.request
-                    .as_ref()
-                    .map(|r| r.id() == id.as_str())
-                    .unwrap_or(false)
-            });
-            let Some(info) = info else {
+            let Some(info) = find_transaction_by_id(&txns, id) else {
                 return OpResult::err(format!("Transaction '{}' not found.", id));
             };
             let Some(req) = &info.request else {
@@ -107,13 +91,9 @@ pub async fn replay_sequence(ctx: &OpsContext, p: ReplaySequenceParams) -> OpRes
         reqs
     };
 
-    let client = match reqwest::Client::builder()
-        .no_proxy()
-        .danger_accept_invalid_certs(true)
-        .build()
-    {
+    let client = match build_replay_client() {
         Ok(c) => c,
-        Err(e) => return OpResult::err(format!("Failed to create HTTP client: {}", e)),
+        Err(e) => return OpResult::err(e),
     };
 
     let delay = std::time::Duration::from_millis(p.delay_ms.unwrap_or(0));
@@ -191,13 +171,9 @@ pub async fn advanced_repeat(p: AdvancedRepeatParams) -> OpResult {
         Err(e) => return OpResult::err(format!("Invalid HTTP method: {}", e)),
     };
 
-    let client = match reqwest::Client::builder()
-        .no_proxy()
-        .danger_accept_invalid_certs(true)
-        .build()
-    {
+    let client = match build_replay_client() {
         Ok(c) => c,
-        Err(e) => return OpResult::err(format!("Failed to create HTTP client: {}", e)),
+        Err(e) => return OpResult::err(e),
     };
 
     let semaphore = std::sync::Arc::new(tokio::sync::Semaphore::new(concurrency));
