@@ -1,6 +1,12 @@
+pub mod breakpoints;
 pub mod context;
 pub mod helpers;
+pub mod host_mappings;
 pub mod id;
 pub mod params;
 pub mod result;
+pub mod reverse_proxy;
+pub mod rules;
+pub mod script;
+pub mod server_replay;
 pub mod settings;
