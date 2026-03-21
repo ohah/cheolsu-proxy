@@ -167,10 +167,10 @@ cheolsu script unload
 
 ## Exit Codes
 
-| Code | Meaning |
-|------|---------|
-| 0 | Success |
-| 1 | Error (daemon not running, invalid arguments, operation failed) |
+| Code | Meaning                                                         |
+| ---- | --------------------------------------------------------------- |
+| 0    | Success                                                         |
+| 1    | Error (daemon not running, invalid arguments, operation failed) |
 
 ## Claude Code Integration
 

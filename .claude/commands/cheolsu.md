@@ -21,6 +21,7 @@ cheolsu $ARGUMENTS
 ```
 
 If arguments are empty:
+
 ```bash
 cheolsu status
 ```
@@ -38,22 +39,22 @@ cheolsu status
 
 ## Available Subcommands
 
-| Subcommand | Description |
-|-----------|-------------|
-| `traffic search/get/ws/sse/diff/clear/openapi` | Search, inspect, compare captured traffic |
-| `rule list/add/remove` | Manage intercept rules (block, modify, map) |
-| `breakpoint list/add/remove/pending/resolve` | Manage breakpoints |
-| `host-mapping list/add/remove` | Manage DNS spoofing / host mapping |
-| `reverse-proxy list/add/remove` | Manage reverse proxy rules |
-| `server-replay list/add/remove/clear` | Manage server replay entries |
-| `settings upstream-proxy/throttle/proxy-auth/connection-strategy/quick` | Configure proxy settings |
-| `analyze performance/errors/endpoints/duplicates/n-plus1/timeline/full` | Analyze traffic |
-| `replay request/sequence/repeat` | Send HTTP requests |
-| `session save/load` | Save/load traffic sessions |
-| `script load/unload` | Manage proxy scripts |
-| `status` | Check proxy daemon status |
-| `export-har` | Export traffic as HAR file |
-| `tui` | Launch TUI mode |
+| Subcommand                                                              | Description                                 |
+| ----------------------------------------------------------------------- | ------------------------------------------- |
+| `traffic search/get/ws/sse/diff/clear/openapi`                          | Search, inspect, compare captured traffic   |
+| `rule list/add/remove`                                                  | Manage intercept rules (block, modify, map) |
+| `breakpoint list/add/remove/pending/resolve`                            | Manage breakpoints                          |
+| `host-mapping list/add/remove`                                          | Manage DNS spoofing / host mapping          |
+| `reverse-proxy list/add/remove`                                         | Manage reverse proxy rules                  |
+| `server-replay list/add/remove/clear`                                   | Manage server replay entries                |
+| `settings upstream-proxy/throttle/proxy-auth/connection-strategy/quick` | Configure proxy settings                    |
+| `analyze performance/errors/endpoints/duplicates/n-plus1/timeline/full` | Analyze traffic                             |
+| `replay request/sequence/repeat`                                        | Send HTTP requests                          |
+| `session save/load`                                                     | Save/load traffic sessions                  |
+| `script load/unload`                                                    | Manage proxy scripts                        |
+| `status`                                                                | Check proxy daemon status                   |
+| `export-har`                                                            | Export traffic as HAR file                  |
+| `tui`                                                                   | Launch TUI mode                             |
 
 ## Error Handling
 
