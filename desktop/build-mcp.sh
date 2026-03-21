@@ -73,12 +73,12 @@ mkdir -p "$BINARIES_DIR"
 cp "$WORKSPACE_ROOT/target/$PROFILE_DIR/cheolsu-proxy-mcp" "$BINARIES_DIR/cheolsu-proxy-mcp-$TARGET_TRIPLE"
 echo "Copied to $BINARIES_DIR/cheolsu-proxy-mcp-$TARGET_TRIPLE"
 
-cp "$WORKSPACE_ROOT/target/$PROFILE_DIR/cheolsu" "$BINARIES_DIR/cheolsu-$TARGET_TRIPLE"
-echo "Copied to $BINARIES_DIR/cheolsu-$TARGET_TRIPLE"
+cp "$WORKSPACE_ROOT/target/$PROFILE_DIR/cheolsu-tui" "$BINARIES_DIR/cheolsu-tui-$TARGET_TRIPLE"
+echo "Copied to $BINARIES_DIR/cheolsu-tui-$TARGET_TRIPLE"
 
 # macOS: sidecar 바이너리에 @executable_path/../Frameworks rpath 추가
 if [[ "$OSTYPE" == "darwin"* ]]; then
-    for bin in "$BINARIES_DIR/cheolsu-proxy-mcp-$TARGET_TRIPLE" "$BINARIES_DIR/cheolsu-$TARGET_TRIPLE"; do
+    for bin in "$BINARIES_DIR/cheolsu-proxy-mcp-$TARGET_TRIPLE" "$BINARIES_DIR/cheolsu-tui-$TARGET_TRIPLE"; do
         if [ -f "$bin" ]; then
             echo "Adding rpath to sidecar: $(basename "$bin")"
             install_name_tool -add_rpath @executable_path/../Frameworks "$bin" 2>/dev/null || true
