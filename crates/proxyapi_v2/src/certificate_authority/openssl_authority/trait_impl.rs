@@ -18,8 +18,8 @@ impl CertificateAuthority for OpensslAuthority {
         }
         debug!("Generating server config");
 
-        let cert = match self.gen_cert(authority, upstream_cert) {
-            Ok(cert) => cert,
+        let (cert, leaf_private_key) = match self.gen_cert(authority, upstream_cert) {
+            Ok(result) => result,
             Err(e) => {
                 error!(
                     "[SERVER-CONFIG] 인증서 생성 실패: {} - {:?}. upstream 정보 없이 재시도",
@@ -46,7 +46,7 @@ impl CertificateAuthority for OpensslAuthority {
         let mut server_cfg = ServerConfig::builder_with_provider(Arc::clone(&self.provider))
             .with_protocol_versions(&supported_versions)?
             .with_no_client_auth()
-            .with_single_cert(certs, self.private_key.clone_key())?;
+            .with_single_cert(certs, leaf_private_key)?;
 
         // ALPN 미러링: 상류 서버의 ALPN 협상 결과를 반영
         server_cfg.alpn_protocols = if let Some(ref upstream) = upstream_cert {

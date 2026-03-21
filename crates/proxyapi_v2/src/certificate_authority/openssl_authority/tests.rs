@@ -147,10 +147,10 @@ mod tests {
         let authority1 = Authority::from_static("example.com");
         let authority2 = Authority::from_static("example2.com");
 
-        let c1 = ca.gen_cert(&authority1, None).unwrap();
-        let c2 = ca.gen_cert(&authority2, None).unwrap();
-        let c3 = ca.gen_cert(&authority1, None).unwrap();
-        let c4 = ca.gen_cert(&authority2, None).unwrap();
+        let c1 = ca.gen_cert(&authority1, None).unwrap().0;
+        let c2 = ca.gen_cert(&authority2, None).unwrap().0;
+        let c3 = ca.gen_cert(&authority1, None).unwrap().0;
+        let c4 = ca.gen_cert(&authority2, None).unwrap().0;
 
         let (_, cert1) = x509_parser::parse_x509_certificate(&c1).unwrap();
         let (_, cert2) = x509_parser::parse_x509_certificate(&c2).unwrap();
@@ -180,7 +180,7 @@ mod tests {
             ..Default::default()
         };
 
-        let cert_der = ca.gen_cert(&authority, Some(&upstream)).unwrap();
+        let cert_der = ca.gen_cert(&authority, Some(&upstream)).unwrap().0;
         let (_, cert) = x509_parser::parse_x509_certificate(&cert_der).unwrap();
 
         // CN 확인
@@ -199,7 +199,7 @@ mod tests {
         let ca = build_ca(0);
         let authority = Authority::from_static("aki-test.example.com");
 
-        let cert_der = ca.gen_cert(&authority, None).unwrap();
+        let cert_der = ca.gen_cert(&authority, None).unwrap().0;
         let (_, cert) = x509_parser::parse_x509_certificate(&cert_der).unwrap();
 
         // AKI extension (OID 2.5.29.35) 이 존재하는지 확인
@@ -213,12 +213,57 @@ mod tests {
     }
 
     #[test]
+    fn gen_cert_mirrors_rsa_key_type() {
+        use crate::upstream_cert::UpstreamKeyType;
+
+        let ca = build_ca(0);
+        let authority = Authority::from_static("rsa-test.example.com");
+        let upstream = UpstreamCertInfo {
+            key_type: UpstreamKeyType::Rsa(2048),
+            ..Default::default()
+        };
+
+        let (cert_der, _) = ca.gen_cert(&authority, Some(&upstream)).unwrap();
+        let cert = openssl::x509::X509::from_der(&cert_der).unwrap();
+        let pk = cert.public_key().unwrap();
+        assert!(pk.rsa().is_ok(), "leaf 키는 RSA여야 합니다");
+    }
+
+    #[test]
+    fn gen_cert_mirrors_ecdsa_key_type() {
+        use crate::upstream_cert::{EcCurve, UpstreamKeyType};
+
+        let ca = build_ca(0);
+        let authority = Authority::from_static("ecdsa-test.example.com");
+        let upstream = UpstreamCertInfo {
+            key_type: UpstreamKeyType::Ecdsa(EcCurve::P256),
+            ..Default::default()
+        };
+
+        let (cert_der, _) = ca.gen_cert(&authority, Some(&upstream)).unwrap();
+        let cert = openssl::x509::X509::from_der(&cert_der).unwrap();
+        let pk = cert.public_key().unwrap();
+        assert!(pk.ec_key().is_ok(), "leaf 키는 ECDSA여야 합니다");
+    }
+
+    #[test]
+    fn gen_cert_default_is_ecdsa() {
+        let ca = build_ca(0);
+        let authority = Authority::from_static("default-test.example.com");
+
+        let (cert_der, _) = ca.gen_cert(&authority, None).unwrap();
+        let cert = openssl::x509::X509::from_der(&cert_der).unwrap();
+        let pk = cert.public_key().unwrap();
+        assert!(pk.ec_key().is_ok(), "기본 leaf 키는 ECDSA여야 합니다");
+    }
+
+    #[test]
     fn gen_cert_cn_truncated_to_64_chars() {
         let ca = build_ca(0);
         let long_host = format!("{}.example.com", "a".repeat(80));
         let authority = Authority::try_from(long_host).unwrap();
 
-        let cert_der = ca.gen_cert(&authority, None).unwrap();
+        let cert_der = ca.gen_cert(&authority, None).unwrap().0;
         let (_, cert) = x509_parser::parse_x509_certificate(&cert_der).unwrap();
 
         let cn = cert

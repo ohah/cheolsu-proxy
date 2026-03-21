@@ -8,7 +8,7 @@ use crate::{
     body::Body,
     certificate_authority::CertificateAuthority,
     tls_event::{TlsEvent, TlsEventSender, emit_tls_event},
-    upstream_cert::{UpstreamCertInfo, sniff_upstream_cert},
+    upstream_cert::{ClientHelloMirrorInfo, UpstreamCertInfo, sniff_upstream_cert_with_mirror},
 };
 use http::uri::Authority;
 use hyper::{Method, Request, Response, body::Incoming, header::Entry};
@@ -26,13 +26,23 @@ pub(super) async fn lazy_sniff_upstream(
     upstream_proxy: Option<&crate::upstream_proxy::UpstreamProxyConfig>,
     tls_event_sender: &Option<TlsEventSender>,
 ) -> Option<UpstreamCertInfo> {
+    lazy_sniff_upstream_with_mirror(authority, upstream_proxy, tls_event_sender, None).await
+}
+
+/// ClientHello 미러링 정보를 포함한 Lazy upstream cert 스니핑
+pub(super) async fn lazy_sniff_upstream_with_mirror(
+    authority: &Authority,
+    upstream_proxy: Option<&crate::upstream_proxy::UpstreamProxyConfig>,
+    tls_event_sender: &Option<TlsEventSender>,
+    mirror_info: Option<&ClientHelloMirrorInfo>,
+) -> Option<UpstreamCertInfo> {
     emit_tls_event(
         tls_event_sender,
         TlsEvent::ServerConnectionStarting {
             authority: authority.clone(),
         },
     );
-    let cert = sniff_upstream_cert(authority, upstream_proxy).await;
+    let cert = sniff_upstream_cert_with_mirror(authority, upstream_proxy, mirror_info).await;
     emit_tls_event(
         tls_event_sender,
         TlsEvent::UpstreamCertSniffed {

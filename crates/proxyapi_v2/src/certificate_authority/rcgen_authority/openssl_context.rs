@@ -1,15 +1,15 @@
 use super::RcgenAuthority;
 use crate::certificate_authority::{NOT_BEFORE_OFFSET, TTL_SECS, truncate_cn};
-use crate::upstream_cert::UpstreamCertInfo;
+use crate::upstream_cert::{EcCurve, UpstreamCertInfo, UpstreamKeyType};
 use http::uri::Authority;
 use rand::{Rng, rng};
-use rcgen::{DistinguishedName, DnType, Ia5String, SanType};
+use rcgen::{DistinguishedName, DnType, Ia5String, KeyPair, SanType};
 use std::collections::HashSet;
 use std::net::IpAddr;
 use std::sync::Arc;
 use time::{Duration, OffsetDateTime};
 use tokio_rustls::rustls::pki_types::CertificateDer;
-use tracing::{debug, info};
+use tracing::{debug, info, warn};
 
 pub(super) async fn gen_openssl_context(
     this: &RcgenAuthority,
@@ -37,9 +37,17 @@ pub(super) async fn gen_openssl_context(
     let ctx = tokio::task::spawn_blocking(
         move || -> Result<openssl::ssl::SslContext, Box<dyn std::error::Error + Send + Sync>> {
             // rcgen 인증서 생성 (CPU 집약적 작업)
-            let key_pair = rcgen::KeyPair::from_pem(&ca_key_pem)?;
+            let ca_key_pair = rcgen::KeyPair::from_pem(&ca_key_pem)?;
             let ca_cert_params = rcgen::CertificateParams::from_ca_cert_pem(&ca_cert_pem)?;
-            let ca_cert_rcgen = ca_cert_params.self_signed(&key_pair)?;
+            let ca_cert_rcgen = ca_cert_params.self_signed(&ca_key_pair)?;
+
+            // upstream 키 타입에 맞는 leaf 키페어 생성
+            let leaf_key_pair = generate_leaf_key_pair_for_context(upstream_cert.as_ref())
+                .unwrap_or_else(|e| {
+                    warn!("[OPENSSL-CONTEXT] leaf 키 생성 실패, ECDSA P-256: {:?}", e);
+                    KeyPair::generate_for(&rcgen::PKCS_ECDSA_P256_SHA256)
+                        .expect("ECDSA P-256 키 생성 실패 불가")
+                });
 
             let mut params = rcgen::CertificateParams::default();
             params.serial_number = Some(rng().random::<u64>().into());
@@ -107,10 +115,12 @@ pub(super) async fn gen_openssl_context(
                 }
             }
 
+            // leaf 키로 서명 (CA 키가 서명자)
             let server_cert: CertificateDer<'static> = params
-                .signed_by(&key_pair, &ca_cert_rcgen, &key_pair)?
+                .signed_by(&leaf_key_pair, &ca_cert_rcgen, &ca_key_pair)?
                 .into();
             let server_cert_der = server_cert.to_vec();
+            let leaf_key_pem = leaf_key_pair.serialize_pem();
 
             // OpenSSL 컨텍스트 빌드
             let mut ctx = openssl::ssl::SslContext::builder(openssl::ssl::SslMethod::tls_server())?;
@@ -128,11 +138,11 @@ pub(super) async fn gen_openssl_context(
 
             let server_cert = openssl::x509::X509::from_der(&server_cert_der)?;
             let ca_cert = openssl::x509::X509::from_pem(ca_cert_pem.as_bytes())?;
-            let ca_key = openssl::pkey::PKey::private_key_from_pem(ca_key_pem.as_bytes())?;
+            let leaf_key = openssl::pkey::PKey::private_key_from_pem(leaf_key_pem.as_bytes())?;
 
             ctx.set_certificate(&server_cert)?;
             ctx.add_extra_chain_cert(ca_cert)?;
-            ctx.set_private_key(&ca_key)?;
+            ctx.set_private_key(&leaf_key)?;
 
             Ok(ctx.build())
         },
@@ -152,4 +162,26 @@ pub(super) async fn gen_openssl_context(
         authority
     );
     Ok(ctx)
+}
+
+/// upstream 키 타입에 맞는 leaf 키페어를 생성 (spawn_blocking 내부용)
+fn generate_leaf_key_pair_for_context(
+    upstream_cert: Option<&UpstreamCertInfo>,
+) -> Result<KeyPair, rcgen::Error> {
+    let key_type = upstream_cert.map(|u| &u.key_type);
+
+    match key_type {
+        Some(UpstreamKeyType::Rsa(_)) => KeyPair::generate_for(&rcgen::PKCS_RSA_SHA256),
+        Some(UpstreamKeyType::Ecdsa(EcCurve::P384)) => {
+            KeyPair::generate_for(&rcgen::PKCS_ECDSA_P384_SHA384)
+        }
+        Some(UpstreamKeyType::Ecdsa(EcCurve::P521)) => {
+            // P-521 미지원 → P-384 폴백
+            KeyPair::generate_for(&rcgen::PKCS_ECDSA_P384_SHA384)
+        }
+        Some(UpstreamKeyType::Ed25519) => KeyPair::generate_for(&rcgen::PKCS_ED25519),
+        Some(UpstreamKeyType::Ecdsa(EcCurve::P256)) | Some(UpstreamKeyType::Unknown) | None => {
+            KeyPair::generate_for(&rcgen::PKCS_ECDSA_P256_SHA256)
+        }
+    }
 }

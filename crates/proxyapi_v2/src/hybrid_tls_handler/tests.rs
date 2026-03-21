@@ -289,6 +289,124 @@ fn test_tls13_with_apple_cipher_routes_to_openssl() {
     assert_eq!(strategy, TlsStrategy::OpenSslOnly);
 }
 
+// ─── ClientHello 미러링 파싱 테스트 ───
+
+#[test]
+fn test_analyze_extracts_supported_groups() {
+    // supported_groups extension (0x000a) 데이터: length(2) + groups
+    let mut groups_data = Vec::new();
+    let groups: &[u16] = &[0x0017, 0x0018, 0x001d]; // P-256, P-384, X25519
+    let groups_len = (groups.len() * 2) as u16;
+    groups_data.extend_from_slice(&groups_len.to_be_bytes());
+    for &g in groups {
+        groups_data.extend_from_slice(&g.to_be_bytes());
+    }
+
+    let buf = build_client_hello([0x03, 0x03], &[0xc02f, 0xc030], &[(0x000a, &groups_data)]);
+    let info = analyze_tls_connection(&buf).unwrap();
+    assert_eq!(info.supported_groups, vec![0x0017, 0x0018, 0x001d]);
+}
+
+#[test]
+fn test_analyze_extracts_signature_algorithms() {
+    // signature_algorithms extension (0x000d)
+    let mut sigalg_data = Vec::new();
+    let sigalgs: &[u16] = &[0x0403, 0x0804, 0x0807]; // ECDSA+SHA256, RSA-PSS+SHA256, Ed25519
+    let sigalg_len = (sigalgs.len() * 2) as u16;
+    sigalg_data.extend_from_slice(&sigalg_len.to_be_bytes());
+    for &s in sigalgs {
+        sigalg_data.extend_from_slice(&s.to_be_bytes());
+    }
+
+    let buf = build_client_hello([0x03, 0x03], &[0xc02f], &[(0x000d, &sigalg_data)]);
+    let info = analyze_tls_connection(&buf).unwrap();
+    assert_eq!(info.signature_algorithms, vec![0x0403, 0x0804, 0x0807]);
+}
+
+#[test]
+fn test_analyze_extracts_alpn_protocols() {
+    // ALPN extension (0x0010): list_len(2) + [proto_len(1) + proto_data]*
+    let mut alpn_data = Vec::new();
+    let protos: &[&[u8]] = &[b"h2", b"http/1.1"];
+    let mut proto_buf = Vec::new();
+    for proto in protos {
+        proto_buf.push(proto.len() as u8);
+        proto_buf.extend_from_slice(proto);
+    }
+    alpn_data.extend_from_slice(&(proto_buf.len() as u16).to_be_bytes());
+    alpn_data.extend_from_slice(&proto_buf);
+
+    let buf = build_client_hello([0x03, 0x03], &[0xc02f], &[(0x0010, &alpn_data)]);
+    let info = analyze_tls_connection(&buf).unwrap();
+    assert_eq!(
+        info.alpn_protocols,
+        vec![b"h2".to_vec(), b"http/1.1".to_vec()]
+    );
+}
+
+#[test]
+fn test_analyze_extracts_ec_point_formats() {
+    // ec_point_formats extension (0x000b): fmt_count(1) + formats
+    let ec_data = vec![0x01, 0x00]; // 1 format: uncompressed
+
+    let buf = build_client_hello([0x03, 0x03], &[0xc02f], &[(0x000b, &ec_data)]);
+    let info = analyze_tls_connection(&buf).unwrap();
+    assert_eq!(info.ec_point_formats, vec![0x00]);
+}
+
+#[test]
+fn test_analyze_extracts_compression_methods() {
+    let buf = build_client_hello([0x03, 0x03], &[0xc02f], &[]);
+    let info = analyze_tls_connection(&buf).unwrap();
+    // build_client_hello는 compression method [0x00] (null)을 넣음
+    assert_eq!(info.compression_methods, vec![0x00]);
+}
+
+#[test]
+fn test_analyze_preserves_raw_client_hello() {
+    let buf = build_client_hello([0x03, 0x03], &[0xc02f], &[]);
+    let info = analyze_tls_connection(&buf).unwrap();
+    assert_eq!(info.raw_client_hello, buf);
+}
+
+#[test]
+fn test_analyze_extension_data_preserved() {
+    let dummy_data = vec![0x01, 0x02, 0x03, 0x04];
+    let buf = build_client_hello(
+        [0x03, 0x03],
+        &[0xc02f],
+        &[(0x0023, &dummy_data)], // session_ticket extension
+    );
+    let info = analyze_tls_connection(&buf).unwrap();
+    let session_ticket_ext = info.extensions.iter().find(|e| e.extension_type == 0x0023);
+    assert!(session_ticket_ext.is_some());
+    assert_eq!(session_ticket_ext.unwrap().data, dummy_data);
+}
+
+#[test]
+fn test_analyze_multiple_extensions_all_parsed() {
+    // supported_groups
+    let mut groups_data = Vec::new();
+    groups_data.extend_from_slice(&4u16.to_be_bytes());
+    groups_data.extend_from_slice(&0x0017u16.to_be_bytes());
+    groups_data.extend_from_slice(&0x001du16.to_be_bytes());
+
+    // signature_algorithms
+    let mut sigalg_data = Vec::new();
+    sigalg_data.extend_from_slice(&2u16.to_be_bytes());
+    sigalg_data.extend_from_slice(&0x0403u16.to_be_bytes());
+
+    let buf = build_client_hello(
+        [0x03, 0x03],
+        &[0xc02f, 0xc030, 0x1301],
+        &[(0x000a, &groups_data), (0x000d, &sigalg_data)],
+    );
+    let info = analyze_tls_connection(&buf).unwrap();
+    assert_eq!(info.supported_groups, vec![0x0017, 0x001d]);
+    assert_eq!(info.signature_algorithms, vec![0x0403]);
+    assert_eq!(info.cipher_suites, vec![0xc02f, 0xc030, 0x1301]);
+}
+
 #[test]
 fn test_openssl_required_domain() {
     let auth: Authority = "api2.cursor.sh:443".parse().unwrap();

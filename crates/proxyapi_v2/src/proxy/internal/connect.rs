@@ -1,5 +1,4 @@
 use super::InternalProxy;
-use super::lazy_sniff_upstream;
 use crate::{
     HttpHandler, WebSocketHandler,
     body::Body,
@@ -11,7 +10,7 @@ use crate::{
     throttle,
     tls_event::{TlsEvent, emit_tls_event},
     tls_version_detector::TlsVersionDetector,
-    upstream_cert::{UpstreamCertInfo, sniff_upstream_cert},
+    upstream_cert::{ClientHelloMirrorInfo, UpstreamCertInfo, sniff_upstream_cert},
     upstream_proxy::connect_to_target,
 };
 use http::uri::{Authority, Scheme};
@@ -299,6 +298,7 @@ where
         &self,
         authority: &Authority,
         eager_handle: Option<tokio::task::JoinHandle<Option<UpstreamCertInfo>>>,
+        mirror_info: Option<&ClientHelloMirrorInfo>,
     ) -> Option<UpstreamCertInfo> {
         if self.ca.is_config_cached(authority).await {
             debug!("[UPSTREAM-CERT] 캐시 히트 - 스니핑 스킵: {}", authority);
@@ -306,11 +306,12 @@ where
         }
 
         let Some(handle) = eager_handle else {
-            // Lazy 전략
-            return lazy_sniff_upstream(
+            // Lazy 전략 — ClientHello 미러링 정보 전달
+            return super::lazy_sniff_upstream_with_mirror(
                 authority,
                 self.ctx.upstream_proxy.as_ref(),
                 &self.ctx.tls_event_sender,
+                mirror_info,
             )
             .await;
         };
@@ -327,11 +328,15 @@ where
                 if cert.is_none()
                     && self.ctx.connection_strategy() == ConnectionStrategy::EagerWithFallback
                 {
-                    debug!("[UPSTREAM-CERT] Eager 실패 → Lazy 폴백: {}", authority);
-                    lazy_sniff_upstream(
+                    debug!(
+                        "[UPSTREAM-CERT] Eager 실패 → Lazy 폴백 (미러링 적용): {}",
+                        authority
+                    );
+                    super::lazy_sniff_upstream_with_mirror(
                         authority,
                         self.ctx.upstream_proxy.as_ref(),
                         &self.ctx.tls_event_sender,
+                        mirror_info,
                     )
                     .await
                 } else {
@@ -341,10 +346,11 @@ where
             Err(e) => {
                 warn!("[UPSTREAM-CERT] Eager 태스크 실패: {} - {}", authority, e);
                 if self.ctx.connection_strategy() == ConnectionStrategy::EagerWithFallback {
-                    lazy_sniff_upstream(
+                    super::lazy_sniff_upstream_with_mirror(
                         authority,
                         self.ctx.upstream_proxy.as_ref(),
                         &self.ctx.tls_event_sender,
+                        mirror_info,
                     )
                     .await
                 } else {
@@ -368,7 +374,19 @@ where
             Some(version) => {
                 debug!(%version, "TLS 버전 감지 - 하이브리드 핸들러 사용");
 
-                let upstream_cert = self.resolve_upstream_cert(authority, eager_handle).await;
+                // ClientHello에서 미러링 정보 추출
+                let mirror_info = crate::hybrid_tls_handler::analyze_tls_connection(full_buffer)
+                    .ok()
+                    .map(|tls_info| ClientHelloMirrorInfo {
+                        cipher_suites: tls_info.cipher_suites,
+                        supported_groups: tls_info.supported_groups,
+                        signature_algorithms: tls_info.signature_algorithms,
+                        alpn_protocols: tls_info.alpn_protocols,
+                    });
+
+                let upstream_cert = self
+                    .resolve_upstream_cert(authority, eager_handle, mirror_info.as_ref())
+                    .await;
                 // 인증서 정보를 InternalProxy에 저장 (이후 context()에서 사용)
                 self.upstream_cert_info = upstream_cert.clone();
 

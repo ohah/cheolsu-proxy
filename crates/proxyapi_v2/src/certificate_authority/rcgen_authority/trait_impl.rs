@@ -21,8 +21,8 @@ impl CertificateAuthority for RcgenAuthority {
         let start_time = std::time::Instant::now();
 
         info!("[SERVER-CONFIG] 인증서 생성 중: {}", authority);
-        let cert = match self.gen_cert(authority, upstream_cert) {
-            Ok(cert) => cert,
+        let (cert, leaf_private_key) = match self.gen_cert(authority, upstream_cert) {
+            Ok(result) => result,
             Err(e) => {
                 error!(
                     "[SERVER-CONFIG] 인증서 생성 실패: {} - {:?}. 기본 인증서로 폴백",
@@ -70,7 +70,7 @@ impl CertificateAuthority for RcgenAuthority {
                         ServerConfig::builder_with_provider(Arc::clone(&self.provider))
                             .with_protocol_versions(&supported_versions)?
                             .with_client_cert_verifier(verifier)
-                            .with_single_cert(certs, self.private_key.clone_key())?
+                            .with_single_cert(certs, leaf_private_key.clone_key())?
                     } else {
                         // CA 기반 검증 (필수)
                         let mut root_store = tokio_rustls::rustls::RootCertStore::empty();
@@ -96,21 +96,21 @@ impl CertificateAuthority for RcgenAuthority {
                         ServerConfig::builder_with_provider(Arc::clone(&self.provider))
                             .with_protocol_versions(&supported_versions)?
                             .with_client_cert_verifier(verifier)
-                            .with_single_cert(certs, self.private_key.clone_key())?
+                            .with_single_cert(certs, leaf_private_key.clone_key())?
                     }
                 } else {
                     // 비활성화 - 기존 동작
                     ServerConfig::builder_with_provider(Arc::clone(&self.provider))
                         .with_protocol_versions(&supported_versions)?
                         .with_no_client_auth()
-                        .with_single_cert(certs, self.private_key.clone_key())?
+                        .with_single_cert(certs, leaf_private_key.clone_key())?
                 }
             } else {
                 // 설정 없음 - 기존 동작
                 ServerConfig::builder_with_provider(Arc::clone(&self.provider))
                     .with_protocol_versions(&supported_versions)?
                     .with_no_client_auth()
-                    .with_single_cert(certs, self.private_key.clone_key())?
+                    .with_single_cert(certs, leaf_private_key.clone_key())?
             }
         };
 
