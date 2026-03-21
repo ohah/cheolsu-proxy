@@ -66,6 +66,12 @@ enum Commands {
 
     /// TUI 모드로 실행
     Tui(TuiArgs),
+
+    /// Claude Code 스킬을 ~/.claude/commands/에 설치
+    InstallSkills,
+
+    /// Claude Code 스킬을 ~/.claude/commands/에서 제거
+    UninstallSkills,
 }
 
 // ─── TUI ─────────────────────────────────────────────────
@@ -504,6 +510,93 @@ fn exec_tui(args: &TuiArgs) -> i32 {
     }
 }
 
+// ─── Skills ──────────────────────────────────────────────
+
+const SKILL_FILES: &[(&str, &str)] = &[
+    (
+        "cheolsu.md",
+        include_str!("../../../.claude/commands/cheolsu.md"),
+    ),
+    (
+        "dev-url-mapping.md",
+        include_str!("../../../.claude/commands/dev-url-mapping.md"),
+    ),
+];
+
+fn install_skills() -> i32 {
+    let Some(home) = dirs_path() else {
+        eprintln!("Error: HOME directory not found.");
+        return 1;
+    };
+
+    let commands_dir = home.join(".claude").join("commands");
+    if let Err(e) = std::fs::create_dir_all(&commands_dir) {
+        eprintln!("Error: Failed to create {}: {}", commands_dir.display(), e);
+        return 1;
+    }
+
+    for (name, content) in SKILL_FILES {
+        let path = commands_dir.join(name);
+        match std::fs::write(&path, content) {
+            Ok(()) => println!("Installed: {}", path.display()),
+            Err(e) => {
+                eprintln!("Error: Failed to write {}: {}", path.display(), e);
+                return 1;
+            }
+        }
+    }
+
+    println!(
+        "\nClaude Code skills installed successfully!\n\
+         Use /cheolsu and /dev-url-mapping in Claude Code."
+    );
+    0
+}
+
+fn uninstall_skills() -> i32 {
+    let Some(home) = dirs_path() else {
+        eprintln!("Error: HOME directory not found.");
+        return 1;
+    };
+
+    let commands_dir = home.join(".claude").join("commands");
+    let mut removed = 0;
+
+    for (name, _) in SKILL_FILES {
+        let path = commands_dir.join(name);
+        if path.exists() {
+            match std::fs::remove_file(&path) {
+                Ok(()) => {
+                    println!("Removed: {}", path.display());
+                    removed += 1;
+                }
+                Err(e) => {
+                    eprintln!("Error: Failed to remove {}: {}", path.display(), e);
+                    return 1;
+                }
+            }
+        }
+    }
+
+    if removed == 0 {
+        println!("No skills found to uninstall.");
+    } else {
+        println!("\n{} skill(s) uninstalled.", removed);
+    }
+    0
+}
+
+fn dirs_path() -> Option<std::path::PathBuf> {
+    std::env::var("HOME")
+        .ok()
+        .map(std::path::PathBuf::from)
+        .or_else(|| {
+            std::env::var("USERPROFILE")
+                .ok()
+                .map(std::path::PathBuf::from)
+        })
+}
+
 // ─── Main ────────────────────────────────────────────────
 
 #[tokio::main]
@@ -514,9 +607,12 @@ async fn main() {
 }
 
 async fn run(cli: Cli) -> i32 {
-    // tui 서브커맨드: cheolsu-tui 바이너리를 exec
-    if let Commands::Tui(args) = &cli.command {
-        return exec_tui(args);
+    // daemon 불필요 커맨드 먼저 처리
+    match &cli.command {
+        Commands::Tui(args) => return exec_tui(args),
+        Commands::InstallSkills => return install_skills(),
+        Commands::UninstallSkills => return uninstall_skills(),
+        _ => {}
     }
 
     // replay request/repeat는 daemon 연결 불필요
@@ -912,7 +1008,7 @@ async fn run(cli: Cli) -> i32 {
             },
         ),
 
-        Commands::Tui(_) => unreachable!(),
+        Commands::Tui(_) | Commands::InstallSkills | Commands::UninstallSkills => unreachable!(),
     };
 
     output::print_result(result)
