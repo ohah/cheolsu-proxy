@@ -363,13 +363,6 @@ fn test_analyze_extracts_compression_methods() {
 }
 
 #[test]
-fn test_analyze_preserves_raw_client_hello() {
-    let buf = build_client_hello([0x03, 0x03], &[0xc02f], &[]);
-    let info = analyze_tls_connection(&buf).unwrap();
-    assert_eq!(info.raw_client_hello, buf);
-}
-
-#[test]
 fn test_analyze_extension_data_preserved() {
     let dummy_data = vec![0x01, 0x02, 0x03, 0x04];
     let buf = build_client_hello(

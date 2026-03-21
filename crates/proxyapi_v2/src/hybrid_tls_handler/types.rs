@@ -38,8 +38,6 @@ pub struct TlsConnectionInfo {
     pub message_size: usize,
     /// 연결 복잡도 점수 (높을수록 복잡한 연결)
     pub complexity_score: u8,
-    /// 원본 ClientHello 바이트 (upstream 미러링용)
-    pub raw_client_hello: Vec<u8>,
     /// Supported Groups extension 데이터 (곡선 ID 목록)
     pub supported_groups: Vec<u16>,
     /// Signature Algorithms extension 데이터

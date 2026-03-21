@@ -370,7 +370,6 @@ pub(crate) fn analyze_tls_connection(
         has_apple_cipher,
         message_size: initial_buffer.len(),
         complexity_score,
-        raw_client_hello: initial_buffer.to_vec(),
         supported_groups,
         signature_algorithms,
         ec_point_formats,

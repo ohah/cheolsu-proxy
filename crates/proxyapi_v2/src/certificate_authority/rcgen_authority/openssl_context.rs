@@ -1,9 +1,9 @@
 use super::RcgenAuthority;
 use crate::certificate_authority::{NOT_BEFORE_OFFSET, TTL_SECS, truncate_cn};
-use crate::upstream_cert::{EcCurve, UpstreamCertInfo, UpstreamKeyType};
+use crate::upstream_cert::UpstreamCertInfo;
 use http::uri::Authority;
 use rand::{Rng, rng};
-use rcgen::{DistinguishedName, DnType, Ia5String, KeyPair, SanType};
+use rcgen::{DistinguishedName, DnType, Ia5String, SanType};
 use std::collections::HashSet;
 use std::net::IpAddr;
 use std::sync::Arc;
@@ -42,12 +42,13 @@ pub(super) async fn gen_openssl_context(
             let ca_cert_rcgen = ca_cert_params.self_signed(&ca_key_pair)?;
 
             // upstream 키 타입에 맞는 leaf 키페어 생성
-            let leaf_key_pair = generate_leaf_key_pair_for_context(upstream_cert.as_ref())
-                .unwrap_or_else(|e| {
-                    warn!("[OPENSSL-CONTEXT] leaf 키 생성 실패, ECDSA P-256: {:?}", e);
-                    KeyPair::generate_for(&rcgen::PKCS_ECDSA_P256_SHA256)
-                        .expect("ECDSA P-256 키 생성 실패 불가")
-                });
+            let leaf_key_pair =
+                crate::certificate_authority::generate_rcgen_leaf_key_pair(upstream_cert.as_ref())
+                    .unwrap_or_else(|e| {
+                        warn!("[OPENSSL-CONTEXT] leaf 키 생성 실패, ECDSA P-256: {:?}", e);
+                        crate::certificate_authority::generate_rcgen_leaf_key_pair(None)
+                            .expect("ECDSA P-256 키 생성 실패 불가")
+                    });
 
             let mut params = rcgen::CertificateParams::default();
             params.serial_number = Some(rng().random::<u64>().into());
@@ -162,26 +163,4 @@ pub(super) async fn gen_openssl_context(
         authority
     );
     Ok(ctx)
-}
-
-/// upstream 키 타입에 맞는 leaf 키페어를 생성 (spawn_blocking 내부용)
-fn generate_leaf_key_pair_for_context(
-    upstream_cert: Option<&UpstreamCertInfo>,
-) -> Result<KeyPair, rcgen::Error> {
-    let key_type = upstream_cert.map(|u| &u.key_type);
-
-    match key_type {
-        Some(UpstreamKeyType::Rsa(_)) => KeyPair::generate_for(&rcgen::PKCS_RSA_SHA256),
-        Some(UpstreamKeyType::Ecdsa(EcCurve::P384)) => {
-            KeyPair::generate_for(&rcgen::PKCS_ECDSA_P384_SHA384)
-        }
-        Some(UpstreamKeyType::Ecdsa(EcCurve::P521)) => {
-            // P-521 미지원 → P-384 폴백
-            KeyPair::generate_for(&rcgen::PKCS_ECDSA_P384_SHA384)
-        }
-        Some(UpstreamKeyType::Ed25519) => KeyPair::generate_for(&rcgen::PKCS_ED25519),
-        Some(UpstreamKeyType::Ecdsa(EcCurve::P256)) | Some(UpstreamKeyType::Unknown) | None => {
-            KeyPair::generate_for(&rcgen::PKCS_ECDSA_P256_SHA256)
-        }
-    }
 }
