@@ -41,10 +41,27 @@ import {
   generatePlaywrightCode,
   generateK6Code,
 } from "@/shared/lib";
-import { useInterceptRuleDialogStore } from "@/shared/stores";
+import {
+  useInterceptRuleDialogStore,
+  useMapRuleDialogStore,
+  useHostMappingDialogStore,
+  useServerReplayStore,
+} from "@/shared/stores";
+import { isTextBasedDataType } from "@/entities/proxy";
 import { writeText as clipboardWriteText } from "@tauri-apps/plugin-clipboard-manager";
 import { toast } from "sonner";
-import { Code, Pin, PinOff, Repeat, Shield, Trash2 } from "lucide-react";
+import {
+  Code,
+  Pin,
+  PinOff,
+  Repeat,
+  Shield,
+  Trash2,
+  GitBranch,
+  FileDown,
+  Globe,
+  Database,
+} from "lucide-react";
 import { Trans, useLingui } from "@lingui/react/macro";
 import type { HttpTransaction } from "@/entities/proxy";
 
@@ -120,6 +137,9 @@ export const TableRow = memo(function TableRow({
   }, [onDelete]);
 
   const openInterceptRuleDialog = useInterceptRuleDialogStore((s) => s.openWithValues);
+  const openMapRuleDialog = useMapRuleDialogStore((s) => s.openWithValues);
+  const openHostMappingDialog = useHostMappingDialogStore((s) => s.openWithValues);
+  const addServerReplayEntry = useServerReplayStore((s) => s.addEntry);
 
   const handleClickAddInterceptRule = useCallback(() => {
     const request = data.transaction.request;
@@ -129,6 +149,72 @@ export const TableRow = memo(function TableRow({
       method: request.method,
     });
   }, [data, openInterceptRuleDialog]);
+
+  const handleClickAddMapRemote = useCallback(() => {
+    const request = data.transaction.request;
+    if (!request) return;
+    openMapRuleDialog({
+      pattern: request.uri,
+      method: request.method,
+      mapType: "map_remote",
+    });
+  }, [data, openMapRuleDialog]);
+
+  const handleClickAddMapLocal = useCallback(() => {
+    const request = data.transaction.request;
+    if (!request) return;
+    openMapRuleDialog({
+      pattern: request.uri,
+      method: request.method,
+      mapType: "map_local",
+    });
+  }, [data, openMapRuleDialog]);
+
+  const handleClickAddHostMapping = useCallback(() => {
+    const request = data.transaction.request;
+    if (!request) return;
+    try {
+      const url = new URL(request.uri);
+      openHostMappingDialog({
+        sourceHost: url.hostname,
+        sourcePort: url.port || "",
+      });
+    } catch {
+      openHostMappingDialog({ sourceHost: request.uri, sourcePort: "" });
+    }
+  }, [data, openHostMappingDialog]);
+
+  const handleClickAddServerReplay = useCallback(() => {
+    const { request, response } = data.transaction;
+    if (!request || !response) {
+      toast.error(t`Cannot add: no response data`);
+      return;
+    }
+
+    let body: string | undefined;
+    if (response.body_json !== undefined && response.body_json !== null) {
+      body =
+        typeof response.body_json === "string"
+          ? response.body_json
+          : JSON.stringify(response.body_json);
+    } else if (response.body && response.data_type && isTextBasedDataType(response.data_type)) {
+      try {
+        body = new TextDecoder().decode(response.body);
+      } catch {
+        body = undefined;
+      }
+    }
+
+    addServerReplayEntry({
+      id: request.id,
+      method: request.method,
+      url: request.uri,
+      status: response.status,
+      headers: response.headers || {},
+      body,
+    });
+    toast.success(t`Added to server replay`);
+  }, [data, addServerReplayEntry]);
 
   const handleClickPinTransaction = useCallback(() => {
     onPin();
@@ -224,10 +310,38 @@ export const TableRow = memo(function TableRow({
           <Trans>Delete Transaction</Trans>
         </ContextMenuItem>
         <ContextMenuSeparator />
-        <ContextMenuItem onClick={handleClickAddInterceptRule}>
-          <Shield />
-          <Trans>Add Intercept Rule</Trans>
-        </ContextMenuItem>
+        <ContextMenuSub>
+          <ContextMenuSubTrigger>
+            <Shield />
+            <Trans>Add Rule...</Trans>
+          </ContextMenuSubTrigger>
+          <ContextMenuSubContent>
+            <ContextMenuItem onClick={handleClickAddInterceptRule}>
+              <Shield />
+              <Trans>Intercept Rule</Trans>
+            </ContextMenuItem>
+            <ContextMenuItem onClick={handleClickAddMapRemote}>
+              <GitBranch />
+              <Trans>Map Remote</Trans>
+            </ContextMenuItem>
+            <ContextMenuItem onClick={handleClickAddMapLocal}>
+              <FileDown />
+              <Trans>Map Local</Trans>
+            </ContextMenuItem>
+            <ContextMenuItem onClick={handleClickAddHostMapping}>
+              <Globe />
+              <Trans>Host Mapping</Trans>
+            </ContextMenuItem>
+            <ContextMenuSeparator />
+            <ContextMenuItem
+              onClick={handleClickAddServerReplay}
+              disabled={!data.transaction.response}
+            >
+              <Database />
+              <Trans>Server Replay</Trans>
+            </ContextMenuItem>
+          </ContextMenuSubContent>
+        </ContextMenuSub>
       </ContextMenuContent>
     </ContextMenu>
   );

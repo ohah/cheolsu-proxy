@@ -5,6 +5,7 @@ export * from "./intercept-rule-store";
 export * from "./intercept-rule-dialog-store";
 export * from "./transaction-store";
 export * from "./map-rule-store";
+export * from "./map-rule-dialog-store";
 export * from "./websocket-store";
 export * from "./sse-store";
 export * from "./server-replay-store";
@@ -12,6 +13,7 @@ export * from "./script-store";
 
 export * from "./breakpoint-store";
 export * from "./host-mapping-store";
+export * from "./host-mapping-dialog-store";
 export * from "./reverse-proxy-store";
 export * from "./app-settings-store";
 export * from "./filter-preset-store";

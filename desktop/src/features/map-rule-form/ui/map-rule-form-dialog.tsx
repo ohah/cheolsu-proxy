@@ -32,10 +32,13 @@ import { MapRemoteFields } from "./map-remote-fields";
 
 type MapType = "map_local" | "map_remote";
 
+import type { MapRuleInitialValues } from "@/shared/stores";
+
 interface MapRuleFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   editingRule: InterceptRule | null;
+  initialValues?: MapRuleInitialValues | null;
 }
 
 const editingRuleToFormValues = (rule: InterceptRule): MapRuleFormValues => {
@@ -78,6 +81,7 @@ export const MapRuleFormDialog = ({
   open: isOpen,
   onOpenChange,
   editingRule,
+  initialValues,
 }: MapRuleFormDialogProps) => {
   const { t } = useLingui();
   const { addRule, updateRule } = useMapRuleStore();
@@ -94,10 +98,21 @@ export const MapRuleFormDialog = ({
 
     if (editingRule) {
       form.reset(editingRuleToFormValues(editingRule));
+    } else if (initialValues) {
+      const actionDefaults =
+        initialValues.mapType === "map_remote"
+          ? { type: "map_remote" as const, target_url: "", preserve_path: true }
+          : { type: "map_local" as const, file_path: "", status_code: "200", headers: [] };
+      form.reset({
+        name: "",
+        pattern: initialValues.pattern,
+        method: initialValues.method ?? "*",
+        action: actionDefaults,
+      });
     } else {
       form.reset(defaultMapRuleFormValues);
     }
-  }, [isOpen, editingRule, form]);
+  }, [isOpen, editingRule, initialValues, form]);
 
   const handleMapTypeChange = (newType: MapType) => {
     if (newType === "map_local") {

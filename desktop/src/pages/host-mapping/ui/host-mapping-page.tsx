@@ -1,60 +1,16 @@
-import { useState } from "react";
 import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
-import { useHostMappingStore } from "@/shared/stores";
-import { Card, CardContent, Badge, Button, Switch, Input, RuleListPage } from "@/shared/ui";
+import { useHostMappingStore, useHostMappingDialogStore } from "@/shared/stores";
+import { Badge, Button, Switch, RuleListPage } from "@/shared/ui";
 import { Trash2, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import type { HostMapping } from "@/shared/api/proxy";
-
-function generateId(): string {
-  return `hm_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-}
+import { HostMappingFormDialog } from "@/features/host-mapping-form";
 
 export const HostMappingPage = () => {
   const { t } = useLingui();
-  const { hostMappings, addMapping, removeMapping, toggleMapping, clearMappings } =
-    useHostMappingStore();
-  const [showForm, setShowForm] = useState(false);
-  const [sourceHost, setSourceHost] = useState("");
-  const [sourcePort, setSourcePort] = useState("");
-  const [targetHost, setTargetHost] = useState("");
-  const [targetPort, setTargetPort] = useState("");
-
-  const isValidPort = (port: string): boolean => {
-    if (!port) return true; // optional
-    const num = parseInt(port, 10);
-    return Number.isInteger(num) && num >= 1 && num <= 65535;
-  };
-
-  const handleAdd = () => {
-    if (!sourceHost.trim() || !targetHost.trim()) {
-      toast.error(t`Source host and target host are required`);
-      return;
-    }
-
-    if (!isValidPort(sourcePort) || !isValidPort(targetPort)) {
-      toast.error(t`Port must be between 1 and 65535`);
-      return;
-    }
-
-    const mapping: HostMapping = {
-      id: generateId(),
-      source_host: sourceHost.trim(),
-      source_port: sourcePort ? parseInt(sourcePort, 10) : null,
-      target_host: targetHost.trim(),
-      target_port: targetPort ? parseInt(targetPort, 10) : null,
-      enabled: true,
-    };
-
-    addMapping(mapping);
-    toast.success(t`Host mapping added`);
-    setSourceHost("");
-    setSourcePort("");
-    setTargetHost("");
-    setTargetPort("");
-    setShowForm(false);
-  };
+  const { hostMappings, removeMapping, toggleMapping, clearMappings } = useHostMappingStore();
+  const dialogStore = useHostMappingDialogStore();
 
   const handleDelete = (id: string) => {
     removeMapping(id);
@@ -76,75 +32,6 @@ export const HostMappingPage = () => {
     return { src, tgt };
   };
 
-  const inlineForm = showForm ? (
-    <Card>
-      <CardContent className="py-4">
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">
-                <Trans>Source Host</Trans>
-              </label>
-              <Input
-                placeholder="*.api.example.com"
-                value={sourceHost}
-                onChange={(e) => setSourceHost(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">
-                <Trans>Source Port</Trans>{" "}
-                <span className="text-muted-foreground text-xs">
-                  (<Trans>optional</Trans>)
-                </span>
-              </label>
-              <Input
-                placeholder="443"
-                type="number"
-                value={sourcePort}
-                onChange={(e) => setSourcePort(e.target.value)}
-              />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">
-                <Trans>Target Host</Trans>
-              </label>
-              <Input
-                placeholder="192.168.1.100"
-                value={targetHost}
-                onChange={(e) => setTargetHost(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">
-                <Trans>Target Port</Trans>{" "}
-                <span className="text-muted-foreground text-xs">
-                  (<Trans>optional</Trans>)
-                </span>
-              </label>
-              <Input
-                placeholder="8443"
-                type="number"
-                value={targetPort}
-                onChange={(e) => setTargetPort(e.target.value)}
-              />
-            </div>
-          </div>
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" size="sm" onClick={() => setShowForm(false)}>
-              <Trans>Cancel</Trans>
-            </Button>
-            <Button size="sm" onClick={handleAdd}>
-              <Trans>Add</Trans>
-            </Button>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  ) : null;
-
   return (
     <RuleListPage<HostMapping>
       title={<Trans>Host Mapping</Trans>}
@@ -160,9 +47,8 @@ export const HostMappingPage = () => {
       addLabel={<Trans>Add Mapping</Trans>}
       items={hostMappings}
       getItemKey={(mapping) => mapping.id}
-      onAdd={() => setShowForm(!showForm)}
+      onAdd={() => dialogStore.openEmpty()}
       onClearAll={handleClearAll}
-      headerExtra={inlineForm}
       renderItem={(mapping) => {
         const { src, tgt } = formatMapping(mapping);
         return (
@@ -207,6 +93,13 @@ export const HostMappingPage = () => {
           </div>
         );
       }}
+      dialogs={
+        <HostMappingFormDialog
+          open={dialogStore.open}
+          onOpenChange={(open) => !open && dialogStore.close()}
+          initialValues={dialogStore.initialValues}
+        />
+      }
     />
   );
 };
