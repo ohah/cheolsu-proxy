@@ -42,6 +42,7 @@ import {
   generateK6Code,
 } from "@/shared/lib";
 import { useInterceptRuleDialogStore } from "@/shared/stores";
+import { writeText as clipboardWriteText } from "@tauri-apps/plugin-clipboard-manager";
 import { toast } from "sonner";
 import { Code, Pin, PinOff, Repeat, Shield, Trash2 } from "lucide-react";
 import { Trans, useLingui } from "@lingui/react/macro";
@@ -99,10 +100,16 @@ export const TableRow = memo(function TableRow({
   }, [isSelected, isPinned]);
 
   const handleCopyAs = useCallback(
-    (generator: (t: HttpTransaction) => string, label: string) => {
-      const code = generator(data.transaction);
-      navigator.clipboard.writeText(code);
-      toast.success(t`${label} copied to clipboard`);
+    async (generator: (t: HttpTransaction) => string, label: string) => {
+      try {
+        const code = generator(data.transaction);
+        await clipboardWriteText(code);
+        toast.success(t`${label} copied to clipboard`);
+      } catch (error) {
+        toast.error(
+          t`Failed to copy ${label}: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
     },
     [data],
   );
