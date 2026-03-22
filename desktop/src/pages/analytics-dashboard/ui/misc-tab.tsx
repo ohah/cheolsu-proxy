@@ -2,6 +2,7 @@ import { Trans } from "@lingui/react/macro";
 
 import { Badge } from "@/shared/ui";
 import { formatBytes } from "@/shared/lib/format-bytes";
+import { formatTime } from "@/shared/lib/format-time";
 import type { MiscReport } from "../lib";
 
 interface MiscTabProps {
@@ -56,7 +57,7 @@ export function MiscTab({ report }: MiscTabProps) {
                   {issue.issue}
                 </div>
                 <div className="text-right text-muted-foreground">
-                  {new Date(issue.timestamp).toLocaleTimeString()}
+                  {formatTime(issue.timestamp)}
                 </div>
               </div>
             ))}
@@ -101,7 +102,7 @@ export function MiscTab({ report }: MiscTabProps) {
                   {warning.referrer}
                 </div>
                 <div className="text-right text-muted-foreground">
-                  {new Date(warning.timestamp).toLocaleTimeString()}
+                  {formatTime(warning.timestamp)}
                 </div>
               </div>
             ))}
