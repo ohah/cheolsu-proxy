@@ -48,17 +48,21 @@ impl LoggingHandler {
         req
     }
 
-    /// Block Cookies 설정을 응답에 적용 (Set-Cookie 제거)
+    /// Block Cookies / Block QUIC 설정을 응답에 적용
     pub(crate) fn apply_quick_settings_on_response(
         &self,
         mut res: Response<Body>,
     ) -> Response<Body> {
-        use proxyapi_v2::hyper::header::SET_COOKIE;
+        use proxyapi_v2::hyper::header::{ALT_SVC, SET_COOKIE};
 
         let settings = self.quick_settings();
 
         if settings.block_cookies {
             res.headers_mut().remove(SET_COOKIE);
+        }
+
+        if settings.block_quic {
+            res.headers_mut().remove(ALT_SVC);
         }
 
         res

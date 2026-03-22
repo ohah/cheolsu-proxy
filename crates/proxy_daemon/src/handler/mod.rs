@@ -252,8 +252,7 @@ mod tests {
     async fn no_caching_adds_cache_control_headers() {
         let handler = make_handler_with_quick_settings(QuickSettings {
             no_caching: true,
-            block_cookies: false,
-            no_gzip: false,
+            ..QuickSettings::default()
         });
 
         let req = Request::builder()
@@ -274,8 +273,7 @@ mod tests {
     async fn no_caching_removes_conditional_headers() {
         let handler = make_handler_with_quick_settings(QuickSettings {
             no_caching: true,
-            block_cookies: false,
-            no_gzip: false,
+            ..QuickSettings::default()
         });
 
         let req = Request::builder()
@@ -294,9 +292,8 @@ mod tests {
     #[tokio::test]
     async fn block_cookies_removes_cookie_from_request() {
         let handler = make_handler_with_quick_settings(QuickSettings {
-            no_caching: false,
             block_cookies: true,
-            no_gzip: false,
+            ..QuickSettings::default()
         });
 
         let req = Request::builder()
@@ -313,9 +310,8 @@ mod tests {
     #[tokio::test]
     async fn block_cookies_removes_set_cookie_from_response() {
         let handler = make_handler_with_quick_settings(QuickSettings {
-            no_caching: false,
             block_cookies: true,
-            no_gzip: false,
+            ..QuickSettings::default()
         });
 
         let res = Response::builder()
@@ -335,9 +331,7 @@ mod tests {
     #[tokio::test]
     async fn disabled_quick_settings_preserves_all_headers() {
         let handler = make_handler_with_quick_settings(QuickSettings {
-            no_caching: false,
-            block_cookies: false,
-            no_gzip: false,
+            ..QuickSettings::default()
         });
 
         let req = Request::builder()
@@ -371,7 +365,7 @@ mod tests {
         let handler = make_handler_with_quick_settings(QuickSettings {
             no_caching: true,
             block_cookies: true,
-            no_gzip: false,
+            ..QuickSettings::default()
         });
 
         let req = Request::builder()
@@ -436,7 +430,7 @@ mod tests {
                     let settings = QuickSettings {
                         no_caching: i % 2 == 0,
                         block_cookies: i % 2 == 1,
-                        no_gzip: false,
+                        ..QuickSettings::default()
                     };
                     qs_clone.store(settings.to_bits(), std::sync::atomic::Ordering::Relaxed);
                     tokio::task::yield_now().await;
@@ -463,7 +457,7 @@ mod tests {
         let handler = make_handler_with_quick_settings(QuickSettings {
             no_caching: true,
             block_cookies: true,
-            no_gzip: false,
+            ..QuickSettings::default()
         });
 
         let mut handles = Vec::new();
@@ -509,9 +503,8 @@ mod tests {
     #[tokio::test]
     async fn no_gzip_removes_accept_encoding_header() {
         let handler = make_handler_with_quick_settings(QuickSettings {
-            no_caching: false,
-            block_cookies: false,
             no_gzip: true,
+            ..QuickSettings::default()
         });
 
         let req = Request::builder()
@@ -528,9 +521,7 @@ mod tests {
     #[tokio::test]
     async fn no_gzip_disabled_preserves_accept_encoding() {
         let handler = make_handler_with_quick_settings(QuickSettings {
-            no_caching: false,
-            block_cookies: false,
-            no_gzip: false,
+            ..QuickSettings::default()
         });
 
         let req = Request::builder()
@@ -550,6 +541,7 @@ mod tests {
             no_caching: true,
             block_cookies: true,
             no_gzip: true,
+            ..QuickSettings::default()
         });
 
         let req = Request::builder()

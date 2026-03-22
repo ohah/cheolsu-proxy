@@ -926,5 +926,6 @@ fn quick_settings_form_new_defaults() {
     assert!(!form.no_caching);
     assert!(!form.block_cookies);
     assert!(!form.no_gzip);
+    assert!(form.block_quic);
     assert_eq!(form.field, QuickSettingsField::NoCaching);
 }

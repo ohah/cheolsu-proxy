@@ -122,6 +122,7 @@ pub async fn update_quick_settings(ctx: &OpsContext, p: UpdateQuickSettingsParam
         no_caching: p.no_caching,
         block_cookies: p.block_cookies,
         no_gzip: p.no_gzip,
+        block_quic: p.block_quic,
     };
     match with_daemon_conn(&ctx.daemon_conn, &cmd).await {
         Ok(()) => {
@@ -134,6 +135,9 @@ pub async fn update_quick_settings(ctx: &OpsContext, p: UpdateQuickSettingsParam
             }
             if p.no_gzip {
                 active.push("No Gzip");
+            }
+            if p.block_quic {
+                active.push("Block QUIC");
             }
             if active.is_empty() {
                 OpResult::ok("All quick settings disabled.")

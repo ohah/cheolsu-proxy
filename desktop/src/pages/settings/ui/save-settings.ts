@@ -59,11 +59,13 @@ export async function saveAllSettings(
         data.quickSettings.noCaching,
         data.quickSettings.blockCookies,
         data.quickSettings.noGzip,
+        data.quickSettings.blockQuic,
       );
       store.setQuickSettings({
         quickSettingsNoCaching: data.quickSettings.noCaching,
         quickSettingsBlockCookies: data.quickSettings.blockCookies,
         quickSettingsNoGzip: data.quickSettings.noGzip,
+        quickSettingsBlockQuic: data.quickSettings.blockQuic,
       });
       store.setAutosaveSession(data.quickSettings.autosaveSession);
       store.setShowConnectRequests(data.quickSettings.showConnectRequests);

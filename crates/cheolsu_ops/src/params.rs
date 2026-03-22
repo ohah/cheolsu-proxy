@@ -311,6 +311,9 @@ pub struct UpdateQuickSettingsParams {
     pub block_cookies: bool,
     /// Disable gzip/deflate encoding
     pub no_gzip: bool,
+    /// Block QUIC/HTTP3 by stripping Alt-Svc response headers
+    #[serde(default)]
+    pub block_quic: bool,
 }
 
 #[derive(Debug, Deserialize)]

@@ -166,16 +166,18 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bo
             no_caching,
             block_cookies,
             no_gzip,
+            block_quic,
         } => {
             info!(
-                "Quick settings updated: no_caching={}, block_cookies={}, no_gzip={}",
-                no_caching, block_cookies, no_gzip
+                "Quick settings updated: no_caching={}, block_cookies={}, no_gzip={}, block_quic={}",
+                no_caching, block_cookies, no_gzip, block_quic
             );
             {
                 let settings = crate::handler::QuickSettings {
                     no_caching,
                     block_cookies,
                     no_gzip,
+                    block_quic,
                 };
                 s.quick_settings
                     .store(settings.to_bits(), std::sync::atomic::Ordering::Release);
