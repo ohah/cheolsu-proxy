@@ -264,7 +264,7 @@ msgstr "API 레퍼런스"
 msgid "Append the original request path to the target URL"
 msgstr "원본 요청 경로를 대상 URL에 추가"
 
-#: src/features/query-filter-editor/ui/query-builder.tsx:384
+#: src/features/query-filter-editor/ui/query-builder.tsx:388
 msgid "Apply"
 msgstr "적용"
 
@@ -516,7 +516,7 @@ msgstr "정리 완료!"
 msgid "Cleaning..."
 msgstr "정리 중..."
 
-#: src/features/query-filter-editor/ui/query-builder.tsx:379
+#: src/features/query-filter-editor/ui/query-builder.tsx:383
 #: src/pages/log-viewer/ui/logs-page.tsx:262
 #: src/pages/script/ui/script-page.tsx:298
 #: src/pages/settings/ui/components/request-client-cert-section.tsx:72
@@ -618,7 +618,7 @@ msgstr "요청 작성"
 msgid "Concurrency"
 msgstr "동시 요청 수"
 
-#: src/features/query-filter-editor/ui/query-builder.tsx:368
+#: src/features/query-filter-editor/ui/query-builder.tsx:372
 msgid "Condition"
 msgstr "조건"
 
