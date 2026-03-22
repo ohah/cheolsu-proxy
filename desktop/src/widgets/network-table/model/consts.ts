@@ -1,4 +1,12 @@
-export type ColumnKey = "path" | "method" | "status" | "size" | "time" | "client" | "waterfall";
+export type ColumnKey =
+  | "path"
+  | "method"
+  | "status"
+  | "size"
+  | "time"
+  | "timestamp"
+  | "client"
+  | "waterfall";
 
 export interface ColumnDef {
   key: ColumnKey;
@@ -12,6 +20,7 @@ export const TABLE_COLUMNS: readonly ColumnDef[] = [
   { key: "status", label: "Status", gridSize: "1fr" },
   { key: "size", label: "Size", gridSize: "1fr" },
   { key: "time", label: "Time", gridSize: "1fr" },
+  { key: "timestamp", label: "Timestamp", gridSize: "1.5fr" },
   { key: "client", label: "Client", gridSize: "1fr" },
   { key: "waterfall", label: "Waterfall", gridSize: "2fr" },
 ] as const;

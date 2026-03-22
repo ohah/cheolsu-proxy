@@ -6,3 +6,4 @@ export * from "./action-cell";
 export * from "./time-cell";
 export * from "./client-cell";
 export * from "./waterfall-cell";
+export * from "./timestamp-cell";
