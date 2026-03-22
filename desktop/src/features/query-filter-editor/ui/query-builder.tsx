@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { Plus, X } from "lucide-react";
 import { Trans, useLingui } from "@lingui/react/macro";
 
@@ -310,6 +310,18 @@ export const QueryBuilder = ({
     const query = serializeBuilderState(builderState);
     onApply(query);
   }, [builderState, onApply]);
+
+  // ⌘+Enter로 필터 적용
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        handleApply();
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [handleApply]);
 
   const handleClear = useCallback(() => {
     const next: BuilderState = {
