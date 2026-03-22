@@ -225,13 +225,15 @@ pub enum ClientCommand {
     UpdateHostMappings { mappings: Vec<HostMapping> },
     #[serde(rename = "update_reverse_proxy_rules")]
     UpdateReverseProxyRules { rules: Vec<ReverseProxyRule> },
-    /// 빠른 설정 업데이트 (No Caching, Block Cookies, No Gzip)
+    /// 빠른 설정 업데이트 (No Caching, Block Cookies, No Gzip, Block QUIC)
     #[serde(rename = "update_quick_settings")]
     UpdateQuickSettings {
         no_caching: bool,
         block_cookies: bool,
         #[serde(default)]
         no_gzip: bool,
+        #[serde(default)]
+        block_quic: bool,
     },
     /// SSL Proxying 목록 업데이트
     #[serde(rename = "update_ssl_proxying_list")]

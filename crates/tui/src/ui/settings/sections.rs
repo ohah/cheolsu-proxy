@@ -289,38 +289,24 @@ pub(super) fn draw_quick_settings(f: &mut Frame, app: &App, area: Rect) {
                 },
             );
 
-            let value = match field {
-                QuickSettingsField::NoCaching => {
-                    let (text, color) = if form.no_caching {
-                        ("[ON]", Color::Green)
-                    } else {
-                        ("[OFF]", Color::Red)
-                    };
-                    Span::styled(text, Style::default().fg(color))
-                }
-                QuickSettingsField::BlockCookies => {
-                    let (text, color) = if form.block_cookies {
-                        ("[ON]", Color::Green)
-                    } else {
-                        ("[OFF]", Color::Red)
-                    };
-                    Span::styled(text, Style::default().fg(color))
-                }
-                QuickSettingsField::NoGzip => {
-                    let (text, color) = if form.no_gzip {
-                        ("[ON]", Color::Green)
-                    } else {
-                        ("[OFF]", Color::Red)
-                    };
-                    Span::styled(text, Style::default().fg(color))
-                }
+            let enabled = match field {
+                QuickSettingsField::NoCaching => form.no_caching,
+                QuickSettingsField::BlockCookies => form.block_cookies,
+                QuickSettingsField::NoGzip => form.no_gzip,
+                QuickSettingsField::BlockQuic => form.block_quic,
             };
+            let (text, color) = if enabled {
+                ("[ON]", Color::Green)
+            } else {
+                ("[OFF]", Color::Red)
+            };
+            let value = Span::styled(text, Style::default().fg(color));
 
             Line::from(vec![cursor, label, value])
         })
         .collect();
 
-    let title = if form.no_caching || form.block_cookies || form.no_gzip {
+    let title = if form.no_caching || form.block_cookies || form.no_gzip || form.block_quic {
         let mut active = Vec::new();
         if form.no_caching {
             active.push("No Caching");
@@ -330,6 +316,9 @@ pub(super) fn draw_quick_settings(f: &mut Frame, app: &App, area: Rect) {
         }
         if form.no_gzip {
             active.push("No Gzip");
+        }
+        if form.block_quic {
+            active.push("Block QUIC");
         }
         format!(" Quick Settings [{}] ", active.join(", "))
     } else {

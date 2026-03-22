@@ -25,18 +25,33 @@ pub(crate) struct RequestState {
     pub(crate) tls_fallback_used: Option<bool>,
 }
 
-/// 빠른 설정 (No Caching, Block Cookies, No Gzip)
-#[derive(Clone, Copy, Debug, Default)]
+/// 빠른 설정 (No Caching, Block Cookies, No Gzip, Block QUIC)
+#[derive(Clone, Copy, Debug)]
 pub struct QuickSettings {
     pub no_caching: bool,
     pub block_cookies: bool,
     pub no_gzip: bool,
+    pub block_quic: bool,
+}
+
+impl Default for QuickSettings {
+    fn default() -> Self {
+        Self {
+            no_caching: false,
+            block_cookies: false,
+            no_gzip: false,
+            block_quic: true,
+        }
+    }
 }
 
 impl QuickSettings {
-    /// 비트 레이아웃: [bit2: no_gzip | bit1: block_cookies | bit0: no_caching]
+    /// 비트 레이아웃: [bit3: block_quic | bit2: no_gzip | bit1: block_cookies | bit0: no_caching]
     pub fn to_bits(self) -> u8 {
-        (self.no_caching as u8) | ((self.block_cookies as u8) << 1) | ((self.no_gzip as u8) << 2)
+        (self.no_caching as u8)
+            | ((self.block_cookies as u8) << 1)
+            | ((self.no_gzip as u8) << 2)
+            | ((self.block_quic as u8) << 3)
     }
 
     pub fn from_bits(bits: u8) -> Self {
@@ -44,6 +59,7 @@ impl QuickSettings {
             no_caching: bits & 1 != 0,
             block_cookies: bits & 2 != 0,
             no_gzip: bits & 4 != 0,
+            block_quic: bits & 8 != 0,
         }
     }
 }
@@ -114,7 +130,9 @@ impl LoggingHandler {
             config: ProxyConfig {
                 cache_dir: Some(cache_dir),
                 ca_cert_der: None,
-                quick_settings: Arc::new(std::sync::atomic::AtomicU8::new(0)),
+                quick_settings: Arc::new(std::sync::atomic::AtomicU8::new(
+                    QuickSettings::default().to_bits(),
+                )),
                 proxy_auth: Arc::new(tokio::sync::RwLock::new(None)),
                 max_body_size: None,
             },

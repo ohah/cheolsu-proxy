@@ -54,11 +54,16 @@ interface AppSettingsState {
   setQuickSettingsBlockCookies: (enabled: boolean) => void;
   quickSettingsNoGzip: boolean;
   setQuickSettingsNoGzip: (enabled: boolean) => void;
+  quickSettingsBlockQuic: boolean;
+  setQuickSettingsBlockQuic: (enabled: boolean) => void;
   setQuickSettings: (
     settings: Partial<
       Pick<
         AppSettingsState,
-        "quickSettingsNoCaching" | "quickSettingsBlockCookies" | "quickSettingsNoGzip"
+        | "quickSettingsNoCaching"
+        | "quickSettingsBlockCookies"
+        | "quickSettingsNoGzip"
+        | "quickSettingsBlockQuic"
       >
     >,
   ) => void;
@@ -145,6 +150,8 @@ export const useAppSettingsStore = create<AppSettingsState>()(
       setQuickSettingsBlockCookies: (enabled) => set({ quickSettingsBlockCookies: enabled }),
       quickSettingsNoGzip: false,
       setQuickSettingsNoGzip: (enabled) => set({ quickSettingsNoGzip: enabled }),
+      quickSettingsBlockQuic: true,
+      setQuickSettingsBlockQuic: (enabled) => set({ quickSettingsBlockQuic: enabled }),
       // 그룹 setter
       setQuickSettings: (settings) => set(settings),
 

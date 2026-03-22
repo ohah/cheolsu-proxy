@@ -48,7 +48,7 @@ impl CheolsuMcpServer {
     }
 
     #[tool(
-        description = "Update quick proxy settings. no_caching removes cache headers, block_cookies removes cookie headers, no_gzip disables gzip encoding."
+        description = "Update quick proxy settings. no_caching removes cache headers, block_cookies removes cookie headers, no_gzip disables gzip encoding, block_quic strips Alt-Svc headers to prevent QUIC/HTTP3 upgrades."
     )]
     pub(crate) async fn update_quick_settings(
         &self,

@@ -374,6 +374,8 @@ struct QuickSettingsArgs {
     block_cookies: bool,
     #[arg(long)]
     no_gzip: bool,
+    #[arg(long)]
+    block_quic: bool,
 }
 
 #[derive(Args)]
@@ -993,6 +995,7 @@ async fn run(cli: Cli) -> i32 {
                         no_caching: args.no_caching,
                         block_cookies: args.block_cookies,
                         no_gzip: args.no_gzip,
+                        block_quic: args.block_quic,
                     },
                 )
                 .await

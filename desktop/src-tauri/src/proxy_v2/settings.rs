@@ -164,19 +164,22 @@ pub(crate) async fn update_quick_settings(
     no_caching: bool,
     block_cookies: bool,
     no_gzip: bool,
+    block_quic: bool,
 ) -> Result<(), String> {
     let sender = get_command_sender(&proxy).await?;
     let cmd = ClientCommand::UpdateQuickSettings {
         no_caching,
         block_cookies,
         no_gzip,
+        block_quic,
     };
     sender.send_command(&cmd).await?;
     tracing::info!(
-        "Daemon에 빠른 설정 업데이트 완료: no_caching={}, block_cookies={}, no_gzip={}",
+        "Daemon에 빠른 설정 업데이트 완료: no_caching={}, block_cookies={}, no_gzip={}, block_quic={}",
         no_caching,
         block_cookies,
-        no_gzip
+        no_gzip,
+        block_quic
     );
     Ok(())
 }

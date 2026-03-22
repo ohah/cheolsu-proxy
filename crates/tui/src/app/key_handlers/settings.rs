@@ -302,6 +302,10 @@ impl App {
                         self.quick_settings_form.no_gzip = !self.quick_settings_form.no_gzip;
                         self.send_quick_settings_update().await;
                     }
+                    QuickSettingsField::BlockQuic => {
+                        self.quick_settings_form.block_quic = !self.quick_settings_form.block_quic;
+                        self.send_quick_settings_update().await;
+                    }
                 },
             },
             // Host Mapping: a=add, d=delete, t=toggle

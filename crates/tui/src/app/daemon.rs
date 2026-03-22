@@ -180,6 +180,7 @@ impl App {
                 no_caching: self.quick_settings_form.no_caching,
                 block_cookies: self.quick_settings_form.block_cookies,
                 no_gzip: self.quick_settings_form.no_gzip,
+                block_quic: self.quick_settings_form.block_quic,
             };
             let _ = conn.send_command(&cmd).await;
             let parts: Vec<&str> = [
@@ -195,6 +196,11 @@ impl App {
                 },
                 if self.quick_settings_form.no_gzip {
                     Some("No Gzip")
+                } else {
+                    None
+                },
+                if self.quick_settings_form.block_quic {
+                    Some("Block QUIC")
                 } else {
                     None
                 },

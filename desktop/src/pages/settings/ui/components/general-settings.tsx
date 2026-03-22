@@ -79,6 +79,7 @@ export function GeneralSettings() {
   const noCaching = watch("quickSettings.noCaching");
   const blockCookies = watch("quickSettings.blockCookies");
   const noGzip = watch("quickSettings.noGzip");
+  const blockQuic = watch("quickSettings.blockQuic");
   const autosaveSession = watch("quickSettings.autosaveSession");
   const showConnectRequests = watch("quickSettings.showConnectRequests");
 
@@ -266,6 +267,24 @@ export function GeneralSettings() {
             <Switch
               checked={noGzip}
               onCheckedChange={(v) => setValue("quickSettings.noGzip", v, { shouldDirty: true })}
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div>
+              <label className="text-sm font-medium">
+                <Trans>Block QUIC</Trans>
+              </label>
+              <p className="text-xs text-muted-foreground">
+                <Trans>
+                  Strip Alt-Svc headers from responses to prevent QUIC/HTTP3 upgrades and force
+                  TCP/TLS connections through the proxy
+                </Trans>
+              </p>
+            </div>
+            <Switch
+              checked={blockQuic}
+              onCheckedChange={(v) => setValue("quickSettings.blockQuic", v, { shouldDirty: true })}
             />
           </div>
 

@@ -14,6 +14,7 @@ export interface SettingsFormValues {
     noCaching: boolean;
     blockCookies: boolean;
     noGzip: boolean;
+    blockQuic: boolean;
     autosaveSession: boolean;
     showConnectRequests: boolean;
   };
@@ -90,6 +91,7 @@ export function getDefaultValues(): SettingsFormValues {
       noCaching: store.quickSettingsNoCaching,
       blockCookies: store.quickSettingsBlockCookies,
       noGzip: store.quickSettingsNoGzip,
+      blockQuic: store.quickSettingsBlockQuic,
       autosaveSession: store.autosaveSession,
       showConnectRequests: store.showConnectRequests,
     },
