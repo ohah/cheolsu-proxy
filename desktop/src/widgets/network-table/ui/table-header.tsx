@@ -1,6 +1,8 @@
-import { Check } from "lucide-react";
+import { Check, ArrowUp, ArrowDown } from "lucide-react";
+import { flexRender, type Table } from "@tanstack/react-table";
 
-import { TABLE_COLUMNS, HEADER_CLASSES, buildGridTemplate, type ColumnKey } from "../model";
+import { TABLE_COLUMNS, HEADER_CLASSES, type ColumnKey } from "../model";
+import type { TableRowData } from "../model";
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from "@/shared/ui";
 
 interface TableHeaderProps {
@@ -9,6 +11,7 @@ interface TableHeaderProps {
   onToggleAll: () => void;
   visibleColumns: Set<ColumnKey>;
   onToggleColumn: (key: ColumnKey) => void;
+  table: Table<TableRowData>;
 }
 
 export const TableHeader = ({
@@ -17,8 +20,20 @@ export const TableHeader = ({
   onToggleAll,
   visibleColumns,
   onToggleColumn,
+  table,
 }: TableHeaderProps) => {
-  const gridTemplate = buildGridTemplate(visibleColumns);
+  const headerGroups = table.getHeaderGroups();
+  const headers = headerGroups[0]?.headers ?? [];
+
+  // 가시 컬럼에 맞춰 그리드 템플릿 구성
+  const gridSizes = ["24px"]; // checkbox
+  for (const header of headers) {
+    if (header.column.getIsVisible()) {
+      const meta = header.column.columnDef.meta as { gridSize?: string } | undefined;
+      gridSizes.push(meta?.gridSize ?? "1fr");
+    }
+  }
+  const gridTemplate = gridSizes.join(" ");
 
   return (
     <div className="border-b border-border bg-background">
@@ -39,9 +54,28 @@ export const TableHeader = ({
                 className="cursor-pointer accent-primary"
               />
             </div>
-            {TABLE_COLUMNS.filter((col) => visibleColumns.has(col.key)).map((column) => (
-              <div key={column.key}>{column.label}</div>
-            ))}
+            {headers
+              .filter((header) => header.column.getIsVisible())
+              .map((header) => {
+                const canSort = header.column.getCanSort();
+                const sorted = header.column.getIsSorted();
+
+                return (
+                  <div
+                    key={header.id}
+                    className={
+                      canSort
+                        ? "flex items-center gap-1 cursor-pointer select-none hover:text-foreground transition-colors"
+                        : ""
+                    }
+                    onClick={canSort ? header.column.getToggleSortingHandler() : undefined}
+                  >
+                    {flexRender(header.column.columnDef.header, header.getContext())}
+                    {sorted === "asc" && <ArrowUp className="w-3 h-3" />}
+                    {sorted === "desc" && <ArrowDown className="w-3 h-3" />}
+                  </div>
+                );
+              })}
           </div>
         </ContextMenuTrigger>
         <ContextMenuContent>
