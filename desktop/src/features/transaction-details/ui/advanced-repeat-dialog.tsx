@@ -140,11 +140,11 @@ export function AdvancedRepeatDialog({
         </DialogHeader>
 
         {/* 요청 정보 */}
-        <div className="flex items-center gap-2 p-2 rounded-md bg-muted/50 text-sm">
-          <Badge variant="outline" className="font-mono text-xs">
+        <div className="flex items-center gap-2 p-2 rounded-md bg-muted/50 text-sm min-w-0">
+          <Badge variant="outline" className="font-mono text-xs shrink-0">
             {transaction.request?.method}
           </Badge>
-          <span className="font-mono text-xs truncate flex-1">{transaction.request?.uri}</span>
+          <span className="font-mono text-xs truncate min-w-0">{transaction.request?.uri}</span>
         </div>
 
         {!result && !loading && (
