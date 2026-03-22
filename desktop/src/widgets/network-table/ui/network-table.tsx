@@ -46,26 +46,16 @@ export const NetworkTable = ({
 
   const [sorting, setSorting] = useState<SortingState>([]);
 
-  // ColumnKey[] → TanStack VisibilityState 변환
+  const visibleColumns = useMemo(() => new Set(storedColumns as ColumnKey[]), [storedColumns]);
+
+  // TanStack VisibilityState를 visibleColumns Set에서 파생
   const columnVisibility = useMemo<VisibilityState>(() => {
-    const allKeys: ColumnKey[] = [
-      "path",
-      "method",
-      "status",
-      "size",
-      "time",
-      "client",
-      "waterfall",
-    ];
-    const visible = new Set(storedColumns as ColumnKey[]);
     const vis: VisibilityState = {};
-    for (const key of allKeys) {
-      vis[key] = visible.has(key);
+    for (const col of columns) {
+      vis[col.id!] = visibleColumns.has(col.id as ColumnKey);
     }
     return vis;
-  }, [storedColumns]);
-
-  const visibleColumns = useMemo(() => new Set(storedColumns as ColumnKey[]), [storedColumns]);
+  }, [visibleColumns]);
 
   const handleToggleColumn = useCallback(
     (key: ColumnKey) => {
@@ -121,10 +111,7 @@ export const NetworkTable = ({
   });
 
   // 정렬된 행 데이터 추출
-  const sortedUnpinnedData = useMemo(
-    () => table.getRowModel().rows.map((row) => row.original),
-    [table.getRowModel()],
-  );
+  const sortedUnpinnedData = table.getRowModel().rows.map((row) => row.original);
 
   const allIds = useMemo(
     () => transactions.map((t) => t.request?.id).filter((id): id is string => !!id),

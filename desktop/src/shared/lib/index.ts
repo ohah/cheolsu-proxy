@@ -14,3 +14,4 @@ export * from "./vitest";
 export * from "./playwright";
 export * from "./k6";
 export * from "./http-constants";
+export * from "./extract-ip";

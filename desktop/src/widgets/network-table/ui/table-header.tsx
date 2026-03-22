@@ -1,7 +1,7 @@
 import { Check, ArrowUp, ArrowDown } from "lucide-react";
 import { flexRender, type Table } from "@tanstack/react-table";
 
-import { TABLE_COLUMNS, HEADER_CLASSES, type ColumnKey } from "../model";
+import { TABLE_COLUMNS, HEADER_CLASSES, buildGridTemplate, type ColumnKey } from "../model";
 import type { TableRowData } from "../model";
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from "@/shared/ui";
 
@@ -24,16 +24,7 @@ export const TableHeader = ({
 }: TableHeaderProps) => {
   const headerGroups = table.getHeaderGroups();
   const headers = headerGroups[0]?.headers ?? [];
-
-  // 가시 컬럼에 맞춰 그리드 템플릿 구성
-  const gridSizes = ["24px"]; // checkbox
-  for (const header of headers) {
-    if (header.column.getIsVisible()) {
-      const meta = header.column.columnDef.meta as { gridSize?: string } | undefined;
-      gridSizes.push(meta?.gridSize ?? "1fr");
-    }
-  }
-  const gridTemplate = gridSizes.join(" ");
+  const gridTemplate = buildGridTemplate(visibleColumns);
 
   return (
     <div className="border-b border-border bg-background">
