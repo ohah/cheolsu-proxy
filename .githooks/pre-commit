@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# staged 파일 목록
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM)
+
+if [ -z "$STAGED_FILES" ]; then
+  exit 0
+fi
+
+HAS_RUST=false
+HAS_JS=false
+HAS_GUI=false
+
+for file in $STAGED_FILES; do
+  case "$file" in
+    *.rs) HAS_RUST=true ;;
+    *.ts|*.tsx|*.js|*.jsx) HAS_JS=true ;;
+  esac
+  case "$file" in
+    desktop/src/*) HAS_GUI=true ;;
+  esac
+done
+
+ERRORS=0
+
+# ── Rust 체크 ──
+if [ "$HAS_RUST" = true ]; then
+  echo "🔍 Rust: cargo fmt --check"
+  if ! cargo fmt --all -- --check 2>/dev/null; then
+    echo "❌ Rust 포맷 오류. 'cargo fmt --all' 실행 후 다시 커밋하세요."
+    ERRORS=1
+  fi
+fi
+
+# ── JS/TS 체크 ──
+if [ "$HAS_JS" = true ]; then
+  echo "🔍 JS/TS: format check"
+  if ! bun run format:check 2>/dev/null; then
+    echo "❌ JS/TS 포맷 오류. 'bun run format' 실행 후 다시 커밋하세요."
+    ERRORS=1
+  fi
+
+  echo "🔍 JS/TS: lint check"
+  if ! bun run lint 2>/dev/null; then
+    echo "❌ JS/TS 린트 오류. 'bun run lint:fix' 실행 후 다시 커밋하세요."
+    ERRORS=1
+  fi
+fi
+
+# ── GUI 변경 시 i18n 카탈로그 동기화 체크 ──
+if [ "$HAS_GUI" = true ]; then
+  echo "🔍 i18n: 카탈로그 동기화 체크"
+  (cd desktop && bun run extract 2>/dev/null)
+  if ! git diff --quiet -- desktop/src/locales/; then
+    echo "❌ i18n 카탈로그가 최신이 아닙니다. 'cd desktop && bun run extract' 실행 후 변경 파일을 stage하세요."
+    # extract로 인한 변경을 되돌림 (사용자가 직접 실행하도록)
+    git checkout -- desktop/src/locales/ 2>/dev/null || true
+    ERRORS=1
+  fi
+fi
+
+if [ "$ERRORS" -ne 0 ]; then
+  echo ""
+  echo "💡 자동 수정: bun run format && bun run lint:fix && cargo fmt --all"
+  exit 1
+fi
+
+echo "✅ pre-commit 체크 통과"
