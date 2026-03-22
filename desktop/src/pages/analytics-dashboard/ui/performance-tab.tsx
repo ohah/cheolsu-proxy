@@ -3,6 +3,7 @@ import { Trans } from "@lingui/react/macro";
 import { useVirtualizer } from "@tanstack/react-virtual";
 
 import { Badge } from "@/shared/ui";
+import { formatTime } from "@/shared/lib/format-time";
 import type { PerformanceReport } from "../lib";
 
 interface PerformanceTabProps {
@@ -110,7 +111,7 @@ export function PerformanceTab({ report }: PerformanceTabProps) {
                       )}
                     </div>
                     <div className="text-right text-muted-foreground">
-                      {new Date(req.timestamp).toLocaleTimeString()}
+                      {formatTime(req.timestamp)}
                     </div>
                   </div>
                 );
