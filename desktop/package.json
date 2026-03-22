@@ -27,6 +27,7 @@
     "@lingui/core": "^5.9.2",
     "@lingui/react": "^5.9.2",
     "@monaco-editor/react": "^4.7.0",
+    "@tanstack/react-table": "^8.21.3",
     "@tanstack/react-virtual": "^3.13.19",
     "@tauri-apps/api": "2.10.1",
     "@tauri-apps/plugin-clipboard-manager": "2.3.2",
