@@ -13,7 +13,7 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
-#: src/pages/map-rules/ui/map-rules-page.tsx:116
+#: src/pages/map-rules/ui/map-rules-page.tsx:122
 msgid " (preserve path)"
 msgstr " (preserve path)"
 
@@ -45,7 +45,7 @@ msgstr "{failCount} failed"
 msgid "{filteredCount} of {totalCount} transactions"
 msgstr "{filteredCount} of {totalCount} transactions"
 
-#: src/widgets/network-table/ui/table-row.tsx:107
+#: src/widgets/network-table/ui/table-row.tsx:124
 msgid "{label} copied to clipboard"
 msgstr "{label} copied to clipboard"
 
@@ -57,7 +57,7 @@ msgstr "{successCount} succeeded"
 msgid "{totalCount} transactions"
 msgstr "{totalCount} transactions"
 
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:192
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:207
 msgid "* = any string, ? = single character"
 msgstr "* = any string, ? = single character"
 
@@ -87,13 +87,13 @@ msgstr "Active Custom CA"
 msgid "Actual"
 msgstr "Actual"
 
+#: src/features/host-mapping-form/ui/host-mapping-form-dialog.tsx:159
 #: src/features/intercept-rule-form/ui/headers-fields.tsx:59
 #: src/features/intercept-rule-form/ui/headers-fields.tsx:88
 #: src/features/map-rule-form/ui/map-local-fields.tsx:73
 #: src/features/transaction-details/ui/replay-dialog.tsx:435
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:225
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:445
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:140
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:142
 #: src/pages/server-replay/ui/server-replay-page.tsx:170
 #: src/pages/settings/ui/components/client-tags-section.tsx:116
@@ -128,19 +128,19 @@ msgstr "Add from Traffic"
 msgid "Add Headers"
 msgstr "Add Headers"
 
-#: src/widgets/network-table/ui/table-row.tsx:229
-msgid "Add Intercept Rule"
-msgstr "Add Intercept Rule"
+#: src/features/host-mapping-form/ui/host-mapping-form-dialog.tsx:92
+msgid "Add Host Mapping"
+msgstr "Add Host Mapping"
 
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:163
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:178
 msgid "Add Map Rule"
 msgstr "Add Map Rule"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:160
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:47
 msgid "Add Mapping"
 msgstr "Add Mapping"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:157
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:44
 msgid "Add mappings to redirect DNS hostnames to different target hosts for testing."
 msgstr "Add mappings to redirect DNS hostnames to different target hosts for testing."
 
@@ -150,19 +150,23 @@ msgstr "Add Proto Files"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:136
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:240
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:257
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:272
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:204
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:84
-#: src/pages/map-rules/ui/map-rules-page.tsx:72
+#: src/pages/map-rules/ui/map-rules-page.tsx:78
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:164
 msgid "Add Rule"
 msgstr "Add Rule"
+
+#: src/widgets/network-table/ui/table-row.tsx:316
+msgid "Add Rule..."
+msgstr "Add Rule..."
 
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:81
 msgid "Add rules to intercept, block, or modify HTTP requests and responses."
 msgstr "Add rules to intercept, block, or modify HTTP requests and responses."
 
-#: src/pages/map-rules/ui/map-rules-page.tsx:69
+#: src/pages/map-rules/ui/map-rules-page.tsx:75
 msgid "Add rules to map URLs to local files or redirect to other servers."
 msgstr "Add rules to map URLs to local files or redirect to other servers."
 
@@ -174,13 +178,13 @@ msgstr "Add rules to route requests with relative URIs to backend servers based 
 msgid "Add Spec"
 msgstr "Add Spec"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:159
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:46
 msgid "Add your first mapping"
 msgstr "Add your first mapping"
 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:263
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:83
-#: src/pages/map-rules/ui/map-rules-page.tsx:71
+#: src/pages/map-rules/ui/map-rules-page.tsx:77
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:163
 msgid "Add your first rule"
 msgstr "Add your first rule"
@@ -190,11 +194,12 @@ msgid "Added"
 msgstr "Added"
 
 #: src/pages/server-replay/ui/server-replay-page.tsx:65
+#: src/widgets/network-table/ui/table-row.tsx:216
 msgid "Added to server replay"
 msgstr "Added to server replay"
 
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:138
-#: src/widgets/network-table/ui/table-row.tsx:220
+#: src/widgets/network-table/ui/table-row.tsx:306
 msgid "Advanced Repeat"
 msgstr "Advanced Repeat"
 
@@ -215,7 +220,7 @@ msgstr "All contract validations passed"
 msgid "All entries cleared"
 msgstr "All entries cleared"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:66
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:22
 msgid "All host mappings cleared"
 msgstr "All host mappings cleared"
 
@@ -233,8 +238,8 @@ msgstr "All HTTPS traffic is intercepted. {defaultEnabledCount} built-in domain(
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:178
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:178
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:214
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:214
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:229
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:229
 msgid "All Methods"
 msgstr "All Methods"
 
@@ -248,7 +253,7 @@ msgstr "All reverse proxy rules cleared"
 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:145
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:71
-#: src/pages/map-rules/ui/map-rules-page.tsx:55
+#: src/pages/map-rules/ui/map-rules-page.tsx:61
 msgid "All rules cleared"
 msgstr "All rules cleared"
 
@@ -436,11 +441,11 @@ msgstr "Cache Management"
 msgid "calls"
 msgstr "calls"
 
+#: src/features/host-mapping-form/ui/host-mapping-form-dialog.tsx:156
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:237
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:254
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:269
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:228
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:492
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:137
 #: src/pages/log-viewer/ui/logs-page.tsx:495
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:139
 #: src/pages/settings/ui/components/shortcut-section.tsx:117
@@ -448,6 +453,7 @@ msgid "Cancel"
 msgstr "Cancel"
 
 #: src/pages/server-replay/ui/server-replay-page.tsx:61
+#: src/widgets/network-table/ui/table-row.tsx:190
 msgid "Cannot add: no response data"
 msgstr "Cannot add: no response data"
 
@@ -676,7 +682,7 @@ msgstr "Copy"
 msgid "Copy as cURL"
 msgstr "Copy as cURL"
 
-#: src/widgets/network-table/ui/table-row.tsx:181
+#: src/widgets/network-table/ui/table-row.tsx:267
 msgid "Copy as..."
 msgstr "Copy as..."
 
@@ -703,7 +709,7 @@ msgstr "CORS Issues"
 msgid "Count"
 msgstr "Count"
 
-#: src/widgets/network-table/ui/table-row.tsx:185
+#: src/widgets/network-table/ui/table-row.tsx:271
 msgid "cURL"
 msgstr "cURL"
 
@@ -764,19 +770,19 @@ msgstr "Delete \"{0}\"? This action cannot be undone."
 msgid "Delete Log File"
 msgstr "Delete Log File"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:201
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:87
 msgid "Delete mapping"
 msgstr "Delete mapping"
 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:301
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:161
-#: src/pages/map-rules/ui/map-rules-page.tsx:135
+#: src/pages/map-rules/ui/map-rules-page.tsx:141
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:210
 msgid "Delete rule"
 msgstr "Delete rule"
 
 #: src/widgets/network-table/ui/cells/action-cell.tsx:21
-#: src/widgets/network-table/ui/table-row.tsx:224
+#: src/widgets/network-table/ui/table-row.tsx:310
 msgid "Delete Transaction"
 msgstr "Delete Transaction"
 
@@ -794,7 +800,7 @@ msgstr "Dir"
 msgid "Direction"
 msgstr "Direction"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:186
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:72
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:190
 #: src/pages/server-replay/ui/server-replay-page.tsx:96
 msgid "Disabled"
@@ -891,12 +897,12 @@ msgstr "Edit"
 msgid "Edit & Forward"
 msgstr "Edit & Forward"
 
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:163
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:178
 msgid "Edit Map Rule"
 msgstr "Edit Map Rule"
 
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:153
-#: src/pages/map-rules/ui/map-rules-page.tsx:127
+#: src/pages/map-rules/ui/map-rules-page.tsx:133
 msgid "Edit rule"
 msgstr "Edit rule"
 
@@ -912,7 +918,7 @@ msgstr "Editor"
 msgid "Enable full trust for the Cheolsu Proxy CA certificate"
 msgstr "Enable full trust for the Cheolsu Proxy CA certificate"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:186
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:72
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:190
 #: src/pages/server-replay/ui/server-replay-page.tsx:96
 msgid "Enabled"
@@ -1034,7 +1040,7 @@ msgid "Failed to abort request"
 msgstr "Failed to abort request"
 
 #. placeholder {0}: error instanceof Error ? error.message : String(error)
-#: src/widgets/network-table/ui/table-row.tsx:110
+#: src/widgets/network-table/ui/table-row.tsx:127
 msgid "Failed to copy {label}: {0}"
 msgstr "Failed to copy {label}: {0}"
 
@@ -1226,16 +1232,17 @@ msgstr "Headers ({0})"
 msgid "Host"
 msgstr "Host"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:150
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:37
 #: src/shared/app-sidebar/model/consts.ts:92
+#: src/widgets/network-table/ui/table-row.tsx:333
 msgid "Host Mapping"
 msgstr "Host Mapping"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:51
+#: src/features/host-mapping-form/ui/host-mapping-form-dialog.tsx:83
 msgid "Host mapping added"
 msgstr "Host mapping added"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:61
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:17
 msgid "Host mapping deleted"
 msgstr "Host mapping deleted"
 
@@ -1255,7 +1262,7 @@ msgstr "HTTP requests and responses"
 msgid "HTTP Status"
 msgstr "HTTP Status"
 
-#: src/widgets/network-table/ui/table-row.tsx:199
+#: src/widgets/network-table/ui/table-row.tsx:285
 msgid "HTTPie"
 msgstr "HTTPie"
 
@@ -1322,6 +1329,10 @@ msgstr "Installed"
 msgid "Installing..."
 msgstr "Installing..."
 
+#: src/widgets/network-table/ui/table-row.tsx:321
+msgid "Intercept Rule"
+msgstr "Intercept Rule"
+
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:76
 #: src/shared/app-sidebar/model/consts.ts:64
 msgid "Intercept Rules"
@@ -1352,7 +1363,7 @@ msgstr "Issuer information not available"
 msgid "Iterations"
 msgstr "Iterations"
 
-#: src/widgets/network-table/ui/table-row.tsx:188
+#: src/widgets/network-table/ui/table-row.tsx:274
 msgid "JavaScript Fetch"
 msgstr "JavaScript Fetch"
 
@@ -1360,7 +1371,7 @@ msgstr "JavaScript Fetch"
 msgid "JSON Configuration"
 msgstr "JSON Configuration"
 
-#: src/widgets/network-table/ui/table-row.tsx:214
+#: src/widgets/network-table/ui/table-row.tsx:300
 msgid "k6 Load Test"
 msgstr "k6 Load Test"
 
@@ -1478,7 +1489,8 @@ msgstr "Manage request/response intercept rules"
 msgid "Manage wildcard-based request/response intercept rules"
 msgstr "Manage wildcard-based request/response intercept rules"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:152
+#: src/features/host-mapping-form/ui/host-mapping-form-dialog.tsx:95
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:39
 msgid "Map DNS hostnames to different target hosts for testing and development"
 msgstr "Map DNS hostnames to different target hosts for testing and development"
 
@@ -1486,10 +1498,11 @@ msgstr "Map DNS hostnames to different target hosts for testing and development"
 msgid "Map DNS hostnames to different targets"
 msgstr "Map DNS hostnames to different targets"
 
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:238
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:238
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:253
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:253
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:49
-#: src/pages/map-rules/ui/map-rules-page.tsx:34
+#: src/pages/map-rules/ui/map-rules-page.tsx:40
+#: src/widgets/network-table/ui/table-row.tsx:329
 msgid "Map Local"
 msgstr "Map Local"
 
@@ -1497,27 +1510,28 @@ msgstr "Map Local"
 msgid "Map Local / Map Remote rules"
 msgstr "Map Local / Map Remote rules"
 
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:166
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:181
 msgid "Map Local: respond with a local file. Map Remote: redirect to another URL."
 msgstr "Map Local: respond with a local file. Map Remote: redirect to another URL."
 
-#: src/pages/map-rules/ui/map-rules-page.tsx:62
+#: src/pages/map-rules/ui/map-rules-page.tsx:68
 msgid "Map Local: respond with local files. Map Remote: redirect requests to another URL."
 msgstr "Map Local: respond with local files. Map Remote: redirect requests to another URL."
 
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:241
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:242
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:256
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:257
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:50
-#: src/pages/map-rules/ui/map-rules-page.tsx:35
+#: src/pages/map-rules/ui/map-rules-page.tsx:41
+#: src/widgets/network-table/ui/table-row.tsx:325
 msgid "Map Remote"
 msgstr "Map Remote"
 
-#: src/pages/map-rules/ui/map-rules-page.tsx:60
+#: src/pages/map-rules/ui/map-rules-page.tsx:66
 #: src/shared/app-sidebar/model/consts.ts:71
 msgid "Map Rules"
 msgstr "Map Rules"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:154
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:41
 msgid "mappings"
 msgstr "mappings"
 
@@ -1571,7 +1585,7 @@ msgid "messages"
 msgstr "messages"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:167
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:203
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:218
 #: src/pages/analytics-dashboard/ui/duplicate-tab.tsx:22
 #: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:59
 #: src/pages/analytics-dashboard/ui/error-tab.tsx:66
@@ -1632,7 +1646,7 @@ msgid "N+1"
 msgstr "N+1"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:150
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:177
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:192
 #: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:56
 msgid "Name"
 msgstr "Name"
@@ -1718,7 +1732,7 @@ msgstr "No errors detected"
 msgid "No Gzip"
 msgstr "No Gzip"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:155
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:42
 msgid "No host mappings"
 msgstr "No host mappings"
 
@@ -1734,7 +1748,7 @@ msgstr "No learned strategies yet. They will appear after TLS fallback events."
 msgid "No log files found"
 msgstr "No log files found"
 
-#: src/pages/map-rules/ui/map-rules-page.tsx:67
+#: src/pages/map-rules/ui/map-rules-page.tsx:73
 msgid "No map rules"
 msgstr "No map rules"
 
@@ -1818,7 +1832,7 @@ msgstr "No valid requests to replay"
 msgid "No Verify"
 msgstr "No Verify"
 
-#: src/widgets/network-table/ui/table-row.tsx:193
+#: src/widgets/network-table/ui/table-row.tsx:279
 msgid "Node.js Fetch"
 msgstr "Node.js Fetch"
 
@@ -1907,8 +1921,8 @@ msgstr "Operation"
 msgid "operations"
 msgstr "operations"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:98
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:124
+#: src/features/host-mapping-form/ui/host-mapping-form-dialog.tsx:115
+#: src/features/host-mapping-form/ui/host-mapping-form-dialog.tsx:141
 msgid "optional"
 msgstr "optional"
 
@@ -1978,7 +1992,7 @@ msgstr "Pending Breakpoints"
 msgid "Performance"
 msgstr "Performance"
 
-#: src/widgets/network-table/ui/table-row.tsx:176
+#: src/widgets/network-table/ui/table-row.tsx:262
 msgid "Pin to Top"
 msgstr "Pin to Top"
 
@@ -1990,7 +2004,7 @@ msgstr "PKCS12 File"
 msgid "PKCS12 password (leave empty if none)"
 msgstr "PKCS12 password (leave empty if none)"
 
-#: src/widgets/network-table/ui/table-row.tsx:211
+#: src/widgets/network-table/ui/table-row.tsx:297
 msgid "Playwright Test"
 msgstr "Playwright Test"
 
@@ -2010,7 +2024,7 @@ msgstr "Please select both certificate and key files"
 msgid "Port"
 msgstr "Port"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:37
+#: src/features/host-mapping-form/ui/host-mapping-form-dialog.tsx:69
 #: src/pages/settings/ui/components/proxy-port-section.tsx:38
 msgid "Port must be between 1 and 65535"
 msgstr "Port must be between 1 and 65535"
@@ -2019,7 +2033,7 @@ msgstr "Port must be between 1 and 65535"
 msgid "Port number for the proxy server to listen on. Changes take effect on next app restart."
 msgstr "Port number for the proxy server to listen on. Changes take effect on next app restart."
 
-#: src/widgets/network-table/ui/table-row.tsx:196
+#: src/widgets/network-table/ui/table-row.tsx:282
 msgid "PowerShell"
 msgstr "PowerShell"
 
@@ -2083,7 +2097,7 @@ msgstr "Proxy settings and configuration"
 msgid "proxy.company.com"
 msgstr "proxy.company.com"
 
-#: src/widgets/network-table/ui/table-row.tsx:204
+#: src/widgets/network-table/ui/table-row.tsx:290
 msgid "Python Requests"
 msgstr "Python Requests"
 
@@ -2384,29 +2398,29 @@ msgid "Route traffic through an external proxy server"
 msgstr "Route traffic through an external proxy server"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:121
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:152
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:167
 msgid "Rule added"
 msgstr "Rule added"
 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:140
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:66
-#: src/pages/map-rules/ui/map-rules-page.tsx:50
+#: src/pages/map-rules/ui/map-rules-page.tsx:56
 msgid "Rule deleted"
 msgstr "Rule deleted"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:152
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:179
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:194
 msgid "Rule name (optional)"
 msgstr "Rule name (optional)"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:118
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:149
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:164
 msgid "Rule updated"
 msgstr "Rule updated"
 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:194
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:78
-#: src/pages/map-rules/ui/map-rules-page.tsx:66
+#: src/pages/map-rules/ui/map-rules-page.tsx:72
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:156
 msgid "rules"
 msgstr "rules"
@@ -2591,6 +2605,7 @@ msgstr "Serial Number"
 
 #: src/pages/server-replay/ui/server-replay-page.tsx:84
 #: src/shared/app-sidebar/model/consts.ts:78
+#: src/widgets/network-table/ui/table-row.tsx:341
 msgid "Server Replay"
 msgstr "Server Replay"
 
@@ -2670,15 +2685,15 @@ msgstr "Size"
 msgid "Sort by"
 msgstr "Sort by"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:86
+#: src/features/host-mapping-form/ui/host-mapping-form-dialog.tsx:103
 msgid "Source Host"
 msgstr "Source Host"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:32
+#: src/features/host-mapping-form/ui/host-mapping-form-dialog.tsx:64
 msgid "Source host and target host are required"
 msgstr "Source host and target host are required"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:96
+#: src/features/host-mapping-form/ui/host-mapping-form-dialog.tsx:113
 msgid "Source Port"
 msgstr "Source Port"
 
@@ -2780,11 +2795,11 @@ msgstr "Tap \"Install a certificate\" → \"CA certificate\""
 msgid "Target"
 msgstr "Target"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:112
+#: src/features/host-mapping-form/ui/host-mapping-form-dialog.tsx:129
 msgid "Target Host"
 msgstr "Target Host"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:122
+#: src/features/host-mapping-form/ui/host-mapping-form-dialog.tsx:139
 msgid "Target Port"
 msgstr "Target Port"
 
@@ -2900,15 +2915,15 @@ msgstr "Traffic Analysis"
 msgid "Traffic Replay"
 msgstr "Traffic Replay"
 
-#: src/widgets/network-table/ui/table-row.tsx:119
+#: src/widgets/network-table/ui/table-row.tsx:136
 msgid "Transaction deleted"
 msgstr "Transaction deleted"
 
-#: src/widgets/network-table/ui/table-row.tsx:135
+#: src/widgets/network-table/ui/table-row.tsx:221
 msgid "Transaction pinned to top"
 msgstr "Transaction pinned to top"
 
-#: src/widgets/network-table/ui/table-row.tsx:135
+#: src/widgets/network-table/ui/table-row.tsx:221
 msgid "Transaction unpinned"
 msgstr "Transaction unpinned"
 
@@ -2920,7 +2935,7 @@ msgstr "Tries Eager first, falls back to Lazy on failure"
 msgid "Trusted"
 msgstr "Trusted"
 
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:228
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:243
 #: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:52
 #: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:149
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:50
@@ -2949,12 +2964,12 @@ msgstr "Unlimited"
 msgid "Unload"
 msgstr "Unload"
 
-#: src/widgets/network-table/ui/table-row.tsx:176
+#: src/widgets/network-table/ui/table-row.tsx:262
 msgid "Unpin from Top"
 msgstr "Unpin from Top"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:240
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:257
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:272
 msgid "Update"
 msgstr "Update"
 
@@ -2978,7 +2993,7 @@ msgstr "URL"
 msgid "URL contains \"api\""
 msgstr "URL contains \"api\""
 
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:185
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:200
 msgid "URL Pattern"
 msgstr "URL Pattern"
 
@@ -3060,7 +3075,7 @@ msgstr "View application log files"
 msgid "Violations"
 msgstr "Violations"
 
-#: src/widgets/network-table/ui/table-row.tsx:208
+#: src/widgets/network-table/ui/table-row.tsx:294
 msgid "Vitest/Jest Test"
 msgstr "Vitest/Jest Test"
 
@@ -3098,7 +3113,7 @@ msgstr "Where"
 msgid "Whitelist (Include)"
 msgstr "Whitelist (Include)"
 
-#: src/pages/host-mapping/ui/host-mapping-page.tsx:190
+#: src/pages/host-mapping/ui/host-mapping-page.tsx:76
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:194
 msgid "Wildcard"
 msgstr "Wildcard"

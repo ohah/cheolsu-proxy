@@ -8,6 +8,8 @@ import {
 } from "@/features/transaction-details";
 import { QueryFilterEditor, QueryBuilder } from "@/features/query-filter-editor";
 import { RuleFormDialog } from "@/features/intercept-rule-form";
+import { MapRuleFormDialog } from "@/features/map-rule-form";
+import { HostMappingFormDialog } from "@/features/host-mapping-form";
 import { DiffView } from "@/features/traffic-diff";
 
 import { NetworkHeader } from "@/widgets/network-header";
@@ -26,7 +28,12 @@ import {
   useNetworkDiff,
   useFilterEditor,
 } from "../hooks";
-import { useInterceptRuleDialogStore, useAppSettingsStore } from "@/shared/stores";
+import {
+  useInterceptRuleDialogStore,
+  useMapRuleDialogStore,
+  useHostMappingDialogStore,
+  useAppSettingsStore,
+} from "@/shared/stores";
 import {
   useTransactionData,
   useTransactionActions,
@@ -121,6 +128,9 @@ export const NetworkDashboard = () => {
   const interceptRuleDialogOpen = useInterceptRuleDialogStore((s) => s.open);
   const interceptRuleInitialValues = useInterceptRuleDialogStore((s) => s.initialValues);
   const closeInterceptRuleDialog = useInterceptRuleDialogStore((s) => s.close);
+
+  const mapRuleDialogStore = useMapRuleDialogStore();
+  const hostMappingDialogStore = useHostMappingDialogStore();
 
   const createTransactionDeleteHandler = useCallback(
     (id: string) => () => {
@@ -395,6 +405,23 @@ export const NetworkDashboard = () => {
         }}
         editingRule={null}
         initialValues={interceptRuleInitialValues}
+      />
+
+      <MapRuleFormDialog
+        open={mapRuleDialogStore.open}
+        onOpenChange={(open) => {
+          if (!open) mapRuleDialogStore.close();
+        }}
+        editingRule={null}
+        initialValues={mapRuleDialogStore.initialValues}
+      />
+
+      <HostMappingFormDialog
+        open={hostMappingDialogStore.open}
+        onOpenChange={(open) => {
+          if (!open) hostMappingDialogStore.close();
+        }}
+        initialValues={hostMappingDialogStore.initialValues}
       />
     </>
   );

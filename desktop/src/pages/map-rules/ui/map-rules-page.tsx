@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
-import { useMapRuleStore } from "@/shared/stores";
+import { useMapRuleStore, useMapRuleDialogStore } from "@/shared/stores";
 import { Badge, Button, Switch, RuleListPage } from "@/shared/ui";
 import { Trash2, Pencil, FileDown, GitBranch } from "lucide-react";
 import { toast } from "sonner";
@@ -27,8 +27,14 @@ const MAP_LABELS: Record<string, { labelKey: string; variant: "default" | "secon
 export const MapRulesPage = () => {
   const { t } = useLingui();
   const { rules, removeRule, toggleRule, clearRules } = useMapRuleStore();
+  const mapDialogStore = useMapRuleDialogStore();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingRule, setEditingRule] = useState<InterceptRule | null>(null);
+
+  // 글로벌 스토어에서 열림 요청 감지
+  const globalDialogOpen = mapDialogStore.open;
+  const globalInitialValues = mapDialogStore.initialValues;
+  const isDialogOpen = dialogOpen || globalDialogOpen;
 
   const mapLabelMap: Record<string, string> = {
     map_local: t`Map Local`,
@@ -143,9 +149,16 @@ export const MapRulesPage = () => {
       }}
       dialogs={
         <MapRuleFormDialog
-          open={dialogOpen}
-          onOpenChange={setDialogOpen}
+          open={isDialogOpen}
+          onOpenChange={(open) => {
+            setDialogOpen(open);
+            if (!open) {
+              setEditingRule(null);
+              mapDialogStore.close();
+            }
+          }}
           editingRule={editingRule}
+          initialValues={globalInitialValues}
         />
       }
     />
