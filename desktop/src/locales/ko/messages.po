@@ -57,7 +57,7 @@ msgstr "{successCount}개 성공"
 msgid "{totalCount} transactions"
 msgstr "{totalCount}개 트랜잭션"
 
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:207
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:205
 msgid "* = any string, ? = single character"
 msgstr "* = 모든 문자열, ? = 단일 문자"
 
@@ -95,7 +95,7 @@ msgstr "실제값"
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:225
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:445
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:142
-#: src/pages/server-replay/ui/server-replay-page.tsx:170
+#: src/pages/server-replay/ui/server-replay-page.tsx:136
 #: src/pages/settings/ui/components/client-tags-section.tsx:116
 #: src/pages/settings/ui/components/never-passthrough-section.tsx:77
 #: src/pages/settings/ui/components/ssl-proxying-section.tsx:215
@@ -111,7 +111,7 @@ msgstr "HTTP 요청/응답을 검사하기 위해 일시 정지할 Breakpoint �
 msgid "Add built-in domain pattern..."
 msgstr "기본 제외 도메인 패턴 추가..."
 
-#: src/pages/server-replay/ui/server-replay-page.tsx:193
+#: src/pages/server-replay/ui/server-replay-page.tsx:159
 msgid "Add captured traffic to replay stored responses for matching requests."
 msgstr "캡처된 트래픽을 추가하여 매칭되는 요청에 저장된 응답을 반환합니다."
 
@@ -119,8 +119,8 @@ msgstr "캡처된 트래픽을 추가하여 매칭되는 요청에 저장된 응
 msgid "Add Domain Certificate"
 msgstr "도메인 인증서 추가"
 
-#: src/pages/server-replay/ui/server-replay-page.tsx:110
-#: src/pages/server-replay/ui/server-replay-page.tsx:199
+#: src/pages/server-replay/ui/server-replay-page.tsx:76
+#: src/pages/server-replay/ui/server-replay-page.tsx:165
 msgid "Add from Traffic"
 msgstr "트래픽에서 추가"
 
@@ -132,7 +132,7 @@ msgstr "헤더 추가"
 msgid "Add Host Mapping"
 msgstr ""
 
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:178
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:176
 msgid "Add Map Rule"
 msgstr "맵 규칙 추가"
 
@@ -150,7 +150,7 @@ msgstr "Proto 파일 추가"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:136
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:240
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:272
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:270
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:204
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:84
 #: src/pages/map-rules/ui/map-rules-page.tsx:78
@@ -158,7 +158,7 @@ msgstr "Proto 파일 추가"
 msgid "Add Rule"
 msgstr "규칙 추가"
 
-#: src/widgets/network-table/ui/table-row.tsx:316
+#: src/widgets/network-table/ui/table-row.tsx:283
 msgid "Add Rule..."
 msgstr ""
 
@@ -189,17 +189,17 @@ msgstr "첫 번째 매핑 추가"
 msgid "Add your first rule"
 msgstr "첫 번째 규칙 추가"
 
-#: src/pages/server-replay/ui/server-replay-page.tsx:166
+#: src/pages/server-replay/ui/server-replay-page.tsx:132
 msgid "Added"
 msgstr "추가됨"
 
-#: src/pages/server-replay/ui/server-replay-page.tsx:65
-#: src/widgets/network-table/ui/table-row.tsx:216
+#: src/pages/server-replay/ui/server-replay-page.tsx:31
+#: src/widgets/network-table/ui/table-row.tsx:183
 msgid "Added to server replay"
 msgstr "서버 리플레이에 추가되었습니다"
 
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:138
-#: src/widgets/network-table/ui/table-row.tsx:306
+#: src/widgets/network-table/ui/table-row.tsx:273
 msgid "Advanced Repeat"
 msgstr "고급 반복"
 
@@ -216,7 +216,7 @@ msgstr "전체 연결"
 msgid "All contract validations passed"
 msgstr "모든 API 검증을 통과했습니다"
 
-#: src/pages/server-replay/ui/server-replay-page.tsx:72
+#: src/pages/server-replay/ui/server-replay-page.tsx:38
 msgid "All entries cleared"
 msgstr "모든 엔트리가 삭제되었습니다"
 
@@ -238,8 +238,8 @@ msgstr "모든 HTTPS 트래픽이 인터셉트됩니다. {defaultEnabledCount}�
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:178
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:178
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:229
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:229
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:227
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:227
 msgid "All Methods"
 msgstr "모든 메서드"
 
@@ -293,7 +293,7 @@ msgstr "자동 세션 저장"
 msgid "Automatically save the current session when the app closes and restore it on next launch"
 msgstr "앱 종료 시 현재 세션을 자동으로 저장하고 다음 실행 시 복원합니다"
 
-#: src/pages/server-replay/ui/server-replay-page.tsx:124
+#: src/pages/server-replay/ui/server-replay-page.tsx:90
 msgid "available"
 msgstr "개 사용 가능"
 
@@ -408,7 +408,7 @@ msgstr "기본 제외 도메인 ({0})"
 msgid "Bypass List"
 msgstr "바이패스 목록"
 
-#: src/pages/server-replay/ui/server-replay-page.tsx:229
+#: src/pages/server-replay/ui/server-replay-page.tsx:195
 msgid "bytes body"
 msgstr "바이트 본문"
 
@@ -443,7 +443,7 @@ msgstr "호출"
 
 #: src/features/host-mapping-form/ui/host-mapping-form-dialog.tsx:156
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:237
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:269
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:267
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:228
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:492
 #: src/pages/log-viewer/ui/logs-page.tsx:495
@@ -452,8 +452,8 @@ msgstr "호출"
 msgid "Cancel"
 msgstr "취소"
 
-#: src/pages/server-replay/ui/server-replay-page.tsx:61
-#: src/widgets/network-table/ui/table-row.tsx:190
+#: src/pages/server-replay/ui/server-replay-page.tsx:27
+#: src/widgets/network-table/ui/table-row.tsx:179
 msgid "Cannot add: no response data"
 msgstr "추가할 수 없습니다: 응답 데이터 없음"
 
@@ -536,7 +536,7 @@ msgstr "전체 삭제"
 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:199
 #: src/pages/log-viewer/ui/logs-page.tsx:292
-#: src/pages/server-replay/ui/server-replay-page.tsx:105
+#: src/pages/server-replay/ui/server-replay-page.tsx:71
 #: src/pages/settings/ui/components/tls-config-section.tsx:121
 #: src/shared/ui/rule-list-page.tsx:69
 msgid "Clear All"
@@ -682,7 +682,7 @@ msgstr "복사"
 msgid "Copy as cURL"
 msgstr "cURL로 복사"
 
-#: src/widgets/network-table/ui/table-row.tsx:267
+#: src/widgets/network-table/ui/table-row.tsx:234
 msgid "Copy as..."
 msgstr "다른 형식으로 복사..."
 
@@ -709,7 +709,7 @@ msgstr "CORS 문제"
 msgid "Count"
 msgstr "횟수"
 
-#: src/widgets/network-table/ui/table-row.tsx:271
+#: src/widgets/network-table/ui/table-row.tsx:238
 msgid "cURL"
 msgstr "cURL"
 
@@ -782,7 +782,7 @@ msgid "Delete rule"
 msgstr "규칙 삭제"
 
 #: src/widgets/network-table/ui/cells/action-cell.tsx:21
-#: src/widgets/network-table/ui/table-row.tsx:310
+#: src/widgets/network-table/ui/table-row.tsx:277
 msgid "Delete Transaction"
 msgstr "트랜잭션 삭제"
 
@@ -802,7 +802,7 @@ msgstr "방향"
 
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:72
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:190
-#: src/pages/server-replay/ui/server-replay-page.tsx:96
+#: src/pages/server-replay/ui/server-replay-page.tsx:62
 msgid "Disabled"
 msgstr "비활성"
 
@@ -897,7 +897,7 @@ msgstr "편집"
 msgid "Edit & Forward"
 msgstr "편집 후 전달"
 
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:178
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:176
 msgid "Edit Map Rule"
 msgstr "맵 규칙 수정"
 
@@ -920,7 +920,7 @@ msgstr "Cheolsu Proxy CA 인증서에 대한 완전 신뢰를 활성화하세요
 
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:72
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:190
-#: src/pages/server-replay/ui/server-replay-page.tsx:96
+#: src/pages/server-replay/ui/server-replay-page.tsx:62
 msgid "Enabled"
 msgstr "활성"
 
@@ -941,7 +941,7 @@ msgstr "엔드포인트"
 msgid "Endpoints"
 msgstr "엔드포인트"
 
-#: src/pages/server-replay/ui/server-replay-page.tsx:100
+#: src/pages/server-replay/ui/server-replay-page.tsx:66
 msgid "entries"
 msgstr "개 엔트리"
 
@@ -1213,7 +1213,7 @@ msgid "Header name to remove"
 msgstr "삭제할 헤더 이름"
 
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:130
-#: src/pages/server-replay/ui/server-replay-page.tsx:225
+#: src/pages/server-replay/ui/server-replay-page.tsx:191
 msgid "headers"
 msgstr "헤더"
 
@@ -1234,7 +1234,7 @@ msgstr "호스트"
 
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:37
 #: src/shared/app-sidebar/model/consts.ts:92
-#: src/widgets/network-table/ui/table-row.tsx:333
+#: src/widgets/network-table/ui/table-row.tsx:300
 msgid "Host Mapping"
 msgstr "호스트 매핑"
 
@@ -1262,7 +1262,7 @@ msgstr "HTTP 요청 및 응답"
 msgid "HTTP Status"
 msgstr ""
 
-#: src/widgets/network-table/ui/table-row.tsx:285
+#: src/widgets/network-table/ui/table-row.tsx:252
 msgid "HTTPie"
 msgstr "HTTPie"
 
@@ -1329,7 +1329,7 @@ msgstr "설치됨"
 msgid "Installing..."
 msgstr "설치 중..."
 
-#: src/widgets/network-table/ui/table-row.tsx:321
+#: src/widgets/network-table/ui/table-row.tsx:288
 msgid "Intercept Rule"
 msgstr ""
 
@@ -1363,7 +1363,7 @@ msgstr "발급자 정보를 사용할 수 없습니다"
 msgid "Iterations"
 msgstr "반복 횟수"
 
-#: src/widgets/network-table/ui/table-row.tsx:274
+#: src/widgets/network-table/ui/table-row.tsx:241
 msgid "JavaScript Fetch"
 msgstr "JavaScript Fetch"
 
@@ -1371,7 +1371,7 @@ msgstr "JavaScript Fetch"
 msgid "JSON Configuration"
 msgstr "JSON 설정"
 
-#: src/widgets/network-table/ui/table-row.tsx:300
+#: src/widgets/network-table/ui/table-row.tsx:267
 msgid "k6 Load Test"
 msgstr "k6 부하 테스트"
 
@@ -1498,11 +1498,11 @@ msgstr "테스트 및 개발을 위해 DNS 호스트명을 다른 대상 호스�
 msgid "Map DNS hostnames to different targets"
 msgstr "DNS 호스트명을 다른 대상으로 매핑"
 
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:253
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:253
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:251
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:251
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:49
 #: src/pages/map-rules/ui/map-rules-page.tsx:40
-#: src/widgets/network-table/ui/table-row.tsx:329
+#: src/widgets/network-table/ui/table-row.tsx:296
 msgid "Map Local"
 msgstr "로컬 매핑"
 
@@ -1510,7 +1510,7 @@ msgstr "로컬 매핑"
 msgid "Map Local / Map Remote rules"
 msgstr "로컬 매핑 / 원격 매핑 규칙"
 
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:181
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:179
 msgid "Map Local: respond with a local file. Map Remote: redirect to another URL."
 msgstr "로컬 매핑: 로컬 파일로 응답. 원격 매핑: 다른 URL로 리다이렉트."
 
@@ -1518,11 +1518,11 @@ msgstr "로컬 매핑: 로컬 파일로 응답. 원격 매핑: 다른 URL로 리
 msgid "Map Local: respond with local files. Map Remote: redirect requests to another URL."
 msgstr "로컬 매핑: 로컬 파일로 응답. 원격 매핑: 요청을 다른 URL로 리다이렉트."
 
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:256
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:257
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:254
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:255
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:50
 #: src/pages/map-rules/ui/map-rules-page.tsx:41
-#: src/widgets/network-table/ui/table-row.tsx:325
+#: src/widgets/network-table/ui/table-row.tsx:292
 msgid "Map Remote"
 msgstr "원격 매핑"
 
@@ -1585,7 +1585,7 @@ msgid "messages"
 msgstr "메시지"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:167
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:218
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:216
 #: src/pages/analytics-dashboard/ui/duplicate-tab.tsx:22
 #: src/pages/analytics-dashboard/ui/endpoint-tab.tsx:59
 #: src/pages/analytics-dashboard/ui/error-tab.tsx:66
@@ -1646,7 +1646,7 @@ msgid "N+1"
 msgstr "N+1"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:150
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:192
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:190
 #: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:56
 msgid "Name"
 msgstr "이름"
@@ -1692,7 +1692,7 @@ msgstr "Breakpoint 규칙 없음"
 msgid "No Caching"
 msgstr "캐시 비활성화"
 
-#: src/pages/server-replay/ui/server-replay-page.tsx:129
+#: src/pages/server-replay/ui/server-replay-page.tsx:95
 msgid "No captured traffic with responses available. Capture some traffic first."
 msgstr "응답이 있는 캡처된 트래픽이 없습니다. 먼저 트래픽을 캡처하세요."
 
@@ -1780,7 +1780,7 @@ msgstr "단계가 선택되지 않음"
 msgid "No proto files registered. gRPC messages will be decoded using wire format heuristics."
 msgstr "등록된 proto 파일이 없습니다. gRPC 메시지는 wire format 휴리스틱으로 디코딩됩니다."
 
-#: src/pages/server-replay/ui/server-replay-page.tsx:190
+#: src/pages/server-replay/ui/server-replay-page.tsx:156
 msgid "No replay entries"
 msgstr "리플레이 엔트리 없음"
 
@@ -1832,7 +1832,7 @@ msgstr "리플레이할 유효한 요청이 없습니다"
 msgid "No Verify"
 msgstr "검증 안 함"
 
-#: src/widgets/network-table/ui/table-row.tsx:279
+#: src/widgets/network-table/ui/table-row.tsx:246
 msgid "Node.js Fetch"
 msgstr "Node.js Fetch"
 
@@ -1992,7 +1992,7 @@ msgstr "대기 중인 Breakpoints"
 msgid "Performance"
 msgstr "성능"
 
-#: src/widgets/network-table/ui/table-row.tsx:262
+#: src/widgets/network-table/ui/table-row.tsx:229
 msgid "Pin to Top"
 msgstr "상단에 고정"
 
@@ -2004,7 +2004,7 @@ msgstr "PKCS12 파일"
 msgid "PKCS12 password (leave empty if none)"
 msgstr "PKCS12 비밀번호 (없으면 비워두세요)"
 
-#: src/widgets/network-table/ui/table-row.tsx:297
+#: src/widgets/network-table/ui/table-row.tsx:264
 msgid "Playwright Test"
 msgstr "Playwright 테스트"
 
@@ -2033,7 +2033,7 @@ msgstr "포트는 1에서 65535 사이여야 합니다"
 msgid "Port number for the proxy server to listen on. Changes take effect on next app restart."
 msgstr "프록시 서버가 수신할 포트 번호입니다. 변경 사항은 앱을 다시 시작하면 적용됩니다."
 
-#: src/widgets/network-table/ui/table-row.tsx:282
+#: src/widgets/network-table/ui/table-row.tsx:249
 msgid "PowerShell"
 msgstr "PowerShell"
 
@@ -2097,7 +2097,7 @@ msgstr "프록시 설정 및 구성"
 msgid "proxy.company.com"
 msgstr "proxy.company.com"
 
-#: src/widgets/network-table/ui/table-row.tsx:290
+#: src/widgets/network-table/ui/table-row.tsx:257
 msgid "Python Requests"
 msgstr "Python Requests"
 
@@ -2177,7 +2177,7 @@ msgstr "요청에서 Cookie 헤더를 제거하고 응답에서 Set-Cookie 헤�
 msgid "Remove Custom CA"
 msgstr "커스텀 CA 제거"
 
-#: src/pages/server-replay/ui/server-replay-page.tsx:238
+#: src/pages/server-replay/ui/server-replay-page.tsx:204
 msgid "Remove entry"
 msgstr "엔트리 삭제"
 
@@ -2349,7 +2349,7 @@ msgstr "재시도"
 msgid "Return cached responses for matching requests"
 msgstr "매칭되는 요청에 캐시된 응답 반환"
 
-#: src/pages/server-replay/ui/server-replay-page.tsx:87
+#: src/pages/server-replay/ui/server-replay-page.tsx:53
 msgid "Return cached responses for matching requests instead of forwarding to the server"
 msgstr "서버로 전달하지 않고 매칭되는 요청에 캐시된 응답을 반환합니다"
 
@@ -2398,7 +2398,7 @@ msgid "Route traffic through an external proxy server"
 msgstr "외부 프록시 서버를 통해 트래픽 라우팅"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:121
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:167
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:165
 msgid "Rule added"
 msgstr "규칙이 추가되었습니다"
 
@@ -2409,12 +2409,12 @@ msgid "Rule deleted"
 msgstr "규칙이 삭제되었습니다"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:152
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:194
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:192
 msgid "Rule name (optional)"
 msgstr "규칙 이름 (선택사항)"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:118
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:164
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:162
 msgid "Rule updated"
 msgstr "규칙이 수정되었습니다"
 
@@ -2522,7 +2522,7 @@ msgstr "CA 키 파일 선택 (.pem, .key)"
 msgid "Select certificate file (.pem, .crt)"
 msgstr "인증서 파일 선택 (.pem, .crt)"
 
-#: src/pages/server-replay/ui/server-replay-page.tsx:121
+#: src/pages/server-replay/ui/server-replay-page.tsx:87
 msgid "Select from captured traffic"
 msgstr "캡처된 트래픽에서 선택"
 
@@ -2603,9 +2603,9 @@ msgstr "시퀀스 리플레이 실패"
 msgid "Serial Number"
 msgstr "시리얼 번호"
 
-#: src/pages/server-replay/ui/server-replay-page.tsx:84
+#: src/pages/server-replay/ui/server-replay-page.tsx:50
 #: src/shared/app-sidebar/model/consts.ts:78
-#: src/widgets/network-table/ui/table-row.tsx:341
+#: src/widgets/network-table/ui/table-row.tsx:308
 msgid "Server Replay"
 msgstr "서버 리플레이"
 
@@ -2919,11 +2919,11 @@ msgstr "트래픽 리플레이"
 msgid "Transaction deleted"
 msgstr "트랜잭션이 삭제되었습니다"
 
-#: src/widgets/network-table/ui/table-row.tsx:221
+#: src/widgets/network-table/ui/table-row.tsx:188
 msgid "Transaction pinned to top"
 msgstr "트랜잭션이 상단에 고정되었습니다"
 
-#: src/widgets/network-table/ui/table-row.tsx:221
+#: src/widgets/network-table/ui/table-row.tsx:188
 msgid "Transaction unpinned"
 msgstr "트랜잭션 고정이 해제되었습니다"
 
@@ -2935,7 +2935,7 @@ msgstr "Eager를 먼저 시도하고, 실패 시 Lazy로 폴백합니다"
 msgid "Trusted"
 msgstr "신뢰됨"
 
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:243
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:241
 #: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:52
 #: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:149
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:50
@@ -2964,12 +2964,12 @@ msgstr "무제한"
 msgid "Unload"
 msgstr "언로드"
 
-#: src/widgets/network-table/ui/table-row.tsx:262
+#: src/widgets/network-table/ui/table-row.tsx:229
 msgid "Unpin from Top"
 msgstr "상단 고정 해제"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:240
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:272
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:270
 msgid "Update"
 msgstr "수정"
 
@@ -2993,7 +2993,7 @@ msgstr "URL"
 msgid "URL contains \"api\""
 msgstr "URL에 \" 포함"
 
-#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:200
+#: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:198
 msgid "URL Pattern"
 msgstr "URL 패턴"
 
@@ -3075,7 +3075,7 @@ msgstr "애플리케이션 로그 파일 조회"
 msgid "Violations"
 msgstr "위반 사항"
 
-#: src/widgets/network-table/ui/table-row.tsx:294
+#: src/widgets/network-table/ui/table-row.tsx:261
 msgid "Vitest/Jest Test"
 msgstr "Vitest/Jest 테스트"
 

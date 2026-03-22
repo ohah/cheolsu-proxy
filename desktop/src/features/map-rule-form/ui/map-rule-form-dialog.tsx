@@ -19,7 +19,7 @@ import {
   SelectItem,
 } from "@/shared/ui";
 import { toast } from "sonner";
-import { useMapRuleStore } from "@/shared/stores";
+import { useMapRuleStore, type MapRuleInitialValues } from "@/shared/stores";
 import type { InterceptRule, MapLocalAction, MapRemoteAction } from "@/entities/intercept-rule";
 import {
   mapRuleFormSchema,
@@ -31,8 +31,6 @@ import { MapLocalFields } from "./map-local-fields";
 import { MapRemoteFields } from "./map-remote-fields";
 
 type MapType = "map_local" | "map_remote";
-
-import type { MapRuleInitialValues } from "@/shared/stores";
 
 interface MapRuleFormDialogProps {
   open: boolean;
