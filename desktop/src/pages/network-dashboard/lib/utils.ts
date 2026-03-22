@@ -1,4 +1,5 @@
 import type { HttpTransaction } from "@/entities/proxy";
+import { extractIp } from "@/shared/lib";
 
 const getStatusRange = (status: number): number => {
   return Math.floor(status / 100) * 100;
@@ -89,9 +90,7 @@ const matchesClientFilter = (
   clientTags: Record<string, string> = {},
 ): boolean => {
   const addr = clientAddr ?? "";
-  // IP에서 포트 제거 + IPv6 대괄호 제거
-  // "[::1]:54321" → "::1", "192.168.1.1:54321" → "192.168.1.1", "::1" → "::1"
-  const cleanIp = addr.replace(/\]?:\d+$/, "").replace(/^\[|\]$/g, "");
+  const cleanIp = extractIp(addr);
   const tag = clientTags[cleanIp] ?? "";
   const user = proxyAuthUser ?? "";
 

@@ -61,7 +61,7 @@ export function FilterPresetMenu({ currentQuery, onSelectPreset }: FilterPresetM
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <Tooltip>
+      <Tooltip open={open ? false : undefined}>
         <TooltipTrigger
           render={
             <PopoverTrigger

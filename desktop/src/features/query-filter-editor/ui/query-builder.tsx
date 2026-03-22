@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { Plus, X } from "lucide-react";
 import { Trans, useLingui } from "@lingui/react/macro";
 
@@ -258,6 +258,8 @@ export const QueryBuilder = ({
   totalCount,
   filteredCount,
 }: QueryBuilderProps) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+
   const handleUpdateCondition = useCallback(
     (id: string, updates: Partial<Omit<FilterCondition, "id">>) => {
       const next = {
@@ -311,16 +313,18 @@ export const QueryBuilder = ({
     onApply(query);
   }, [builderState, onApply]);
 
-  // ⌘+Enter로 필터 적용
+  // ⌘+Enter로 필터 적용 (컨테이너 내부에서만 동작)
   useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
         handleApply();
       }
     };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
+    el.addEventListener("keydown", handler);
+    return () => el.removeEventListener("keydown", handler);
   }, [handleApply]);
 
   const handleClear = useCallback(() => {
@@ -337,7 +341,7 @@ export const QueryBuilder = ({
   const hasAnyValue = builderState.conditions.some((c) => c.values.length > 0);
 
   return (
-    <div className="w-full border rounded-md bg-background">
+    <div ref={containerRef} className="w-full border rounded-md bg-background">
       {/* Conditions */}
       <div className="p-3 space-y-2">
         {builderState.conditions.map((condition, index) => (

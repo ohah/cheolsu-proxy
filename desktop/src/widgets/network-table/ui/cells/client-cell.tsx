@@ -1,6 +1,7 @@
 import { memo } from "react";
 import { Monitor, Smartphone, Tablet } from "lucide-react";
 
+import { extractIp } from "@/shared/lib";
 import { useAppSettingsStore } from "@/shared/stores/app-settings-store";
 import type { TableCellProps } from "../../model";
 
@@ -25,13 +26,6 @@ const DeviceIcon = ({ type }: { type: DeviceType }) => {
       return <Monitor className="w-3 h-3 text-muted-foreground shrink-0" />;
   }
 };
-
-function extractIp(clientAddr: string): string {
-  if (clientAddr.startsWith("[")) {
-    return clientAddr.replace(/^\[(.+)\]:\d+$/, "$1");
-  }
-  return clientAddr.replace(/:\d+$/, "");
-}
 
 export const ClientCell = memo<TableCellProps>(({ data }) => {
   const clientAddr = data.transaction.request?.client_addr;
