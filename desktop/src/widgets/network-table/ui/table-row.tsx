@@ -40,6 +40,7 @@ import {
   generateVitestCode,
   generatePlaywrightCode,
   generateK6Code,
+  transactionToReplayEntry,
 } from "@/shared/lib";
 import {
   useInterceptRuleDialogStore,
@@ -47,7 +48,6 @@ import {
   useHostMappingDialogStore,
   useServerReplayStore,
 } from "@/shared/stores";
-import { isTextBasedDataType } from "@/entities/proxy";
 import { writeText as clipboardWriteText } from "@tauri-apps/plugin-clipboard-manager";
 import { toast } from "sonner";
 import {
@@ -150,25 +150,14 @@ export const TableRow = memo(function TableRow({
     });
   }, [data, openInterceptRuleDialog]);
 
-  const handleClickAddMapRemote = useCallback(() => {
-    const request = data.transaction.request;
-    if (!request) return;
-    openMapRuleDialog({
-      pattern: request.uri,
-      method: request.method,
-      mapType: "map_remote",
-    });
-  }, [data, openMapRuleDialog]);
-
-  const handleClickAddMapLocal = useCallback(() => {
-    const request = data.transaction.request;
-    if (!request) return;
-    openMapRuleDialog({
-      pattern: request.uri,
-      method: request.method,
-      mapType: "map_local",
-    });
-  }, [data, openMapRuleDialog]);
+  const handleClickAddMapRule = useCallback(
+    (mapType: "map_remote" | "map_local") => {
+      const request = data.transaction.request;
+      if (!request) return;
+      openMapRuleDialog({ pattern: request.uri, method: request.method, mapType });
+    },
+    [data, openMapRuleDialog],
+  );
 
   const handleClickAddHostMapping = useCallback(() => {
     const request = data.transaction.request;
@@ -185,34 +174,12 @@ export const TableRow = memo(function TableRow({
   }, [data, openHostMappingDialog]);
 
   const handleClickAddServerReplay = useCallback(() => {
-    const { request, response } = data.transaction;
-    if (!request || !response) {
+    const entry = transactionToReplayEntry(data.transaction);
+    if (!entry) {
       toast.error(t`Cannot add: no response data`);
       return;
     }
-
-    let body: string | undefined;
-    if (response.body_json !== undefined && response.body_json !== null) {
-      body =
-        typeof response.body_json === "string"
-          ? response.body_json
-          : JSON.stringify(response.body_json);
-    } else if (response.body && response.data_type && isTextBasedDataType(response.data_type)) {
-      try {
-        body = new TextDecoder().decode(response.body);
-      } catch {
-        body = undefined;
-      }
-    }
-
-    addServerReplayEntry({
-      id: request.id,
-      method: request.method,
-      url: request.uri,
-      status: response.status,
-      headers: response.headers || {},
-      body,
-    });
+    addServerReplayEntry(entry);
     toast.success(t`Added to server replay`);
   }, [data, addServerReplayEntry]);
 
@@ -320,11 +287,11 @@ export const TableRow = memo(function TableRow({
               <Shield />
               <Trans>Intercept Rule</Trans>
             </ContextMenuItem>
-            <ContextMenuItem onClick={handleClickAddMapRemote}>
+            <ContextMenuItem onClick={() => handleClickAddMapRule("map_remote")}>
               <GitBranch />
               <Trans>Map Remote</Trans>
             </ContextMenuItem>
-            <ContextMenuItem onClick={handleClickAddMapLocal}>
+            <ContextMenuItem onClick={() => handleClickAddMapRule("map_local")}>
               <FileDown />
               <Trans>Map Local</Trans>
             </ContextMenuItem>

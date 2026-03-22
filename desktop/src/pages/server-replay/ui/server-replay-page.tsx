@@ -6,42 +6,8 @@ import { toast } from "sonner";
 import { useServerReplayStore, useTransactionStore } from "@/shared/stores";
 import { Card, CardContent, Badge, Button, Switch } from "@/shared/ui";
 import { getStatusColor } from "@/entities/transaction";
-import { isTextBasedDataType } from "@/entities/proxy";
 import type { HttpTransaction } from "@/entities/proxy";
-import type { ServerReplayEntry } from "@/shared/api/proxy";
-
-function uint8ArrayToString(arr: Uint8Array | null): string | undefined {
-  if (!arr) return undefined;
-  try {
-    return new TextDecoder().decode(arr);
-  } catch {
-    return undefined;
-  }
-}
-
-function transactionToEntry(tx: HttpTransaction): ServerReplayEntry | null {
-  const { request, response } = tx;
-  if (!request || !response) return null;
-
-  let body: string | undefined;
-  if (response.body_json !== undefined && response.body_json !== null) {
-    body =
-      typeof response.body_json === "string"
-        ? response.body_json
-        : JSON.stringify(response.body_json);
-  } else if (response.body && response.data_type && isTextBasedDataType(response.data_type)) {
-    body = uint8ArrayToString(response.body);
-  }
-
-  return {
-    id: request.id,
-    method: request.method,
-    url: request.uri,
-    status: response.status,
-    headers: response.headers || {},
-    body,
-  };
-}
+import { transactionToReplayEntry } from "@/shared/lib";
 
 function truncateUrl(url: string, max = 80): string {
   return url.length > max ? `${url.slice(0, max)}...` : url;
@@ -56,7 +22,7 @@ export function ServerReplayPage() {
 
   const handleAddFromTransaction = useCallback(
     (tx: HttpTransaction) => {
-      const entry = transactionToEntry(tx);
+      const entry = transactionToReplayEntry(tx);
       if (!entry) {
         toast.error(t`Cannot add: no response data`);
         return;

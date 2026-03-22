@@ -129,8 +129,13 @@ export const NetworkDashboard = () => {
   const interceptRuleInitialValues = useInterceptRuleDialogStore((s) => s.initialValues);
   const closeInterceptRuleDialog = useInterceptRuleDialogStore((s) => s.close);
 
-  const mapRuleDialogStore = useMapRuleDialogStore();
-  const hostMappingDialogStore = useHostMappingDialogStore();
+  const mapRuleDialogOpen = useMapRuleDialogStore((s) => s.open);
+  const mapRuleInitialValues = useMapRuleDialogStore((s) => s.initialValues);
+  const closeMapRuleDialog = useMapRuleDialogStore((s) => s.close);
+
+  const hostMappingDialogOpen = useHostMappingDialogStore((s) => s.open);
+  const hostMappingInitialValues = useHostMappingDialogStore((s) => s.initialValues);
+  const closeHostMappingDialog = useHostMappingDialogStore((s) => s.close);
 
   const createTransactionDeleteHandler = useCallback(
     (id: string) => () => {
@@ -408,20 +413,20 @@ export const NetworkDashboard = () => {
       />
 
       <MapRuleFormDialog
-        open={mapRuleDialogStore.open}
+        open={mapRuleDialogOpen}
         onOpenChange={(open) => {
-          if (!open) mapRuleDialogStore.close();
+          if (!open) closeMapRuleDialog();
         }}
         editingRule={null}
-        initialValues={mapRuleDialogStore.initialValues}
+        initialValues={mapRuleInitialValues}
       />
 
       <HostMappingFormDialog
-        open={hostMappingDialogStore.open}
+        open={hostMappingDialogOpen}
         onOpenChange={(open) => {
-          if (!open) hostMappingDialogStore.close();
+          if (!open) closeHostMappingDialog();
         }}
-        initialValues={hostMappingDialogStore.initialValues}
+        initialValues={hostMappingInitialValues}
       />
     </>
   );
