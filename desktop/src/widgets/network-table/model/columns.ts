@@ -46,6 +46,12 @@ export const columns = [
     sortingFn: numericTimeDiff,
     meta: { gridSize: gridSizeMap.time },
   }),
+  columnHelper.accessor((row) => row.requestTime ?? 0, {
+    id: "timestamp",
+    header: "Timestamp",
+    sortingFn: "basic",
+    meta: { gridSize: gridSizeMap.timestamp },
+  }),
   columnHelper.accessor((row) => row.transaction.request?.client_addr ?? "", {
     id: "client",
     header: "Client",

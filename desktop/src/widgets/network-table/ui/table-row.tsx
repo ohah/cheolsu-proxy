@@ -6,6 +6,7 @@ import {
   StatusCell,
   SizeCell,
   TimeCell,
+  TimestampCell,
   ClientCell,
   WaterfallCell,
 } from "./cells";
@@ -52,6 +53,7 @@ const CELL_MAP: Record<ColumnKey, React.ComponentType<{ data: TableRowData }>> =
   status: StatusCell,
   size: SizeCell,
   time: TimeCell,
+  timestamp: TimestampCell,
   client: ClientCell,
   waterfall: WaterfallCell,
 };

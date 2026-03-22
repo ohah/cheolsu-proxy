@@ -5,8 +5,8 @@ describe("buildGridTemplate", () => {
   test("모든 컬럼이 보이면 전체 그리드 템플릿을 생성한다", () => {
     const all = new Set<ColumnKey>(TABLE_COLUMNS.map((c) => c.key));
     const result = buildGridTemplate(all);
-    // checkbox(24px) + 7개 컬럼
-    expect(result.split(" ")).toHaveLength(8);
+    // checkbox(24px) + 모든 컬럼
+    expect(result.split(" ")).toHaveLength(TABLE_COLUMNS.length + 1);
     expect(result).toStartWith("24px");
   });
 
@@ -29,8 +29,8 @@ describe("buildGridTemplate", () => {
 });
 
 describe("TABLE_COLUMNS", () => {
-  test("7개 컬럼이 정의되어 있다", () => {
-    expect(TABLE_COLUMNS).toHaveLength(7);
+  test("8개 컬럼이 정의되어 있다", () => {
+    expect(TABLE_COLUMNS).toHaveLength(8);
   });
 
   test("각 컬럼에 key, label, gridSize가 있다", () => {
