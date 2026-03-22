@@ -4,7 +4,15 @@ import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
 
 import { cn } from "@/shared/lib";
-import { Input, Popover, PopoverTrigger, PopoverContent } from "@/shared/ui";
+import {
+  Input,
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/shared/ui";
 import { useFilterPresetStore, type FilterPreset } from "@/shared/stores/filter-preset-store";
 
 interface FilterPresetMenuProps {
@@ -53,15 +61,21 @@ export function FilterPresetMenu({ currentQuery, onSelectPreset }: FilterPresetM
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger
-        className={cn(
-          "p-1.5 hover:bg-accent/10 rounded-md transition-colors",
-          presets.length > 0 && "text-accent",
-        )}
-        title={t`Filter Presets`}
-      >
-        <Bookmark className="w-3.5 h-3.5 text-muted-foreground" />
-      </PopoverTrigger>
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <PopoverTrigger
+              className={cn(
+                "p-1.5 hover:bg-accent/10 rounded-md transition-colors",
+                presets.length > 0 && "text-accent",
+              )}
+            />
+          }
+        >
+          <Bookmark className="w-3.5 h-3.5 text-muted-foreground" />
+        </TooltipTrigger>
+        <TooltipContent side="bottom">{t`Filter Presets`}</TooltipContent>
+      </Tooltip>
       <PopoverContent align="end" className="w-64 p-2">
         <div className="text-xs font-medium text-muted-foreground px-2 py-1">
           <Trans>Filter Presets</Trans>
