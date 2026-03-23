@@ -1,4 +1,4 @@
-use proxy_daemon::{connect_to_daemon, is_daemon_running, DaemonConnection, DaemonMessage};
+use proxy_daemon::{connect_to_daemon, is_daemon_running, DaemonConnection};
 
 use crate::store::Store;
 
@@ -8,25 +8,7 @@ pub async fn try_connect_daemon(store: &Store) -> Option<DaemonConnection> {
     }
 
     let store = store.clone();
-    match connect_to_daemon(move |msg| match msg {
-        DaemonMessage::Event { data } => store.push_transaction(data),
-        DaemonMessage::WsMessage { data } => store.push_ws_message(data),
-        DaemonMessage::WsConnection { data } => store.push_ws_connection(data),
-        DaemonMessage::InterceptRulesUpdated { rules } => {
-            *store.rules.lock() = rules;
-        }
-        DaemonMessage::BreakpointRulesUpdated { rules } => {
-            *store.breakpoint_rules.lock() = rules;
-        }
-        DaemonMessage::HostMappingsUpdated { mappings } => {
-            *store.host_mappings.lock() = mappings;
-        }
-        DaemonMessage::SseEvent { data } => store.push_sse_event(data),
-        DaemonMessage::SseConnection { data } => store.push_sse_connection(data),
-        _ => {}
-    })
-    .await
-    {
+    match connect_to_daemon(move |msg| store.handle_daemon_message(msg)).await {
         Ok(conn) => {
             tracing::info!("Connected to proxy daemon on port {}", conn.port);
             Some(conn)
