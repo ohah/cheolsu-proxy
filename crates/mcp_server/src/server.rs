@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use cheolsu_ops::context::{OpsContext, OpsStore};
+use cheolsu_ops::context::OpsContext;
 use proxy_daemon::DaemonConnection;
 use rmcp::{handler::server::router::tool::ToolRouter, model::*, tool_handler, ServerHandler};
 use tokio::sync::Mutex as TokioMutex;
@@ -25,18 +25,7 @@ impl CheolsuMcpServer {
 
     pub(crate) fn ops_ctx(&self) -> OpsContext {
         OpsContext {
-            store: OpsStore {
-                transactions: self.store.transactions.clone(),
-                ws_messages: self.store.ws_messages.clone(),
-                ws_connections: self.store.ws_connections.clone(),
-                rules: self.store.rules.clone(),
-                breakpoint_rules: self.store.breakpoint_rules.clone(),
-                host_mappings: self.store.host_mappings.clone(),
-                sse_events: self.store.sse_events.clone(),
-                sse_connections: self.store.sse_connections.clone(),
-                server_replay_entries: self.store.server_replay_entries.clone(),
-                reverse_proxy_rules: self.store.reverse_proxy_rules.clone(),
-            },
+            store: self.store.clone(),
             daemon_conn: self.daemon_conn.clone(),
         }
     }
