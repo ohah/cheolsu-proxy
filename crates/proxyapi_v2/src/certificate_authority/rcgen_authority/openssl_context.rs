@@ -2,7 +2,7 @@ use super::RcgenAuthority;
 use crate::certificate_authority::{LEAF_TTL_SECS, NOT_BEFORE_OFFSET, truncate_cn};
 use crate::upstream_cert::UpstreamCertInfo;
 use http::uri::Authority;
-use rcgen::{DistinguishedName, DnType, Ia5String, SanType};
+use rcgen::{DistinguishedName, DnType, SanType, string::Ia5String};
 use std::collections::HashSet;
 use std::net::IpAddr;
 use std::sync::Arc;
@@ -27,8 +27,8 @@ pub(super) async fn gen_openssl_context(
     );
 
     // spawn_blocking에 전달할 데이터를 미리 준비 (Send 가능한 형태)
-    let ca_cert_pem = this.ca_cert.pem();
-    let ca_key_pem = this.key_pair.serialize_pem();
+    let ca_cert_pem = this.ca_cert_pem.clone();
+    let ca_key_pem = this.ca_key_pem.clone();
     let host = authority.host().to_string();
     let upstream_cert = upstream_cert.cloned();
 
@@ -37,8 +37,7 @@ pub(super) async fn gen_openssl_context(
         move || -> Result<openssl::ssl::SslContext, Box<dyn std::error::Error + Send + Sync>> {
             // rcgen 인증서 생성 (CPU 집약적 작업)
             let ca_key_pair = rcgen::KeyPair::from_pem(&ca_key_pem)?;
-            let ca_cert_params = rcgen::CertificateParams::from_ca_cert_pem(&ca_cert_pem)?;
-            let ca_cert_rcgen = ca_cert_params.self_signed(&ca_key_pair)?;
+            let ca_issuer = rcgen::Issuer::from_ca_cert_pem(&ca_cert_pem, ca_key_pair)?;
 
             // upstream 키 타입에 맞는 leaf 키페어 생성
             let leaf_key_pair =
@@ -122,9 +121,8 @@ pub(super) async fn gen_openssl_context(
             }
 
             // leaf 키로 서명 (CA 키가 서명자)
-            let server_cert: CertificateDer<'static> = params
-                .signed_by(&leaf_key_pair, &ca_cert_rcgen, &ca_key_pair)?
-                .into();
+            let server_cert: CertificateDer<'static> =
+                params.signed_by(&leaf_key_pair, &ca_issuer)?.into();
             let server_cert_der = server_cert.to_vec();
             let leaf_key_pem = leaf_key_pair.serialize_pem();
 

@@ -35,9 +35,9 @@ pub(crate) const NOT_BEFORE_OFFSET: i64 = 172_800;
 /// RFC 5280: serial number는 양수 INTEGER이므로 최상위 비트를 클리어합니다.
 #[cfg(feature = "rcgen-ca")]
 pub(crate) fn generate_serial_number() -> rcgen::SerialNumber {
-    use rand::{Rng, rng};
+    use rand::Rng;
     let mut bytes = [0u8; 16];
-    rng().fill(&mut bytes);
+    rand::rng().fill_bytes(&mut bytes);
     bytes[0] &= 0x7F;
     rcgen::SerialNumber::from_slice(&bytes)
 }

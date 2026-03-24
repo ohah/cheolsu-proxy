@@ -37,7 +37,7 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["fmt", "registry", "env-filter"] }
 tracing-appender = "0.2"
 tauri-plugin-mcp-bridge = "0.10"
-reqwest = { version = "0.12", features = ["rustls-tls"], default-features = false }
+reqwest = { version = "0.13", features = ["rustls"], default-features = false }
 base64 = "0.22"
 tauri-plugin-updater = "2.10.0"
 tauri-plugin-single-instance = "2.4.0"

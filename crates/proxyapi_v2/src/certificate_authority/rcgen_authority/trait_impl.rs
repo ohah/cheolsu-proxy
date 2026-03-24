@@ -175,8 +175,7 @@ impl CertificateAuthority for RcgenAuthority {
     }
 
     fn get_ca_cert_der(&self) -> Option<Vec<u8>> {
-        // rcgen::Certificate에서 DER 형식으로 CA 인증서를 추출
-        let der_bytes = self.ca_cert.der().to_vec();
+        let der_bytes = self.ca_cert_der.to_vec();
         debug!(
             "Successfully extracted CA certificate DER ({} bytes)",
             der_bytes.len()
