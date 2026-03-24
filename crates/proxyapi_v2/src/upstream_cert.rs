@@ -1099,6 +1099,140 @@ mod tests {
         assert_eq!(mirror.alpn_protocols.len(), 2);
     }
 
+    #[test]
+    fn test_cert_verification_status_as_str() {
+        assert_eq!(CertVerificationStatus::Valid.as_str(), "valid");
+        assert_eq!(CertVerificationStatus::SelfSigned.as_str(), "self_signed");
+        assert_eq!(CertVerificationStatus::Expired.as_str(), "expired");
+        assert_eq!(
+            CertVerificationStatus::NotYetValid.as_str(),
+            "not_yet_valid"
+        );
+        assert_eq!(CertVerificationStatus::UntrustedCa.as_str(), "untrusted_ca");
+        assert_eq!(CertVerificationStatus::Unknown.as_str(), "unknown");
+    }
+
+    #[test]
+    fn test_cert_verification_status_default_is_unknown() {
+        assert_eq!(
+            CertVerificationStatus::default(),
+            CertVerificationStatus::Unknown
+        );
+    }
+
+    #[test]
+    fn test_classify_verification_error_expired() {
+        let err = RustlsError::InvalidCertificate(CertificateError::Expired);
+        assert_eq!(
+            classify_verification_error(&err),
+            CertVerificationStatus::Expired
+        );
+    }
+
+    #[test]
+    fn test_classify_verification_error_expired_context() {
+        let err = RustlsError::InvalidCertificate(CertificateError::ExpiredContext {
+            time: UnixTime::now(),
+            not_after: UnixTime::now(),
+        });
+        assert_eq!(
+            classify_verification_error(&err),
+            CertVerificationStatus::Expired
+        );
+    }
+
+    #[test]
+    fn test_classify_verification_error_not_valid_yet() {
+        let err = RustlsError::InvalidCertificate(CertificateError::NotValidYet);
+        assert_eq!(
+            classify_verification_error(&err),
+            CertVerificationStatus::NotYetValid
+        );
+    }
+
+    #[test]
+    fn test_classify_verification_error_unknown_issuer() {
+        let err = RustlsError::InvalidCertificate(CertificateError::UnknownIssuer);
+        assert_eq!(
+            classify_verification_error(&err),
+            CertVerificationStatus::UntrustedCa
+        );
+    }
+
+    #[test]
+    fn test_classify_verification_error_other_cert_error() {
+        let err = RustlsError::InvalidCertificate(CertificateError::Revoked);
+        assert_eq!(
+            classify_verification_error(&err),
+            CertVerificationStatus::UntrustedCa
+        );
+    }
+
+    #[test]
+    fn test_classify_verification_error_non_cert_error() {
+        let err = RustlsError::General("some error".to_string());
+        assert_eq!(
+            classify_verification_error(&err),
+            CertVerificationStatus::UntrustedCa
+        );
+    }
+
+    #[test]
+    fn test_strip_ipv6_brackets() {
+        assert_eq!(strip_ipv6_brackets("[::1]"), "::1");
+        assert_eq!(strip_ipv6_brackets("[2001:db8::1]"), "2001:db8::1");
+        assert_eq!(strip_ipv6_brackets("example.com"), "example.com");
+        assert_eq!(strip_ipv6_brackets("127.0.0.1"), "127.0.0.1");
+        assert_eq!(strip_ipv6_brackets(""), "");
+        // 불완전한 대괄호는 그대로 반환
+        assert_eq!(strip_ipv6_brackets("[::1"), "[::1");
+        assert_eq!(strip_ipv6_brackets("::1]"), "::1]");
+    }
+
+    #[test]
+    fn test_server_name_from_authority_domain() {
+        let authority: Authority = "example.com:443".parse().unwrap();
+        let result = server_name_from_authority(&authority);
+        assert!(result.is_some());
+    }
+
+    #[test]
+    fn test_server_name_from_authority_ipv4() {
+        let authority: Authority = "127.0.0.1:443".parse().unwrap();
+        let result = server_name_from_authority(&authority);
+        assert!(result.is_some());
+    }
+
+    #[test]
+    fn test_server_name_from_authority_ipv6() {
+        let authority: Authority = "[::1]:443".parse().unwrap();
+        let result = server_name_from_authority(&authority);
+        assert!(result.is_some());
+    }
+
+    #[test]
+    fn test_to_server_cert_info_includes_verification_fields() {
+        let info = UpstreamCertInfo {
+            verification_status: CertVerificationStatus::Expired,
+            verification_error: Some("certificate has expired".to_string()),
+            ..Default::default()
+        };
+        let cert_info = info.to_server_cert_info();
+        assert_eq!(cert_info.verification_status, Some("expired".to_string()));
+        assert_eq!(
+            cert_info.verification_error,
+            Some("certificate has expired".to_string())
+        );
+    }
+
+    #[test]
+    fn test_to_server_cert_info_default_verification_unknown() {
+        let info = UpstreamCertInfo::default();
+        let cert_info = info.to_server_cert_info();
+        assert_eq!(cert_info.verification_status, Some("unknown".to_string()));
+        assert_eq!(cert_info.verification_error, None);
+    }
+
     #[cfg(feature = "openssl-ca")]
     mod openssl_mirror_tests {
         use super::*;
