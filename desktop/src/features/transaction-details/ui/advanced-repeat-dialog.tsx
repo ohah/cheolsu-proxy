@@ -5,7 +5,6 @@ import { useLingui } from "@lingui/react/macro";
 import { listen } from "@tauri-apps/api/event";
 
 import type { HttpTransaction } from "@/entities/proxy";
-import { isTextBasedDataType } from "@/entities/proxy";
 import {
   advancedRepeat,
   type AdvancedRepeatParams,
@@ -26,35 +25,12 @@ import {
   AlertDescription,
   Progress,
 } from "@/shared/ui";
-import { sanitizeHopByHopHeaders } from "@/shared/lib/http-headers";
-import { uint8ArrayToString } from "../lib";
+import { transactionToReplayParams } from "../lib";
 
 interface AdvancedRepeatDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   transaction: HttpTransaction;
-}
-
-function buildReplayParams(transaction: HttpTransaction) {
-  const { request } = transaction;
-  if (!request) return null;
-
-  const headers = sanitizeHopByHopHeaders(request.headers);
-
-  let body: string | undefined;
-  if (request.body && request.data_type && isTextBasedDataType(request.data_type)) {
-    body = uint8ArrayToString(request.body, request.data_type);
-  } else if (request.body_json) {
-    body =
-      typeof request.body_json === "string" ? request.body_json : JSON.stringify(request.body_json);
-  }
-
-  return {
-    method: request.method,
-    url: request.uri,
-    headers,
-    body,
-  };
 }
 
 export function AdvancedRepeatDialog({
@@ -81,7 +57,7 @@ export function AdvancedRepeatDialog({
   }, [open]);
 
   const handleStart = useCallback(async () => {
-    const replayParams = buildReplayParams(transaction);
+    const replayParams = transactionToReplayParams(transaction);
     if (!replayParams) {
       setError(t`No valid request to replay`);
       return;

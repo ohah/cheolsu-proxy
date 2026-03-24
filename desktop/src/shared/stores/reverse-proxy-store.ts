@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
+import { toast } from "sonner";
 import { createTauriStorage } from "@/shared/lib/tauri-store-storage";
 import type { ReverseProxyRule } from "@/shared/api/proxy";
 import { updateReverseProxyRules } from "@/shared/api/proxy";
@@ -59,6 +60,7 @@ export const useReverseProxyStore = create<ReverseProxyStoreState>()(
             await updateReverseProxyRules(rules);
           } catch (error) {
             console.error("Failed to sync reverse proxy rules:", error);
+            toast.error("Failed to sync reverse proxy rules");
           }
         });
       },

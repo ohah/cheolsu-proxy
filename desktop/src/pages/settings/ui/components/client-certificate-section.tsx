@@ -1,12 +1,12 @@
 import { useState, useCallback } from "react";
 import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
-import { open as openFileDialog } from "@tauri-apps/plugin-dialog";
 import {
   parseCertificateInfo,
   type CertificateInfo,
   type DomainClientCertConfig,
 } from "@/shared/api/proxy";
+import { useFileSelector } from "@/shared/hooks/use-file-selector";
 import { Button, Input, Switch, Badge } from "@/shared/ui";
 import { useSettingsForm } from "../settings-form";
 
@@ -23,6 +23,7 @@ export function ClientCertificateSection() {
   const [newDomainPattern, setNewDomainPattern] = useState("");
   const [newDomainCertPath, setNewDomainCertPath] = useState("");
   const [newDomainKeyPath, setNewDomainKeyPath] = useState("");
+  const selectFile = useFileSelector();
 
   const loadCertInfo = useCallback(async (path: string) => {
     setCertInfoLoading(true);
@@ -36,46 +37,33 @@ export function ClientCertificateSection() {
   }, []);
 
   const handleSelectCert = useCallback(async () => {
-    const selected = await openFileDialog({
-      multiple: false,
-      filters: [{ name: "Certificate", extensions: ["pem", "crt", "cer"] }],
-    });
-    if (selected) {
-      const path = selected as string;
+    const path = await selectFile({ extensions: ["pem", "crt", "cer"] });
+    if (path) {
       setValue("clientCert.certPath", path, { shouldDirty: true });
       loadCertInfo(path);
     }
-  }, [setValue, loadCertInfo]);
+  }, [selectFile, setValue, loadCertInfo]);
 
   const handleSelectKey = useCallback(async () => {
-    const selected = await openFileDialog({
-      multiple: false,
-      filters: [{ name: "Key", extensions: ["pem", "key"] }],
-    });
-    if (selected) {
-      setValue("clientCert.keyPath", selected as string, { shouldDirty: true });
+    const path = await selectFile({ extensions: ["pem", "key"] });
+    if (path) {
+      setValue("clientCert.keyPath", path, { shouldDirty: true });
     }
-  }, [setValue]);
+  }, [selectFile, setValue]);
 
   const handleSelectDomainCert = useCallback(async () => {
-    const selected = await openFileDialog({
-      multiple: false,
-      filters: [{ name: "Certificate", extensions: ["pem", "crt", "cer"] }],
-    });
-    if (selected) {
-      setNewDomainCertPath(selected as string);
+    const path = await selectFile({ extensions: ["pem", "crt", "cer"] });
+    if (path) {
+      setNewDomainCertPath(path);
     }
-  }, []);
+  }, [selectFile]);
 
   const handleSelectDomainKey = useCallback(async () => {
-    const selected = await openFileDialog({
-      multiple: false,
-      filters: [{ name: "Key", extensions: ["pem", "key"] }],
-    });
-    if (selected) {
-      setNewDomainKeyPath(selected as string);
+    const path = await selectFile({ extensions: ["pem", "key"] });
+    if (path) {
+      setNewDomainKeyPath(path);
     }
-  }, []);
+  }, [selectFile]);
 
   const handleAddDomainCert = useCallback(() => {
     const pattern = newDomainPattern.trim();

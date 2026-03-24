@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
+import { toast } from "sonner";
 import { createTauriStorage } from "@/shared/lib/tauri-store-storage";
 import type { InterceptRule } from "@/entities/intercept-rule";
 import { registerRuleStore, syncAllRulesToProxy, waitForDaemonRules } from "./sync-rules";
@@ -66,6 +67,7 @@ export function createRuleStore(config: RuleStoreConfig) {
             await syncAllRulesToProxy();
           } catch (error) {
             console.error(`Failed to sync ${config.errorLabel} rules:`, error);
+            toast.error("Failed to sync rules");
           }
         },
       }),

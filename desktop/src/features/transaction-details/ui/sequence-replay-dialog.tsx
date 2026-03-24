@@ -4,7 +4,6 @@ import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
 
 import type { HttpTransaction } from "@/entities/proxy";
-import { isTextBasedDataType } from "@/entities/proxy";
 import {
   replaySequence,
   type ReplayRequestParams,
@@ -23,34 +22,14 @@ import {
   Alert,
   AlertDescription,
 } from "@/shared/ui";
-import { sanitizeHopByHopHeaders } from "@/shared/lib/http-headers";
 import { getStatusColor } from "@/entities/transaction";
-import { uint8ArrayToString } from "../lib";
+import { transactionToReplayParams } from "../lib";
 
 interface SequenceReplayDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   transactions: HttpTransaction[];
   onComplete: () => void;
-}
-
-function transactionToReplayParams(transaction: HttpTransaction): ReplayRequestParams | null {
-  const { request } = transaction;
-  if (!request) return null;
-
-  const headers = sanitizeHopByHopHeaders(request.headers);
-
-  let body: string | undefined;
-  if (request.body && request.data_type && isTextBasedDataType(request.data_type)) {
-    body = uint8ArrayToString(request.body, request.data_type);
-  }
-
-  return {
-    method: request.method,
-    url: request.uri,
-    headers,
-    body,
-  };
 }
 
 export function SequenceReplayDialog({

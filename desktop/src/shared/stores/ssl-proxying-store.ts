@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
+import { toast } from "sonner";
 import { createTauriStorage } from "@/shared/lib/tauri-store-storage";
 import type { SslProxyingEntry, SslProxyingMode } from "@/shared/api/proxy";
 import {
@@ -84,6 +85,7 @@ export const useSslProxyingStore = create<SslProxyingStoreState>()(
             await updateSslProxyingList(mode, entries);
           } catch (error) {
             console.error("Failed to sync SSL proxying list:", error);
+            toast.error("Failed to sync SSL proxying list");
           }
         });
       },
@@ -104,6 +106,7 @@ export const useSslProxyingStore = create<SslProxyingStoreState>()(
             await updateDefaultPassthroughDomains(defaultPassthroughEntries);
           } catch (error) {
             console.error("Failed to sync default passthrough domains:", error);
+            toast.error("Failed to sync default passthrough domains");
           }
         });
       },
