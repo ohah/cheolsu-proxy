@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { type ReactNode, useCallback, useMemo, useState } from "react";
 import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
 import { useTheme } from "next-themes";
@@ -19,6 +19,7 @@ import { CUSTOM_THEME_KEYS } from "@/features/query-filter-editor/model/themes";
 import { formatBytes } from "@/shared/lib/format-bytes";
 import { cleanOldProxyCache } from "@/shared/api/proxy";
 import { useSettingsForm } from "../settings-form";
+import { SettingsSection } from "./settings-section";
 
 /** Theme display names — custom themes use their key with title case as label (proper nouns, not translated) */
 const CUSTOM_THEME_LABELS: Record<string, string> = {
@@ -59,12 +60,7 @@ function LanguageSection() {
   );
 
   return (
-    <div className="border rounded-lg p-5 space-y-5">
-      <div>
-        <h2 className="text-lg font-semibold">
-          <Trans>Language</Trans>
-        </h2>
-      </div>
+    <SettingsSection title={<Trans>Language</Trans>}>
       <Select value={locale} onValueChange={handleLocaleChange}>
         <SelectTrigger className="w-48">
           <SelectValue />
@@ -77,7 +73,7 @@ function LanguageSection() {
           ))}
         </SelectContent>
       </Select>
-    </div>
+    </SettingsSection>
   );
 }
 
@@ -92,12 +88,7 @@ function ThemeSection() {
   };
 
   return (
-    <div className="border rounded-lg p-5 space-y-5">
-      <div>
-        <h2 className="text-lg font-semibold">
-          <Trans>Theme</Trans>
-        </h2>
-      </div>
+    <SettingsSection title={<Trans>Theme</Trans>}>
       <Select
         value={theme}
         onValueChange={(v) => {
@@ -118,7 +109,7 @@ function ThemeSection() {
           })}
         </SelectContent>
       </Select>
-    </div>
+    </SettingsSection>
   );
 }
 
@@ -128,15 +119,10 @@ function DetailsPanelSection() {
   const setDetailsPanelLayout = useAppSettingsStore((s) => s.setDetailsPanelLayout);
 
   return (
-    <div className="border rounded-lg p-5 space-y-5">
-      <div>
-        <h2 className="text-lg font-semibold">
-          <Trans>Details Panel Layout</Trans>
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          <Trans>Choose where the transaction details panel appears</Trans>
-        </p>
-      </div>
+    <SettingsSection
+      title={<Trans>Details Panel Layout</Trans>}
+      description={<Trans>Choose where the transaction details panel appears</Trans>}
+    >
       <Select
         value={detailsPanelLayout}
         onValueChange={(v) => {
@@ -155,7 +141,7 @@ function DetailsPanelSection() {
           </SelectItem>
         </SelectContent>
       </Select>
-    </div>
+    </SettingsSection>
   );
 }
 
@@ -179,15 +165,10 @@ function NetworkColumnsSection() {
   );
 
   return (
-    <div className="border rounded-lg p-5 space-y-5">
-      <div>
-        <h2 className="text-lg font-semibold">
-          <Trans>Network Table Columns</Trans>
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          <Trans>Choose which columns to display in the network table</Trans>
-        </p>
-      </div>
+    <SettingsSection
+      title={<Trans>Network Table Columns</Trans>}
+      description={<Trans>Choose which columns to display in the network table</Trans>}
+    >
       <div className="space-y-4">
         {TABLE_COLUMNS.map((col) => (
           <div key={col.key} className="flex items-center justify-between">
@@ -200,144 +181,93 @@ function NetworkColumnsSection() {
           </div>
         ))}
       </div>
-    </div>
+    </SettingsSection>
   );
 }
 
+interface QuickSettingItem {
+  key:
+    | "quickSettings.noCaching"
+    | "quickSettings.blockCookies"
+    | "quickSettings.noGzip"
+    | "quickSettings.blockQuic"
+    | "quickSettings.autosaveSession"
+    | "quickSettings.showConnectRequests";
+  label: ReactNode;
+  description: ReactNode;
+}
+
+const QUICK_SETTINGS: QuickSettingItem[] = [
+  {
+    key: "quickSettings.noCaching",
+    label: <Trans>No Caching</Trans>,
+    description: (
+      <Trans>Prevent caching by removing conditional headers and adding no-cache directives</Trans>
+    ),
+  },
+  {
+    key: "quickSettings.blockCookies",
+    label: <Trans>Block Cookies</Trans>,
+    description: (
+      <Trans>Remove Cookie headers from requests and Set-Cookie headers from responses</Trans>
+    ),
+  },
+  {
+    key: "quickSettings.noGzip",
+    label: <Trans>No Gzip</Trans>,
+    description: (
+      <Trans>Remove Accept-Encoding header from requests to prevent compressed responses</Trans>
+    ),
+  },
+  {
+    key: "quickSettings.blockQuic",
+    label: <Trans>Block QUIC</Trans>,
+    description: (
+      <Trans>
+        Strip Alt-Svc headers from responses to prevent QUIC/HTTP3 upgrades and force TCP/TLS
+        connections through the proxy
+      </Trans>
+    ),
+  },
+  {
+    key: "quickSettings.autosaveSession",
+    label: <Trans>Auto Save Session</Trans>,
+    description: (
+      <Trans>
+        Automatically save the current session when the app closes and restore it on next launch
+      </Trans>
+    ),
+  },
+  {
+    key: "quickSettings.showConnectRequests",
+    label: <Trans>Show CONNECT Requests</Trans>,
+    description: <Trans>Display CONNECT tunnel requests in the network list</Trans>,
+  },
+];
+
 function QuickSettingsSection() {
   const { watch, setValue } = useSettingsForm();
-  const noCaching = watch("quickSettings.noCaching");
-  const blockCookies = watch("quickSettings.blockCookies");
-  const noGzip = watch("quickSettings.noGzip");
-  const blockQuic = watch("quickSettings.blockQuic");
-  const autosaveSession = watch("quickSettings.autosaveSession");
-  const showConnectRequests = watch("quickSettings.showConnectRequests");
 
   return (
-    <div className="border rounded-lg p-5 space-y-5">
-      <div>
-        <h2 className="text-lg font-semibold">
-          <Trans>Quick Settings</Trans>
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          <Trans>Quick toggles for common proxy behaviors</Trans>
-        </p>
-      </div>
-
+    <SettingsSection
+      title={<Trans>Quick Settings</Trans>}
+      description={<Trans>Quick toggles for common proxy behaviors</Trans>}
+    >
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <label className="text-sm font-medium">
-              <Trans>No Caching</Trans>
-            </label>
-            <p className="text-xs text-muted-foreground">
-              <Trans>
-                Prevent caching by removing conditional headers and adding no-cache directives
-              </Trans>
-            </p>
+        {QUICK_SETTINGS.map((setting) => (
+          <div key={setting.key} className="flex items-center justify-between">
+            <div>
+              <label className="text-sm font-medium">{setting.label}</label>
+              <p className="text-xs text-muted-foreground">{setting.description}</p>
+            </div>
+            <Switch
+              checked={watch(setting.key)}
+              onCheckedChange={(v) => setValue(setting.key, v, { shouldDirty: true })}
+            />
           </div>
-          <Switch
-            checked={noCaching}
-            onCheckedChange={(v) => setValue("quickSettings.noCaching", v, { shouldDirty: true })}
-          />
-        </div>
-
-        <div className="flex items-center justify-between">
-          <div>
-            <label className="text-sm font-medium">
-              <Trans>Block Cookies</Trans>
-            </label>
-            <p className="text-xs text-muted-foreground">
-              <Trans>
-                Remove Cookie headers from requests and Set-Cookie headers from responses
-              </Trans>
-            </p>
-          </div>
-          <Switch
-            checked={blockCookies}
-            onCheckedChange={(v) =>
-              setValue("quickSettings.blockCookies", v, { shouldDirty: true })
-            }
-          />
-        </div>
-
-        <div className="flex items-center justify-between">
-          <div>
-            <label className="text-sm font-medium">
-              <Trans>No Gzip</Trans>
-            </label>
-            <p className="text-xs text-muted-foreground">
-              <Trans>
-                Remove Accept-Encoding header from requests to prevent compressed responses
-              </Trans>
-            </p>
-          </div>
-          <Switch
-            checked={noGzip}
-            onCheckedChange={(v) => setValue("quickSettings.noGzip", v, { shouldDirty: true })}
-          />
-        </div>
-
-        <div className="flex items-center justify-between">
-          <div>
-            <label className="text-sm font-medium">
-              <Trans>Block QUIC</Trans>
-            </label>
-            <p className="text-xs text-muted-foreground">
-              <Trans>
-                Strip Alt-Svc headers from responses to prevent QUIC/HTTP3 upgrades and force
-                TCP/TLS connections through the proxy
-              </Trans>
-            </p>
-          </div>
-          <Switch
-            checked={blockQuic}
-            onCheckedChange={(v) => setValue("quickSettings.blockQuic", v, { shouldDirty: true })}
-          />
-        </div>
-
-        <div className="flex items-center justify-between">
-          <div>
-            <label className="text-sm font-medium">
-              <Trans>Auto Save Session</Trans>
-            </label>
-            <p className="text-xs text-muted-foreground">
-              <Trans>
-                Automatically save the current session when the app closes and restore it on next
-                launch
-              </Trans>
-            </p>
-          </div>
-          <Switch
-            checked={autosaveSession}
-            onCheckedChange={(v) =>
-              setValue("quickSettings.autosaveSession", v, {
-                shouldDirty: true,
-              })
-            }
-          />
-        </div>
-
-        <div className="flex items-center justify-between">
-          <div>
-            <label className="text-sm font-medium">
-              <Trans>Show CONNECT Requests</Trans>
-            </label>
-            <p className="text-xs text-muted-foreground">
-              <Trans>Display CONNECT tunnel requests in the network list</Trans>
-            </p>
-          </div>
-          <Switch
-            checked={showConnectRequests}
-            onCheckedChange={(v) =>
-              setValue("quickSettings.showConnectRequests", v, {
-                shouldDirty: true,
-              })
-            }
-          />
-        </div>
+        ))}
       </div>
-    </div>
+    </SettingsSection>
   );
 }
 
@@ -350,18 +280,11 @@ function CacheManagementSection() {
   const [cacheCleanStatus, setCacheCleanStatus] = useState<"idle" | "cleaning" | "done">("idle");
 
   return (
-    <div className="border rounded-lg p-5 space-y-5">
-      <div>
-        <h2 className="text-lg font-semibold">
-          <Trans>Cache Management</Trans>
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          <Trans>Manage network transaction storage and file cache</Trans>
-        </p>
-      </div>
-
+    <SettingsSection
+      title={<Trans>Cache Management</Trans>}
+      description={<Trans>Manage network transaction storage and file cache</Trans>}
+    >
       <div className="space-y-4">
-        {/* Current usage */}
         <div className="flex items-center justify-between">
           <div>
             <label className="text-sm font-medium">
@@ -377,7 +300,6 @@ function CacheManagementSection() {
           </span>
         </div>
 
-        {/* Cache limit */}
         <div className="flex items-center justify-between">
           <div>
             <label className="text-sm font-medium">
@@ -409,7 +331,6 @@ function CacheManagementSection() {
           </Select>
         </div>
 
-        {/* Clear buttons */}
         <div className="flex gap-2 pt-2">
           <Button
             variant="outline"
@@ -445,7 +366,7 @@ function CacheManagementSection() {
           </Button>
         </div>
       </div>
-    </div>
+    </SettingsSection>
   );
 }
 

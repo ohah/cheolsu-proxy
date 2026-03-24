@@ -1,6 +1,7 @@
 import { Trans } from "@lingui/react/macro";
 import { Input } from "@/shared/ui";
 import { useSettingsForm } from "../settings-form";
+import { SettingsSection } from "./settings-section";
 
 export function ProxyPortSection() {
   const {
@@ -11,17 +12,14 @@ export function ProxyPortSection() {
   const port = watch("proxyPort");
 
   return (
-    <div className="border rounded-lg p-5 space-y-5">
-      <div>
-        <h2 className="text-lg font-semibold">
-          <Trans>Proxy Port</Trans>
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          <Trans>
-            Port number for the proxy server to listen on. Changes take effect on next app restart.
-          </Trans>
-        </p>
-      </div>
+    <SettingsSection
+      title={<Trans>Proxy Port</Trans>}
+      description={
+        <Trans>
+          Port number for the proxy server to listen on. Changes take effect on next app restart.
+        </Trans>
+      }
+    >
       <div className="w-32">
         <Input
           type="number"
@@ -46,6 +44,6 @@ export function ProxyPortSection() {
           </Trans>
         </p>
       )}
-    </div>
+    </SettingsSection>
   );
 }

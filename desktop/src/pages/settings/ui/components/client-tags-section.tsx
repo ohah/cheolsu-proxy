@@ -4,6 +4,7 @@ import { useLingui } from "@lingui/react/macro";
 import { Plus, X } from "lucide-react";
 import { Input, Button } from "@/shared/ui";
 import { useAppSettingsStore } from "@/shared/stores/app-settings-store";
+import { SettingsSection } from "./settings-section";
 
 export function ClientTagsSection() {
   const { t } = useLingui();
@@ -44,18 +45,12 @@ export function ClientTagsSection() {
   const entries = Object.entries(clientTags);
 
   return (
-    <div className="border rounded-lg p-5 space-y-5">
-      <div>
-        <h2 className="text-lg font-semibold">
-          <Trans>Client Tags</Trans>
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          <Trans>
-            Assign labels to client IP addresses for easier identification and filtering
-          </Trans>
-        </p>
-      </div>
-
+    <SettingsSection
+      title={<Trans>Client Tags</Trans>}
+      description={
+        <Trans>Assign labels to client IP addresses for easier identification and filtering</Trans>
+      }
+    >
       {entries.length > 0 && (
         <div className="space-y-2">
           {entries.map(([ip, label]) => (
@@ -120,6 +115,6 @@ export function ClientTagsSection() {
       <p className="text-xs text-muted-foreground">
         <Trans>Use tags in the filter with client="tag_name" to filter traffic by device</Trans>
       </p>
-    </div>
+    </SettingsSection>
   );
 }

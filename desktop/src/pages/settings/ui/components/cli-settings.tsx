@@ -3,6 +3,7 @@ import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
 import { installCli, uninstallCli, checkCliInstalled } from "@/shared/api/proxy";
 import { Button, Badge } from "@/shared/ui";
+import { SettingsSection } from "./settings-section";
 
 export function CliSettings() {
   const { t } = useLingui();
@@ -44,18 +45,15 @@ export function CliSettings() {
   }, []);
 
   return (
-    <div className="border rounded-lg p-5 space-y-4">
-      <div>
-        <h2 className="text-lg font-semibold">
-          <Trans>Terminal Command</Trans>
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          <Trans>
-            Install the <code className="text-xs bg-muted px-1 py-0.5 rounded">cheolsu</code>{" "}
-            command to use the TUI from your terminal
-          </Trans>
-        </p>
-      </div>
+    <SettingsSection
+      title={<Trans>Terminal Command</Trans>}
+      description={
+        <Trans>
+          Install the <code className="text-xs bg-muted px-1 py-0.5 rounded">cheolsu</code> command
+          to use the TUI from your terminal
+        </Trans>
+      }
+    >
       <div className="flex items-center gap-3">
         <Button onClick={handleInstallCli} disabled={cliInstalling}>
           {cliInstalling ? t`Installing...` : cliInstalled ? t`Reinstall` : t`Install`}
@@ -72,6 +70,6 @@ export function CliSettings() {
         )}
       </div>
       {cliMessage && <p className="text-xs text-muted-foreground">{cliMessage}</p>}
-    </div>
+    </SettingsSection>
   );
 }

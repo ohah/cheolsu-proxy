@@ -5,6 +5,7 @@ import { getNeverPassthroughDomains } from "@/shared/api/proxy";
 import { Button, Input } from "@/shared/ui";
 import { X } from "lucide-react";
 import { useSettingsForm } from "../settings-form";
+import { SettingsSection } from "./settings-section";
 
 export function NeverPassthroughSection() {
   const { t } = useLingui();
@@ -52,19 +53,16 @@ export function NeverPassthroughSection() {
   );
 
   return (
-    <div className="border rounded-lg p-5 space-y-4">
-      <div>
-        <h2 className="text-lg font-semibold">
-          <Trans>Never Passthrough</Trans>
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          <Trans>
-            Domains in this list will never fall back to passthrough when TLS handshake fails. The
-            proxy will keep trying to intercept these domains, allowing you to see the actual error
-            instead of silently bypassing.
-          </Trans>
-        </p>
-      </div>
+    <SettingsSection
+      title={<Trans>Never Passthrough</Trans>}
+      description={
+        <Trans>
+          Domains in this list will never fall back to passthrough when TLS handshake fails. The
+          proxy will keep trying to intercept these domains, allowing you to see the actual error
+          instead of silently bypassing.
+        </Trans>
+      }
+    >
       <div className="flex items-center gap-2">
         <Input
           placeholder={t`example.com or *.example.com`}
@@ -100,6 +98,6 @@ export function NeverPassthroughSection() {
           ))}
         </div>
       )}
-    </div>
+    </SettingsSection>
   );
 }
