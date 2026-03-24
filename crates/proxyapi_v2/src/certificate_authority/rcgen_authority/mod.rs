@@ -35,19 +35,12 @@ pub struct ClientCertVerifyConfig {
 ///
 /// ```rust
 /// use proxyapi_v2::{certificate_authority::RcgenAuthority, rustls::crypto::aws_lc_rs};
-/// use rcgen::{Issuer, KeyPair};
 ///
 /// let key_pem = include_str!("../../../examples/ca/hudsucker.key");
 /// let ca_pem = include_str!("../../../examples/ca/hudsucker.cer");
-/// let ca_cert_der = pem::parse(ca_pem).unwrap().into_contents();
-/// let key_pair = KeyPair::from_pem(key_pem).expect("Failed to parse private key");
-/// let issuer = Issuer::from_ca_cert_pem(ca_pem, key_pair)
-///     .expect("Failed to parse CA certificate");
 ///
-/// let ca = RcgenAuthority::new(
-///     issuer, ca_cert_der.into(), ca_pem.to_string(), key_pem.to_string(),
-///     1_000, aws_lc_rs::default_provider(),
-/// );
+/// let ca = RcgenAuthority::from_pem(ca_pem, key_pem, 1_000, aws_lc_rs::default_provider())
+///     .expect("Failed to create RcgenAuthority from PEM");
 /// ```
 pub struct RcgenAuthority {
     pub(super) issuer: Issuer<'static, KeyPair>,
@@ -90,6 +83,34 @@ impl RcgenAuthority {
             provider: Arc::new(provider),
             client_cert_verify: Arc::new(tokio::sync::RwLock::new(None)),
         }
+    }
+
+    /// PEM 문자열에서 RcgenAuthority를 생성하는 편의 생성자.
+    ///
+    /// CA 인증서 PEM과 개인키 PEM에서 Issuer를 파싱하고 DER 캐시를 구성합니다.
+    pub fn from_pem(
+        ca_cert_pem: &str,
+        ca_key_pem: &str,
+        cache_size: u64,
+        provider: CryptoProvider,
+    ) -> Result<Self, String> {
+        let ca_cert_der_bytes = pem::parse(ca_cert_pem)
+            .map_err(|e| format!("Failed to parse CA PEM: {}", e))?
+            .into_contents();
+        let ca_cert_der = CertificateDer::from(ca_cert_der_bytes);
+        let key_pair =
+            KeyPair::from_pem(ca_key_pem).map_err(|e| format!("Failed to parse key PEM: {}", e))?;
+        let issuer = Issuer::from_ca_cert_pem(ca_cert_pem, key_pair)
+            .map_err(|e| format!("Failed to create issuer: {}", e))?;
+
+        Ok(Self::new(
+            issuer,
+            ca_cert_der,
+            ca_cert_pem.to_string(),
+            ca_key_pem.to_string(),
+            cache_size,
+            provider,
+        ))
     }
 
     /// 클라이언트 인증서 요청 설정을 업데이트합니다.

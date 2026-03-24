@@ -49,19 +49,13 @@ pub enum Error {
 /// use proxyapi_v2::Proxy;
 /// # use proxyapi_v2::{
 /// #     certificate_authority::RcgenAuthority,
-/// #     rcgen::{Issuer, KeyPair},
 /// #     rustls::crypto::aws_lc_rs,
 /// # };
-/// # use tokio_rustls::rustls::pki_types::CertificateDer;
 /// #
 /// # let key_pem = include_str!("../../examples/ca/hudsucker.key");
 /// # let ca_cert_pem = include_str!("../../examples/ca/hudsucker.cer");
-/// # let ca_cert_der = pem::parse(ca_cert_pem).unwrap().into_contents();
-/// # let key_pair = KeyPair::from_pem(key_pem).expect("Failed to parse private key");
-/// # let issuer = Issuer::from_ca_cert_pem(ca_cert_pem, key_pair)
-/// #     .expect("Failed to parse CA certificate");
 /// #
-/// # let ca = RcgenAuthority::new(issuer, CertificateDer::from(ca_cert_der), ca_cert_pem.to_string(), key_pem.to_string(), 1_000, aws_lc_rs::default_provider());
+/// # let ca = RcgenAuthority::from_pem(ca_cert_pem, key_pem, 1_000, aws_lc_rs::default_provider()).expect("Failed to create CA");
 ///
 /// // let ca = ...;
 ///

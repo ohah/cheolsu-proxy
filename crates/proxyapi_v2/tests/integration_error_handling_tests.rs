@@ -4,7 +4,6 @@ use proxyapi_v2::{
     Body, HttpContext, HttpHandler, RequestOrResponse,
     certificate_authority::RcgenAuthority,
     hyper::{Request, Response, StatusCode},
-    rcgen::{Issuer, KeyPair},
     rustls::crypto::aws_lc_rs,
 };
 use std::error::Error;
@@ -14,7 +13,6 @@ use std::sync::Arc;
 use std::sync::Mutex;
 use tokio::sync::oneshot::Sender;
 use tokio::time::Duration;
-use tokio_rustls::rustls::pki_types::CertificateDer;
 
 // 실제 LoggingHandler를 모방한 테스트용 핸들러
 pub struct TestLoggingHandler {
@@ -181,19 +179,9 @@ async fn start_test_server() -> Result<(SocketAddr, Sender<()>), Box<dyn std::er
 fn build_test_ca() -> RcgenAuthority {
     let key_pem = include_str!("../src/certificate_authority/cheolsu-proxy.key");
     let ca_cert_pem = include_str!("../src/certificate_authority/cheolsu-proxy.cer");
-    let ca_cert_der = pem::parse(ca_cert_pem).unwrap().into_contents();
-    let key_pair = KeyPair::from_pem(key_pem).expect("Failed to parse private key");
-    let issuer =
-        Issuer::from_ca_cert_pem(ca_cert_pem, key_pair).expect("Failed to parse CA certificate");
 
-    RcgenAuthority::new(
-        issuer,
-        CertificateDer::from(ca_cert_der),
-        ca_cert_pem.to_string(),
-        key_pem.to_string(),
-        1_000,
-        aws_lc_rs::default_provider(),
-    )
+    RcgenAuthority::from_pem(ca_cert_pem, key_pem, 1_000, aws_lc_rs::default_provider())
+        .expect("Failed to create RcgenAuthority from PEM")
 }
 
 /// 프록시 서버 시작 (common 헬퍼 활용)

@@ -9,7 +9,6 @@ use proxyapi_v2::{
         rt::{TokioExecutor, TokioIo},
         server::conn::auto,
     },
-    rcgen::{Issuer, KeyPair},
     rustls::crypto::aws_lc_rs,
 };
 use reqwest::Certificate;
@@ -17,7 +16,6 @@ use std::{convert::Infallible, net::SocketAddr};
 use tokio::{net::TcpListener, sync::oneshot::Sender};
 use tokio_graceful::Shutdown;
 use tokio_native_tls::native_tls;
-use tokio_rustls::rustls::pki_types::CertificateDer;
 
 fn runtime() -> tokio::runtime::Runtime {
     tokio::runtime::Builder::new_current_thread()
@@ -30,19 +28,9 @@ fn runtime() -> tokio::runtime::Runtime {
 fn build_ca() -> RcgenAuthority {
     let key_pem = include_str!("../examples/ca/hudsucker.key");
     let ca_cert_pem = include_str!("../examples/ca/hudsucker.cer");
-    let ca_cert_der = pem::parse(ca_cert_pem).unwrap().into_contents();
-    let key_pair = KeyPair::from_pem(key_pem).expect("Failed to parse private key");
-    let issuer =
-        Issuer::from_ca_cert_pem(ca_cert_pem, key_pair).expect("Failed to parse CA certificate");
 
-    RcgenAuthority::new(
-        issuer,
-        CertificateDer::from(ca_cert_der),
-        ca_cert_pem.to_string(),
-        key_pem.to_string(),
-        1000,
-        aws_lc_rs::default_provider(),
-    )
+    RcgenAuthority::from_pem(ca_cert_pem, key_pem, 1000, aws_lc_rs::default_provider())
+        .expect("Failed to create RcgenAuthority from PEM")
 }
 
 async fn test_server(req: Request<Incoming>) -> Result<Response<Body>, Infallible> {
