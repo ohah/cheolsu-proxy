@@ -37,7 +37,13 @@ impl RcgenAuthority {
             PrivateKeyDer::from(PrivatePkcs8KeyDer::from(leaf_key_pair.serialize_der()));
 
         let mut params = CertificateParams::default();
-        params.serial_number = Some(rng().random::<u64>().into());
+        params.serial_number = Some({
+            let mut bytes = [0u8; 16];
+            rng().fill(&mut bytes);
+            // RFC 5280: serial number는 양수여야 하므로 최상위 비트 클리어
+            bytes[0] &= 0x7F;
+            rcgen::SerialNumber::from_slice(&bytes)
+        });
 
         let not_before = OffsetDateTime::now_utc() - Duration::seconds(NOT_BEFORE_OFFSET);
         params.not_before = not_before;
@@ -55,9 +61,14 @@ impl RcgenAuthority {
             } else {
                 distinguished_name.push(DnType::CommonName, &truncate_cn(host));
             }
-            // upstream 인증서의 Organization 복제
             if let Some(ref org) = upstream.organization {
                 distinguished_name.push(DnType::OrganizationName, org);
+            }
+            if let Some(ref country) = upstream.country {
+                distinguished_name.push(DnType::CountryName, country);
+            }
+            if let Some(ref state) = upstream.state {
+                distinguished_name.push(DnType::StateOrProvinceName, state);
             }
         } else {
             distinguished_name.push(DnType::CommonName, &truncate_cn(host));

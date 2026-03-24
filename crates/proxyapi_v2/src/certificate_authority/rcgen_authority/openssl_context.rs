@@ -51,7 +51,12 @@ pub(super) async fn gen_openssl_context(
                     });
 
             let mut params = rcgen::CertificateParams::default();
-            params.serial_number = Some(rng().random::<u64>().into());
+            params.serial_number = Some({
+                let mut bytes = [0u8; 16];
+                rng().fill(&mut bytes);
+                bytes[0] &= 0x7F;
+                rcgen::SerialNumber::from_slice(&bytes)
+            });
 
             let not_before = OffsetDateTime::now_utc() - Duration::seconds(NOT_BEFORE_OFFSET);
             params.not_before = not_before;
@@ -67,6 +72,12 @@ pub(super) async fn gen_openssl_context(
                 }
                 if let Some(ref org) = upstream.organization {
                     distinguished_name.push(DnType::OrganizationName, org);
+                }
+                if let Some(ref country) = upstream.country {
+                    distinguished_name.push(DnType::CountryName, country);
+                }
+                if let Some(ref state) = upstream.state {
+                    distinguished_name.push(DnType::StateOrProvinceName, state);
                 }
             } else {
                 distinguished_name.push(DnType::CommonName, &truncate_cn(&host));
