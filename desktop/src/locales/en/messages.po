@@ -285,11 +285,11 @@ msgstr "Assign labels to client IP addresses for easier identification and filte
 msgid "Authentication"
 msgstr "Authentication"
 
-#: src/pages/settings/ui/components/general-settings.tsx:294
+#: src/pages/settings/ui/components/general-settings.tsx:302
 msgid "Auto Save Session"
 msgstr "Auto Save Session"
 
-#: src/pages/settings/ui/components/general-settings.tsx:297
+#: src/pages/settings/ui/components/general-settings.tsx:305
 msgid "Automatically save the current session when the app closes and restore it on next launch"
 msgstr "Automatically save the current session when the app closes and restore it on next launch"
 
@@ -343,11 +343,11 @@ msgstr "Blacklist (Exclude)"
 msgid "Block"
 msgstr "Block"
 
-#: src/pages/settings/ui/components/general-settings.tsx:240
+#: src/pages/settings/ui/components/general-settings.tsx:248
 msgid "Block Cookies"
 msgstr "Block Cookies"
 
-#: src/pages/settings/ui/components/general-settings.tsx:276
+#: src/pages/settings/ui/components/general-settings.tsx:284
 msgid "Block QUIC"
 msgstr "Block QUIC"
 
@@ -361,8 +361,8 @@ msgstr "Block QUIC"
 msgid "Body"
 msgstr "Body"
 
-#: src/pages/settings/ui/components/general-settings.tsx:177
-#: src/pages/settings/ui/components/general-settings.tsx:178
+#: src/pages/settings/ui/components/general-settings.tsx:153
+#: src/pages/settings/ui/components/general-settings.tsx:154
 msgid "Bottom"
 msgstr "Bottom"
 
@@ -417,7 +417,7 @@ msgid "bytes body"
 msgstr "bytes body"
 
 #: src/features/transaction-details/ui/transaction-certificate.tsx:90
-#: src/pages/settings/ui/components/certificate-settings.tsx:116
+#: src/pages/settings/ui/components/certificate-settings.tsx:73
 msgid "CA Certificate"
 msgstr "CA Certificate"
 
@@ -433,11 +433,11 @@ msgstr "CA Certificate File (optional)"
 msgid "CA Key File"
 msgstr "CA Key File"
 
-#: src/pages/settings/ui/components/general-settings.tsx:366
+#: src/pages/settings/ui/components/general-settings.tsx:384
 msgid "Cache Limit"
 msgstr "Cache Limit"
 
-#: src/pages/settings/ui/components/general-settings.tsx:338
+#: src/pages/settings/ui/components/general-settings.tsx:356
 msgid "Cache Management"
 msgstr "Cache Management"
 
@@ -474,7 +474,7 @@ msgstr "Certificate Chain"
 msgid "Certificate Details"
 msgstr "Certificate Details"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:399
+#: src/pages/settings/ui/components/certificate-settings.tsx:394
 msgid "Certificate Download URL"
 msgstr "Certificate Download URL"
 
@@ -506,11 +506,11 @@ msgstr "Change"
 msgid "Cheolsu Proxy Logo"
 msgstr "Cheolsu Proxy Logo"
 
-#: src/pages/settings/ui/components/general-settings.tsx:161
+#: src/pages/settings/ui/components/general-settings.tsx:137
 msgid "Choose where the transaction details panel appears"
 msgstr "Choose where the transaction details panel appears"
 
-#: src/pages/settings/ui/components/general-settings.tsx:191
+#: src/pages/settings/ui/components/general-settings.tsx:188
 msgid "Choose which columns to display in the network table"
 msgstr "Choose which columns to display in the network table"
 
@@ -518,11 +518,11 @@ msgstr "Choose which columns to display in the network table"
 msgid "Claude Code (CLI)"
 msgstr "Claude Code (CLI)"
 
-#: src/pages/settings/ui/components/general-settings.tsx:423
+#: src/pages/settings/ui/components/general-settings.tsx:441
 msgid "Cleaned!"
 msgstr "Cleaned!"
 
-#: src/pages/settings/ui/components/general-settings.tsx:421
+#: src/pages/settings/ui/components/general-settings.tsx:439
 msgid "Cleaning..."
 msgstr "Cleaning..."
 
@@ -550,7 +550,7 @@ msgstr "Clear All"
 msgid "Clear all transactions"
 msgstr "Clear all transactions"
 
-#: src/pages/settings/ui/components/general-settings.tsx:425
+#: src/pages/settings/ui/components/general-settings.tsx:443
 msgid "Clear File Cache"
 msgstr "Clear File Cache"
 
@@ -559,7 +559,7 @@ msgstr "Clear File Cache"
 msgid "Clear selection"
 msgstr "Clear selection"
 
-#: src/pages/settings/ui/components/general-settings.tsx:403
+#: src/pages/settings/ui/components/general-settings.tsx:421
 msgid "Clear Transaction Records"
 msgstr "Clear Transaction Records"
 
@@ -674,7 +674,7 @@ msgid "Controls when the proxy connects to upstream servers for certificate snif
 msgstr "Controls when the proxy connects to upstream servers for certificate sniffing"
 
 #: src/features/transaction-details/ui/transaction-certificate.tsx:30
-#: src/pages/settings/ui/components/certificate-settings.tsx:243
+#: src/pages/settings/ui/components/certificate-settings.tsx:240
 msgid "Copied!"
 msgstr "Copied!"
 
@@ -700,7 +700,7 @@ msgstr "Copy Headers"
 msgid "Copy to clipboard"
 msgstr "Copy to clipboard"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:243
+#: src/pages/settings/ui/components/certificate-settings.tsx:240
 msgid "Copy URL"
 msgstr "Copy URL"
 
@@ -721,7 +721,7 @@ msgstr "cURL"
 msgid "Curl command copied to clipboard"
 msgstr "Curl command copied to clipboard"
 
-#: src/pages/settings/ui/components/general-settings.tsx:350
+#: src/pages/settings/ui/components/general-settings.tsx:368
 msgid "Current Usage"
 msgstr "Current Usage"
 
@@ -738,7 +738,7 @@ msgstr "Custom body"
 msgid "Custom CA Certificate"
 msgstr "Custom CA Certificate"
 
-#: src/pages/settings/ui/components/general-settings.tsx:99
+#: src/pages/settings/ui/components/general-settings.tsx:91
 msgid "Dark"
 msgstr "Dark"
 
@@ -790,7 +790,7 @@ msgstr "Delete rule"
 msgid "Delete Transaction"
 msgstr "Delete Transaction"
 
-#: src/pages/settings/ui/components/general-settings.tsx:158
+#: src/pages/settings/ui/components/general-settings.tsx:134
 msgid "Details Panel Layout"
 msgstr "Details Panel Layout"
 
@@ -815,7 +815,7 @@ msgstr "Disabled"
 msgid "Disconnected"
 msgstr "Disconnected"
 
-#: src/pages/settings/ui/components/general-settings.tsx:319
+#: src/pages/settings/ui/components/general-settings.tsx:327
 msgid "Display CONNECT tunnel requests in the network list"
 msgstr "Display CONNECT tunnel requests in the network list"
 
@@ -918,7 +918,7 @@ msgstr "Edit Rule"
 msgid "Editor"
 msgstr "Editor"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:318
+#: src/pages/settings/ui/components/certificate-settings.tsx:313
 msgid "Enable full trust for the Cheolsu Proxy CA certificate"
 msgstr "Enable full trust for the Cheolsu Proxy CA certificate"
 
@@ -1117,8 +1117,8 @@ msgstr "First Seen"
 msgid "For Cursor, Claude Desktop, and other MCP-compatible clients:"
 msgstr "For Cursor, Claude Desktop, and other MCP-compatible clients:"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:261
-#: src/pages/settings/ui/components/certificate-settings.tsx:265
+#: src/pages/settings/ui/components/certificate-settings.tsx:258
+#: src/pages/settings/ui/components/certificate-settings.tsx:262
 msgid "format"
 msgstr "format"
 
@@ -1143,15 +1143,15 @@ msgstr "General"
 msgid "Global Shortcut"
 msgstr "Global Shortcut"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:312
+#: src/pages/settings/ui/components/certificate-settings.tsx:307
 msgid "Go to <0>Settings → General → About → Certificate Trust Settings</0>"
 msgstr "Go to <0>Settings → General → About → Certificate Trust Settings</0>"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:304
+#: src/pages/settings/ui/components/certificate-settings.tsx:299
 msgid "Go to <0>Settings → General → VPN & Device Management</0>"
 msgstr "Go to <0>Settings → General → VPN & Device Management</0>"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:352
+#: src/pages/settings/ui/components/certificate-settings.tsx:347
 msgid "Go to <0>Settings → Security → Encryption & credentials</0>"
 msgstr "Go to <0>Settings → Security → Encryption & credentials</0>"
 
@@ -1290,7 +1290,7 @@ msgstr "Imported"
 msgid "Importing..."
 msgstr "Importing..."
 
-#: src/pages/settings/ui/components/general-settings.tsx:353
+#: src/pages/settings/ui/components/general-settings.tsx:371
 msgid "In-memory transaction data size"
 msgstr "In-memory transaction data size"
 
@@ -1298,17 +1298,17 @@ msgstr "In-memory transaction data size"
 msgid "Inactive"
 msgstr "Inactive"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:129
+#: src/pages/settings/ui/components/certificate-settings.tsx:84
 #: src/pages/settings/ui/components/cli-settings.tsx:61
 msgid "Install"
 msgstr "Install"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:205
+#: src/pages/settings/ui/components/certificate-settings.tsx:202
 msgid "Install and trust the downloaded certificate"
 msgstr "Install and trust the downloaded certificate"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:284
-#: src/pages/settings/ui/components/certificate-settings.tsx:334
+#: src/pages/settings/ui/components/certificate-settings.tsx:281
+#: src/pages/settings/ui/components/certificate-settings.tsx:329
 msgid "Install Guide"
 msgstr "Install Guide"
 
@@ -1316,11 +1316,11 @@ msgstr "Install Guide"
 msgid "Install the <0>cheolsu</0> command to use the TUI from your terminal"
 msgstr "Install the <0>cheolsu</0> command to use the TUI from your terminal"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:162
+#: src/pages/settings/ui/components/certificate-settings.tsx:159
 msgid "Install the CA certificate on external devices (mobile, tablet) to intercept HTTPS traffic"
 msgstr "Install the CA certificate on external devices (mobile, tablet) to intercept HTTPS traffic"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:119
+#: src/pages/settings/ui/components/certificate-settings.tsx:76
 msgid "Install the CA certificate to trust HTTPS traffic intercepted by the proxy"
 msgstr "Install the CA certificate to trust HTTPS traffic intercepted by the proxy"
 
@@ -1328,7 +1328,7 @@ msgstr "Install the CA certificate to trust HTTPS traffic intercepted by the pro
 msgid "Installed"
 msgstr "Installed"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:129
+#: src/pages/settings/ui/components/certificate-settings.tsx:84
 #: src/pages/settings/ui/components/cli-settings.tsx:61
 msgid "Installing..."
 msgstr "Installing..."
@@ -1391,7 +1391,7 @@ msgstr "Key File"
 msgid "Label"
 msgstr "Label"
 
-#: src/pages/settings/ui/components/general-settings.tsx:108
+#: src/pages/settings/ui/components/general-settings.tsx:65
 msgid "Language"
 msgstr "Language"
 
@@ -1412,7 +1412,7 @@ msgstr "Latency (ms)"
 msgid "Learned TLS Strategies"
 msgstr "Learned TLS Strategies"
 
-#: src/pages/settings/ui/components/general-settings.tsx:98
+#: src/pages/settings/ui/components/general-settings.tsx:90
 msgid "Light"
 msgstr "Light"
 
@@ -1454,7 +1454,7 @@ msgstr "Loading certificate info..."
 
 #: src/pages/script/ui/script-page.tsx:214
 #: src/pages/script/ui/script-page.tsx:266
-#: src/pages/settings/ui/components/certificate-settings.tsx:177
+#: src/pages/settings/ui/components/certificate-settings.tsx:174
 #: src/pages/settings/ui/components/proto-files-section.tsx:77
 msgid "Loading..."
 msgstr "Loading..."
@@ -1481,7 +1481,7 @@ msgstr "Logical OR:"
 msgid "Logs"
 msgstr "Logs"
 
-#: src/pages/settings/ui/components/general-settings.tsx:341
+#: src/pages/settings/ui/components/general-settings.tsx:359
 msgid "Manage network transaction storage and file cache"
 msgstr "Manage network transaction storage and file cache"
 
@@ -1563,7 +1563,7 @@ msgstr "Match Pattern"
 msgid "Matched"
 msgstr "Matched"
 
-#: src/pages/settings/ui/components/general-settings.tsx:369
+#: src/pages/settings/ui/components/general-settings.tsx:387
 msgid "Maximum memory for network transaction records"
 msgstr "Maximum memory for network transaction records"
 
@@ -1609,7 +1609,7 @@ msgstr "Misc"
 msgid "Mixed Content Warnings"
 msgstr "Mixed Content Warnings"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:214
+#: src/pages/settings/ui/components/certificate-settings.tsx:211
 msgid "Mobile Certificate Install"
 msgstr "Mobile Certificate Install"
 
@@ -1664,7 +1664,7 @@ msgstr "Negotiated ALPN"
 msgid "Network"
 msgstr "Network"
 
-#: src/pages/settings/ui/components/general-settings.tsx:188
+#: src/pages/settings/ui/components/general-settings.tsx:185
 msgid "Network Table Columns"
 msgstr "Network Table Columns"
 
@@ -1692,7 +1692,7 @@ msgstr "No active WebSocket connections"
 msgid "No breakpoint rules"
 msgstr "No breakpoint rules"
 
-#: src/pages/settings/ui/components/general-settings.tsx:223
+#: src/pages/settings/ui/components/general-settings.tsx:231
 msgid "No Caching"
 msgstr "No Caching"
 
@@ -1732,7 +1732,7 @@ msgstr "No error endpoints detected"
 msgid "No errors detected"
 msgstr "No errors detected"
 
-#: src/pages/settings/ui/components/general-settings.tsx:259
+#: src/pages/settings/ui/components/general-settings.tsx:267
 msgid "No Gzip"
 msgstr "No Gzip"
 
@@ -1848,7 +1848,7 @@ msgstr "Not After"
 msgid "Not Before"
 msgstr "Not Before"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:143
+#: src/pages/settings/ui/components/certificate-settings.tsx:98
 msgid "Not Trusted"
 msgstr "Not Trusted"
 
@@ -1876,15 +1876,15 @@ msgstr "Only http:// and https:// URLs are allowed"
 msgid "Only whitelisted domains ({enabledCount}) will have HTTPS traffic intercepted"
 msgstr "Only whitelisted domains ({enabledCount}) will have HTTPS traffic intercepted"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:344
+#: src/pages/settings/ui/components/certificate-settings.tsx:339
 msgid "Open <0>{CERT_DOWNLOAD_URL}</0> in Chrome"
 msgstr "Open <0>{CERT_DOWNLOAD_URL}</0> in Chrome"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:294
+#: src/pages/settings/ui/components/certificate-settings.tsx:291
 msgid "Open <0>{CERT_DOWNLOAD_URL}</0> in Safari"
 msgstr "Open <0>{CERT_DOWNLOAD_URL}</0> in Safari"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:196
+#: src/pages/settings/ui/components/certificate-settings.tsx:193
 msgid "Open <0>{CERT_DOWNLOAD_URL}</0> in your device browser"
 msgstr "Open <0>{CERT_DOWNLOAD_URL}</0> in your device browser"
 
@@ -1896,7 +1896,7 @@ msgstr "Open Directory"
 msgid "Open File"
 msgstr "Open File"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:252
+#: src/pages/settings/ui/components/certificate-settings.tsx:249
 msgid "Open this URL in your mobile browser after setting the Wi-Fi proxy. The page automatically detects your device and provides the correct certificate format."
 msgstr "Open this URL in your mobile browser after setting the Wi-Fi proxy. The page automatically detects your device and provides the correct certificate format."
 
@@ -2061,7 +2061,7 @@ msgstr "Preset name"
 msgid "Press a key combination..."
 msgstr "Press a key combination..."
 
-#: src/pages/settings/ui/components/general-settings.tsx:226
+#: src/pages/settings/ui/components/general-settings.tsx:234
 msgid "Prevent caching by removing conditional headers and adding no-cache directives"
 msgstr "Prevent caching by removing conditional headers and adding no-cache directives"
 
@@ -2077,7 +2077,7 @@ msgstr "Progress"
 msgid "Proto file removed"
 msgstr "Proto file removed"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:389
+#: src/pages/settings/ui/components/certificate-settings.tsx:384
 msgid "Proxy Address"
 msgstr "Proxy Address"
 
@@ -2117,11 +2117,11 @@ msgstr "Query Syntax Guide"
 msgid "Query syntax help"
 msgstr "Query syntax help"
 
-#: src/pages/settings/ui/components/general-settings.tsx:212
+#: src/pages/settings/ui/components/general-settings.tsx:220
 msgid "Quick Settings"
 msgstr "Quick Settings"
 
-#: src/pages/settings/ui/components/general-settings.tsx:215
+#: src/pages/settings/ui/components/general-settings.tsx:223
 msgid "Quick toggles for common proxy behaviors"
 msgstr "Quick toggles for common proxy behaviors"
 
@@ -2139,7 +2139,7 @@ msgstr "Referrer"
 
 #: src/pages/log-viewer/ui/logs-page.tsx:258
 #: src/pages/log-viewer/ui/logs-page.tsx:283
-#: src/pages/settings/ui/components/certificate-settings.tsx:406
+#: src/pages/settings/ui/components/certificate-settings.tsx:401
 msgid "Refresh"
 msgstr "Refresh"
 
@@ -2151,7 +2151,7 @@ msgstr "Regex pattern (e.g. old-domain\\.com)"
 msgid "Register .proto files to decode gRPC traffic with actual field names instead of field numbers."
 msgstr "Register .proto files to decode gRPC traffic with actual field names instead of field numbers."
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:129
+#: src/pages/settings/ui/components/certificate-settings.tsx:84
 #: src/pages/settings/ui/components/cli-settings.tsx:61
 msgid "Reinstall"
 msgstr "Reinstall"
@@ -2160,7 +2160,7 @@ msgstr "Reinstall"
 msgid "Reload"
 msgstr "Reload"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:159
+#: src/pages/settings/ui/components/certificate-settings.tsx:156
 msgid "Remote Device Certificate"
 msgstr "Remote Device Certificate"
 
@@ -2169,11 +2169,11 @@ msgstr "Remote Device Certificate"
 msgid "Remove"
 msgstr "Remove"
 
-#: src/pages/settings/ui/components/general-settings.tsx:262
+#: src/pages/settings/ui/components/general-settings.tsx:270
 msgid "Remove Accept-Encoding header from requests to prevent compressed responses"
 msgstr "Remove Accept-Encoding header from requests to prevent compressed responses"
 
-#: src/pages/settings/ui/components/general-settings.tsx:243
+#: src/pages/settings/ui/components/general-settings.tsx:251
 msgid "Remove Cookie headers from requests and Set-Cookie headers from responses"
 msgstr "Remove Cookie headers from requests and Set-Cookie headers from responses"
 
@@ -2384,8 +2384,8 @@ msgstr "Rewrite Host"
 msgid "Rewrite Host header to backend address"
 msgstr "Rewrite Host header to backend address"
 
-#: src/pages/settings/ui/components/general-settings.tsx:174
-#: src/pages/settings/ui/components/general-settings.tsx:175
+#: src/pages/settings/ui/components/general-settings.tsx:150
+#: src/pages/settings/ui/components/general-settings.tsx:151
 msgid "Right"
 msgstr "Right"
 
@@ -2473,7 +2473,7 @@ msgstr "Saved"
 msgid "Saving..."
 msgstr "Saving..."
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:381
+#: src/pages/settings/ui/components/certificate-settings.tsx:376
 msgid "Scan for proxy info"
 msgstr "Scan for proxy info"
 
@@ -2546,11 +2546,11 @@ msgstr "Select PKCS12 file (.p12, .pfx)"
 msgid "Select preset..."
 msgstr "Select preset..."
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:360
+#: src/pages/settings/ui/components/certificate-settings.tsx:355
 msgid "Select the downloaded certificate file and confirm"
 msgstr "Select the downloaded certificate file and confirm"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:309
+#: src/pages/settings/ui/components/certificate-settings.tsx:304
 msgid "Select the downloaded profile and tap \"Install\""
 msgstr "Select the downloaded profile and tap \"Install\""
 
@@ -2648,7 +2648,7 @@ msgstr "Set body (optional)"
 
 #. placeholder {0}: certDownloadInfo.local_ips[0] || "127.0.0.1"
 #. placeholder {1}: certDownloadInfo.port
-#: src/pages/settings/ui/components/certificate-settings.tsx:188
+#: src/pages/settings/ui/components/certificate-settings.tsx:185
 msgid "Set Wi-Fi proxy on your device to <0>{0}:{1}</0>"
 msgstr "Set Wi-Fi proxy on your device to <0>{0}:{1}</0>"
 
@@ -2657,7 +2657,7 @@ msgstr "Set Wi-Fi proxy on your device to <0>{0}:{1}</0>"
 msgid "Settings"
 msgstr "Settings"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:184
+#: src/pages/settings/ui/components/certificate-settings.tsx:181
 msgid "Setup Instructions:"
 msgstr "Setup Instructions:"
 
@@ -2669,7 +2669,7 @@ msgstr "SHA-256 Fingerprint"
 msgid "Shortcut Key"
 msgstr "Shortcut Key"
 
-#: src/pages/settings/ui/components/general-settings.tsx:316
+#: src/pages/settings/ui/components/general-settings.tsx:324
 msgid "Show CONNECT Requests"
 msgstr "Show CONNECT Requests"
 
@@ -2718,8 +2718,8 @@ msgstr "SSL Proxying"
 msgid "Start"
 msgstr "Start"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:148
-#: src/pages/settings/ui/components/certificate-settings.tsx:172
+#: src/pages/settings/ui/components/certificate-settings.tsx:103
+#: src/pages/settings/ui/components/certificate-settings.tsx:169
 msgid "Start proxy first"
 msgstr "Start proxy first"
 
@@ -2759,7 +2759,7 @@ msgstr "Status Message"
 msgid "Strategy"
 msgstr "Strategy"
 
-#: src/pages/settings/ui/components/general-settings.tsx:279
+#: src/pages/settings/ui/components/general-settings.tsx:287
 msgid "Strip Alt-Svc headers from responses to prevent QUIC/HTTP3 upgrades and force TCP/TLS connections through the proxy"
 msgstr "Strip Alt-Svc headers from responses to prevent QUIC/HTTP3 upgrades and force TCP/TLS connections through the proxy"
 
@@ -2787,15 +2787,15 @@ msgstr "Switch to Builder mode"
 msgid "Switch to Code mode"
 msgstr "Switch to Code mode"
 
-#: src/pages/settings/ui/components/general-settings.tsx:97
+#: src/pages/settings/ui/components/general-settings.tsx:89
 msgid "System"
 msgstr "System"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:299
+#: src/pages/settings/ui/components/certificate-settings.tsx:296
 msgid "Tap \"Allow\" when prompted to download the configuration profile"
 msgstr "Tap \"Allow\" when prompted to download the configuration profile"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:357
+#: src/pages/settings/ui/components/certificate-settings.tsx:352
 msgid "Tap \"Install a certificate\" → \"CA certificate\""
 msgstr "Tap \"Install a certificate\" → \"CA certificate\""
 
@@ -2823,11 +2823,11 @@ msgstr "Terminal Command"
 msgid "The certificate must be a CA certificate (BasicConstraints CA=true). After importing, restart the proxy to use the new CA. You also need to install this CA on your system and devices."
 msgstr "The certificate must be a CA certificate (BasicConstraints CA=true). After importing, restart the proxy to use the new CA. You also need to install this CA on your system and devices."
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:349
+#: src/pages/settings/ui/components/certificate-settings.tsx:344
 msgid "The DER certificate file will download automatically"
 msgstr "The DER certificate file will download automatically"
 
-#: src/pages/settings/ui/components/general-settings.tsx:129
+#: src/pages/settings/ui/components/general-settings.tsx:98
 msgid "Theme"
 msgstr "Theme"
 
@@ -2939,7 +2939,7 @@ msgstr "Transaction unpinned"
 msgid "Tries Eager first, falls back to Lazy on failure"
 msgstr "Tries Eager first, falls back to Lazy on failure"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:138
+#: src/pages/settings/ui/components/certificate-settings.tsx:93
 msgid "Trusted"
 msgstr "Trusted"
 
@@ -2951,18 +2951,18 @@ msgstr "Trusted"
 msgid "Type"
 msgstr "Type"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:133
+#: src/pages/settings/ui/components/certificate-settings.tsx:88
 #: src/pages/settings/ui/components/cli-settings.tsx:65
 msgid "Uninstall"
 msgstr "Uninstall"
 
-#: src/pages/settings/ui/components/certificate-settings.tsx:271
+#: src/pages/settings/ui/components/certificate-settings.tsx:268
 msgid "Universal format"
 msgstr "Universal format"
 
 #: src/features/intercept-rule-form/ui/throttle-action-fields.tsx:36
 #: src/features/intercept-rule-form/ui/throttle-action-fields.tsx:42
-#: src/pages/settings/ui/components/general-settings.tsx:383
+#: src/pages/settings/ui/components/general-settings.tsx:401
 #: src/pages/settings/ui/components/throttle-section.tsx:62
 #: src/pages/settings/ui/components/throttle-section.tsx:70
 msgid "Unlimited"
