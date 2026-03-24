@@ -1,10 +1,5 @@
-use proxyapi_v2::{
-    certificate_authority::RcgenAuthority,
-    rcgen::{Issuer, KeyPair},
-    rustls::crypto::aws_lc_rs,
-};
+use proxyapi_v2::{certificate_authority::RcgenAuthority, rustls::crypto::aws_lc_rs};
 use std::sync::atomic::Ordering;
-use tokio_rustls::rustls::pki_types::CertificateDer;
 
 mod common;
 
@@ -12,38 +7,18 @@ fn build_ca() -> RcgenAuthority {
     // hudsucker 인증서 대신 cheolsu-proxy 인증서 사용
     let key_pem = include_str!("../src/certificate_authority/cheolsu-proxy.key");
     let ca_cert_pem = include_str!("../src/certificate_authority/cheolsu-proxy.cer");
-    let ca_cert_der = pem::parse(ca_cert_pem).unwrap().into_contents();
-    let key_pair = KeyPair::from_pem(key_pem).expect("Failed to parse private key");
-    let issuer =
-        Issuer::from_ca_cert_pem(ca_cert_pem, key_pair).expect("Failed to parse CA certificate");
 
-    RcgenAuthority::new(
-        issuer,
-        CertificateDer::from(ca_cert_der),
-        ca_cert_pem.to_string(),
-        key_pem.to_string(),
-        1000,
-        aws_lc_rs::default_provider(),
-    )
+    RcgenAuthority::from_pem(ca_cert_pem, key_pem, 1000, aws_lc_rs::default_provider())
+        .expect("Failed to create RcgenAuthority from PEM")
 }
 
 /// cheolsu-proxy 인증서를 사용하여 RcgenAuthority를 생성하는 함수
 fn build_cheolsu_ca() -> RcgenAuthority {
     let key_pem = include_str!("../src/certificate_authority/cheolsu-proxy.key");
     let ca_cert_pem = include_str!("../src/certificate_authority/cheolsu-proxy.cer");
-    let ca_cert_der = pem::parse(ca_cert_pem).unwrap().into_contents();
-    let key_pair = KeyPair::from_pem(key_pem).expect("Failed to parse cheolsu-proxy private key");
-    let issuer = Issuer::from_ca_cert_pem(ca_cert_pem, key_pair)
-        .expect("Failed to parse cheolsu-proxy CA certificate");
 
-    RcgenAuthority::new(
-        issuer,
-        CertificateDer::from(ca_cert_der),
-        ca_cert_pem.to_string(),
-        key_pem.to_string(),
-        1000,
-        aws_lc_rs::default_provider(),
-    )
+    RcgenAuthority::from_pem(ca_cert_pem, key_pem, 1000, aws_lc_rs::default_provider())
+        .expect("Failed to create cheolsu-proxy RcgenAuthority from PEM")
 }
 
 #[tokio::test]
