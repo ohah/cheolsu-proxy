@@ -8,8 +8,9 @@ mod trait_impl;
 use crate::certificate_authority::CACHE_TTL;
 use http::uri::Authority;
 use moka::future::Cache;
-use rcgen::{Certificate, KeyPair};
+use rcgen::{Issuer, KeyPair};
 use std::sync::Arc;
+use tokio_rustls::rustls::pki_types::CertificateDer;
 use tokio_rustls::rustls::{ServerConfig, crypto::CryptoProvider};
 use tracing::info;
 
@@ -34,21 +35,23 @@ pub struct ClientCertVerifyConfig {
 ///
 /// ```rust
 /// use proxyapi_v2::{certificate_authority::RcgenAuthority, rustls::crypto::aws_lc_rs};
-/// use rcgen::{CertificateParams, KeyPair};
+/// use rcgen::{Issuer, KeyPair};
 ///
-/// let key_pair = include_str!("../../../examples/ca/hudsucker.key");
-/// let ca_cert = include_str!("../../../examples/ca/hudsucker.cer");
-/// let key_pair = KeyPair::from_pem(key_pair).expect("Failed to parse private key");
-/// let ca_cert = CertificateParams::from_ca_cert_pem(ca_cert)
-///     .expect("Failed to parse CA certificate")
-///     .self_signed(&key_pair)
-///     .expect("Failed to sign CA certificate");
+/// let key_pem = include_str!("../../../examples/ca/hudsucker.key");
+/// let ca_pem = include_str!("../../../examples/ca/hudsucker.cer");
+/// let ca_cert_der = pem::parse(ca_pem).unwrap().into_contents();
+/// let key_pair = KeyPair::from_pem(key_pem).expect("Failed to parse private key");
+/// let issuer = Issuer::from_ca_cert_pem(ca_pem, key_pair)
+///     .expect("Failed to parse CA certificate");
 ///
-/// let ca = RcgenAuthority::new(key_pair, ca_cert, 1_000, aws_lc_rs::default_provider());
+/// let ca = RcgenAuthority::new(issuer, ca_cert_der.into(), 1_000, aws_lc_rs::default_provider());
 /// ```
 pub struct RcgenAuthority {
-    pub(super) key_pair: KeyPair,
-    pub(super) ca_cert: Certificate,
+    pub(super) issuer: Issuer<'static, KeyPair>,
+    pub(super) ca_cert_der: CertificateDer<'static>,
+    /// openssl_context에서 CA 인증서/키를 PEM으로 사용하기 위한 캐시
+    pub(super) ca_cert_pem: String,
+    pub(super) ca_key_pem: String,
     pub(super) cache: Cache<Authority, Arc<ServerConfig>>,
     #[cfg(feature = "openssl-ca")]
     pub(super) openssl_ctx_cache: Cache<Authority, Arc<openssl::ssl::SslContext>>,
@@ -60,14 +63,18 @@ pub struct RcgenAuthority {
 impl RcgenAuthority {
     /// Creates a new rcgen authority.
     pub fn new(
-        key_pair: KeyPair,
-        ca_cert: Certificate,
+        issuer: Issuer<'static, KeyPair>,
+        ca_cert_der: CertificateDer<'static>,
+        ca_cert_pem: String,
+        ca_key_pem: String,
         cache_size: u64,
         provider: CryptoProvider,
     ) -> Self {
         Self {
-            key_pair,
-            ca_cert,
+            issuer,
+            ca_cert_der,
+            ca_cert_pem,
+            ca_key_pem,
             cache: Cache::builder()
                 .max_capacity(cache_size)
                 .time_to_live(std::time::Duration::from_secs(CACHE_TTL))

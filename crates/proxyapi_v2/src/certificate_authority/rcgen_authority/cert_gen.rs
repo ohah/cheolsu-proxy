@@ -3,7 +3,8 @@ use crate::certificate_authority::{LEAF_TTL_SECS, NOT_BEFORE_OFFSET, truncate_cn
 use crate::upstream_cert::UpstreamCertInfo;
 use http::uri::Authority;
 use rcgen::{
-    CertificateParams, DistinguishedName, DnType, ExtendedKeyUsagePurpose, Ia5String, SanType,
+    CertificateParams, DistinguishedName, DnType, ExtendedKeyUsagePurpose, SanType,
+    string::Ia5String,
 };
 use std::collections::HashSet;
 use std::net::IpAddr;
@@ -82,7 +83,7 @@ impl RcgenAuthority {
 
         // leaf 키페어로 서명 (CA 키페어가 서명자, leaf 키페어가 subject)
         let cert = params
-            .signed_by(&leaf_key_pair, &self.ca_cert, &self.key_pair)
+            .signed_by(&leaf_key_pair, &self.issuer)
             .map_err(|e| {
                 error!(authority = %authority, error = ?e, "Failed to sign certificate");
                 e

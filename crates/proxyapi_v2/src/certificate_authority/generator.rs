@@ -90,16 +90,15 @@ pub fn load_ca_from_storage(
         rcgen::KeyPair::from_pem(&key_pem).map_err(|e| format!("Failed to parse key: {}", e))?;
 
     let cert_der = CertificateDer::from(cert_der);
-    let ca_cert_params = rcgen::CertificateParams::from_ca_cert_der(&cert_der)
-        .map_err(|e| format!("Failed to parse certificate: {}", e))?;
-
-    let ca_cert = ca_cert_params
-        .self_signed(&key_pair)
-        .map_err(|e| format!("Failed to sign certificate: {}", e))?;
+    let ca_cert_pem = pem::encode(&pem::Pem::new("CERTIFICATE", cert_der.to_vec()));
+    let issuer = rcgen::Issuer::from_ca_cert_der(&cert_der, key_pair)
+        .map_err(|e| format!("Failed to parse CA certificate for issuer: {}", e))?;
 
     Ok(RcgenAuthority::new(
-        key_pair,
-        ca_cert,
+        issuer,
+        cert_der,
+        ca_cert_pem,
+        key_pem,
         1_000,
         tokio_rustls::rustls::crypto::aws_lc_rs::default_provider(),
     ))
@@ -145,9 +144,10 @@ pub fn generate_and_save_ca(storage_dir: &std::path::Path) -> Result<RcgenAuthor
     let key_path = storage_dir.join("cheolsu-proxy.key");
     let cer_path = storage_dir.join("cheolsu-proxy.cer");
 
-    fs::write(&key_path, key_pair.serialize_pem())
-        .map_err(|e| format!("Failed to save key: {}", e))?;
-    fs::write(&cer_path, ca_cert.der())
+    let key_pem = key_pair.serialize_pem();
+    fs::write(&key_path, &key_pem).map_err(|e| format!("Failed to save key: {}", e))?;
+    let ca_cert_der_bytes = ca_cert.der().to_vec();
+    fs::write(&cer_path, &ca_cert_der_bytes)
         .map_err(|e| format!("Failed to save certificate (.cer): {}", e))?;
 
     // 권한 설정 (macOS/Linux)
@@ -176,9 +176,16 @@ pub fn generate_and_save_ca(storage_dir: &std::path::Path) -> Result<RcgenAuthor
         );
     }
 
+    let ca_cert_pem = pem::encode(&pem::Pem::new("CERTIFICATE", ca_cert_der_bytes));
+    let ca_cert_der: CertificateDer<'static> = ca_cert.into();
+    let issuer = rcgen::Issuer::from_ca_cert_der(&ca_cert_der, key_pair)
+        .map_err(|e| format!("Failed to create issuer: {}", e))?;
+
     Ok(RcgenAuthority::new(
-        key_pair,
-        ca_cert,
+        issuer,
+        ca_cert_der,
+        ca_cert_pem,
+        key_pem,
         1_000,
         tokio_rustls::rustls::crypto::aws_lc_rs::default_provider(),
     ))

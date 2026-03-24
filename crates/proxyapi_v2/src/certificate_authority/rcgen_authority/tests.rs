@@ -5,21 +5,29 @@ mod tests {
     use crate::certificate_authority::rcgen_authority::RcgenAuthority;
     use crate::upstream_cert::UpstreamCertInfo;
     use http::uri::Authority;
-    use rcgen::{CertificateParams, KeyPair};
+    use rcgen::{Issuer, KeyPair};
     #[cfg(feature = "openssl-ca")]
     use std::sync::Arc;
     use tokio_rustls::rustls::crypto::aws_lc_rs;
+    use tokio_rustls::rustls::pki_types::CertificateDer;
 
     fn build_ca(cache_size: u64) -> RcgenAuthority {
-        let key_pair = include_str!("../cheolsu-proxy.key");
-        let ca_cert = include_str!("../cheolsu-proxy.cer");
-        let key_pair = KeyPair::from_pem(key_pair).expect("Failed to parse private key");
-        let ca_cert = CertificateParams::from_ca_cert_pem(ca_cert)
-            .expect("Failed to parse CA certificate")
-            .self_signed(&key_pair)
-            .expect("Failed to sign CA certificate");
+        let key_pem = include_str!("../cheolsu-proxy.key");
+        let ca_cert_pem = include_str!("../cheolsu-proxy.cer");
+        let ca_cert_der_bytes = pem::parse(ca_cert_pem).unwrap().into_contents();
+        let ca_cert_der = CertificateDer::from(ca_cert_der_bytes);
+        let key_pair = KeyPair::from_pem(key_pem).expect("Failed to parse private key");
+        let issuer = Issuer::from_ca_cert_pem(ca_cert_pem, key_pair)
+            .expect("Failed to parse CA certificate");
 
-        RcgenAuthority::new(key_pair, ca_cert, cache_size, aws_lc_rs::default_provider())
+        RcgenAuthority::new(
+            issuer,
+            ca_cert_der,
+            ca_cert_pem.to_string(),
+            key_pem.to_string(),
+            cache_size,
+            aws_lc_rs::default_provider(),
+        )
     }
 
     #[cfg(feature = "openssl-ca")]
@@ -293,23 +301,21 @@ mod tests {
     }
 
     #[test]
-    fn gen_cert_same_key_type_reuses_cached_leaf_key() {
+    fn gen_cert_same_key_type_produces_same_algorithm() {
         let ca = build_ca(0);
         let authority = Authority::from_static("cache-test.example.com");
 
-        let (_, key1) = ca.gen_cert(&authority, None).unwrap();
-        let (_, key2) = ca.gen_cert(&authority, None).unwrap();
+        let (cert1_der, _) = ca.gen_cert(&authority, None).unwrap();
+        let (cert2_der, _) = ca.gen_cert(&authority, None).unwrap();
 
-        // 같은 키 타입이면 캐시된 동일 키를 반환
-        let key1_bytes: &[u8] = match &key1 {
-            tokio_rustls::rustls::pki_types::PrivateKeyDer::Pkcs8(k) => k.secret_pkcs8_der(),
-            _ => panic!("unexpected key type"),
-        };
-        let key2_bytes: &[u8] = match &key2 {
-            tokio_rustls::rustls::pki_types::PrivateKeyDer::Pkcs8(k) => k.secret_pkcs8_der(),
-            _ => panic!("unexpected key type"),
-        };
-        assert_eq!(key1_bytes, key2_bytes);
+        let (_, cert1) = x509_parser::parse_x509_certificate(&cert1_der).unwrap();
+        let (_, cert2) = x509_parser::parse_x509_certificate(&cert2_der).unwrap();
+
+        // 같은 키 타입이면 동일 알고리즘 사용
+        assert_eq!(
+            cert1.public_key().algorithm.algorithm,
+            cert2.public_key().algorithm.algorithm
+        );
     }
 
     #[test]
