@@ -44,7 +44,10 @@ pub struct ClientCertVerifyConfig {
 /// let issuer = Issuer::from_ca_cert_pem(ca_pem, key_pair)
 ///     .expect("Failed to parse CA certificate");
 ///
-/// let ca = RcgenAuthority::new(issuer, ca_cert_der.into(), 1_000, aws_lc_rs::default_provider());
+/// let ca = RcgenAuthority::new(
+///     issuer, ca_cert_der.into(), ca_pem.to_string(), key_pem.to_string(),
+///     1_000, aws_lc_rs::default_provider(),
+/// );
 /// ```
 pub struct RcgenAuthority {
     pub(super) issuer: Issuer<'static, KeyPair>,
