@@ -459,3 +459,51 @@ pub fn generate_openssl_ca(storage_dir: &PathBuf) -> Result<OpensslAuthority, St
         tokio_rustls::rustls::crypto::aws_lc_rs::default_provider(),
     ))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_check_cert_expiry_invalid_der() {
+        assert!(check_cert_expiry(b"not a certificate").is_none());
+    }
+
+    #[test]
+    fn test_check_cert_expiry_empty() {
+        assert!(check_cert_expiry(b"").is_none());
+    }
+
+    #[cfg(feature = "rcgen-ca")]
+    #[test]
+    fn test_check_cert_expiry_valid_cert() {
+        let key_pair = rcgen::KeyPair::generate().unwrap();
+        let mut params = rcgen::CertificateParams::default();
+        params.is_ca = rcgen::IsCa::Ca(rcgen::BasicConstraints::Unconstrained);
+        let cert = params.self_signed(&key_pair).unwrap();
+        let der = cert.der().to_vec();
+
+        assert!(matches!(
+            check_cert_expiry(&der),
+            Some(CaExpiryStatus::Valid)
+        ));
+    }
+
+    #[test]
+    fn test_ca_ttl_is_10_years() {
+        use super::super::CA_TTL_SECS;
+        assert_eq!(CA_TTL_SECS, 10 * 365 * 24 * 60 * 60);
+    }
+
+    #[test]
+    fn test_leaf_ttl_is_1_year() {
+        use super::super::LEAF_TTL_SECS;
+        assert_eq!(LEAF_TTL_SECS, 365 * 24 * 60 * 60);
+    }
+
+    #[test]
+    fn test_cache_ttl_is_half_leaf() {
+        use super::super::{CACHE_TTL, LEAF_TTL_SECS};
+        assert_eq!(CACHE_TTL, LEAF_TTL_SECS as u64 / 2);
+    }
+}
