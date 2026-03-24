@@ -68,6 +68,12 @@ pub(super) async fn gen_openssl_context(
                 if let Some(ref org) = upstream.organization {
                     name_builder.append_entry_by_text("O", org)?;
                 }
+                if let Some(ref country) = upstream.country {
+                    name_builder.append_entry_by_text("C", country)?;
+                }
+                if let Some(ref state) = upstream.state {
+                    name_builder.append_entry_by_text("ST", state)?;
+                }
             } else {
                 name_builder.append_entry_by_text("CN", &truncate_cn(&host))?;
             }
