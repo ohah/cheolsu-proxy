@@ -5,13 +5,9 @@ import {
   startSession,
   stopSession,
   domSnapshot,
-  clickElement,
-  typeText,
   screenshot,
   waitFor,
   executeJs,
-  ipcMonitor,
-  ipcGetCaptured,
   getBackendState,
   callTool,
 } from "./mcp-helpers";

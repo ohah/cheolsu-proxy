@@ -262,8 +262,6 @@ export function analyzeEndpoints(
 
   const stats: EndpointStat[] = Array.from(map.values()).map((ep) => {
     const sorted = [...ep.durations].sort((a, b) => a - b);
-    const count =
-      ep.durations.length + (ep.durations.length === 0 ? ep.responseSizes.length || 1 : 0);
     const totalCount = Math.max(ep.durations.length, ep.responseSizes.length, 1);
     return {
       method: ep.method,

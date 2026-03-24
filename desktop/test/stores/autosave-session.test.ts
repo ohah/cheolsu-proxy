@@ -17,7 +17,7 @@ if (typeof globalThis.localStorage === "undefined") {
 }
 
 // autosave_session / autoload_session invoke mock
-const mockInvoke = mock((cmd: string, args?: Record<string, unknown>) => {
+const mockInvoke = mock((cmd: string, _args?: Record<string, unknown>) => {
   if (cmd === "autosave_session") {
     return Promise.resolve();
   }

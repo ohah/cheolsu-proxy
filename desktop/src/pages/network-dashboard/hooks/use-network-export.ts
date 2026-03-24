@@ -180,7 +180,7 @@ export function useNetworkExport({
       toast.success(
         t`OpenAPI spec exported successfully (${targetTransactions.length} transactions)`,
       );
-    } catch (err) {
+    } catch (_err) {
       toast.error(t`OpenAPI export failed`);
     } finally {
       setExporting(false);

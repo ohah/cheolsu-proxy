@@ -91,7 +91,7 @@ msgstr "실제값"
 #: src/features/intercept-rule-form/ui/headers-fields.tsx:59
 #: src/features/intercept-rule-form/ui/headers-fields.tsx:88
 #: src/features/map-rule-form/ui/map-local-fields.tsx:73
-#: src/features/transaction-details/ui/replay-dialog.tsx:435
+#: src/features/transaction-details/ui/replay-dialog.tsx:360
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:225
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:445
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:142
@@ -354,9 +354,9 @@ msgstr "QUIC 차단"
 #: src/features/intercept-rule-form/ui/block-action-fields.tsx:22
 #: src/features/intercept-rule-form/ui/modify-request-fields.tsx:18
 #: src/features/intercept-rule-form/ui/modify-response-fields.tsx:29
-#: src/features/transaction-details/ui/replay-dialog.tsx:130
-#: src/features/transaction-details/ui/replay-dialog.tsx:201
-#: src/features/transaction-details/ui/replay-dialog.tsx:484
+#: src/features/transaction-details/ui/replay-dialog.tsx:114
+#: src/features/transaction-details/ui/replay-dialog.tsx:185
+#: src/features/transaction-details/ui/replay-dialog.tsx:409
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:479
 msgid "Body"
 msgstr "본문"
@@ -594,8 +594,8 @@ msgstr "유효한 인증서가 없는 클라이언트는 거부됩니다"
 msgid "Close"
 msgstr "닫기"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:134
-#: src/features/transaction-details/ui/replay-dialog.tsx:494
+#: src/features/transaction-details/ui/replay-dialog.tsx:118
+#: src/features/transaction-details/ui/replay-dialog.tsx:415
 msgid "Collapse"
 msgstr "접기"
 
@@ -620,7 +620,7 @@ msgstr "일반 이름 (CN)"
 msgid "Compose request"
 msgstr "요청 작성"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:361
+#: src/features/transaction-details/ui/replay-dialog.tsx:286
 msgid "Compose Request"
 msgstr "요청 작성"
 
@@ -1010,8 +1010,8 @@ msgstr "OPTIONS 메서드 제외"
 msgid "Exit fullscreen"
 msgstr "전체 화면 종료"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:205
-#: src/features/transaction-details/ui/replay-dialog.tsx:499
+#: src/features/transaction-details/ui/replay-dialog.tsx:189
+#: src/features/transaction-details/ui/replay-dialog.tsx:420
 msgid "Expand"
 msgstr "펼치기"
 
@@ -1207,7 +1207,7 @@ msgstr "HAR 가져오기 성공"
 
 #: src/features/intercept-rule-form/ui/headers-fields.tsx:65
 #: src/features/map-rule-form/ui/map-local-fields.tsx:79
-#: src/features/transaction-details/ui/replay-dialog.tsx:447
+#: src/features/transaction-details/ui/replay-dialog.tsx:372
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:454
 msgid "Header name"
 msgstr "헤더 이름"
@@ -1227,8 +1227,8 @@ msgstr "헤더"
 
 #. placeholder {0}: headerEntries.length
 #. placeholder {0}: headers.length
-#: src/features/transaction-details/ui/replay-dialog.tsx:177
-#: src/features/transaction-details/ui/replay-dialog.tsx:432
+#: src/features/transaction-details/ui/replay-dialog.tsx:161
+#: src/features/transaction-details/ui/replay-dialog.tsx:357
 msgid "Headers ({0})"
 msgstr "헤더 ({0})"
 
@@ -1868,7 +1868,7 @@ msgstr "요청을 전송할 횟수 (1-10000)"
 msgid "Only domains in this list will be intercepted. When the list is empty, all domains are intercepted."
 msgstr "이 목록에 있는 도메인만 가로챕니다. 목록이 비어있으면 모든 도메인을 가로챕니다."
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:307
+#: src/features/transaction-details/hooks/use-replay-form.ts:77
 msgid "Only http:// and https:// URLs are allowed"
 msgstr "http:// 및 https:// URL만 허용됩니다"
 
@@ -1936,7 +1936,7 @@ msgstr "선택사항"
 msgid "Organization"
 msgstr "조직"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:378
+#: src/features/transaction-details/ui/replay-dialog.tsx:303
 msgid "Original"
 msgstr "원본"
 
@@ -2207,7 +2207,7 @@ msgstr "치환 문자열"
 msgid "Replacement string (supports $1, $2 capture groups)"
 msgstr "치환 문자열 ($1, $2 캡처 그룹 지원)"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:388
+#: src/features/transaction-details/ui/replay-dialog.tsx:313
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:113
 msgid "Replay"
 msgstr "리플레이"
@@ -2216,11 +2216,11 @@ msgstr "리플레이"
 msgid "Replay message"
 msgstr "메시지 리플레이"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:352
+#: src/features/transaction-details/ui/replay-dialog.tsx:277
 msgid "Replay request"
 msgstr "요청 리플레이"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:374
+#: src/features/transaction-details/ui/replay-dialog.tsx:299
 #: src/features/transaction-details/ui/transaction-body-side-by-side.tsx:16
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:282
 #: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:58
@@ -2252,7 +2252,7 @@ msgstr "요청 상세"
 msgid "Request dropped"
 msgstr "요청이 드롭되었습니다"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:329
+#: src/features/transaction-details/hooks/use-replay-form.ts:99
 msgid "Request failed"
 msgstr "요청 실패"
 
@@ -2291,7 +2291,7 @@ msgstr "이 프록시 서버 사용 시 인증 필요"
 msgid "Require certificate"
 msgstr "인증서 필수"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:388
+#: src/features/transaction-details/ui/replay-dialog.tsx:313
 #: src/features/transaction-details/ui/transaction-body-side-by-side.tsx:24
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:287
 #: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:121
@@ -2554,11 +2554,11 @@ msgstr "다운로드된 인증서 파일을 선택하고 확인하세요"
 msgid "Select the downloaded profile and tap \"Install\""
 msgstr "다운로드된 프로필을 선택하고 \"Install\"을 탭하세요"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:576
+#: src/features/transaction-details/ui/replay-dialog.tsx:497
 msgid "Send a request to see the replay response"
 msgstr "리플레이 응답을 보려면 요청을 전송하세요"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:574
+#: src/features/transaction-details/ui/replay-dialog.tsx:495
 msgid "Send a request to see the response"
 msgstr "응답을 보려면 요청을 전송하세요"
 
@@ -2566,7 +2566,7 @@ msgstr "응답을 보려면 요청을 전송하세요"
 msgid "Send Message"
 msgstr "메시지 전송"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:544
+#: src/features/transaction-details/ui/replay-dialog.tsx:465
 msgid "Send Request"
 msgstr "요청 전송"
 
@@ -2574,7 +2574,7 @@ msgstr "요청 전송"
 msgid "Sending requests sequentially..."
 msgstr "요청을 순서대로 전송 중..."
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:539
+#: src/features/transaction-details/ui/replay-dialog.tsx:460
 #: src/features/transaction-details/ui/sequence-replay-dialog.tsx:211
 #: src/features/websocket-replay/ui/ws-replay-dialog.tsx:196
 msgid "Sending..."
@@ -2919,7 +2919,7 @@ msgstr "총 시간"
 msgid "Traffic Analysis"
 msgstr "트래픽 분석"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:361
+#: src/features/transaction-details/ui/replay-dialog.tsx:286
 msgid "Traffic Replay"
 msgstr "트래픽 리플레이"
 
@@ -2993,7 +2993,7 @@ msgstr "업로드 속도 (KB/s)"
 msgid "Upstream Proxy"
 msgstr "업스트림 프록시"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:425
+#: src/features/transaction-details/ui/replay-dialog.tsx:350
 msgid "URL"
 msgstr "URL"
 
@@ -3058,7 +3058,7 @@ msgstr "유효 기간"
 
 #: src/features/intercept-rule-form/ui/headers-fields.tsx:70
 #: src/features/map-rule-form/ui/map-local-fields.tsx:84
-#: src/features/transaction-details/ui/replay-dialog.tsx:455
+#: src/features/transaction-details/ui/replay-dialog.tsx:380
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:460
 msgid "Value"
 msgstr "값"

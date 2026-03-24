@@ -1,19 +1,12 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback } from "react";
 import { Play, Loader2, Plus, Trash2, Maximize2, Minimize2 } from "lucide-react";
 import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
 import { Editor } from "@monaco-editor/react";
 import { useTheme } from "next-themes";
-import { toast } from "sonner";
 
 import type { HttpTransaction } from "@/entities/proxy";
 import { isTextBasedDataType } from "@/entities/proxy";
-import { replayRequest, type ReplayRequestParams, type ReplayResponse } from "@/shared/api/proxy";
-import {
-  useHeaderEditor,
-  headersToEntries,
-  entriesToHeaders,
-} from "@/shared/hooks/use-header-editor";
 import {
   Dialog,
   DialogContent,
@@ -41,6 +34,7 @@ import {
 import { getStatusColor } from "@/entities/transaction";
 import { uint8ArrayToString } from "../lib";
 import { HTTP_METHODS } from "@/shared/lib/http-constants";
+import { useReplayForm } from "../hooks/use-replay-form";
 
 interface ReplayDialogProps {
   transaction?: HttpTransaction;
@@ -49,16 +43,6 @@ interface ReplayDialogProps {
   onOpenChange?: (open: boolean) => void;
   /** 트리거 버튼을 숨길 때 사용 (Compose 모드) */
   hideTrigger?: boolean;
-}
-
-function isAllowedUrl(url: string): boolean {
-  const trimmed = url.trim();
-  if (!trimmed) return false;
-  // Only allow http:// and https:// protocols
-  if (/^https?:\/\//i.test(trimmed)) return true;
-  // Allow URLs without protocol (will be treated as http by backend)
-  if (!/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(trimmed)) return true;
-  return false;
 }
 
 function detectLanguage(body: string | undefined | null): string {
@@ -237,8 +221,6 @@ export function ReplayDialog({
 }: ReplayDialogProps) {
   const { t } = useLingui();
   const { resolvedTheme } = useTheme();
-  const request = transaction?.request;
-  const originalResponse = transaction?.response;
   const isComposeMode = !transaction;
   const isControlled = controlledOpen !== undefined;
   const [internalOpen, setInternalOpen] = useState(false);
@@ -252,85 +234,28 @@ export function ReplayDialog({
     },
     [isControlled, onOpenChange],
   );
-  const [method, setMethod] = useState(request?.method || "GET");
-  const [url, setUrl] = useState(request?.uri || "");
-  const { headers, addHeader, removeHeader, updateHeader, resetHeaders } = useHeaderEditor();
-  const [body, setBody] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [replayResponse, setReplayResponse] = useState<ReplayResponse | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState("request");
-  const [bodyExpanded, setBodyExpanded] = useState(false);
 
-  // Use a ref to track the request identity for useEffect stability
-  const requestRef = useRef(request);
-  requestRef.current = request;
-
-  // 다이얼로그가 닫힌 후 비동기 응답이 도착해도 state 업데이트 방지
-  const openRef = useRef(open);
-  openRef.current = open;
-
-  useEffect(() => {
-    if (open) {
-      const req = requestRef.current;
-      if (req) {
-        setMethod(req.method);
-        setUrl(req.uri);
-        resetHeaders(headersToEntries(req.headers || {}));
-        if (req.body && req.data_type && isTextBasedDataType(req.data_type)) {
-          setBody(uint8ArrayToString(req.body, req.data_type));
-        } else if (req.body_json) {
-          setBody(
-            typeof req.body_json === "string"
-              ? req.body_json
-              : JSON.stringify(req.body_json, null, 2),
-          );
-        } else {
-          setBody("");
-        }
-      } else {
-        setMethod("GET");
-        setUrl("");
-        resetHeaders([]);
-        setBody("");
-      }
-      setReplayResponse(null);
-      setError(null);
-      setActiveTab("request");
-    }
-    // resetHeaders는 안정적인 참조이므로 deps에서 제외
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
-
-  const handleReplay = useCallback(async () => {
-    if (!isAllowedUrl(url)) {
-      toast.error(t`Only http:// and https:// URLs are allowed`);
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-    setReplayResponse(null);
-
-    const params: ReplayRequestParams = {
-      method,
-      url,
-      headers: entriesToHeaders(headers),
-      body: body || undefined,
-    };
-
-    try {
-      const res = await replayRequest(params);
-      if (!openRef.current) return;
-      setReplayResponse(res);
-      setActiveTab("replay");
-    } catch (e: unknown) {
-      if (!openRef.current) return;
-      setError(typeof e === "string" ? e : e instanceof Error ? e.message : t`Request failed`);
-    } finally {
-      if (openRef.current) setLoading(false);
-    }
-  }, [method, url, headers, body]);
+  const {
+    method,
+    setMethod,
+    url,
+    setUrl,
+    headers,
+    addHeader,
+    removeHeader,
+    updateHeader,
+    body,
+    setBody,
+    loading,
+    replayResponse,
+    error,
+    activeTab,
+    setActiveTab,
+    bodyExpanded,
+    toggleBodyExpanded,
+    handleReplay,
+    originalResponse,
+  } = useReplayForm({ transaction, open });
 
   const bodyLanguage = detectLanguage(body);
   const originalResponseBody = getResponseBody(originalResponse ?? null);
@@ -483,11 +408,7 @@ export function ReplayDialog({
                       <label className="text-sm font-medium">
                         <Trans>Body</Trans>
                       </label>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setBodyExpanded(!bodyExpanded)}
-                      >
+                      <Button variant="ghost" size="sm" onClick={toggleBodyExpanded}>
                         {bodyExpanded ? (
                           <>
                             <Minimize2 className="w-3.5 h-3.5 mr-1" />
