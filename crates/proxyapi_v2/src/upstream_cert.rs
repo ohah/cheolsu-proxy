@@ -13,7 +13,10 @@ use x509_parser::extensions::GeneralName;
 /// SSL/TLS 기본 포트 (HTTPS)
 const DEFAULT_SSL_PORT: u16 = 443;
 use tokio_rustls::rustls::RootCertStore;
-use x509_parser::oid_registry::{OID_X509_COMMON_NAME, OID_X509_ORGANIZATION_NAME};
+use x509_parser::oid_registry::{
+    OID_X509_COMMON_NAME, OID_X509_COUNTRY_NAME, OID_X509_ORGANIZATION_NAME,
+    OID_X509_STATE_OR_PROVINCE_NAME,
+};
 
 /// IPv6 대괄호를 제거합니다 (예: "[::1]" → "::1")
 fn strip_ipv6_brackets(host: &str) -> &str {
@@ -98,6 +101,10 @@ pub struct UpstreamCertInfo {
     pub common_name: Option<String>,
     /// 조직명
     pub organization: Option<String>,
+    /// 국가 코드 (C)
+    pub country: Option<String>,
+    /// 시/도 (ST)
+    pub state: Option<String>,
     /// DNS SAN 목록
     pub sans_dns: Vec<String>,
     /// IP SAN 목록
@@ -822,6 +829,12 @@ fn parse_cert_info(cert_der: &[u8]) -> Option<UpstreamCertInfo> {
             if *attr.attr_type() == OID_X509_ORGANIZATION_NAME {
                 info.organization = attr.as_str().ok().map(String::from);
             }
+            if *attr.attr_type() == OID_X509_COUNTRY_NAME {
+                info.country = attr.as_str().ok().map(String::from);
+            }
+            if *attr.attr_type() == OID_X509_STATE_OR_PROVINCE_NAME {
+                info.state = attr.as_str().ok().map(String::from);
+            }
         }
     }
 
@@ -1003,6 +1016,8 @@ mod tests {
         let info = UpstreamCertInfo {
             common_name: Some("example.com".to_string()),
             organization: Some("Example Inc.".to_string()),
+            country: Some("US".to_string()),
+            state: Some("California".to_string()),
             sans_dns: vec!["example.com".to_string(), "*.example.com".to_string()],
             sans_ip: vec!["127.0.0.1".parse().unwrap(), "::1".parse().unwrap()],
             negotiated_alpn: Some(b"h2".to_vec()),
