@@ -3,9 +3,10 @@ use http::uri::Authority;
 use proxyapi_v2::{
     certificate_authority::{CertificateAuthority, OpensslAuthority, RcgenAuthority},
     openssl::{hash::MessageDigest, pkey::PKey, x509::X509},
-    rcgen::{CertificateParams, KeyPair},
+    rcgen::{Issuer, KeyPair},
     rustls::crypto::aws_lc_rs,
 };
+use tokio_rustls::rustls::pki_types::CertificateDer;
 
 fn runtime() -> tokio::runtime::Runtime {
     tokio::runtime::Builder::new_current_thread()
@@ -14,15 +15,21 @@ fn runtime() -> tokio::runtime::Runtime {
 }
 
 fn build_rcgen_ca(cache_size: u64) -> RcgenAuthority {
-    let key_pair = include_str!("../src/certificate_authority/cheolsu-proxy.key");
-    let ca_cert = include_str!("../src/certificate_authority/cheolsu-proxy.cer");
-    let key_pair = KeyPair::from_pem(key_pair).expect("Failed to parse private key");
-    let ca_cert = CertificateParams::from_ca_cert_pem(ca_cert)
-        .expect("Failed to parse CA certificate")
-        .self_signed(&key_pair)
-        .expect("Failed to sign CA certificate");
+    let key_pem = include_str!("../src/certificate_authority/cheolsu-proxy.key");
+    let ca_cert_pem = include_str!("../src/certificate_authority/cheolsu-proxy.cer");
+    let ca_cert_der = pem::parse(ca_cert_pem).unwrap().into_contents();
+    let key_pair = KeyPair::from_pem(key_pem).expect("Failed to parse private key");
+    let issuer =
+        Issuer::from_ca_cert_pem(ca_cert_pem, key_pair).expect("Failed to parse CA certificate");
 
-    RcgenAuthority::new(key_pair, ca_cert, cache_size, aws_lc_rs::default_provider())
+    RcgenAuthority::new(
+        issuer,
+        CertificateDer::from(ca_cert_der),
+        ca_cert_pem.to_string(),
+        key_pem.to_string(),
+        cache_size,
+        aws_lc_rs::default_provider(),
+    )
 }
 
 fn build_openssl_ca(cache_size: u64) -> OpensslAuthority {
