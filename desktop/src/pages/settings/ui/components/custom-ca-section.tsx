@@ -11,6 +11,7 @@ import {
 import { useProxyStore } from "@/shared/stores/proxy-store";
 import { useFileSelector } from "@/shared/hooks/use-file-selector";
 import { Button, Badge, Input } from "@/shared/ui";
+import { SettingsSection } from "./settings-section";
 
 export function CustomCaSection() {
   const { t } = useLingui();
@@ -118,16 +119,10 @@ export function CustomCaSection() {
   if (loading) return null;
 
   return (
-    <div className="border rounded-lg p-5 space-y-4">
-      <div>
-        <h2 className="text-lg font-semibold">
-          <Trans>Custom CA Certificate</Trans>
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          <Trans>Use your own CA certificate instead of the auto-generated one</Trans>
-        </p>
-      </div>
-
+    <SettingsSection
+      title={<Trans>Custom CA Certificate</Trans>}
+      description={<Trans>Use your own CA certificate instead of the auto-generated one</Trans>}
+    >
       {/* 현재 커스텀 CA 정보 */}
       {customCaInfo && (
         <div className="bg-muted/50 rounded-lg p-4 space-y-3">
@@ -308,6 +303,6 @@ export function CustomCaSection() {
           )}
         </div>
       )}
-    </div>
+    </SettingsSection>
   );
 }

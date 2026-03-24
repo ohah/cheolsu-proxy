@@ -13,6 +13,7 @@ import { useProxyStore } from "@/shared/stores/proxy-store";
 import { useAppSettingsStore } from "@/shared/stores/app-settings-store";
 import { Button, Badge } from "@/shared/ui";
 import { CustomCaSection } from "./custom-ca-section";
+import { SettingsSection } from "./settings-section";
 
 const CERT_DOWNLOAD_URL = "http://cheolsu.proxy/ssl";
 const CERT_DOWNLOAD_PATHS = {
@@ -67,15 +68,12 @@ function CaInstallSection() {
   }, []);
 
   return (
-    <div className="border rounded-lg p-5 space-y-4">
-      <div>
-        <h2 className="text-lg font-semibold">
-          <Trans>CA Certificate</Trans>
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          <Trans>Install the CA certificate to trust HTTPS traffic intercepted by the proxy</Trans>
-        </p>
-      </div>
+    <SettingsSection
+      title={<Trans>CA Certificate</Trans>}
+      description={
+        <Trans>Install the CA certificate to trust HTTPS traffic intercepted by the proxy</Trans>
+      }
+    >
       {caCertPath && (
         <p className="text-xs text-muted-foreground font-mono break-all">{caCertPath}</p>
       )}
@@ -105,7 +103,7 @@ function CaInstallSection() {
         )}
       </div>
       {caMessage && <p className="text-xs text-muted-foreground">{caMessage}</p>}
-    </div>
+    </SettingsSection>
   );
 }
 
@@ -150,19 +148,14 @@ function RemoteDeviceCertSection() {
   }, [isProxyConnected, loadCertDownloadInfo]);
 
   return (
-    <div className="border rounded-lg p-5 space-y-4">
-      <div>
-        <h2 className="text-lg font-semibold">
-          <Trans>Remote Device Certificate</Trans>
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          <Trans>
-            Install the CA certificate on external devices (mobile, tablet) to intercept HTTPS
-            traffic
-          </Trans>
-        </p>
-      </div>
-
+    <SettingsSection
+      title={<Trans>Remote Device Certificate</Trans>}
+      description={
+        <Trans>
+          Install the CA certificate on external devices (mobile, tablet) to intercept HTTPS traffic
+        </Trans>
+      }
+    >
       {!isProxyConnected ? (
         <div className="text-sm text-muted-foreground">
           <Badge variant="outline" className="text-yellow-600 border-yellow-600">
@@ -175,7 +168,6 @@ function RemoteDeviceCertSection() {
         </div>
       ) : certDownloadInfo ? (
         <div className="space-y-4">
-          {/* 설치 안내 */}
           <div className="bg-muted/50 rounded-lg p-4 text-sm space-y-2">
             <p className="font-medium">
               <Trans>Setup Instructions:</Trans>
@@ -204,7 +196,6 @@ function RemoteDeviceCertSection() {
             </ol>
           </div>
 
-          {/* 모바일 인증서 설치 카드 */}
           <div className="border rounded-lg p-4 space-y-3 bg-muted/30">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold">
@@ -269,7 +260,6 @@ function RemoteDeviceCertSection() {
               </p>
             </div>
 
-            {/* iOS 가이드 */}
             <div className="border rounded-md">
               <button
                 type="button"
@@ -317,7 +307,6 @@ function RemoteDeviceCertSection() {
               )}
             </div>
 
-            {/* Android 가이드 */}
             <div className="border rounded-md">
               <button
                 type="button"
@@ -360,9 +349,7 @@ function RemoteDeviceCertSection() {
             </div>
           </div>
 
-          {/* QR 코드 + URL 정보 */}
           <div className="flex gap-6 items-start">
-            {/* QR 코드 */}
             <div className="flex-shrink-0">
               <div className="bg-white p-2 rounded-lg border">
                 <img
@@ -377,7 +364,6 @@ function RemoteDeviceCertSection() {
               </p>
             </div>
 
-            {/* URL 정보 */}
             <div className="flex-1 space-y-3">
               <div>
                 <label className="text-xs font-medium text-muted-foreground block mb-1">
@@ -404,7 +390,7 @@ function RemoteDeviceCertSection() {
           </div>
         </div>
       ) : null}
-    </div>
+    </SettingsSection>
   );
 }
 

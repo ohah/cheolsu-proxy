@@ -2,6 +2,7 @@ import { Trans } from "@lingui/react/macro";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/shared/ui";
 import { type ConnectionStrategy } from "@/shared/api/proxy";
 import { useSettingsForm } from "../settings-form";
+import { SettingsSection } from "./settings-section";
 
 const STRATEGY_OPTIONS: { value: ConnectionStrategy; label: string }[] = [
   { value: "lazy", label: "Lazy" },
@@ -14,17 +15,12 @@ export function ConnectionStrategySection() {
   const strategy = watch("connectionStrategy");
 
   return (
-    <div className="border rounded-lg p-5 space-y-5">
-      <div>
-        <h2 className="text-lg font-semibold">
-          <Trans>Connection Strategy</Trans>
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          <Trans>
-            Controls when the proxy connects to upstream servers for certificate sniffing
-          </Trans>
-        </p>
-      </div>
+    <SettingsSection
+      title={<Trans>Connection Strategy</Trans>}
+      description={
+        <Trans>Controls when the proxy connects to upstream servers for certificate sniffing</Trans>
+      }
+    >
       <div className="space-y-3">
         <div>
           <label className="text-sm font-medium mb-1.5 block">
@@ -65,6 +61,6 @@ export function ConnectionStrategySection() {
           )}
         </p>
       </div>
-    </div>
+    </SettingsSection>
   );
 }

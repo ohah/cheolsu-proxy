@@ -5,6 +5,7 @@ import { type SslProxyingEntry, getDefaultPassthroughDomains } from "@/shared/ap
 import { Button, Input, Switch } from "@/shared/ui";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/shared/ui";
 import { useSettingsForm } from "../settings-form";
+import { SettingsSection } from "./settings-section";
 
 type FormFieldPath = "sslProxying.entries" | "sslProxying.defaultPassthroughEntries";
 
@@ -153,33 +154,30 @@ export function SslProxyingSection() {
   const defaultEnabledCount = defaultPassthroughEntries.filter((e) => e.enabled).length;
 
   return (
-    <div className="border rounded-lg p-5 space-y-4">
-      <div>
-        <h2 className="text-lg font-semibold">
-          <Trans>SSL Proxying</Trans>
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          {mode === "blacklist" ? (
-            enabledCount === 0 ? (
-              <Trans>
-                All HTTPS traffic is intercepted. {defaultEnabledCount} built-in domain(s) are
-                automatically excluded.
-              </Trans>
-            ) : (
-              <Trans>
-                All HTTPS traffic is intercepted except {enabledCount} excluded domain(s) and{" "}
-                {defaultEnabledCount} built-in domain(s).
-              </Trans>
-            )
-          ) : enabledCount === 0 ? (
-            <Trans>All HTTPS traffic is being intercepted (no whitelist configured)</Trans>
+    <SettingsSection
+      title={<Trans>SSL Proxying</Trans>}
+      description={
+        mode === "blacklist" ? (
+          enabledCount === 0 ? (
+            <Trans>
+              All HTTPS traffic is intercepted. {defaultEnabledCount} built-in domain(s) are
+              automatically excluded.
+            </Trans>
           ) : (
             <Trans>
-              Only whitelisted domains ({enabledCount}) will have HTTPS traffic intercepted
+              All HTTPS traffic is intercepted except {enabledCount} excluded domain(s) and{" "}
+              {defaultEnabledCount} built-in domain(s).
             </Trans>
-          )}
-        </p>
-      </div>
+          )
+        ) : enabledCount === 0 ? (
+          <Trans>All HTTPS traffic is being intercepted (no whitelist configured)</Trans>
+        ) : (
+          <Trans>
+            Only whitelisted domains ({enabledCount}) will have HTTPS traffic intercepted
+          </Trans>
+        )
+      }
+    >
       <div className="flex items-center gap-3">
         <span className="text-sm font-medium whitespace-nowrap">
           <Trans>Mode</Trans>
@@ -288,6 +286,6 @@ export function SslProxyingSection() {
           )}
         </div>
       )}
-    </div>
+    </SettingsSection>
   );
 }

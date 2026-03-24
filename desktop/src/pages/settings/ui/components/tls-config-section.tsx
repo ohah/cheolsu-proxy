@@ -3,6 +3,7 @@ import { Trans } from "@lingui/react/macro";
 import { Button, Badge } from "@/shared/ui";
 import { invoke } from "@tauri-apps/api/core";
 import { Trash2 } from "lucide-react";
+import { SettingsSection } from "./settings-section";
 
 interface TlsConfigRule {
   domain_pattern: string;
@@ -48,20 +49,15 @@ export function TlsConfigSection() {
 
   return (
     <div className="space-y-4">
-      {/* TLS 규칙 목록 */}
-      <div className="border rounded-lg p-5 space-y-4">
-        <div>
-          <h2 className="text-lg font-semibold">
-            <Trans>TLS Engine Rules</Trans>
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            <Trans>
-              Domain-specific TLS engine rules. Domains matched here use OpenSSL instead of rustls
-              for compatibility.
-            </Trans>
-          </p>
-        </div>
-
+      <SettingsSection
+        title={<Trans>TLS Engine Rules</Trans>}
+        description={
+          <Trans>
+            Domain-specific TLS engine rules. Domains matched here use OpenSSL instead of rustls for
+            compatibility.
+          </Trans>
+        }
+      >
         {rules.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             <Trans>No rules configured.</Trans>
@@ -99,29 +95,25 @@ export function TlsConfigSection() {
             ))}
           </div>
         )}
-      </div>
+      </SettingsSection>
 
-      {/* 학습된 TLS 전략 */}
-      <div className="border rounded-lg p-5 space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-semibold">
-              <Trans>Learned TLS Strategies</Trans>
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              <Trans>
-                Domains that failed with the default TLS engine are recorded here. On the next
-                connection, the alternate engine will be used automatically.
-              </Trans>
-            </p>
-          </div>
-          {strategies.length > 0 && (
+      <SettingsSection
+        title={<Trans>Learned TLS Strategies</Trans>}
+        description={
+          <Trans>
+            Domains that failed with the default TLS engine are recorded here. On the next
+            connection, the alternate engine will be used automatically.
+          </Trans>
+        }
+      >
+        {strategies.length > 0 && (
+          <div className="flex justify-end -mt-3">
             <Button type="button" variant="outline" size="sm" onClick={handleClearStrategies}>
               <Trash2 className="size-3.5 mr-1.5" />
               <Trans>Clear All</Trans>
             </Button>
-          )}
-        </div>
+          </div>
+        )}
 
         {strategies.length === 0 ? (
           <p className="text-sm text-muted-foreground italic">
@@ -146,7 +138,7 @@ export function TlsConfigSection() {
             ))}
           </div>
         )}
-      </div>
+      </SettingsSection>
     </div>
   );
 }

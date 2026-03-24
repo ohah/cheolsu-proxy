@@ -6,6 +6,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { Button } from "@/shared/ui";
 import { Trash2, Plus } from "lucide-react";
 import { toast } from "sonner";
+import { SettingsSection } from "./settings-section";
 
 export function ProtoFilesSection() {
   const { t } = useLingui();
@@ -59,19 +60,15 @@ export function ProtoFilesSection() {
   );
 
   return (
-    <div className="border rounded-lg p-5 space-y-4">
-      <div>
-        <h2 className="text-lg font-semibold">
-          <Trans>gRPC Proto Files</Trans>
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          <Trans>
-            Register .proto files to decode gRPC traffic with actual field names instead of field
-            numbers.
-          </Trans>
-        </p>
-      </div>
-
+    <SettingsSection
+      title={<Trans>gRPC Proto Files</Trans>}
+      description={
+        <Trans>
+          Register .proto files to decode gRPC traffic with actual field names instead of field
+          numbers.
+        </Trans>
+      }
+    >
       <Button onClick={handleAddFile} disabled={loading} size="sm">
         <Plus className="w-4 h-4 mr-1" />
         {loading ? <Trans>Loading...</Trans> : <Trans>Add Proto Files</Trans>}
@@ -100,6 +97,6 @@ export function ProtoFilesSection() {
           </Trans>
         </p>
       )}
-    </div>
+    </SettingsSection>
   );
 }
