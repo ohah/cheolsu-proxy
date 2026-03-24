@@ -20,15 +20,6 @@ use hyper_util::{
 use std::{convert::Infallible, net::SocketAddr, pin::Pin, sync::Arc};
 use tracing::{Instrument, error, info_span, instrument, warn};
 
-/// Lazy 폴백: upstream 인증서를 동기적으로 스니핑하고 이벤트를 발송합니다.
-pub(super) async fn lazy_sniff_upstream(
-    authority: &Authority,
-    upstream_proxy: Option<&crate::upstream_proxy::UpstreamProxyConfig>,
-    tls_event_sender: &Option<TlsEventSender>,
-) -> Option<UpstreamCertInfo> {
-    lazy_sniff_upstream_with_mirror(authority, upstream_proxy, tls_event_sender, None).await
-}
-
 /// ClientHello 미러링 정보를 포함한 Lazy upstream cert 스니핑
 pub(super) async fn lazy_sniff_upstream_with_mirror(
     authority: &Authority,
