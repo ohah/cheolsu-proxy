@@ -1,5 +1,5 @@
 use super::OpensslAuthority;
-use crate::certificate_authority::{NOT_BEFORE_OFFSET, TTL_SECS, truncate_cn};
+use crate::certificate_authority::{LEAF_TTL_SECS, NOT_BEFORE_OFFSET, truncate_cn};
 use crate::upstream_cert::UpstreamCertInfo;
 use http::uri::Authority;
 use openssl::{
@@ -83,7 +83,8 @@ pub(super) async fn gen_openssl_context(
                 .as_secs() as i64
                 - NOT_BEFORE_OFFSET;
             x509_builder.set_not_before(Asn1Time::from_unix(not_before)?.as_ref())?;
-            x509_builder.set_not_after(Asn1Time::from_unix(not_before + TTL_SECS)?.as_ref())?;
+            x509_builder
+                .set_not_after(Asn1Time::from_unix(not_before + LEAF_TTL_SECS)?.as_ref())?;
 
             x509_builder.set_pubkey(&leaf_pkey)?;
             x509_builder.set_issuer_name(ca_cert.subject_name())?;

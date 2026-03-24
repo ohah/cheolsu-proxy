@@ -1,5 +1,5 @@
 use super::RcgenAuthority;
-use crate::certificate_authority::{NOT_BEFORE_OFFSET, TTL_SECS, truncate_cn};
+use crate::certificate_authority::{LEAF_TTL_SECS, NOT_BEFORE_OFFSET, truncate_cn};
 use crate::upstream_cert::UpstreamCertInfo;
 use http::uri::Authority;
 use rand::{Rng, rng};
@@ -55,7 +55,7 @@ pub(super) async fn gen_openssl_context(
 
             let not_before = OffsetDateTime::now_utc() - Duration::seconds(NOT_BEFORE_OFFSET);
             params.not_before = not_before;
-            params.not_after = not_before + Duration::seconds(TTL_SECS);
+            params.not_after = not_before + Duration::seconds(LEAF_TTL_SECS);
 
             let mut distinguished_name = DistinguishedName::new();
 

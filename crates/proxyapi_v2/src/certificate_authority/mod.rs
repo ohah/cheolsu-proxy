@@ -21,8 +21,12 @@ pub use rcgen_authority::*;
 pub use generator::*;
 pub use storage::*;
 
-pub(crate) const TTL_SECS: i64 = 365 * 24 * 60 * 60;
-pub(crate) const CACHE_TTL: u64 = TTL_SECS as u64 / 2;
+/// CA 인증서 유효기간 (10년)
+/// mitmproxy와 동일하게 장기간 설정하여 사용자가 자주 재설치하지 않아도 됨
+pub(crate) const CA_TTL_SECS: i64 = 10 * 365 * 24 * 60 * 60;
+/// Leaf 인증서 유효기간 (1년)
+pub(crate) const LEAF_TTL_SECS: i64 = 365 * 24 * 60 * 60;
+pub(crate) const CACHE_TTL: u64 = LEAF_TTL_SECS as u64 / 2;
 /// 인증서 not_before 오프셋 (2일 = 172800초)
 /// 클라이언트 시계 오차를 대비하여 mitmproxy와 동일하게 -2일로 설정
 pub(crate) const NOT_BEFORE_OFFSET: i64 = 172_800;
