@@ -4,7 +4,7 @@ use proxyapi_v2::{
     Body, HttpContext, HttpHandler, RequestOrResponse,
     certificate_authority::RcgenAuthority,
     hyper::{Request, Response, StatusCode},
-    rcgen::{CertificateParams, KeyPair},
+    rcgen::{Issuer, KeyPair},
     rustls::crypto::aws_lc_rs,
 };
 use std::error::Error;
@@ -14,6 +14,7 @@ use std::sync::Arc;
 use std::sync::Mutex;
 use tokio::sync::oneshot::Sender;
 use tokio::time::Duration;
+use tokio_rustls::rustls::pki_types::CertificateDer;
 
 // 실제 LoggingHandler를 모방한 테스트용 핸들러
 pub struct TestLoggingHandler {
@@ -178,15 +179,21 @@ async fn start_test_server() -> Result<(SocketAddr, Sender<()>), Box<dyn std::er
 
 /// 테스트용 CA 빌드 (번들된 인증서 사용, 파일시스템 비의존)
 fn build_test_ca() -> RcgenAuthority {
-    let key_pair = include_str!("../src/certificate_authority/cheolsu-proxy.key");
-    let ca_cert = include_str!("../src/certificate_authority/cheolsu-proxy.cer");
-    let key_pair = KeyPair::from_pem(key_pair).expect("Failed to parse private key");
-    let ca_cert = CertificateParams::from_ca_cert_pem(ca_cert)
-        .expect("Failed to parse CA certificate")
-        .self_signed(&key_pair)
-        .expect("Failed to sign CA certificate");
+    let key_pem = include_str!("../src/certificate_authority/cheolsu-proxy.key");
+    let ca_cert_pem = include_str!("../src/certificate_authority/cheolsu-proxy.cer");
+    let ca_cert_der = pem::parse(ca_cert_pem).unwrap().into_contents();
+    let key_pair = KeyPair::from_pem(key_pem).expect("Failed to parse private key");
+    let issuer =
+        Issuer::from_ca_cert_pem(ca_cert_pem, key_pair).expect("Failed to parse CA certificate");
 
-    RcgenAuthority::new(key_pair, ca_cert, 1_000, aws_lc_rs::default_provider())
+    RcgenAuthority::new(
+        issuer,
+        CertificateDer::from(ca_cert_der),
+        ca_cert_pem.to_string(),
+        key_pem.to_string(),
+        1_000,
+        aws_lc_rs::default_provider(),
+    )
 }
 
 /// 프록시 서버 시작 (common 헬퍼 활용)

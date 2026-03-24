@@ -10,9 +10,10 @@ use proxyapi_v2::{
     Proxy,
     certificate_authority::{RcgenAuthority, build_ca},
 };
-use rcgen::{CertificateParams, KeyPair};
+use rcgen::{CertificateParams, Issuer, KeyPair};
 use std::net::SocketAddr;
 use tokio_rustls::rustls::crypto::aws_lc_rs;
+use tokio_rustls::rustls::pki_types::CertificateDer;
 use tracing::{Level, info};
 use tracing_subscriber;
 
@@ -87,11 +88,18 @@ fn create_new_ca() -> Result<RcgenAuthority, Box<dyn std::error::Error>> {
 
     // CA 인증서 생성
     let ca_cert = params.self_signed(&key_pair)?;
+    let ca_cert_pem = ca_cert.pem();
+    let key_pem = key_pair.serialize_pem();
+    let ca_cert_der_bytes = pem::parse(&ca_cert_pem).unwrap().into_contents();
+    let issuer = Issuer::from_ca_cert_pem(&ca_cert_pem, key_pair)
+        .expect("Failed to create issuer from CA cert");
 
     // RcgenAuthority 생성
     let ca = RcgenAuthority::new(
-        key_pair,
-        ca_cert,
+        issuer,
+        CertificateDer::from(ca_cert_der_bytes),
+        ca_cert_pem,
+        key_pem,
         1_000, // 캐시 크기
         aws_lc_rs::default_provider(),
     );
