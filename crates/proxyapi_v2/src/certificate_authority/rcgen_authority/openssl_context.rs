@@ -2,7 +2,6 @@ use super::RcgenAuthority;
 use crate::certificate_authority::{LEAF_TTL_SECS, NOT_BEFORE_OFFSET, truncate_cn};
 use crate::upstream_cert::UpstreamCertInfo;
 use http::uri::Authority;
-use rand::{Rng, rng};
 use rcgen::{DistinguishedName, DnType, Ia5String, SanType};
 use std::collections::HashSet;
 use std::net::IpAddr;
@@ -51,12 +50,7 @@ pub(super) async fn gen_openssl_context(
                     });
 
             let mut params = rcgen::CertificateParams::default();
-            params.serial_number = Some({
-                let mut bytes = [0u8; 16];
-                rng().fill(&mut bytes);
-                bytes[0] &= 0x7F;
-                rcgen::SerialNumber::from_slice(&bytes)
-            });
+            params.serial_number = Some(crate::certificate_authority::generate_serial_number());
 
             let not_before = OffsetDateTime::now_utc() - Duration::seconds(NOT_BEFORE_OFFSET);
             params.not_before = not_before;

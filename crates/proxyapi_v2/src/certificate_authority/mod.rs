@@ -31,6 +31,17 @@ pub(crate) const CACHE_TTL: u64 = LEAF_TTL_SECS as u64 / 2;
 /// 클라이언트 시계 오차를 대비하여 mitmproxy와 동일하게 -2일로 설정
 pub(crate) const NOT_BEFORE_OFFSET: i64 = 172_800;
 
+/// 128비트 난수 시리얼 번호를 생성합니다.
+/// RFC 5280: serial number는 양수 INTEGER이므로 최상위 비트를 클리어합니다.
+#[cfg(feature = "rcgen-ca")]
+pub(crate) fn generate_serial_number() -> rcgen::SerialNumber {
+    use rand::{Rng, rng};
+    let mut bytes = [0u8; 16];
+    rng().fill(&mut bytes);
+    bytes[0] &= 0x7F;
+    rcgen::SerialNumber::from_slice(&bytes)
+}
+
 /// CN(Common Name)을 RFC 5280 제한인 64자로 truncate합니다.
 /// char 경계를 존중하여 안전하게 자릅니다.
 pub(crate) fn truncate_cn(cn: &str) -> String {
