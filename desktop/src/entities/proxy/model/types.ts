@@ -139,6 +139,8 @@ export interface ServerCertInfo {
   is_ca: boolean;
   negotiated_alpn?: string;
   chain_length: number;
+  verification_status?: string;
+  verification_error?: string;
 }
 
 export interface HttpTransaction {

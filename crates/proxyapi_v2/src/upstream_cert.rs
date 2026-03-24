@@ -3,7 +3,7 @@ use http::uri::Authority;
 use std::net::IpAddr;
 use std::sync::{Arc, Mutex};
 use tokio_rustls::rustls::{
-    ClientConfig, DigitallySignedStruct, SignatureScheme,
+    CertificateError, ClientConfig, DigitallySignedStruct, Error as RustlsError, SignatureScheme,
     client::danger::{HandshakeSignatureValid, ServerCertVerified, ServerCertVerifier},
     pki_types::{CertificateDer, ServerName, UnixTime},
 };
@@ -12,7 +12,57 @@ use x509_parser::extensions::GeneralName;
 
 /// SSL/TLS 기본 포트 (HTTPS)
 const DEFAULT_SSL_PORT: u16 = 443;
+use tokio_rustls::rustls::RootCertStore;
 use x509_parser::oid_registry::{OID_X509_COMMON_NAME, OID_X509_ORGANIZATION_NAME};
+
+/// IPv6 대괄호를 제거합니다 (예: "[::1]" → "::1")
+fn strip_ipv6_brackets(host: &str) -> &str {
+    host.strip_prefix('[')
+        .and_then(|h| h.strip_suffix(']'))
+        .unwrap_or(host)
+}
+
+/// Authority의 호스트에서 ServerName을 구성합니다.
+/// IP 주소이면 SNI 미전송, 도메인이면 SNI 전송.
+fn server_name_from_authority(authority: &Authority) -> Option<ServerName<'static>> {
+    let stripped = strip_ipv6_brackets(authority.host());
+    if let Ok(ip_addr) = stripped.parse::<IpAddr>() {
+        Some(ServerName::from(ip_addr))
+    } else {
+        ServerName::try_from(stripped.to_string()).ok()
+    }
+}
+
+/// 상류 서버 인증서 검증 상태
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Default)]
+pub enum CertVerificationStatus {
+    /// 시스템 신뢰 저장소에서 유효한 인증서
+    Valid,
+    /// 자체 서명 인증서
+    SelfSigned,
+    /// 만료된 인증서
+    Expired,
+    /// 아직 유효하지 않은 인증서 (not_before 이전)
+    NotYetValid,
+    /// 신뢰할 수 없는 CA (체인 검증 실패)
+    UntrustedCa,
+    /// 검증 수행되지 않음
+    #[default]
+    Unknown,
+}
+
+impl CertVerificationStatus {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::Valid => "valid",
+            Self::SelfSigned => "self_signed",
+            Self::Expired => "expired",
+            Self::NotYetValid => "not_yet_valid",
+            Self::UntrustedCa => "untrusted_ca",
+            Self::Unknown => "unknown",
+        }
+    }
+}
 
 /// upstream 인증서의 공개키 타입
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -70,6 +120,10 @@ pub struct UpstreamCertInfo {
     pub chain_length: usize,
     /// 공개키 타입 (RSA, ECDSA, Ed25519)
     pub key_type: UpstreamKeyType,
+    /// 인증서 검증 상태 (시스템 신뢰 저장소 기반)
+    pub verification_status: CertVerificationStatus,
+    /// 검증 실패 시 상세 사유
+    pub verification_error: Option<String>,
 }
 
 impl UpstreamCertInfo {
@@ -91,15 +145,58 @@ impl UpstreamCertInfo {
                 .as_ref()
                 .map(|a| String::from_utf8_lossy(a).to_string()),
             chain_length: self.chain_length,
+            verification_status: Some(self.verification_status.as_str().to_string()),
+            verification_error: self.verification_error.clone(),
         }
     }
 }
 
-/// 인증서를 캡처하는 TLS 검증기
+/// 시스템 신뢰 저장소를 사용하는 검증기 (전역 캐시)
+static SYSTEM_VERIFIER: std::sync::LazyLock<Option<Arc<dyn ServerCertVerifier>>> =
+    std::sync::LazyLock::new(|| {
+        let mut root_store = RootCertStore::empty();
+        let cert_result = rustls_native_certs::load_native_certs();
+        for cert in cert_result.certs {
+            let _ = root_store.add(cert);
+        }
+        if root_store.is_empty() {
+            warn!("[UPSTREAM-CERT] 시스템 신뢰 저장소가 비어있습니다");
+            return None;
+        }
+        let provider = Arc::new(tokio_rustls::rustls::crypto::aws_lc_rs::default_provider());
+        tokio_rustls::rustls::client::WebPkiServerVerifier::builder_with_provider(
+            Arc::new(root_store),
+            provider,
+        )
+        .build()
+        .ok()
+        .map(|v| v as Arc<dyn ServerCertVerifier>)
+    });
+
+/// 인증서를 캡처하면서 시스템 신뢰 저장소로 검증 결과도 기록하는 TLS 검증기
 #[derive(Debug)]
 struct CertCapturingVerifier {
     captured: Arc<Mutex<Option<Vec<u8>>>>,
     chain_length: Arc<Mutex<usize>>,
+    verification_status: Arc<Mutex<CertVerificationStatus>>,
+    verification_error: Arc<Mutex<Option<String>>>,
+}
+
+/// rustls 에러 타입을 CertVerificationStatus로 변환
+fn classify_verification_error(err: &RustlsError) -> CertVerificationStatus {
+    match err {
+        RustlsError::InvalidCertificate(cert_err) => match cert_err {
+            CertificateError::Expired | CertificateError::ExpiredContext { .. } => {
+                CertVerificationStatus::Expired
+            }
+            CertificateError::NotValidYet | CertificateError::NotValidYetContext { .. } => {
+                CertVerificationStatus::NotYetValid
+            }
+            CertificateError::UnknownIssuer => CertVerificationStatus::UntrustedCa,
+            _ => CertVerificationStatus::UntrustedCa,
+        },
+        _ => CertVerificationStatus::UntrustedCa,
+    }
 }
 
 impl ServerCertVerifier for CertCapturingVerifier {
@@ -107,10 +204,11 @@ impl ServerCertVerifier for CertCapturingVerifier {
         &self,
         end_entity: &CertificateDer<'_>,
         intermediates: &[CertificateDer<'_>],
-        _server_name: &ServerName<'_>,
-        _ocsp_response: &[u8],
-        _now: UnixTime,
+        server_name: &ServerName<'_>,
+        ocsp_response: &[u8],
+        now: UnixTime,
     ) -> Result<ServerCertVerified, tokio_rustls::rustls::Error> {
+        // 1. 인증서 DER 캡처 (기존 동작)
         match self.captured.lock() {
             Ok(mut guard) => *guard = Some(end_entity.to_vec()),
             Err(poisoned) => *poisoned.into_inner() = Some(end_entity.to_vec()),
@@ -120,6 +218,38 @@ impl ServerCertVerifier for CertCapturingVerifier {
             Ok(mut guard) => *guard = 1 + intermediates.len(),
             Err(poisoned) => *poisoned.into_inner() = 1 + intermediates.len(),
         }
+
+        // 2. 시스템 신뢰 저장소로 검증 시도 (결과만 기록, 연결은 끊지 않음)
+        if let Some(ref real_verifier) = *SYSTEM_VERIFIER {
+            match real_verifier.verify_server_cert(
+                end_entity,
+                intermediates,
+                server_name,
+                ocsp_response,
+                now,
+            ) {
+                Ok(_) => {
+                    if let Ok(mut status) = self.verification_status.lock() {
+                        *status = CertVerificationStatus::Valid;
+                    }
+                }
+                Err(ref err) => {
+                    let status = classify_verification_error(err);
+                    let err_msg = format!("{}", err);
+                    debug!(
+                        "[UPSTREAM-CERT] 검증 실패 (경고만): {} - {:?}",
+                        err_msg, status
+                    );
+                    if let Ok(mut s) = self.verification_status.lock() {
+                        *s = status;
+                    }
+                    if let Ok(mut e) = self.verification_error.lock() {
+                        *e = Some(err_msg);
+                    }
+                }
+            }
+        }
+        // 항상 연결 허용 (MITM 프록시 특성)
         Ok(ServerCertVerified::assertion())
     }
 
@@ -142,6 +272,10 @@ impl ServerCertVerifier for CertCapturingVerifier {
     }
 
     fn supported_verify_schemes(&self) -> Vec<SignatureScheme> {
+        // 시스템 검증기의 scheme을 사용하되, 없으면 전체 지원
+        if let Some(ref real_verifier) = *SYSTEM_VERIFIER {
+            return real_verifier.supported_verify_schemes();
+        }
         vec![
             SignatureScheme::RSA_PKCS1_SHA256,
             SignatureScheme::RSA_PKCS1_SHA384,
@@ -295,9 +429,13 @@ async fn sniff_upstream_cert_inner(
     // 2. 인증서 캡처용 TLS 설정
     let captured = Arc::new(Mutex::new(None));
     let chain_length = Arc::new(Mutex::new(0usize));
+    let verification_status = Arc::new(Mutex::new(CertVerificationStatus::Unknown));
+    let verification_error = Arc::new(Mutex::new(None));
     let verifier = CertCapturingVerifier {
         captured: Arc::clone(&captured),
         chain_length: Arc::clone(&chain_length),
+        verification_status: Arc::clone(&verification_status),
+        verification_error: Arc::clone(&verification_error),
     };
 
     let mut config = ClientConfig::builder_with_provider(Arc::new(
@@ -314,23 +452,7 @@ async fn sniff_upstream_cert_inner(
 
     let connector = tokio_rustls::TlsConnector::from(Arc::new(config));
 
-    // IPv6 대괄호 제거 및 IP 주소 처리 (RFC 6066: IP literal은 SNI에 불허)
-    let host = authority.host();
-    let stripped_host = host
-        .strip_prefix('[')
-        .and_then(|h| h.strip_suffix(']'))
-        .unwrap_or(host);
-
-    let server_name = if let Ok(ip_addr) = stripped_host.parse::<std::net::IpAddr>() {
-        // IP 주소인 경우 ServerName::IpAddress 사용 → rustls가 SNI를 전송하지 않음
-        debug!(
-            "[UPSTREAM-CERT] IP 주소 감지, SNI 미전송 (RFC 6066): {}",
-            ip_addr
-        );
-        ServerName::from(ip_addr)
-    } else {
-        ServerName::try_from(stripped_host.to_string()).ok()?
-    };
+    let server_name = server_name_from_authority(authority)?;
 
     // 3. TLS 핸드셰이크 (인증서 + ALPN 캡처)
     let negotiated_alpn = match connector.connect(server_name, tcp_stream).await {
@@ -364,7 +486,46 @@ async fn sniff_upstream_cert_inner(
     let mut info = parse_cert_info(&cert_der)?;
     info.negotiated_alpn = negotiated_alpn;
     info.chain_length = captured_chain_length;
+    info.verification_status = verification_status
+        .lock()
+        .unwrap_or_else(|p| p.into_inner())
+        .clone();
+    info.verification_error = verification_error
+        .lock()
+        .unwrap_or_else(|p| p.into_inner())
+        .clone();
     Some(info)
+}
+
+/// 오프라인으로 인증서를 시스템 신뢰 저장소와 대조 검증합니다.
+/// rustls `WebPkiServerVerifier`를 사용하여 검증하되, 결과만 반환합니다.
+fn verify_cert_offline(
+    authority: &Authority,
+    cert_der: &[u8],
+    intermediates: &[CertificateDer<'_>],
+) -> (CertVerificationStatus, Option<String>) {
+    let Some(ref real_verifier) = *SYSTEM_VERIFIER else {
+        return (CertVerificationStatus::Unknown, None);
+    };
+
+    let end_entity = CertificateDer::from(cert_der.to_vec());
+    let Some(server_name) = server_name_from_authority(authority) else {
+        return (CertVerificationStatus::Unknown, None);
+    };
+
+    let now = UnixTime::now();
+    match real_verifier.verify_server_cert(&end_entity, intermediates, &server_name, &[], now) {
+        Ok(_) => (CertVerificationStatus::Valid, None),
+        Err(ref err) => {
+            let status = classify_verification_error(err);
+            let err_msg = format!("{}", err);
+            debug!(
+                "[UPSTREAM-CERT] 오프라인 검증 실패 (경고만): {} - {:?}",
+                err_msg, status
+            );
+            (status, Some(err_msg))
+        }
+    }
 }
 
 /// OpenSSL을 사용하여 클라이언트의 ClientHello를 미러링한 upstream cert 스니핑
@@ -437,15 +598,9 @@ async fn sniff_upstream_cert_openssl_mirror(
 
     let ssl_connector = connector_builder.build();
 
-    // IPv6 대괄호 제거
-    let host = authority.host();
-    let stripped_host = host
-        .strip_prefix('[')
-        .and_then(|h| h.strip_suffix(']'))
-        .unwrap_or(host);
+    let stripped_host = strip_ipv6_brackets(authority.host());
 
     let mut ssl_config = ssl_connector.configure().ok()?;
-    // IP 주소인 경우 SNI 비활성화
     if stripped_host.parse::<std::net::IpAddr>().is_ok() {
         ssl_config.set_use_server_name_indication(false);
     }
@@ -491,9 +646,25 @@ async fn sniff_upstream_cert_openssl_mirror(
     info.negotiated_alpn = negotiated_alpn;
     info.chain_length = chain_length;
 
+    // OpenSSL 경로에서도 시스템 신뢰 저장소로 검증
+    let intermediates_der: Vec<CertificateDer<'static>> = ssl_ref
+        .peer_cert_chain()
+        .map(|chain| {
+            chain
+                .iter()
+                .skip(1) // 첫 번째는 end-entity
+                .filter_map(|c| c.to_der().ok())
+                .map(|d| CertificateDer::from(d))
+                .collect()
+        })
+        .unwrap_or_default();
+    let (status, error) = verify_cert_offline(authority, &cert_der, &intermediates_der);
+    info.verification_status = status;
+    info.verification_error = error;
+
     info!(
-        "[UPSTREAM-CERT-MIRROR] OpenSSL 미러링 스니핑 성공: {} (CN={:?}, KeyType={:?})",
-        authority, info.common_name, info.key_type
+        "[UPSTREAM-CERT-MIRROR] OpenSSL 미러링 스니핑 성공: {} (CN={:?}, KeyType={:?}, Verify={:?})",
+        authority, info.common_name, info.key_type, info.verification_status
     );
 
     Some(info)
@@ -843,6 +1014,8 @@ mod tests {
             is_ca: false,
             chain_length: 3,
             key_type: UpstreamKeyType::Ecdsa(EcCurve::P256),
+            verification_status: CertVerificationStatus::Valid,
+            verification_error: None,
         };
 
         let cert_info = info.to_server_cert_info();

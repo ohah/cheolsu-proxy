@@ -342,6 +342,12 @@ pub struct ServerCertInfo {
     pub negotiated_alpn: Option<String>,
     /// 인증서 체인 길이
     pub chain_length: usize,
+    /// 인증서 검증 상태 ("valid", "self_signed", "expired", "not_yet_valid", "untrusted_ca", "unknown")
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub verification_status: Option<String>,
+    /// 검증 실패 시 상세 사유
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub verification_error: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
