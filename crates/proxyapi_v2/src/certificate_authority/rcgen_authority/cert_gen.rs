@@ -2,7 +2,6 @@ use super::RcgenAuthority;
 use crate::certificate_authority::{LEAF_TTL_SECS, NOT_BEFORE_OFFSET, truncate_cn};
 use crate::upstream_cert::UpstreamCertInfo;
 use http::uri::Authority;
-use rand::{Rng, rng};
 use rcgen::{
     CertificateParams, DistinguishedName, DnType, ExtendedKeyUsagePurpose, Ia5String, SanType,
 };
@@ -37,13 +36,7 @@ impl RcgenAuthority {
             PrivateKeyDer::from(PrivatePkcs8KeyDer::from(leaf_key_pair.serialize_der()));
 
         let mut params = CertificateParams::default();
-        params.serial_number = Some({
-            let mut bytes = [0u8; 16];
-            rng().fill(&mut bytes);
-            // RFC 5280: serial number는 양수여야 하므로 최상위 비트 클리어
-            bytes[0] &= 0x7F;
-            rcgen::SerialNumber::from_slice(&bytes)
-        });
+        params.serial_number = Some(crate::certificate_authority::generate_serial_number());
 
         let not_before = OffsetDateTime::now_utc() - Duration::seconds(NOT_BEFORE_OFFSET);
         params.not_before = not_before;
