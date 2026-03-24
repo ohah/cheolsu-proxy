@@ -91,7 +91,7 @@ msgstr "Actual"
 #: src/features/intercept-rule-form/ui/headers-fields.tsx:59
 #: src/features/intercept-rule-form/ui/headers-fields.tsx:88
 #: src/features/map-rule-form/ui/map-local-fields.tsx:73
-#: src/features/transaction-details/ui/replay-dialog.tsx:435
+#: src/features/transaction-details/ui/replay-dialog.tsx:360
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:225
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:445
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:142
@@ -354,9 +354,9 @@ msgstr "Block QUIC"
 #: src/features/intercept-rule-form/ui/block-action-fields.tsx:22
 #: src/features/intercept-rule-form/ui/modify-request-fields.tsx:18
 #: src/features/intercept-rule-form/ui/modify-response-fields.tsx:29
-#: src/features/transaction-details/ui/replay-dialog.tsx:130
-#: src/features/transaction-details/ui/replay-dialog.tsx:201
-#: src/features/transaction-details/ui/replay-dialog.tsx:484
+#: src/features/transaction-details/ui/replay-dialog.tsx:114
+#: src/features/transaction-details/ui/replay-dialog.tsx:185
+#: src/features/transaction-details/ui/replay-dialog.tsx:409
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:479
 msgid "Body"
 msgstr "Body"
@@ -594,8 +594,8 @@ msgstr "Clients without a valid certificate will be rejected"
 msgid "Close"
 msgstr "Close"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:134
-#: src/features/transaction-details/ui/replay-dialog.tsx:494
+#: src/features/transaction-details/ui/replay-dialog.tsx:118
+#: src/features/transaction-details/ui/replay-dialog.tsx:415
 msgid "Collapse"
 msgstr "Collapse"
 
@@ -620,7 +620,7 @@ msgstr "Common Name (CN)"
 msgid "Compose request"
 msgstr "Compose request"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:361
+#: src/features/transaction-details/ui/replay-dialog.tsx:286
 msgid "Compose Request"
 msgstr "Compose Request"
 
@@ -1010,8 +1010,8 @@ msgstr "Exclude OPTIONS method"
 msgid "Exit fullscreen"
 msgstr "Exit fullscreen"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:205
-#: src/features/transaction-details/ui/replay-dialog.tsx:499
+#: src/features/transaction-details/ui/replay-dialog.tsx:189
+#: src/features/transaction-details/ui/replay-dialog.tsx:420
 msgid "Expand"
 msgstr "Expand"
 
@@ -1207,7 +1207,7 @@ msgstr "HAR imported successfully"
 
 #: src/features/intercept-rule-form/ui/headers-fields.tsx:65
 #: src/features/map-rule-form/ui/map-local-fields.tsx:79
-#: src/features/transaction-details/ui/replay-dialog.tsx:447
+#: src/features/transaction-details/ui/replay-dialog.tsx:372
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:454
 msgid "Header name"
 msgstr "Header name"
@@ -1227,8 +1227,8 @@ msgstr "Headers"
 
 #. placeholder {0}: headerEntries.length
 #. placeholder {0}: headers.length
-#: src/features/transaction-details/ui/replay-dialog.tsx:177
-#: src/features/transaction-details/ui/replay-dialog.tsx:432
+#: src/features/transaction-details/ui/replay-dialog.tsx:161
+#: src/features/transaction-details/ui/replay-dialog.tsx:357
 msgid "Headers ({0})"
 msgstr "Headers ({0})"
 
@@ -1868,7 +1868,7 @@ msgstr "Number of times to send the request (1-10000)"
 msgid "Only domains in this list will be intercepted. When the list is empty, all domains are intercepted."
 msgstr "Only domains in this list will be intercepted. When the list is empty, all domains are intercepted."
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:307
+#: src/features/transaction-details/hooks/use-replay-form.ts:77
 msgid "Only http:// and https:// URLs are allowed"
 msgstr "Only http:// and https:// URLs are allowed"
 
@@ -1936,7 +1936,7 @@ msgstr "optional"
 msgid "Organization"
 msgstr "Organization"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:378
+#: src/features/transaction-details/ui/replay-dialog.tsx:303
 msgid "Original"
 msgstr "Original"
 
@@ -2207,7 +2207,7 @@ msgstr "Replace With"
 msgid "Replacement string (supports $1, $2 capture groups)"
 msgstr "Replacement string (supports $1, $2 capture groups)"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:388
+#: src/features/transaction-details/ui/replay-dialog.tsx:313
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:113
 msgid "Replay"
 msgstr "Replay"
@@ -2216,11 +2216,11 @@ msgstr "Replay"
 msgid "Replay message"
 msgstr "Replay message"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:352
+#: src/features/transaction-details/ui/replay-dialog.tsx:277
 msgid "Replay request"
 msgstr "Replay request"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:374
+#: src/features/transaction-details/ui/replay-dialog.tsx:299
 #: src/features/transaction-details/ui/transaction-body-side-by-side.tsx:16
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:282
 #: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:58
@@ -2252,7 +2252,7 @@ msgstr "Request Details"
 msgid "Request dropped"
 msgstr "Request dropped"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:329
+#: src/features/transaction-details/hooks/use-replay-form.ts:99
 msgid "Request failed"
 msgstr "Request failed"
 
@@ -2291,7 +2291,7 @@ msgstr "Require authentication to use this proxy server"
 msgid "Require certificate"
 msgstr "Require certificate"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:388
+#: src/features/transaction-details/ui/replay-dialog.tsx:313
 #: src/features/transaction-details/ui/transaction-body-side-by-side.tsx:24
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:287
 #: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:121
@@ -2554,11 +2554,11 @@ msgstr "Select the downloaded certificate file and confirm"
 msgid "Select the downloaded profile and tap \"Install\""
 msgstr "Select the downloaded profile and tap \"Install\""
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:576
+#: src/features/transaction-details/ui/replay-dialog.tsx:497
 msgid "Send a request to see the replay response"
 msgstr "Send a request to see the replay response"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:574
+#: src/features/transaction-details/ui/replay-dialog.tsx:495
 msgid "Send a request to see the response"
 msgstr "Send a request to see the response"
 
@@ -2566,7 +2566,7 @@ msgstr "Send a request to see the response"
 msgid "Send Message"
 msgstr "Send Message"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:544
+#: src/features/transaction-details/ui/replay-dialog.tsx:465
 msgid "Send Request"
 msgstr "Send Request"
 
@@ -2574,7 +2574,7 @@ msgstr "Send Request"
 msgid "Sending requests sequentially..."
 msgstr "Sending requests sequentially..."
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:539
+#: src/features/transaction-details/ui/replay-dialog.tsx:460
 #: src/features/transaction-details/ui/sequence-replay-dialog.tsx:211
 #: src/features/websocket-replay/ui/ws-replay-dialog.tsx:196
 msgid "Sending..."
@@ -2919,7 +2919,7 @@ msgstr "Total Time"
 msgid "Traffic Analysis"
 msgstr "Traffic Analysis"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:361
+#: src/features/transaction-details/ui/replay-dialog.tsx:286
 msgid "Traffic Replay"
 msgstr "Traffic Replay"
 
@@ -2993,7 +2993,7 @@ msgstr "Upload Speed (KB/s)"
 msgid "Upstream Proxy"
 msgstr "Upstream Proxy"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:425
+#: src/features/transaction-details/ui/replay-dialog.tsx:350
 msgid "URL"
 msgstr "URL"
 
@@ -3058,7 +3058,7 @@ msgstr "Validity Period"
 
 #: src/features/intercept-rule-form/ui/headers-fields.tsx:70
 #: src/features/map-rule-form/ui/map-local-fields.tsx:84
-#: src/features/transaction-details/ui/replay-dialog.tsx:455
+#: src/features/transaction-details/ui/replay-dialog.tsx:380
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:460
 msgid "Value"
 msgstr "Value"

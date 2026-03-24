@@ -5,7 +5,6 @@ import {
   startSession,
   stopSession,
   domSnapshot,
-  waitFor,
   executeJs,
   callTool,
 } from "./mcp-helpers";
