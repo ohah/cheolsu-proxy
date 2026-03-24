@@ -1,9 +1,37 @@
 use std::fs;
 #[cfg(feature = "openssl-ca")]
 use std::path::PathBuf;
-use tracing::info;
+use tracing::{info, warn};
 
 use super::storage::get_ca_storage_dir;
+
+/// CA 인증서 만료 상태
+enum CaExpiryStatus {
+    /// 유효
+    Valid,
+    /// 곧 만료 (30일 미만, 남은 일수)
+    ExpiringSoon(i64),
+    /// 이미 만료됨
+    Expired,
+}
+
+/// DER 바이트에서 인증서 만료 상태를 확인합니다.
+fn check_cert_expiry(der_bytes: &[u8]) -> Option<CaExpiryStatus> {
+    let (_, cert) = x509_parser::parse_x509_certificate(der_bytes).ok()?;
+    let not_after = cert.validity().not_after.timestamp();
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs() as i64;
+    let remaining_days = (not_after - now) / 86400;
+    Some(if remaining_days < 0 {
+        CaExpiryStatus::Expired
+    } else if remaining_days < 30 {
+        CaExpiryStatus::ExpiringSoon(remaining_days)
+    } else {
+        CaExpiryStatus::Valid
+    })
+}
 
 #[cfg(feature = "rcgen-ca")]
 use super::RcgenAuthority;
@@ -21,8 +49,23 @@ pub fn load_or_generate_ca() -> Result<RcgenAuthority, String> {
     let key_path = storage_dir.join("cheolsu-proxy.key");
     let cer_path = storage_dir.join("cheolsu-proxy.cer");
 
-    // 기존 인증서가 있으면 로드
+    // 기존 인증서가 있으면 로드 (만료 확인 포함)
     if key_path.exists() && cer_path.exists() {
+        if let Ok(cert_der) = fs::read(&cer_path) {
+            match check_cert_expiry(&cert_der) {
+                Some(CaExpiryStatus::Expired) => {
+                    info!(path = %storage_dir.display(), "CA 인증서가 만료되었습니다. 새로 생성합니다.");
+                    return generate_and_save_ca(&storage_dir);
+                }
+                Some(CaExpiryStatus::ExpiringSoon(days)) => {
+                    warn!(
+                        remaining_days = days,
+                        "CA 인증서가 곧 만료됩니다. 재생성을 권장합니다."
+                    );
+                }
+                _ => {}
+            }
+        }
         info!(path = %storage_dir.display(), "기존 CA 인증서 로드 중");
         return load_ca_from_storage(&key_path, &cer_path);
     }
@@ -71,6 +114,13 @@ pub fn generate_and_save_ca(storage_dir: &std::path::Path) -> Result<RcgenAuthor
 
     // CA 인증서 파라미터 설정
     let mut params = rcgen::CertificateParams::default();
+
+    // CA 유효기간 명시 설정 (10년)
+    use super::CA_TTL_SECS;
+    use time::{Duration, OffsetDateTime};
+    let not_before = OffsetDateTime::now_utc() - Duration::seconds(super::NOT_BEFORE_OFFSET);
+    params.not_before = not_before;
+    params.not_after = not_before + Duration::seconds(CA_TTL_SECS);
 
     // Distinguished Name 설정
     let mut distinguished_name = rcgen::DistinguishedName::new();
@@ -185,6 +235,27 @@ pub fn load_or_generate_openssl_ca() -> Result<OpensslAuthority, String> {
     let cer_path = storage_dir.join("cheolsu-proxy.cer");
 
     if key_path.exists() && cer_path.exists() {
+        // PEM → DER 변환 후 만료 확인
+        if let Ok(cert_pem_str) = fs::read_to_string(&cer_path) {
+            if let Some(der_bytes) = pem::parse(cert_pem_str.as_bytes())
+                .ok()
+                .map(|p| p.contents().to_vec())
+            {
+                match check_cert_expiry(&der_bytes) {
+                    Some(CaExpiryStatus::Expired) => {
+                        info!(path = %storage_dir.display(), "OpenSSL CA 인증서가 만료되었습니다. 새로 생성합니다.");
+                        return generate_openssl_ca(&storage_dir);
+                    }
+                    Some(CaExpiryStatus::ExpiringSoon(days)) => {
+                        warn!(
+                            remaining_days = days,
+                            "OpenSSL CA 인증서가 곧 만료됩니다. 재생성을 권장합니다."
+                        );
+                    }
+                    _ => {}
+                }
+            }
+        }
         info!(path = %storage_dir.display(), "기존 OpenSSL 인증서 파일 사용");
         return load_openssl_ca_from_storage(&key_path, &cer_path);
     }
@@ -255,7 +326,7 @@ pub fn generate_openssl_ca(storage_dir: &PathBuf) -> Result<OpensslAuthority, St
     use openssl::x509::extension::*;
     use std::time::{SystemTime, UNIX_EPOCH};
 
-    use super::TTL_SECS;
+    use super::CA_TTL_SECS;
 
     // RSA 키 페어 생성
     let rsa = Rsa::generate(2048).map_err(|e| format!("Failed to generate RSA key: {}", e))?;
@@ -301,7 +372,7 @@ pub fn generate_openssl_ca(storage_dir: &PathBuf) -> Result<OpensslAuthority, St
         .map_err(|e| format!("Failed to get current time: {}", e))?;
     let not_before = Asn1Time::from_unix(now.as_secs() as i64)
         .map_err(|e| format!("Failed to create not_before time: {}", e))?;
-    let not_after = Asn1Time::from_unix(now.as_secs() as i64 + TTL_SECS)
+    let not_after = Asn1Time::from_unix(now.as_secs() as i64 + CA_TTL_SECS)
         .map_err(|e| format!("Failed to create not_after time: {}", e))?;
 
     cert_builder
