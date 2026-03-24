@@ -1,4 +1,7 @@
 import { type DataType, isTextBasedDataType, isBinaryDataType } from "@/entities/proxy";
+import type { HttpTransaction } from "@/entities/proxy";
+import type { ReplayRequestParams } from "@/shared/api/proxy";
+import { sanitizeHopByHopHeaders } from "@/shared/lib/http-headers";
 
 /**
  * Uint8Array를 문자열로 변환 (UTF-8 디코딩)
@@ -43,12 +46,13 @@ export const uint8ArrayToBase64 = (data: Uint8Array | number[]): string => {
     // 일반 배열인 경우 Uint8Array로 변환
     const uint8Array = data instanceof Uint8Array ? data : new Uint8Array(data);
 
-    // Uint8Array를 문자열로 변환한 후 Base64 인코딩
-    let binary = "";
-    for (let i = 0; i < uint8Array.length; i++) {
-      binary += String.fromCharCode(uint8Array[i]);
+    // Uint8Array를 문자열로 변환한 후 Base64 인코딩 (chunked approach to avoid O(n²))
+    const chunks: string[] = [];
+    const chunkSize = 8192;
+    for (let i = 0; i < uint8Array.length; i += chunkSize) {
+      chunks.push(String.fromCharCode(...uint8Array.subarray(i, i + chunkSize)));
     }
-    return btoa(binary);
+    return btoa(chunks.join(""));
   } catch (error) {
     console.error("Base64 인코딩 실패:", error);
     return "";
@@ -359,6 +363,34 @@ const formatGraphQLBody = (bodyJson: unknown): string => {
 
   return parts.join("\n");
 };
+
+/**
+ * HttpTransaction을 ReplayRequestParams로 변환
+ * body_json 포함 처리
+ */
+export function transactionToReplayParams(
+  transaction: HttpTransaction,
+): ReplayRequestParams | null {
+  const { request } = transaction;
+  if (!request) return null;
+
+  const headers = sanitizeHopByHopHeaders(request.headers);
+
+  let body: string | undefined;
+  if (request.body && request.data_type && isTextBasedDataType(request.data_type)) {
+    body = uint8ArrayToString(request.body, request.data_type);
+  } else if (request.body_json) {
+    body =
+      typeof request.body_json === "string" ? request.body_json : JSON.stringify(request.body_json);
+  }
+
+  return {
+    method: request.method,
+    url: request.uri,
+    headers,
+    body,
+  };
+}
 
 // Re-export data type utilities for convenience
 export {

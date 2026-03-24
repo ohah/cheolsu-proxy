@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
-import { open as openFileDialog } from "@tauri-apps/plugin-dialog";
 import {
   importCustomCa,
   importCustomCaPkcs12,
@@ -10,6 +9,7 @@ import {
   type CertificateInfo,
 } from "@/shared/api/proxy";
 import { useProxyStore } from "@/shared/stores/proxy-store";
+import { useFileSelector } from "@/shared/hooks/use-file-selector";
 import { Button, Badge, Input } from "@/shared/ui";
 
 export function CustomCaSection() {
@@ -26,6 +26,7 @@ export function CustomCaSection() {
   const [errorMessage, setErrorMessage] = useState("");
   const [customCaInfo, setCustomCaInfo] = useState<CertificateInfo | null>(null);
   const [loading, setLoading] = useState(true);
+  const selectFile = useFileSelector();
 
   // 초기 로드: 현재 커스텀 CA 상태 확인
   useEffect(() => {
@@ -38,37 +39,28 @@ export function CustomCaSection() {
   }, []);
 
   const handleSelectCert = useCallback(async () => {
-    const selected = await openFileDialog({
-      multiple: false,
-      filters: [{ name: "Certificate", extensions: ["pem", "crt", "cer", "der"] }],
-    });
-    if (typeof selected === "string") {
-      setCertPath(selected);
+    const path = await selectFile({ extensions: ["pem", "crt", "cer", "der"] });
+    if (path) {
+      setCertPath(path);
       setStatus("idle");
     }
-  }, []);
+  }, [selectFile]);
 
   const handleSelectKey = useCallback(async () => {
-    const selected = await openFileDialog({
-      multiple: false,
-      filters: [{ name: "Key", extensions: ["pem", "key"] }],
-    });
-    if (typeof selected === "string") {
-      setKeyPath(selected);
+    const path = await selectFile({ extensions: ["pem", "key"] });
+    if (path) {
+      setKeyPath(path);
       setStatus("idle");
     }
-  }, []);
+  }, [selectFile]);
 
   const handleSelectP12 = useCallback(async () => {
-    const selected = await openFileDialog({
-      multiple: false,
-      filters: [{ name: "PKCS12", extensions: ["p12", "pfx"] }],
-    });
-    if (typeof selected === "string") {
-      setP12Path(selected);
+    const path = await selectFile({ extensions: ["p12", "pfx"] });
+    if (path) {
+      setP12Path(path);
       setStatus("idle");
     }
-  }, []);
+  }, [selectFile]);
 
   const handleImport = useCallback(async () => {
     setImporting(true);

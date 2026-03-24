@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
+import { toast } from "sonner";
 import { createTauriStorage } from "@/shared/lib/tauri-store-storage";
 import type { HostMapping } from "@/shared/api/proxy";
 import { updateHostMappings } from "@/shared/api/proxy";
@@ -61,6 +62,7 @@ export const useHostMappingStore = create<HostMappingStoreState>()(
             await updateHostMappings(hostMappings);
           } catch (error) {
             console.error("Failed to sync host mappings:", error);
+            toast.error("Failed to sync host mappings");
           }
         });
       },

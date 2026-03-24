@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
+import { toast } from "sonner";
 import { createTauriStorage } from "@/shared/lib/tauri-store-storage";
 import { updateServerReplay, type ServerReplayEntry } from "@/shared/api/proxy";
 import { createDebouncedSync } from "./create-debounced-sync";
@@ -57,6 +58,7 @@ export const useServerReplayStore = create<ServerReplayStoreState>()(
             await updateServerReplay(enabled ? entries : []);
           } catch (error) {
             console.error("Failed to sync server replay:", error);
+            toast.error("Failed to sync server replay");
           }
         });
       },
