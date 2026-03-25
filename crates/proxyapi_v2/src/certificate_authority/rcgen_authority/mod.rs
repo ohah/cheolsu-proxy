@@ -54,6 +54,8 @@ pub struct RcgenAuthority {
     pub(super) provider: Arc<CryptoProvider>,
     /// 클라이언트 인증서 요청 설정
     pub(super) client_cert_verify: Arc<tokio::sync::RwLock<Option<ClientCertVerifyConfig>>>,
+    /// 인증서 생성 메트릭
+    pub(super) metrics: Arc<crate::certificate_authority::CertMetrics>,
 }
 
 impl RcgenAuthority {
@@ -82,7 +84,13 @@ impl RcgenAuthority {
                 .build(),
             provider: Arc::new(provider),
             client_cert_verify: Arc::new(tokio::sync::RwLock::new(None)),
+            metrics: Arc::new(crate::certificate_authority::CertMetrics::new()),
         }
+    }
+
+    /// 인증서 메트릭 핸들을 반환합니다.
+    pub fn get_metrics(&self) -> Arc<crate::certificate_authority::CertMetrics> {
+        Arc::clone(&self.metrics)
     }
 
     /// PEM 문자열에서 RcgenAuthority를 생성하는 편의 생성자.
