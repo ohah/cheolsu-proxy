@@ -11,8 +11,8 @@ use std::time::Duration;
 
 /// V8 초기 힙 크기 (4MB)
 const V8_INITIAL_HEAP_SIZE: usize = 4 * 1024 * 1024;
-/// V8 최대 힙 크기 (32MB)
-const V8_MAX_HEAP_SIZE: usize = 32 * 1024 * 1024;
+/// V8 최대 힙 크기 (64MB)
+const V8_MAX_HEAP_SIZE: usize = 64 * 1024 * 1024;
 
 const RUNTIME_JS: &str = include_str!("../runtime.js");
 

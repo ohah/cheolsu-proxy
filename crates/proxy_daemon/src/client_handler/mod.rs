@@ -129,9 +129,8 @@ pub(crate) async fn handle_client(stream: UnixStream, ctx: ClientHandlerContext)
         let _ = w.write_all(cert_line.as_bytes()).await;
         let _ = w.flush().await;
 
-        // 현재 스크립트 활성 상태 전송
         let script_active = shared.script_handle.is_active();
-        let script_path = shared.script_handle.loaded_path().await;
+        let script_path = shared.script_handle.loaded_path();
         let script_msg = DaemonMessage::ScriptStatus {
             active: script_active,
             path: script_path,
