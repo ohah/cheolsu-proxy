@@ -9,6 +9,11 @@ use crate::error::ScriptError;
 use deno_core::{JsRuntime, RuntimeOptions};
 use std::time::Duration;
 
+/// V8 초기 힙 크기 (4MB)
+const V8_INITIAL_HEAP_SIZE: usize = 4 * 1024 * 1024;
+/// V8 최대 힙 크기 (32MB)
+const V8_MAX_HEAP_SIZE: usize = 32 * 1024 * 1024;
+
 const RUNTIME_JS: &str = include_str!("../runtime.js");
 
 /// 타이머 sleep op (setTimeout/setInterval 구현용)
@@ -31,8 +36,12 @@ pub struct ScriptEngine {
 impl ScriptEngine {
     /// 새 스크립트 엔진 생성 (runtime.js 로드)
     pub fn new() -> Result<Self, ScriptError> {
+        let create_params =
+            v8::CreateParams::default().heap_limits(V8_INITIAL_HEAP_SIZE, V8_MAX_HEAP_SIZE);
+
         let mut runtime = JsRuntime::new(RuntimeOptions {
             extensions: vec![cheolsu_timer_ext::init()],
+            create_params: Some(create_params),
             ..Default::default()
         });
 
