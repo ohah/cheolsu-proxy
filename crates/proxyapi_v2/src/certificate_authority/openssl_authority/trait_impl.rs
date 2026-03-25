@@ -6,16 +6,14 @@ use std::sync::Arc;
 use tokio_rustls::rustls::ServerConfig;
 use tracing::{debug, error, info};
 
-impl CertificateAuthority for OpensslAuthority {
-    async fn gen_server_config(
+impl OpensslAuthority {
+    /// ServerConfig를 빌드하는 내부 메서드.
+    /// Thundering herd 방지를 위해 `gen_server_config`에서 `try_get_with`를 통해 호출됩니다.
+    async fn build_server_config(
         &self,
         authority: &Authority,
         upstream_cert: Option<&UpstreamCertInfo>,
-    ) -> Result<Arc<ServerConfig>, Box<dyn std::error::Error + Send + Sync>> {
-        if let Some(server_cfg) = self.cache.get(authority).await {
-            debug!("Using cached server config");
-            return Ok(server_cfg);
-        }
+    ) -> Result<Arc<ServerConfig>, String> {
         debug!("Generating server config");
 
         let (cert, leaf_private_key) = match self.gen_cert(authority, upstream_cert) {
@@ -27,11 +25,10 @@ impl CertificateAuthority for OpensslAuthority {
                 );
                 // 폴백: upstream 정보 없이 재시도
                 self.gen_cert(authority, None).map_err(|e2| {
-                    let msg = format!(
+                    format!(
                         "인증서 생성에 완전히 실패: authority={}, error={:?}",
                         authority, e2
-                    );
-                    Box::<dyn std::error::Error + Send + Sync>::from(msg)
+                    )
                 })?
             }
         };
@@ -44,9 +41,11 @@ impl CertificateAuthority for OpensslAuthority {
         ];
 
         let mut server_cfg = ServerConfig::builder_with_provider(Arc::clone(&self.provider))
-            .with_protocol_versions(&supported_versions)?
+            .with_protocol_versions(&supported_versions)
+            .map_err(|e| e.to_string())?
             .with_no_client_auth()
-            .with_single_cert(certs, leaf_private_key)?;
+            .with_single_cert(certs, leaf_private_key)
+            .map_err(|e| e.to_string())?;
 
         // ALPN 미러링: 상류 서버의 ALPN 협상 결과를 반영
         server_cfg.alpn_protocols = if let Some(ref upstream) = upstream_cert {
@@ -82,13 +81,24 @@ impl CertificateAuthority for OpensslAuthority {
             ]
         };
 
-        let server_cfg = Arc::new(server_cfg);
+        Ok(Arc::new(server_cfg))
+    }
+}
 
+impl CertificateAuthority for OpensslAuthority {
+    async fn gen_server_config(
+        &self,
+        authority: &Authority,
+        upstream_cert: Option<&UpstreamCertInfo>,
+    ) -> Result<Arc<ServerConfig>, Box<dyn std::error::Error + Send + Sync>> {
+        // Thundering herd 방지: 동일 authority에 대해 동시 요청이 오면 하나만 생성하고 나머지는 대기
         self.cache
-            .insert(authority.clone(), Arc::clone(&server_cfg))
-            .await;
-
-        Ok(server_cfg)
+            .try_get_with(
+                authority.clone(),
+                self.build_server_config(authority, upstream_cert),
+            )
+            .await
+            .map_err(|e| -> Box<dyn std::error::Error + Send + Sync> { Box::from(e.to_string()) })
     }
 
     fn get_ca_cert_der(&self) -> Option<Vec<u8>> {

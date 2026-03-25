@@ -14,24 +14,13 @@ use openssl::{
 use std::collections::HashSet;
 use std::sync::Arc;
 use std::time::SystemTime;
-use tracing::{debug, info, warn};
+use tracing::{info, warn};
 
 pub(super) async fn gen_openssl_context(
     this: &OpensslAuthority,
     authority: &Authority,
     upstream_cert: Option<&UpstreamCertInfo>,
 ) -> Result<openssl::ssl::SslContext, Box<dyn std::error::Error + Send + Sync>> {
-    // 캐시에서 조회
-    if let Some(ctx) = this.openssl_ctx_cache.get(authority).await {
-        debug!("[OPENSSL-CONTEXT] 캐시된 컨텍스트 사용: {}", authority);
-        return Ok((*ctx).clone());
-    }
-
-    info!(
-        "[OPENSSL-CONTEXT] OpenSSL 컨텍스트 생성 시작: {}",
-        authority
-    );
-
     // 생성자에서 미리 캐시해둔 DER 바이트 사용 (async context에서 OpenSSL 호출 방지)
     let ca_cert_der = this.ca_cert_der.clone();
     let pkey_der = this.pkey_der.clone();
@@ -39,7 +28,27 @@ pub(super) async fn gen_openssl_context(
     let hash = this.hash;
     let upstream_cert = upstream_cert.cloned();
 
-    // 인증서 생성 + OpenSSL 컨텍스트 빌드를 모두 spawn_blocking으로 오프로드
+    // Thundering herd 방지: openssl_ctx_cache에 try_get_with 적용
+    let ctx = this
+        .openssl_ctx_cache
+        .try_get_with(authority.clone(), async {
+            build_openssl_context_inner(ca_cert_der, pkey_der, host, hash, upstream_cert).await
+        })
+        .await
+        .map_err(|e| -> Box<dyn std::error::Error + Send + Sync> { Box::from(e.to_string()) })?;
+
+    Ok((*ctx).clone())
+}
+
+async fn build_openssl_context_inner(
+    ca_cert_der: Vec<u8>,
+    pkey_der: Vec<u8>,
+    host: String,
+    hash: openssl::hash::MessageDigest,
+    upstream_cert: Option<UpstreamCertInfo>,
+) -> Result<Arc<openssl::ssl::SslContext>, String> {
+    info!("[OPENSSL-CONTEXT] OpenSSL 컨텍스트 생성 시작: {}", host);
+
     let ctx = tokio::task::spawn_blocking(
         move || -> Result<openssl::ssl::SslContext, Box<dyn std::error::Error + Send + Sync>> {
             // CA 키 및 인증서 로드
@@ -161,18 +170,10 @@ pub(super) async fn gen_openssl_context(
         },
     )
     .await
-    .map_err(|e| -> Box<dyn std::error::Error + Send + Sync> {
-        format!("spawn_blocking failed: {}", e).into()
-    })??;
+    .map_err(|e| format!("spawn_blocking failed: {}", e))?
+    .map_err(|e| e.to_string())?;
 
-    // 캐시에 저장
-    this.openssl_ctx_cache
-        .insert(authority.clone(), Arc::new(ctx.clone()))
-        .await;
+    info!("[OPENSSL-CONTEXT] OpenSSL 컨텍스트 생성 완료");
 
-    info!(
-        "[OPENSSL-CONTEXT] OpenSSL 컨텍스트 생성 완료: {}",
-        authority
-    );
-    Ok(ctx)
+    Ok(Arc::new(ctx))
 }

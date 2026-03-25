@@ -8,31 +8,39 @@ use std::net::IpAddr;
 use std::sync::Arc;
 use time::{Duration, OffsetDateTime};
 use tokio_rustls::rustls::pki_types::CertificateDer;
-use tracing::{debug, info, warn};
+use tracing::{info, warn};
 
 pub(super) async fn gen_openssl_context(
     this: &RcgenAuthority,
     authority: &Authority,
     upstream_cert: Option<&UpstreamCertInfo>,
 ) -> Result<openssl::ssl::SslContext, Box<dyn std::error::Error + Send + Sync>> {
-    // 캐시에서 조회
-    if let Some(ctx) = this.openssl_ctx_cache.get(authority).await {
-        debug!("[OPENSSL-CONTEXT] 캐시된 컨텍스트 사용: {}", authority);
-        return Ok((*ctx).clone());
-    }
-
-    info!(
-        "[OPENSSL-CONTEXT] OpenSSL 컨텍스트 생성 시작: {}",
-        authority
-    );
-
     // spawn_blocking에 전달할 데이터를 미리 준비 (Send 가능한 형태)
     let ca_cert_pem = this.ca_cert_pem.clone();
     let ca_key_pem = this.ca_key_pem.clone();
     let host = authority.host().to_string();
     let upstream_cert = upstream_cert.cloned();
 
-    // 인증서 생성 + OpenSSL 컨텍스트 빌드를 모두 spawn_blocking으로 오프로드
+    // Thundering herd 방지: openssl_ctx_cache에 try_get_with 적용
+    let ctx = this
+        .openssl_ctx_cache
+        .try_get_with(authority.clone(), async {
+            build_openssl_context(ca_cert_pem, ca_key_pem, host, upstream_cert).await
+        })
+        .await
+        .map_err(|e| -> Box<dyn std::error::Error + Send + Sync> { Box::from(e.to_string()) })?;
+
+    Ok((*ctx).clone())
+}
+
+async fn build_openssl_context(
+    ca_cert_pem: String,
+    ca_key_pem: String,
+    host: String,
+    upstream_cert: Option<UpstreamCertInfo>,
+) -> Result<Arc<openssl::ssl::SslContext>, String> {
+    info!("[OPENSSL-CONTEXT] OpenSSL 컨텍스트 생성 시작: {}", host);
+
     let ctx = tokio::task::spawn_blocking(
         move || -> Result<openssl::ssl::SslContext, Box<dyn std::error::Error + Send + Sync>> {
             // rcgen 인증서 생성 (CPU 집약적 작업)
@@ -152,18 +160,10 @@ pub(super) async fn gen_openssl_context(
         },
     )
     .await
-    .map_err(|e| -> Box<dyn std::error::Error + Send + Sync> {
-        format!("spawn_blocking failed: {}", e).into()
-    })??;
+    .map_err(|e| format!("spawn_blocking failed: {}", e))?
+    .map_err(|e| e.to_string())?;
 
-    // 캐시에 저장
-    this.openssl_ctx_cache
-        .insert(authority.clone(), Arc::new(ctx.clone()))
-        .await;
+    info!("[OPENSSL-CONTEXT] OpenSSL 컨텍스트 생성 완료");
 
-    info!(
-        "[OPENSSL-CONTEXT] OpenSSL 컨텍스트 생성 완료: {}",
-        authority
-    );
-    Ok(ctx)
+    Ok(Arc::new(ctx))
 }
