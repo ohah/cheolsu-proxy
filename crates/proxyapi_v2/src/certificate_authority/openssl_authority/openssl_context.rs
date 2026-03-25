@@ -21,14 +21,19 @@ pub(super) async fn gen_openssl_context(
     authority: &Authority,
     upstream_cert: Option<&UpstreamCertInfo>,
 ) -> Result<openssl::ssl::SslContext, Box<dyn std::error::Error + Send + Sync>> {
-    // 생성자에서 미리 캐시해둔 DER 바이트 사용 (async context에서 OpenSSL 호출 방지)
+    // 캐시 히트 시 불필요한 clone을 피하기 위해 먼저 조회
+    if let Some(ctx) = this.openssl_ctx_cache.get(authority).await {
+        return Ok((*ctx).clone());
+    }
+
+    // 캐시 미스 시에만 데이터 clone (spawn_blocking에 전달할 Send 가능한 형태)
     let ca_cert_der = this.ca_cert_der.clone();
     let pkey_der = this.pkey_der.clone();
     let host = authority.host().to_string();
     let hash = this.hash;
     let upstream_cert = upstream_cert.cloned();
 
-    // Thundering herd 방지: openssl_ctx_cache에 try_get_with 적용
+    // Thundering herd 방지: try_get_with로 동일 authority에 대한 중복 생성 방지
     let ctx = this
         .openssl_ctx_cache
         .try_get_with(authority.clone(), async {
