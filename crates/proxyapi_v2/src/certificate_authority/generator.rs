@@ -107,12 +107,8 @@ fn verify_ca_key_cert_match(key_pem: &str, cert_der: &[u8]) -> Result<rcgen::Key
     let (_, cert) =
         parse_x509_certificate(cert_der).map_err(|e| format!("인증서 파싱 실패: {}", e))?;
 
-    // 인증서의 SPKI DER과 개인키의 SPKI DER을 비교
     let cert_spki = cert.public_key().raw;
-    let key_spki_pem = key_pair.public_key_pem();
-    let key_spki_der = pem::parse(key_spki_pem)
-        .map_err(|e| format!("공개키 PEM 파싱 실패: {}", e))?
-        .into_contents();
+    let key_spki_der = rcgen::PublicKeyData::subject_public_key_info(&key_pair);
 
     if cert_spki != key_spki_der {
         return Err("CA 인증서와 개인키가 매칭되지 않습니다. 인증서를 재생성합니다.".to_string());
