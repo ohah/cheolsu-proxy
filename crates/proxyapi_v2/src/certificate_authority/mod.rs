@@ -21,11 +21,28 @@ pub use rcgen_authority::*;
 pub use generator::*;
 pub use storage::*;
 
+/// 인증서 관련 이벤트
+#[derive(Debug, Clone, PartialEq)]
+pub enum CertEvent {
+    /// CA 인증서가 새로 생성됨
+    CaGenerated,
+    /// CA 인증서가 만료 임박으로 재생성됨 (남은 일수)
+    CaRegeneratedExpiringSoon(i64),
+    /// CA 인증서가 만료되어 재생성됨
+    CaRegeneratedExpired,
+    /// CA 인증서 로드 실패로 재생성됨 (에러 메시지)
+    CaRegeneratedCorrupted(String),
+    /// CA 인증서가 정상 로드됨
+    CaLoaded,
+}
+
 /// CA 인증서 유효기간 (10년)
 /// mitmproxy와 동일하게 장기간 설정하여 사용자가 자주 재설치하지 않아도 됨
 pub(crate) const CA_TTL_SECS: i64 = 10 * 365 * 24 * 60 * 60;
-/// Leaf 인증서 유효기간 (1년)
-pub(crate) const LEAF_TTL_SECS: i64 = 365 * 24 * 60 * 60;
+/// Leaf 인증서 유효기간 (90일)
+/// Apple/Chrome은 398일 이상 인증서를 거부하고, 업계 트렌드는 90일로 수렴 중.
+/// 짧은 유효기간은 키 노출 시 위험 노출 기간을 줄이고 캐시 갱신 주기를 단축합니다.
+pub(crate) const LEAF_TTL_SECS: i64 = 90 * 24 * 60 * 60;
 pub(crate) const CACHE_TTL: u64 = LEAF_TTL_SECS as u64 / 2;
 /// 인증서 not_before 오프셋 (2일 = 172800초)
 /// 클라이언트 시계 오차를 대비하여 mitmproxy와 동일하게 -2일로 설정
