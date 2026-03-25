@@ -1,11 +1,9 @@
 #[cfg(test)]
 mod tests {
-    #[cfg(feature = "openssl-ca")]
     use crate::certificate_authority::CertificateAuthority;
     use crate::certificate_authority::rcgen_authority::RcgenAuthority;
     use crate::upstream_cert::UpstreamCertInfo;
     use http::uri::Authority;
-    #[cfg(feature = "openssl-ca")]
     use std::sync::Arc;
     use tokio_rustls::rustls::crypto::aws_lc_rs;
 
@@ -327,5 +325,100 @@ mod tests {
             .and_then(|attr| attr.as_str().ok())
             .unwrap();
         assert!(cn.len() <= 64, "CN이 64자를 초과합니다: {} chars", cn.len());
+    }
+
+    /// Thundering herd 방지 테스트: 동일 도메인에 동시 요청 시 인증서가 한 번만 생성되는지 확인
+    #[tokio::test]
+    async fn gen_server_config_thundering_herd() {
+        let ca = Arc::new(build_ca(1_000));
+        let authority = Authority::from_static("thundering-herd.example.com");
+
+        // 10개 동시 요청 발행
+        let mut handles = Vec::new();
+        for _ in 0..10 {
+            let ca_clone = ca.clone();
+            let auth_clone = authority.clone();
+            handles.push(tokio::spawn(async move {
+                ca_clone
+                    .gen_server_config(&auth_clone, None)
+                    .await
+                    .expect("ServerConfig 생성 실패")
+            }));
+        }
+
+        let results: Vec<_> = futures::future::join_all(handles)
+            .await
+            .into_iter()
+            .map(|r| r.unwrap())
+            .collect();
+
+        // 모든 결과가 동일한 Arc를 공유해야 함 (동일 캐시 엔트리)
+        // Arc::ptr_eq로 같은 인스턴스인지 확인
+        let first = &results[0];
+        for (i, result) in results.iter().enumerate().skip(1) {
+            assert!(
+                Arc::ptr_eq(first, result),
+                "요청 {}이 다른 ServerConfig 인스턴스를 반환했습니다 (thundering herd 발생)",
+                i
+            );
+        }
+    }
+
+    /// 캐시 히트 시 동일한 ServerConfig가 반환되는지 확인
+    #[tokio::test]
+    async fn gen_server_config_cache_returns_same_instance() {
+        let ca = build_ca(1_000);
+        let authority = Authority::from_static("cache-instance.example.com");
+
+        let cfg1 = ca.gen_server_config(&authority, None).await.unwrap();
+        let cfg2 = ca.gen_server_config(&authority, None).await.unwrap();
+
+        assert!(
+            Arc::ptr_eq(&cfg1, &cfg2),
+            "캐시에서 반환된 ServerConfig는 동일 인스턴스여야 합니다"
+        );
+    }
+
+    /// Leaf 인증서 유효기간이 90일인지 확인
+    #[test]
+    fn gen_cert_leaf_validity_is_90_days() {
+        let ca = build_ca(0);
+        let authority = Authority::from_static("leaf-ttl.example.com");
+
+        let cert_der = ca.gen_cert(&authority, None).unwrap().0;
+        let (_, cert) = x509_parser::parse_x509_certificate(&cert_der).unwrap();
+
+        let not_before = cert.validity().not_before.timestamp();
+        let not_after = cert.validity().not_after.timestamp();
+        let validity_secs = not_after - not_before;
+
+        // 90일 = 7,776,000초 (NOT_BEFORE_OFFSET 포함 보정)
+        let expected = crate::certificate_authority::LEAF_TTL_SECS;
+        assert_eq!(
+            validity_secs, expected,
+            "Leaf 인증서 유효기간이 {}초(90일)여야 하지만 {}초입니다",
+            expected, validity_secs
+        );
+    }
+
+    /// CertEvent enum이 올바르게 동작하는지 확인
+    #[test]
+    fn cert_event_variants() {
+        use crate::certificate_authority::CertEvent;
+
+        let e1 = CertEvent::CaGenerated;
+        let e2 = CertEvent::CaRegeneratedExpiringSoon(15);
+        let e3 = CertEvent::CaRegeneratedExpired;
+        let e4 = CertEvent::CaRegeneratedCorrupted("키 불일치".to_string());
+        let e5 = CertEvent::CaLoaded;
+
+        // Debug, Clone, PartialEq 동작 확인
+        assert_eq!(e1.clone(), CertEvent::CaGenerated);
+        assert_eq!(e2.clone(), CertEvent::CaRegeneratedExpiringSoon(15));
+        assert_ne!(e3, e5);
+        assert_eq!(
+            format!("{:?}", e4),
+            r#"CaRegeneratedCorrupted("키 불일치")"#
+        );
     }
 }
