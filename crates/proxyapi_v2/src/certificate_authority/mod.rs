@@ -160,16 +160,13 @@ pub(crate) fn wildcard_authority(authority: &Authority) -> Option<Authority> {
         return Some(authority.clone());
     }
 
-    // 최소 2개 도트가 있어야 와일드카드 가능 (example.com → 불가, sub.example.com → 가능)
+    // sub.example.com → *.example.com (최소 서브도메인이 있어야 함)
     let dot_pos = host.find('.')?;
     let root = &host[dot_pos..]; // .example.com
 
-    // TLD만 남으면 안 됨 (예: .com)
-    if root.matches('.').count() < 2 {
-        // root가 .example.com 형태인지 확인 (최소 1개 도트 더 필요)
-        if !root[1..].contains('.') {
-            return None;
-        }
+    // root에 추가 도트가 없으면 TLD만 남은 것 (예: .com → 불가)
+    if !root[1..].contains('.') {
+        return None;
     }
 
     let wildcard_host = format!("*{}", root);
