@@ -47,6 +47,169 @@ pub(crate) const CACHE_TTL: u64 = LEAF_TTL_SECS as u64 / 2;
 /// 인증서 not_before 오프셋 (2일 = 172800초)
 /// 클라이언트 시계 오차를 대비하여 mitmproxy와 동일하게 -2일로 설정
 pub(crate) const NOT_BEFORE_OFFSET: i64 = 172_800;
+/// 인증서 생성 타임아웃 (초)
+/// RSA 키 생성이 시스템 부하로 비정상적으로 오래 걸릴 때를 대비
+pub(crate) const CERT_GEN_TIMEOUT_SECS: u64 = 10;
+
+/// 인증서 생성 메트릭 수집기
+///
+/// Atomic 카운터 기반으로 lock-free하게 인증서 생성 통계를 수집합니다.
+#[derive(Debug)]
+pub struct CertMetrics {
+    /// 인증서 생성 횟수
+    pub gen_count: std::sync::atomic::AtomicU64,
+    /// 캐시 히트 횟수
+    pub cache_hit_count: std::sync::atomic::AtomicU64,
+    /// 인증서 생성 실패 횟수
+    pub gen_failure_count: std::sync::atomic::AtomicU64,
+    /// 인증서 생성 총 소요시간 (마이크로초)
+    pub total_gen_duration_us: std::sync::atomic::AtomicU64,
+}
+
+impl CertMetrics {
+    pub fn new() -> Self {
+        use std::sync::atomic::AtomicU64;
+        Self {
+            gen_count: AtomicU64::new(0),
+            cache_hit_count: AtomicU64::new(0),
+            gen_failure_count: AtomicU64::new(0),
+            total_gen_duration_us: AtomicU64::new(0),
+        }
+    }
+
+    pub fn record_gen(&self, duration: std::time::Duration) {
+        use std::sync::atomic::Ordering::Relaxed;
+        self.gen_count.fetch_add(1, Relaxed);
+        self.total_gen_duration_us
+            .fetch_add(duration.as_micros() as u64, Relaxed);
+    }
+
+    pub fn record_cache_hit(&self) {
+        self.cache_hit_count
+            .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+    }
+
+    pub fn record_failure(&self) {
+        self.gen_failure_count
+            .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+    }
+
+    /// 평균 생성 시간 (마이크로초). 생성 횟수가 0이면 0 반환.
+    pub fn avg_gen_duration_us(&self) -> u64 {
+        use std::sync::atomic::Ordering::Relaxed;
+        let count = self.gen_count.load(Relaxed);
+        if count == 0 {
+            return 0;
+        }
+        self.total_gen_duration_us.load(Relaxed) / count
+    }
+
+    /// 캐시 히트율 (0.0~1.0). 요청이 없으면 0.0 반환.
+    pub fn cache_hit_rate(&self) -> f64 {
+        use std::sync::atomic::Ordering::Relaxed;
+        let hits = self.cache_hit_count.load(Relaxed);
+        let gens = self.gen_count.load(Relaxed);
+        let total = hits + gens;
+        if total == 0 {
+            return 0.0;
+        }
+        hits as f64 / total as f64
+    }
+
+    pub fn snapshot(&self) -> CertMetricsSnapshot {
+        use std::sync::atomic::Ordering::Relaxed;
+        CertMetricsSnapshot {
+            gen_count: self.gen_count.load(Relaxed),
+            cache_hit_count: self.cache_hit_count.load(Relaxed),
+            gen_failure_count: self.gen_failure_count.load(Relaxed),
+            avg_gen_duration_us: self.avg_gen_duration_us(),
+            cache_hit_rate: self.cache_hit_rate(),
+        }
+    }
+}
+
+impl Default for CertMetrics {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+/// 메트릭 스냅샷 (직렬화/로깅용)
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct CertMetricsSnapshot {
+    pub gen_count: u64,
+    pub cache_hit_count: u64,
+    pub gen_failure_count: u64,
+    pub avg_gen_duration_us: u64,
+    pub cache_hit_rate: f64,
+}
+
+/// 호스트에서 와일드카드 Authority를 추출합니다.
+/// `api.example.com:443` → `*.example.com:443`
+/// IP 주소나 TLD는 None을 반환합니다.
+pub(crate) fn wildcard_authority(authority: &Authority) -> Option<Authority> {
+    let host = authority.host();
+
+    // IP 주소는 와일드카드 불가
+    if host.parse::<std::net::IpAddr>().is_ok() {
+        return None;
+    }
+
+    // 이미 와일드카드이면 그대로
+    if host.starts_with("*.") {
+        return Some(authority.clone());
+    }
+
+    // 최소 2개 도트가 있어야 와일드카드 가능 (example.com → 불가, sub.example.com → 가능)
+    let dot_pos = host.find('.')?;
+    let root = &host[dot_pos..]; // .example.com
+
+    // TLD만 남으면 안 됨 (예: .com)
+    if root.matches('.').count() < 2 {
+        // root가 .example.com 형태인지 확인 (최소 1개 도트 더 필요)
+        if !root[1..].contains('.') {
+            return None;
+        }
+    }
+
+    let wildcard_host = format!("*{}", root);
+    let wildcard_str = if let Some(port) = authority.port() {
+        format!("{}:{}", wildcard_host, port)
+    } else {
+        wildcard_host
+    };
+
+    Authority::try_from(wildcard_str).ok()
+}
+
+/// upstream 서버의 ALPN 협상 결과를 기반으로 ALPN 프로토콜 리스트를 구성합니다.
+/// 협상된 프로토콜을 우선 배치하고, 나머지 지원 프로토콜을 폴백으로 추가합니다.
+pub(crate) fn build_alpn_protocols(upstream_cert: Option<&UpstreamCertInfo>) -> Vec<Vec<u8>> {
+    let default_protocols = || {
+        vec![
+            #[cfg(feature = "http2")]
+            b"h2".to_vec(),
+            b"http/1.1".to_vec(),
+        ]
+    };
+
+    let Some(upstream) = upstream_cert else {
+        return default_protocols();
+    };
+    let Some(ref negotiated) = upstream.negotiated_alpn else {
+        return default_protocols();
+    };
+
+    let mut protocols = vec![negotiated.clone()];
+    #[cfg(feature = "http2")]
+    if negotiated != b"h2" {
+        protocols.push(b"h2".to_vec());
+    }
+    if negotiated != b"http/1.1" {
+        protocols.push(b"http/1.1".to_vec());
+    }
+    protocols
+}
 
 /// 128비트 난수 시리얼 번호를 생성합니다.
 /// RFC 5280: serial number는 양수 INTEGER이므로 최상위 비트를 클리어합니다.
@@ -97,17 +260,169 @@ mod tests {
 
     #[test]
     fn truncate_cn_multibyte_under_limit() {
-        // 한글 20자 = 60바이트이지만 문자 수는 20
         let cn: String = "가".repeat(20);
         assert_eq!(truncate_cn(&cn), cn);
     }
 
     #[test]
     fn truncate_cn_multibyte_over_limit() {
-        // 한글 70자 → 64자로 truncate
         let cn: String = "가".repeat(70);
         let result = truncate_cn(&cn);
         assert_eq!(result.chars().count(), 64);
+    }
+
+    // --- wildcard_authority 테스트 ---
+
+    use super::wildcard_authority;
+    use http::uri::Authority;
+
+    #[test]
+    fn wildcard_subdomain() {
+        let auth = Authority::from_static("api.example.com");
+        let wc = wildcard_authority(&auth).unwrap();
+        assert_eq!(wc.host(), "*.example.com");
+    }
+
+    #[test]
+    fn wildcard_deep_subdomain() {
+        let auth = Authority::from_static("a.b.example.com");
+        let wc = wildcard_authority(&auth).unwrap();
+        assert_eq!(wc.host(), "*.b.example.com");
+    }
+
+    #[test]
+    fn wildcard_preserves_port() {
+        let auth = Authority::from_static("api.example.com:8443");
+        let wc = wildcard_authority(&auth).unwrap();
+        assert_eq!(wc.to_string(), "*.example.com:8443");
+    }
+
+    #[test]
+    fn wildcard_root_domain_returns_none() {
+        let auth = Authority::from_static("example.com");
+        assert!(wildcard_authority(&auth).is_none());
+    }
+
+    #[test]
+    fn wildcard_ip_returns_none() {
+        let auth = Authority::from_static("192.168.1.1:443");
+        assert!(wildcard_authority(&auth).is_none());
+    }
+
+    #[test]
+    fn wildcard_already_wildcard() {
+        let auth = Authority::from_static("*.example.com");
+        let wc = wildcard_authority(&auth).unwrap();
+        assert_eq!(wc.host(), "*.example.com");
+    }
+
+    #[test]
+    fn wildcard_localhost_returns_none() {
+        let auth = Authority::from_static("localhost");
+        assert!(wildcard_authority(&auth).is_none());
+    }
+
+    // --- build_alpn_protocols 테스트 ---
+
+    use super::build_alpn_protocols;
+    use crate::upstream_cert::UpstreamCertInfo;
+
+    #[test]
+    fn alpn_no_upstream() {
+        let protocols = build_alpn_protocols(None);
+        assert!(protocols.contains(&b"http/1.1".to_vec()));
+    }
+
+    #[test]
+    fn alpn_with_negotiated_h2() {
+        let upstream = UpstreamCertInfo {
+            negotiated_alpn: Some(b"h2".to_vec()),
+            ..Default::default()
+        };
+        let protocols = build_alpn_protocols(Some(&upstream));
+        assert_eq!(protocols[0], b"h2");
+        assert!(protocols.contains(&b"http/1.1".to_vec()));
+    }
+
+    #[test]
+    fn alpn_with_negotiated_http11() {
+        let upstream = UpstreamCertInfo {
+            negotiated_alpn: Some(b"http/1.1".to_vec()),
+            ..Default::default()
+        };
+        let protocols = build_alpn_protocols(Some(&upstream));
+        assert_eq!(protocols[0], b"http/1.1");
+        // http/1.1이 이미 있으므로 중복 추가 안 됨
+        assert_eq!(
+            protocols
+                .iter()
+                .filter(|p| *p == &b"http/1.1".to_vec())
+                .count(),
+            1
+        );
+    }
+
+    #[test]
+    fn alpn_no_negotiated() {
+        let upstream = UpstreamCertInfo {
+            negotiated_alpn: None,
+            ..Default::default()
+        };
+        let protocols = build_alpn_protocols(Some(&upstream));
+        assert!(protocols.contains(&b"http/1.1".to_vec()));
+    }
+
+    // --- CertMetrics 테스트 ---
+
+    use super::CertMetrics;
+
+    #[test]
+    fn metrics_initial_state() {
+        let m = CertMetrics::new();
+        assert_eq!(m.avg_gen_duration_us(), 0);
+        assert_eq!(m.cache_hit_rate(), 0.0);
+        let snap = m.snapshot();
+        assert_eq!(snap.gen_count, 0);
+        assert_eq!(snap.cache_hit_count, 0);
+        assert_eq!(snap.gen_failure_count, 0);
+    }
+
+    #[test]
+    fn metrics_record_gen() {
+        let m = CertMetrics::new();
+        m.record_gen(std::time::Duration::from_millis(100));
+        m.record_gen(std::time::Duration::from_millis(200));
+        let snap = m.snapshot();
+        assert_eq!(snap.gen_count, 2);
+        assert!(snap.avg_gen_duration_us >= 100_000); // 최소 100ms
+    }
+
+    #[test]
+    fn metrics_cache_hit_rate() {
+        let m = CertMetrics::new();
+        m.record_cache_hit();
+        m.record_cache_hit();
+        m.record_cache_hit();
+        m.record_gen(std::time::Duration::from_millis(1));
+        // 3 hits / (3 hits + 1 gen) = 0.75
+        assert!((m.cache_hit_rate() - 0.75).abs() < 0.01);
+    }
+
+    #[test]
+    fn metrics_record_failure() {
+        let m = CertMetrics::new();
+        m.record_failure();
+        m.record_failure();
+        assert_eq!(m.snapshot().gen_failure_count, 2);
+    }
+
+    #[test]
+    fn metrics_snapshot_serializable() {
+        let m = CertMetrics::new();
+        m.record_gen(std::time::Duration::from_millis(50));
+        let snap = m.snapshot();
+        let json = serde_json::to_string(&snap);
+        assert!(json.is_ok(), "CertMetricsSnapshot은 직렬화 가능해야 함");
     }
 }
 

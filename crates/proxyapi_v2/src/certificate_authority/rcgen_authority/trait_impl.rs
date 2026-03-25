@@ -118,41 +118,8 @@ impl RcgenAuthority {
 
         info!("[SERVER-CONFIG] ServerConfig 빌더 생성 완료");
 
-        // ALPN 미러링: 상류 서버의 ALPN 협상 결과를 반영
-        server_cfg.alpn_protocols = if let Some(ref upstream) = upstream_cert {
-            if let Some(ref negotiated) = upstream.negotiated_alpn {
-                // 상류 서버가 협상한 프로토콜 우선, 나머지도 포함
-                let mut protocols = vec![negotiated.clone()];
-                #[cfg(feature = "http2")]
-                if negotiated != b"h2" {
-                    protocols.push(b"h2".to_vec());
-                }
-                if negotiated != b"http/1.1" {
-                    protocols.push(b"http/1.1".to_vec());
-                }
-                info!(
-                    "[SERVER-CONFIG] ALPN 미러링 적용: {:?}",
-                    protocols
-                        .iter()
-                        .map(|p| String::from_utf8_lossy(p).to_string())
-                        .collect::<Vec<_>>()
-                );
-                protocols
-            } else {
-                vec![
-                    #[cfg(feature = "http2")]
-                    b"h2".to_vec(),
-                    b"http/1.1".to_vec(),
-                ]
-            }
-        } else {
-            vec![
-                #[cfg(feature = "http2")]
-                b"h2".to_vec(),
-                b"http/1.1".to_vec(),
-            ]
-        };
-
+        server_cfg.alpn_protocols =
+            crate::certificate_authority::build_alpn_protocols(upstream_cert);
         info!(
             "[SERVER-CONFIG] ALPN 프로토콜 설정: {:?}",
             server_cfg.alpn_protocols
@@ -179,14 +146,65 @@ impl CertificateAuthority for RcgenAuthority {
         authority: &Authority,
         upstream_cert: Option<&UpstreamCertInfo>,
     ) -> Result<Arc<ServerConfig>, Box<dyn std::error::Error + Send + Sync>> {
-        // Thundering herd 방지: 동일 authority에 대해 동시 요청이 오면 하나만 생성하고 나머지는 대기
-        self.cache
-            .try_get_with(
+        // 캐시 히트: 정확히 일치하는 authority
+        if let Some(cfg) = self.cache.get(authority).await {
+            self.metrics.record_cache_hit();
+            return Ok(cfg);
+        }
+
+        // 캐시 히트: 와일드카드 authority (*.example.com)로 서브도메인 공유
+        if let Some(wildcard) = crate::certificate_authority::wildcard_authority(authority) {
+            if let Some(cfg) = self.cache.get(&wildcard).await {
+                // 와일드카드 캐시 히트 → 원본 authority에도 저장
+                self.cache.insert(authority.clone(), Arc::clone(&cfg)).await;
+                self.metrics.record_cache_hit();
+                return Ok(cfg);
+            }
+        }
+
+        let start = std::time::Instant::now();
+        let timeout_duration =
+            std::time::Duration::from_secs(crate::certificate_authority::CERT_GEN_TIMEOUT_SECS);
+
+        let result = tokio::time::timeout(
+            timeout_duration,
+            self.cache.try_get_with(
                 authority.clone(),
                 self.build_server_config(authority, upstream_cert),
-            )
-            .await
-            .map_err(|e| -> Box<dyn std::error::Error + Send + Sync> { Box::from(e.to_string()) })
+            ),
+        )
+        .await;
+
+        match result {
+            Ok(Ok(cfg)) => {
+                self.metrics.record_gen(start.elapsed());
+                // 와일드카드 키에도 저장하여 같은 루트 도메인의 서브도메인이 공유
+                if let Some(wildcard) = crate::certificate_authority::wildcard_authority(authority)
+                {
+                    self.cache.insert(wildcard, Arc::clone(&cfg)).await;
+                }
+                Ok(cfg)
+            }
+            Ok(Err(e)) => {
+                self.metrics.record_failure();
+                Err(Box::from(e.to_string()))
+            }
+            Err(_) => {
+                self.metrics.record_failure();
+                warn!(
+                    "[SERVER-CONFIG] 인증서 생성 타임아웃 ({}초): {}. upstream 정보 없이 재시도",
+                    crate::certificate_authority::CERT_GEN_TIMEOUT_SECS,
+                    authority
+                );
+                // 타임아웃 시 upstream 정보 없이 ECDSA(기본)로 폴백
+                self.cache
+                    .try_get_with(authority.clone(), self.build_server_config(authority, None))
+                    .await
+                    .map_err(|e| -> Box<dyn std::error::Error + Send + Sync> {
+                        Box::from(format!("타임아웃 후 폴백도 실패: {}", e))
+                    })
+            }
+        }
     }
 
     fn get_ca_cert_der(&self) -> Option<Vec<u8>> {
