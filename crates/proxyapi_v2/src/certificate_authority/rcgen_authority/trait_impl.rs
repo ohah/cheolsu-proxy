@@ -196,13 +196,15 @@ impl CertificateAuthority for RcgenAuthority {
                     crate::certificate_authority::CERT_GEN_TIMEOUT_SECS,
                     authority
                 );
-                // 타임아웃 시 upstream 정보 없이 ECDSA(기본)로 폴백
-                self.cache
-                    .try_get_with(authority.clone(), self.build_server_config(authority, None))
-                    .await
-                    .map_err(|e| -> Box<dyn std::error::Error + Send + Sync> {
+                // 타임아웃된 첫 번째 try_get_with의 init이 아직 실행 중일 수 있으므로
+                // try_get_with 대신 직접 생성하여 레이스 컨디션 방지
+                let cfg = self.build_server_config(authority, None).await.map_err(
+                    |e| -> Box<dyn std::error::Error + Send + Sync> {
                         Box::from(format!("타임아웃 후 폴백도 실패: {}", e))
-                    })
+                    },
+                )?;
+                self.cache.insert(authority.clone(), Arc::clone(&cfg)).await;
+                Ok(cfg)
             }
         }
     }
