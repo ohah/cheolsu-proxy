@@ -6,17 +6,14 @@ use std::sync::Arc;
 use tokio_rustls::rustls::ServerConfig;
 use tracing::{debug, error, info, warn};
 
-impl CertificateAuthority for RcgenAuthority {
-    async fn gen_server_config(
+impl RcgenAuthority {
+    /// ServerConfig를 빌드하는 내부 메서드.
+    /// Thundering herd 방지를 위해 `gen_server_config`에서 `try_get_with`를 통해 호출됩니다.
+    async fn build_server_config(
         &self,
         authority: &Authority,
         upstream_cert: Option<&UpstreamCertInfo>,
-    ) -> Result<Arc<ServerConfig>, Box<dyn std::error::Error + Send + Sync>> {
-        if let Some(server_cfg) = self.cache.get(authority).await {
-            debug!("Using cached server config for {}", authority);
-            return Ok(server_cfg);
-        }
-
+    ) -> Result<Arc<ServerConfig>, String> {
         info!("[SERVER-CONFIG] 서버 설정 생성 시작: {}", authority);
         let start_time = std::time::Instant::now();
 
@@ -30,11 +27,10 @@ impl CertificateAuthority for RcgenAuthority {
                 );
                 // 폴백: upstream 정보 없이 재시도
                 self.gen_cert(authority, None).map_err(|e2| {
-                    let msg = format!(
+                    format!(
                         "인증서 생성에 완전히 실패: authority={}, error={:?}",
                         authority, e2
-                    );
-                    Box::<dyn std::error::Error + Send + Sync>::from(msg)
+                    )
                 })?
             }
         };
@@ -61,16 +57,18 @@ impl CertificateAuthority for RcgenAuthority {
                         .allow_unauthenticated()
                         .build()
                         .map_err(|e| {
-                            Box::<dyn std::error::Error + Send + Sync>::from(format!(
+                            format!(
                                 "Failed to build WebPkiClientVerifier (allow_unauthenticated): {e}"
-                            ))
+                            )
                         })?;
 
                         info!("[SERVER-CONFIG] 클라이언트 인증서 선택적 요청 (required=false)");
                         ServerConfig::builder_with_provider(Arc::clone(&self.provider))
-                            .with_protocol_versions(&supported_versions)?
+                            .with_protocol_versions(&supported_versions)
+                            .map_err(|e| e.to_string())?
                             .with_client_cert_verifier(verifier)
-                            .with_single_cert(certs, leaf_private_key.clone_key())?
+                            .with_single_cert(certs, leaf_private_key.clone_key())
+                            .map_err(|e| e.to_string())?
                     } else {
                         // CA 기반 검증 (필수)
                         let mut root_store = tokio_rustls::rustls::RootCertStore::empty();
@@ -84,9 +82,7 @@ impl CertificateAuthority for RcgenAuthority {
                         )
                         .build()
                         .map_err(|e| {
-                            Box::<dyn std::error::Error + Send + Sync>::from(format!(
-                                "Failed to build WebPkiClientVerifier (required): {e}"
-                            ))
+                            format!("Failed to build WebPkiClientVerifier (required): {e}")
                         })?;
 
                         info!(
@@ -94,23 +90,29 @@ impl CertificateAuthority for RcgenAuthority {
                             verify_config.ca_certs.len()
                         );
                         ServerConfig::builder_with_provider(Arc::clone(&self.provider))
-                            .with_protocol_versions(&supported_versions)?
+                            .with_protocol_versions(&supported_versions)
+                            .map_err(|e| e.to_string())?
                             .with_client_cert_verifier(verifier)
-                            .with_single_cert(certs, leaf_private_key.clone_key())?
+                            .with_single_cert(certs, leaf_private_key.clone_key())
+                            .map_err(|e| e.to_string())?
                     }
                 } else {
                     // 비활성화 - 기존 동작
                     ServerConfig::builder_with_provider(Arc::clone(&self.provider))
-                        .with_protocol_versions(&supported_versions)?
+                        .with_protocol_versions(&supported_versions)
+                        .map_err(|e| e.to_string())?
                         .with_no_client_auth()
-                        .with_single_cert(certs, leaf_private_key.clone_key())?
+                        .with_single_cert(certs, leaf_private_key.clone_key())
+                        .map_err(|e| e.to_string())?
                 }
             } else {
                 // 설정 없음 - 기존 동작
                 ServerConfig::builder_with_provider(Arc::clone(&self.provider))
-                    .with_protocol_versions(&supported_versions)?
+                    .with_protocol_versions(&supported_versions)
+                    .map_err(|e| e.to_string())?
                     .with_no_client_auth()
-                    .with_single_cert(certs, leaf_private_key.clone_key())?
+                    .with_single_cert(certs, leaf_private_key.clone_key())
+                    .map_err(|e| e.to_string())?
             }
         };
 
@@ -167,11 +169,24 @@ impl CertificateAuthority for RcgenAuthority {
             authority, duration
         );
 
-        self.cache
-            .insert(authority.clone(), Arc::clone(&server_cfg))
-            .await;
-
         Ok(server_cfg)
+    }
+}
+
+impl CertificateAuthority for RcgenAuthority {
+    async fn gen_server_config(
+        &self,
+        authority: &Authority,
+        upstream_cert: Option<&UpstreamCertInfo>,
+    ) -> Result<Arc<ServerConfig>, Box<dyn std::error::Error + Send + Sync>> {
+        // Thundering herd 방지: 동일 authority에 대해 동시 요청이 오면 하나만 생성하고 나머지는 대기
+        self.cache
+            .try_get_with(
+                authority.clone(),
+                self.build_server_config(authority, upstream_cert),
+            )
+            .await
+            .map_err(|e| -> Box<dyn std::error::Error + Send + Sync> { Box::from(e.to_string()) })
     }
 
     fn get_ca_cert_der(&self) -> Option<Vec<u8>> {
