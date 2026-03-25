@@ -97,10 +97,10 @@ pub fn load_or_generate_ca_with_event() -> Result<(RcgenAuthority, super::CertEv
     Ok((ca, super::CertEvent::CaGenerated))
 }
 
-/// CA 인증서와 개인키가 매칭되는지 검증합니다.
+/// CA 인증서와 개인키가 매칭되는지 검증하고, 검증된 KeyPair를 반환합니다.
 /// 인증서의 공개키와 개인키로부터 추출한 공개키를 비교합니다.
 #[cfg(feature = "rcgen-ca")]
-fn verify_ca_key_cert_match(key_pem: &str, cert_der: &[u8]) -> Result<(), String> {
+fn verify_ca_key_cert_match(key_pem: &str, cert_der: &[u8]) -> Result<rcgen::KeyPair, String> {
     use x509_parser::parse_x509_certificate;
 
     let key_pair =
@@ -117,7 +117,7 @@ fn verify_ca_key_cert_match(key_pem: &str, cert_der: &[u8]) -> Result<(), String
         return Err("CA 인증서와 개인키가 매칭되지 않습니다. 인증서를 재생성합니다.".to_string());
     }
 
-    Ok(())
+    Ok(key_pair)
 }
 
 /// 저장된 인증서 파일에서 RcgenAuthority를 로드합니다.
@@ -131,11 +131,8 @@ pub fn load_ca_from_storage(
     let cert_der =
         fs::read(cer_path).map_err(|e| format!("Failed to read certificate file: {}", e))?;
 
-    // 키-인증서 매칭 검증
-    verify_ca_key_cert_match(&key_pem, &cert_der)?;
-
-    let key_pair =
-        rcgen::KeyPair::from_pem(&key_pem).map_err(|e| format!("Failed to parse key: {}", e))?;
+    // 키-인증서 매칭 검증 및 KeyPair 재사용
+    let key_pair = verify_ca_key_cert_match(&key_pem, &cert_der)?;
 
     let cert_der = CertificateDer::from(cert_der);
     let ca_cert_pem = pem::encode(&pem::Pem::new("CERTIFICATE", cert_der.to_vec()));
