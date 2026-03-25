@@ -4,7 +4,7 @@ use crate::upstream_cert::UpstreamCertInfo;
 use http::uri::Authority;
 use std::sync::Arc;
 use tokio_rustls::rustls::ServerConfig;
-use tracing::{debug, error, info};
+use tracing::{debug, error};
 
 impl OpensslAuthority {
     /// ServerConfig를 빌드하는 내부 메서드.
@@ -47,39 +47,8 @@ impl OpensslAuthority {
             .with_single_cert(certs, leaf_private_key)
             .map_err(|e| e.to_string())?;
 
-        // ALPN 미러링: 상류 서버의 ALPN 협상 결과를 반영
-        server_cfg.alpn_protocols = if let Some(ref upstream) = upstream_cert {
-            if let Some(ref negotiated) = upstream.negotiated_alpn {
-                let mut protocols = vec![negotiated.clone()];
-                #[cfg(feature = "http2")]
-                if negotiated != b"h2" {
-                    protocols.push(b"h2".to_vec());
-                }
-                if negotiated != b"http/1.1" {
-                    protocols.push(b"http/1.1".to_vec());
-                }
-                info!(
-                    "[SERVER-CONFIG] ALPN 미러링 적용: {:?}",
-                    protocols
-                        .iter()
-                        .map(|p| String::from_utf8_lossy(p).to_string())
-                        .collect::<Vec<_>>()
-                );
-                protocols
-            } else {
-                vec![
-                    #[cfg(feature = "http2")]
-                    b"h2".to_vec(),
-                    b"http/1.1".to_vec(),
-                ]
-            }
-        } else {
-            vec![
-                #[cfg(feature = "http2")]
-                b"h2".to_vec(),
-                b"http/1.1".to_vec(),
-            ]
-        };
+        server_cfg.alpn_protocols =
+            crate::certificate_authority::build_alpn_protocols(upstream_cert);
 
         Ok(Arc::new(server_cfg))
     }
