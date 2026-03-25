@@ -6,6 +6,7 @@ use tracing::{info, warn};
 use super::storage::get_ca_storage_dir;
 
 /// CA 인증서 만료 상태
+#[derive(Debug, PartialEq)]
 enum CaExpiryStatus {
     /// 유효
     Valid,
@@ -45,6 +46,13 @@ use tokio_rustls::rustls::pki_types::CertificateDer;
 /// 저장된 인증서를 로드하거나 새로 생성합니다.
 #[cfg(feature = "rcgen-ca")]
 pub fn load_or_generate_ca() -> Result<RcgenAuthority, String> {
+    let (ca, _event) = load_or_generate_ca_with_event()?;
+    Ok(ca)
+}
+
+/// 저장된 인증서를 로드하거나 새로 생성하며, 발생한 이벤트를 함께 반환합니다.
+#[cfg(feature = "rcgen-ca")]
+pub fn load_or_generate_ca_with_event() -> Result<(RcgenAuthority, super::CertEvent), String> {
     let storage_dir = get_ca_storage_dir()?;
     let key_path = storage_dir.join("cheolsu-proxy.key");
     let cer_path = storage_dir.join("cheolsu-proxy.cer");
@@ -55,24 +63,61 @@ pub fn load_or_generate_ca() -> Result<RcgenAuthority, String> {
             match check_cert_expiry(&cert_der) {
                 Some(CaExpiryStatus::Expired) => {
                     info!(path = %storage_dir.display(), "CA 인증서가 만료되었습니다. 새로 생성합니다.");
-                    return generate_and_save_ca(&storage_dir);
+                    let ca = generate_and_save_ca(&storage_dir)?;
+                    return Ok((ca, super::CertEvent::CaRegeneratedExpired));
                 }
                 Some(CaExpiryStatus::ExpiringSoon(days)) => {
                     warn!(
                         remaining_days = days,
-                        "CA 인증서가 곧 만료됩니다. 재생성을 권장합니다."
+                        "CA 인증서가 {}일 후 만료. 자동 재생성합니다.", days
                     );
+                    let ca = generate_and_save_ca(&storage_dir)?;
+                    return Ok((ca, super::CertEvent::CaRegeneratedExpiringSoon(days)));
                 }
                 _ => {}
             }
         }
         info!(path = %storage_dir.display(), "기존 CA 인증서 로드 중");
-        return load_ca_from_storage(&key_path, &cer_path);
+        match load_ca_from_storage(&key_path, &cer_path) {
+            Ok(ca) => return Ok((ca, super::CertEvent::CaLoaded)),
+            Err(e) => {
+                warn!(
+                    "CA 인증서 로드 실패 (손상 또는 키 불일치): {}. 재생성합니다.",
+                    e
+                );
+                let ca = generate_and_save_ca(&storage_dir)?;
+                return Ok((ca, super::CertEvent::CaRegeneratedCorrupted(e)));
+            }
+        }
     }
 
     // 없으면 새로 생성
     info!(path = %storage_dir.display(), "새 CA 인증서 생성 중");
-    generate_and_save_ca(&storage_dir)
+    let ca = generate_and_save_ca(&storage_dir)?;
+    Ok((ca, super::CertEvent::CaGenerated))
+}
+
+/// CA 인증서와 개인키가 매칭되는지 검증합니다.
+/// 인증서의 공개키와 개인키로부터 추출한 공개키를 비교합니다.
+#[cfg(feature = "rcgen-ca")]
+fn verify_ca_key_cert_match(key_pem: &str, cert_der: &[u8]) -> Result<(), String> {
+    use x509_parser::parse_x509_certificate;
+
+    let key_pair =
+        rcgen::KeyPair::from_pem(key_pem).map_err(|e| format!("개인키 파싱 실패: {}", e))?;
+    let (_, cert) =
+        parse_x509_certificate(cert_der).map_err(|e| format!("인증서 파싱 실패: {}", e))?;
+
+    let cert_pub_key = cert.public_key().raw;
+    let key_pub_key = key_pair.public_key_raw();
+
+    // X.509 SubjectPublicKeyInfo의 끝 부분에 실제 공개키 바이트가 포함됨
+    // rcgen의 public_key_raw()는 raw 바이트만 반환하므로 cert의 SPKI에 포함되어 있는지 확인
+    if !cert_pub_key.ends_with(key_pub_key) {
+        return Err("CA 인증서와 개인키가 매칭되지 않습니다. 인증서를 재생성합니다.".to_string());
+    }
+
+    Ok(())
 }
 
 /// 저장된 인증서 파일에서 RcgenAuthority를 로드합니다.
@@ -85,6 +130,9 @@ pub fn load_ca_from_storage(
         fs::read_to_string(key_path).map_err(|e| format!("Failed to read key file: {}", e))?;
     let cert_der =
         fs::read(cer_path).map_err(|e| format!("Failed to read certificate file: {}", e))?;
+
+    // 키-인증서 매칭 검증
+    verify_ca_key_cert_match(&key_pem, &cert_der)?;
 
     let key_pair =
         rcgen::KeyPair::from_pem(&key_pem).map_err(|e| format!("Failed to parse key: {}", e))?;
@@ -256,15 +304,25 @@ pub fn load_or_generate_openssl_ca() -> Result<OpensslAuthority, String> {
                     Some(CaExpiryStatus::ExpiringSoon(days)) => {
                         warn!(
                             remaining_days = days,
-                            "OpenSSL CA 인증서가 곧 만료됩니다. 재생성을 권장합니다."
+                            "OpenSSL CA 인증서가 {}일 후 만료. 자동 재생성합니다.", days
                         );
+                        return generate_openssl_ca(&storage_dir);
                     }
                     _ => {}
                 }
             }
         }
         info!(path = %storage_dir.display(), "기존 OpenSSL 인증서 파일 사용");
-        return load_openssl_ca_from_storage(&key_path, &cer_path);
+        match load_openssl_ca_from_storage(&key_path, &cer_path) {
+            Ok(ca) => return Ok(ca),
+            Err(e) => {
+                warn!(
+                    "OpenSSL CA 로드 실패 (손상 또는 키 불일치): {}. 재생성합니다.",
+                    e
+                );
+                return generate_openssl_ca(&storage_dir);
+            }
+        }
     }
 
     info!("새로운 OpenSSL 인증서 생성");
@@ -296,19 +354,24 @@ pub fn load_openssl_ca_from_storage(
     let ca_cert = X509::from_pem(ca_cert_pem.as_bytes())
         .map_err(|e| format!("Failed to parse CA certificate from PEM: {}", e))?;
 
-    // X509를 PEM으로 변환 (로깅용)
-    let ca_cert_pem_converted = ca_cert
-        .to_pem()
-        .map_err(|e| format!("Failed to convert CA certificate to PEM: {}", e))?;
-
-    info!(
-        size_bytes = ca_cert_pem_converted.len(),
-        "CA 인증서 PEM 파싱 성공"
-    );
-
     // PEM을 PKey로 변환
     let pkey = PKey::private_key_from_pem(private_key_pem.as_bytes())
         .map_err(|e| format!("Failed to parse private key from PEM: {}", e))?;
+
+    // 키-인증서 매칭 검증: 인증서의 공개키와 개인키의 공개키를 비교
+    let cert_pub_key_der = ca_cert
+        .public_key()
+        .map_err(|e| format!("인증서에서 공개키 추출 실패: {}", e))?
+        .public_key_to_der()
+        .map_err(|e| format!("공개키 DER 변환 실패: {}", e))?;
+    let pkey_pub_key_der = pkey
+        .public_key_to_der()
+        .map_err(|e| format!("개인키에서 공개키 DER 변환 실패: {}", e))?;
+    if cert_pub_key_der != pkey_pub_key_der {
+        return Err("OpenSSL CA 인증서와 개인키가 매칭되지 않습니다".to_string());
+    }
+
+    info!("CA 인증서 PEM 파싱 및 키 매칭 검증 성공");
 
     // OpensslAuthority 생성
     Ok(OpensslAuthority::new(
@@ -496,6 +559,50 @@ mod tests {
         ));
     }
 
+    #[cfg(feature = "rcgen-ca")]
+    #[test]
+    fn test_check_cert_expiry_expiring_soon() {
+        use time::{Duration, OffsetDateTime};
+
+        let key_pair = rcgen::KeyPair::generate().unwrap();
+        let mut params = rcgen::CertificateParams::default();
+        params.is_ca = rcgen::IsCa::Ca(rcgen::BasicConstraints::Unconstrained);
+        // 10일 후 만료되도록 설정
+        let now = OffsetDateTime::now_utc();
+        params.not_before = now - Duration::days(350);
+        params.not_after = now + Duration::days(10);
+        let cert = params.self_signed(&key_pair).unwrap();
+        let der = cert.der().to_vec();
+
+        match check_cert_expiry(&der) {
+            Some(CaExpiryStatus::ExpiringSoon(days)) => {
+                assert!(days >= 9 && days <= 10, "남은 일수: {}", days);
+            }
+            other => panic!("ExpiringSoon이어야 하지만 {:?}", other),
+        }
+    }
+
+    #[cfg(feature = "rcgen-ca")]
+    #[test]
+    fn test_check_cert_expiry_expired() {
+        use time::{Duration, OffsetDateTime};
+
+        let key_pair = rcgen::KeyPair::generate().unwrap();
+        let mut params = rcgen::CertificateParams::default();
+        params.is_ca = rcgen::IsCa::Ca(rcgen::BasicConstraints::Unconstrained);
+        // 이미 만료된 인증서
+        let now = OffsetDateTime::now_utc();
+        params.not_before = now - Duration::days(400);
+        params.not_after = now - Duration::days(1);
+        let cert = params.self_signed(&key_pair).unwrap();
+        let der = cert.der().to_vec();
+
+        assert!(matches!(
+            check_cert_expiry(&der),
+            Some(CaExpiryStatus::Expired)
+        ));
+    }
+
     #[test]
     fn test_ca_ttl_is_10_years() {
         use super::super::CA_TTL_SECS;
@@ -503,14 +610,117 @@ mod tests {
     }
 
     #[test]
-    fn test_leaf_ttl_is_1_year() {
+    fn test_leaf_ttl_is_90_days() {
         use super::super::LEAF_TTL_SECS;
-        assert_eq!(LEAF_TTL_SECS, 365 * 24 * 60 * 60);
+        assert_eq!(LEAF_TTL_SECS, 90 * 24 * 60 * 60);
     }
 
     #[test]
     fn test_cache_ttl_is_half_leaf() {
         use super::super::{CACHE_TTL, LEAF_TTL_SECS};
         assert_eq!(CACHE_TTL, LEAF_TTL_SECS as u64 / 2);
+    }
+
+    #[cfg(feature = "rcgen-ca")]
+    #[test]
+    fn test_verify_ca_key_cert_match_valid() {
+        let key_pair = rcgen::KeyPair::generate().unwrap();
+        let mut params = rcgen::CertificateParams::default();
+        params.is_ca = rcgen::IsCa::Ca(rcgen::BasicConstraints::Unconstrained);
+        let cert = params.self_signed(&key_pair).unwrap();
+        let key_pem = key_pair.serialize_pem();
+        let cert_der = cert.der().to_vec();
+
+        assert!(verify_ca_key_cert_match(&key_pem, &cert_der).is_ok());
+    }
+
+    #[cfg(feature = "rcgen-ca")]
+    #[test]
+    fn test_verify_ca_key_cert_match_mismatch() {
+        // 키 A로 만든 인증서에 키 B를 검증하면 실패해야 함
+        let key_a = rcgen::KeyPair::generate().unwrap();
+        let key_b = rcgen::KeyPair::generate().unwrap();
+        let mut params = rcgen::CertificateParams::default();
+        params.is_ca = rcgen::IsCa::Ca(rcgen::BasicConstraints::Unconstrained);
+        let cert = params.self_signed(&key_a).unwrap();
+        let key_b_pem = key_b.serialize_pem();
+        let cert_der = cert.der().to_vec();
+
+        assert!(verify_ca_key_cert_match(&key_b_pem, &cert_der).is_err());
+    }
+
+    #[cfg(feature = "rcgen-ca")]
+    #[test]
+    fn test_verify_ca_key_cert_match_invalid_key_pem() {
+        let key_pair = rcgen::KeyPair::generate().unwrap();
+        let mut params = rcgen::CertificateParams::default();
+        params.is_ca = rcgen::IsCa::Ca(rcgen::BasicConstraints::Unconstrained);
+        let cert = params.self_signed(&key_pair).unwrap();
+        let cert_der = cert.der().to_vec();
+
+        assert!(verify_ca_key_cert_match("invalid pem", &cert_der).is_err());
+    }
+
+    #[cfg(feature = "rcgen-ca")]
+    #[test]
+    fn test_verify_ca_key_cert_match_invalid_cert_der() {
+        let key_pair = rcgen::KeyPair::generate().unwrap();
+        let key_pem = key_pair.serialize_pem();
+
+        assert!(verify_ca_key_cert_match(&key_pem, b"invalid der").is_err());
+    }
+
+    #[cfg(feature = "rcgen-ca")]
+    #[test]
+    fn test_load_or_generate_ca_with_event_returns_event() {
+        let result = load_or_generate_ca_with_event();
+        assert!(result.is_ok());
+        let (_ca, event) = result.unwrap();
+        // 처음 실행이면 CaGenerated 또는 CaLoaded
+        assert!(
+            matches!(
+                event,
+                super::super::CertEvent::CaGenerated
+                    | super::super::CertEvent::CaLoaded
+                    | super::super::CertEvent::CaRegeneratedExpiringSoon(_)
+            ),
+            "예상치 못한 이벤트: {:?}",
+            event
+        );
+    }
+
+    #[cfg(feature = "rcgen-ca")]
+    #[test]
+    fn test_generate_and_save_ca_creates_files() {
+        let tmp_dir = std::env::temp_dir().join(format!(
+            "cheolsu_ca_test_{}",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        fs::create_dir_all(&tmp_dir).unwrap();
+
+        let result = generate_and_save_ca(&tmp_dir);
+        assert!(result.is_ok());
+
+        let key_path = tmp_dir.join("cheolsu-proxy.key");
+        let cer_path = tmp_dir.join("cheolsu-proxy.cer");
+        assert!(key_path.exists(), "키 파일이 생성되어야 함");
+        assert!(cer_path.exists(), "인증서 파일이 생성되어야 함");
+
+        // 생성된 인증서가 Valid인지 확인
+        let cert_der = fs::read(&cer_path).unwrap();
+        assert!(matches!(
+            check_cert_expiry(&cert_der),
+            Some(CaExpiryStatus::Valid)
+        ));
+
+        // 키-인증서 매칭 확인
+        let key_pem = fs::read_to_string(&key_path).unwrap();
+        assert!(verify_ca_key_cert_match(&key_pem, &cert_der).is_ok());
+
+        // cleanup
+        let _ = fs::remove_dir_all(&tmp_dir);
     }
 }
