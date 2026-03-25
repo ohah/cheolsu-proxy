@@ -401,6 +401,63 @@ mod tests {
         );
     }
 
+    /// 와일드카드 캐시 공유 테스트: 같은 루트 도메인의 서브도메인이 캐시를 공유하는지 확인
+    #[tokio::test]
+    async fn wildcard_cache_sharing() {
+        let ca = Arc::new(build_ca(1_000));
+
+        // 첫 번째 서브도메인으로 인증서 생성
+        let auth1 = Authority::from_static("api.wildcard-test.com");
+        let cfg1 = ca.gen_server_config(&auth1, None).await.unwrap();
+
+        // 두 번째 서브도메인은 와일드카드 캐시에서 가져와야 함
+        let auth2 = Authority::from_static("www.wildcard-test.com");
+        let cfg2 = ca.gen_server_config(&auth2, None).await.unwrap();
+
+        // 동일한 ServerConfig 인스턴스를 공유해야 함
+        assert!(
+            Arc::ptr_eq(&cfg1, &cfg2),
+            "같은 루트 도메인의 서브도메인은 와일드카드 캐시를 공유해야 함"
+        );
+    }
+
+    /// 루트 도메인은 와일드카드 캐시를 사용하지 않는지 확인
+    #[tokio::test]
+    async fn root_domain_no_wildcard_sharing() {
+        let ca = Arc::new(build_ca(1_000));
+
+        let auth1 = Authority::from_static("example-root.com");
+        let cfg1 = ca.gen_server_config(&auth1, None).await.unwrap();
+
+        let auth2 = Authority::from_static("other-root.com");
+        let cfg2 = ca.gen_server_config(&auth2, None).await.unwrap();
+
+        // 다른 도메인이므로 다른 인스턴스
+        assert!(
+            !Arc::ptr_eq(&cfg1, &cfg2),
+            "다른 루트 도메인은 별도 인증서를 생성해야 함"
+        );
+    }
+
+    /// 메트릭이 올바르게 수집되는지 확인
+    #[tokio::test]
+    async fn metrics_recorded_on_gen_and_cache_hit() {
+        let ca = build_ca(1_000);
+        let authority = Authority::from_static("metrics-test.example.com");
+
+        // 첫 번째 요청: 생성
+        ca.gen_server_config(&authority, None).await.unwrap();
+
+        // 두 번째 요청: 캐시 히트
+        ca.gen_server_config(&authority, None).await.unwrap();
+
+        let metrics = ca.get_metrics();
+        let snap = metrics.snapshot();
+        assert!(snap.gen_count >= 1, "최소 1번 생성되어야 함");
+        assert!(snap.cache_hit_count >= 1, "최소 1번 캐시 히트여야 함");
+        assert!(snap.avg_gen_duration_us > 0, "생성 시간이 기록되어야 함");
+    }
+
     /// CertEvent enum이 올바르게 동작하는지 확인
     #[test]
     fn cert_event_variants() {
