@@ -98,7 +98,6 @@ pub fn load_or_generate_ca_with_event() -> Result<(RcgenAuthority, super::CertEv
 }
 
 /// CA 인증서와 개인키가 매칭되는지 검증하고, 검증된 KeyPair를 반환합니다.
-/// 인증서의 공개키와 개인키로부터 추출한 공개키를 비교합니다.
 #[cfg(feature = "rcgen-ca")]
 fn verify_ca_key_cert_match(key_pem: &str, cert_der: &[u8]) -> Result<rcgen::KeyPair, String> {
     use x509_parser::parse_x509_certificate;
@@ -108,12 +107,14 @@ fn verify_ca_key_cert_match(key_pem: &str, cert_der: &[u8]) -> Result<rcgen::Key
     let (_, cert) =
         parse_x509_certificate(cert_der).map_err(|e| format!("인증서 파싱 실패: {}", e))?;
 
-    let cert_pub_key = cert.public_key().raw;
-    let key_pub_key = key_pair.public_key_raw();
+    // 인증서의 SPKI DER과 개인키의 SPKI DER을 비교
+    let cert_spki = cert.public_key().raw;
+    let key_spki_pem = key_pair.public_key_pem();
+    let key_spki_der = pem::parse(key_spki_pem)
+        .map_err(|e| format!("공개키 PEM 파싱 실패: {}", e))?
+        .into_contents();
 
-    // X.509 SubjectPublicKeyInfo의 끝 부분에 실제 공개키 바이트가 포함됨
-    // rcgen의 public_key_raw()는 raw 바이트만 반환하므로 cert의 SPKI에 포함되어 있는지 확인
-    if !cert_pub_key.ends_with(key_pub_key) {
+    if cert_spki != key_spki_der {
         return Err("CA 인증서와 개인키가 매칭되지 않습니다. 인증서를 재생성합니다.".to_string());
     }
 
@@ -131,7 +132,6 @@ pub fn load_ca_from_storage(
     let cert_der =
         fs::read(cer_path).map_err(|e| format!("Failed to read certificate file: {}", e))?;
 
-    // 키-인증서 매칭 검증 및 KeyPair 재사용
     let key_pair = verify_ca_key_cert_match(&key_pem, &cert_der)?;
 
     let cert_der = CertificateDer::from(cert_der);
@@ -347,15 +347,11 @@ pub fn load_openssl_ca_from_storage(
         "CA 인증서 파일 로드 (PEM 형식)"
     );
 
-    // PEM을 X509로 파싱
     let ca_cert = X509::from_pem(ca_cert_pem.as_bytes())
         .map_err(|e| format!("Failed to parse CA certificate from PEM: {}", e))?;
 
-    // PEM을 PKey로 변환
     let pkey = PKey::private_key_from_pem(private_key_pem.as_bytes())
         .map_err(|e| format!("Failed to parse private key from PEM: {}", e))?;
-
-    // 키-인증서 매칭 검증: 인증서의 공개키와 개인키의 공개키를 비교
     let cert_pub_key_der = ca_cert
         .public_key()
         .map_err(|e| format!("인증서에서 공개키 추출 실패: {}", e))?
@@ -719,5 +715,182 @@ mod tests {
 
         // cleanup
         let _ = fs::remove_dir_all(&tmp_dir);
+    }
+
+    #[cfg(feature = "rcgen-ca")]
+    #[test]
+    fn test_verify_ca_key_cert_match_rsa_key() {
+        let key_pair = rcgen::KeyPair::generate_for(&rcgen::PKCS_RSA_SHA256).unwrap();
+        let mut params = rcgen::CertificateParams::default();
+        params.is_ca = rcgen::IsCa::Ca(rcgen::BasicConstraints::Unconstrained);
+        let cert = params.self_signed(&key_pair).unwrap();
+        let key_pem = key_pair.serialize_pem();
+        let cert_der = cert.der().to_vec();
+
+        assert!(
+            verify_ca_key_cert_match(&key_pem, &cert_der).is_ok(),
+            "RSA 키 타입에서도 SPKI 비교가 정확해야 함"
+        );
+    }
+
+    #[cfg(feature = "rcgen-ca")]
+    #[test]
+    fn test_verify_ca_key_cert_match_ecdsa_p384_key() {
+        let key_pair = rcgen::KeyPair::generate_for(&rcgen::PKCS_ECDSA_P384_SHA384).unwrap();
+        let mut params = rcgen::CertificateParams::default();
+        params.is_ca = rcgen::IsCa::Ca(rcgen::BasicConstraints::Unconstrained);
+        let cert = params.self_signed(&key_pair).unwrap();
+        let key_pem = key_pair.serialize_pem();
+        let cert_der = cert.der().to_vec();
+
+        assert!(
+            verify_ca_key_cert_match(&key_pem, &cert_der).is_ok(),
+            "ECDSA P-384 키 타입에서도 SPKI 비교가 정확해야 함"
+        );
+    }
+
+    #[cfg(feature = "rcgen-ca")]
+    #[test]
+    fn test_verify_ca_key_cert_match_ed25519_key() {
+        let key_pair = rcgen::KeyPair::generate_for(&rcgen::PKCS_ED25519).unwrap();
+        let mut params = rcgen::CertificateParams::default();
+        params.is_ca = rcgen::IsCa::Ca(rcgen::BasicConstraints::Unconstrained);
+        let cert = params.self_signed(&key_pair).unwrap();
+        let key_pem = key_pair.serialize_pem();
+        let cert_der = cert.der().to_vec();
+
+        assert!(
+            verify_ca_key_cert_match(&key_pem, &cert_der).is_ok(),
+            "Ed25519 키 타입에서도 SPKI 비교가 정확해야 함"
+        );
+    }
+
+    #[cfg(feature = "rcgen-ca")]
+    #[test]
+    fn test_verify_ca_key_cert_match_returns_usable_keypair() {
+        let key_pair = rcgen::KeyPair::generate().unwrap();
+        let mut params = rcgen::CertificateParams::default();
+        params.is_ca = rcgen::IsCa::Ca(rcgen::BasicConstraints::Unconstrained);
+        let cert = params.self_signed(&key_pair).unwrap();
+        let key_pem = key_pair.serialize_pem();
+        let cert_der = cert.der().to_vec();
+
+        // 반환된 KeyPair로 Issuer를 생성할 수 있어야 함
+        let returned_kp = verify_ca_key_cert_match(&key_pem, &cert_der).unwrap();
+        let cert_der_owned = tokio_rustls::rustls::pki_types::CertificateDer::from(cert_der);
+        let issuer = rcgen::Issuer::from_ca_cert_der(&cert_der_owned, returned_kp);
+        assert!(issuer.is_ok(), "반환된 KeyPair로 Issuer 생성이 가능해야 함");
+    }
+
+    #[cfg(feature = "rcgen-ca")]
+    #[test]
+    fn test_generate_and_load_ca_roundtrip() {
+        use super::super::CertificateAuthority;
+        let tmp_dir = std::env::temp_dir().join(format!(
+            "cheolsu_ca_roundtrip_{}",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        fs::create_dir_all(&tmp_dir).unwrap();
+
+        // 생성
+        let ca1 = generate_and_save_ca(&tmp_dir).unwrap();
+        let ca1_der = ca1.get_ca_cert_der().unwrap();
+
+        // 로드
+        let key_path = tmp_dir.join("cheolsu-proxy.key");
+        let cer_path = tmp_dir.join("cheolsu-proxy.cer");
+        let ca2 = load_ca_from_storage(&key_path, &cer_path).unwrap();
+        let ca2_der = ca2.get_ca_cert_der().unwrap();
+
+        // 동일한 CA 인증서인지 확인
+        assert_eq!(ca1_der, ca2_der, "생성 후 로드한 CA가 동일해야 함");
+
+        let _ = fs::remove_dir_all(&tmp_dir);
+    }
+
+    #[cfg(feature = "rcgen-ca")]
+    #[test]
+    fn test_corrupted_cert_file_triggers_regeneration() {
+        let tmp_dir = std::env::temp_dir().join(format!(
+            "cheolsu_ca_corrupt_{}",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        fs::create_dir_all(&tmp_dir).unwrap();
+
+        // 정상 CA 생성
+        generate_and_save_ca(&tmp_dir).unwrap();
+
+        let cer_path = tmp_dir.join("cheolsu-proxy.cer");
+        let key_path = tmp_dir.join("cheolsu-proxy.key");
+
+        // 인증서 파일을 손상시킴
+        fs::write(&cer_path, b"corrupted data").unwrap();
+
+        // 손상된 인증서 로드 시 에러가 발생해야 함
+        let result = load_ca_from_storage(&key_path, &cer_path);
+        assert!(result.is_err(), "손상된 인증서 로드는 실패해야 함");
+
+        let _ = fs::remove_dir_all(&tmp_dir);
+    }
+
+    #[cfg(feature = "rcgen-ca")]
+    #[test]
+    fn test_mismatched_key_cert_triggers_error() {
+        let tmp_dir = std::env::temp_dir().join(format!(
+            "cheolsu_ca_mismatch_{}",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        fs::create_dir_all(&tmp_dir).unwrap();
+
+        // CA 생성
+        generate_and_save_ca(&tmp_dir).unwrap();
+
+        // 다른 키로 덮어쓰기
+        let other_key = rcgen::KeyPair::generate().unwrap();
+        let key_path = tmp_dir.join("cheolsu-proxy.key");
+        fs::write(&key_path, other_key.serialize_pem()).unwrap();
+
+        // 키-인증서 불일치로 로드 실패
+        let cer_path = tmp_dir.join("cheolsu-proxy.cer");
+        let result = load_ca_from_storage(&key_path, &cer_path);
+        assert!(result.is_err(), "키-인증서 불일치 시 로드가 실패해야 함");
+
+        let _ = fs::remove_dir_all(&tmp_dir);
+    }
+
+    #[cfg(feature = "rcgen-ca")]
+    #[test]
+    fn test_not_before_offset_applied() {
+        use super::super::NOT_BEFORE_OFFSET;
+        use time::OffsetDateTime;
+
+        let key_pair = rcgen::KeyPair::generate().unwrap();
+        let mut params = rcgen::CertificateParams::default();
+        params.is_ca = rcgen::IsCa::Ca(rcgen::BasicConstraints::Unconstrained);
+
+        let now = OffsetDateTime::now_utc();
+        params.not_before = now - time::Duration::seconds(NOT_BEFORE_OFFSET);
+        params.not_after = now + time::Duration::days(90);
+        let cert = params.self_signed(&key_pair).unwrap();
+        let der = cert.der().to_vec();
+
+        let (_, parsed) = x509_parser::parse_x509_certificate(&der).unwrap();
+        let not_before_ts = parsed.validity().not_before.timestamp();
+        let now_ts = now.unix_timestamp();
+
+        // not_before가 현재 시간보다 NOT_BEFORE_OFFSET(2일) 이전이어야 함
+        assert!(
+            now_ts - not_before_ts >= NOT_BEFORE_OFFSET - 5,
+            "not_before가 약 2일 전이어야 함"
+        );
     }
 }
