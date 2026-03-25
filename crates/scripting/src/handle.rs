@@ -65,6 +65,7 @@ const SCRIPT_LOG_CHANNEL_CAPACITY: usize = 256;
 pub struct ScriptHandle {
     tx: Option<mpsc::Sender<ScriptCommand>>,
     active: Arc<std::sync::atomic::AtomicBool>,
+    loaded_path: Arc<tokio::sync::RwLock<Option<String>>>,
     log_tx: broadcast::Sender<ScriptLogEntry>,
     thread_handle: Arc<Mutex<Option<JoinHandle<()>>>>,
 }
@@ -95,6 +96,7 @@ impl ScriptHandle {
         Self {
             tx: Some(tx),
             active,
+            loaded_path: Arc::new(tokio::sync::RwLock::new(None)),
             log_tx,
             thread_handle: Arc::new(Mutex::new(Some(handle))),
         }
@@ -122,6 +124,11 @@ impl ScriptHandle {
         self.active.load(std::sync::atomic::Ordering::Acquire)
     }
 
+    /// 현재 로드된 스크립트 경로 반환
+    pub async fn loaded_path(&self) -> Option<String> {
+        self.loaded_path.read().await.clone()
+    }
+
     /// 로그 수신 구독
     pub fn subscribe_logs(&self) -> broadcast::Receiver<ScriptLogEntry> {
         self.log_tx.subscribe()
@@ -137,10 +144,14 @@ impl ScriptHandle {
             })
             .await
             .map_err(|_| ScriptError::EngineShutdown)?;
-        tokio::time::timeout(SCRIPT_TIMEOUT, reply_rx)
+        let result = tokio::time::timeout(SCRIPT_TIMEOUT, reply_rx)
             .await
             .map_err(|_| ScriptError::Timeout("스크립트 로드".to_string()))?
-            .map_err(|_| ScriptError::NoResponse)?
+            .map_err(|_| ScriptError::NoResponse)?;
+        if result.is_ok() {
+            *self.loaded_path.write().await = Some(path.to_string());
+        }
+        result
     }
 
     /// 스크립트 코드 로드 (JS)
@@ -153,10 +164,14 @@ impl ScriptHandle {
             })
             .await
             .map_err(|_| ScriptError::EngineShutdown)?;
-        tokio::time::timeout(SCRIPT_TIMEOUT, reply_rx)
+        let result = tokio::time::timeout(SCRIPT_TIMEOUT, reply_rx)
             .await
             .map_err(|_| ScriptError::Timeout("스크립트 로드".to_string()))?
-            .map_err(|_| ScriptError::NoResponse)?
+            .map_err(|_| ScriptError::NoResponse)?;
+        if result.is_ok() {
+            *self.loaded_path.write().await = None;
+        }
+        result
     }
 
     /// TypeScript 코드 로드
@@ -169,10 +184,14 @@ impl ScriptHandle {
             })
             .await
             .map_err(|_| ScriptError::EngineShutdown)?;
-        tokio::time::timeout(SCRIPT_TIMEOUT, reply_rx)
+        let result = tokio::time::timeout(SCRIPT_TIMEOUT, reply_rx)
             .await
             .map_err(|_| ScriptError::Timeout("스크립트 로드".to_string()))?
-            .map_err(|_| ScriptError::NoResponse)?
+            .map_err(|_| ScriptError::NoResponse)?;
+        if result.is_ok() {
+            *self.loaded_path.write().await = None;
+        }
+        result
     }
 
     /// 스크립트 언로드
@@ -182,6 +201,7 @@ impl ScriptHandle {
             let _ = tx.send(ScriptCommand::Unload { reply: reply_tx }).await;
         }
         let _ = tokio::time::timeout(SCRIPT_TIMEOUT, reply_rx).await;
+        *self.loaded_path.write().await = None;
     }
 
     /// onRequest 훅 호출
