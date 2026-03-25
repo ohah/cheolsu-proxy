@@ -276,11 +276,16 @@ async fn sync_stored_settings_to_daemon<R: Runtime>(app: &AppHandle<R>, sender: 
             .get("quickSettingsNoGzip")
             .and_then(|v| v.as_bool())
             .unwrap_or(false);
+        let block_quic = settings
+            .get("quickSettingsBlockQuic")
+            .and_then(|v| v.as_bool())
+            .unwrap_or(false);
         if let Err(e) = sender
             .send_command(&ClientCommand::UpdateQuickSettings {
                 no_caching,
                 block_cookies,
                 no_gzip,
+                block_quic,
             })
             .await
         {
