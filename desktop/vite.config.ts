@@ -1,5 +1,6 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import babel from "@rolldown/plugin-babel";
 import tailwindcss from "@tailwindcss/vite";
 import { lingui } from "@lingui/vite-plugin";
 import path from "path";
@@ -26,10 +27,10 @@ const mockAliases = isMock
 export default defineConfig({
   appType: "mpa",
   plugins: [
-    react({
-      babel: {
-        plugins: ["@lingui/babel-plugin-lingui-macro"],
-      },
+    react(),
+    babel({
+      include: /\.[jt]sx?$/,
+      plugins: ["@lingui/babel-plugin-lingui-macro"],
     }),
     lingui(),
     tailwindcss(),
