@@ -4,15 +4,17 @@ import { I18nProvider } from "@lingui/react";
 import App from "./app/App";
 import { i18n, defaultLocale, loadCatalog } from "@/shared/lib/i18n";
 import { useAppSettingsStore } from "@/shared/stores/app-settings-store";
+import { registerContentViewLanguages } from "@/shared/lib/monaco-languages";
+import { setupMonacoLanguage } from "@/features/query-filter-editor/lib/monaco-setup";
+import { setupMonacoThemes } from "@/shared/lib/monaco-theme";
 import "./main.css";
 import "../styles.css";
 
 import("@monaco-editor/react").then(({ loader }) => {
-  loader.init().then(async (monaco) => {
-    const { registerContentViewLanguages } = await import("@/shared/lib/monaco-languages");
-    const { setupMonacoLanguage } = await import("@/features/query-filter-editor/lib/monaco-setup");
+  loader.init().then((monaco) => {
     registerContentViewLanguages(monaco);
     setupMonacoLanguage(monaco);
+    setupMonacoThemes(monaco);
   });
 });
 

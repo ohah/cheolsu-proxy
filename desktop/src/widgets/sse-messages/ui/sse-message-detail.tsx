@@ -3,8 +3,8 @@ import { useLingui } from "@lingui/react/macro";
 import { Trans } from "@lingui/react/macro";
 import { X } from "lucide-react";
 import { Editor } from "@monaco-editor/react";
-import { useTheme } from "next-themes";
 import { Button, Tooltip, TooltipTrigger, TooltipContent } from "@/shared/ui";
+import { useMonacoTheme } from "@/shared/hooks/use-monaco-theme";
 import { formatBytes } from "@/shared/lib/format-bytes";
 import { formatTimeFull } from "@/shared/lib/format-time";
 import type { SseEventInfo } from "@/entities/sse";
@@ -39,7 +39,7 @@ function tryFormatJson(data: string): string {
 
 export const SseMessageDetail = memo(({ event, onClose }: SseMessageDetailProps) => {
   const { t } = useLingui();
-  const { resolvedTheme } = useTheme();
+  const { theme, beforeMount } = useMonacoTheme();
 
   const language = useMemo(() => detectLanguage(event.data), [event.data]);
   const formatted = useMemo(
@@ -112,7 +112,8 @@ export const SseMessageDetail = memo(({ event, onClose }: SseMessageDetailProps)
           height="100%"
           language={language}
           value={formatted}
-          theme={resolvedTheme === "dark" ? "vs-dark" : "vs"}
+          beforeMount={beforeMount}
+          theme={theme}
           options={{
             readOnly: true,
             minimap: { enabled: false },

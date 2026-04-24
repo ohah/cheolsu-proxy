@@ -3,8 +3,8 @@ import { useLingui } from "@lingui/react/macro";
 import { Trans } from "@lingui/react/macro";
 import { X, AlertTriangle } from "lucide-react";
 import { Editor } from "@monaco-editor/react";
-import { useTheme } from "next-themes";
 import { Button, Tooltip, TooltipTrigger, TooltipContent } from "@/shared/ui";
+import { useMonacoTheme } from "@/shared/hooks/use-monaco-theme";
 import { cn } from "@/shared/lib";
 import { formatTimeFull, formatDuration } from "@/shared/lib/format-time";
 import type { GraphqlOperation } from "@/entities/graphql";
@@ -40,7 +40,7 @@ const EDITOR_OPTIONS = {
 export const GraphqlOperationDetail = memo(
   ({ operation, onClose }: GraphqlOperationDetailProps) => {
     const { t } = useLingui();
-    const { resolvedTheme } = useTheme();
+    const { theme, beforeMount } = useMonacoTheme();
 
     const hasErrors = operation.responseErrors && operation.responseErrors.length > 0;
 
@@ -130,8 +130,6 @@ export const GraphqlOperationDetail = memo(
       [t, formattedVariables, formattedResponseData, hasErrors],
     );
 
-    const editorTheme = resolvedTheme === "dark" ? "vs-dark" : "vs";
-
     return (
       <div className="h-full flex flex-col bg-card select-text">
         {/* Header bar */}
@@ -213,7 +211,8 @@ export const GraphqlOperationDetail = memo(
               height="100%"
               language="graphql"
               value={operation.query}
-              theme={editorTheme}
+              beforeMount={beforeMount}
+              theme={theme}
               options={EDITOR_OPTIONS}
             />
           )}
@@ -222,7 +221,8 @@ export const GraphqlOperationDetail = memo(
               height="100%"
               language="json"
               value={formattedVariables}
-              theme={editorTheme}
+              beforeMount={beforeMount}
+              theme={theme}
               options={EDITOR_OPTIONS}
             />
           )}
@@ -231,7 +231,8 @@ export const GraphqlOperationDetail = memo(
               height="100%"
               language="json"
               value={formattedResponseData}
-              theme={editorTheme}
+              beforeMount={beforeMount}
+              theme={theme}
               options={EDITOR_OPTIONS}
             />
           )}
@@ -250,7 +251,8 @@ export const GraphqlOperationDetail = memo(
                   height="100%"
                   language="json"
                   value={formattedErrors}
-                  theme={editorTheme}
+                  beforeMount={beforeMount}
+                  theme={theme}
                   options={EDITOR_OPTIONS}
                 />
               </div>

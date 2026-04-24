@@ -16,3 +16,4 @@ export * from "./k6";
 export * from "./http-constants";
 export * from "./extract-ip";
 export * from "./transaction-to-replay-entry";
+export * from "./monaco-theme";

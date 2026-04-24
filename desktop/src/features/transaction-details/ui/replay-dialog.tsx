@@ -3,9 +3,9 @@ import { Play, Loader2, Plus, Trash2, Maximize2, Minimize2 } from "lucide-react"
 import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
 import { Editor } from "@monaco-editor/react";
-import { useTheme } from "next-themes";
 
 import type { HttpTransaction } from "@/entities/proxy";
+import { useMonacoTheme } from "@/shared/hooks/use-monaco-theme";
 import { isTextBasedDataType } from "@/entities/proxy";
 import {
   Dialog,
@@ -102,7 +102,7 @@ function ResponseView({
   elapsedMs?: number;
 }) {
   const { t } = useLingui();
-  const { resolvedTheme } = useTheme();
+  const { theme, beforeMount } = useMonacoTheme();
   const [expanded, setExpanded] = useState(false);
   const headerEntries = Object.entries(headers);
 
@@ -123,7 +123,8 @@ function ResponseView({
             height="100%"
             language={detectLanguage(body)}
             value={formatBody(body, bodySize)}
-            theme={resolvedTheme === "dark" ? "vs-dark" : "vs-light"}
+            beforeMount={beforeMount}
+            theme={theme}
             options={{
               readOnly: true,
               minimap: { enabled: false },
@@ -194,7 +195,8 @@ function ResponseView({
             height="300px"
             language={detectLanguage(body)}
             value={formatBody(body, bodySize)}
-            theme={resolvedTheme === "dark" ? "vs-dark" : "vs-light"}
+            beforeMount={beforeMount}
+            theme={theme}
             options={{
               readOnly: true,
               minimap: { enabled: false },
@@ -220,7 +222,7 @@ export function ReplayDialog({
   hideTrigger,
 }: ReplayDialogProps) {
   const { t } = useLingui();
-  const { resolvedTheme } = useTheme();
+  const { theme, beforeMount } = useMonacoTheme();
   const isComposeMode = !transaction;
   const isControlled = controlledOpen !== undefined;
   const [internalOpen, setInternalOpen] = useState(false);
@@ -430,7 +432,8 @@ export function ReplayDialog({
                         language={bodyLanguage}
                         value={body}
                         onChange={(v) => setBody(v ?? "")}
-                        theme={resolvedTheme === "dark" ? "vs-dark" : "vs-light"}
+                        beforeMount={beforeMount}
+                        theme={theme}
                         options={{
                           minimap: { enabled: false },
                           fontSize: 12,

@@ -3,8 +3,8 @@ import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
 import { ArrowUp, ArrowDown, X, Play } from "lucide-react";
 import { Editor } from "@monaco-editor/react";
-import { useTheme } from "next-themes";
 import { Button, Tooltip, TooltipTrigger, TooltipContent } from "@/shared/ui";
+import { useMonacoTheme } from "@/shared/hooks/use-monaco-theme";
 import { cn } from "@/shared/lib";
 import { formatBytes } from "@/shared/lib/format-bytes";
 import { getWsContentView, parseMqtt } from "@/shared/lib/ws-content-view";
@@ -20,7 +20,7 @@ interface WsMessageDetailProps {
 export const WsMessageDetail = memo(
   ({ message, onClose, onReplayRequest }: WsMessageDetailProps) => {
     const { t } = useLingui();
-    const { resolvedTheme } = useTheme();
+    const { theme, beforeMount } = useMonacoTheme();
     const isSent = message.direction === "client_to_server";
 
     const mqttParsed = useMemo(
@@ -147,7 +147,8 @@ export const WsMessageDetail = memo(
             height="100%"
             language={language}
             value={formatted}
-            theme={resolvedTheme === "dark" ? "vs-dark" : "vs"}
+            beforeMount={beforeMount}
+            theme={theme}
             options={{
               readOnly: true,
               minimap: { enabled: false },

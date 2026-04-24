@@ -1,8 +1,8 @@
 import { Copy, FileText, Loader2 } from "lucide-react";
 import { writeImage, writeText } from "@tauri-apps/plugin-clipboard-manager";
-import { useTheme } from "next-themes";
 
 import type { HttpTransaction } from "@/entities/proxy";
+import { useMonacoTheme } from "@/shared/hooks/use-monaco-theme";
 
 import {
   Button,
@@ -39,7 +39,7 @@ interface TransactionResponseProps {
 }
 
 export const TransactionResponse = ({ transaction, compact }: TransactionResponseProps) => {
-  const { resolvedTheme } = useTheme();
+  const { theme, beforeMount } = useMonacoTheme();
   const { response } = transaction;
   const heightClass = compact ? "h-full" : "h-[calc(100vh-300px)]";
 
@@ -224,7 +224,8 @@ export const TransactionResponse = ({ transaction, compact }: TransactionRespons
               height={compact ? "100%" : "calc(100vh - 300px)"}
               language={dataTypeToMonacoLanguage(response.data_type)}
               value={responseText}
-              theme={resolvedTheme === "dark" ? "vs-dark" : "vs"}
+              beforeMount={beforeMount}
+              theme={theme}
               options={{
                 readOnly: true,
                 minimap: { enabled: false },
