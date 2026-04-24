@@ -91,7 +91,7 @@ msgstr "실제값"
 #: src/features/intercept-rule-form/ui/headers-fields.tsx:59
 #: src/features/intercept-rule-form/ui/headers-fields.tsx:88
 #: src/features/map-rule-form/ui/map-local-fields.tsx:73
-#: src/features/transaction-details/ui/replay-dialog.tsx:360
+#: src/features/transaction-details/ui/replay-dialog.tsx:362
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:225
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:445
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:142
@@ -355,8 +355,8 @@ msgstr "QUIC 차단"
 #: src/features/intercept-rule-form/ui/modify-request-fields.tsx:18
 #: src/features/intercept-rule-form/ui/modify-response-fields.tsx:29
 #: src/features/transaction-details/ui/replay-dialog.tsx:114
-#: src/features/transaction-details/ui/replay-dialog.tsx:185
-#: src/features/transaction-details/ui/replay-dialog.tsx:409
+#: src/features/transaction-details/ui/replay-dialog.tsx:186
+#: src/features/transaction-details/ui/replay-dialog.tsx:411
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:479
 msgid "Body"
 msgstr "본문"
@@ -391,7 +391,7 @@ msgstr "Breakpoint 규칙이 추가되었습니다"
 msgid "Breakpoints"
 msgstr "Breakpoints"
 
-#: src/pages/script/ui/script-page.tsx:263
+#: src/pages/script/ui/script-page.tsx:264
 #: src/pages/settings/ui/components/client-certificate-section.tsx:149
 #: src/pages/settings/ui/components/client-certificate-section.tsx:163
 #: src/pages/settings/ui/components/client-certificate-section.tsx:289
@@ -528,7 +528,7 @@ msgstr "정리 중..."
 
 #: src/features/query-filter-editor/ui/query-builder.tsx:383
 #: src/pages/log-viewer/ui/logs-page.tsx:262
-#: src/pages/script/ui/script-page.tsx:298
+#: src/pages/script/ui/script-page.tsx:299
 #: src/pages/settings/ui/components/request-client-cert-section.tsx:72
 msgid "Clear"
 msgstr "지우기"
@@ -587,7 +587,7 @@ msgstr "유효한 인증서가 없는 클라이언트는 거부됩니다"
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:343
 #: src/features/transaction-details/ui/sequence-replay-dialog.tsx:222
 #: src/features/transaction-details/ui/transaction-header.tsx:63
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:161
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:159
 #: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:100
 #: src/widgets/sse-messages/ui/sse-message-detail.tsx:87
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:122
@@ -595,7 +595,7 @@ msgid "Close"
 msgstr "닫기"
 
 #: src/features/transaction-details/ui/replay-dialog.tsx:118
-#: src/features/transaction-details/ui/replay-dialog.tsx:415
+#: src/features/transaction-details/ui/replay-dialog.tsx:417
 msgid "Collapse"
 msgstr "접기"
 
@@ -620,7 +620,7 @@ msgstr "일반 이름 (CN)"
 msgid "Compose request"
 msgstr "요청 작성"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:286
+#: src/features/transaction-details/ui/replay-dialog.tsx:288
 msgid "Compose Request"
 msgstr "요청 작성"
 
@@ -660,7 +660,7 @@ msgstr "연결"
 msgid "Connects to the server only when needed (default, sequential sniffing)"
 msgstr "필요할 때만 서버에 연결합니다 (기본값, 순차적 스니핑)"
 
-#: src/pages/script/ui/script-page.tsx:286
+#: src/pages/script/ui/script-page.tsx:287
 msgid "Console"
 msgstr "콘솔"
 
@@ -960,7 +960,7 @@ msgstr "에러율"
 msgid "Error Status Code Distribution"
 msgstr "에러 상태 코드 분포"
 
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:244
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:245
 msgid "error(s)"
 msgstr "에러"
 
@@ -1010,8 +1010,8 @@ msgstr "OPTIONS 메서드 제외"
 msgid "Exit fullscreen"
 msgstr "전체 화면 종료"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:189
-#: src/features/transaction-details/ui/replay-dialog.tsx:420
+#: src/features/transaction-details/ui/replay-dialog.tsx:190
+#: src/features/transaction-details/ui/replay-dialog.tsx:422
 msgid "Expand"
 msgstr "펼치기"
 
@@ -1207,7 +1207,7 @@ msgstr "HAR 가져오기 성공"
 
 #: src/features/intercept-rule-form/ui/headers-fields.tsx:65
 #: src/features/map-rule-form/ui/map-local-fields.tsx:79
-#: src/features/transaction-details/ui/replay-dialog.tsx:372
+#: src/features/transaction-details/ui/replay-dialog.tsx:374
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:454
 msgid "Header name"
 msgstr "헤더 이름"
@@ -1227,8 +1227,8 @@ msgstr "헤더"
 
 #. placeholder {0}: headerEntries.length
 #. placeholder {0}: headers.length
-#: src/features/transaction-details/ui/replay-dialog.tsx:161
-#: src/features/transaction-details/ui/replay-dialog.tsx:357
+#: src/features/transaction-details/ui/replay-dialog.tsx:162
+#: src/features/transaction-details/ui/replay-dialog.tsx:359
 msgid "Headers ({0})"
 msgstr "헤더 ({0})"
 
@@ -1420,11 +1420,11 @@ msgstr "라이트"
 msgid "lines"
 msgstr "줄"
 
-#: src/pages/script/ui/script-page.tsx:266
+#: src/pages/script/ui/script-page.tsx:267
 msgid "Load"
 msgstr "로드"
 
-#: src/pages/script/ui/script-page.tsx:249
+#: src/pages/script/ui/script-page.tsx:250
 msgid "Load a script file from disk. The file will be watched for changes and auto-reloaded."
 msgstr "디스크에서 스크립트 파일을 로드합니다. 파일 변경 시 자동으로 리로드됩니다."
 
@@ -1453,7 +1453,7 @@ msgid "Loading certificate info..."
 msgstr "인증서 정보 로딩 중..."
 
 #: src/pages/script/ui/script-page.tsx:214
-#: src/pages/script/ui/script-page.tsx:266
+#: src/pages/script/ui/script-page.tsx:267
 #: src/pages/settings/ui/components/certificate-settings.tsx:167
 #: src/pages/settings/ui/components/proto-files-section.tsx:74
 msgid "Loading..."
@@ -1580,7 +1580,7 @@ msgstr "MCP 서버"
 msgid "MCP Server Configuration"
 msgstr "MCP 서버 설정"
 
-#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:182
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:183
 msgid "Message sent successfully"
 msgstr "메시지가 전송되었습니다"
 
@@ -1700,11 +1700,11 @@ msgstr "캐시 비활성화"
 msgid "No captured traffic with responses available. Capture some traffic first."
 msgstr "응답이 있는 캡처된 트래픽이 없습니다. 먼저 트래픽을 캡처하세요."
 
-#: src/features/query-filter-editor/ui/query-filter-editor.tsx:76
+#: src/features/query-filter-editor/ui/query-filter-editor.tsx:75
 msgid "No conditions"
 msgstr "조건 없음"
 
-#: src/pages/script/ui/script-page.tsx:304
+#: src/pages/script/ui/script-page.tsx:305
 msgid "No console output yet"
 msgstr "콘솔 출력이 아직 없습니다"
 
@@ -1936,7 +1936,7 @@ msgstr "선택사항"
 msgid "Organization"
 msgstr "조직"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:303
+#: src/features/transaction-details/ui/replay-dialog.tsx:305
 msgid "Original"
 msgstr "원본"
 
@@ -2207,7 +2207,7 @@ msgstr "치환 문자열"
 msgid "Replacement string (supports $1, $2 capture groups)"
 msgstr "치환 문자열 ($1, $2 캡처 그룹 지원)"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:313
+#: src/features/transaction-details/ui/replay-dialog.tsx:315
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:113
 msgid "Replay"
 msgstr "리플레이"
@@ -2216,11 +2216,11 @@ msgstr "리플레이"
 msgid "Replay message"
 msgstr "메시지 리플레이"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:277
+#: src/features/transaction-details/ui/replay-dialog.tsx:279
 msgid "Replay request"
 msgstr "요청 리플레이"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:299
+#: src/features/transaction-details/ui/replay-dialog.tsx:301
 #: src/features/transaction-details/ui/transaction-body-side-by-side.tsx:16
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:282
 #: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:58
@@ -2291,7 +2291,7 @@ msgstr "이 프록시 서버 사용 시 인증 필요"
 msgid "Require certificate"
 msgstr "인증서 필수"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:313
+#: src/features/transaction-details/ui/replay-dialog.tsx:315
 #: src/features/transaction-details/ui/transaction-body-side-by-side.tsx:24
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:287
 #: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:121
@@ -2482,7 +2482,7 @@ msgstr "프록시 정보 스캔"
 msgid "Script"
 msgstr "스크립트"
 
-#: src/pages/script/ui/script-page.tsx:257
+#: src/pages/script/ui/script-page.tsx:258
 msgid "Script file path (.js, .ts)"
 msgstr "스크립트 파일 경로 (.js, .ts)"
 
@@ -2554,19 +2554,19 @@ msgstr "다운로드된 인증서 파일을 선택하고 확인하세요"
 msgid "Select the downloaded profile and tap \"Install\""
 msgstr "다운로드된 프로필을 선택하고 \"Install\"을 탭하세요"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:497
+#: src/features/transaction-details/ui/replay-dialog.tsx:500
 msgid "Send a request to see the replay response"
 msgstr "리플레이 응답을 보려면 요청을 전송하세요"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:495
+#: src/features/transaction-details/ui/replay-dialog.tsx:498
 msgid "Send a request to see the response"
 msgstr "응답을 보려면 요청을 전송하세요"
 
-#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:201
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:202
 msgid "Send Message"
 msgstr "메시지 전송"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:465
+#: src/features/transaction-details/ui/replay-dialog.tsx:468
 msgid "Send Request"
 msgstr "요청 전송"
 
@@ -2574,9 +2574,9 @@ msgstr "요청 전송"
 msgid "Sending requests sequentially..."
 msgstr "요청을 순서대로 전송 중..."
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:460
+#: src/features/transaction-details/ui/replay-dialog.tsx:463
 #: src/features/transaction-details/ui/sequence-replay-dialog.tsx:211
-#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:196
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:197
 msgid "Sending..."
 msgstr "전송 중..."
 
@@ -2783,7 +2783,7 @@ msgstr "와일드카드 패턴 지원: *는 모든 문자열, ?는 단일 문자
 msgid "Switch to Builder mode"
 msgstr "빌더 모드로 전환"
 
-#: src/features/query-filter-editor/ui/query-filter-editor.tsx:107
+#: src/features/query-filter-editor/ui/query-filter-editor.tsx:106
 msgid "Switch to Code mode"
 msgstr "코드 모드로 전환"
 
@@ -2919,7 +2919,7 @@ msgstr "총 시간"
 msgid "Traffic Analysis"
 msgstr "트래픽 분석"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:286
+#: src/features/transaction-details/ui/replay-dialog.tsx:288
 msgid "Traffic Replay"
 msgstr "트래픽 리플레이"
 
@@ -2993,7 +2993,7 @@ msgstr "업로드 속도 (KB/s)"
 msgid "Upstream Proxy"
 msgstr "업스트림 프록시"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:350
+#: src/features/transaction-details/ui/replay-dialog.tsx:352
 msgid "URL"
 msgstr "URL"
 
@@ -3058,7 +3058,7 @@ msgstr "유효 기간"
 
 #: src/features/intercept-rule-form/ui/headers-fields.tsx:70
 #: src/features/map-rule-form/ui/map-local-fields.tsx:84
-#: src/features/transaction-details/ui/replay-dialog.tsx:380
+#: src/features/transaction-details/ui/replay-dialog.tsx:382
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:460
 msgid "Value"
 msgstr "값"

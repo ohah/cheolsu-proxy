@@ -91,7 +91,7 @@ msgstr "Actual"
 #: src/features/intercept-rule-form/ui/headers-fields.tsx:59
 #: src/features/intercept-rule-form/ui/headers-fields.tsx:88
 #: src/features/map-rule-form/ui/map-local-fields.tsx:73
-#: src/features/transaction-details/ui/replay-dialog.tsx:360
+#: src/features/transaction-details/ui/replay-dialog.tsx:362
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:225
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:445
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:142
@@ -355,8 +355,8 @@ msgstr "Block QUIC"
 #: src/features/intercept-rule-form/ui/modify-request-fields.tsx:18
 #: src/features/intercept-rule-form/ui/modify-response-fields.tsx:29
 #: src/features/transaction-details/ui/replay-dialog.tsx:114
-#: src/features/transaction-details/ui/replay-dialog.tsx:185
-#: src/features/transaction-details/ui/replay-dialog.tsx:409
+#: src/features/transaction-details/ui/replay-dialog.tsx:186
+#: src/features/transaction-details/ui/replay-dialog.tsx:411
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:479
 msgid "Body"
 msgstr "Body"
@@ -391,7 +391,7 @@ msgstr "Breakpoint rule added"
 msgid "Breakpoints"
 msgstr "Breakpoints"
 
-#: src/pages/script/ui/script-page.tsx:263
+#: src/pages/script/ui/script-page.tsx:264
 #: src/pages/settings/ui/components/client-certificate-section.tsx:149
 #: src/pages/settings/ui/components/client-certificate-section.tsx:163
 #: src/pages/settings/ui/components/client-certificate-section.tsx:289
@@ -528,7 +528,7 @@ msgstr "Cleaning..."
 
 #: src/features/query-filter-editor/ui/query-builder.tsx:383
 #: src/pages/log-viewer/ui/logs-page.tsx:262
-#: src/pages/script/ui/script-page.tsx:298
+#: src/pages/script/ui/script-page.tsx:299
 #: src/pages/settings/ui/components/request-client-cert-section.tsx:72
 msgid "Clear"
 msgstr "Clear"
@@ -587,7 +587,7 @@ msgstr "Clients without a valid certificate will be rejected"
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:343
 #: src/features/transaction-details/ui/sequence-replay-dialog.tsx:222
 #: src/features/transaction-details/ui/transaction-header.tsx:63
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:161
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:159
 #: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:100
 #: src/widgets/sse-messages/ui/sse-message-detail.tsx:87
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:122
@@ -595,7 +595,7 @@ msgid "Close"
 msgstr "Close"
 
 #: src/features/transaction-details/ui/replay-dialog.tsx:118
-#: src/features/transaction-details/ui/replay-dialog.tsx:415
+#: src/features/transaction-details/ui/replay-dialog.tsx:417
 msgid "Collapse"
 msgstr "Collapse"
 
@@ -620,7 +620,7 @@ msgstr "Common Name (CN)"
 msgid "Compose request"
 msgstr "Compose request"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:286
+#: src/features/transaction-details/ui/replay-dialog.tsx:288
 msgid "Compose Request"
 msgstr "Compose Request"
 
@@ -660,7 +660,7 @@ msgstr "connections"
 msgid "Connects to the server only when needed (default, sequential sniffing)"
 msgstr "Connects to the server only when needed (default, sequential sniffing)"
 
-#: src/pages/script/ui/script-page.tsx:286
+#: src/pages/script/ui/script-page.tsx:287
 msgid "Console"
 msgstr "Console"
 
@@ -960,7 +960,7 @@ msgstr "Error Rate"
 msgid "Error Status Code Distribution"
 msgstr "Error Status Code Distribution"
 
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:244
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:245
 msgid "error(s)"
 msgstr "error(s)"
 
@@ -1010,8 +1010,8 @@ msgstr "Exclude OPTIONS method"
 msgid "Exit fullscreen"
 msgstr "Exit fullscreen"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:189
-#: src/features/transaction-details/ui/replay-dialog.tsx:420
+#: src/features/transaction-details/ui/replay-dialog.tsx:190
+#: src/features/transaction-details/ui/replay-dialog.tsx:422
 msgid "Expand"
 msgstr "Expand"
 
@@ -1207,7 +1207,7 @@ msgstr "HAR imported successfully"
 
 #: src/features/intercept-rule-form/ui/headers-fields.tsx:65
 #: src/features/map-rule-form/ui/map-local-fields.tsx:79
-#: src/features/transaction-details/ui/replay-dialog.tsx:372
+#: src/features/transaction-details/ui/replay-dialog.tsx:374
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:454
 msgid "Header name"
 msgstr "Header name"
@@ -1227,8 +1227,8 @@ msgstr "Headers"
 
 #. placeholder {0}: headerEntries.length
 #. placeholder {0}: headers.length
-#: src/features/transaction-details/ui/replay-dialog.tsx:161
-#: src/features/transaction-details/ui/replay-dialog.tsx:357
+#: src/features/transaction-details/ui/replay-dialog.tsx:162
+#: src/features/transaction-details/ui/replay-dialog.tsx:359
 msgid "Headers ({0})"
 msgstr "Headers ({0})"
 
@@ -1420,11 +1420,11 @@ msgstr "Light"
 msgid "lines"
 msgstr "lines"
 
-#: src/pages/script/ui/script-page.tsx:266
+#: src/pages/script/ui/script-page.tsx:267
 msgid "Load"
 msgstr "Load"
 
-#: src/pages/script/ui/script-page.tsx:249
+#: src/pages/script/ui/script-page.tsx:250
 msgid "Load a script file from disk. The file will be watched for changes and auto-reloaded."
 msgstr "Load a script file from disk. The file will be watched for changes and auto-reloaded."
 
@@ -1453,7 +1453,7 @@ msgid "Loading certificate info..."
 msgstr "Loading certificate info..."
 
 #: src/pages/script/ui/script-page.tsx:214
-#: src/pages/script/ui/script-page.tsx:266
+#: src/pages/script/ui/script-page.tsx:267
 #: src/pages/settings/ui/components/certificate-settings.tsx:167
 #: src/pages/settings/ui/components/proto-files-section.tsx:74
 msgid "Loading..."
@@ -1580,7 +1580,7 @@ msgstr "MCP Server"
 msgid "MCP Server Configuration"
 msgstr "MCP Server Configuration"
 
-#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:182
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:183
 msgid "Message sent successfully"
 msgstr "Message sent successfully"
 
@@ -1700,11 +1700,11 @@ msgstr "No Caching"
 msgid "No captured traffic with responses available. Capture some traffic first."
 msgstr "No captured traffic with responses available. Capture some traffic first."
 
-#: src/features/query-filter-editor/ui/query-filter-editor.tsx:76
+#: src/features/query-filter-editor/ui/query-filter-editor.tsx:75
 msgid "No conditions"
 msgstr "No conditions"
 
-#: src/pages/script/ui/script-page.tsx:304
+#: src/pages/script/ui/script-page.tsx:305
 msgid "No console output yet"
 msgstr "No console output yet"
 
@@ -1936,7 +1936,7 @@ msgstr "optional"
 msgid "Organization"
 msgstr "Organization"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:303
+#: src/features/transaction-details/ui/replay-dialog.tsx:305
 msgid "Original"
 msgstr "Original"
 
@@ -2207,7 +2207,7 @@ msgstr "Replace With"
 msgid "Replacement string (supports $1, $2 capture groups)"
 msgstr "Replacement string (supports $1, $2 capture groups)"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:313
+#: src/features/transaction-details/ui/replay-dialog.tsx:315
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:113
 msgid "Replay"
 msgstr "Replay"
@@ -2216,11 +2216,11 @@ msgstr "Replay"
 msgid "Replay message"
 msgstr "Replay message"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:277
+#: src/features/transaction-details/ui/replay-dialog.tsx:279
 msgid "Replay request"
 msgstr "Replay request"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:299
+#: src/features/transaction-details/ui/replay-dialog.tsx:301
 #: src/features/transaction-details/ui/transaction-body-side-by-side.tsx:16
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:282
 #: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:58
@@ -2291,7 +2291,7 @@ msgstr "Require authentication to use this proxy server"
 msgid "Require certificate"
 msgstr "Require certificate"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:313
+#: src/features/transaction-details/ui/replay-dialog.tsx:315
 #: src/features/transaction-details/ui/transaction-body-side-by-side.tsx:24
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:287
 #: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:121
@@ -2482,7 +2482,7 @@ msgstr "Scan for proxy info"
 msgid "Script"
 msgstr "Script"
 
-#: src/pages/script/ui/script-page.tsx:257
+#: src/pages/script/ui/script-page.tsx:258
 msgid "Script file path (.js, .ts)"
 msgstr "Script file path (.js, .ts)"
 
@@ -2554,19 +2554,19 @@ msgstr "Select the downloaded certificate file and confirm"
 msgid "Select the downloaded profile and tap \"Install\""
 msgstr "Select the downloaded profile and tap \"Install\""
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:497
+#: src/features/transaction-details/ui/replay-dialog.tsx:500
 msgid "Send a request to see the replay response"
 msgstr "Send a request to see the replay response"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:495
+#: src/features/transaction-details/ui/replay-dialog.tsx:498
 msgid "Send a request to see the response"
 msgstr "Send a request to see the response"
 
-#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:201
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:202
 msgid "Send Message"
 msgstr "Send Message"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:465
+#: src/features/transaction-details/ui/replay-dialog.tsx:468
 msgid "Send Request"
 msgstr "Send Request"
 
@@ -2574,9 +2574,9 @@ msgstr "Send Request"
 msgid "Sending requests sequentially..."
 msgstr "Sending requests sequentially..."
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:460
+#: src/features/transaction-details/ui/replay-dialog.tsx:463
 #: src/features/transaction-details/ui/sequence-replay-dialog.tsx:211
-#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:196
+#: src/features/websocket-replay/ui/ws-replay-dialog.tsx:197
 msgid "Sending..."
 msgstr "Sending..."
 
@@ -2783,7 +2783,7 @@ msgstr "Supports wildcard patterns: * matches any string, ? matches a single cha
 msgid "Switch to Builder mode"
 msgstr "Switch to Builder mode"
 
-#: src/features/query-filter-editor/ui/query-filter-editor.tsx:107
+#: src/features/query-filter-editor/ui/query-filter-editor.tsx:106
 msgid "Switch to Code mode"
 msgstr "Switch to Code mode"
 
@@ -2919,7 +2919,7 @@ msgstr "Total Time"
 msgid "Traffic Analysis"
 msgstr "Traffic Analysis"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:286
+#: src/features/transaction-details/ui/replay-dialog.tsx:288
 msgid "Traffic Replay"
 msgstr "Traffic Replay"
 
@@ -2993,7 +2993,7 @@ msgstr "Upload Speed (KB/s)"
 msgid "Upstream Proxy"
 msgstr "Upstream Proxy"
 
-#: src/features/transaction-details/ui/replay-dialog.tsx:350
+#: src/features/transaction-details/ui/replay-dialog.tsx:352
 msgid "URL"
 msgstr "URL"
 
@@ -3058,7 +3058,7 @@ msgstr "Validity Period"
 
 #: src/features/intercept-rule-form/ui/headers-fields.tsx:70
 #: src/features/map-rule-form/ui/map-local-fields.tsx:84
-#: src/features/transaction-details/ui/replay-dialog.tsx:380
+#: src/features/transaction-details/ui/replay-dialog.tsx:382
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:460
 msgid "Value"
 msgstr "Value"

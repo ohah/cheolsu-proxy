@@ -10,7 +10,7 @@ import {
   useSessionPersistence,
   useMenuNavigation,
 } from "./hooks";
-import { CUSTOM_THEME_KEYS } from "@/features/query-filter-editor/model/themes";
+import { CUSTOM_THEME_KEYS } from "@/shared/lib/monaco-theme";
 import { useTheme } from "next-themes";
 import { useEffect } from "react";
 

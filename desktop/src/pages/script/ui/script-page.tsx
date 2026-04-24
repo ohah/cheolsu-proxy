@@ -1,13 +1,13 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
-import { useTheme } from "next-themes";
 import MonacoEditor, { type Monaco } from "@monaco-editor/react";
 import type { editor } from "monaco-editor";
 import { loadScript, unloadScript } from "@/shared/api/proxy";
 import { useScriptStore } from "@/shared/stores/script-store";
 import { Button, Input, Badge, Tabs, TabsList, TabsTrigger, TabsContent } from "@/shared/ui";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/shared/ui/resizable";
+import { useMonacoTheme } from "@/shared/hooks/use-monaco-theme";
 import { open } from "@tauri-apps/plugin-dialog";
 import { readTextFile } from "@tauri-apps/plugin-fs";
 import { toast } from "sonner";
@@ -24,7 +24,7 @@ cheolsu.onRequest((req) => {
 
 export function ScriptPage() {
   const { t } = useLingui();
-  const { resolvedTheme } = useTheme();
+  const { theme, beforeMount } = useMonacoTheme();
   const active = useScriptStore((s) => s.active);
   const scriptPath = useScriptStore((s) => s.path);
   const logs = useScriptStore((s) => s.logs);
@@ -228,7 +228,8 @@ export function ScriptPage() {
                     value={code}
                     onChange={(v) => setCode(v || "")}
                     onMount={handleEditorMount}
-                    theme={resolvedTheme === "dark" ? "vs-dark" : "vs"}
+                    beforeMount={beforeMount}
+                    theme={theme}
                     options={{
                       minimap: { enabled: false },
                       fontSize: 13,

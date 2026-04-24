@@ -1,11 +1,11 @@
 import { useCallback, useMemo } from "react";
 import Editor from "@monaco-editor/react";
-import { useTheme } from "next-themes";
 import { Code, LayoutList } from "lucide-react";
 import { useLingui } from "@lingui/react/macro";
 
 import { cn } from "@/shared/lib";
 import { Badge, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/shared/ui";
+import { useMonacoTheme } from "@/shared/hooks/use-monaco-theme";
 
 import { useMonacoEditor } from "../hooks";
 import { FilterHelpTooltip } from "./filter-help-tooltip";
@@ -13,7 +13,6 @@ import { FilterPresetMenu } from "./filter-preset-menu";
 import { Separator } from "@/shared/ui/separator";
 import { serializeBuilderState } from "../lib/query-serializer";
 import type { BuilderState } from "../lib/query-serializer";
-import { getMonacoThemeName } from "../model/themes";
 
 export type EditorMode = "code" | "builder";
 
@@ -41,7 +40,7 @@ export const QueryFilterEditor = ({
   builderState,
 }: QueryFilterEditorProps) => {
   const isDirty = value !== appliedValue;
-  const { resolvedTheme } = useTheme();
+  const { theme, beforeMount } = useMonacoTheme();
   const { t } = useLingui();
 
   const { handleEditorDidMount } = useMonacoEditor({
@@ -143,7 +142,8 @@ export const QueryFilterEditor = ({
             value={value}
             onChange={(value) => onChange(value || "")}
             onMount={handleEditorDidMount}
-            theme={getMonacoThemeName(resolvedTheme)}
+            beforeMount={beforeMount}
+            theme={theme}
             options={{
               minimap: { enabled: false },
               lineNumbers: "off",

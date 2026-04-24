@@ -15,7 +15,7 @@ import {
   Button,
 } from "@/shared/ui";
 import { TABLE_COLUMNS, type ColumnKey } from "@/widgets/network-table/model";
-import { CUSTOM_THEME_KEYS } from "@/features/query-filter-editor/model/themes";
+import { CUSTOM_THEME_KEYS } from "@/shared/lib/monaco-theme";
 import { formatBytes } from "@/shared/lib/format-bytes";
 import { cleanOldProxyCache } from "@/shared/api/proxy";
 import { useSettingsForm } from "../settings-form";

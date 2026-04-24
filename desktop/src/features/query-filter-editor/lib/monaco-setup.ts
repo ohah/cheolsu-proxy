@@ -1,12 +1,5 @@
 import type { Monaco } from "@monaco-editor/react";
-import {
-  LIGHT_THEME,
-  DARK_THEME,
-  FILTER_KEYWORDS,
-  LOGICAL_OPERATORS,
-  CUSTOM_THEME_KEYS,
-  buildCustomMonacoTheme,
-} from "../model";
+import { FILTER_KEYWORDS, LOGICAL_OPERATORS } from "../model";
 
 let isLanguageRegistered = false;
 
@@ -45,18 +38,6 @@ export const setupMonacoLanguage = (monaco: Monaco): void => {
       { open: "`", close: "`" },
     ],
   });
-
-  // 테마 등록
-  monaco.editor.defineTheme("cheolsu-light", LIGHT_THEME);
-  monaco.editor.defineTheme("cheolsu-dark", DARK_THEME);
-
-  // 커스텀 다크 테마 등록
-  for (const key of CUSTOM_THEME_KEYS) {
-    const theme = buildCustomMonacoTheme(key);
-    if (theme) {
-      monaco.editor.defineTheme(`cheolsu-${key}`, theme);
-    }
-  }
 
   isLanguageRegistered = true;
 };

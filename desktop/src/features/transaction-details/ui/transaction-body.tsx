@@ -1,8 +1,8 @@
 import { Copy, FileText, Loader2 } from "lucide-react";
 import { writeImage, writeText } from "@tauri-apps/plugin-clipboard-manager";
-import { useTheme } from "next-themes";
 
 import type { HttpTransaction } from "@/entities/proxy";
+import { useMonacoTheme } from "@/shared/hooks/use-monaco-theme";
 
 import { Button, Card, CardContent, CardHeader } from "@/shared/ui";
 import { Editor } from "@monaco-editor/react";
@@ -30,7 +30,7 @@ interface TransactionBodyProps {
 }
 
 export const TransactionBody = ({ transaction, compact }: TransactionBodyProps) => {
-  const { resolvedTheme } = useTheme();
+  const { theme, beforeMount } = useMonacoTheme();
   const { request } = transaction;
   const heightClass = compact ? "h-full" : "h-[calc(100vh-300px)]";
 
@@ -214,7 +214,8 @@ export const TransactionBody = ({ transaction, compact }: TransactionBodyProps) 
               height={compact ? "100%" : "calc(100vh - 300px)"}
               language={dataTypeToMonacoLanguage(request.data_type)}
               value={requestText}
-              theme={resolvedTheme === "dark" ? "vs-dark" : "vs"}
+              beforeMount={beforeMount}
+              theme={theme}
               options={{
                 readOnly: true,
                 minimap: { enabled: false },
