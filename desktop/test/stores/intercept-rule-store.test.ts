@@ -64,10 +64,28 @@ describe("intercept-rule-store", () => {
 
   beforeEach(async () => {
     useInterceptRuleStore = await getStore();
+    // zustand persist rehydrate가 async로 진행되는데, CI Linux에서 타이밍이
+    // addRule과 겹쳐 rules를 덮어쓰는 race condition이 관측되어 명시적으로 대기한다.
+    if (!useInterceptRuleStore.persist.hasHydrated()) {
+      await new Promise<void>((resolve) => {
+        const unsub = useInterceptRuleStore.persist.onFinishHydration(() => {
+          unsub();
+          resolve();
+        });
+      });
+    }
     // 스토어 초기화
     useInterceptRuleStore.setState({ rules: [] });
     // map-rule-store도 초기화 (syncAllRulesToProxy가 모든 스토어를 합치므로)
     const { useMapRuleStore } = await import("../../src/shared/stores/map-rule-store");
+    if (!useMapRuleStore.persist.hasHydrated()) {
+      await new Promise<void>((resolve) => {
+        const unsub = useMapRuleStore.persist.onFinishHydration(() => {
+          unsub();
+          resolve();
+        });
+      });
+    }
     useMapRuleStore.setState({ rules: [] });
     (invoke as ReturnType<typeof mock>).mockClear();
   });

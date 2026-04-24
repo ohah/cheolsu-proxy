@@ -48,6 +48,16 @@ describe("map-rule-store", () => {
 
   beforeEach(async () => {
     useMapRuleStore = await getStore();
+    // zustand persist rehydrate가 async로 진행되는데, CI Linux에서 타이밍이
+    // addRule과 겹쳐 rules를 덮어쓰는 race condition이 관측되어 명시적으로 대기한다.
+    if (!useMapRuleStore.persist.hasHydrated()) {
+      await new Promise<void>((resolve) => {
+        const unsub = useMapRuleStore.persist.onFinishHydration(() => {
+          unsub();
+          resolve();
+        });
+      });
+    }
     useMapRuleStore.setState({ rules: [] });
     (invoke as ReturnType<typeof mock>).mockClear();
   });
