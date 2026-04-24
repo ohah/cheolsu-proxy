@@ -1,8 +1,23 @@
 import { mock } from "bun:test";
 
 // @tauri-apps/api/core mock
+// @tauri-apps/plugin-fs 2.5.0+가 Resource/Channel을 import하므로 함께 export해야 모듈 로드 실패로 인한 테스트 간 side-effect를 막을 수 있다.
+class MockResource {
+  readonly rid = 0;
+  async close() {}
+}
+class MockChannel {
+  onmessage?: (msg: unknown) => void;
+  id = 0;
+}
 mock.module("@tauri-apps/api/core", () => ({
   invoke: mock(() => Promise.resolve()),
+  Resource: MockResource,
+  Channel: MockChannel,
+  transformCallback: mock(() => 0),
+  convertFileSrc: mock((path: string) => path),
+  isTauri: mock(() => false),
+  SERIALIZE_TO_IPC_FN: "__TAURI_TO_IPC_KEY__",
 }));
 
 // @tauri-apps/api/event mock
