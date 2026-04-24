@@ -48,8 +48,7 @@ describe("map-rule-store", () => {
 
   beforeEach(async () => {
     useMapRuleStore = await getStore();
-    // zustand persist rehydrate가 async로 진행되는데, CI Linux에서 타이밍이
-    // addRule과 겹쳐 rules를 덮어쓰는 race condition이 관측되어 명시적으로 대기한다.
+    // zustand persist rehydrate 완료를 명시적으로 대기 (CI Linux에서 race condition 방지).
     if (!useMapRuleStore.persist.hasHydrated()) {
       await new Promise<void>((resolve) => {
         const unsub = useMapRuleStore.persist.onFinishHydration(() => {
@@ -58,6 +57,12 @@ describe("map-rule-store", () => {
         });
       });
     }
+    // ruleGetters를 이번 테스트의 store 인스턴스로만 격리한다.
+    // (다른 테스트 파일에서 등록된 store getter가 남아 있으면 syncAllRulesToProxy
+    // 결과에 섞여들어 assertion이 불안정해진다.)
+    const { _resetForTest, registerRuleStore } = await import("../../src/shared/stores/sync-rules");
+    _resetForTest();
+    registerRuleStore(() => useMapRuleStore.getState());
     useMapRuleStore.setState({ rules: [] });
     (invoke as ReturnType<typeof mock>).mockClear();
   });
