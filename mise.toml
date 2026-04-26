@@ -2,6 +2,6 @@
 # https://mise.jdx.dev/
 
 [tools]
-node = "latest"
+node = "24"
 bun = "latest"
 rust = "nightly"
