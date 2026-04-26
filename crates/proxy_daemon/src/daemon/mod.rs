@@ -308,8 +308,9 @@ async fn daemon_main(port: u16, host: String) -> i32 {
     let _metrics_handle = metrics_aggregator.spawn_aggregation_loop(metric_event_rx);
 
     // TLS 자동 학습 바이패스 초기화 (변경 알림 채널 포함)
-    let (tls_change_tx, mut tls_change_rx) =
-        tokio::sync::mpsc::channel::<Vec<(String, u32)>>(TLS_CHANGE_CHANNEL_CAPACITY);
+    let (tls_change_tx, mut tls_change_rx) = tokio::sync::mpsc::channel::<
+        Vec<proxyapi_v2::tls_passthrough::TlsPassthroughSnapshot>,
+    >(TLS_CHANGE_CHANNEL_CAPACITY);
     let app_dir = app_support_dir().ok();
     let passthrough_path = app_dir.as_ref().map(|dir| dir.join("tls_passthrough.json"));
     // Never Passthrough 변경 알림 채널
@@ -336,12 +337,14 @@ async fn daemon_main(port: u16, host: String) -> i32 {
             while let Some(entries) = tls_change_rx.recv().await {
                 let tls_entries: Vec<crate::protocol::TlsPassthroughEntry> = entries
                     .into_iter()
-                    .map(
-                        |(host, failure_count)| crate::protocol::TlsPassthroughEntry {
-                            host,
-                            failure_count,
-                        },
-                    )
+                    .map(|entry| crate::protocol::TlsPassthroughEntry {
+                        host: entry.host,
+                        failure_count: entry.failure_count,
+                        active: entry.active,
+                        blocked_by_never_passthrough: entry.blocked_by_never_passthrough,
+                        last_failure_unix_secs: entry.last_failure_unix_secs,
+                        expires_at_unix_secs: entry.expires_at_unix_secs,
+                    })
                     .collect();
                 let msg = DaemonMessage::TlsPassthroughUpdated {
                     entries: tls_entries,

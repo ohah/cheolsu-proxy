@@ -93,4 +93,12 @@ pub struct SslProxyingEntry {
 pub struct TlsPassthroughEntry {
     pub host: String,
     pub failure_count: u32,
+    #[serde(default)]
+    pub active: bool,
+    #[serde(default)]
+    pub blocked_by_never_passthrough: bool,
+    #[serde(default)]
+    pub last_failure_unix_secs: u64,
+    #[serde(default)]
+    pub expires_at_unix_secs: Option<u64>,
 }

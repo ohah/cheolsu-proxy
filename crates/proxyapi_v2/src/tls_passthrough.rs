@@ -5,7 +5,45 @@ use std::collections::{HashMap, HashSet};
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::time::{SystemTime, UNIX_EPOCH};
 use tracing::{debug, info, warn};
+
+/// 자동 TLS passthrough가 활성화되기 위해 필요한 최소 연속 실패 횟수.
+pub const MIN_FAILURES_FOR_BYPASS: u32 = 2;
+
+/// 자동 TLS passthrough 실패 기록 유효 시간. 만료된 기록은 우회에 사용하지 않습니다.
+pub const FAILURE_TTL_SECS: u64 = 60 * 60;
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+struct FailureRecord {
+    failure_count: u32,
+    last_failure_unix_secs: u64,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(untagged)]
+enum StoredFailureRecord {
+    Count(u32),
+    Record(FailureRecord),
+}
+
+/// TLS passthrough 실패/우회 상태 스냅샷.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TlsPassthroughSnapshot {
+    pub host: String,
+    pub failure_count: u32,
+    pub active: bool,
+    pub blocked_by_never_passthrough: bool,
+    pub last_failure_unix_secs: u64,
+    pub expires_at_unix_secs: Option<u64>,
+}
+
+fn now_unix_secs() -> u64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0)
+}
 
 /// 와일드카드 도메인 패턴 매칭 (* = 임의 문자열, ? = 단일 문자)
 /// 대소문자 구분 없음
@@ -30,15 +68,15 @@ fn wildcard_match_recursive(pattern: &[u8], text: &[u8]) -> bool {
 }
 
 /// TLS 핸드셰이크 실패 도메인을 기록하고, 이후 연결 시 자동으로 바이패스(터널)하는 모듈.
-/// 한 번이라도 실패한 도메인은 이후 MITM 없이 TCP 파이프로 통과시킵니다.
+/// 일정 횟수 이상 연속 실패한 도메인은 제한된 시간 동안 MITM 없이 TCP 파이프로 통과시킵니다.
 #[derive(Clone)]
 pub struct TlsPassthrough {
-    /// host → 실패 횟수 (lock-free concurrent map)
-    failures: Arc<DashMap<String, u32>>,
+    /// host → 실패 기록 (lock-free concurrent map)
+    failures: Arc<DashMap<String, FailureRecord>>,
     /// 저장 파일 경로
     file_path: Option<PathBuf>,
     /// 변경 사항 알림 채널 (실시간 UI 업데이트용)
-    change_tx: Option<tokio::sync::mpsc::Sender<Vec<(String, u32)>>>,
+    change_tx: Option<tokio::sync::mpsc::Sender<Vec<TlsPassthroughSnapshot>>>,
 
     /// 절대 패스스루하지 않는 도메인 패턴 목록 (lock-free concurrent set)
     never_passthrough: Arc<DashSet<String>>,
@@ -60,13 +98,22 @@ impl TlsPassthrough {
         if let Some(ref path) = file_path {
             if path.exists() {
                 if let Ok(data) = std::fs::read_to_string(path) {
-                    if let Ok(loaded) = serde_json::from_str::<HashMap<String, u32>>(&data) {
+                    if let Ok(loaded) =
+                        serde_json::from_str::<HashMap<String, StoredFailureRecord>>(&data)
+                    {
                         info!(
                             "[TLS-PASSTHROUGH] 이전 기록 로드: {}개 도메인",
                             loaded.len()
                         );
                         for (k, v) in loaded {
-                            failures.insert(k, v);
+                            let record = match v {
+                                StoredFailureRecord::Count(failure_count) => FailureRecord {
+                                    failure_count,
+                                    last_failure_unix_secs: now_unix_secs(),
+                                },
+                                StoredFailureRecord::Record(record) => record,
+                            };
+                            failures.insert(k, record);
                         }
                     }
                 }
@@ -109,7 +156,7 @@ impl TlsPassthrough {
     /// 변경 알림 채널을 설정합니다.
     pub fn with_change_notifier(
         mut self,
-        tx: tokio::sync::mpsc::Sender<Vec<(String, u32)>>,
+        tx: tokio::sync::mpsc::Sender<Vec<TlsPassthroughSnapshot>>,
     ) -> Self {
         self.change_tx = Some(tx);
         self
@@ -124,17 +171,35 @@ impl TlsPassthrough {
         self
     }
 
-    /// 해당 호스트가 failures에 존재하는지 확인 (lock-free, 동기)
+    /// 해당 호스트가 현재 자동 우회 대상인지 확인 (lock-free, 동기)
     pub fn has_failure(&self, host: &str) -> bool {
-        self.failures.contains_key(host)
+        self.should_bypass_host(host)
     }
 
     /// failures 스냅샷 생성
-    fn snapshot_failures(&self) -> Vec<(String, u32)> {
+    fn snapshot_failures(&self) -> Vec<TlsPassthroughSnapshot> {
+        let now = now_unix_secs();
         self.failures
             .iter()
-            .map(|entry| (entry.key().clone(), *entry.value()))
+            .map(|entry| self.snapshot_for(entry.key(), entry.value(), now))
             .collect()
+    }
+
+    fn snapshot_for(&self, host: &str, record: &FailureRecord, now: u64) -> TlsPassthroughSnapshot {
+        let blocked_by_never_passthrough = self.is_never_passthrough(host);
+        let expires_at = record.last_failure_unix_secs + FAILURE_TTL_SECS;
+        let expired = now >= expires_at;
+        let active = record.failure_count >= MIN_FAILURES_FOR_BYPASS
+            && !blocked_by_never_passthrough
+            && !expired;
+        TlsPassthroughSnapshot {
+            host: host.to_string(),
+            failure_count: record.failure_count,
+            active,
+            blocked_by_never_passthrough,
+            last_failure_unix_secs: record.last_failure_unix_secs,
+            expires_at_unix_secs: if expired { None } else { Some(expires_at) },
+        }
     }
 
     /// never_passthrough 스냅샷 생성
@@ -168,7 +233,7 @@ impl TlsPassthrough {
     }
 
     /// flush 내부 구현 — 스냅샷을 반환하여 재사용 가능
-    fn flush_failures_inner(&self) -> Vec<(String, u32)> {
+    fn flush_failures_inner(&self) -> Vec<TlsPassthroughSnapshot> {
         let was_dirty = self.failures_dirty.swap(false, Ordering::Acquire);
         let snapshot = self.snapshot_failures();
         if was_dirty {
@@ -176,7 +241,11 @@ impl TlsPassthrough {
                 if let Some(parent) = path.parent() {
                     let _ = std::fs::create_dir_all(parent);
                 }
-                let map: HashMap<String, u32> = snapshot.iter().cloned().collect();
+                let map: HashMap<String, FailureRecord> = self
+                    .failures
+                    .iter()
+                    .map(|entry| (entry.key().clone(), entry.value().clone()))
+                    .collect();
                 match serde_json::to_string_pretty(&map) {
                     Ok(json) => {
                         if let Err(e) = std::fs::write(path, json) {
@@ -248,11 +317,19 @@ impl TlsPassthrough {
         let host = authority.host().to_string();
 
         let is_never = self.is_never_passthrough(&host);
+        let now = now_unix_secs();
 
         let count = {
-            let mut entry = self.failures.entry(host.clone()).or_insert(0);
-            *entry += 1;
-            *entry
+            let mut entry = self.failures.entry(host.clone()).or_insert(FailureRecord {
+                failure_count: 0,
+                last_failure_unix_secs: now,
+            });
+            if now.saturating_sub(entry.last_failure_unix_secs) > FAILURE_TTL_SECS {
+                entry.failure_count = 0;
+            }
+            entry.failure_count += 1;
+            entry.last_failure_unix_secs = now;
+            entry.failure_count
         };
 
         if is_never {
@@ -262,19 +339,15 @@ impl TlsPassthrough {
             );
         } else {
             warn!(
-                "[TLS-PASSTHROUGH] 핸드셰이크 실패 기록: {} ({}회)",
-                host, count
+                "[TLS-PASSTHROUGH] 핸드셰이크 실패 기록: {} ({}회, 자동 우회 임계값 {}회)",
+                host, count, MIN_FAILURES_FOR_BYPASS
             );
         }
 
         self.notify_failures_and_mark_dirty();
     }
 
-    /// 해당 도메인을 바이패스해야 하는지 확인 (1회 이상 실패 && never_passthrough 아닌 경우)
-    pub fn should_bypass(&self, authority: &Authority) -> bool {
-        let host = authority.host();
-
-        // never_passthrough에 해당하면 절대 바이패스하지 않음
+    fn should_bypass_host(&self, host: &str) -> bool {
         if self.is_never_passthrough(host) {
             debug!(
                 "[TLS-PASSTHROUGH] never_passthrough 설정으로 바이패스 차단: {}",
@@ -283,16 +356,36 @@ impl TlsPassthrough {
             return false;
         }
 
-        match self.failures.get(host) {
-            Some(count) => {
-                debug!(
-                    "[TLS-PASSTHROUGH] 바이패스 적용: {} (이전 실패 {}회)",
-                    host, *count
-                );
-                true
-            }
-            None => false,
+        let Some(record) = self.failures.get(host) else {
+            return false;
+        };
+        let now = now_unix_secs();
+        let expires_at = record.last_failure_unix_secs + FAILURE_TTL_SECS;
+        if now >= expires_at {
+            debug!(
+                "[TLS-PASSTHROUGH] 만료된 실패 기록으로 바이패스 미적용: {}",
+                host
+            );
+            return false;
         }
+        if record.failure_count < MIN_FAILURES_FOR_BYPASS {
+            debug!(
+                "[TLS-PASSTHROUGH] 실패 횟수 부족으로 바이패스 대기: {} ({}/{})",
+                host, record.failure_count, MIN_FAILURES_FOR_BYPASS
+            );
+            return false;
+        }
+
+        debug!(
+            "[TLS-PASSTHROUGH] 바이패스 적용: {} (이전 실패 {}회)",
+            host, record.failure_count
+        );
+        true
+    }
+
+    /// 해당 도메인을 바이패스해야 하는지 확인 (임계값 이상 실패 && 만료 전 && never_passthrough 아닌 경우)
+    pub fn should_bypass(&self, authority: &Authority) -> bool {
+        self.should_bypass_host(authority.host())
     }
 
     /// 핸드셰이크 성공 시 실패 기록에서 제거
@@ -305,7 +398,7 @@ impl TlsPassthrough {
     }
 
     /// 현재 바이패스 목록 조회
-    pub fn list_bypassed(&self) -> Vec<(String, u32)> {
+    pub fn list_bypassed(&self) -> Vec<TlsPassthroughSnapshot> {
         self.snapshot_failures()
     }
 
@@ -369,6 +462,8 @@ mod tests {
         assert!(!passthrough.should_bypass(&authority));
 
         passthrough.record_failure(&authority);
+        assert!(!passthrough.should_bypass(&authority));
+        passthrough.record_failure(&authority);
         assert!(passthrough.should_bypass(&authority));
     }
 
@@ -377,6 +472,7 @@ mod tests {
         let passthrough = TlsPassthrough::new(None);
         let authority: Authority = "example.com:443".parse().unwrap();
 
+        passthrough.record_failure(&authority);
         passthrough.record_failure(&authority);
         assert!(passthrough.should_bypass(&authority));
 
@@ -390,6 +486,7 @@ mod tests {
         let auth1: Authority = "apple.com:443".parse().unwrap();
         let auth2: Authority = "github.com:443".parse().unwrap();
 
+        passthrough.record_failure(&auth1);
         passthrough.record_failure(&auth1);
         assert!(passthrough.should_bypass(&auth1));
         assert!(!passthrough.should_bypass(&auth2));
@@ -421,6 +518,7 @@ mod tests {
             let passthrough = TlsPassthrough::new(Some(file_path.clone()));
             let authority: Authority = "pinned.example.com:443".parse().unwrap();
             passthrough.record_failure(&authority);
+            passthrough.record_failure(&authority);
             passthrough.flush_all();
         }
 
@@ -446,7 +544,8 @@ mod tests {
 
         let list = passthrough.list_bypassed();
         assert_eq!(list.len(), 1);
-        assert_eq!(list[0].1, 3);
+        assert_eq!(list[0].failure_count, 3);
+        assert!(list[0].active);
     }
 
     #[test]
@@ -456,6 +555,7 @@ mod tests {
         let auth2: Authority = "google.com:443".parse().unwrap();
 
         passthrough.record_failure(&auth1);
+        passthrough.record_failure(&auth2);
         passthrough.record_failure(&auth2);
 
         passthrough.clear_domain("apple.com");
@@ -475,10 +575,14 @@ mod tests {
         passthrough.record_failure(&auth2);
 
         let mut list = passthrough.list_bypassed();
-        list.sort_by(|a, b| a.0.cmp(&b.0));
+        list.sort_by(|a, b| a.host.cmp(&b.host));
         assert_eq!(list.len(), 2);
-        assert_eq!(list[0], ("a.com".to_string(), 1));
-        assert_eq!(list[1], ("b.com".to_string(), 2));
+        assert_eq!(list[0].host, "a.com");
+        assert_eq!(list[0].failure_count, 1);
+        assert!(!list[0].active);
+        assert_eq!(list[1].host, "b.com");
+        assert_eq!(list[1].failure_count, 2);
+        assert!(list[1].active);
     }
 
     #[test]
@@ -491,8 +595,9 @@ mod tests {
 
         let entries = rx.try_recv().unwrap();
         assert_eq!(entries.len(), 1);
-        assert_eq!(entries[0].0, "example.com");
-        assert_eq!(entries[0].1, 1);
+        assert_eq!(entries[0].host, "example.com");
+        assert_eq!(entries[0].failure_count, 1);
+        assert!(!entries[0].active);
     }
 
     #[test]
@@ -510,6 +615,8 @@ mod tests {
         // 실패 횟수는 기록됨
         let list = passthrough.list_bypassed();
         assert_eq!(list.len(), 1);
+        assert!(!list[0].active);
+        assert!(list[0].blocked_by_never_passthrough);
     }
 
     #[test]
@@ -521,6 +628,7 @@ mod tests {
         passthrough.set_never_passthrough(vec!["blocked.com".to_string()]);
 
         passthrough.record_failure(&auth_blocked);
+        passthrough.record_failure(&auth_allowed);
         passthrough.record_failure(&auth_allowed);
 
         assert!(!passthrough.should_bypass(&auth_blocked));

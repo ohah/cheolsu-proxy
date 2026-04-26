@@ -30,6 +30,10 @@ interface LogFileInfo {
 interface TlsPassthroughEntry {
   host: string;
   failure_count: number;
+  active: boolean;
+  blocked_by_never_passthrough: boolean;
+  last_failure_unix_secs: number;
+  expires_at_unix_secs: number | null;
 }
 
 function formatDate(timestamp: number): string {
@@ -238,6 +242,8 @@ export function LogsPage() {
     return tlsEntries.filter((e) => e.host.toLowerCase().includes(lowerFilter));
   }, [tlsEntries, tlsFilter]);
 
+  const activeTlsCount = useMemo(() => tlsEntries.filter((e) => e.active).length, [tlsEntries]);
+
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden">
       <div className="p-6 pb-3">
@@ -318,9 +324,9 @@ export function LogsPage() {
           >
             <Shield className="w-3.5 h-3.5" />
             <Trans>TLS Passthrough</Trans>
-            {tlsEntries.length > 0 && (
+            {activeTlsCount > 0 && (
               <Badge variant="secondary" className="text-xs ml-1">
-                {tlsEntries.length}
+                {activeTlsCount}
               </Badge>
             )}
           </button>
@@ -407,10 +413,18 @@ export function LogsPage() {
             <div className="p-3 border-b space-y-2">
               <p className="text-sm text-muted-foreground">
                 <Trans>
-                  Domains that failed TLS handshake are automatically tunneled without MITM
-                  decryption. You can remove entries to retry MITM for specific domains.
+                  Domains are automatically tunneled without MITM only after repeated TLS handshake
+                  failures. Failed-but-inactive entries are retained for diagnostics.
                 </Trans>
               </p>
+              {tlsEntries.length > 0 && (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Badge variant="secondary">{activeTlsCount} active</Badge>
+                  <Badge variant="outline">
+                    {tlsEntries.length - activeTlsCount} pending/blocked
+                  </Badge>
+                </div>
+              )}
               {tlsEntries.length > 0 && (
                 <div className="flex items-center gap-2">
                   <Search className="w-4 h-4 text-muted-foreground" />
@@ -447,6 +461,12 @@ export function LogsPage() {
                       <th className="p-3 font-medium w-[120px]">
                         <Trans>Failures</Trans>
                       </th>
+                      <th className="p-3 font-medium w-[150px]">
+                        <Trans>Status</Trans>
+                      </th>
+                      <th className="p-3 font-medium w-[180px]">
+                        <Trans>Expires</Trans>
+                      </th>
                       <th className="p-3 font-medium w-[80px]"></th>
                     </tr>
                   </thead>
@@ -458,6 +478,26 @@ export function LogsPage() {
                           <Badge variant="outline" className="text-xs">
                             {entry.failure_count}
                           </Badge>
+                        </td>
+                        <td className="p-3">
+                          {entry.blocked_by_never_passthrough ? (
+                            <Badge variant="outline" className="text-xs">
+                              <Trans>Blocked</Trans>
+                            </Badge>
+                          ) : entry.active ? (
+                            <Badge variant="secondary" className="text-xs">
+                              <Trans>Active</Trans>
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-xs">
+                              <Trans>Pending</Trans>
+                            </Badge>
+                          )}
+                        </td>
+                        <td className="p-3 text-xs text-muted-foreground">
+                          {entry.expires_at_unix_secs
+                            ? formatDate(entry.expires_at_unix_secs)
+                            : "-"}
                         </td>
                         <td className="p-3">
                           <Button

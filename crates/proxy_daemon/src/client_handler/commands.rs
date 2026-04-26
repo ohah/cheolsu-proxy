@@ -326,9 +326,13 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bo
             let list = s.tls_passthrough.list_bypassed();
             let entries: Vec<TlsPassthroughEntry> = list
                 .into_iter()
-                .map(|(host, failure_count)| TlsPassthroughEntry {
-                    host,
-                    failure_count,
+                .map(|entry| TlsPassthroughEntry {
+                    host: entry.host,
+                    failure_count: entry.failure_count,
+                    active: entry.active,
+                    blocked_by_never_passthrough: entry.blocked_by_never_passthrough,
+                    last_failure_unix_secs: entry.last_failure_unix_secs,
+                    expires_at_unix_secs: entry.expires_at_unix_secs,
                 })
                 .collect();
             let response = DaemonMessage::TlsPassthroughUpdated { entries };
