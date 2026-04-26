@@ -32,7 +32,7 @@ jobs:
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           toolchain: stable
-          cache: true
+          cache: false
 
       - name: Install OpenSSL via Homebrew
         run: brew install openssl@3
