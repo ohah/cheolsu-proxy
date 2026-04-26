@@ -226,6 +226,14 @@ export function SslProxyingSection() {
           </Trans>
         )}
       </p>
+      {mode === "whitelist" && enabledCount === 0 && (
+        <div className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
+          <Trans>
+            Empty whitelist currently means all HTTPS traffic is intercepted. Add at least one
+            enabled domain to limit SSL Proxying to selected hosts.
+          </Trans>
+        </div>
+      )}
       <EntryList
         entries={entries}
         onToggle={entryHandlers.handleToggle}

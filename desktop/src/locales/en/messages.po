@@ -74,6 +74,7 @@ msgstr "Abort"
 msgid "Action"
 msgstr "Action"
 
+#: src/pages/log-viewer/ui/logs-page.tsx:489
 #: src/pages/script/ui/script-page.tsx:170
 #: src/pages/settings/ui/components/custom-ca-section.tsx:134
 msgid "Active"
@@ -99,7 +100,7 @@ msgstr "Actual"
 #: src/pages/settings/ui/components/client-tags-section.tsx:111
 #: src/pages/settings/ui/components/never-passthrough-section.tsx:75
 #: src/pages/settings/ui/components/ssl-proxying-section.tsx:213
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:276
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:284
 msgid "Add"
 msgstr "Add"
 
@@ -107,7 +108,7 @@ msgstr "Add"
 msgid "Add breakpoint rules to pause HTTP requests/responses for inspection."
 msgstr "Add breakpoint rules to pause HTTP requests/responses for inspection."
 
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:263
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:271
 msgid "Add built-in domain pattern..."
 msgstr "Add built-in domain pattern..."
 
@@ -351,6 +352,10 @@ msgstr "Block Cookies"
 msgid "Block QUIC"
 msgstr "Block QUIC"
 
+#: src/pages/log-viewer/ui/logs-page.tsx:485
+msgid "Blocked"
+msgstr "Blocked"
+
 #: src/features/intercept-rule-form/ui/block-action-fields.tsx:22
 #: src/features/intercept-rule-form/ui/modify-request-fields.tsx:18
 #: src/features/intercept-rule-form/ui/modify-response-fields.tsx:29
@@ -404,7 +409,7 @@ msgid "Browse"
 msgstr "Browse"
 
 #. placeholder {0}: defaultPassthroughEntries.length
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:247
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:255
 msgid "Built-in Passthrough Domains ({0})"
 msgstr "Built-in Passthrough Domains ({0})"
 
@@ -450,7 +455,7 @@ msgstr "calls"
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:267
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:228
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:492
-#: src/pages/log-viewer/ui/logs-page.tsx:495
+#: src/pages/log-viewer/ui/logs-page.tsx:535
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:139
 #: src/pages/settings/ui/components/shortcut-section.tsx:117
 msgid "Cancel"
@@ -527,7 +532,7 @@ msgid "Cleaning..."
 msgstr "Cleaning..."
 
 #: src/features/query-filter-editor/ui/query-builder.tsx:383
-#: src/pages/log-viewer/ui/logs-page.tsx:262
+#: src/pages/log-viewer/ui/logs-page.tsx:268
 #: src/pages/script/ui/script-page.tsx:299
 #: src/pages/settings/ui/components/request-client-cert-section.tsx:72
 msgid "Clear"
@@ -539,7 +544,7 @@ msgid "Clear all"
 msgstr "Clear all"
 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:199
-#: src/pages/log-viewer/ui/logs-page.tsx:292
+#: src/pages/log-viewer/ui/logs-page.tsx:298
 #: src/pages/server-replay/ui/server-replay-page.tsx:71
 #: src/pages/settings/ui/components/tls-config-section.tsx:113
 #: src/shared/ui/rule-list-page.tsx:69
@@ -760,17 +765,17 @@ msgid "Delay between requests (ms)"
 msgstr "Delay between requests (ms)"
 
 #: src/features/query-filter-editor/ui/filter-preset-menu.tsx:110
-#: src/pages/log-viewer/ui/logs-page.tsx:271
-#: src/pages/log-viewer/ui/logs-page.tsx:499
+#: src/pages/log-viewer/ui/logs-page.tsx:277
+#: src/pages/log-viewer/ui/logs-page.tsx:539
 msgid "Delete"
 msgstr "Delete"
 
 #. placeholder {0}: selectedFile?.name
-#: src/pages/log-viewer/ui/logs-page.tsx:489
+#: src/pages/log-viewer/ui/logs-page.tsx:529
 msgid "Delete \"{0}\"? This action cannot be undone."
 msgstr "Delete \"{0}\"? This action cannot be undone."
 
-#: src/pages/log-viewer/ui/logs-page.tsx:486
+#: src/pages/log-viewer/ui/logs-page.tsx:526
 msgid "Delete Log File"
 msgstr "Delete Log File"
 
@@ -819,7 +824,7 @@ msgstr "Disconnected"
 msgid "Display CONNECT tunnel requests in the network list"
 msgstr "Display CONNECT tunnel requests in the network list"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:445
+#: src/pages/log-viewer/ui/logs-page.tsx:459
 msgid "Domain"
 msgstr "Domain"
 
@@ -831,6 +836,10 @@ msgstr "Domain-specific Certificates"
 msgid "Domain-specific TLS engine rules. Domains matched here use OpenSSL instead of rustls for compatibility."
 msgstr "Domain-specific TLS engine rules. Domains matched here use OpenSSL instead of rustls for compatibility."
 
+#: src/pages/log-viewer/ui/logs-page.tsx:415
+msgid "Domains are automatically tunneled without MITM only after repeated TLS handshake failures. Failed-but-inactive entries are retained for diagnostics."
+msgstr "Domains are automatically tunneled without MITM only after repeated TLS handshake failures. Failed-but-inactive entries are retained for diagnostics."
+
 #: src/pages/settings/ui/components/never-passthrough-section.tsx:59
 msgid "Domains in this list will never fall back to passthrough when TLS handshake fails. The proxy will keep trying to intercept these domains, allowing you to see the actual error instead of silently bypassing."
 msgstr "Domains in this list will never fall back to passthrough when TLS handshake fails. The proxy will keep trying to intercept these domains, allowing you to see the actual error instead of silently bypassing."
@@ -838,10 +847,6 @@ msgstr "Domains in this list will never fall back to passthrough when TLS handsh
 #: src/pages/settings/ui/components/ssl-proxying-section.tsx:218
 msgid "Domains in this list will NOT be intercepted (pass-through). Built-in domains can be managed below."
 msgstr "Domains in this list will NOT be intercepted (pass-through). Built-in domains can be managed below."
-
-#: src/pages/log-viewer/ui/logs-page.tsx:409
-msgid "Domains that failed TLS handshake are automatically tunneled without MITM decryption. You can remove entries to retry MITM for specific domains."
-msgstr "Domains that failed TLS handshake are automatically tunneled without MITM decryption. You can remove entries to retry MITM for specific domains."
 
 #: src/pages/settings/ui/components/tls-config-section.tsx:103
 msgid "Domains that failed with the default TLS engine are recorded here. On the next connection, the alternate engine will be used automatically."
@@ -917,6 +922,10 @@ msgstr "Edit Rule"
 #: src/pages/script/ui/script-page.tsx:198
 msgid "Editor"
 msgstr "Editor"
+
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:231
+msgid "Empty whitelist currently means all HTTPS traffic is intercepted. Add at least one enabled domain to limit SSL Proxying to selected hosts."
+msgstr "Empty whitelist currently means all HTTPS traffic is intercepted. Add at least one enabled domain to limit SSL Proxying to selected hosts."
 
 #: src/pages/settings/ui/components/certificate-settings.tsx:303
 msgid "Enable full trust for the Cheolsu Proxy CA certificate"
@@ -1027,6 +1036,10 @@ msgstr "Expected"
 msgid "Expired"
 msgstr "Expired"
 
+#: src/pages/log-viewer/ui/logs-page.tsx:468
+msgid "Expires"
+msgstr "Expires"
+
 #: src/widgets/network-header/ui/network-controls.tsx:113
 msgid "Export HAR"
 msgstr "Export HAR"
@@ -1084,7 +1097,7 @@ msgstr "Failed to send"
 msgid "Failed to toggle spec: {0}"
 msgstr "Failed to toggle spec: {0}"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:448
+#: src/pages/log-viewer/ui/logs-page.tsx:462
 msgid "Failures"
 msgstr "Failures"
 
@@ -1096,11 +1109,11 @@ msgstr "File"
 msgid "Filter by client IP, tag, or auth user"
 msgstr "Filter by client IP, tag, or auth user"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:418
+#: src/pages/log-viewer/ui/logs-page.tsx:432
 msgid "Filter domains..."
 msgstr "Filter domains..."
 
-#: src/pages/log-viewer/ui/logs-page.tsx:373
+#: src/pages/log-viewer/ui/logs-page.tsx:379
 msgid "Filter log lines..."
 msgstr "Filter log lines..."
 
@@ -1416,7 +1429,7 @@ msgstr "Learned TLS Strategies"
 msgid "Light"
 msgstr "Light"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:380
+#: src/pages/log-viewer/ui/logs-page.tsx:386
 msgid "lines"
 msgstr "lines"
 
@@ -1467,8 +1480,8 @@ msgstr "Local File Path"
 msgid "localhost, 127.0.0.1, *.internal.com"
 msgstr "localhost, 127.0.0.1, *.internal.com"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:309
-#: src/pages/log-viewer/ui/logs-page.tsx:336
+#: src/pages/log-viewer/ui/logs-page.tsx:315
+#: src/pages/log-viewer/ui/logs-page.tsx:342
 msgid "Log Files"
 msgstr "Log Files"
 
@@ -1476,7 +1489,7 @@ msgstr "Log Files"
 msgid "Logical OR:"
 msgstr "Logical OR:"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:247
+#: src/pages/log-viewer/ui/logs-page.tsx:253
 #: src/shared/app-sidebar/model/consts.ts:134
 msgid "Logs"
 msgstr "Logs"
@@ -1748,7 +1761,7 @@ msgstr "No intercept rules"
 msgid "No learned strategies yet. They will appear after TLS fallback events."
 msgstr "No learned strategies yet. They will appear after TLS fallback events."
 
-#: src/pages/log-viewer/ui/logs-page.tsx:341
+#: src/pages/log-viewer/ui/logs-page.tsx:347
 msgid "No log files found"
 msgstr "No log files found"
 
@@ -1756,7 +1769,7 @@ msgstr "No log files found"
 msgid "No map rules"
 msgstr "No map rules"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:437
+#: src/pages/log-viewer/ui/logs-page.tsx:451
 msgid "No matching domains"
 msgstr "No matching domains"
 
@@ -1812,7 +1825,7 @@ msgstr "No specs loaded. Add an OpenAPI/Swagger spec file to start contract test
 msgid "No timing data available"
 msgstr "No timing data available"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:433
+#: src/pages/log-viewer/ui/logs-page.tsx:447
 msgid "No TLS passthrough entries"
 msgstr "No TLS passthrough entries"
 
@@ -1888,7 +1901,7 @@ msgstr "Open <0>{CERT_DOWNLOAD_URL}</0> in Safari"
 msgid "Open <0>{CERT_DOWNLOAD_URL}</0> in your device browser"
 msgstr "Open <0>{CERT_DOWNLOAD_URL}</0> in your device browser"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:275
+#: src/pages/log-viewer/ui/logs-page.tsx:281
 msgid "Open Directory"
 msgstr "Open Directory"
 
@@ -1987,6 +2000,10 @@ msgstr "Payload"
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:190
 msgid "pending"
 msgstr "pending"
+
+#: src/pages/log-viewer/ui/logs-page.tsx:493
+msgid "Pending"
+msgstr "Pending"
 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:317
 msgid "Pending Breakpoints"
@@ -2137,8 +2154,8 @@ msgstr "Received (Server → Client)"
 msgid "Referrer"
 msgstr "Referrer"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:258
-#: src/pages/log-viewer/ui/logs-page.tsx:283
+#: src/pages/log-viewer/ui/logs-page.tsx:264
+#: src/pages/log-viewer/ui/logs-page.tsx:289
 #: src/pages/settings/ui/components/certificate-settings.tsx:387
 msgid "Refresh"
 msgstr "Refresh"
@@ -2336,7 +2353,7 @@ msgstr "Restart proxy to apply changes"
 msgid "Restart proxy to use auto-generated CA"
 msgstr "Restart proxy to use auto-generated CA"
 
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:250
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:258
 msgid "Restore Defaults"
 msgstr "Restore Defaults"
 
@@ -2506,7 +2523,7 @@ msgstr "Script unloaded"
 msgid "Security"
 msgstr "Security"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:396
+#: src/pages/log-viewer/ui/logs-page.tsx:402
 msgid "Select a log file to view its contents"
 msgstr "Select a log file to view its contents"
 
@@ -2734,6 +2751,7 @@ msgstr "Starts background server connection immediately after ClientHello detect
 #: src/pages/analytics-dashboard/ui/performance-tab.tsx:52
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:118
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:123
+#: src/pages/log-viewer/ui/logs-page.tsx:465
 #: src/shared/app-sidebar/ui/sidebar-status.tsx:39
 #: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:69
 #: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:151
@@ -2831,7 +2849,7 @@ msgstr "The DER certificate file will download automatically"
 msgid "Theme"
 msgstr "Theme"
 
-#: src/pages/settings/ui/components/ssl-proxying-section.tsx:254
+#: src/pages/settings/ui/components/ssl-proxying-section.tsx:262
 msgid "These domains are automatically excluded from HTTPS interception to prevent OAuth/authentication failures. You can toggle, add, or remove domains."
 msgstr "These domains are automatically excluded from HTTPS interception to prevent OAuth/authentication failures. You can toggle, add, or remove domains."
 
@@ -2866,7 +2884,7 @@ msgstr "TLS Engine Rules"
 msgid "TLS fallback — learned strategy used"
 msgstr "TLS fallback — learned strategy used"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:320
+#: src/pages/log-viewer/ui/logs-page.tsx:326
 msgid "TLS Passthrough"
 msgstr "TLS Passthrough"
 
@@ -3071,7 +3089,7 @@ msgstr "Variables"
 msgid "Version"
 msgstr "Version"
 
-#: src/pages/log-viewer/ui/logs-page.tsx:250
+#: src/pages/log-viewer/ui/logs-page.tsx:256
 msgid "View and manage application log files"
 msgstr "View and manage application log files"
 
