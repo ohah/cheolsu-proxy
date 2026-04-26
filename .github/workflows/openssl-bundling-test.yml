@@ -37,6 +37,11 @@ jobs:
       - name: Install OpenSSL via Homebrew
         run: brew install openssl@3
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
