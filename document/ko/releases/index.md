@@ -4,6 +4,31 @@ Cheolsu Proxy의 버전별 업데이트 내역을 확인할 수 있습니다.
 
 ## 최신 릴리즈
 
+### v0.1.1 (2026-04-30)
+
+TLS 자동 패스스루 안전성 강화, 인증서 생성 안정화, 데스크톱/TUI/CLI 사용성 개선, 문서 및 CI 환경 정리를 포함한 유지보수 릴리즈입니다.
+
+📦 [GitHub Release 다운로드](https://github.com/ohah/cheolsu-proxy/releases/tag/v0.1.1)
+
+:::warning 서명되지 않은 빌드
+이 빌드는 코드 서명이 되어 있지 않습니다. `/Applications`에 복사한 후 터미널에서 다음 명령어를 실행하세요:
+
+```bash
+xattr -cr /Applications/Cheolsu\ Proxy.app
+```
+
+최초 1회만 실행하면 됩니다.
+:::
+
+**주요 변경사항**:
+
+- TLS 자동 패스스루 정책을 강화하고 Never Passthrough 예외 처리를 보강했습니다.
+- CA/Leaf 인증서 만료 감지, 자동 재생성, 키 타입 미러링, 인증서 캐시 안정성을 개선했습니다.
+- OpenAPI/Contract Testing, gRPC, SSE, GraphQL, AI 트래픽 분석 뷰를 확장했습니다.
+- CLI와 MCP 공통 로직을 `cheolsu_ops`로 통합하고 CLI 서브커맨드와 JSON 출력, completion 지원을 추가했습니다.
+- 네트워크 테이블, 필터 프리셋, 코드 내보내기, Breakpoint 수정 후 전달 등 데스크톱 UX를 개선했습니다.
+- Rust/JavaScript 의존성, Node 24/Bun 1.3.11 기반 CI, OpenSSL 번들링 검증 워크플로우를 정리했습니다.
+
 ### v0.1.0 (2026-03-14)
 
 첫 번째 공개 릴리즈로, 핵심 프록시 기능과 트래픽 조작 도구를 포함합니다.

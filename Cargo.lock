@@ -916,7 +916,7 @@ dependencies = [
 
 [[package]]
 name = "cheolsu-cli"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "assert_cmd",
  "cheolsu_ops",
@@ -932,7 +932,7 @@ dependencies = [
 
 [[package]]
 name = "cheolsu-proxy"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base64 0.22.1",
  "chrono",
@@ -967,7 +967,7 @@ dependencies = [
 
 [[package]]
 name = "cheolsu-proxy-mcp"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "cheolsu_ops",
@@ -987,7 +987,7 @@ dependencies = [
 
 [[package]]
 name = "cheolsu-proxy-tui"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "chrono",
  "clap",
@@ -1007,7 +1007,7 @@ dependencies = [
 
 [[package]]
 name = "cheolsu_ops"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "http 1.4.0",
  "parking_lot",
@@ -6200,7 +6200,7 @@ dependencies = [
 
 [[package]]
 name = "proxy_daemon"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "async-stream",
  "base64 0.22.1",
@@ -6246,7 +6246,7 @@ dependencies = [
 
 [[package]]
 name = "proxy_v2_models"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base64 0.22.1",
  "brotli",
@@ -7211,7 +7211,7 @@ checksum = "94143f37725109f92c262ed2cf5e59bce7498c01bcc1502d7b9afe439a4e9f49"
 
 [[package]]
 name = "scripting"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "deno_core",
  "oxc_allocator",

@@ -137,7 +137,7 @@ pub fn build_har(transactions: &[RequestInfo]) -> Har {
             version: "1.2".to_string(),
             creator: HarCreator {
                 name: "Cheolsu Proxy".to_string(),
-                version: "0.1.0".to_string(),
+                version: "0.1.1".to_string(),
             },
             entries,
         },

@@ -4,6 +4,31 @@ Version-by-version update history for Cheolsu Proxy.
 
 ## Latest Release
 
+### v0.1.1 (2026-04-30)
+
+Maintenance release with safer TLS auto-passthrough behavior, certificate-generation stability work, desktop/TUI/CLI usability improvements, documentation updates, and CI cleanup.
+
+📦 [Download from GitHub Release](https://github.com/ohah/cheolsu-proxy/releases/tag/v0.1.1)
+
+:::warning Unsigned Build
+This build is not code-signed. After copying to `/Applications`, run the following in Terminal:
+
+```bash
+xattr -cr /Applications/Cheolsu\ Proxy.app
+```
+
+You only need to do this once.
+:::
+
+**Highlights**:
+
+- Hardened TLS auto-passthrough policy and strengthened Never Passthrough handling.
+- Improved CA/leaf certificate expiry detection, automatic regeneration, key-type mirroring, and certificate cache stability.
+- Expanded OpenAPI/Contract Testing, gRPC, SSE, GraphQL, and AI traffic analysis views.
+- Consolidated CLI/MCP business logic into `cheolsu_ops` and added CLI subcommands, JSON output, and completion support.
+- Improved desktop workflows including the network table, filter presets, code export, and modify-and-forward breakpoints.
+- Cleaned up Rust/JavaScript dependencies, Node 24/Bun 1.3.11 CI, and OpenSSL bundling verification.
+
 ### v0.1.0 (2026-03-14)
 
 The first public release, including core proxy features and traffic manipulation tools.
