@@ -4,7 +4,7 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 WORKSPACE_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-TARGET_TRIPLE=$(rustc -vV | grep host | awk '{print $2}')
+TARGET_TRIPLE="${CHEOLSU_TARGET_TRIPLE:-$(rustc -vV | grep host | awk '{print $2}')}"
 BINARIES_DIR="$SCRIPT_DIR/src-tauri/binaries"
 
 PROFILE="${1:-debug}"
@@ -64,16 +64,16 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
 fi
 
 echo "Building cheolsu-proxy-mcp ($PROFILE)..."
-cargo build -p cheolsu-proxy-mcp $CARGO_FLAGS --manifest-path "$WORKSPACE_ROOT/Cargo.toml"
+cargo build -p cheolsu-proxy-mcp --target "$TARGET_TRIPLE" $CARGO_FLAGS --manifest-path "$WORKSPACE_ROOT/Cargo.toml"
 
 echo "Building cheolsu TUI ($PROFILE)..."
-cargo build -p cheolsu-proxy-tui $CARGO_FLAGS --manifest-path "$WORKSPACE_ROOT/Cargo.toml"
+cargo build -p cheolsu-proxy-tui --target "$TARGET_TRIPLE" $CARGO_FLAGS --manifest-path "$WORKSPACE_ROOT/Cargo.toml"
 
 mkdir -p "$BINARIES_DIR"
-cp "$WORKSPACE_ROOT/target/$PROFILE_DIR/cheolsu-proxy-mcp" "$BINARIES_DIR/cheolsu-proxy-mcp-$TARGET_TRIPLE"
+cp "$WORKSPACE_ROOT/target/$TARGET_TRIPLE/$PROFILE_DIR/cheolsu-proxy-mcp" "$BINARIES_DIR/cheolsu-proxy-mcp-$TARGET_TRIPLE"
 echo "Copied to $BINARIES_DIR/cheolsu-proxy-mcp-$TARGET_TRIPLE"
 
-cp "$WORKSPACE_ROOT/target/$PROFILE_DIR/cheolsu-tui" "$BINARIES_DIR/cheolsu-tui-$TARGET_TRIPLE"
+cp "$WORKSPACE_ROOT/target/$TARGET_TRIPLE/$PROFILE_DIR/cheolsu-tui" "$BINARIES_DIR/cheolsu-tui-$TARGET_TRIPLE"
 echo "Copied to $BINARIES_DIR/cheolsu-tui-$TARGET_TRIPLE"
 
 # macOS: sidecar 바이너리에 @executable_path/../Frameworks rpath 추가
