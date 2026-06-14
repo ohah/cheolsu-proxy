@@ -27,6 +27,26 @@ pub(super) fn compute_headers_size(headers: &http::HeaderMap) -> i64 {
 }
 
 pub(super) fn parse_cookies(headers: &http::HeaderMap, header_name: &str) -> Vec<HarCookie> {
+    // Set-Cookie(응답)는 헤더 1개당 쿠키 1개이며, '; Path=...; HttpOnly' 등은 속성이다.
+    // 또한 여러 Set-Cookie 헤더가 올 수 있으므로 get_all로 모두 수집한다.
+    // (기존엔 ';'로 분할해 속성을 별도 쿠키로 오인하고, 첫 헤더만 읽어 다중 쿠키를 누락했다)
+    if header_name.eq_ignore_ascii_case("set-cookie") {
+        return headers
+            .get_all(header_name)
+            .iter()
+            .filter_map(|value| {
+                let s = value.to_str().ok()?;
+                let first = s.split(';').next()?.trim();
+                let (name, val) = first.split_once('=')?;
+                Some(HarCookie {
+                    name: name.trim().to_string(),
+                    value: val.trim().to_string(),
+                })
+            })
+            .collect();
+    }
+
+    // 요청 Cookie 헤더: "n1=v1; n2=v2"처럼 여러 쿠키가 ';'로 구분된다.
     let Some(value) = headers.get(header_name) else {
         return Vec::new();
     };

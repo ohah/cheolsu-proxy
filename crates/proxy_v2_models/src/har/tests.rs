@@ -447,3 +447,20 @@ fn parse_cookies_multiple() {
     assert_eq!(cookies[0].name, "a");
     assert_eq!(cookies[2].value, "3");
 }
+
+#[test]
+fn parse_set_cookie_ignores_attributes_and_collects_all() {
+    let mut headers = HeaderMap::new();
+    headers.append(
+        "set-cookie",
+        "sid=abc; Path=/; HttpOnly; Secure".parse().unwrap(),
+    );
+    headers.append("set-cookie", "theme=dark; Max-Age=3600".parse().unwrap());
+    let cookies = helpers::parse_cookies(&headers, "set-cookie");
+    // 헤더 2개 → 쿠키 2개. Path/HttpOnly 등 속성은 쿠키로 취급하지 않는다.
+    assert_eq!(cookies.len(), 2);
+    assert_eq!(cookies[0].name, "sid");
+    assert_eq!(cookies[0].value, "abc");
+    assert_eq!(cookies[1].name, "theme");
+    assert_eq!(cookies[1].value, "dark");
+}
