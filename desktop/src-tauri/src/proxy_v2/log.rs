@@ -60,11 +60,27 @@ pub(crate) async fn get_log_files() -> Result<Vec<LogFileInfo>, String> {
     Ok(files)
 }
 
+/// 로그 파일 경로가 앱 로그 디렉토리 내부인지 검증한다(경로 탐색 방지).
+/// canonicalize로 `..` 우회까지 차단한다.
+fn validate_log_path(path: &str) -> Result<std::path::PathBuf, String> {
+    let app_dir = proxy_daemon::daemon::app_support_dir()
+        .map_err(|e| format!("앱 디렉토리 확인 실패: {}", e))?;
+    let canonical = std::path::Path::new(path)
+        .canonicalize()
+        .map_err(|e| format!("경로 확인 실패: {}", e))?;
+    let app_canonical = app_dir.canonicalize().unwrap_or(app_dir);
+    if !canonical.starts_with(&app_canonical) {
+        return Err("로그 디렉토리 외부 파일은 접근할 수 없습니다".to_string());
+    }
+    Ok(canonical)
+}
+
 #[tauri::command]
 pub(crate) async fn read_log_file(
     path: String,
     tail_lines: Option<usize>,
 ) -> Result<String, String> {
+    let path = validate_log_path(&path)?;
     let content =
         std::fs::read_to_string(&path).map_err(|e| format!("로그 파일 읽기 실패: {}", e))?;
 
@@ -76,18 +92,14 @@ pub(crate) async fn read_log_file(
 
 #[tauri::command]
 pub(crate) async fn clear_log_file(path: String) -> Result<(), String> {
+    let path = validate_log_path(&path)?;
     std::fs::write(&path, "").map_err(|e| format!("로그 파일 초기화 실패: {}", e))
 }
 
 #[tauri::command]
 pub(crate) async fn delete_log_file(path: String) -> Result<(), String> {
-    let path = std::path::Path::new(&path);
-    let app_dir = proxy_daemon::daemon::app_support_dir()
-        .map_err(|e| format!("앱 디렉토리 확인 실패: {}", e))?;
-    if !path.starts_with(&app_dir) {
-        return Err("로그 디렉토리 외부 파일은 삭제할 수 없습니다".to_string());
-    }
-    std::fs::remove_file(path).map_err(|e| format!("로그 파일 삭제 실패: {}", e))
+    let path = validate_log_path(&path)?;
+    std::fs::remove_file(&path).map_err(|e| format!("로그 파일 삭제 실패: {}", e))
 }
 
 #[tauri::command]
