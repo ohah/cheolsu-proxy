@@ -61,6 +61,10 @@ impl LoggingHandler {
         // Body 수정
         if let Some(body) = &modified.body {
             req = req.map(|_| Body::from(body.clone()));
+            // 바디를 교체하면 원본 content-length/encoding이 무효화된다. 스크립트가 받은
+            // 헤더 맵에 원본 값이 그대로 남아 있을 수 있으므로 제거한다(intercept/breakpoint
+            // 경로와 동일하게: 길이 mismatch 및 잘못된 디코딩으로 인한 손상 방지).
+            crate::header_utils::clear_content_encoding_headers(req.headers_mut());
         }
         req
     }
@@ -107,6 +111,10 @@ impl LoggingHandler {
         }
 
         if let Some(new_body) = &modified.body {
+            // 바디를 교체하면 원본 content-length/content-encoding(예: gzip)이 무효화된다.
+            // 제거하지 않으면 클라이언트가 평문을 gzip으로 디코딩하려다 손상되거나 길이가
+            // 어긋난다(intercept/breakpoint 경로와 동일).
+            crate::header_utils::clear_content_encoding_headers(&mut parts.headers);
             Response::from_parts(parts, Body::from(new_body.clone()))
         } else {
             Response::from_parts(parts, body)
