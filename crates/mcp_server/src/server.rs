@@ -11,7 +11,6 @@ use crate::store::Store;
 pub(crate) struct CheolsuMcpServer {
     pub(crate) store: Store,
     pub(crate) daemon_conn: Arc<TokioMutex<Option<DaemonConnection>>>,
-    tool_router: ToolRouter<Self>,
 }
 
 impl CheolsuMcpServer {
@@ -19,7 +18,6 @@ impl CheolsuMcpServer {
         Self {
             store,
             daemon_conn: Arc::new(TokioMutex::new(conn)),
-            tool_router: Self::tool_router(),
         }
     }
 
