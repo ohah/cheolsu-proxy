@@ -22,6 +22,6 @@ impl CheolsuMcpServer {
         &self,
         Parameters(p): Parameters<LoadSessionParams>,
     ) -> Result<CallToolResult, McpError> {
-        op_result_to_mcp(cheolsu_ops::session::load_session(&self.ops_ctx(), p))
+        op_result_to_mcp(cheolsu_ops::session::load_session(&self.ops_ctx(), p).await)
     }
 }
