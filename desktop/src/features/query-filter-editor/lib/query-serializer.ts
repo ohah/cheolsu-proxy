@@ -31,10 +31,13 @@ export function createEmptyCondition(): FilterCondition {
 /**
  * BuilderState → 쿼리 문자열
  */
-// 파서가 콤마를 구분자로 split하므로, 값 내부 콤마를 \,로 escape해야 round-trip이 깨지지 않는다.
-// (백슬래시/따옴표는 기존 동작 유지를 위해 건드리지 않는다 — 정규식 패턴 \d 등 보존)
+// 파서는 값을 큰따옴표로 감싸고 콤마로 split하므로, 값 내부의 큰따옴표(")와 콤마(,)를
+// 각각 \"와 \,로 escape해야 round-trip이 깨지지 않는다(따옴표를 escape하지 않으면 값에
+// "가 있을 때 문자열이 조기에 닫혀 파싱이 어긋난다).
+// 백슬래시는 정규식 패턴(\d 등) 보존을 위해 escape하지 않는다 — 파서도 미지의 escape는
+// 백슬래시를 보존하므로 \d 등은 그대로 round-trip된다.
 function escapeFilterValue(v: string): string {
-  return v.replace(/,/g, "\\,");
+  return v.replace(/"/g, '\\"').replace(/,/g, "\\,");
 }
 
 export function serializeBuilderState(state: BuilderState): string {
