@@ -147,6 +147,9 @@ pub struct CertMetricsSnapshot {
 /// 호스트에서 와일드카드 Authority를 추출합니다.
 /// `api.example.com:443` → `*.example.com:443`
 /// IP 주소나 TLD는 None을 반환합니다.
+// 현재 프로덕션 경로에서는 사용하지 않지만(와일드카드 캐시 공유가 SAN 불일치를 유발해 제거됨),
+// 재사용 가능성을 위해 검증된 유틸리티로 보존한다.
+#[allow(dead_code)]
 pub(crate) fn wildcard_authority(authority: &Authority) -> Option<Authority> {
     let host = authority.host();
 

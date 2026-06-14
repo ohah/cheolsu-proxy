@@ -49,6 +49,18 @@ impl RcgenAuthority {
             let verify_config_guard = self.client_cert_verify.read().await;
             if let Some(ref verify_config) = *verify_config_guard {
                 if verify_config.enabled {
+                    if verify_config.required && verify_config.ca_certs.is_empty() {
+                        // mTLS 필수(required)인데 검증할 CA가 비어 있음 = 잘못된 설정.
+                        // 여기서 allow_unauthenticated로 폴백하면 모든 클라이언트가 인증서 없이
+                        // 접속 가능한 fail-open 인증 우회가 된다. 보안상 연결을 거부(fail-closed)한다.
+                        error!(
+                            "[SERVER-CONFIG] client cert required=true이지만 CA가 비어 있음 — 연결 거부(fail-closed)"
+                        );
+                        return Err(
+                            "클라이언트 인증서가 필수(required)로 설정되었으나 검증할 CA 인증서가 없습니다. CA 경로/형식을 확인하세요."
+                                .to_string(),
+                        );
+                    }
                     if verify_config.ca_certs.is_empty() || !verify_config.required {
                         // 모든 인증서 수락 (선택적 요청) - 인증서 없어도 연결 허용
                         let verifier = tokio_rustls::rustls::server::WebPkiClientVerifier::builder(
@@ -152,16 +164,10 @@ impl CertificateAuthority for RcgenAuthority {
             return Ok(cfg);
         }
 
-        // 캐시 히트: 와일드카드 authority (*.example.com)로 서브도메인 공유
-        if let Some(wildcard) = crate::certificate_authority::wildcard_authority(authority) {
-            if let Some(cfg) = self.cache.get(&wildcard).await {
-                // 와일드카드 캐시 히트 → 원본 authority에도 저장
-                self.cache.insert(authority.clone(), Arc::clone(&cfg)).await;
-                self.metrics.record_cache_hit();
-                return Ok(cfg);
-            }
-        }
-
+        // NOTE: 과거에는 *.root 와일드카드 키로 서브도메인 간 ServerConfig를 공유했으나,
+        // 호스트 기반 SAN(host, *.host)은 형제 서브도메인(*.root)을 커버하지 않아
+        // www.example.com에 api.example.com용 인증서가 제공되는 hostname mismatch 버그가
+        // 있었다. 정확성을 위해 와일드카드 캐시 공유를 제거하고 authority별 캐시만 사용한다.
         let start = std::time::Instant::now();
         let timeout_duration =
             std::time::Duration::from_secs(crate::certificate_authority::CERT_GEN_TIMEOUT_SECS);
@@ -178,11 +184,6 @@ impl CertificateAuthority for RcgenAuthority {
         match result {
             Ok(Ok(cfg)) => {
                 self.metrics.record_gen(start.elapsed());
-                // 와일드카드 키에도 저장하여 같은 루트 도메인의 서브도메인이 공유
-                if let Some(wildcard) = crate::certificate_authority::wildcard_authority(authority)
-                {
-                    self.cache.insert(wildcard, Arc::clone(&cfg)).await;
-                }
                 Ok(cfg)
             }
             Ok(Err(e)) => {

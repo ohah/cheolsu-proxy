@@ -401,23 +401,53 @@ mod tests {
         );
     }
 
-    /// 와일드카드 캐시 공유 테스트: 같은 루트 도메인의 서브도메인이 캐시를 공유하는지 확인
+    /// 형제 서브도메인은 인증서를 공유하지 않아야 한다.
+    /// (호스트 기반 SAN은 형제 서브도메인을 커버하지 않으므로, 공유하면 hostname mismatch 발생)
     #[tokio::test]
-    async fn wildcard_cache_sharing() {
+    async fn sibling_subdomains_not_shared() {
         let ca = Arc::new(build_ca(1_000));
 
         // 첫 번째 서브도메인으로 인증서 생성
         let auth1 = Authority::from_static("api.wildcard-test.com");
         let cfg1 = ca.gen_server_config(&auth1, None).await.unwrap();
 
-        // 두 번째 서브도메인은 와일드카드 캐시에서 가져와야 함
+        // 두 번째 서브도메인은 자신의 SAN을 가진 별도 인증서를 받아야 함
         let auth2 = Authority::from_static("www.wildcard-test.com");
         let cfg2 = ca.gen_server_config(&auth2, None).await.unwrap();
 
-        // 동일한 ServerConfig 인스턴스를 공유해야 함
+        // 서로 다른 ServerConfig 인스턴스여야 함(SAN 불일치 인증서 재사용 금지)
         assert!(
-            Arc::ptr_eq(&cfg1, &cfg2),
-            "같은 루트 도메인의 서브도메인은 와일드카드 캐시를 공유해야 함"
+            !Arc::ptr_eq(&cfg1, &cfg2),
+            "형제 서브도메인은 각자의 SAN 인증서를 받아야 하며 공유해서는 안 됨"
+        );
+
+        // 동일 authority 재요청은 캐시 히트로 같은 인스턴스를 반환해야 함
+        let cfg1_again = ca.gen_server_config(&auth1, None).await.unwrap();
+        assert!(
+            Arc::ptr_eq(&cfg1, &cfg1_again),
+            "동일 authority는 캐시를 공유해야 함"
+        );
+    }
+
+    /// mTLS 필수(required=true)인데 CA가 비어 있으면 fail-closed로 연결을 거부해야 한다.
+    /// (fail-open으로 모든 클라이언트를 허용하면 인증 우회가 됨)
+    #[tokio::test]
+    async fn required_client_cert_without_ca_fails_closed() {
+        use crate::certificate_authority::rcgen_authority::ClientCertVerifyConfig;
+
+        let ca = build_ca(1_000);
+        ca.set_client_cert_verify(Some(ClientCertVerifyConfig {
+            enabled: true,
+            ca_certs: Vec::new(), // 검증할 CA 없음
+            required: true,
+        }))
+        .await;
+
+        let auth = Authority::from_static("mtls-test.example.com");
+        let result = ca.gen_server_config(&auth, None).await;
+        assert!(
+            result.is_err(),
+            "required=true + CA 없음이면 fail-closed로 Err를 반환해야 함"
         );
     }
 
