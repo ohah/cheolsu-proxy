@@ -122,6 +122,7 @@ impl LoggingHandler {
     pub(crate) fn emit_ws_event(
         &self,
         connection_id: String,
+        url: String,
         direction: WsDirection,
         message_type: WsMessageType,
         payload: String,
@@ -157,6 +158,7 @@ impl LoggingHandler {
 
         let info = proxy_v2_models::WsMessageInfo {
             connection_id,
+            url,
             sequence,
             direction,
             message_type,

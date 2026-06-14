@@ -626,6 +626,7 @@ mod tests {
 
         let ws_msgs = vec![WsMessageInfo {
             connection_id: "ws://example.com/ws".to_string(),
+            url: "ws://example.com/ws".to_string(),
             sequence: 1,
             direction: WsDirection::ClientToServer,
             message_type: WsMessageType::Text,
@@ -677,6 +678,7 @@ mod tests {
         let transactions = vec![make_request_info_with_response()];
         let ws_msgs = vec![WsMessageInfo {
             connection_id: "ws://example.com/ws".to_string(),
+            url: "ws://example.com/ws".to_string(),
             sequence: 0,
             direction: WsDirection::ServerToClient,
             message_type: WsMessageType::Text,

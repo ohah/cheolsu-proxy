@@ -73,6 +73,7 @@ fn make_sse_event(connection_id: &str, seq: u64, data: &str) -> SseEventInfo {
 fn make_ws_message(connection_id: &str, seq: u64, payload: &str) -> WsMessageInfo {
     WsMessageInfo {
         connection_id: connection_id.to_string(),
+        url: format!("ws://{connection_id}"),
         sequence: seq,
         direction: WsDirection::ClientToServer,
         message_type: WsMessageType::Text,

@@ -36,6 +36,7 @@ fn make_empty_request_info() -> RequestInfo {
 fn make_ws_message(connection_id: &str) -> WsMessageInfo {
     WsMessageInfo {
         connection_id: connection_id.to_string(),
+        url: format!("ws://{connection_id}"),
         sequence: 0,
         direction: WsDirection::ClientToServer,
         message_type: proxy_v2_models::WsMessageType::Text,

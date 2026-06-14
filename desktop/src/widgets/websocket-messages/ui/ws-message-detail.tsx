@@ -52,7 +52,7 @@ export const WsMessageDetail = memo(
         },
         { label: t`Size`, value: formatBytes(message.size) },
         { label: t`Time`, value: formatTimeFull(message.time) },
-        { label: t`Connection`, value: message.connection_id },
+        { label: t`Connection`, value: message.url || message.connection_id },
         { label: t`Sequence`, value: `#${message.sequence}` },
       ];
 
