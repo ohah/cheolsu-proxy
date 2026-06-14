@@ -92,8 +92,9 @@ pub async fn load_session(ctx: &OpsContext, p: LoadSessionParams) -> OpResult {
         ctx.store.ws_connections.lock().clear();
     }
 
-    ctx.store.transactions.lock().extend(transactions);
-    ctx.store.ws_messages.lock().extend(ws_messages);
+    // extend 시에도 상한을 적용해 메모리 무한 증가를 방지한다(가장 오래된 항목부터 제거).
+    ctx.store.extend_transactions(transactions);
+    ctx.store.extend_ws_messages(ws_messages);
 
     let mut rules_changed = false;
     if !rules.is_empty() {

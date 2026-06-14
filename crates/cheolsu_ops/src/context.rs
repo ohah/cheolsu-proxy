@@ -90,6 +90,26 @@ impl OpsStore {
         bounded_push(&self.ws_messages, msg, self.max_ws_messages);
     }
 
+    /// 여러 트랜잭션을 추가하되 상한을 초과하면 가장 오래된 것부터 제거한다(세션/HAR 로드용).
+    pub fn extend_transactions(&self, items: impl IntoIterator<Item = RequestInfo>) {
+        let mut guard = self.transactions.lock();
+        guard.extend(items);
+        if guard.len() > self.max_transactions {
+            let excess = guard.len() - self.max_transactions;
+            guard.drain(0..excess);
+        }
+    }
+
+    /// 여러 WebSocket 메시지를 추가하되 상한을 초과하면 가장 오래된 것부터 제거한다.
+    pub fn extend_ws_messages(&self, items: impl IntoIterator<Item = WsMessageInfo>) {
+        let mut guard = self.ws_messages.lock();
+        guard.extend(items);
+        if guard.len() > self.max_ws_messages {
+            let excess = guard.len() - self.max_ws_messages;
+            guard.drain(0..excess);
+        }
+    }
+
     pub fn push_ws_connection(&self, event: WsConnectionEvent) {
         self.ws_connections.lock().push(event);
     }
