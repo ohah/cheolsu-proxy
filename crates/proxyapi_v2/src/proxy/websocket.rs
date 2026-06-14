@@ -219,8 +219,10 @@ where
         let (inject_to_server_tx, inject_to_server_rx) =
             mpsc::channel::<Message>(WS_INJECT_CHANNEL_CAPACITY);
 
-        // 레지스트리에 등록
-        let conn_id = uri.to_string();
+        // 레지스트리에 등록.
+        // conn_id는 URI가 아닌 연결별 고유 ID를 사용한다(동일 URI로의 동시 연결이
+        // 레지스트리 키를 덮어쓰거나 교차 unregister되는 문제 방지).
+        let conn_id = uuid::Uuid::new_v4().to_string();
         if let Some(ref registry) = self.ctx.websocket_registry {
             let injector =
                 WebSocketInjector::new(inject_to_client_tx.clone(), inject_to_server_tx.clone());
@@ -235,6 +237,7 @@ where
         let connected_ctx = WebSocketContext::ServerToClient {
             src: uri.clone(),
             dst: client_addr,
+            conn_id: conn_id.clone(),
         };
         websocket_handler.on_connected(&connected_ctx).await;
 
@@ -250,6 +253,7 @@ where
             WebSocketContext::ServerToClient {
                 src: uri.clone(),
                 dst: client_addr,
+                conn_id: conn_id.clone(),
             },
             registry_clone,
             conn_id_clone,
@@ -265,6 +269,7 @@ where
             WebSocketContext::ClientToServer {
                 src: client_addr,
                 dst: uri,
+                conn_id: conn_id.clone(),
             },
             websocket_registry,
             conn_id,
