@@ -70,19 +70,39 @@ With Cheolsu Proxy running, ask your AI assistant a simple question like "What i
 
 ## Available Tools
 
+A total of **48 tools** are provided. The full list by category is below.
+
 ### Traffic Inspection
 
-| Tool                     | Description                                                                     |
-| ------------------------ | ------------------------------------------------------------------------------- |
-| `search_traffic`         | Search captured traffic by host, HTTP method, status code, or URL path          |
-| `get_transaction`        | Get the full request and response (headers and body) for a specific transaction |
-| `get_websocket_messages` | Get captured WebSocket messages, optionally filtered by connection URI          |
+| Tool                     | Description                                                                          |
+| ------------------------ | ----------------------------------------------------------------------------------- |
+| `search_traffic`         | Search captured traffic by host, HTTP method, status code, or URL path              |
+| `get_transaction`        | Get the full request and response (headers and body) for a specific transaction     |
+| `get_websocket_messages` | Get captured WebSocket messages, optionally filtered by connection URI              |
+| `get_sse_events`         | Get captured Server-Sent Events (SSE), optionally filtered by connection URI        |
+| `diff_transactions`      | Compare two transactions (request + response). Useful for regression/before-after   |
+| `proxy_status`           | Check whether the proxy daemon is running and view traffic statistics               |
+| `clear_traffic`          | Clear all captured traffic data from memory                                         |
 
-### Request Sending
+### Analytics
 
-| Tool             | Description                                                                                                    |
-| ---------------- | -------------------------------------------------------------------------------------------------------------- |
-| `replay_request` | Send an HTTP request directly, bypassing the proxy. Useful for testing APIs without triggering intercept rules |
+| Tool                       | Description                                                                         |
+| -------------------------- | ---------------------------------------------------------------------------------- |
+| `analyze_performance`      | Analyze slow requests + P50/P95/P99 latency percentiles                            |
+| `analyze_errors`           | Analyze error rates (breakdown by status code and endpoint, recent errors)         |
+| `analyze_endpoints`        | Per-endpoint stats (frequency, avg/P95 response time, error rate, response size)   |
+| `detect_duplicates`        | Detect the same URL called multiple times in a short window (missing caching)       |
+| `detect_n_plus_one`        | Detect N+1 query patterns (same parameterized endpoint called repeatedly)           |
+| `analyze_traffic_timeline` | Request volume, errors, and average latency over time buckets                       |
+| `analyze_full`             | Run all analyses at once and return a comprehensive summary report                  |
+
+### Request Replay
+
+| Tool              | Description                                                                         |
+| ----------------- | ---------------------------------------------------------------------------------- |
+| `replay_request`  | Send an HTTP request directly, bypassing the proxy. Useful for testing APIs        |
+| `replay_sequence` | Replay multiple captured transactions in sequence (optional delay between requests) |
+| `advanced_repeat` | Repeat a request with configurable concurrency/delay and return aggregate stats     |
 
 ### Intercept Rule Management
 
@@ -92,12 +112,68 @@ With Cheolsu Proxy running, ask your AI assistant a simple question like "What i
 | `add_rule`    | Add a new intercept rule (block, modify_request, modify_response, map_local, map_remote) |
 | `remove_rule` | Remove an intercept rule by its ID                                                       |
 
-### Proxy Status
+### Breakpoints
 
-| Tool            | Description                                                           |
-| --------------- | --------------------------------------------------------------------- |
-| `proxy_status`  | Check whether the proxy daemon is running and view traffic statistics |
-| `clear_traffic` | Clear all captured traffic data from memory                           |
+| Tool                       | Description                                                                       |
+| -------------------------- | -------------------------------------------------------------------------------- |
+| `list_breakpoints`         | List all breakpoint rules                                                         |
+| `add_breakpoint`           | Add a breakpoint rule (pause matching requests/responses for manual editing)      |
+| `remove_breakpoint`        | Remove a breakpoint rule by its ID                                                |
+| `list_pending_breakpoints` | List currently paused (pending) breakpoints                                       |
+| `resolve_breakpoint`       | Resolve a pending breakpoint (forward / modify_and_forward / drop / abort)        |
+
+### Host Mapping
+
+| Tool                  | Description                                                                       |
+| --------------------- | -------------------------------------------------------------------------------- |
+| `list_host_mappings`  | List all host mappings (DNS spoofing rules)                                       |
+| `add_host_mapping`    | Add a host mapping rule (wildcard support, original Host header preserved)        |
+| `remove_host_mapping` | Remove a host mapping rule by its ID                                              |
+
+### Reverse Proxy
+
+| Tool                        | Description                                                                  |
+| --------------------------- | --------------------------------------------------------------------------- |
+| `list_reverse_proxy_rules`  | List all reverse proxy rules                                                 |
+| `add_reverse_proxy_rule`    | Add a reverse proxy rule (Host pattern → backend server, wildcard support)   |
+| `remove_reverse_proxy_rule` | Remove a reverse proxy rule by its ID                                        |
+
+### Server Replay
+
+| Tool                   | Description                                                                       |
+| ---------------------- | -------------------------------------------------------------------------------- |
+| `list_server_replay`   | List all server replay entries                                                    |
+| `add_server_replay`    | Register a captured transaction for server replay (cached response for matches)   |
+| `remove_server_replay` | Remove a server replay entry by its ID                                            |
+| `clear_server_replay`  | Clear all server replay entries                                                   |
+
+### Settings
+
+| Tool                         | Description                                                                  |
+| ---------------------------- | --------------------------------------------------------------------------- |
+| `update_upstream_proxy`      | Configure upstream proxy (forward all traffic through it)                    |
+| `update_throttle`            | Configure network throttling (bytes/sec, simulate slow connections)         |
+| `update_proxy_auth`          | Configure proxy authentication (basic / bearer / apikey)                    |
+| `update_connection_strategy` | Set upstream connection strategy (lazy / eager / eager_with_fallback)        |
+| `update_quick_settings`      | Quick settings (no_caching, block_cookies, no_gzip, block_quic)             |
+| `update_client_certificate`  | Configure mTLS client certificate                                            |
+| `update_ssl_proxying_list`   | Configure SSL proxying list (blacklist/whitelist mode)                       |
+
+### Session & Export
+
+| Tool                    | Description                                                                       |
+| ----------------------- | -------------------------------------------------------------------------------- |
+| `save_session`          | Save captured traffic to a `.cheolsu` session file (`.cheolsu.gz` for gzip)       |
+| `load_session`          | Load a session (`.cheolsu`, `.cheolsu.gz`) or import a HAR (`.har`) (append opt.)  |
+| `export_har`            | Export captured traffic as HAR 1.2 JSON (filter by host/path)                     |
+| `generate_openapi_spec` | Generate an OpenAPI 3.0 specification from captured traffic                       |
+
+### Scripting
+
+| Tool            | Description                                                       |
+| --------------- | ---------------------------------------------------------------- |
+| `load_script`   | Load a JavaScript/TypeScript script (file path or inline code)   |
+| `unload_script` | Unload the currently loaded script                               |
 
 ---
 
@@ -151,4 +227,4 @@ graph TB
 
 The MCP server binary is a standalone process that acts as a client of the proxy daemon. It communicates with the AI assistant over standard input/output using the MCP protocol, and connects to the proxy daemon over a Unix Domain Socket.
 
-The MCP server keeps the most recent 1,000 HTTP transactions and 5,000 WebSocket messages in memory for fast querying. Older data is discarded automatically. Use `clear_traffic` to reset the data manually if needed.
+The MCP server keeps the most recent 1,000 HTTP transactions, 5,000 WebSocket messages, and 5,000 SSE events in memory for fast querying. Older data is discarded automatically. Use `clear_traffic` to reset the data manually if needed.
