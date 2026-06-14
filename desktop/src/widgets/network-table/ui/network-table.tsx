@@ -11,7 +11,7 @@ import type { HttpTransaction } from "@/entities/proxy";
 
 import { TableHeader } from "./table-header";
 import { TableBody } from "./table-body";
-import { useTableData } from "../hooks";
+import { useTableData, computeTimelineRange } from "../hooks";
 import { type ColumnKey, columns } from "../model";
 import { useAppSettingsStore } from "@/shared/stores/app-settings-store";
 import { Pin } from "lucide-react";
@@ -87,14 +87,19 @@ export const NetworkTable = ({
     return { pinnedTransactions: pinned, unpinnedTransactions: unpinned };
   }, [transactions, pinnedTransactionIds]);
 
+  // pinned/unpinned가 동일한 Waterfall 시간축을 쓰도록 전체 트랜잭션 기준으로 한 번만 계산해 공유한다.
+  const timelineRange = useMemo(() => computeTimelineRange(transactions), [transactions]);
+
   const { tableData: pinnedTableData } = useTableData({
     transactions: pinnedTransactions,
     selectedTransaction,
+    timelineRange,
   });
 
   const { tableData: unpinnedTableData } = useTableData({
     transactions: unpinnedTransactions,
     selectedTransaction,
+    timelineRange,
   });
 
   // TanStack Table 인스턴스 (unpinned 데이터에 대해 정렬 적용)

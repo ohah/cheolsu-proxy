@@ -165,6 +165,14 @@ export const getFilteredTransactions = (
     );
 
     if (operator === "or") {
+      // 제외(exclude) 필터는 OR 모드에서도 항상 AND로 적용되어야 한다.
+      // (과거엔 다른 차원의 include가 매칭되면 exclude가 무시되어 제외 대상이 표시됐다)
+      const notExcluded =
+        matchesStatusFilter(status, [], excludeStatus) &&
+        matchesMethodFilter(method, [], excludeMethods) &&
+        matchesPathFilter(path, [], excludeUrls) &&
+        matchesClientFilter(clientAddr, proxyAuthUser, [], excludeClients, clientTags);
+
       const hasIncludeFilter =
         statusFilter.length > 0 ||
         methodFilter.length > 0 ||
@@ -172,16 +180,17 @@ export const getFilteredTransactions = (
         clientFilters.length > 0;
 
       if (!hasIncludeFilter) {
-        return statusMatch && methodMatch && pathMatch && clientMatch;
+        return notExcluded;
       }
 
       const includeMatch =
-        (statusFilter.length > 0 && statusMatch) ||
-        (methodFilter.length > 0 && methodMatch) ||
-        (pathFilters.length > 0 && pathMatch) ||
-        (clientFilters.length > 0 && clientMatch);
+        (statusFilter.length > 0 && matchesStatusFilter(status, statusFilter, [])) ||
+        (methodFilter.length > 0 && matchesMethodFilter(method, methodFilter, [])) ||
+        (pathFilters.length > 0 && matchesPathFilter(path, pathFilters, [])) ||
+        (clientFilters.length > 0 &&
+          matchesClientFilter(clientAddr, proxyAuthUser, clientFilters, [], clientTags));
 
-      return includeMatch;
+      return notExcluded && includeMatch;
     }
 
     return statusMatch && methodMatch && pathMatch && clientMatch;

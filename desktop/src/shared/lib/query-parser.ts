@@ -31,6 +31,35 @@ export interface ParsedQuery {
  * - or : 논리 OR (하나라도 만족)
  * - and : 논리 AND (모두 만족, 기본값)
  */
+/**
+ * 이스케이프되지 않은 콤마(,)로 값을 분리하고, 각 조각의 이스케이프(\, \" \' \` \\)를 해제한다.
+ * 값 안에 콤마가 포함돼도(예: URL의 쿼리 파라미터) 여러 조건으로 잘못 분해되지 않는다.
+ */
+function splitEscapedValues(raw: string): string[] {
+  const parts: string[] = [];
+  let current = "";
+  for (let i = 0; i < raw.length; i += 1) {
+    const ch = raw[i];
+    if (ch === "\\" && i + 1 < raw.length) {
+      const next = raw[i + 1];
+      // 알려진 이스케이프(\, \" \' \` \\)만 해제하고, 그 외(\d 등 정규식)는 백슬래시를 보존한다
+      if (next === "," || next === '"' || next === "'" || next === "`" || next === "\\") {
+        current += next;
+      } else {
+        current += ch + next;
+      }
+      i += 1;
+    } else if (ch === ",") {
+      parts.push(current);
+      current = "";
+    } else {
+      current += ch;
+    }
+  }
+  parts.push(current);
+  return parts;
+}
+
 export function parseFilterQuery(query: string): ParsedQuery {
   const result: ParsedQuery = {
     methods: [],
@@ -60,17 +89,14 @@ export function parseFilterQuery(query: string): ParsedQuery {
     const [, key, operator] = match;
     // 3개 캡처 그룹 중 매칭된 것 사용
     const rawValue = match[3] ?? match[4] ?? match[5] ?? "";
-    // 이스케이프 처리: \", \', \`, \\ → 원래 문자로
-    const value = rawValue.replace(/\\(["'`\\])/g, "$1");
+    // 이스케이프되지 않은 콤마로 값을 분리하고 각 조각의 이스케이프를 해제한다(값 내부 콤마 보존)
+    const values = splitEscapedValues(rawValue);
     const isExclude = operator === "!=";
 
     switch (key.toLowerCase()) {
       case "method":
       case "methods": {
-        const methods = value
-          .split(",")
-          .map((m) => m.trim().toUpperCase())
-          .filter(Boolean);
+        const methods = values.map((m) => m.trim().toUpperCase()).filter(Boolean);
 
         if (isExclude) {
           result.excludeMethods.push(...methods);
@@ -81,10 +107,7 @@ export function parseFilterQuery(query: string): ParsedQuery {
       }
 
       case "status": {
-        const statuses = value
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean);
+        const statuses = values.map((s) => s.trim()).filter(Boolean);
 
         if (isExclude) {
           result.excludeStatus.push(...statuses);
@@ -96,10 +119,7 @@ export function parseFilterQuery(query: string): ParsedQuery {
 
       case "url": {
         // 콤마로 구분된 여러 URL 조건 지원
-        const urlParts = value
-          .split(",")
-          .map((u) => u.trim())
-          .filter(Boolean);
+        const urlParts = values.map((u) => u.trim()).filter(Boolean);
 
         if (isExclude) {
           result.excludeUrls.push(...urlParts);
@@ -110,10 +130,7 @@ export function parseFilterQuery(query: string): ParsedQuery {
       }
 
       case "client": {
-        const clientParts = value
-          .split(",")
-          .map((c) => c.trim())
-          .filter(Boolean);
+        const clientParts = values.map((c) => c.trim()).filter(Boolean);
 
         if (isExclude) {
           result.excludeClients.push(...clientParts);

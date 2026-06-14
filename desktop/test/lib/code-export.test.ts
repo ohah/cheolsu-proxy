@@ -88,7 +88,8 @@ describe("generateCurlCommand", () => {
         data_type: "Text",
       }),
     );
-    expect(result).toContain("it\\'s a test");
+    // 단일 따옴표 문자열에서는 '\'' 방식으로 이스케이프해야 셸에서 올바르게 동작한다
+    expect(result).toContain("it'\\''s a test");
   });
 });
 

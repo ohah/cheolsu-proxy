@@ -117,20 +117,26 @@ export const BinaryPreview = ({
   useEffect(() => {
     if (!showPdf || dataType !== "Document") return;
 
+    // cleanup이 실제 생성된 URL을 해제하도록 로컬 변수에 보관한다.
+    // (state의 pdfUrl을 cleanup에서 참조하면 stale 값이라 누수가 발생)
+    let objectUrl: string | null = null;
+    let cancelled = false;
+
     const createPdfUrl = async () => {
       const loaded = await loadFileData();
-      if (!loaded) return;
+      if (!loaded || cancelled) return;
       const blob = new Blob([loaded.buffer as ArrayBuffer], {
         type: "application/pdf",
       });
-      const url = URL.createObjectURL(blob);
-      setPdfUrl(url);
+      objectUrl = URL.createObjectURL(blob);
+      setPdfUrl(objectUrl);
     };
 
     createPdfUrl();
 
     return () => {
-      if (pdfUrl) URL.revokeObjectURL(pdfUrl);
+      cancelled = true;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
   }, [showPdf]);
 
