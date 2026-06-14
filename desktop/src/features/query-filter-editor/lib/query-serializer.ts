@@ -31,12 +31,18 @@ export function createEmptyCondition(): FilterCondition {
 /**
  * BuilderState → 쿼리 문자열
  */
+// 파서가 콤마를 구분자로 split하므로, 값 내부 콤마를 \,로 escape해야 round-trip이 깨지지 않는다.
+// (백슬래시/따옴표는 기존 동작 유지를 위해 건드리지 않는다 — 정규식 패턴 \d 등 보존)
+function escapeFilterValue(v: string): string {
+  return v.replace(/,/g, "\\,");
+}
+
 export function serializeBuilderState(state: BuilderState): string {
   const activeParts: { query: string; logicalOperator: "and" | "or" }[] = [];
 
   for (const condition of state.conditions) {
     if (condition.values.length === 0) continue;
-    const valueStr = condition.values.join(",");
+    const valueStr = condition.values.map(escapeFilterValue).join(",");
     activeParts.push({
       query: `${condition.field}${condition.operator}"${valueStr}"`,
       logicalOperator: condition.logicalOperator,

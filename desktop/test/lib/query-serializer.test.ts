@@ -537,11 +537,12 @@ describe("엣지 케이스", () => {
     expect(serializeBuilderState(state)).toBe('url|="/users/\\d+"');
   });
 
-  test("URL 값에 콤마가 포함된 경우 그대로 직렬화", () => {
+  test("URL 단일 값에 콤마가 포함되면 \\,로 이스케이프된다", () => {
     const state: BuilderState = {
       conditions: [cond({ field: "url", operator: "|=", values: ["api,cdn"] })],
     };
-    expect(serializeBuilderState(state)).toBe('url|="api,cdn"');
+    // 콤마가 포함된 "단일 값"이므로 구분자와 구별되도록 \,로 이스케이프되어야 한다
+    expect(serializeBuilderState(state)).toBe('url|="api\\,cdn"');
   });
 
   test("status 값이 와일드카드 패턴 (2xx, 3xx 등)", () => {
@@ -571,5 +572,15 @@ describe("엣지 케이스", () => {
     const state = parsedQueryToBuilderState(parsed);
     // BuilderState에는 conditions만 있어야 함
     expect(Object.keys(state)).toEqual(["conditions"]);
+  });
+
+  test("콤마가 포함된 단일 값이 round-trip에서 분해되지 않음", () => {
+    const state: BuilderState = {
+      conditions: [cond({ field: "url", operator: "|=", values: ["https://a.com/?x=1,2"] })],
+    };
+    const query = serializeBuilderState(state);
+    const parsed = parseFilterQuery(query);
+    // 콤마가 있어도 단일 URL 값으로 복원되어야 함
+    expect(parsed.urls).toEqual(["https://a.com/?x=1,2"]);
   });
 });

@@ -5,12 +5,39 @@ import type { HttpTransaction } from "@/entities/proxy";
 import { getAuthority } from "../lib";
 import type { TableRowData } from "../model";
 
+/** 트랜잭션 집합에 대한 Waterfall 시간축 범위를 계산한다. */
+export function computeTimelineRange(transactions: HttpTransaction[]): {
+  start: number;
+  end: number;
+} {
+  let minStart = Infinity;
+  let maxEnd = -Infinity;
+  for (const transaction of transactions) {
+    const reqTime = transaction.request?.time;
+    const resTime = transaction.response?.time;
+    if (reqTime != null && reqTime < minStart) minStart = reqTime;
+    if (resTime != null && resTime > maxEnd) maxEnd = resTime;
+    // 응답이 없으면 요청 시각을 끝으로 간주
+    if (reqTime != null && resTime == null && reqTime > maxEnd) maxEnd = reqTime;
+  }
+  if (!isFinite(minStart)) return { start: 0, end: 0 };
+  // 최소 범위 100ms (너무 짧으면 바가 안 보임)
+  if (maxEnd - minStart < 100_000_000) maxEnd = minStart + 100_000_000;
+  return { start: minStart, end: maxEnd };
+}
+
 interface UseTableDataProps {
   transactions: HttpTransaction[];
   selectedTransaction: HttpTransaction | null;
+  /** 공유 Waterfall 시간축. 지정하지 않으면 transactions로 자체 계산한다. */
+  timelineRange?: { start: number; end: number };
 }
 
-export const useTableData = ({ transactions, selectedTransaction }: UseTableDataProps) => {
+export const useTableData = ({
+  transactions,
+  selectedTransaction,
+  timelineRange,
+}: UseTableDataProps) => {
   const selectedTime = useMemo(
     () => selectedTransaction?.request?.time,
     [selectedTransaction?.request?.time],
@@ -54,25 +81,12 @@ export const useTableData = ({ transactions, selectedTransaction }: UseTableData
     });
   }, [transactions]);
 
-  // Waterfall 시간축 범위 계산
+  // Waterfall 시간축 범위. 공유 범위가 주어지면 그것을 사용(pinned/unpinned가 동일 축을 쓰도록),
+  // 없으면 자체 계산한다.
   const { timelineStart, timelineEnd } = useMemo(() => {
-    let minStart = Infinity;
-    let maxEnd = -Infinity;
-
-    for (const { transaction } of processedTransactions) {
-      const reqTime = transaction.request?.time;
-      const resTime = transaction.response?.time;
-      if (reqTime != null && reqTime < minStart) minStart = reqTime;
-      if (resTime != null && resTime > maxEnd) maxEnd = resTime;
-      // 응답이 없으면 요청 시각을 끝으로 간주
-      if (reqTime != null && resTime == null && reqTime > maxEnd) maxEnd = reqTime;
-    }
-
-    if (!isFinite(minStart)) return { timelineStart: 0, timelineEnd: 0 };
-    // 최소 범위 100ms (너무 짧으면 바가 안 보임)
-    if (maxEnd - minStart < 100_000_000) maxEnd = minStart + 100_000_000;
-    return { timelineStart: minStart, timelineEnd: maxEnd };
-  }, [processedTransactions]);
+    const range = timelineRange ?? computeTimelineRange(transactions);
+    return { timelineStart: range.start, timelineEnd: range.end };
+  }, [transactions, timelineRange]);
 
   const tableData = useMemo<TableRowData[]>(() => {
     return processedTransactions.map((item) => ({

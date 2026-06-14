@@ -98,7 +98,8 @@ export function useReplayForm({ transaction, open }: UseReplayFormOptions) {
       if (!openRef.current) return;
       setError(typeof e === "string" ? e : e instanceof Error ? e.message : t`Request failed`);
     } finally {
-      if (openRef.current) setLoading(false);
+      // 요청 중 다이얼로그를 닫아도 loading은 반드시 해제해야 재오픈 시 버튼이 고착되지 않는다
+      setLoading(false);
     }
   }, [method, url, headers, body, t]);
 

@@ -27,6 +27,9 @@ export function useBodyFile(
       return;
     }
 
+    // filePath가 바뀌면 이전 비동기 읽기 결과를 무시(stale body 표시 방지)
+    let cancelled = false;
+
     const loadBody = async () => {
       setLoading(true);
       setError(null);
@@ -39,16 +42,22 @@ export function useBodyFile(
         const rawData = await readFile(appCachePath, {
           baseDir: BaseDirectory.AppCache,
         });
+        if (cancelled) return;
         setBody(rawData);
       } catch (err) {
+        if (cancelled) return;
         setError(err instanceof Error ? err.message : "파일 읽기 실패");
         setBody(null);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
     loadBody();
+
+    return () => {
+      cancelled = true;
+    };
   }, [filePath, enabled]);
 
   return { body, loading, error };

@@ -26,7 +26,8 @@ export const generateCurlCommand = (transaction: HttpTransaction): string => {
     const uint8Array = body instanceof Uint8Array ? body : new Uint8Array(body);
     const bodyText = decoder.decode(uint8Array);
     if (bodyText.trim()) {
-      curlCommand += ` \\\n  -d '${bodyText.replace(/'/g, "\\'")}'`;
+      // 단일 따옴표 문자열에서는 \' 이스케이프가 동작하지 않으므로 '\'' 방식을 사용해야 한다
+      curlCommand += ` \\\n  -d '${escapeSingleQuote(bodyText)}'`;
     }
   }
 

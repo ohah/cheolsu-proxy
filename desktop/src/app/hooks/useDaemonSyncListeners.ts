@@ -42,14 +42,13 @@ export function useDaemonSyncListeners() {
     const unlisten = listen<InterceptRule[]>("intercept_rules_updated", (event) => {
       const rules = event.payload;
       updateDaemonRules(rules);
-      const interceptRules = rules.filter(
-        (r) =>
-          r.action.type === "block" ||
-          r.action.type === "modify_request" ||
-          r.action.type === "modify_response",
-      );
       const mapRules = rules.filter(
         (r) => r.action.type === "map_local" || r.action.type === "map_remote",
+      );
+      // map 규칙을 제외한 모든 규칙(block/modify/rewrite/throttle 등)은 intercept로 분류한다.
+      // (과거엔 화이트리스트에서 rewrite/throttle이 빠져 브로드캐스트 시 GUI에서 소실됐다)
+      const interceptRules = rules.filter(
+        (r) => r.action.type !== "map_local" && r.action.type !== "map_remote",
       );
       setInterceptRules(interceptRules);
       setMapRules(mapRules);
