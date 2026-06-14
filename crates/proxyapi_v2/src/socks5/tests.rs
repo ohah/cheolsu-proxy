@@ -47,7 +47,7 @@ mod tests {
         assert_eq!(
             TargetAddr::Ipv6([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], 80)
                 .to_address_string(),
-            "::1:80"
+            "[::1]:80"
         );
     }
 
@@ -61,6 +61,6 @@ mod tests {
 
         let addr: SocketAddr = "[::1]:443".parse().unwrap();
         let target = TargetAddr::from_socket_addr(addr);
-        assert_eq!(target.to_address_string(), "::1:443");
+        assert_eq!(target.to_address_string(), "[::1]:443");
     }
 }
