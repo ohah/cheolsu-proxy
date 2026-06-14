@@ -17,6 +17,8 @@ pub(super) struct CommandState {
     pub(super) shared: SharedDaemonState,
     pub(super) subscribed: Arc<std::sync::atomic::AtomicBool>,
     pub(super) watched_path: Arc<Mutex<Option<String>>>,
+    /// 현재 실행 중인 파일 감시 태스크 핸들(클라이언트 종료/스크립트 교체 시 abort용)
+    pub(super) watcher_handle: Arc<Mutex<Option<tokio::task::JoinHandle<()>>>>,
 }
 
 impl CommandState {
@@ -219,15 +221,21 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bo
                     info!("Script loaded successfully");
                     // 파일 감시 시작
                     if let Some(file_path) = &path {
-                        let mut wp = ctx.watched_path.lock().await;
-                        *wp = Some(file_path.clone());
-                        start_file_watcher(
+                        {
+                            let mut wp = ctx.watched_path.lock().await;
+                            *wp = Some(file_path.clone());
+                        }
+                        let new_handle = start_file_watcher(
                             file_path.clone(),
                             s.script_handle.clone(),
                             ctx.writer.clone(),
                             ctx.watched_path.clone(),
                             s.event_tx.clone(),
                         );
+                        // 이전 감시 태스크를 정리해 태스크/소켓 FD 누수를 방지한다.
+                        if let Some(old) = ctx.watcher_handle.lock().await.replace(new_handle) {
+                            old.abort();
+                        }
                     }
                     // 스크립트 상태 브로드캐스트
                     s.broadcast_event(&DaemonMessage::ScriptStatus {

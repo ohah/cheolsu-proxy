@@ -12,7 +12,7 @@ pub(super) fn start_file_watcher(
     writer: Arc<Mutex<tokio::net::unix::OwnedWriteHalf>>,
     watched_path: Arc<Mutex<Option<String>>>,
     event_tx: broadcast::Sender<String>,
-) {
+) -> tokio::task::JoinHandle<()> {
     use notify::{EventKind, RecursiveMode, Watcher};
 
     tokio::spawn(async move {
@@ -97,5 +97,5 @@ pub(super) fn start_file_watcher(
         }
 
         info!("[Script] File watcher stopped: {}", path);
-    });
+    })
 }

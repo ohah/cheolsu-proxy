@@ -26,11 +26,15 @@ impl WebSocketHandler for LoggingHandler {
     }
 
     async fn on_disconnected(&mut self, ctx: &WebSocketContext) {
+        let connection_id = match ctx {
+            WebSocketContext::ClientToServer { dst, .. } => dst.to_string(),
+            WebSocketContext::ServerToClient { src, .. } => src.to_string(),
+        };
+
+        // 연결 종료 시 mqtt_versions 항목을 정리해 메모리 누수를 방지한다.
+        self.ws.mqtt_versions.lock().remove(&connection_id);
+
         if let Some(ws_sender) = &self.ws.ws_sender {
-            let connection_id = match ctx {
-                WebSocketContext::ClientToServer { dst, .. } => dst.to_string(),
-                WebSocketContext::ServerToClient { src, .. } => src.to_string(),
-            };
             let event = WsConnectionEvent::Disconnected {
                 connection_id,
                 time: chrono::Local::now()
@@ -46,7 +50,7 @@ impl WebSocketHandler for LoggingHandler {
     async fn handle_message(&mut self, ctx: &WebSocketContext, msg: Message) -> Option<Message> {
         let (direction, connection_id, url) = Self::extract_ws_context(ctx);
 
-        let (message_type, payload, size, is_binary) = match Self::convert_ws_message_payload(&msg)
+        let (message_type, payload, _size, is_binary) = match Self::convert_ws_message_payload(&msg)
         {
             Some(tuple) => tuple,
             None => return Some(msg),
@@ -63,6 +67,9 @@ impl WebSocketHandler for LoggingHandler {
                 is_binary,
             )
             .await?;
+
+        // 스크립트가 메시지를 수정했을 수 있으므로 size를 (수정 후) 실제 메시지에서 다시 계산한다.
+        let size = msg.len();
 
         self.emit_ws_event(
             connection_id,
