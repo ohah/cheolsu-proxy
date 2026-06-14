@@ -150,6 +150,10 @@ where
 
             if should_intercept {
                 if full_buffer.len() >= 4 && full_buffer[..4] == *b"GET " {
+                    // 평문 GET(HTTP/ws over CONNECT)은 TLS 스니핑이 불필요하므로 eager 태스크 취소
+                    if let Some(handle) = eager_handle {
+                        handle.abort();
+                    }
                     if let Err(e) = self
                         .serve_stream(TokioIo::new(upgraded), Scheme::HTTP, authority)
                         .await
@@ -185,16 +189,12 @@ where
     /// 클라이언트로부터 TLS ClientHello 메시지를 읽는 헬퍼
     async fn read_client_hello<S: AsyncRead + Unpin>(stream: &mut S) -> Option<Vec<u8>> {
         let mut header_buffer = [0; 5];
-        let header_bytes_read = match stream.read(&mut header_buffer).await {
-            Ok(n) => n,
-            Err(e) => {
+        // read_exact로 5바이트 헤더를 모두 읽는다(단일 read는 TCP 단편화 시 5바이트 미만을
+        // 반환해 정상 연결을 'header too short'로 끊을 수 있다).
+        if let Err(e) = stream.read_exact(&mut header_buffer).await {
+            if e.kind() != std::io::ErrorKind::UnexpectedEof {
                 error!("Failed to read TLS header from upgraded connection: {}", e);
-                return None;
             }
-        };
-
-        if header_bytes_read < 5 {
-            error!("TLS header too short: {} bytes", header_bytes_read);
             return None;
         }
 
@@ -214,29 +214,11 @@ where
 
         let remaining_bytes = total_expected_length - 5;
         if remaining_bytes > 0 {
-            let remaining_bytes_read = match stream.read(&mut full_buffer[5..]).await {
-                Ok(n) => n,
-                Err(e) => {
-                    error!("Failed to read remaining TLS data: {}", e);
-                    return None;
-                }
-            };
-
-            debug!(
-                header_bytes = 5,
-                remaining_bytes_read,
-                remaining_bytes_expected = remaining_bytes,
-                total_bytes_read = 5 + remaining_bytes_read,
-                "[BUFFER-READ] 데이터 읽기 완료"
-            );
-
-            if remaining_bytes_read < remaining_bytes {
-                warn!(
-                    remaining_bytes_read,
-                    remaining_bytes_expected = remaining_bytes,
-                    "전체 ClientHello가 완전히 읽히지 않음 — 실제 수신 크기로 버퍼 절삭"
-                );
-                full_buffer.truncate(5 + remaining_bytes_read);
+            // read_exact로 ClientHello 본문 전체를 읽는다(단일 read는 큰 ClientHello를
+            // 부분만 읽어 버퍼를 절삭 → cert/fingerprint 미러링 품질 저하를 유발했다).
+            if let Err(e) = stream.read_exact(&mut full_buffer[5..]).await {
+                error!("Failed to read remaining TLS data: {}", e);
+                return None;
             }
         }
 
@@ -423,6 +405,9 @@ where
                             timeout_secs = TLS_HANDSHAKE_TIMEOUT_SECS,
                             "TLS 핸드셰이크 타임아웃"
                         );
+                        if let Some(ref metrics) = self.ctx.metrics {
+                            metrics.record_timeout();
+                        }
                         self.record_tls_failure(authority);
                         return;
                     }
@@ -513,12 +498,18 @@ where
         if let Some(ref passthrough) = self.ctx.tls_passthrough {
             passthrough.record_failure(authority);
         }
+        if let Some(ref metrics) = self.ctx.metrics {
+            metrics.record_tls_handshake(false);
+        }
     }
 
     /// TLS 성공 시 이전 실패 기록을 제거하여 바이패스 해제
     fn record_tls_success(&self, authority: &Authority) {
         if let Some(ref passthrough) = self.ctx.tls_passthrough {
             passthrough.record_success(authority);
+        }
+        if let Some(ref metrics) = self.ctx.metrics {
+            metrics.record_tls_handshake(true);
         }
     }
 
