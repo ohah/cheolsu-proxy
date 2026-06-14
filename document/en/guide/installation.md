@@ -6,22 +6,22 @@ Getting Cheolsu Proxy installed and running on your machine.
 
 ## System Requirements
 
-| Platform                          | Status      |
-| --------------------------------- | ----------- |
-| **macOS** (Apple Silicon & Intel) | Supported   |
-| **Windows**                       | Coming soon |
-| **Linux**                         | Coming soon |
+| Platform                         | Status      |
+| -------------------------------- | ----------- |
+| **macOS** (Apple Silicon)        | Supported   |
+| **macOS** (Intel / x64)          | Not built   |
+| **Windows**                      | Coming soon |
+| **Linux**                        | Coming soon |
 
 Cheolsu Proxy is a native desktop application built with Rust and Tauri, so it runs with minimal resource overhead compared to Electron-based alternatives. There are no runtime dependencies like Java or Python to install.
 
 ## Download
 
-Download the latest release from the [GitHub Releases](https://github.com/ohah/cheolsu-proxy/releases) page. Choose the `.dmg` file that matches your Mac's architecture:
+Download the latest release from the [GitHub Releases](https://github.com/ohah/cheolsu-proxy/releases) page:
 
-- **Apple Silicon** (M1/M2/M3/M4): `cheolsu-proxy_x.x.x_aarch64.dmg`
-- **Intel**: `cheolsu-proxy_x.x.x_x64.dmg`
+- **Apple Silicon** (M1/M2/M3/M4): `Cheolsu.Proxy_x.x.x_aarch64.dmg`
 
-> Not sure which Mac you have? Click the Apple menu and select **About This Mac**. If the Chip field says "Apple M1" or similar, choose the Apple Silicon build.
+> Only the Apple Silicon (aarch64) build is currently published. An Intel (x64) build is not provided.
 
 ## macOS Installation
 
@@ -43,6 +43,12 @@ To open it anyway:
 
 You only need to do this once. Subsequent launches will work normally.
 
+> The current build is not Apple-notarized/signed. If it still won't open, remove the quarantine attribute from the Terminal:
+>
+> ```bash
+> xattr -cr "/Applications/Cheolsu Proxy.app"
+> ```
+
 ## Three Ways to Use Cheolsu Proxy
 
 Cheolsu Proxy ships with three interfaces, all powered by the same underlying proxy daemon:
@@ -58,10 +64,12 @@ A terminal-based interface for developers who prefer working in the command line
 To run the TUI:
 
 ```bash
-cheolsu-proxy-tui
+cheolsu-tui
 ```
 
-> The TUI binary is bundled alongside the desktop app. If it is not in your PATH, you can find it inside the application bundle or in the same directory as the main binary.
+If you have the CLI installed, you can also launch it via `cheolsu tui --port 8100`.
+
+> The TUI binary (`cheolsu-tui`) is bundled with the desktop app as a sidecar. If it is not in your PATH, find it inside the application bundle, or build it from source with `cargo build -p cheolsu-proxy-tui --release`.
 
 ### 3. MCP Server
 

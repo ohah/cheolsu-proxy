@@ -9,7 +9,7 @@ Cheolsu Proxy를 설치하고 첫 실행까지의 과정을 안내합니다.
 ### macOS
 
 - **운영체제**: macOS 12 (Monterey) 이상
-- **아키텍처**: Apple Silicon (M1/M2/M3/M4) 및 Intel 모두 지원
+- **아키텍처**: Apple Silicon (M1/M2/M3/M4). Intel(x64) 빌드는 현재 제공되지 않습니다.
 - **디스크 공간**: 최소 200MB 이상의 여유 공간
 - **권한**: 프록시 설정 변경을 위한 관리자 권한 필요
 
@@ -24,11 +24,10 @@ Cheolsu Proxy를 설치하고 첫 실행까지의 과정을 안내합니다.
 최신 버전은 GitHub Releases 페이지에서 다운로드할 수 있습니다.
 
 1. [GitHub Releases](https://github.com/ohah/cheolsu-proxy/releases) 페이지에 접속합니다
-2. 최신 릴리즈의 Assets 섹션에서 운영체제에 맞는 파일을 다운로드합니다
+2. 최신 릴리즈의 Assets 섹션에서 파일을 다운로드합니다
    - **macOS (Apple Silicon)**: `Cheolsu.Proxy_x.x.x_aarch64.dmg`
-   - **macOS (Intel)**: `Cheolsu.Proxy_x.x.x_x64.dmg`
 
-> 본인의 Mac이 Apple Silicon인지 Intel인지 확인하려면, 좌측 상단 Apple 메뉴 → **이 Mac에 관하여**에서 칩 정보를 확인하세요.
+> 현재 빌드는 Apple Silicon(aarch64)만 제공됩니다. Intel(x64) 빌드는 제공되지 않습니다.
 
 ---
 
@@ -54,6 +53,12 @@ Cheolsu Proxy를 처음 실행하면 macOS Gatekeeper가 실행을 차단할 수
 
 또는 **시스템 설정 → 개인정보 보호 및 보안** 하단에서 "확인 없이 열기" 옵션을 통해 허용할 수도 있습니다.
 
+> 현재 빌드는 Apple 공증/서명이 적용되어 있지 않습니다. 위 방법으로도 열리지 않으면 터미널에서 quarantine 속성을 제거할 수 있습니다.
+>
+> ```bash
+> xattr -cr "/Applications/Cheolsu Proxy.app"
+> ```
+
 ---
 
 ## 인터페이스 소개
@@ -76,13 +81,19 @@ Tauri 기반의 데스크톱 애플리케이션입니다. 트래픽 테이블, �
 
 ## TUI 실행 방법
 
-TUI는 터미널에서 별도의 바이너리로 실행합니다. Desktop GUI와 동일한 프록시 데몬에 연결되므로, 두 인터페이스를 동시에 사용할 수도 있습니다.
+TUI는 터미널에서 `cheolsu-tui` 바이너리로 실행합니다. Desktop GUI와 동일한 프록시 데몬에 연결되므로, 두 인터페이스를 동시에 사용할 수도 있습니다.
 
 ```bash
-cheolsu-proxy-tui
+cheolsu-tui
 ```
 
-> TUI 바이너리는 Desktop 앱과 별도로 제공됩니다. GitHub Releases에서 TUI 바이너리를 확인하세요.
+CLI를 설치했다면 `cheolsu tui`로도 실행할 수 있습니다.
+
+```bash
+cheolsu tui --port 8100
+```
+
+> TUI 바이너리(`cheolsu-tui`)는 Desktop 앱 번들에 사이드카로 포함되어 있습니다. 터미널에서 직접 실행하려면 앱 번들 내부의 바이너리를 PATH에 추가하거나 소스에서 빌드(`cargo build -p cheolsu-proxy-tui --release`)하세요.
 
 ---
 
