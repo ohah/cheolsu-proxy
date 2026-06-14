@@ -408,3 +408,93 @@ fn test_apply_script_response_modify_invalid_status_ignored() {
 
     assert_eq!(result.status(), StatusCode::OK);
 }
+
+// ── 바디 교체 시 stale content-length/encoding 헤더 제거 (회귀) ──
+
+#[test]
+fn test_apply_script_request_modify_body_clears_encoding_headers() {
+    let req = Request::builder()
+        .method(Method::POST)
+        .uri("http://example.com")
+        .body(Body::from("old body"))
+        .unwrap();
+
+    // 스크립트가 받은 헤더 맵에는 원본 content-length/encoding이 그대로 들어 있다.
+    let mut headers = HashMap::new();
+    headers.insert("content-length".to_string(), "8".to_string());
+    headers.insert("content-encoding".to_string(), "gzip".to_string());
+    headers.insert("transfer-encoding".to_string(), "chunked".to_string());
+    headers.insert("x-keep".to_string(), "yes".to_string());
+
+    let modified = make_script_request(
+        "POST",
+        "http://example.com",
+        headers,
+        Some("a much longer new body".to_string()),
+    );
+    let result = LoggingHandler::apply_script_request_modify(req, &modified);
+
+    // 바디를 교체했으므로 길이/인코딩 헤더는 제거되어야 한다.
+    assert!(result.headers().get("content-length").is_none());
+    assert!(result.headers().get("content-encoding").is_none());
+    assert!(result.headers().get("transfer-encoding").is_none());
+    // 그 외 헤더는 유지.
+    assert_eq!(result.headers().get("x-keep").unwrap(), "yes");
+}
+
+#[test]
+fn test_apply_script_request_modify_no_body_keeps_headers() {
+    let req = Request::builder()
+        .method(Method::POST)
+        .uri("http://example.com")
+        .body(Body::from("body"))
+        .unwrap();
+
+    let mut headers = HashMap::new();
+    headers.insert("content-length".to_string(), "4".to_string());
+    let modified = make_script_request("POST", "http://example.com", headers, None);
+    let result = LoggingHandler::apply_script_request_modify(req, &modified);
+
+    // 바디를 교체하지 않으면 헤더는 스크립트가 준 그대로 유지된다.
+    assert_eq!(result.headers().get("content-length").unwrap(), "4");
+}
+
+#[test]
+fn test_apply_script_response_modify_body_clears_encoding_headers() {
+    let res = Response::builder()
+        .status(StatusCode::OK)
+        .header("content-length", "8")
+        .header("content-encoding", "gzip")
+        .header("transfer-encoding", "chunked")
+        .header("x-keep", "yes")
+        .body(Body::from("old body"))
+        .unwrap();
+
+    let modified = make_script_response(
+        200,
+        HashMap::new(),
+        Some("a much longer new plaintext body".to_string()),
+    );
+    let result = LoggingHandler::apply_script_response_modify(res, &modified);
+
+    // 바디 교체 시 원본 content-length/encoding 제거(평문을 gzip으로 디코딩하는 손상 방지).
+    assert!(result.headers().get("content-length").is_none());
+    assert!(result.headers().get("content-encoding").is_none());
+    assert!(result.headers().get("transfer-encoding").is_none());
+    assert_eq!(result.headers().get("x-keep").unwrap(), "yes");
+}
+
+#[test]
+fn test_apply_script_response_modify_no_body_keeps_encoding_headers() {
+    let res = Response::builder()
+        .status(StatusCode::OK)
+        .header("content-encoding", "gzip")
+        .body(Body::from("original gzipped"))
+        .unwrap();
+
+    // 바디를 교체하지 않으면 원본 인코딩 헤더는 유지되어야 한다.
+    let modified = make_script_response(200, HashMap::new(), None);
+    let result = LoggingHandler::apply_script_response_modify(res, &modified);
+
+    assert_eq!(result.headers().get("content-encoding").unwrap(), "gzip");
+}
