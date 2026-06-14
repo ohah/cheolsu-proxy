@@ -24,6 +24,11 @@ use tracing::{Instrument, debug, error, info, info_span, warn};
 /// TLS 핸드셰이크 타임아웃 (초)
 const TLS_HANDSHAKE_TIMEOUT_SECS: u64 = 30;
 
+/// ClientHello(또는 첫 평문 바이트) 읽기 타임아웃 (초).
+/// 느리거나 악성인 클라이언트가 record length만 광고하고 본문을 보내지 않을 때
+/// read_exact가 영구 블록되어 태스크/FD가 누수되는 것을 막는다.
+const CLIENT_HELLO_READ_TIMEOUT_SECS: u64 = 30;
+
 /// 스로틀 설정을 적용하여 양방향 복사를 수행하는 헬퍼
 async fn copy_bidirectional_maybe_throttled<A, B>(
     a: &mut A,
@@ -138,9 +143,21 @@ where
 
             let mut upgraded = TokioIo::new(upgraded);
 
-            let full_buffer = match Self::read_client_hello(&mut upgraded).await {
-                Some(buf) => buf,
-                None => return,
+            let full_buffer = match tokio::time::timeout(
+                std::time::Duration::from_secs(CLIENT_HELLO_READ_TIMEOUT_SECS),
+                read_client_hello(&mut upgraded),
+            )
+            .await
+            {
+                Ok(Some(buf)) => buf,
+                Ok(None) => return,
+                Err(_) => {
+                    warn!(
+                        timeout_secs = CLIENT_HELLO_READ_TIMEOUT_SECS,
+                        "ClientHello 읽기 타임아웃 — 연결 종료"
+                    );
+                    return;
+                }
             };
 
             let upgraded = Rewind::new(upgraded, Bytes::copy_from_slice(&full_buffer));
@@ -184,45 +201,6 @@ where
 
         spawn_with_trace(fut, span);
         Response::new(Body::empty())
-    }
-
-    /// 클라이언트로부터 TLS ClientHello 메시지를 읽는 헬퍼
-    async fn read_client_hello<S: AsyncRead + Unpin>(stream: &mut S) -> Option<Vec<u8>> {
-        let mut header_buffer = [0; 5];
-        // read_exact로 5바이트 헤더를 모두 읽는다(단일 read는 TCP 단편화 시 5바이트 미만을
-        // 반환해 정상 연결을 'header too short'로 끊을 수 있다).
-        if let Err(e) = stream.read_exact(&mut header_buffer).await {
-            if e.kind() != std::io::ErrorKind::UnexpectedEof {
-                error!("Failed to read TLS header from upgraded connection: {}", e);
-            }
-            return None;
-        }
-
-        let record_length = u16::from_be_bytes([header_buffer[3], header_buffer[4]]) as usize;
-        let total_expected_length = 5 + record_length;
-
-        debug!(
-            record_type = format_args!("0x{:02x}", header_buffer[0]),
-            record_version = format_args!("0x{:02x}{:02x}", header_buffer[1], header_buffer[2]),
-            record_length,
-            total_expected_length,
-            "[BUFFER-READ] TLS 레코드 분석"
-        );
-
-        let mut full_buffer = vec![0; total_expected_length];
-        full_buffer[..5].copy_from_slice(&header_buffer);
-
-        let remaining_bytes = total_expected_length - 5;
-        if remaining_bytes > 0 {
-            // read_exact로 ClientHello 본문 전체를 읽는다(단일 read는 큰 ClientHello를
-            // 부분만 읽어 버퍼를 절삭 → cert/fingerprint 미러링 품질 저하를 유발했다).
-            if let Err(e) = stream.read_exact(&mut full_buffer[5..]).await {
-                error!("Failed to read remaining TLS data: {}", e);
-                return None;
-            }
-        }
-
-        Some(full_buffer)
     }
 
     /// 캐시 미스 시 Eager 전략으로 백그라운드 upstream cert 스니핑을 시작
@@ -553,5 +531,98 @@ where
         } else if let Err(e) = copy_fut.await {
             error!(authority = %authority, error = %e, "터널링 실패");
         }
+    }
+}
+
+/// 클라이언트로부터 TLS ClientHello(또는 첫 평문 바이트)를 읽는 헬퍼.
+///
+/// 첫 5바이트(레코드 헤더)를 read_exact로 읽은 뒤:
+/// - content type이 0x16(TLS handshake)이면 record length만큼 본문을 추가로 읽어 반환.
+/// - 그 외(평문 GET 등)는 record length를 파싱하지 않고 읽은 5바이트만 반환한다.
+///   평문 "GET /"의 [3],[4]가 레코드 길이(0x202F=8239)로 오인되어 read_exact가
+///   영구 블록되는 회귀를 막기 위한 것이다(나머지 바이트는 상위에서 Rewind+소켓으로 읽음).
+async fn read_client_hello<S: AsyncRead + Unpin>(stream: &mut S) -> Option<Vec<u8>> {
+    let mut header_buffer = [0; 5];
+    // read_exact로 5바이트 헤더를 모두 읽는다(단일 read는 TCP 단편화 시 5바이트 미만을
+    // 반환해 정상 연결을 'header too short'로 끊을 수 있다).
+    if let Err(e) = stream.read_exact(&mut header_buffer).await {
+        if e.kind() != std::io::ErrorKind::UnexpectedEof {
+            error!("Failed to read TLS header from upgraded connection: {}", e);
+        }
+        return None;
+    }
+
+    // TLS handshake 레코드(content type 0x16)가 아니면 record length 파싱을 하지 않는다.
+    if header_buffer[0] != 0x16 {
+        return Some(header_buffer.to_vec());
+    }
+
+    let record_length = u16::from_be_bytes([header_buffer[3], header_buffer[4]]) as usize;
+    let total_expected_length = 5 + record_length;
+
+    debug!(
+        record_type = format_args!("0x{:02x}", header_buffer[0]),
+        record_version = format_args!("0x{:02x}{:02x}", header_buffer[1], header_buffer[2]),
+        record_length,
+        total_expected_length,
+        "[BUFFER-READ] TLS 레코드 분석"
+    );
+
+    let mut full_buffer = vec![0; total_expected_length];
+    full_buffer[..5].copy_from_slice(&header_buffer);
+
+    let remaining_bytes = total_expected_length - 5;
+    if remaining_bytes > 0 {
+        // read_exact로 ClientHello 본문 전체를 읽는다(단일 read는 큰 ClientHello를
+        // 부분만 읽어 버퍼를 절삭 → cert/fingerprint 미러링 품질 저하를 유발했다).
+        if let Err(e) = stream.read_exact(&mut full_buffer[5..]).await {
+            error!("Failed to read remaining TLS data: {}", e);
+            return None;
+        }
+    }
+
+    Some(full_buffer)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::read_client_hello;
+
+    /// 회귀: 평문 GET-over-CONNECT(ws://)는 [3],[4]가 레코드 길이로 오인되면
+    /// read_exact가 영구 블록된다. 5바이트만 반환하고 행이 발생하지 않아야 한다.
+    #[tokio::test]
+    async fn plaintext_get_returns_five_bytes_without_hanging() {
+        let request = b"GET /chat HTTP/1.1\r\nHost: example.com\r\n\r\n";
+        let mut stream: &[u8] = &request[..];
+        let buf = read_client_hello(&mut stream)
+            .await
+            .expect("평문 GET은 헤더 5바이트를 반환해야 함");
+        assert_eq!(&buf, b"GET /");
+        // 나머지 바이트는 소켓(stream)에 남아 상위에서 Rewind로 이어 읽는다.
+        assert_eq!(stream, &request[5..]);
+    }
+
+    /// TLS handshake(0x16)는 record length만큼 본문을 추가로 읽어 전체를 반환한다.
+    #[tokio::test]
+    async fn tls_record_reads_full_body() {
+        // 0x16(handshake), 0x0301(TLS1.0 record ver), length=0x0004, body 4바이트
+        let record = [0x16u8, 0x03, 0x01, 0x00, 0x04, 0xde, 0xad, 0xbe, 0xef];
+        let mut stream: &[u8] = &record[..];
+        let buf = read_client_hello(&mut stream)
+            .await
+            .expect("TLS 레코드는 전체 버퍼를 반환해야 함");
+        assert_eq!(buf, record);
+        assert!(stream.is_empty());
+    }
+
+    /// 비-TLS이고 본문이 5바이트 미만이어도 읽은 만큼만 처리하고 행이 없어야 한다.
+    #[tokio::test]
+    async fn short_non_tls_does_not_block() {
+        let data = b"PRI *";
+        let mut stream: &[u8] = &data[..];
+        let buf = read_client_hello(&mut stream)
+            .await
+            .expect("비-TLS 5바이트는 그대로 반환");
+        assert_eq!(&buf, b"PRI *");
     }
 }
