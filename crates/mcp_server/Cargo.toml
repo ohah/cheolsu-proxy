@@ -12,7 +12,7 @@ name = "cheolsu-proxy-mcp"
 path = "src/main.rs"
 
 [dependencies]
-rmcp = { version = "1.2", features = ["server", "transport-io"] }
+rmcp = { version = "1.7", features = ["server", "transport-io"] }
 cheolsu_ops = { path = "../cheolsu_ops", features = ["schema"] }
 proxy_daemon = { path = "../proxy_daemon" }
 proxy_v2_models = { path = "../proxy_v2_models" }
