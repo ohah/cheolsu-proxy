@@ -251,6 +251,11 @@ impl LoggingHandler {
                     );
                     if let Some(new_body) = set_body {
                         use http_body_util::Full;
+                        // 바디를 교체하므로 stale content-length/encoding 헤더를 제거한다.
+                        // (제거하지 않으면 잘못된 content-length로 요청이 행/손상됨)
+                        crate::header_utils::clear_content_encoding_headers(
+                            current_req.headers_mut(),
+                        );
                         *current_req.body_mut() =
                             Body::from(Full::new(bytes::Bytes::from(new_body.clone())));
                     }

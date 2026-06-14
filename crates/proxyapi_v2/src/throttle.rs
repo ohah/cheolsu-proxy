@@ -124,7 +124,9 @@ impl TokenBucket {
 
     /// 다음 토큰이 생길 때까지 대기할 시간
     fn time_until_available(&self) -> Duration {
-        if self.tokens >= 1.0 {
+        // rate가 0 이하이면 나눗셈 결과가 inf/NaN이 되어 Duration::from_secs_f64가
+        // 패닉하므로 가드한다(ThrottledIo::new에서 rate>0만 버킷을 만들지만 방어적으로 둠).
+        if self.tokens >= 1.0 || self.rate <= 0.0 {
             return Duration::ZERO;
         }
         let needed = 1.0 - self.tokens;
@@ -166,8 +168,12 @@ impl<T> ThrottledIo<T> {
     pub fn new(inner: T, config: &ThrottleConfig) -> Self {
         Self {
             inner,
-            read_bucket: config.download_rate.map(TokenBucket::new),
-            write_bucket: config.upload_rate.map(TokenBucket::new),
+            // rate 0은 무제한(None)으로 취급해 0으로 나눗셈 패닉을 방지한다.
+            read_bucket: config
+                .download_rate
+                .filter(|&r| r > 0)
+                .map(TokenBucket::new),
+            write_bucket: config.upload_rate.filter(|&r| r > 0).map(TokenBucket::new),
             read_sleep: None,
             write_sleep: None,
             latency_applied: false,
@@ -348,6 +354,23 @@ mod tests {
             "Should take at least 2s, took {:?}",
             elapsed
         );
+    }
+
+    #[tokio::test]
+    async fn throttled_io_rate_zero_does_not_panic() {
+        // rate=0(Some(0))이어도 패닉 없이 무제한 패스스루로 동작해야 한다.
+        let data = b"hello world";
+        let cursor = std::io::Cursor::new(data.to_vec());
+        let config = ThrottleConfig {
+            enabled: true,
+            download_rate: Some(0),
+            upload_rate: Some(0),
+            latency_ms: 0,
+        };
+        let mut throttled = ThrottledIo::new(cursor, &config);
+        let mut buf = vec![0u8; 32];
+        let n = throttled.read(&mut buf).await.unwrap();
+        assert_eq!(&buf[..n], data);
     }
 
     #[tokio::test]
