@@ -17,13 +17,19 @@ cargo build -p cheolsu-cli --release
 cheolsu <subcommand> [options]
 ```
 
+Every command accepts the global `--output` option to choose the output format (`text` default, `json`).
+
+```bash
+cheolsu traffic search --host example.com --output json
+```
+
 ## Subcommands
 
 ### Traffic
 
 ```bash
-# Search captured traffic
-cheolsu traffic search --host example.com --method GET --limit 20
+# Search captured traffic (host/method/status/path/limit filters)
+cheolsu traffic search --host example.com --method GET --status 500 --path /api --limit 20
 
 # Get transaction details
 cheolsu traffic get <transaction-id>
@@ -32,7 +38,7 @@ cheolsu traffic get <transaction-id>
 cheolsu traffic ws --connection-id ws://example.com --limit 50
 
 # View SSE events
-cheolsu traffic sse --limit 50
+cheolsu traffic sse --connection-id https://example.com --limit 50
 
 # Compare two transactions
 cheolsu traffic diff <id-a> <id-b>
@@ -41,28 +47,104 @@ cheolsu traffic diff <id-a> <id-b>
 cheolsu traffic clear
 
 # Generate OpenAPI spec from traffic
-cheolsu traffic openapi --host api.example.com --title "My API"
+cheolsu traffic openapi --host api.example.com --path-prefix /v1 --title "My API"
 ```
 
 ### Rules
+
+The required options depend on `--action-type`.
 
 ```bash
 # List intercept rules
 cheolsu rule list
 
-# Add a block rule
-cheolsu rule add --name "Block ads" --pattern "*.ads.com" --action-type block
+# Block rule (optional custom status/body)
+cheolsu rule add --name "Block ads" --pattern "*.ads.com" --action-type block \
+  --status-code 403 --response-body "blocked"
 
-# Add a map-remote rule
+# Modify-request rule (add/remove headers)
+cheolsu rule add --name "Add auth" --pattern "*api.example.com*" \
+  --action-type modify_request --add-header "Authorization=Bearer token123" \
+  --remove-header "Cookie"
+
+# Modify-response rule
+cheolsu rule add --name "Allow CORS" --pattern "*api.example.com*" \
+  --action-type modify_response --add-header "Access-Control-Allow-Origin=*"
+
+# Map Local — serve the response from a local file
+cheolsu rule add --name "Mock response" --pattern "*api.example.com/users*" \
+  --action-type map_local --file-path ./mock/users.json
+
+# Map Remote
 cheolsu rule add --name "Dev redirect" --pattern "*api.example.com*" \
   --action-type map_remote --target-url "http://localhost:3000" --preserve-path true
 
-# Add a modify-request rule
-cheolsu rule add --name "Add auth" --pattern "*api.example.com*" \
-  --action-type modify_request --add-header "Authorization=Bearer token123"
-
 # Remove a rule
 cheolsu rule remove <rule-id>
+```
+
+### Breakpoints
+
+```bash
+# List breakpoint rules
+cheolsu breakpoint list
+
+# Add a breakpoint (choose request/response phase)
+cheolsu breakpoint add --pattern "*api.example.com*" \
+  --break-on-request true --break-on-response false
+
+# List paused (pending) breakpoints
+cheolsu breakpoint pending
+
+# Resolve a pending breakpoint (forward / modify_and_forward / drop / abort)
+cheolsu breakpoint resolve --id <bp-id> --action modify_and_forward \
+  --header "X-Debug=1" --body '{"patched":true}' --status 200
+
+# Remove a breakpoint
+cheolsu breakpoint remove <bp-id>
+```
+
+### Host Mapping
+
+```bash
+# List host mappings
+cheolsu host-mapping list
+
+# Add a host mapping (source → target, optional ports)
+cheolsu host-mapping add --source-host api.example.com \
+  --target-host 127.0.0.1 --target-port 3000
+
+# Remove a host mapping
+cheolsu host-mapping remove <mapping-id>
+```
+
+### Reverse Proxy
+
+```bash
+# List reverse proxy rules
+cheolsu reverse-proxy list
+
+# Add a rule (Host pattern → backend)
+cheolsu reverse-proxy add --match-host example.com \
+  --backend-scheme http --backend-host 127.0.0.1 --backend-port 8080 \
+  --rewrite-host true
+
+# Remove a rule
+cheolsu reverse-proxy remove <rule-id>
+```
+
+### Server Replay
+
+```bash
+# List server replay entries
+cheolsu server-replay list
+
+# Register a captured transaction for server replay (cached response for matches)
+cheolsu server-replay add <transaction-id>
+
+# Remove an entry / clear all
+cheolsu server-replay remove <entry-id>
+cheolsu server-replay clear
 ```
 
 ### Analysis
@@ -110,26 +192,33 @@ cheolsu replay repeat --method GET --url https://example.com \
 
 ### Settings
 
+> `--enabled`, `--no-caching`, etc. are **boolean flags that take no value**. Add the flag to turn it on, omit it to turn it off (e.g. `--enabled true` is an error).
+
 ```bash
-# Configure upstream proxy
-cheolsu settings upstream-proxy --enabled true --host proxy.corp.com --port 8080
+# Enable upstream proxy (auth optional)
+cheolsu settings upstream-proxy --enabled --host proxy.corp.com --port 8080 \
+  --username user --password pass
 
-# Enable throttling
-cheolsu settings throttle --enabled true --download-rate 50000 --latency-ms 200
+# Disable upstream proxy (omit the flag)
+cheolsu settings upstream-proxy --host proxy.corp.com --port 8080
 
-# Configure proxy authentication
-cheolsu settings proxy-auth --enabled true --method basic --username user --password pass
+# Configure throttling (rates in bytes/sec)
+cheolsu settings throttle --enabled --download-rate 50000 --upload-rate 20000 --latency-ms 200
 
-# Set connection strategy
+# Configure proxy authentication (basic / bearer / apikey)
+cheolsu settings proxy-auth --enabled --method basic --username user --password pass
+cheolsu settings proxy-auth --enabled --method bearer --token "my-token"
+
+# Set connection strategy (lazy / eager / eager_with_fallback)
 cheolsu settings connection-strategy eager
 
-# Quick settings
-cheolsu settings quick --no-caching true --block-cookies true
+# Quick settings (turn on only the flags you need)
+cheolsu settings quick --no-caching --block-cookies --no-gzip --block-quic
 
 # Configure client certificate (mTLS)
-cheolsu settings client-certificate --enabled true --cert-path ./cert.pem --key-path ./key.pem
+cheolsu settings client-certificate --enabled --cert-path ./cert.pem --key-path ./key.pem
 
-# Configure SSL proxying list
+# Configure SSL proxying list (mode: blacklist default / whitelist)
 cheolsu settings ssl-proxying-list --mode whitelist \
   --entry "api.example.com=true" \
   --entry "api.example.com:8443=true"
@@ -138,14 +227,28 @@ cheolsu settings ssl-proxying-list --mode whitelist \
 ### Session
 
 ```bash
-# Save current traffic to a session file
-cheolsu session save ./traffic.cheolsu --name "My Session"
+# Save current traffic to a session file (.cheolsu.gz to gzip, --filter for URL substring filter)
+cheolsu session save ./traffic.cheolsu --name "My Session" \
+  --description "Repro case" --filter example.com
 
-# Load a session file
+# Load a session file (.cheolsu/.cheolsu.gz) or import a HAR (.har)
 cheolsu session load ./traffic.cheolsu
 
 # Load and append to existing traffic
 cheolsu session load ./traffic.cheolsu --append
+```
+
+### Scripts
+
+```bash
+# Load a script from a file
+cheolsu script load --path ./my-script.js
+
+# Load inline code
+cheolsu script load --code "cheolsu.onRequest((req) => ({ action: 'forward' }));"
+
+# Unload the script
+cheolsu script unload
 ```
 
 ### Other
@@ -154,15 +257,19 @@ cheolsu session load ./traffic.cheolsu --append
 # Check proxy status
 cheolsu status
 
-# Export traffic as HAR file
+# Export traffic as HAR file (--host / --path filters)
 cheolsu export-har ./output.har --host example.com
 
 # Launch TUI mode
-cheolsu tui --port 8100
+cheolsu tui --port 8100 --host 0.0.0.0
 
-# Manage scripts
-cheolsu script load --path ./my-script.js
-cheolsu script unload
+# Install / check / uninstall Claude Code skills
+cheolsu install-skills
+cheolsu install-skills --check
+cheolsu uninstall-skills
+
+# Generate shell completion (bash / zsh / fish / powershell)
+cheolsu completion zsh > _cheolsu
 ```
 
 ## Exit Codes
