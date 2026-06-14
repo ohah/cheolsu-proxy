@@ -302,3 +302,38 @@ describe("parseUrlencoded", () => {
     expect(fields.map((f) => f.value)).toEqual(["a", "b", "c"]);
   });
 });
+
+describe("parseMultipartFormData (바이너리)", () => {
+  test("바이너리 파일 파트의 size가 원본 바이트 길이로 정확히 계산된다", () => {
+    const boundary = "BOUNDARY";
+    const enc = (s: string) => new TextEncoder().encode(s);
+    // 일부 비UTF-8 바이트를 포함한 5바이트 바이너리
+    const binary = new Uint8Array([0xff, 0x00, 0xfe, 0x80, 0x01]);
+    const segments: Uint8Array[] = [
+      enc(`--${boundary}\r\nContent-Disposition: form-data; name="field1"\r\n\r\nhello\r\n`),
+      enc(
+        `--${boundary}\r\nContent-Disposition: form-data; name="file1"; filename="a.bin"\r\nContent-Type: application/octet-stream\r\n\r\n`,
+      ),
+      binary,
+      enc(`\r\n--${boundary}--\r\n`),
+    ];
+    const total = segments.reduce((n, s) => n + s.length, 0);
+    const body = new Uint8Array(total);
+    let offset = 0;
+    for (const s of segments) {
+      body.set(s, offset);
+      offset += s.length;
+    }
+
+    const fields = parseMultipartFormData(body, boundary);
+    expect(fields).toHaveLength(2);
+    expect(fields[0].name).toBe("field1");
+    expect(fields[0].isFile).toBe(false);
+    expect(fields[0].value).toBe("hello");
+    expect(fields[1].name).toBe("file1");
+    expect(fields[1].isFile).toBe(true);
+    expect(fields[1].fileName).toBe("a.bin");
+    // UTF-8 lossy 디코딩 시 길이가 달라지지만, 바이트 단위 파서는 정확히 5를 보고한다.
+    expect(fields[1].size).toBe(5);
+  });
+});

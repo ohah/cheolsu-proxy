@@ -106,67 +106,92 @@ const parsePartHeaders = (
  * @param boundary - Content-Type에서 추출한 boundary
  * @returns 파싱된 필드 배열
  */
+/** Uint8Array에서 부분 바이트 시퀀스의 위치를 찾는다(없으면 -1). */
+const indexOfBytes = (haystack: Uint8Array, needle: Uint8Array, from: number): number => {
+  if (needle.length === 0 || haystack.length < needle.length) return -1;
+  for (let i = from; i <= haystack.length - needle.length; i += 1) {
+    let matched = true;
+    for (let j = 0; j < needle.length; j += 1) {
+      if (haystack[i + j] !== needle[j]) {
+        matched = false;
+        break;
+      }
+    }
+    if (matched) return i;
+  }
+  return -1;
+};
+
+const CRLF_CRLF = new Uint8Array([0x0d, 0x0a, 0x0d, 0x0a]);
+const LF_LF = new Uint8Array([0x0a, 0x0a]);
+
+/**
+ * multipart/form-data 바디를 "바이트 단위로" 파싱하여 필드 목록을 반환한다.
+ *
+ * 바디 전체를 UTF-8 문자열로 디코딩하면(특히 바이너리 파일 파트) 바이트 경계가 손실되어
+ * 파일 크기가 부정확해진다. 따라서 boundary/헤더(ASCII)는 바이트로 탐색하고, 본문은
+ * 원본 바이트 길이로 size를 계산한다. 텍스트 파트만 UTF-8로 디코딩해 value로 노출한다.
+ */
 export const parseMultipartFormData = (
   body: Uint8Array | string,
   boundary: string,
 ): MultipartField[] => {
-  const text =
-    typeof body === "string" ? body : new TextDecoder("utf-8", { fatal: false }).decode(body);
+  const encoder = new TextEncoder();
+  const decoder = new TextDecoder("utf-8", { fatal: false });
+  const bytes = typeof body === "string" ? encoder.encode(body) : body;
+  const delimiter = encoder.encode(`--${boundary}`);
 
-  const delimiter = `--${boundary}`;
-  const closeDelimiter = `--${boundary}--`;
-
-  // 파트 분리
-  const parts = text.split(delimiter).filter((part) => {
-    const trimmed = part.trim();
-    return trimmed !== "" && trimmed !== "--" && !trimmed.startsWith("--\r\n") && trimmed !== "--";
-  });
+  // delimiter 위치들로 파트 경계(이전 delimiter 끝 ~ 다음 delimiter 시작)를 수집한다.
+  const ranges: { start: number; end: number }[] = [];
+  let prevEnd = -1;
+  let searchFrom = 0;
+  for (;;) {
+    const idx = indexOfBytes(bytes, delimiter, searchFrom);
+    if (idx === -1) break;
+    if (prevEnd !== -1) ranges.push({ start: prevEnd, end: idx });
+    prevEnd = idx + delimiter.length;
+    searchFrom = prevEnd;
+  }
 
   const fields: MultipartField[] = [];
 
-  for (const part of parts) {
-    // 헤더와 바디를 분리 (\r\n\r\n 또는 \n\n)
-    let headerEnd = part.indexOf("\r\n\r\n");
-    let bodyStart = headerEnd + 4;
+  for (const range of ranges) {
+    let start = range.start;
+    let end = range.end;
 
+    // delimiter 직후의 CRLF(또는 LF)와 다음 delimiter 직전의 CRLF(또는 LF) 제거
+    if (bytes[start] === 0x0d && bytes[start + 1] === 0x0a) start += 2;
+    else if (bytes[start] === 0x0a) start += 1;
+    if (bytes[end - 2] === 0x0d && bytes[end - 1] === 0x0a) end -= 2;
+    else if (bytes[end - 1] === 0x0a) end -= 1;
+
+    if (end <= start) continue; // 빈 파트 또는 종료 마커("--")
+
+    const part = bytes.subarray(start, end);
+
+    // 헤더/본문 분리 (\r\n\r\n 우선, 없으면 \n\n)
+    let headerEnd = indexOfBytes(part, CRLF_CRLF, 0);
+    let bodyStart = headerEnd + 4;
     if (headerEnd === -1) {
-      headerEnd = part.indexOf("\n\n");
+      headerEnd = indexOfBytes(part, LF_LF, 0);
       bodyStart = headerEnd + 2;
     }
-
     if (headerEnd === -1) continue;
 
-    const headerSection = part.substring(0, headerEnd);
-    let bodyContent = part.substring(bodyStart);
-
-    // 마지막 줄바꿈 제거 (경계 구분자 전의 \r\n)
-    if (bodyContent.endsWith("\r\n")) {
-      bodyContent = bodyContent.slice(0, -2);
-    } else if (bodyContent.endsWith("\n")) {
-      bodyContent = bodyContent.slice(0, -1);
-    }
-
-    // 종료 구분자 제거
-    const closeIdx = bodyContent.indexOf(closeDelimiter);
-    if (closeIdx !== -1) {
-      bodyContent = bodyContent.substring(0, closeIdx);
-      if (bodyContent.endsWith("\r\n")) {
-        bodyContent = bodyContent.slice(0, -2);
-      }
-    }
+    const headerSection = decoder.decode(part.subarray(0, headerEnd));
+    const bodyBytes = part.subarray(bodyStart);
 
     const { name, fileName, contentType } = parsePartHeaders(headerSection);
-
     const isFile = fileName !== undefined;
-    const size = new TextEncoder().encode(bodyContent).length;
 
     fields.push({
       name,
-      value: isFile ? undefined : bodyContent,
+      // 바이너리 파일 파트는 디코딩하지 않고, 텍스트 파트만 UTF-8로 디코딩
+      value: isFile ? undefined : decoder.decode(bodyBytes),
       fileName,
       contentType,
       isFile,
-      size,
+      size: bodyBytes.length,
     });
   }
 
