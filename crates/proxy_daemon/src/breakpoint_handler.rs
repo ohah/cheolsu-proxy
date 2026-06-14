@@ -62,6 +62,8 @@ impl LoggingHandler {
                 }
                 if let Some(body) = new_body {
                     use http_body_util::Full;
+                    // 바디 교체 시 stale content-length/encoding 제거(요청 행/손상 방지)
+                    crate::header_utils::clear_content_encoding_headers(req.headers_mut());
                     *req.body_mut() = Body::from(Full::new(bytes::Bytes::from(body)));
                 }
                 Ok(req)

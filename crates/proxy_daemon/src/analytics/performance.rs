@@ -62,7 +62,8 @@ impl TrafficAnalytics {
             return Vec::new();
         }
 
-        let bucket_ms = (bucket_seconds * 1000) as i64;
+        // bucket_seconds가 0이면 time / bucket_ms에서 0으로 나눗셈 패닉이 발생하므로 최소 1로 클램프
+        let bucket_ms = (bucket_seconds.max(1) * 1000) as i64;
 
         // 타임스탬프 기반으로 버킷에 넣기
         let mut buckets: HashMap<i64, (usize, usize, Vec<u64>)> = HashMap::new();
