@@ -449,6 +449,11 @@ where
     let mut e = ScriptEngine::new()?;
     // 로드(최상위 코드)에서 무한 루프가 발생해도 외부에서 terminate할 수 있도록 핸들을 먼저 등록
     set_isolate(control, Some(e.isolate_handle()));
+    // 이전 훅의 늦은 타임아웃이 남긴 stale terminated 플래그가 새 로드를 즉시 시간 초과로
+    // 오판하지 않도록 초기화한다(새 isolate라 V8 latch는 이미 없다).
+    control
+        .terminated
+        .store(false, std::sync::atomic::Ordering::Release);
     let r = load(&mut e);
     flush_logs(&mut e, log_tx);
     if control
@@ -467,6 +472,23 @@ where
             set_isolate(control, None);
             Err(err)
         }
+    }
+}
+
+/// 훅 실행 직전, 이전 훅의 늦은 타임아웃이 남긴 stale terminate 상태를 제거한다.
+///
+/// 어떤 훅이 타임아웃 직전에 정상 완료되면, 호출자 측 `terminate_running_script`가
+/// 이미 idle 상태인 isolate에 `terminate_execution`을 latch하고 `terminated` 플래그를
+/// 남길 수 있다. 이 상태가 남아 있으면 *다음* 정상 훅이 곧바로 강제 종료된다.
+/// 따라서 각 훅 실행 전에 플래그와 V8 latch를 모두 비워 클린 상태로 시작한다
+/// (이 시점에는 아직 훅이 실행되지 않았으므로 정상 terminate가 진행 중일 수 없다).
+fn clear_stale_termination(engine: &mut Option<ScriptEngine>, control: &Arc<EngineControl>) {
+    control
+        .terminated
+        .store(false, std::sync::atomic::Ordering::Release);
+    if let Some(e) = engine.as_mut() {
+        // latch가 없으면 무해한 no-op이므로 무조건 호출해 플래그/latch desync도 정리한다.
+        e.cancel_termination();
     }
 }
 
@@ -525,6 +547,7 @@ async fn script_engine_loop(
                 break;
             }
             ScriptCommand::InvokeOnRequest { request, reply } => {
+                clear_stale_termination(&mut engine, &control);
                 let result = if let Some(e) = engine.as_mut() {
                     let r = e.invoke_on_request(&request).await;
                     flush_logs(e, &log_tx);
@@ -540,6 +563,7 @@ async fn script_engine_loop(
                 response,
                 reply,
             } => {
+                clear_stale_termination(&mut engine, &control);
                 let result = if let Some(e) = engine.as_mut() {
                     let r = e.invoke_on_response(&request, &response).await;
                     flush_logs(e, &log_tx);
@@ -551,6 +575,7 @@ async fn script_engine_loop(
                 let _ = reply.send(result);
             }
             ScriptCommand::InvokeOnWsMessage { message, reply } => {
+                clear_stale_termination(&mut engine, &control);
                 let result = if let Some(e) = engine.as_mut() {
                     let r = e.invoke_on_ws_message(&message).await;
                     flush_logs(e, &log_tx);
@@ -562,6 +587,7 @@ async fn script_engine_loop(
                 let _ = reply.send(result);
             }
             ScriptCommand::InvokeOnSseEvent { event, reply } => {
+                clear_stale_termination(&mut engine, &control);
                 let result = if let Some(e) = engine.as_mut() {
                     let r = e.invoke_on_sse_event(&event).await;
                     flush_logs(e, &log_tx);
@@ -642,5 +668,34 @@ mod tests {
             .expect("shutdown이 무한 블로킹 없이 완료되어야 함");
 
         invoke.abort();
+    }
+
+    /// 회귀: idle 상태에서 늦게 도착한 terminate(이전 훅의 타임아웃 잔재)가
+    /// 다음 정상 훅을 잘못 강제 종료해서는 안 된다.
+    #[tokio::test]
+    async fn stale_terminate_does_not_poison_next_hook() {
+        let handle = ScriptHandle::new_with_timeout(Duration::from_secs(5));
+        handle
+            .load_code("cheolsu.onRequest((req) => ({ action: 'forward' }));")
+            .await
+            .expect("정상 훅 로드 성공");
+
+        // 첫 정상 호출은 성공한다.
+        let r1 = handle.invoke_on_request(&dummy_request()).await;
+        assert!(r1.is_ok(), "첫 호출은 성공해야 함: {:?}", r1);
+
+        // 엔진이 idle인 상태에서 stale terminate를 시뮬레이션한다
+        // (이전 훅이 타임아웃 직전 완료되어 idle isolate에 terminate가 latch된 상황).
+        handle.terminate_running_script();
+
+        // 다음 정상 호출이 stale terminate로 잘못 강제 종료되지 않아야 한다.
+        let r2 = handle.invoke_on_request(&dummy_request()).await;
+        assert!(
+            r2.is_ok(),
+            "stale terminate가 다음 정상 훅을 종료시키면 안 됨: {:?}",
+            r2
+        );
+
+        handle.shutdown().await;
     }
 }

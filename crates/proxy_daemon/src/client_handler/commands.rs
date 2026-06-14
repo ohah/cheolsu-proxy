@@ -236,6 +236,17 @@ pub(super) async fn handle_command(cmd: ClientCommand, ctx: &CommandState) -> bo
                         if let Some(old) = ctx.watcher_handle.lock().await.replace(new_handle) {
                             old.abort();
                         }
+                    } else {
+                        // 코드 스크립트(path=None)는 감시 대상이 없다. 이전 파일 watcher가
+                        // 남아 있으면 옛 파일 변경 이벤트가 방금 로드한 코드 스크립트를
+                        // 덮어쓰므로, watched_path를 비우고 이전 watcher를 중단한다.
+                        {
+                            let mut wp = ctx.watched_path.lock().await;
+                            *wp = None;
+                        }
+                        if let Some(old) = ctx.watcher_handle.lock().await.take() {
+                            old.abort();
+                        }
                     }
                     // 스크립트 상태 브로드캐스트
                     s.broadcast_event(&DaemonMessage::ScriptStatus {
