@@ -200,11 +200,13 @@ Called before a WebSocket message is forwarded. The handler receives a message o
 
 **Message object:**
 
-| Property    | Type    | Description                    |
-| ----------- | ------- | ------------------------------ |
-| `direction` | string  | `"to_server"` or `"to_client"` |
-| `payload`   | string  | Message content                |
-| `is_binary` | boolean | Whether the message is binary  |
+| Property        | Type    | Description                    |
+| --------------- | ------- | ------------------------------ |
+| `connection_id` | string  | Unique connection ID           |
+| `url`           | string  | Connection URL                 |
+| `direction`     | string  | `"to_server"` or `"to_client"` |
+| `payload`       | string  | Message content                |
+| `is_binary`     | boolean | Whether the message is binary  |
 
 **Return values:**
 
@@ -219,15 +221,53 @@ return { action: "modify", payload: "new content", is_binary: false };
 return { action: "drop" };
 ```
 
+### cheolsu.onSSEMessage(handler)
+
+Called before a Server-Sent Events (SSE) event is forwarded to the client. The handler receives an event object.
+
+**Event object:**
+
+| Property        | Type           | Description                          |
+| --------------- | -------------- | ------------------------------------ |
+| `connection_id` | string         | Unique connection ID                 |
+| `event_type`    | string \| null | Value of the `event:` field (or null) |
+| `data`          | string         | Event data                           |
+| `id`            | string \| null | Value of the `id:` field (or null)   |
+
+**Return values:**
+
+| action      | Description                  | Extra fields |
+| ----------- | ---------------------------- | ------------ |
+| `"forward"` | Forward the event unchanged  | none         |
+| `"drop"`    | Drop the event (not sent)    | none         |
+
+> SSE does not support modifying event content (`modify`) — only forward or drop.
+
+```javascript
+cheolsu.onSSEMessage((event) => {
+  // Drop keep-alive ping events, forward the rest
+  if (event.event_type === "ping") {
+    return { action: "drop" };
+  }
+  return { action: "forward" };
+});
+```
+
 ---
 
 ## Supported File Types
 
 Scripts can be written in JavaScript or TypeScript:
 
-- `.js`, `.ts`, `.mjs`, `.mts`
+- `.js`, `.mjs`, `.ts`, `.tsx`
 
-TypeScript is automatically transpiled using oxc. No build step is required.
+TypeScript (`.ts`/`.tsx`) is automatically transpiled using oxc. No build step is required.
+
+## Execution Limits
+
+- **Timeout**: each hook is limited to 30 seconds. If exceeded (e.g. an infinite loop), V8 execution is forcibly terminated and the hook is treated as pass-through.
+- **Memory**: the V8 heap is limited to roughly 4MB–64MB.
+- **Sandbox**: external I/O APIs such as `fetch`, `require`/`import`, `fs`, `process`, `Buffer`, `crypto`, and `Worker` are not exposed. Only `console.*` and timers (`setTimeout`/`setInterval`) are available.
 
 ---
 
@@ -268,6 +308,7 @@ Logs appear in real time, making it easy to trace script behavior as traffic flo
 | `cheolsu.onRequest(handler)`                           | Register HTTP request hook (sync/async)      |
 | `cheolsu.onResponse(handler)`                          | Register HTTP response hook (sync/async)     |
 | `cheolsu.onWebSocketMessage(handler)`                  | Register WebSocket message hook (sync/async) |
+| `cheolsu.onSSEMessage(handler)`                        | Register SSE event hook (sync/async)         |
 | `console.log/warn/error/info/debug()`                  | Console logging                              |
 | `setTimeout(callback, delay)`                          | Delayed execution                            |
 | `clearTimeout(id)`                                     | Cancel timeout                               |

@@ -44,7 +44,19 @@ SSE 표준에 따라 각 이벤트의 다음 필드를 파싱합니다:
 
 ### 스크립팅 연동
 
-`cheolsu.onSseEvent` 훅을 사용하면 SSE 이벤트를 프로그래밍 방식으로 처리할 수 있습니다. 이벤트를 수정하거나 특정 이벤트를 필터링(drop)할 수 있습니다.
+`cheolsu.onSSEMessage` 훅을 사용하면 SSE 이벤트를 프로그래밍 방식으로 처리할 수 있습니다. 이벤트를 그대로 통과(`forward`)시키거나 특정 이벤트를 필터링(`drop`)할 수 있습니다. (이벤트 내용 수정은 지원하지 않습니다.)
+
+콜백은 `{ connection_id, event_type, data, id }` 형태의 이벤트 객체를 받습니다.
+
+```js
+cheolsu.onSSEMessage((event) => {
+  // keep-alive 핑 이벤트는 버리고 나머지는 통과
+  if (event.event_type === "ping") {
+    return { action: "drop" };
+  }
+  return { action: "forward" };
+});
+```
 
 ---
 

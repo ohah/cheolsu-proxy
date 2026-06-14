@@ -44,7 +44,19 @@ Shows all events for a selected connection in chronological order.
 
 ### Scripting Integration
 
-Use the `cheolsu.onSseEvent` hook to programmatically process SSE events. Events can be modified or filtered (dropped).
+Use the `cheolsu.onSSEMessage` hook to programmatically process SSE events. Events can be passed through (`forward`) or filtered out (`drop`). (Modifying event content is not supported.)
+
+The callback receives an event object of the form `{ connection_id, event_type, data, id }`.
+
+```js
+cheolsu.onSSEMessage((event) => {
+  // Drop keep-alive ping events, forward the rest
+  if (event.event_type === "ping") {
+    return { action: "drop" };
+  }
+  return { action: "forward" };
+});
+```
 
 ---
 
