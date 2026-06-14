@@ -342,7 +342,7 @@ msgstr "Backend Scheme"
 msgid "Base URL"
 msgstr "Base URL"
 
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:76
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:82
 msgid "Batch"
 msgstr "Batch"
 
@@ -606,7 +606,7 @@ msgstr "Clients without a valid certificate will be rejected"
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:343
 #: src/features/transaction-details/ui/sequence-replay-dialog.tsx:222
 #: src/features/transaction-details/ui/transaction-header.tsx:63
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:159
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:165
 #: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:100
 #: src/widgets/sse-messages/ui/sse-message-detail.tsx:87
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:122
@@ -908,7 +908,7 @@ msgid "Duplicate Requests"
 msgstr "Duplicate Requests"
 
 #: src/pages/analytics-dashboard/ui/performance-tab.tsx:49
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:62
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:68
 #: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:152
 #: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:33
 #: src/widgets/grpc-calls/ui/grpc-call-table.tsx:136
@@ -977,7 +977,7 @@ msgstr "Enabled"
 msgid "Encoding"
 msgstr "Encoding"
 
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:59
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:65
 #: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:30
 msgid "Endpoint"
 msgstr "Endpoint"
@@ -1005,7 +1005,7 @@ msgstr "Error Rate"
 msgid "Error Status Code Distribution"
 msgstr "Error Status Code Distribution"
 
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:245
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:251
 msgid "error(s)"
 msgstr "error(s)"
 
@@ -1018,7 +1018,7 @@ msgstr "errors"
 
 #: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:180
 #: src/pages/analytics-dashboard/ui/error-tab.tsx:72
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:126
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:132
 msgid "Errors"
 msgstr "Errors"
 
@@ -1712,7 +1712,7 @@ msgstr "N+1"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:150
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:190
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:56
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:62
 msgid "Name"
 msgstr "Name"
 
@@ -2190,7 +2190,7 @@ msgstr "proxy.company.com"
 msgid "Python Requests"
 msgstr "Python Requests"
 
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:113
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:119
 msgid "Query"
 msgstr "Query"
 
@@ -2387,7 +2387,7 @@ msgstr "Require certificate"
 #: src/features/transaction-details/ui/replay-dialog.tsx:315
 #: src/features/transaction-details/ui/transaction-body-side-by-side.tsx:24
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:287
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:121
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:127
 #: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:62
 msgid "Response"
 msgstr "Response"
@@ -2834,7 +2834,7 @@ msgstr "Starts background server connection immediately after ClientHello "
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:131
 #: src/pages/log-viewer/ui/logs-page.tsx:465
 #: src/shared/app-sidebar/ui/sidebar-status.tsx:39
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:69
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:75
 #: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:151
 #: src/widgets/grpc-calls/ui/grpc-call-table.tsx:134
 msgid "Status"
@@ -2959,7 +2959,7 @@ msgstr "Throughput"
 #: src/pages/analytics-dashboard/ui/misc-tab.tsx:40
 #: src/pages/analytics-dashboard/ui/misc-tab.tsx:90
 #: src/pages/analytics-dashboard/ui/performance-tab.tsx:55
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:60
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:66
 #: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:153
 #: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:31
 #: src/widgets/grpc-calls/ui/grpc-call-table.tsx:137
@@ -3056,7 +3056,7 @@ msgid "Trusted"
 msgstr "Trusted"
 
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:241
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:52
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:58
 #: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:149
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:50
 #: src/widgets/websocket-messages/ui/ws-message-table.tsx:184
@@ -3183,7 +3183,7 @@ msgstr "Validity Period"
 msgid "Value"
 msgstr "Value"
 
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:116
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:122
 msgid "Variables"
 msgstr "Variables"
 

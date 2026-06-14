@@ -1,4 +1,4 @@
-import { memo, useMemo, useState } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 import { useLingui } from "@lingui/react/macro";
 import { Trans } from "@lingui/react/macro";
 import { X, AlertTriangle } from "lucide-react";
@@ -45,6 +45,12 @@ export const GraphqlOperationDetail = memo(
     const hasErrors = operation.responseErrors && operation.responseErrors.length > 0;
 
     const [activeTab, setActiveTab] = useState<DetailTab>("query");
+
+    // 다른 오퍼레이션으로 전환되면 탭을 기본값으로 초기화한다.
+    // (이전에 선택한 탭이 새 오퍼레이션에 없으면 빈 화면이 표시되던 문제 방지)
+    useEffect(() => {
+      setActiveTab("query");
+    }, [operation.id]);
 
     const metaItems = useMemo(() => {
       const items = [
