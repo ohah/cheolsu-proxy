@@ -94,7 +94,9 @@ impl TargetAddr {
                     segments[6],
                     segments[7],
                 );
-                format!("{}:{}", ipv6, port)
+                // IPv6 리터럴은 RFC 3986/7230 authority-form에서 대괄호로 감싸야 한다
+                // (예: [::1]:443). 비대괄호 형태는 host:port 파싱과 CONNECT 요청을 깨뜨린다.
+                format!("[{}]:{}", ipv6, port)
             }
         }
     }

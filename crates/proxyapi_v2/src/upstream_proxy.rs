@@ -10,7 +10,7 @@ use std::pin::Pin;
 use std::sync::Arc;
 use std::task::{Context, Poll};
 use std::time::Duration;
-use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpStream;
 use tokio::sync::watch;
 use tower::Service;
@@ -105,7 +105,12 @@ pub async fn connect_to_target(
     target: &str,
     upstream: Option<&UpstreamProxyConfig>,
 ) -> Result<TcpStream, UpstreamProxyError> {
-    let host = target.split(':').next().unwrap_or(target);
+    // IPv6 리터럴([::1]:443)과 일반 host:port 모두에서 호스트만 정확히 추출
+    let host = if let Some(rest) = target.strip_prefix('[') {
+        rest.split(']').next().unwrap_or(target)
+    } else {
+        target.rsplit_once(':').map(|(h, _)| h).unwrap_or(target)
+    };
 
     match upstream {
         Some(config) if !config.should_bypass(host) => {
@@ -146,32 +151,39 @@ async fn connect_via_upstream(
 
     connect_req.push_str("\r\n");
 
-    let (reader, mut writer) = stream.into_split();
+    let (mut reader, mut writer) = stream.into_split();
     writer.write_all(connect_req.as_bytes()).await?;
 
-    // BufReader로 응답 헤더를 줄 단위로 읽기
-    let mut buf_reader = BufReader::new(reader);
-    let mut status_line = String::new();
-    buf_reader.read_line(&mut status_line).await?;
-
-    // 나머지 헤더 소비 (\r\n\r\n 까지)
-    let mut header_line = String::new();
+    // CONNECT 응답을 \r\n\r\n까지만 정확히 읽는다.
+    // BufReader는 read-ahead로 \r\n\r\n 이후(터널 선두 — TLS ServerHello 등) 바이트까지
+    // 버퍼링해 into_inner 시 유실시키므로 사용하지 않는다. 응답은 헤더뿐이라 바이트 단위로 읽는다.
+    let mut response: Vec<u8> = Vec::with_capacity(256);
+    let mut byte = [0u8; 1];
     loop {
-        header_line.clear();
-        let n = buf_reader.read_line(&mut header_line).await?;
-        if n == 0 || header_line == "\r\n" {
+        let n = reader.read(&mut byte).await?;
+        if n == 0 {
+            break; // EOF (불완전 응답)
+        }
+        response.push(byte[0]);
+        if response.ends_with(b"\r\n\r\n") {
             break;
+        }
+        if response.len() > 16 * 1024 {
+            return Err(UpstreamProxyError::ConnectTunnel(
+                "CONNECT 응답 헤더가 너무 큼".to_string(),
+            ));
         }
     }
 
+    let response_str = String::from_utf8_lossy(&response);
+    let status_line = response_str.lines().next().unwrap_or("");
     if !status_line.contains(" 200 ") {
         return Err(UpstreamProxyError::ConnectTunnel(
             status_line.trim().to_string(),
         ));
     }
 
-    // BufReader의 내부 버퍼에 남은 데이터가 없으므로 stream을 재조립
-    let reader = buf_reader.into_inner();
+    // over-read 없이 읽었으므로 터널 선두 바이트 손실 없이 재조립
     let stream = reader.reunite(writer)?;
 
     debug!(target, "Upstream proxy CONNECT 터널 수립 완료");
