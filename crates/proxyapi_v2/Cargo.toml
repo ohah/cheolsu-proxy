@@ -60,9 +60,12 @@ tokio = { version = "1.24.2", features = ["macros", "rt"] }
 tokio-graceful = "0.2.0"
 tokio-native-tls = { version = "0.3.1", optional = true }
 tokio-rustls = { version = "0.26.4", features = ["logging", "tls12"] }
+# NOTE: hyper-tungstenite 0.19가 tokio-tungstenite 0.28에 의존하므로 0.29로 올리면
+# WebSocketStream 타입이 분기되어 브리징이 깨진다. hyper-tungstenite가 0.29를
+# 지원할 때까지 0.28에 고정.
 tokio-tungstenite = "0.28.0"
 tokio-openssl = "0.6.3"
-sha2 = "0.10"
+sha2 = "0.11"
 x509-parser = "0.18.1"
 tokio-util = { version = "0.7.1", features = ["io"], optional = true }
 tracing = { version = "0.1.35", features = ["log"] }
