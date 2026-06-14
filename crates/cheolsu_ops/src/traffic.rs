@@ -173,7 +173,12 @@ pub fn get_websocket_messages(ctx: &OpsContext, p: GetWsMessagesParams) -> OpRes
                 WsDirection::ServerToClient => "←",
             };
             let payload = if msg.payload.len() > 200 {
-                format!("{}...", &msg.payload[..200])
+                // UTF-8 문자 경계에서 자르기(멀티바이트 경계 슬라이싱 패닉 방지)
+                let mut end = 200;
+                while end > 0 && !msg.payload.is_char_boundary(end) {
+                    end -= 1;
+                }
+                format!("{}...", &msg.payload[..end])
             } else {
                 msg.payload.clone()
             };
