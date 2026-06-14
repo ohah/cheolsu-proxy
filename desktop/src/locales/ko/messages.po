@@ -142,7 +142,8 @@ msgid "Add Mapping"
 msgstr "매핑 추가"
 
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:44
-msgid "Add mappings to redirect DNS hostnames to different target hosts for testing."
+msgid "Add mappings to redirect DNS hostnames to different target hosts for "
+"testing."
 msgstr "테스트를 위해 DNS 호스트명을 다른 대상 호스트로 리디렉션하는 매핑을 추가하세요."
 
 #: src/pages/settings/ui/components/proto-files-section.tsx:74
@@ -153,7 +154,7 @@ msgstr "Proto 파일 추가"
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:240
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:270
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:204
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:84
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:88
 #: src/pages/map-rules/ui/map-rules-page.tsx:78
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:164
 msgid "Add Rule"
@@ -163,7 +164,7 @@ msgstr "규칙 추가"
 msgid "Add Rule..."
 msgstr ""
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:81
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:85
 msgid "Add rules to intercept, block, or modify HTTP requests and responses."
 msgstr "HTTP 요청과 응답을 가로채거나, 차단하거나, 수정하는 규칙을 추가하세요."
 
@@ -172,7 +173,8 @@ msgid "Add rules to map URLs to local files or redirect to other servers."
 msgstr "URL을 로컬 파일에 매핑하거나 다른 서버로 리다이렉트하는 규칙을 추가하세요."
 
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:159
-msgid "Add rules to route requests with relative URIs to backend servers based on Host header."
+msgid "Add rules to route requests with relative URIs to backend servers based "
+"on Host header."
 msgstr "Host 헤더 기반으로 relative URI 요청을 백엔드 서버에 전달하는 규칙을 추가하세요."
 
 #: src/pages/contract-testing/ui/contract-testing-page.tsx:91
@@ -184,7 +186,7 @@ msgid "Add your first mapping"
 msgstr "첫 번째 매핑 추가"
 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:263
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:83
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:87
 #: src/pages/map-rules/ui/map-rules-page.tsx:77
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:163
 msgid "Add your first rule"
@@ -230,11 +232,14 @@ msgid "All HTTPS traffic is being intercepted (no whitelist configured)"
 msgstr "모든 HTTPS 트래픽이 인터셉트됩니다 (화이트리스트 미설정)"
 
 #: src/pages/settings/ui/components/ssl-proxying-section.tsx:167
-msgid "All HTTPS traffic is intercepted except {enabledCount} excluded domain(s) and {defaultEnabledCount} built-in domain(s)."
-msgstr "모든 HTTPS 트래픽이 인터셉트됩니다. {enabledCount}개 제외 도메인과 {defaultEnabledCount}개 기본 제외 도메인은 제외됩니다."
+msgid "All HTTPS traffic is intercepted except {enabledCount} excluded "
+"domain(s) and {defaultEnabledCount} built-in domain(s)."
+msgstr "모든 HTTPS 트래픽이 인터셉트됩니다. {enabledCount}개 제외 도메인과 {defaultEnabledCount}개 "
+"기본 제외 도메인은 제외됩니다."
 
 #: src/pages/settings/ui/components/ssl-proxying-section.tsx:162
-msgid "All HTTPS traffic is intercepted. {defaultEnabledCount} built-in domain(s) are automatically excluded."
+msgid "All HTTPS traffic is intercepted. {defaultEnabledCount} built-in "
+"domain(s) are automatically excluded."
 msgstr "모든 HTTPS 트래픽이 인터셉트됩니다. {defaultEnabledCount}개 기본 도메인은 자동으로 제외됩니다."
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:178
@@ -253,7 +258,7 @@ msgid "All reverse proxy rules cleared"
 msgstr "모든 리버스 프록시 규칙이 삭제되었습니다"
 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:145
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:71
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:75
 #: src/pages/map-rules/ui/map-rules-page.tsx:61
 msgid "All rules cleared"
 msgstr "모든 규칙이 삭제되었습니다"
@@ -279,7 +284,8 @@ msgid "Apply:"
 msgstr "적용:"
 
 #: src/pages/settings/ui/components/client-tags-section.tsx:51
-msgid "Assign labels to client IP addresses for easier identification and filtering"
+msgid "Assign labels to client IP addresses for easier identification and "
+"filtering"
 msgstr "클라이언트 IP 주소에 라벨을 지정하여 쉽게 식별하고 필터링할 수 있습니다"
 
 #: src/pages/settings/ui/components/upstream-proxy-section.tsx:51
@@ -291,7 +297,8 @@ msgid "Auto Save Session"
 msgstr "자동 세션 저장"
 
 #: src/pages/settings/ui/components/general-settings.tsx:236
-msgid "Automatically save the current session when the app closes and restore it on next launch"
+msgid "Automatically save the current session when the app closes and restore "
+"it on next launch"
 msgstr "앱 종료 시 현재 세션을 자동으로 저장하고 다음 실행 시 복원합니다"
 
 #: src/pages/server-replay/ui/server-replay-page.tsx:90
@@ -340,7 +347,7 @@ msgstr "블랙리스트 (제외)"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:210
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:210
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:46
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:49
 msgid "Block"
 msgstr "차단"
 
@@ -582,8 +589,10 @@ msgid "Client Tags"
 msgstr "클라이언트 태그"
 
 #: src/pages/settings/ui/components/proxy-auth-section.tsx:48
-msgid "Clients must provide these credentials via Proxy-Authorization header (HTTP Basic) to use this proxy"
-msgstr "클라이언트는 이 프록시를 사용하기 위해 Proxy-Authorization 헤더(HTTP Basic)를 통해 자격 증명을 제공해야 합니다"
+msgid "Clients must provide these credentials via Proxy-Authorization header "
+"(HTTP Basic) to use this proxy"
+msgstr "클라이언트는 이 프록시를 사용하기 위해 Proxy-Authorization 헤더(HTTP Basic)를 통해 자격 증명을 "
+"제공해야 합니다"
 
 #: src/pages/settings/ui/components/request-client-cert-section.tsx:95
 msgid "Clients without a valid certificate will be rejected"
@@ -609,7 +618,8 @@ msgid "Collapse sidebar"
 msgstr "사이드바 접기"
 
 #: src/pages/settings/ui/components/upstream-proxy-section.tsx:78
-msgid "Comma-separated list of hosts to connect directly (supports *.domain.com wildcards)"
+msgid "Comma-separated list of hosts to connect directly (supports *.domain.com "
+"wildcards)"
 msgstr "직접 연결할 호스트 목록 (쉼표로 구분, *.domain.com 와일드카드 지원)"
 
 #: src/shared/app-sidebar/ui/sidebar-mcp.tsx:63
@@ -675,7 +685,8 @@ msgid "Contract Testing"
 msgstr "API 검증"
 
 #: src/pages/settings/ui/components/connection-strategy-section.tsx:21
-msgid "Controls when the proxy connects to upstream servers for certificate sniffing"
+msgid "Controls when the proxy connects to upstream servers for certificate "
+"sniffing"
 msgstr "프록시가 인증서 스니핑을 위해 상류 서버에 연결하는 시점을 제어합니다"
 
 #: src/features/transaction-details/ui/transaction-certificate.tsx:30
@@ -735,7 +746,7 @@ msgstr "현재 사용량"
 msgid "Custom"
 msgstr "사용자 지정"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:137
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:145
 msgid "Custom body"
 msgstr "커스텀 본문"
 
@@ -753,7 +764,8 @@ msgid "Data"
 msgstr "데이터"
 
 #: src/pages/settings/ui/components/proxy-port-section.tsx:42
-msgid "Default port is 8100. Make sure your system proxy is configured to use port {port}."
+msgid "Default port is 8100. Make sure your system proxy is configured to use "
+"port {port}."
 msgstr "기본 포트는 8100입니다. 시스템 프록시가 포트 {port}를 사용하도록 설정되어 있는지 확인하세요."
 
 #: src/features/intercept-rule-form/ui/throttle-action-fields.tsx:27
@@ -784,7 +796,7 @@ msgid "Delete mapping"
 msgstr "매핑 삭제"
 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:301
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:161
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:169
 #: src/pages/map-rules/ui/map-rules-page.tsx:141
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:210
 msgid "Delete rule"
@@ -833,23 +845,31 @@ msgid "Domain-specific Certificates"
 msgstr "도메인별 인증서"
 
 #: src/pages/settings/ui/components/tls-config-section.tsx:55
-msgid "Domain-specific TLS engine rules. Domains matched here use OpenSSL instead of rustls for compatibility."
+msgid "Domain-specific TLS engine rules. Domains matched here use OpenSSL "
+"instead of rustls for compatibility."
 msgstr "도메인별 TLS 엔진 규칙입니다. 호환성을 위해 여기에 매칭된 도메인은 rustls 대신 OpenSSL을 사용합니다."
 
 #: src/pages/log-viewer/ui/logs-page.tsx:415
-msgid "Domains are automatically tunneled without MITM only after repeated TLS handshake failures. Failed-but-inactive entries are retained for diagnostics."
+msgid "Domains are automatically tunneled without MITM only after repeated TLS "
+"handshake failures. Failed-but-inactive entries are retained for "
+"diagnostics."
 msgstr ""
 
 #: src/pages/settings/ui/components/never-passthrough-section.tsx:59
-msgid "Domains in this list will never fall back to passthrough when TLS handshake fails. The proxy will keep trying to intercept these domains, allowing you to see the actual error instead of silently bypassing."
-msgstr "이 목록의 도메인은 TLS 핸드셰이크 실패 시에도 패스스루로 우회하지 않습니다. 프록시가 계속 인터셉트를 시도하여 자동 우회 대신 실제 오류를 확인할 수 있습니다."
+msgid "Domains in this list will never fall back to passthrough when TLS "
+"handshake fails. The proxy will keep trying to intercept these domains, "
+"allowing you to see the actual error instead of silently bypassing."
+msgstr "이 목록의 도메인은 TLS 핸드셰이크 실패 시에도 패스스루로 우회하지 않습니다. 프록시가 계속 인터셉트를 시도하여 자동 우회 "
+"대신 실제 오류를 확인할 수 있습니다."
 
 #: src/pages/settings/ui/components/ssl-proxying-section.tsx:218
-msgid "Domains in this list will NOT be intercepted (pass-through). Built-in domains can be managed below."
+msgid "Domains in this list will NOT be intercepted (pass-through). Built-in "
+"domains can be managed below."
 msgstr "이 목록의 도메인은 인터셉트하지 않습니다 (패스스루). 기본 제외 도메인은 아래에서 관리할 수 있습니다."
 
 #: src/pages/settings/ui/components/tls-config-section.tsx:103
-msgid "Domains that failed with the default TLS engine are recorded here. On the next connection, the alternate engine will be used automatically."
+msgid "Domains that failed with the default TLS engine are recorded here. On "
+"the next connection, the alternate engine will be used automatically."
 msgstr "기본 TLS 엔진으로 실패한 도메인이 여기에 기록됩니다. 다음 연결 시 자동으로 대체 엔진을 사용합니다."
 
 #: src/features/transaction-details/ui/image-preview.tsx:169
@@ -910,7 +930,7 @@ msgstr "편집 후 전달"
 msgid "Edit Map Rule"
 msgstr "맵 규칙 수정"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:153
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:161
 #: src/pages/map-rules/ui/map-rules-page.tsx:133
 msgid "Edit rule"
 msgstr "규칙 수정"
@@ -924,7 +944,8 @@ msgid "Editor"
 msgstr "에디터"
 
 #: src/pages/settings/ui/components/ssl-proxying-section.tsx:231
-msgid "Empty whitelist currently means all HTTPS traffic is intercepted. Add at least one enabled domain to limit SSL Proxying to selected hosts."
+msgid "Empty whitelist currently means all HTTPS traffic is intercepted. Add at "
+"least one enabled domain to limit SSL Proxying to selected hosts."
 msgstr ""
 
 #: src/pages/settings/ui/components/certificate-settings.tsx:303
@@ -1229,7 +1250,7 @@ msgstr "헤더 이름"
 msgid "Header name to remove"
 msgstr "삭제할 헤더 이름"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:130
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:138
 #: src/pages/server-replay/ui/server-replay-page.tsx:191
 msgid "headers"
 msgstr "헤더"
@@ -1284,7 +1305,8 @@ msgid "HTTPie"
 msgstr "HTTPie"
 
 #: src/pages/settings/ui/components/request-client-cert-section.tsx:77
-msgid "If not specified, any client certificate will be accepted without verification"
+msgid "If not specified, any client certificate will be accepted without "
+"verification"
 msgstr "지정하지 않으면 모든 클라이언트 인증서가 검증 없이 수락됩니다"
 
 #: src/pages/settings/ui/components/custom-ca-section.tsx:266
@@ -1330,11 +1352,13 @@ msgid "Install the <0>cheolsu</0> command to use the TUI from your terminal"
 msgstr "터미널에서 TUI를 사용하려면 <0>cheolsu</0> 명령어를 설치하세요"
 
 #: src/pages/settings/ui/components/certificate-settings.tsx:154
-msgid "Install the CA certificate on external devices (mobile, tablet) to intercept HTTPS traffic"
+msgid "Install the CA certificate on external devices (mobile, tablet) to "
+"intercept HTTPS traffic"
 msgstr "HTTPS 트래픽을 가로채려면 외부 기기(모바일, 태블릿)에 CA 인증서를 설치하세요"
 
 #: src/pages/settings/ui/components/certificate-settings.tsx:74
-msgid "Install the CA certificate to trust HTTPS traffic intercepted by the proxy"
+msgid "Install the CA certificate to trust HTTPS traffic intercepted by the "
+"proxy"
 msgstr "프록시가 가로채는 HTTPS 트래픽을 신뢰하려면 CA 인증서를 설치하세요"
 
 #: src/pages/settings/ui/components/cli-settings.tsx:68
@@ -1350,7 +1374,7 @@ msgstr "설치 중..."
 msgid "Intercept Rule"
 msgstr ""
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:76
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:80
 #: src/shared/app-sidebar/model/consts.ts:64
 msgid "Intercept Rules"
 msgstr "인터셉트 규칙"
@@ -1438,7 +1462,8 @@ msgid "Load"
 msgstr "로드"
 
 #: src/pages/script/ui/script-page.tsx:250
-msgid "Load a script file from disk. The file will be watched for changes and auto-reloaded."
+msgid "Load a script file from disk. The file will be watched for changes and "
+"auto-reloaded."
 msgstr "디스크에서 스크립트 파일을 로드합니다. 파일 변경 시 자동으로 리로드됩니다."
 
 #: src/features/transaction-details/ui/transaction-validation.tsx:57
@@ -1502,7 +1527,7 @@ msgstr "네트워크 트랜잭션 저장소 및 파일 캐시 관리"
 msgid "Manage request/response intercept rules"
 msgstr "요청/응답 인터셉트 규칙 관리"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:77
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:81
 msgid "Manage wildcard-based request/response intercept rules"
 msgstr "와일드카드 기반 요청/응답 인터셉트 규칙 관리"
 
@@ -1517,7 +1542,7 @@ msgstr "DNS 호스트명을 다른 대상으로 매핑"
 
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:251
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:251
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:49
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:52
 #: src/pages/map-rules/ui/map-rules-page.tsx:40
 #: src/widgets/network-table/ui/table-row.tsx:296
 msgid "Map Local"
@@ -1528,16 +1553,18 @@ msgid "Map Local / Map Remote rules"
 msgstr "로컬 매핑 / 원격 매핑 규칙"
 
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:179
-msgid "Map Local: respond with a local file. Map Remote: redirect to another URL."
+msgid "Map Local: respond with a local file. Map Remote: redirect to another "
+"URL."
 msgstr "로컬 매핑: 로컬 파일로 응답. 원격 매핑: 다른 URL로 리다이렉트."
 
 #: src/pages/map-rules/ui/map-rules-page.tsx:68
-msgid "Map Local: respond with local files. Map Remote: redirect requests to another URL."
+msgid "Map Local: respond with local files. Map Remote: redirect requests to "
+"another URL."
 msgstr "로컬 매핑: 로컬 파일로 응답. 원격 매핑: 요청을 다른 URL로 리다이렉트."
 
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:254
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:255
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:50
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:53
 #: src/pages/map-rules/ui/map-rules-page.tsx:41
 #: src/widgets/network-table/ui/table-row.tsx:292
 msgid "Map Remote"
@@ -1640,13 +1667,13 @@ msgstr "수정 후 전달"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:213
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:214
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:47
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:50
 msgid "Modify Request"
 msgstr "요청 수정"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:217
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:218
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:48
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:51
 msgid "Modify Response"
 msgstr "응답 수정"
 
@@ -1710,7 +1737,8 @@ msgid "No Caching"
 msgstr "캐시 비활성화"
 
 #: src/pages/server-replay/ui/server-replay-page.tsx:95
-msgid "No captured traffic with responses available. Capture some traffic first."
+msgid "No captured traffic with responses available. Capture some traffic "
+"first."
 msgstr "응답이 있는 캡처된 트래픽이 없습니다. 먼저 트래픽을 캡처하세요."
 
 #: src/features/query-filter-editor/ui/query-filter-editor.tsx:75
@@ -1753,7 +1781,7 @@ msgstr "Gzip 비활성화"
 msgid "No host mappings"
 msgstr "호스트 매핑 없음"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:79
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:83
 msgid "No intercept rules"
 msgstr "인터셉트 규칙 없음"
 
@@ -1794,7 +1822,8 @@ msgid "No phase selected"
 msgstr "단계가 선택되지 않음"
 
 #: src/pages/settings/ui/components/proto-files-section.tsx:95
-msgid "No proto files registered. gRPC messages will be decoded using wire format heuristics."
+msgid "No proto files registered. gRPC messages will be decoded using wire "
+"format heuristics."
 msgstr "등록된 proto 파일이 없습니다. gRPC 메시지는 wire format 휴리스틱으로 디코딩됩니다."
 
 #: src/pages/server-replay/ui/server-replay-page.tsx:156
@@ -1818,7 +1847,8 @@ msgid "No slow requests detected"
 msgstr "느린 요청이 감지되지 않았습니다"
 
 #: src/pages/contract-testing/ui/contract-testing-page.tsx:103
-msgid "No specs loaded. Add an OpenAPI/Swagger spec file to start contract testing."
+msgid "No specs loaded. Add an OpenAPI/Swagger spec file to start contract "
+"testing."
 msgstr "로드된 스펙이 없습니다. OpenAPI/Swagger 스펙 파일을 추가하여 API 검증을 시작하세요."
 
 #: src/features/transaction-details/ui/transaction-timing.tsx:52
@@ -1878,7 +1908,8 @@ msgid "Number of times to send the request (1-10000)"
 msgstr "요청을 전송할 횟수 (1-10000)"
 
 #: src/pages/settings/ui/components/ssl-proxying-section.tsx:223
-msgid "Only domains in this list will be intercepted. When the list is empty, all domains are intercepted."
+msgid "Only domains in this list will be intercepted. When the list is empty, "
+"all domains are intercepted."
 msgstr "이 목록에 있는 도메인만 가로챕니다. 목록이 비어있으면 모든 도메인을 가로챕니다."
 
 #: src/features/transaction-details/hooks/use-replay-form.ts:77
@@ -1886,7 +1917,8 @@ msgid "Only http:// and https:// URLs are allowed"
 msgstr "http:// 및 https:// URL만 허용됩니다"
 
 #: src/pages/settings/ui/components/ssl-proxying-section.tsx:175
-msgid "Only whitelisted domains ({enabledCount}) will have HTTPS traffic intercepted"
+msgid "Only whitelisted domains ({enabledCount}) will have HTTPS traffic "
+"intercepted"
 msgstr "화이트리스트에 등록된 도메인({enabledCount}개)만 HTTPS 트래픽이 인터셉트됩니다"
 
 #: src/pages/settings/ui/components/certificate-settings.tsx:328
@@ -1910,8 +1942,11 @@ msgid "Open File"
 msgstr "파일 열기"
 
 #: src/pages/settings/ui/components/certificate-settings.tsx:240
-msgid "Open this URL in your mobile browser after setting the Wi-Fi proxy. The page automatically detects your device and provides the correct certificate format."
-msgstr "Wi-Fi 프록시를 설정한 후 모바일 브라우저에서 이 URL을 여세요. 페이지가 자동으로 기기를 감지하고 올바른 인증서 형식을 제공합니다."
+msgid "Open this URL in your mobile browser after setting the Wi-Fi proxy. The "
+"page automatically detects your device and provides the correct "
+"certificate format."
+msgstr "Wi-Fi 프록시를 설정한 후 모바일 브라우저에서 이 URL을 여세요. 페이지가 자동으로 기기를 감지하고 올바른 인증서 형식을 "
+"제공합니다."
 
 #: src/pages/network-dashboard/hooks/use-network-export.ts:184
 msgid "OpenAPI export failed"
@@ -2051,7 +2086,8 @@ msgid "Port must be between 1 and 65535"
 msgstr "포트는 1에서 65535 사이여야 합니다"
 
 #: src/pages/settings/ui/components/proxy-port-section.tsx:18
-msgid "Port number for the proxy server to listen on. Changes take effect on next app restart."
+msgid "Port number for the proxy server to listen on. Changes take effect on "
+"next app restart."
 msgstr "프록시 서버가 수신할 포트 번호입니다. 변경 사항은 앱을 다시 시작하면 적용됩니다."
 
 #: src/widgets/network-table/ui/table-row.tsx:249
@@ -2059,7 +2095,8 @@ msgid "PowerShell"
 msgstr "PowerShell"
 
 #: src/pages/settings/ui/components/client-certificate-section.tsx:120
-msgid "Present a client certificate when connecting to servers that require mTLS authentication"
+msgid "Present a client certificate when connecting to servers that require "
+"mTLS authentication"
 msgstr "mTLS 인증이 필요한 서버에 연결할 때 클라이언트 인증서를 제시합니다"
 
 #: src/features/map-rule-form/ui/map-remote-fields.tsx:29
@@ -2079,7 +2116,8 @@ msgid "Press a key combination..."
 msgstr "키 조합을 눌러주세요..."
 
 #: src/pages/settings/ui/components/general-settings.tsx:205
-msgid "Prevent caching by removing conditional headers and adding no-cache directives"
+msgid "Prevent caching by removing conditional headers and adding no-cache "
+"directives"
 msgstr "조건부 헤더를 제거하고 no-cache 지시어를 추가하여 캐싱을 방지합니다"
 
 #: src/pages/settings/ui/components/throttle-section.tsx:34
@@ -2165,7 +2203,8 @@ msgid "Regex pattern (e.g. old-domain\\.com)"
 msgstr "정규식 패턴 (예: old-domain\\.com)"
 
 #: src/pages/settings/ui/components/proto-files-section.tsx:66
-msgid "Register .proto files to decode gRPC traffic with actual field names instead of field numbers."
+msgid "Register .proto files to decode gRPC traffic with actual field names "
+"instead of field numbers."
 msgstr "gRPC 트래픽의 필드 번호 대신 실제 필드명으로 디코딩하려면 .proto 파일을 등록하세요."
 
 #: src/pages/settings/ui/components/certificate-settings.tsx:82
@@ -2187,11 +2226,13 @@ msgid "Remove"
 msgstr "삭제"
 
 #: src/pages/settings/ui/components/general-settings.tsx:219
-msgid "Remove Accept-Encoding header from requests to prevent compressed responses"
+msgid "Remove Accept-Encoding header from requests to prevent compressed "
+"responses"
 msgstr "압축된 응답을 방지하기 위해 요청에서 Accept-Encoding 헤더를 제거합니다"
 
 #: src/pages/settings/ui/components/general-settings.tsx:212
-msgid "Remove Cookie headers from requests and Set-Cookie headers from responses"
+msgid "Remove Cookie headers from requests and Set-Cookie headers from "
+"responses"
 msgstr "요청에서 Cookie 헤더를 제거하고 응답에서 Set-Cookie 헤더를 제거합니다"
 
 #: src/pages/settings/ui/components/custom-ca-section.tsx:165
@@ -2213,7 +2254,8 @@ msgstr "제거됨"
 #. placeholder {0}: transactions.length
 #. placeholder {1}: loaded.length
 #: src/pages/network-dashboard/hooks/use-network-export.ts:45
-msgid "Replace {0} existing transactions with {1} new ones? Cancel to append instead."
+msgid "Replace {0} existing transactions with {1} new ones? Cancel to append "
+"instead."
 msgstr "기존 {0}개 트랜잭션을 새로운 {1}개로 교체하시겠습니까? 취소하면 추가됩니다."
 
 #: src/features/intercept-rule-form/ui/rewrite-action-fields.tsx:61
@@ -2371,7 +2413,8 @@ msgid "Return cached responses for matching requests"
 msgstr "매칭되는 요청에 캐시된 응답 반환"
 
 #: src/pages/server-replay/ui/server-replay-page.tsx:53
-msgid "Return cached responses for matching requests instead of forwarding to the server"
+msgid "Return cached responses for matching requests instead of forwarding to "
+"the server"
 msgstr "서버로 전달하지 않고 매칭되는 요청에 캐시된 응답을 반환합니다"
 
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:152
@@ -2389,7 +2432,7 @@ msgstr "리버스 프록시 규칙이 삭제되었습니다"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:219
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:219
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:51
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:54
 msgid "Rewrite"
 msgstr "재작성"
 
@@ -2424,7 +2467,7 @@ msgid "Rule added"
 msgstr "규칙이 추가되었습니다"
 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:140
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:66
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:70
 #: src/pages/map-rules/ui/map-rules-page.tsx:56
 msgid "Rule deleted"
 msgstr "규칙이 삭제되었습니다"
@@ -2440,7 +2483,7 @@ msgid "Rule updated"
 msgstr "규칙이 수정되었습니다"
 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:194
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:78
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:82
 #: src/pages/map-rules/ui/map-rules-page.tsx:72
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:156
 msgid "rules"
@@ -2745,12 +2788,13 @@ msgid "Start Replay"
 msgstr "리플레이 시작"
 
 #: src/pages/settings/ui/components/connection-strategy-section.tsx:55
-msgid "Starts background server connection immediately after ClientHello detection"
+msgid "Starts background server connection immediately after ClientHello "
+"detection"
 msgstr "ClientHello 감지 직후 백그라운드에서 서버 연결을 시작합니다"
 
 #: src/pages/analytics-dashboard/ui/performance-tab.tsx:52
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:118
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:123
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:126
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:131
 #: src/pages/log-viewer/ui/logs-page.tsx:465
 #: src/shared/app-sidebar/ui/sidebar-status.tsx:39
 #: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:69
@@ -2778,8 +2822,10 @@ msgid "Strategy"
 msgstr "전략"
 
 #: src/pages/settings/ui/components/general-settings.tsx:226
-msgid "Strip Alt-Svc headers from responses to prevent QUIC/HTTP3 upgrades and force TCP/TLS connections through the proxy"
-msgstr "응답에서 Alt-Svc 헤더를 제거하여 QUIC/HTTP3 업그레이드를 방지하고 TCP/TLS 연결이 프록시를 통과하도록 강제합니다"
+msgid "Strip Alt-Svc headers from responses to prevent QUIC/HTTP3 upgrades and "
+"force TCP/TLS connections through the proxy"
+msgstr "응답에서 Alt-Svc 헤더를 제거하여 QUIC/HTTP3 업그레이드를 방지하고 TCP/TLS 연결이 프록시를 통과하도록 "
+"강제합니다"
 
 #: src/features/transaction-details/ui/transaction-certificate.tsx:76
 msgid "Subject"
@@ -2794,7 +2840,8 @@ msgid "Supports PEM-encoded certificates and keys (RSA, ECDSA, PKCS#8)"
 msgstr "PEM 인코딩된 인증서 및 키를 지원합니다 (RSA, ECDSA, PKCS#8)"
 
 #: src/pages/settings/ui/components/never-passthrough-section.tsx:79
-msgid "Supports wildcard patterns: * matches any string, ? matches a single character"
+msgid "Supports wildcard patterns: * matches any string, ? matches a single "
+"character"
 msgstr "와일드카드 패턴 지원: *는 모든 문자열, ?는 단일 문자를 매칭합니다"
 
 #: src/features/query-filter-editor/ui/query-filter-editor.tsx:209
@@ -2838,8 +2885,11 @@ msgid "Terminal Command"
 msgstr "터미널 명령어"
 
 #: src/pages/settings/ui/components/custom-ca-section.tsx:285
-msgid "The certificate must be a CA certificate (BasicConstraints CA=true). After importing, restart the proxy to use the new CA. You also need to install this CA on your system and devices."
-msgstr "인증서는 CA 인증서여야 합니다 (BasicConstraints CA=true). 임포트 후 프록시를 재시작하여 새 CA를 사용하세요. 시스템과 기기에도 이 CA를 설치해야 합니다."
+msgid "The certificate must be a CA certificate (BasicConstraints CA=true). "
+"After importing, restart the proxy to use the new CA. You also need to "
+"install this CA on your system and devices."
+msgstr "인증서는 CA 인증서여야 합니다 (BasicConstraints CA=true). 임포트 후 프록시를 재시작하여 새 CA를 "
+"사용하세요. 시스템과 기기에도 이 CA를 설치해야 합니다."
 
 #: src/pages/settings/ui/components/certificate-settings.tsx:333
 msgid "The DER certificate file will download automatically"
@@ -2850,11 +2900,14 @@ msgid "Theme"
 msgstr "테마"
 
 #: src/pages/settings/ui/components/ssl-proxying-section.tsx:262
-msgid "These domains are automatically excluded from HTTPS interception to prevent OAuth/authentication failures. You can toggle, add, or remove domains."
+msgid "These domains are automatically excluded from HTTPS interception to "
+"prevent OAuth/authentication failures. You can toggle, add, or remove "
+"domains."
 msgstr "OAuth/인증 실패를 방지하기 위해 HTTPS 인터셉트에서 자동으로 제외되는 도메인입니다. 토글, 추가, 삭제가 가능합니다."
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:220
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:220
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:55
 msgid "Throttle"
 msgstr "스로틀"
 
@@ -3028,15 +3081,20 @@ msgid "URL pattern (e.g., *api.example.com*)"
 msgstr "URL 패턴 (예: *api.example.com*)"
 
 #: src/pages/settings/ui/components/client-certificate-section.tsx:265
-msgid "Use different client certificates for specific domains. Supports wildcards (*.example.com). Currently validates certificates only — domain-specific routing coming soon."
-msgstr "특정 도메인에 다른 클라이언트 인증서를 사용합니다. 와일드카드(*.example.com)를 지원합니다. 현재는 인증서 검증만 수행 — 도메인별 라우팅은 추후 지원 예정입니다."
+msgid "Use different client certificates for specific domains. Supports "
+"wildcards (*.example.com). Currently validates certificates only — "
+"domain-specific routing coming soon."
+msgstr "특정 도메인에 다른 클라이언트 인증서를 사용합니다. 와일드카드(*.example.com)를 지원합니다. 현재는 인증서 검증만 "
+"수행 — 도메인별 라우팅은 추후 지원 예정입니다."
 
 #: src/pages/settings/ui/components/client-tags-section.tsx:116
-msgid "Use tags in the filter with client=\"tag_name\" to filter traffic by device"
+msgid "Use tags in the filter with client=\"tag_name\" to filter traffic by "
+"device"
 msgstr "필터에서 client=\"태그명\"을 사용하여 기기별 트래픽을 필터링할 수 있습니다"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:139
-msgid "Use wildcard patterns: * matches any string, ? matches a single character."
+msgid "Use wildcard patterns: * matches any string, ? matches a single "
+"character."
 msgstr "와일드카드 패턴 사용: *는 모든 문자열, ?는 단일 문자를 매칭합니다."
 
 #: src/pages/settings/ui/components/custom-ca-section.tsx:124

@@ -60,17 +60,18 @@ function uint8ArrayToBase64(data: Uint8Array | number[]): string {
 
   const uint8Array = data instanceof Uint8Array ? data : new Uint8Array(data);
 
-  // 청크 단위로 처리하여 메모리 효율성 향상
+  // 청크 단위로 바이너리 문자열을 구성(대용량 입력의 String.fromCharCode 스택 오버플로 방지).
+  // 단, btoa는 전체 문자열에 "한 번만" 호출해야 한다. 청크마다 btoa를 호출하면 각 청크가
+  // 4의 배수로 '=' 패딩되어, 청크 크기(8192)가 3의 배수가 아닌 경우 결과 base64가 손상된다.
   const chunkSize = 8192; // 8KB 청크
-  let result = "";
+  const binaryParts: string[] = [];
 
   for (let i = 0; i < uint8Array.length; i += chunkSize) {
     const chunk = uint8Array.slice(i, i + chunkSize);
-    const binary = Array.from(chunk, (byte) => String.fromCharCode(byte)).join("");
-    result += btoa(binary);
+    binaryParts.push(Array.from(chunk, (byte) => String.fromCharCode(byte)).join(""));
   }
 
-  return result;
+  return btoa(binaryParts.join(""));
 }
 
 /**
