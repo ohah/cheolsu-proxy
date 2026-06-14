@@ -169,6 +169,8 @@ pub(crate) async fn handle_client(stream: UnixStream, ctx: ClientHandlerContext)
 
     // 파일 감시 태스크 (스크립트 파일 변경 시 자동 리로드)
     let watched_path: Arc<Mutex<Option<String>>> = Arc::new(Mutex::new(None));
+    let watcher_handle: Arc<Mutex<Option<tokio::task::JoinHandle<()>>>> =
+        Arc::new(Mutex::new(None));
 
     let writer_events = writer.clone();
     let subscribed = Arc::new(std::sync::atomic::AtomicBool::new(false));
@@ -260,6 +262,7 @@ pub(crate) async fn handle_client(stream: UnixStream, ctx: ClientHandlerContext)
         shared,
         subscribed,
         watched_path,
+        watcher_handle: watcher_handle.clone(),
     };
 
     let mut line_buf = String::new();
@@ -295,4 +298,10 @@ pub(crate) async fn handle_client(stream: UnixStream, ctx: ClientHandlerContext)
     // abort()로 안전하게 종료 가능 (상태 변경 없음)
     event_task.abort();
     log_task.abort();
+
+    // 클라이언트 종료 시 파일 감시 태스크도 정리해 태스크/소켓 FD 누수를 방지한다.
+    let pending_watcher = watcher_handle.lock().await.take();
+    if let Some(h) = pending_watcher {
+        h.abort();
+    }
 }

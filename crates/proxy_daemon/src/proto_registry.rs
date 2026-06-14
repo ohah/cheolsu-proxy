@@ -117,19 +117,32 @@ impl ProtoRegistry {
             .await?;
 
         // gRPC 프레이밍: 1바이트 compressed flag + 4바이트 BE length + message
-        let payload = if data.len() >= 5 {
-            let _compressed = data[0];
+        // compressed flag가 1이면 메시지가 (보통 gzip으로) 압축돼 있으므로 해제 후 디코딩한다.
+        const MAX_GRPC_DECOMPRESSED: u64 = 64 * 1024 * 1024;
+        let payload: std::borrow::Cow<[u8]> = if data.len() >= 5 {
+            let compressed = data[0];
             let len = u32::from_be_bytes([data[1], data[2], data[3], data[4]]) as usize;
-            if data.len() >= 5 + len {
-                &data[5..5 + len]
+            let complete = data.len() >= 5 + len;
+            let frame: &[u8] = if complete { &data[5..5 + len] } else { data };
+            if compressed == 1 && complete {
+                use flate2::read::GzDecoder;
+                use std::io::Read;
+                let mut out = Vec::new();
+                match GzDecoder::new(frame)
+                    .take(MAX_GRPC_DECOMPRESSED)
+                    .read_to_end(&mut out)
+                {
+                    Ok(_) => std::borrow::Cow::Owned(out),
+                    Err(_) => std::borrow::Cow::Borrowed(frame),
+                }
             } else {
-                data
+                std::borrow::Cow::Borrowed(frame)
             }
         } else {
-            data
+            std::borrow::Cow::Borrowed(data)
         };
 
-        let msg = DynamicMessage::decode(desc, payload).ok()?;
+        let msg = DynamicMessage::decode(desc, payload.as_ref()).ok()?;
 
         let serializer = serde_json::Serializer::new(Vec::new());
         let mut serializer = serializer;

@@ -94,16 +94,18 @@ impl LoggingHandler {
                 payload: new_payload,
                 is_binary: new_is_binary,
             }) => {
-                let new_msg = if new_is_binary {
+                // base64 디코드 실패 시 Text로 폴백하면 is_binary도 false로 정정해야
+                // 프레임 타입과 이벤트 메타데이터가 일치한다.
+                let (new_msg, actual_is_binary) = if new_is_binary {
                     use base64::Engine;
                     match base64::engine::general_purpose::STANDARD.decode(&new_payload) {
-                        Ok(data) => Message::Binary(data.into()),
-                        Err(_) => Message::Text(new_payload.clone().into()),
+                        Ok(data) => (Message::Binary(data.into()), true),
+                        Err(_) => (Message::Text(new_payload.clone().into()), false),
                     }
                 } else {
-                    Message::Text(new_payload.clone().into())
+                    (Message::Text(new_payload.clone().into()), false)
                 };
-                Some((new_msg, new_payload, new_is_binary))
+                Some((new_msg, new_payload, actual_is_binary))
             }
             Ok(scripting::WsAction::Drop) => None,
             Err(e) => {

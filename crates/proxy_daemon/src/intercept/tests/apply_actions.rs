@@ -79,8 +79,8 @@ fn test_apply_block_invalid_status_falls_back_to_403() {
 
 // --- apply_map_local 테스트 ---
 
-#[test]
-fn test_apply_map_local_missing_file_returns_404() {
+#[tokio::test]
+async fn test_apply_map_local_missing_file_returns_404() {
     let headers = std::collections::HashMap::new();
     let response = LoggingHandler::apply_map_local(
         "/nonexistent/path/file.json",
@@ -89,7 +89,8 @@ fn test_apply_map_local_missing_file_returns_404() {
         "GET",
         "https://example.com/api",
         "map-local-test",
-    );
+    )
+    .await;
     assert_eq!(response.status().as_u16(), 404);
     assert!(response
         .headers()
@@ -97,8 +98,8 @@ fn test_apply_map_local_missing_file_returns_404() {
         .is_some());
 }
 
-#[test]
-fn test_apply_map_local_with_existing_file() {
+#[tokio::test]
+async fn test_apply_map_local_with_existing_file() {
     use std::io::Write;
     let dir = tempfile::tempdir().unwrap();
     let file_path = dir.path().join("mock.json");
@@ -113,7 +114,8 @@ fn test_apply_map_local_with_existing_file() {
         "GET",
         "https://example.com/api",
         "map-local-test",
-    );
+    )
+    .await;
     assert_eq!(response.status().as_u16(), 200);
     assert_eq!(
         response
@@ -127,8 +129,8 @@ fn test_apply_map_local_with_existing_file() {
     assert!(response.headers().get("x-cheolsu-map-local").is_some());
 }
 
-#[test]
-fn test_apply_map_local_custom_content_type() {
+#[tokio::test]
+async fn test_apply_map_local_custom_content_type() {
     use std::io::Write;
     let dir = tempfile::tempdir().unwrap();
     let file_path = dir.path().join("data.bin");
@@ -144,7 +146,8 @@ fn test_apply_map_local_custom_content_type() {
         "POST",
         "https://example.com/upload",
         "map-local-custom",
-    );
+    )
+    .await;
     assert_eq!(response.status().as_u16(), 201);
     assert_eq!(
         response

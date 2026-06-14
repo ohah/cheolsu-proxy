@@ -112,7 +112,7 @@ impl LoggingHandler {
     }
 
     /// MapLocal 액션 처리 → 로컬 파일 응답 반환
-    pub(crate) fn apply_map_local(
+    pub(crate) async fn apply_map_local(
         file_path: &str,
         status_code: u16,
         headers: &std::collections::HashMap<String, String>,
@@ -124,7 +124,7 @@ impl LoggingHandler {
             "[Intercept] Map Local: {} {} -> {} (규칙: {})",
             method, url, file_path, rule_name
         );
-        let file_bytes = match std::fs::read(file_path) {
+        let file_bytes = match tokio::fs::read(file_path).await {
             Ok(bytes) => Bytes::from(bytes),
             Err(e) => {
                 error!(
@@ -297,6 +297,7 @@ impl LoggingHandler {
                         url,
                         &rule.name,
                     )
+                    .await
                     .into();
                 }
                 InterceptAction::MapRemote {
