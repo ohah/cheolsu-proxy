@@ -405,3 +405,52 @@ async fn run_event_loop<F>(
         }
     }
 }
+
+/// 데몬에 일회성으로 연결하여 학습된 TLS 전략을 동기 조회한다(request-response).
+///
+/// 데몬은 GetLearnedTlsStrategies에 대한 응답(LearnedTlsStrategies)을 "요청한 연결의
+/// writer"로 돌려보내므로, 전용 단명 연결로 명령을 보내고 해당 응답을 읽으면 된다.
+/// (기존 메인 연결은 콜백 기반 스트림이라 특정 응답을 await할 수 없다)
+pub async fn query_learned_tls_strategies(
+) -> Result<Vec<proxyapi_v2::hybrid_tls_handler::LearnedTlsStrategy>, DaemonError> {
+    let uds_path = uds_socket_path()?;
+    let stream = UnixStream::connect(&uds_path)
+        .await
+        .map_err(|e| DaemonError::Uds(format!("connect: {}", e)))?;
+    let (reader, mut writer) = tokio::io::split(stream);
+    let mut reader = BufReader::new(reader);
+
+    let mut line = serde_json::to_string(&ClientCommand::GetLearnedTlsStrategies)?;
+    line.push('\n');
+    writer
+        .write_all(line.as_bytes())
+        .await
+        .map_err(|e| DaemonError::Uds(format!("write: {}", e)))?;
+    writer
+        .flush()
+        .await
+        .map_err(|e| DaemonError::Uds(format!("flush: {}", e)))?;
+
+    // 응답(LearnedTlsStrategies)을 만날 때까지 라인을 읽는다(연결 직후의 Status 등은 건너뜀).
+    let mut buf = String::new();
+    loop {
+        buf.clear();
+        let read = tokio::time::timeout(
+            std::time::Duration::from_secs(5),
+            reader.read_line(&mut buf),
+        )
+        .await
+        .map_err(|_| DaemonError::Uds("학습된 TLS 전략 응답 타임아웃".to_string()))?
+        .map_err(|e| DaemonError::Uds(format!("read: {}", e)))?;
+        if read == 0 {
+            break; // EOF
+        }
+        if let Ok(DaemonMessage::LearnedTlsStrategies { strategies }) =
+            serde_json::from_str::<DaemonMessage>(buf.trim())
+        {
+            return Ok(strategies);
+        }
+    }
+
+    Ok(Vec::new())
+}
