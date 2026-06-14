@@ -8,15 +8,18 @@ use crate::handler::LoggingHandler;
 impl LoggingHandler {
     /// WebSocketContext에서 방향, connection_id, URL을 추출합니다.
     pub(crate) fn extract_ws_context(ctx: &WebSocketContext) -> (WsDirection, String, String) {
+        // connection_id는 고유 conn_id를 사용하고, URL은 표시용으로 src/dst에서 얻는다.
         match ctx {
-            WebSocketContext::ClientToServer { dst, .. } => {
-                let url = dst.to_string();
-                (WsDirection::ClientToServer, url.clone(), url)
-            }
-            WebSocketContext::ServerToClient { src, .. } => {
-                let url = src.to_string();
-                (WsDirection::ServerToClient, url.clone(), url)
-            }
+            WebSocketContext::ClientToServer { dst, conn_id, .. } => (
+                WsDirection::ClientToServer,
+                conn_id.clone(),
+                dst.to_string(),
+            ),
+            WebSocketContext::ServerToClient { src, conn_id, .. } => (
+                WsDirection::ServerToClient,
+                conn_id.clone(),
+                src.to_string(),
+            ),
         }
     }
 

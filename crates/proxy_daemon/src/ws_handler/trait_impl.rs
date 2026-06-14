@@ -8,9 +8,14 @@ use crate::handler::LoggingHandler;
 impl WebSocketHandler for LoggingHandler {
     async fn on_connected(&mut self, ctx: &WebSocketContext) {
         if let Some(ws_sender) = &self.ws.ws_sender {
+            // connection_id는 고유 conn_id를 사용하고, uri는 표시용으로 src/dst에서 얻는다.
             let (connection_id, uri) = match ctx {
-                WebSocketContext::ClientToServer { dst, .. } => (dst.to_string(), dst.to_string()),
-                WebSocketContext::ServerToClient { src, .. } => (src.to_string(), src.to_string()),
+                WebSocketContext::ClientToServer { dst, conn_id, .. } => {
+                    (conn_id.clone(), dst.to_string())
+                }
+                WebSocketContext::ServerToClient { src, conn_id, .. } => {
+                    (conn_id.clone(), src.to_string())
+                }
             };
             let event = WsConnectionEvent::Connected {
                 connection_id,
@@ -27,8 +32,8 @@ impl WebSocketHandler for LoggingHandler {
 
     async fn on_disconnected(&mut self, ctx: &WebSocketContext) {
         let connection_id = match ctx {
-            WebSocketContext::ClientToServer { dst, .. } => dst.to_string(),
-            WebSocketContext::ServerToClient { src, .. } => src.to_string(),
+            WebSocketContext::ClientToServer { conn_id, .. } => conn_id.clone(),
+            WebSocketContext::ServerToClient { conn_id, .. } => conn_id.clone(),
         };
 
         // 연결 종료 시 mqtt_versions 항목을 정리해 메모리 누수를 방지한다.

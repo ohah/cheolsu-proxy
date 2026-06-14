@@ -107,6 +107,8 @@ pub enum WebSocketContext {
         src: SocketAddr,
         /// URI of the server.
         dst: Uri,
+        /// 연결별 고유 식별자(URI가 아닌 고유 ID — 동일 URI 동시 연결을 구분).
+        conn_id: String,
     },
     #[non_exhaustive]
     ServerToClient {
@@ -114,6 +116,8 @@ pub enum WebSocketContext {
         src: Uri,
         /// Address of the client.
         dst: SocketAddr,
+        /// 연결별 고유 식별자.
+        conn_id: String,
     },
 }
 
