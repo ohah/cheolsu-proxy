@@ -139,16 +139,12 @@ pub(crate) async fn get_tls_config_rules(
 }
 
 #[tauri::command]
-pub(crate) async fn get_learned_tls_strategies(
-    proxy: State<'_, ProxyV2State>,
-) -> Result<Vec<LearnedTlsStrategy>, String> {
-    let sender = get_command_sender(&proxy).await?;
-    sender
-        .send_command(&ClientCommand::GetLearnedTlsStrategies)
+pub(crate) async fn get_learned_tls_strategies() -> Result<Vec<LearnedTlsStrategy>, String> {
+    // 데몬에 일회성 연결로 학습된 TLS 전략을 동기 조회한다(request-response).
+    // 데몬 미실행 시 연결 에러를 반환하며, 프론트는 이를 빈 배열로 graceful 처리한다.
+    proxy_daemon::query_learned_tls_strategies()
         .await
-        .map_err(|e| format!("학습된 TLS 전략 조회 실패: {}", e))?;
-    // TODO: 데몬 응답을 비동기로 수신하여 반환
-    Ok(vec![])
+        .map_err(|e| format!("학습된 TLS 전략 조회 실패: {}", e))
 }
 
 #[tauri::command]

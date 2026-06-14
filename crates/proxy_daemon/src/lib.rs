@@ -30,7 +30,8 @@ pub(crate) mod ws_handler;
 // Re-exports for convenience
 pub use breakpoint::BreakpointManager;
 pub use client::{
-    connect_to_daemon, ensure_daemon, is_daemon_running, CommandSender, DaemonConnection,
+    connect_to_daemon, ensure_daemon, is_daemon_running, query_learned_tls_strategies,
+    CommandSender, DaemonConnection,
 };
 pub use contract_validator::ContractValidator;
 pub use daemon::{check_and_cleanup_stale_lock, lock_file_path, run_daemon, uds_socket_path};
