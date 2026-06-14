@@ -130,6 +130,19 @@ impl MetricsCollector {
             .try_send(MetricEvent::ConnectionFailed { domain, error });
     }
 
+    /// TLS 핸드셰이크 결과를 기록합니다(성공/실패 모두 핸드셰이크 수에 포함).
+    pub fn record_tls_handshake(&self, success: bool) {
+        self.total_tls_handshakes.fetch_add(1, Ordering::Relaxed);
+        if !success {
+            self.total_tls_failures.fetch_add(1, Ordering::Relaxed);
+        }
+    }
+
+    /// 타임아웃 발생을 기록합니다.
+    pub fn record_timeout(&self) {
+        self.total_timeouts.fetch_add(1, Ordering::Relaxed);
+    }
+
     /// 현재 스냅샷을 반환합니다.
     pub fn snapshot(&self) -> MetricsSnapshot {
         MetricsSnapshot {
