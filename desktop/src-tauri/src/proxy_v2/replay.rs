@@ -289,11 +289,13 @@ pub(crate) async fn advanced_repeat<R: Runtime>(
                 },
             );
 
-            drop(permit);
-
+            // delay는 permit을 보유한 채 적용해야 동시성/요청 간 간격이 실제로 제어된다.
+            // (permit을 먼저 해제하면 다음 요청이 즉시 시작되어 지연이 무의미해짐)
             if delay_ms > 0 {
                 tokio::time::sleep(tokio::time::Duration::from_millis(delay_ms)).await;
             }
+
+            drop(permit);
         });
 
         handles.push(handle);
