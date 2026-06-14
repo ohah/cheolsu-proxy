@@ -4,6 +4,31 @@ Cheolsu Proxy의 버전별 업데이트 내역을 확인할 수 있습니다.
 
 ## 최신 릴리즈
 
+### v0.1.2 (2026-06-14)
+
+의존성 전면 버전업과 대규모 보안·안정성 버그 수정, 문서 정합성 개선을 포함한 유지보수 릴리즈입니다.
+
+📦 [GitHub Release 다운로드](https://github.com/ohah/cheolsu-proxy/releases/tag/v0.1.2)
+
+:::warning 서명되지 않은 빌드
+이 빌드는 코드 서명이 되어 있지 않습니다. `/Applications`에 복사한 후 터미널에서 다음 명령어를 실행하세요:
+
+```bash
+xattr -cr /Applications/Cheolsu\ Proxy.app
+```
+
+최초 1회만 실행하면 됩니다.
+:::
+
+**주요 변경사항**:
+
+- 스크립팅 엔진(deno_core/V8/oxc), MCP(rmcp), Tauri 등 Rust/JavaScript 의존성을 전면 버전업했습니다.
+- 인증서 SAN 검증, mTLS fail-open 등 보안 결함과 패닉·요청 무결성·압축 폭탄 방어를 포함한 High 버그를 수정했습니다.
+- 스크립팅 엔진의 무한 루프·메모리 폭주 시 데몬을 보호하고, 훅 타임아웃/강제 종료 race를 정리했습니다.
+- 평문 GET-over-CONNECT(ws://) 인터셉트 시 무한 블록 회귀와 슬로우 클라이언트 DoS를 방지했습니다.
+- SSE/WebSocket UTF-8 처리, multipart 크기 계산, 시스템 프록시 복원, 스로틀 프리셋 유실 등 다수 버그를 수정했습니다.
+- MCP 도구(48개)·CLI·스크립팅/SSE·설치 문서를 실제 구현과 동기화했습니다.
+
 ### v0.1.1 (2026-04-30)
 
 TLS 자동 패스스루 안전성 강화, 인증서 생성 안정화, 데스크톱/TUI/CLI 사용성 개선, 문서 및 CI 환경 정리를 포함한 유지보수 릴리즈입니다.

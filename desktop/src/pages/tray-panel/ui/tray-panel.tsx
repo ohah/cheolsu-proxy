@@ -120,7 +120,7 @@ export function TrayPanel() {
         <div className="tray-header" data-tauri-drag-region>
           <div className="tray-header-left">
             <span className="tray-title">Cheolsu Proxy</span>
-            <span className="tray-version">v0.1.1</span>
+            <span className="tray-version">v0.1.2</span>
           </div>
           <div className="tray-header-right">
             <Circle

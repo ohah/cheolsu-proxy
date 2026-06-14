@@ -4,6 +4,31 @@ Version-by-version update history for Cheolsu Proxy.
 
 ## Latest Release
 
+### v0.1.2 (2026-06-14)
+
+Maintenance release with a full dependency upgrade, a large batch of security and stability bug fixes, and documentation accuracy improvements.
+
+📦 [Download from GitHub Release](https://github.com/ohah/cheolsu-proxy/releases/tag/v0.1.2)
+
+:::warning Unsigned Build
+This build is not code-signed. After copying to `/Applications`, run the following in Terminal:
+
+```bash
+xattr -cr /Applications/Cheolsu\ Proxy.app
+```
+
+You only need to do this once.
+:::
+
+**Highlights**:
+
+- Upgraded Rust/JavaScript dependencies across the board, including the scripting engine (deno_core/V8/oxc), MCP (rmcp), and Tauri.
+- Fixed High-severity security issues (certificate SAN validation, mTLS fail-open) and hardened against panics, request-integrity bugs, and decompression bombs.
+- Protected the daemon from runaway scripts (infinite loops / memory exhaustion) and cleaned up hook timeout / forced-termination races.
+- Fixed an infinite-block regression when intercepting plaintext GET-over-CONNECT (ws://) and a slow-client DoS vector.
+- Fixed many bugs across SSE/WebSocket UTF-8 handling, multipart size calculation, system proxy restore, and throttle preset persistence.
+- Synced the MCP tools (48), CLI, scripting/SSE, and installation documentation with the actual implementation.
+
 ### v0.1.1 (2026-04-30)
 
 Maintenance release with safer TLS auto-passthrough behavior, certificate-generation stability work, desktop/TUI/CLI usability improvements, documentation updates, and CI cleanup.
