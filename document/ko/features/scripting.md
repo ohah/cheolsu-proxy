@@ -16,8 +16,14 @@ Cheolsu Proxy의 스크립팅 엔진은 Deno Core(V8) 기반의 JavaScript/TypeS
 
 ## 지원 파일 형식
 
-- `.js`, `.ts`, `.mjs`, `.mts`
-- TypeScript는 oxc 기반으로 자동 트랜스파일됩니다. 별도의 컴파일 단계 없이 TypeScript 파일을 바로 사용할 수 있습니다.
+- `.js`, `.mjs`, `.ts`, `.tsx`
+- TypeScript(`.ts`/`.tsx`)는 oxc 기반으로 자동 트랜스파일됩니다. 별도의 컴파일 단계 없이 바로 사용할 수 있습니다.
+
+## 실행 제약
+
+- **타임아웃**: 각 훅 실행은 30초로 제한됩니다. 무한 루프 등으로 초과하면 V8 실행이 강제 종료되고 해당 훅은 통과 처리됩니다.
+- **메모리**: V8 힙은 약 4MB~64MB로 제한됩니다.
+- **샌드박스**: `fetch`, `require`/`import`, `fs`, `process`, `Buffer`, `crypto`, `Worker` 등 외부 I/O API는 노출되지 않습니다. `console.*`과 타이머(`setTimeout`/`setInterval`)만 사용할 수 있습니다.
 
 ---
 
@@ -269,11 +275,13 @@ WebSocket 메시지가 전달되기 전에 호출됩니다.
 
 **handler 파라미터**: `message` 객체
 
-| 필드        | 타입    | 설명                             |
-| ----------- | ------- | -------------------------------- |
-| `direction` | string  | `"to_server"` 또는 `"to_client"` |
-| `payload`   | string  | 메시지 내용                      |
-| `is_binary` | boolean | 바이너리 메시지 여부             |
+| 필드            | 타입    | 설명                             |
+| --------------- | ------- | -------------------------------- |
+| `connection_id` | string  | 연결 고유 ID                     |
+| `url`           | string  | 연결 URL                         |
+| `direction`     | string  | `"to_server"` 또는 `"to_client"` |
+| `payload`       | string  | 메시지 내용                      |
+| `is_binary`     | boolean | 바이너리 메시지 여부             |
 
 **반환값**:
 
@@ -293,6 +301,38 @@ cheolsu.onWebSocketMessage((message) => {
 
   // 메시지 버림
   return { action: "drop" };
+});
+```
+
+### cheolsu.onSSEMessage(handler)
+
+SSE(Server-Sent Events) 이벤트가 클라이언트로 전달되기 전에 호출됩니다.
+
+**handler 파라미터**: `event` 객체
+
+| 필드            | 타입             | 설명                            |
+| --------------- | ---------------- | ------------------------------- |
+| `connection_id` | string           | 연결 고유 ID                    |
+| `event_type`    | string \| null   | `event:` 필드 값 (없으면 null)  |
+| `data`          | string           | 이벤트 데이터                   |
+| `id`            | string \| null   | `id:` 필드 값 (없으면 null)     |
+
+**반환값**:
+
+| action      | 설명                          | 추가 필드 |
+| ----------- | ----------------------------- | --------- |
+| `"forward"` | 이벤트를 그대로 전달          | 없음      |
+| `"drop"`    | 이벤트를 버림 (전달하지 않음) | 없음      |
+
+> SSE는 이벤트 내용 수정(`modify`)을 지원하지 않습니다. 통과 또는 드롭만 가능합니다.
+
+```javascript
+cheolsu.onSSEMessage((event) => {
+  // keep-alive 핑 이벤트는 버리고 나머지는 통과
+  if (event.event_type === "ping") {
+    return { action: "drop" };
+  }
+  return { action: "forward" };
 });
 ```
 
@@ -335,6 +375,7 @@ clearInterval(id);
 | `cheolsu.onRequest(handler)`                           | HTTP 요청 훅 등록 (sync/async)        |
 | `cheolsu.onResponse(handler)`                          | HTTP 응답 훅 등록 (sync/async)        |
 | `cheolsu.onWebSocketMessage(handler)`                  | WebSocket 메시지 훅 등록 (sync/async) |
+| `cheolsu.onSSEMessage(handler)`                        | SSE 이벤트 훅 등록 (sync/async)       |
 | `console.log/warn/error/info/debug()`                  | 콘솔 로깅                             |
 | `setTimeout(callback, delay)`                          | 지연 실행                             |
 | `clearTimeout(id)`                                     | 타이머 취소                           |
