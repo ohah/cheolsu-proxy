@@ -61,7 +61,7 @@ pub fn save_session(ctx: &OpsContext, p: SaveSessionParams) -> OpResult {
     }
 }
 
-pub fn load_session(ctx: &OpsContext, p: LoadSessionParams) -> OpResult {
+pub async fn load_session(ctx: &OpsContext, p: LoadSessionParams) -> OpResult {
     let file_path = std::path::Path::new(&p.path);
     let is_har = p.path.to_lowercase().ends_with(".har");
 
@@ -95,13 +95,23 @@ pub fn load_session(ctx: &OpsContext, p: LoadSessionParams) -> OpResult {
     ctx.store.transactions.lock().extend(transactions);
     ctx.store.ws_messages.lock().extend(ws_messages);
 
+    let mut rules_changed = false;
     if !rules.is_empty() {
         let mut current_rules = ctx.store.rules.lock();
         for rule in rules {
+            // M12: 로드된 ID를 관찰해 카운터 충돌 방지(이후 새 규칙이 같은 ID를 받지 않도록)
+            crate::id::observe_rule_id(&rule.id);
             if !current_rules.iter().any(|r| r.id == rule.id) {
                 current_rules.push(rule);
+                rules_changed = true;
             }
         }
+    } // rules 락 해제 (send_rules가 내부에서 다시 락하므로 await 전에 반드시 해제)
+
+    // M13: 로드한 인터셉트 규칙을 데몬에 동기화한다(미동기화 시 규칙이 비활성 상태로 남음).
+    // 데몬 미연결 등은 best-effort로 무시한다.
+    if rules_changed {
+        let _ = ctx.send_rules().await;
     }
 
     let mode = if p.append { "appended" } else { "loaded" };

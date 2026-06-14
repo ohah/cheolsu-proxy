@@ -20,7 +20,12 @@ pub fn get_sse_events(ctx: &OpsContext, p: GetSseEventsParams) -> OpResult {
         .map(|evt| {
             let event_type = evt.event_type.as_deref().unwrap_or("message").to_string();
             let data = if evt.data.len() > 200 {
-                format!("{}...", &evt.data[..200])
+                // UTF-8 문자 경계에서 자르기(멀티바이트 경계 슬라이싱 패닉 방지)
+                let mut end = 200;
+                while end > 0 && !evt.data.is_char_boundary(end) {
+                    end -= 1;
+                }
+                format!("{}...", &evt.data[..end])
             } else {
                 evt.data.clone()
             };

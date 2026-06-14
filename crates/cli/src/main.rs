@@ -1091,13 +1091,16 @@ async fn run(cli: Cli) -> i32 {
                     description: args.description,
                 },
             ),
-            SessionCommands::Load(args) => cheolsu_ops::session::load_session(
-                &ctx,
-                LoadSessionParams {
-                    path: args.path,
-                    append: args.append,
-                },
-            ),
+            SessionCommands::Load(args) => {
+                cheolsu_ops::session::load_session(
+                    &ctx,
+                    LoadSessionParams {
+                        path: args.path,
+                        append: args.append,
+                    },
+                )
+                .await
+            }
         },
 
         // Script
