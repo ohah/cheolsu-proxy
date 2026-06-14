@@ -8,6 +8,27 @@ use tracing::{debug, error};
 
 use crate::handler::LoggingHandler;
 
+/// 누적 버퍼에서 디코딩 가능한 최대 UTF-8 prefix를 String으로 반환하고, 소비한 바이트 수를 돌려준다.
+/// 끝의 불완전한 멀티바이트 시퀀스는 소비하지 않고 남겨, 다음 프레임과 이어붙인다.
+/// 중간에 실제로 잘못된 바이트가 있으면 lossy로 처리하고 소비해 스톨을 방지한다.
+fn decode_sse_prefix(buf: &[u8]) -> (String, usize) {
+    match std::str::from_utf8(buf) {
+        Ok(s) => (s.to_string(), buf.len()),
+        Err(e) => {
+            let valid = e.valid_up_to();
+            match e.error_len() {
+                // 끝에 불완전한 시퀀스 → 유효 prefix만 소비하고 나머지는 다음 프레임 대기
+                None => (String::from_utf8_lossy(&buf[..valid]).into_owned(), valid),
+                // 중간의 잘못된 바이트 → 잘못된 부분까지 lossy로 소비(파서 스톨 방지)
+                Some(bad) => (
+                    String::from_utf8_lossy(&buf[..valid + bad]).into_owned(),
+                    valid + bad,
+                ),
+            }
+        }
+    }
+}
+
 /// SSE 이벤트 (이벤트 또는 연결 상태)
 #[derive(Clone, Debug)]
 pub enum SseEvent {
@@ -73,6 +94,8 @@ impl LoggingHandler {
             let mut body_stream = body;
             let mut collected_chunks = Vec::new();
             let mut sse_parser = SseParser::new();
+            // 프레임 경계에서 분할된 멀티바이트 UTF-8을 이어붙이기 위한 캐리오버 버퍼
+            let mut pending: Vec<u8> = Vec::new();
 
             while let Some(frame_result) = body_stream.frame().await {
                 match frame_result {
@@ -80,9 +103,15 @@ impl LoggingHandler {
                         if let Some(data) = frame.data_ref() {
                             collected_chunks.extend_from_slice(data);
 
-                            // SSE 파서에 청크 전달
-                            if let Ok(chunk_str) = std::str::from_utf8(data) {
-                                let parsed_events = sse_parser.feed(chunk_str);
+                            // SSE 파서에 청크 전달.
+                            // 프레임 경계에서 멀티바이트 UTF-8이 쪼개지면 from_utf8가 실패해
+                            // 해당 바이트가 영구 유실(파서 desync)되므로, 유효 prefix만 디코딩하고
+                            // 불완전한 잔여 바이트는 다음 프레임으로 넘긴다.
+                            pending.extend_from_slice(data);
+                            let (decoded, consumed) = decode_sse_prefix(&pending);
+                            pending.drain(..consumed);
+                            if !decoded.is_empty() {
+                                let parsed_events = sse_parser.feed(&decoded);
                                 for parsed in parsed_events {
                                     // 스크립팅 훅 호출
                                     let sse_msg = scripting::ScriptSseEvent {
@@ -161,5 +190,33 @@ impl LoggingHandler {
         });
 
         response_for_client
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::decode_sse_prefix;
+
+    #[test]
+    fn decode_sse_prefix_full_valid() {
+        let (decoded, consumed) = decode_sse_prefix("hello".as_bytes());
+        assert_eq!(decoded, "hello");
+        assert_eq!(consumed, 5);
+    }
+
+    #[test]
+    fn decode_sse_prefix_handles_split_multibyte() {
+        // "한"(U+D55C) = [0xED, 0x95, 0x9C]
+        let full = "ab한".as_bytes().to_vec();
+        // 마지막 멀티바이트의 첫 2바이트만 도착한 상태
+        let (decoded, consumed) = decode_sse_prefix(&full[..full.len() - 1]);
+        assert_eq!(decoded, "ab", "유효 prefix만 디코딩되어야 함");
+        assert_eq!(consumed, 2, "불완전 시퀀스는 소비하지 않고 보존해야 함");
+
+        // 나머지 바이트가 도착하면 완성됨
+        let remaining = &full[consumed..];
+        let (decoded2, consumed2) = decode_sse_prefix(remaining);
+        assert_eq!(decoded2, "한");
+        assert_eq!(consumed2, remaining.len());
     }
 }
