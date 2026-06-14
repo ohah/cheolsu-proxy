@@ -142,8 +142,10 @@ msgid "Add Mapping"
 msgstr "Add Mapping"
 
 #: src/pages/host-mapping/ui/host-mapping-page.tsx:44
-msgid "Add mappings to redirect DNS hostnames to different target hosts for testing."
-msgstr "Add mappings to redirect DNS hostnames to different target hosts for testing."
+msgid "Add mappings to redirect DNS hostnames to different target hosts for "
+"testing."
+msgstr "Add mappings to redirect DNS hostnames to different target hosts for "
+"testing."
 
 #: src/pages/settings/ui/components/proto-files-section.tsx:74
 msgid "Add Proto Files"
@@ -153,7 +155,7 @@ msgstr "Add Proto Files"
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:240
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:270
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:204
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:84
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:88
 #: src/pages/map-rules/ui/map-rules-page.tsx:78
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:164
 msgid "Add Rule"
@@ -163,7 +165,7 @@ msgstr "Add Rule"
 msgid "Add Rule..."
 msgstr "Add Rule..."
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:81
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:85
 msgid "Add rules to intercept, block, or modify HTTP requests and responses."
 msgstr "Add rules to intercept, block, or modify HTTP requests and responses."
 
@@ -172,8 +174,10 @@ msgid "Add rules to map URLs to local files or redirect to other servers."
 msgstr "Add rules to map URLs to local files or redirect to other servers."
 
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:159
-msgid "Add rules to route requests with relative URIs to backend servers based on Host header."
-msgstr "Add rules to route requests with relative URIs to backend servers based on Host header."
+msgid "Add rules to route requests with relative URIs to backend servers based "
+"on Host header."
+msgstr "Add rules to route requests with relative URIs to backend servers based "
+"on Host header."
 
 #: src/pages/contract-testing/ui/contract-testing-page.tsx:91
 msgid "Add Spec"
@@ -184,7 +188,7 @@ msgid "Add your first mapping"
 msgstr "Add your first mapping"
 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:263
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:83
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:87
 #: src/pages/map-rules/ui/map-rules-page.tsx:77
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:163
 msgid "Add your first rule"
@@ -230,12 +234,16 @@ msgid "All HTTPS traffic is being intercepted (no whitelist configured)"
 msgstr "All HTTPS traffic is being intercepted (no whitelist configured)"
 
 #: src/pages/settings/ui/components/ssl-proxying-section.tsx:167
-msgid "All HTTPS traffic is intercepted except {enabledCount} excluded domain(s) and {defaultEnabledCount} built-in domain(s)."
-msgstr "All HTTPS traffic is intercepted except {enabledCount} excluded domain(s) and {defaultEnabledCount} built-in domain(s)."
+msgid "All HTTPS traffic is intercepted except {enabledCount} excluded "
+"domain(s) and {defaultEnabledCount} built-in domain(s)."
+msgstr "All HTTPS traffic is intercepted except {enabledCount} excluded "
+"domain(s) and {defaultEnabledCount} built-in domain(s)."
 
 #: src/pages/settings/ui/components/ssl-proxying-section.tsx:162
-msgid "All HTTPS traffic is intercepted. {defaultEnabledCount} built-in domain(s) are automatically excluded."
-msgstr "All HTTPS traffic is intercepted. {defaultEnabledCount} built-in domain(s) are automatically excluded."
+msgid "All HTTPS traffic is intercepted. {defaultEnabledCount} built-in "
+"domain(s) are automatically excluded."
+msgstr "All HTTPS traffic is intercepted. {defaultEnabledCount} built-in "
+"domain(s) are automatically excluded."
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:178
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:178
@@ -253,7 +261,7 @@ msgid "All reverse proxy rules cleared"
 msgstr "All reverse proxy rules cleared"
 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:145
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:71
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:75
 #: src/pages/map-rules/ui/map-rules-page.tsx:61
 msgid "All rules cleared"
 msgstr "All rules cleared"
@@ -279,8 +287,10 @@ msgid "Apply:"
 msgstr "Apply:"
 
 #: src/pages/settings/ui/components/client-tags-section.tsx:51
-msgid "Assign labels to client IP addresses for easier identification and filtering"
-msgstr "Assign labels to client IP addresses for easier identification and filtering"
+msgid "Assign labels to client IP addresses for easier identification and "
+"filtering"
+msgstr "Assign labels to client IP addresses for easier identification and "
+"filtering"
 
 #: src/pages/settings/ui/components/upstream-proxy-section.tsx:51
 msgid "Authentication"
@@ -291,8 +301,10 @@ msgid "Auto Save Session"
 msgstr "Auto Save Session"
 
 #: src/pages/settings/ui/components/general-settings.tsx:236
-msgid "Automatically save the current session when the app closes and restore it on next launch"
-msgstr "Automatically save the current session when the app closes and restore it on next launch"
+msgid "Automatically save the current session when the app closes and restore "
+"it on next launch"
+msgstr "Automatically save the current session when the app closes and restore "
+"it on next launch"
 
 #: src/pages/server-replay/ui/server-replay-page.tsx:90
 msgid "available"
@@ -340,7 +352,7 @@ msgstr "Blacklist (Exclude)"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:210
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:210
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:46
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:49
 msgid "Block"
 msgstr "Block"
 
@@ -582,8 +594,10 @@ msgid "Client Tags"
 msgstr "Client Tags"
 
 #: src/pages/settings/ui/components/proxy-auth-section.tsx:48
-msgid "Clients must provide these credentials via Proxy-Authorization header (HTTP Basic) to use this proxy"
-msgstr "Clients must provide these credentials via Proxy-Authorization header (HTTP Basic) to use this proxy"
+msgid "Clients must provide these credentials via Proxy-Authorization header "
+"(HTTP Basic) to use this proxy"
+msgstr "Clients must provide these credentials via Proxy-Authorization header "
+"(HTTP Basic) to use this proxy"
 
 #: src/pages/settings/ui/components/request-client-cert-section.tsx:95
 msgid "Clients without a valid certificate will be rejected"
@@ -609,8 +623,10 @@ msgid "Collapse sidebar"
 msgstr "Collapse sidebar"
 
 #: src/pages/settings/ui/components/upstream-proxy-section.tsx:78
-msgid "Comma-separated list of hosts to connect directly (supports *.domain.com wildcards)"
-msgstr "Comma-separated list of hosts to connect directly (supports *.domain.com wildcards)"
+msgid "Comma-separated list of hosts to connect directly (supports *.domain.com "
+"wildcards)"
+msgstr "Comma-separated list of hosts to connect directly (supports "
+"*.domain.com wildcards)"
 
 #: src/shared/app-sidebar/ui/sidebar-mcp.tsx:63
 msgid "Command copied to clipboard"
@@ -675,8 +691,10 @@ msgid "Contract Testing"
 msgstr "Contract Testing"
 
 #: src/pages/settings/ui/components/connection-strategy-section.tsx:21
-msgid "Controls when the proxy connects to upstream servers for certificate sniffing"
-msgstr "Controls when the proxy connects to upstream servers for certificate sniffing"
+msgid "Controls when the proxy connects to upstream servers for certificate "
+"sniffing"
+msgstr "Controls when the proxy connects to upstream servers for certificate "
+"sniffing"
 
 #: src/features/transaction-details/ui/transaction-certificate.tsx:30
 #: src/pages/settings/ui/components/certificate-settings.tsx:231
@@ -735,7 +753,7 @@ msgstr "Current Usage"
 msgid "Custom"
 msgstr "Custom"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:137
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:145
 msgid "Custom body"
 msgstr "Custom body"
 
@@ -753,8 +771,10 @@ msgid "Data"
 msgstr "Data"
 
 #: src/pages/settings/ui/components/proxy-port-section.tsx:42
-msgid "Default port is 8100. Make sure your system proxy is configured to use port {port}."
-msgstr "Default port is 8100. Make sure your system proxy is configured to use port {port}."
+msgid "Default port is 8100. Make sure your system proxy is configured to use "
+"port {port}."
+msgstr "Default port is 8100. Make sure your system proxy is configured to use "
+"port {port}."
 
 #: src/features/intercept-rule-form/ui/throttle-action-fields.tsx:27
 msgid "Delay before forwarding the request (milliseconds)"
@@ -784,7 +804,7 @@ msgid "Delete mapping"
 msgstr "Delete mapping"
 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:301
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:161
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:169
 #: src/pages/map-rules/ui/map-rules-page.tsx:141
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:210
 msgid "Delete rule"
@@ -833,24 +853,38 @@ msgid "Domain-specific Certificates"
 msgstr "Domain-specific Certificates"
 
 #: src/pages/settings/ui/components/tls-config-section.tsx:55
-msgid "Domain-specific TLS engine rules. Domains matched here use OpenSSL instead of rustls for compatibility."
-msgstr "Domain-specific TLS engine rules. Domains matched here use OpenSSL instead of rustls for compatibility."
+msgid "Domain-specific TLS engine rules. Domains matched here use OpenSSL "
+"instead of rustls for compatibility."
+msgstr "Domain-specific TLS engine rules. Domains matched here use OpenSSL "
+"instead of rustls for compatibility."
 
 #: src/pages/log-viewer/ui/logs-page.tsx:415
-msgid "Domains are automatically tunneled without MITM only after repeated TLS handshake failures. Failed-but-inactive entries are retained for diagnostics."
-msgstr "Domains are automatically tunneled without MITM only after repeated TLS handshake failures. Failed-but-inactive entries are retained for diagnostics."
+msgid "Domains are automatically tunneled without MITM only after repeated TLS "
+"handshake failures. Failed-but-inactive entries are retained for "
+"diagnostics."
+msgstr "Domains are automatically tunneled without MITM only after repeated TLS "
+"handshake failures. Failed-but-inactive entries are retained for "
+"diagnostics."
 
 #: src/pages/settings/ui/components/never-passthrough-section.tsx:59
-msgid "Domains in this list will never fall back to passthrough when TLS handshake fails. The proxy will keep trying to intercept these domains, allowing you to see the actual error instead of silently bypassing."
-msgstr "Domains in this list will never fall back to passthrough when TLS handshake fails. The proxy will keep trying to intercept these domains, allowing you to see the actual error instead of silently bypassing."
+msgid "Domains in this list will never fall back to passthrough when TLS "
+"handshake fails. The proxy will keep trying to intercept these domains, "
+"allowing you to see the actual error instead of silently bypassing."
+msgstr "Domains in this list will never fall back to passthrough when TLS "
+"handshake fails. The proxy will keep trying to intercept these domains, "
+"allowing you to see the actual error instead of silently bypassing."
 
 #: src/pages/settings/ui/components/ssl-proxying-section.tsx:218
-msgid "Domains in this list will NOT be intercepted (pass-through). Built-in domains can be managed below."
-msgstr "Domains in this list will NOT be intercepted (pass-through). Built-in domains can be managed below."
+msgid "Domains in this list will NOT be intercepted (pass-through). Built-in "
+"domains can be managed below."
+msgstr "Domains in this list will NOT be intercepted (pass-through). Built-in "
+"domains can be managed below."
 
 #: src/pages/settings/ui/components/tls-config-section.tsx:103
-msgid "Domains that failed with the default TLS engine are recorded here. On the next connection, the alternate engine will be used automatically."
-msgstr "Domains that failed with the default TLS engine are recorded here. On the next connection, the alternate engine will be used automatically."
+msgid "Domains that failed with the default TLS engine are recorded here. On "
+"the next connection, the alternate engine will be used automatically."
+msgstr "Domains that failed with the default TLS engine are recorded here. On "
+"the next connection, the alternate engine will be used automatically."
 
 #: src/features/transaction-details/ui/image-preview.tsx:169
 msgid "Download"
@@ -910,7 +944,7 @@ msgstr "Edit & Forward"
 msgid "Edit Map Rule"
 msgstr "Edit Map Rule"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:153
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:161
 #: src/pages/map-rules/ui/map-rules-page.tsx:133
 msgid "Edit rule"
 msgstr "Edit rule"
@@ -924,8 +958,10 @@ msgid "Editor"
 msgstr "Editor"
 
 #: src/pages/settings/ui/components/ssl-proxying-section.tsx:231
-msgid "Empty whitelist currently means all HTTPS traffic is intercepted. Add at least one enabled domain to limit SSL Proxying to selected hosts."
-msgstr "Empty whitelist currently means all HTTPS traffic is intercepted. Add at least one enabled domain to limit SSL Proxying to selected hosts."
+msgid "Empty whitelist currently means all HTTPS traffic is intercepted. Add at "
+"least one enabled domain to limit SSL Proxying to selected hosts."
+msgstr "Empty whitelist currently means all HTTPS traffic is intercepted. Add "
+"at least one enabled domain to limit SSL Proxying to selected hosts."
 
 #: src/pages/settings/ui/components/certificate-settings.tsx:303
 msgid "Enable full trust for the Cheolsu Proxy CA certificate"
@@ -1229,7 +1265,7 @@ msgstr "Header name"
 msgid "Header name to remove"
 msgstr "Header name to remove"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:130
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:138
 #: src/pages/server-replay/ui/server-replay-page.tsx:191
 msgid "headers"
 msgstr "headers"
@@ -1284,8 +1320,10 @@ msgid "HTTPie"
 msgstr "HTTPie"
 
 #: src/pages/settings/ui/components/request-client-cert-section.tsx:77
-msgid "If not specified, any client certificate will be accepted without verification"
-msgstr "If not specified, any client certificate will be accepted without verification"
+msgid "If not specified, any client certificate will be accepted without "
+"verification"
+msgstr "If not specified, any client certificate will be accepted without "
+"verification"
 
 #: src/pages/settings/ui/components/custom-ca-section.tsx:266
 msgid "Import"
@@ -1330,12 +1368,16 @@ msgid "Install the <0>cheolsu</0> command to use the TUI from your terminal"
 msgstr "Install the <0>cheolsu</0> command to use the TUI from your terminal"
 
 #: src/pages/settings/ui/components/certificate-settings.tsx:154
-msgid "Install the CA certificate on external devices (mobile, tablet) to intercept HTTPS traffic"
-msgstr "Install the CA certificate on external devices (mobile, tablet) to intercept HTTPS traffic"
+msgid "Install the CA certificate on external devices (mobile, tablet) to "
+"intercept HTTPS traffic"
+msgstr "Install the CA certificate on external devices (mobile, tablet) to "
+"intercept HTTPS traffic"
 
 #: src/pages/settings/ui/components/certificate-settings.tsx:74
-msgid "Install the CA certificate to trust HTTPS traffic intercepted by the proxy"
-msgstr "Install the CA certificate to trust HTTPS traffic intercepted by the proxy"
+msgid "Install the CA certificate to trust HTTPS traffic intercepted by the "
+"proxy"
+msgstr "Install the CA certificate to trust HTTPS traffic intercepted by the "
+"proxy"
 
 #: src/pages/settings/ui/components/cli-settings.tsx:68
 msgid "Installed"
@@ -1350,7 +1392,7 @@ msgstr "Installing..."
 msgid "Intercept Rule"
 msgstr "Intercept Rule"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:76
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:80
 #: src/shared/app-sidebar/model/consts.ts:64
 msgid "Intercept Rules"
 msgstr "Intercept Rules"
@@ -1438,8 +1480,10 @@ msgid "Load"
 msgstr "Load"
 
 #: src/pages/script/ui/script-page.tsx:250
-msgid "Load a script file from disk. The file will be watched for changes and auto-reloaded."
-msgstr "Load a script file from disk. The file will be watched for changes and auto-reloaded."
+msgid "Load a script file from disk. The file will be watched for changes and "
+"auto-reloaded."
+msgstr "Load a script file from disk. The file will be watched for changes and "
+"auto-reloaded."
 
 #: src/features/transaction-details/ui/transaction-validation.tsx:57
 msgid "Load an OpenAPI spec to enable contract testing"
@@ -1502,7 +1546,7 @@ msgstr "Manage network transaction storage and file cache"
 msgid "Manage request/response intercept rules"
 msgstr "Manage request/response intercept rules"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:77
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:81
 msgid "Manage wildcard-based request/response intercept rules"
 msgstr "Manage wildcard-based request/response intercept rules"
 
@@ -1517,7 +1561,7 @@ msgstr "Map DNS hostnames to different targets"
 
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:251
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:251
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:49
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:52
 #: src/pages/map-rules/ui/map-rules-page.tsx:40
 #: src/widgets/network-table/ui/table-row.tsx:296
 msgid "Map Local"
@@ -1528,16 +1572,20 @@ msgid "Map Local / Map Remote rules"
 msgstr "Map Local / Map Remote rules"
 
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:179
-msgid "Map Local: respond with a local file. Map Remote: redirect to another URL."
-msgstr "Map Local: respond with a local file. Map Remote: redirect to another URL."
+msgid "Map Local: respond with a local file. Map Remote: redirect to another "
+"URL."
+msgstr "Map Local: respond with a local file. Map Remote: redirect to another "
+"URL."
 
 #: src/pages/map-rules/ui/map-rules-page.tsx:68
-msgid "Map Local: respond with local files. Map Remote: redirect requests to another URL."
-msgstr "Map Local: respond with local files. Map Remote: redirect requests to another URL."
+msgid "Map Local: respond with local files. Map Remote: redirect requests to "
+"another URL."
+msgstr "Map Local: respond with local files. Map Remote: redirect requests to "
+"another URL."
 
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:254
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:255
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:50
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:53
 #: src/pages/map-rules/ui/map-rules-page.tsx:41
 #: src/widgets/network-table/ui/table-row.tsx:292
 msgid "Map Remote"
@@ -1640,13 +1688,13 @@ msgstr "Modify & Forward"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:213
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:214
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:47
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:50
 msgid "Modify Request"
 msgstr "Modify Request"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:217
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:218
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:48
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:51
 msgid "Modify Response"
 msgstr "Modify Response"
 
@@ -1710,8 +1758,10 @@ msgid "No Caching"
 msgstr "No Caching"
 
 #: src/pages/server-replay/ui/server-replay-page.tsx:95
-msgid "No captured traffic with responses available. Capture some traffic first."
-msgstr "No captured traffic with responses available. Capture some traffic first."
+msgid "No captured traffic with responses available. Capture some traffic "
+"first."
+msgstr "No captured traffic with responses available. Capture some traffic "
+"first."
 
 #: src/features/query-filter-editor/ui/query-filter-editor.tsx:75
 msgid "No conditions"
@@ -1753,7 +1803,7 @@ msgstr "No Gzip"
 msgid "No host mappings"
 msgstr "No host mappings"
 
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:79
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:83
 msgid "No intercept rules"
 msgstr "No intercept rules"
 
@@ -1794,8 +1844,10 @@ msgid "No phase selected"
 msgstr "No phase selected"
 
 #: src/pages/settings/ui/components/proto-files-section.tsx:95
-msgid "No proto files registered. gRPC messages will be decoded using wire format heuristics."
-msgstr "No proto files registered. gRPC messages will be decoded using wire format heuristics."
+msgid "No proto files registered. gRPC messages will be decoded using wire "
+"format heuristics."
+msgstr "No proto files registered. gRPC messages will be decoded using wire "
+"format heuristics."
 
 #: src/pages/server-replay/ui/server-replay-page.tsx:156
 msgid "No replay entries"
@@ -1818,8 +1870,10 @@ msgid "No slow requests detected"
 msgstr "No slow requests detected"
 
 #: src/pages/contract-testing/ui/contract-testing-page.tsx:103
-msgid "No specs loaded. Add an OpenAPI/Swagger spec file to start contract testing."
-msgstr "No specs loaded. Add an OpenAPI/Swagger spec file to start contract testing."
+msgid "No specs loaded. Add an OpenAPI/Swagger spec file to start contract "
+"testing."
+msgstr "No specs loaded. Add an OpenAPI/Swagger spec file to start contract "
+"testing."
 
 #: src/features/transaction-details/ui/transaction-timing.tsx:52
 msgid "No timing data available"
@@ -1878,16 +1932,20 @@ msgid "Number of times to send the request (1-10000)"
 msgstr "Number of times to send the request (1-10000)"
 
 #: src/pages/settings/ui/components/ssl-proxying-section.tsx:223
-msgid "Only domains in this list will be intercepted. When the list is empty, all domains are intercepted."
-msgstr "Only domains in this list will be intercepted. When the list is empty, all domains are intercepted."
+msgid "Only domains in this list will be intercepted. When the list is empty, "
+"all domains are intercepted."
+msgstr "Only domains in this list will be intercepted. When the list is empty, "
+"all domains are intercepted."
 
 #: src/features/transaction-details/hooks/use-replay-form.ts:77
 msgid "Only http:// and https:// URLs are allowed"
 msgstr "Only http:// and https:// URLs are allowed"
 
 #: src/pages/settings/ui/components/ssl-proxying-section.tsx:175
-msgid "Only whitelisted domains ({enabledCount}) will have HTTPS traffic intercepted"
-msgstr "Only whitelisted domains ({enabledCount}) will have HTTPS traffic intercepted"
+msgid "Only whitelisted domains ({enabledCount}) will have HTTPS traffic "
+"intercepted"
+msgstr "Only whitelisted domains ({enabledCount}) will have HTTPS traffic "
+"intercepted"
 
 #: src/pages/settings/ui/components/certificate-settings.tsx:328
 msgid "Open <0>{CERT_DOWNLOAD_URL}</0> in Chrome"
@@ -1910,8 +1968,12 @@ msgid "Open File"
 msgstr "Open File"
 
 #: src/pages/settings/ui/components/certificate-settings.tsx:240
-msgid "Open this URL in your mobile browser after setting the Wi-Fi proxy. The page automatically detects your device and provides the correct certificate format."
-msgstr "Open this URL in your mobile browser after setting the Wi-Fi proxy. The page automatically detects your device and provides the correct certificate format."
+msgid "Open this URL in your mobile browser after setting the Wi-Fi proxy. The "
+"page automatically detects your device and provides the correct "
+"certificate format."
+msgstr "Open this URL in your mobile browser after setting the Wi-Fi proxy. The "
+"page automatically detects your device and provides the correct "
+"certificate format."
 
 #: src/pages/network-dashboard/hooks/use-network-export.ts:184
 msgid "OpenAPI export failed"
@@ -2051,16 +2113,20 @@ msgid "Port must be between 1 and 65535"
 msgstr "Port must be between 1 and 65535"
 
 #: src/pages/settings/ui/components/proxy-port-section.tsx:18
-msgid "Port number for the proxy server to listen on. Changes take effect on next app restart."
-msgstr "Port number for the proxy server to listen on. Changes take effect on next app restart."
+msgid "Port number for the proxy server to listen on. Changes take effect on "
+"next app restart."
+msgstr "Port number for the proxy server to listen on. Changes take effect on "
+"next app restart."
 
 #: src/widgets/network-table/ui/table-row.tsx:249
 msgid "PowerShell"
 msgstr "PowerShell"
 
 #: src/pages/settings/ui/components/client-certificate-section.tsx:120
-msgid "Present a client certificate when connecting to servers that require mTLS authentication"
-msgstr "Present a client certificate when connecting to servers that require mTLS authentication"
+msgid "Present a client certificate when connecting to servers that require "
+"mTLS authentication"
+msgstr "Present a client certificate when connecting to servers that require "
+"mTLS authentication"
 
 #: src/features/map-rule-form/ui/map-remote-fields.tsx:29
 msgid "Preserve Path"
@@ -2079,8 +2145,10 @@ msgid "Press a key combination..."
 msgstr "Press a key combination..."
 
 #: src/pages/settings/ui/components/general-settings.tsx:205
-msgid "Prevent caching by removing conditional headers and adding no-cache directives"
-msgstr "Prevent caching by removing conditional headers and adding no-cache directives"
+msgid "Prevent caching by removing conditional headers and adding no-cache "
+"directives"
+msgstr "Prevent caching by removing conditional headers and adding no-cache "
+"directives"
 
 #: src/pages/settings/ui/components/throttle-section.tsx:34
 msgid "Profile"
@@ -2165,8 +2233,10 @@ msgid "Regex pattern (e.g. old-domain\\.com)"
 msgstr "Regex pattern (e.g. old-domain\\.com)"
 
 #: src/pages/settings/ui/components/proto-files-section.tsx:66
-msgid "Register .proto files to decode gRPC traffic with actual field names instead of field numbers."
-msgstr "Register .proto files to decode gRPC traffic with actual field names instead of field numbers."
+msgid "Register .proto files to decode gRPC traffic with actual field names "
+"instead of field numbers."
+msgstr "Register .proto files to decode gRPC traffic with actual field names "
+"instead of field numbers."
 
 #: src/pages/settings/ui/components/certificate-settings.tsx:82
 #: src/pages/settings/ui/components/cli-settings.tsx:59
@@ -2187,12 +2257,16 @@ msgid "Remove"
 msgstr "Remove"
 
 #: src/pages/settings/ui/components/general-settings.tsx:219
-msgid "Remove Accept-Encoding header from requests to prevent compressed responses"
-msgstr "Remove Accept-Encoding header from requests to prevent compressed responses"
+msgid "Remove Accept-Encoding header from requests to prevent compressed "
+"responses"
+msgstr "Remove Accept-Encoding header from requests to prevent compressed "
+"responses"
 
 #: src/pages/settings/ui/components/general-settings.tsx:212
-msgid "Remove Cookie headers from requests and Set-Cookie headers from responses"
-msgstr "Remove Cookie headers from requests and Set-Cookie headers from responses"
+msgid "Remove Cookie headers from requests and Set-Cookie headers from "
+"responses"
+msgstr "Remove Cookie headers from requests and Set-Cookie headers from "
+"responses"
 
 #: src/pages/settings/ui/components/custom-ca-section.tsx:165
 msgid "Remove Custom CA"
@@ -2213,8 +2287,10 @@ msgstr "Removed"
 #. placeholder {0}: transactions.length
 #. placeholder {1}: loaded.length
 #: src/pages/network-dashboard/hooks/use-network-export.ts:45
-msgid "Replace {0} existing transactions with {1} new ones? Cancel to append instead."
-msgstr "Replace {0} existing transactions with {1} new ones? Cancel to append instead."
+msgid "Replace {0} existing transactions with {1} new ones? Cancel to append "
+"instead."
+msgstr "Replace {0} existing transactions with {1} new ones? Cancel to append "
+"instead."
 
 #: src/features/intercept-rule-form/ui/rewrite-action-fields.tsx:61
 msgid "Replace With"
@@ -2371,8 +2447,10 @@ msgid "Return cached responses for matching requests"
 msgstr "Return cached responses for matching requests"
 
 #: src/pages/server-replay/ui/server-replay-page.tsx:53
-msgid "Return cached responses for matching requests instead of forwarding to the server"
-msgstr "Return cached responses for matching requests instead of forwarding to the server"
+msgid "Return cached responses for matching requests instead of forwarding to "
+"the server"
+msgstr "Return cached responses for matching requests instead of forwarding to "
+"the server"
 
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:152
 #: src/shared/app-sidebar/model/consts.ts:99
@@ -2389,7 +2467,7 @@ msgstr "Reverse proxy rule deleted"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:219
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:219
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:51
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:54
 msgid "Rewrite"
 msgstr "Rewrite"
 
@@ -2408,7 +2486,8 @@ msgstr "Right"
 
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:154
 msgid "Route incoming requests to backend servers based on Host header matching"
-msgstr "Route incoming requests to backend servers based on Host header matching"
+msgstr "Route incoming requests to backend servers based on Host header "
+"matching"
 
 #: src/shared/app-sidebar/model/consts.ts:101
 msgid "Route requests to backend servers by Host header"
@@ -2424,7 +2503,7 @@ msgid "Rule added"
 msgstr "Rule added"
 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:140
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:66
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:70
 #: src/pages/map-rules/ui/map-rules-page.tsx:56
 msgid "Rule deleted"
 msgstr "Rule deleted"
@@ -2440,7 +2519,7 @@ msgid "Rule updated"
 msgstr "Rule updated"
 
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:194
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:78
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:82
 #: src/pages/map-rules/ui/map-rules-page.tsx:72
 #: src/pages/reverse-proxy/ui/reverse-proxy-page.tsx:156
 msgid "rules"
@@ -2745,12 +2824,14 @@ msgid "Start Replay"
 msgstr "Start Replay"
 
 #: src/pages/settings/ui/components/connection-strategy-section.tsx:55
-msgid "Starts background server connection immediately after ClientHello detection"
-msgstr "Starts background server connection immediately after ClientHello detection"
+msgid "Starts background server connection immediately after ClientHello "
+"detection"
+msgstr "Starts background server connection immediately after ClientHello "
+"detection"
 
 #: src/pages/analytics-dashboard/ui/performance-tab.tsx:52
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:118
-#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:123
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:126
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:131
 #: src/pages/log-viewer/ui/logs-page.tsx:465
 #: src/shared/app-sidebar/ui/sidebar-status.tsx:39
 #: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:69
@@ -2778,8 +2859,10 @@ msgid "Strategy"
 msgstr "Strategy"
 
 #: src/pages/settings/ui/components/general-settings.tsx:226
-msgid "Strip Alt-Svc headers from responses to prevent QUIC/HTTP3 upgrades and force TCP/TLS connections through the proxy"
-msgstr "Strip Alt-Svc headers from responses to prevent QUIC/HTTP3 upgrades and force TCP/TLS connections through the proxy"
+msgid "Strip Alt-Svc headers from responses to prevent QUIC/HTTP3 upgrades and "
+"force TCP/TLS connections through the proxy"
+msgstr "Strip Alt-Svc headers from responses to prevent QUIC/HTTP3 upgrades and "
+"force TCP/TLS connections through the proxy"
 
 #: src/features/transaction-details/ui/transaction-certificate.tsx:76
 msgid "Subject"
@@ -2794,8 +2877,10 @@ msgid "Supports PEM-encoded certificates and keys (RSA, ECDSA, PKCS#8)"
 msgstr "Supports PEM-encoded certificates and keys (RSA, ECDSA, PKCS#8)"
 
 #: src/pages/settings/ui/components/never-passthrough-section.tsx:79
-msgid "Supports wildcard patterns: * matches any string, ? matches a single character"
-msgstr "Supports wildcard patterns: * matches any string, ? matches a single character"
+msgid "Supports wildcard patterns: * matches any string, ? matches a single "
+"character"
+msgstr "Supports wildcard patterns: * matches any string, ? matches a single "
+"character"
 
 #: src/features/query-filter-editor/ui/query-filter-editor.tsx:209
 msgid "Switch to Builder mode"
@@ -2838,8 +2923,12 @@ msgid "Terminal Command"
 msgstr "Terminal Command"
 
 #: src/pages/settings/ui/components/custom-ca-section.tsx:285
-msgid "The certificate must be a CA certificate (BasicConstraints CA=true). After importing, restart the proxy to use the new CA. You also need to install this CA on your system and devices."
-msgstr "The certificate must be a CA certificate (BasicConstraints CA=true). After importing, restart the proxy to use the new CA. You also need to install this CA on your system and devices."
+msgid "The certificate must be a CA certificate (BasicConstraints CA=true). "
+"After importing, restart the proxy to use the new CA. You also need to "
+"install this CA on your system and devices."
+msgstr "The certificate must be a CA certificate (BasicConstraints CA=true). "
+"After importing, restart the proxy to use the new CA. You also need to "
+"install this CA on your system and devices."
 
 #: src/pages/settings/ui/components/certificate-settings.tsx:333
 msgid "The DER certificate file will download automatically"
@@ -2850,11 +2939,16 @@ msgid "Theme"
 msgstr "Theme"
 
 #: src/pages/settings/ui/components/ssl-proxying-section.tsx:262
-msgid "These domains are automatically excluded from HTTPS interception to prevent OAuth/authentication failures. You can toggle, add, or remove domains."
-msgstr "These domains are automatically excluded from HTTPS interception to prevent OAuth/authentication failures. You can toggle, add, or remove domains."
+msgid "These domains are automatically excluded from HTTPS interception to "
+"prevent OAuth/authentication failures. You can toggle, add, or remove "
+"domains."
+msgstr "These domains are automatically excluded from HTTPS interception to "
+"prevent OAuth/authentication failures. You can toggle, add, or remove "
+"domains."
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:220
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:220
+#: src/pages/intercept-rules/ui/intercept-rules-page.tsx:55
 msgid "Throttle"
 msgstr "Throttle"
 
@@ -3028,16 +3122,24 @@ msgid "URL pattern (e.g., *api.example.com*)"
 msgstr "URL pattern (e.g., *api.example.com*)"
 
 #: src/pages/settings/ui/components/client-certificate-section.tsx:265
-msgid "Use different client certificates for specific domains. Supports wildcards (*.example.com). Currently validates certificates only — domain-specific routing coming soon."
-msgstr "Use different client certificates for specific domains. Supports wildcards (*.example.com). Currently validates certificates only — domain-specific routing coming soon."
+msgid "Use different client certificates for specific domains. Supports "
+"wildcards (*.example.com). Currently validates certificates only — "
+"domain-specific routing coming soon."
+msgstr "Use different client certificates for specific domains. Supports "
+"wildcards (*.example.com). Currently validates certificates only — "
+"domain-specific routing coming soon."
 
 #: src/pages/settings/ui/components/client-tags-section.tsx:116
-msgid "Use tags in the filter with client=\"tag_name\" to filter traffic by device"
-msgstr "Use tags in the filter with client=\"tag_name\" to filter traffic by device"
+msgid "Use tags in the filter with client=\"tag_name\" to filter traffic by "
+"device"
+msgstr "Use tags in the filter with client=\"tag_name\" to filter traffic by "
+"device"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:139
-msgid "Use wildcard patterns: * matches any string, ? matches a single character."
-msgstr "Use wildcard patterns: * matches any string, ? matches a single character."
+msgid "Use wildcard patterns: * matches any string, ? matches a single "
+"character."
+msgstr "Use wildcard patterns: * matches any string, ? matches a single "
+"character."
 
 #: src/pages/settings/ui/components/custom-ca-section.tsx:124
 msgid "Use your own CA certificate instead of the auto-generated one"

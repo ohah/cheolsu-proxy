@@ -3,7 +3,7 @@ import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
 import { useInterceptRuleStore } from "@/shared/stores";
 import { Badge, Button, Switch, RuleListPage } from "@/shared/ui";
-import { Trash2, Pencil, Ban, ArrowUpDown, ArrowDownUp, Replace } from "lucide-react";
+import { Trash2, Pencil, Ban, ArrowUpDown, ArrowDownUp, Replace, Gauge } from "lucide-react";
 import { toast } from "sonner";
 import type { InterceptRule } from "@/entities/intercept-rule";
 import { RuleFormDialog } from "@/features/intercept-rule-form";
@@ -18,6 +18,8 @@ function getActionIcon(type: string) {
       return <ArrowDownUp className="w-3.5 h-3.5" />;
     case "rewrite":
       return <Replace className="w-3.5 h-3.5" />;
+    case "throttle":
+      return <Gauge className="w-3.5 h-3.5" />;
   }
 }
 
@@ -34,6 +36,7 @@ const ACTION_LABELS: Record<
   map_local: { labelKey: "map_local", variant: "outline" },
   map_remote: { labelKey: "map_remote", variant: "outline" },
   rewrite: { labelKey: "rewrite", variant: "default" },
+  throttle: { labelKey: "throttle", variant: "secondary" },
 };
 
 export const InterceptRulesPage = () => {
@@ -49,6 +52,7 @@ export const InterceptRulesPage = () => {
     map_local: t`Map Local`,
     map_remote: t`Map Remote`,
     rewrite: t`Rewrite`,
+    throttle: t`Throttle`,
   };
 
   const handleAdd = () => {
@@ -87,7 +91,11 @@ export const InterceptRulesPage = () => {
       onAdd={handleAdd}
       onClearAll={handleClearAll}
       renderItem={(rule) => {
-        const actionInfo = ACTION_LABELS[rule.action.type];
+        // 알 수 없는 action type에도 크래시하지 않도록 fallback 제공
+        const actionInfo = ACTION_LABELS[rule.action.type] ?? {
+          labelKey: rule.action.type,
+          variant: "outline" as const,
+        };
         return (
           <div className="flex items-center gap-4">
             <Switch checked={rule.enabled} onCheckedChange={() => toggleRule(rule.id)} />
@@ -106,7 +114,7 @@ export const InterceptRulesPage = () => {
               <div className="flex items-center gap-2">
                 <Badge variant={actionInfo.variant} className="text-xs gap-1">
                   {getActionIcon(rule.action.type)}
-                  {actionLabelMap[actionInfo.labelKey]}
+                  {actionLabelMap[actionInfo.labelKey] ?? actionInfo.labelKey}
                 </Badge>
                 {rule.method && (
                   <Badge variant="outline" className="text-xs">
