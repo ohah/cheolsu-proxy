@@ -17,6 +17,9 @@ struct ProxySetting {
 
 #[derive(Clone, Default)]
 struct PreviousProxy {
+    /// cheolsu 프록시를 설정했던 네트워크 서비스 이름. 해제 시 활성 서비스가 바뀌어도
+    /// 바로 이 서비스에 복원해야 엉뚱한 서비스를 건드리지 않는다.
+    service: String,
     web: ProxySetting,
     secure: ProxySetting,
 }
@@ -96,68 +99,73 @@ pub fn set_proxy(enable: bool, port: u16) -> Result<(), DaemonError> {
         return Ok(());
     }
 
-    let service = get_active_service();
-    if let Some(service) = service {
+    if enable {
+        let Some(service) = get_active_service() else {
+            return Ok(());
+        };
         let service = service.as_str();
-        if enable {
-            let port_str = port.to_string();
+        let port_str = port.to_string();
 
-            // cheolsu 프록시로 덮어쓰기 전에 기존 설정을 저장(해제 시 복원용).
-            // 이미 cheolsu(127.0.0.1)가 설정된 경우(재활성화)는 자기 자신을 저장하지 않는다.
-            let prev_web = read_proxy_setting(service, "-getwebproxy");
-            let prev_secure = read_proxy_setting(service, "-getsecurewebproxy");
-            if prev_web.server != "127.0.0.1" {
-                *PREVIOUS_PROXY.lock().unwrap_or_else(|e| e.into_inner()) = Some(PreviousProxy {
-                    web: prev_web,
-                    secure: prev_secure,
-                });
-            }
+        // cheolsu 프록시로 덮어쓰기 전에 기존 설정을 저장(해제 시 복원용).
+        // 이미 cheolsu(127.0.0.1)가 설정된 경우(재활성화)는 자기 자신을 저장하지 않는다.
+        let prev_web = read_proxy_setting(service, "-getwebproxy");
+        let prev_secure = read_proxy_setting(service, "-getsecurewebproxy");
+        if prev_web.server != "127.0.0.1" {
+            *PREVIOUS_PROXY.lock().unwrap_or_else(|e| e.into_inner()) = Some(PreviousProxy {
+                service: service.to_string(),
+                web: prev_web,
+                secure: prev_secure,
+            });
+        }
 
-            // HTTP 프록시 켜기
+        // HTTP 프록시 켜기
+        Command::new("networksetup")
+            .args(["-setwebproxy", service, "127.0.0.1", &port_str])
+            .status()
+            .map_err(DaemonError::Io)?;
+
+        // HTTPS 프록시 켜기
+        Command::new("networksetup")
+            .args(["-setsecurewebproxy", service, "127.0.0.1", &port_str])
+            .status()
+            .map_err(DaemonError::Io)?;
+
+        info!("프록시 설정 완료 - HTTP, HTTPS 프록시 활성화됨");
+        info!("   프록시 주소: 127.0.0.1:{}", port);
+    } else {
+        // 이전 설정이 저장돼 있으면 복원하고, 없으면 현재 활성 서비스를 off로 둔다.
+        // (과거엔 무조건 off로 만들어 cheolsu 시작 전 사용자가 쓰던 프록시를 잃어버렸다)
+        let prev = PREVIOUS_PROXY
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .take();
+        if let Some(prev) = prev {
+            // 활성화 당시 cheolsu를 설정했던 바로 그 서비스에 복원한다(그 사이 활성
+            // 서비스가 바뀌어도 엉뚱한 서비스에 이전 설정을 덮어쓰지 않도록).
+            let service = prev.service.as_str();
+            restore_proxy_setting(service, "-setwebproxy", "-setwebproxystate", &prev.web);
+            restore_proxy_setting(
+                service,
+                "-setsecurewebproxy",
+                "-setsecurewebproxystate",
+                &prev.secure,
+            );
+            info!("프록시 해제 - 이전 시스템 프록시 설정 복원 완료");
+        } else if let Some(service) = get_active_service() {
+            let service = service.as_str();
+            // HTTP 프록시 끄기
             Command::new("networksetup")
-                .args(["-setwebproxy", service, "127.0.0.1", &port_str])
+                .args(["-setwebproxystate", service, "off"])
                 .status()
                 .map_err(DaemonError::Io)?;
 
-            // HTTPS 프록시 켜기
+            // HTTPS 프록시 끄기
             Command::new("networksetup")
-                .args(["-setsecurewebproxy", service, "127.0.0.1", &port_str])
+                .args(["-setsecurewebproxystate", service, "off"])
                 .status()
                 .map_err(DaemonError::Io)?;
 
-            info!("프록시 설정 완료 - HTTP, HTTPS 프록시 활성화됨");
-            info!("   프록시 주소: 127.0.0.1:{}", port);
-        } else {
-            // 이전 설정이 저장돼 있으면 복원하고, 없으면 off로 둔다.
-            // (과거엔 무조건 off로 만들어 cheolsu 시작 전 사용자가 쓰던 프록시를 잃어버렸다)
-            let prev = PREVIOUS_PROXY
-                .lock()
-                .unwrap_or_else(|e| e.into_inner())
-                .take();
-            if let Some(prev) = prev {
-                restore_proxy_setting(service, "-setwebproxy", "-setwebproxystate", &prev.web);
-                restore_proxy_setting(
-                    service,
-                    "-setsecurewebproxy",
-                    "-setsecurewebproxystate",
-                    &prev.secure,
-                );
-                info!("프록시 해제 - 이전 시스템 프록시 설정 복원 완료");
-            } else {
-                // HTTP 프록시 끄기
-                Command::new("networksetup")
-                    .args(["-setwebproxystate", service, "off"])
-                    .status()
-                    .map_err(DaemonError::Io)?;
-
-                // HTTPS 프록시 끄기
-                Command::new("networksetup")
-                    .args(["-setsecurewebproxystate", service, "off"])
-                    .status()
-                    .map_err(DaemonError::Io)?;
-
-                info!("프록시 설정 해제 완료 - HTTP, HTTPS 프록시 비활성화됨");
-            }
+            info!("프록시 설정 해제 완료 - HTTP, HTTPS 프록시 비활성화됨");
         }
     }
     Ok(())
