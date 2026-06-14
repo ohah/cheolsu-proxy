@@ -147,6 +147,9 @@ impl ScriptHandle {
         if let Some(tx) = &self.tx {
             let _ = tx.send(ScriptCommand::Shutdown).await;
         }
+        // 엔진 스레드가 무한 루프 등으로 멈춰 있으면 Shutdown 명령을 처리하지 못해 join이
+        // 영구 블로킹된다. V8 실행을 강제 종료해 엔진 스레드가 명령 루프로 복귀하도록 한다.
+        self.terminate_running_script();
         // 엔진 스레드가 종료될 때까지 대기하여 리소스 leak 방지
         let handle = self.thread_handle.lock().ok().and_then(|mut g| g.take());
         if let Some(h) = handle {
@@ -614,5 +617,30 @@ mod tests {
             .expect("강제 종료 후 엔진이 복구되어 재로드가 성공해야 함");
 
         handle.shutdown().await;
+    }
+
+    /// 엔진이 무한 루프로 멈춰 있어도 shutdown이 무한 블로킹되지 않고 완료되어야 한다.
+    #[tokio::test]
+    async fn shutdown_completes_even_when_engine_stuck() {
+        // 타임아웃을 길게 둬서 invoke가 자체 타임아웃으로 끝나지 않도록 한다.
+        let handle = ScriptHandle::new_with_timeout(Duration::from_secs(30));
+        handle
+            .load_code("cheolsu.onRequest((req) => { while (true) {} });")
+            .await
+            .expect("훅 로드 성공");
+
+        // 무한 루프 훅을 백그라운드로 호출하여 엔진 스레드를 멈춘다.
+        let h2 = handle.clone();
+        let invoke = tokio::spawn(async move {
+            let _ = h2.invoke_on_request(&dummy_request()).await;
+        });
+        tokio::time::sleep(Duration::from_millis(300)).await;
+
+        // 엔진이 멈춘 상태에서도 shutdown이 합리적 시간 안에 완료되어야 한다.
+        tokio::time::timeout(Duration::from_secs(5), handle.shutdown())
+            .await
+            .expect("shutdown이 무한 블로킹 없이 완료되어야 함");
+
+        invoke.abort();
     }
 }
