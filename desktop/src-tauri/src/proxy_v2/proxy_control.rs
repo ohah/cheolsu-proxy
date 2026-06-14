@@ -2,7 +2,7 @@ use super::state::{ProxyStartResult, ProxyV2State};
 use proxy_daemon::{
     clean_old_cache, BreakpointRule, ClientCommand, CommandSender, DaemonMessage, HostMapping,
     ProxyAuthConfig, ServerReplayEntry, SslProxyingEntry, SslProxyingMode, ThrottleConfig,
-    UpstreamProxyConfig,
+    ThrottlePreset, UpstreamProxyConfig,
 };
 use std::net::SocketAddr;
 use std::sync::atomic::Ordering;
@@ -338,7 +338,16 @@ async fn sync_stored_settings_to_daemon<R: Runtime>(app: &AppHandle<R>, sender: 
                         latency_ms: latency,
                     })
                 } else {
-                    None
+                    // 명명된 프리셋(gprs/slow3g/fast3g/lte/wifi)도 동일 값으로 매핑한다.
+                    // (이 분기가 없으면 named preset이 enabled여도 적용되지 않고 조용히 유실됨)
+                    match preset {
+                        "gprs" => Some(ThrottlePreset::Gprs.to_config()),
+                        "slow3g" => Some(ThrottlePreset::Slow3G.to_config()),
+                        "fast3g" => Some(ThrottlePreset::Fast3G.to_config()),
+                        "lte" => Some(ThrottlePreset::Lte.to_config()),
+                        "wifi" => Some(ThrottlePreset::Wifi.to_config()),
+                        _ => None,
+                    }
                 };
                 if let Some(config) = throttle_config {
                     if let Err(e) = sender
