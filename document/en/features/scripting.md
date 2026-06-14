@@ -227,19 +227,19 @@ Called before a Server-Sent Events (SSE) event is forwarded to the client. The h
 
 **Event object:**
 
-| Property        | Type           | Description                          |
-| --------------- | -------------- | ------------------------------------ |
-| `connection_id` | string         | Unique connection ID                 |
+| Property        | Type           | Description                           |
+| --------------- | -------------- | ------------------------------------- |
+| `connection_id` | string         | Unique connection ID                  |
 | `event_type`    | string \| null | Value of the `event:` field (or null) |
-| `data`          | string         | Event data                           |
-| `id`            | string \| null | Value of the `id:` field (or null)   |
+| `data`          | string         | Event data                            |
+| `id`            | string \| null | Value of the `id:` field (or null)    |
 
 **Return values:**
 
-| action      | Description                  | Extra fields |
-| ----------- | ---------------------------- | ------------ |
-| `"forward"` | Forward the event unchanged  | none         |
-| `"drop"`    | Drop the event (not sent)    | none         |
+| action      | Description                 | Extra fields |
+| ----------- | --------------------------- | ------------ |
+| `"forward"` | Forward the event unchanged | none         |
+| `"drop"`    | Drop the event (not sent)   | none         |
 
 > SSE does not support modifying event content (`modify`) — only forward or drop.
 

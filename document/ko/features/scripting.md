@@ -310,12 +310,12 @@ SSE(Server-Sent Events) 이벤트가 클라이언트로 전달되기 전에 호�
 
 **handler 파라미터**: `event` 객체
 
-| 필드            | 타입             | 설명                            |
-| --------------- | ---------------- | ------------------------------- |
-| `connection_id` | string           | 연결 고유 ID                    |
-| `event_type`    | string \| null   | `event:` 필드 값 (없으면 null)  |
-| `data`          | string           | 이벤트 데이터                   |
-| `id`            | string \| null   | `id:` 필드 값 (없으면 null)     |
+| 필드            | 타입           | 설명                           |
+| --------------- | -------------- | ------------------------------ |
+| `connection_id` | string         | 연결 고유 ID                   |
+| `event_type`    | string \| null | `event:` 필드 값 (없으면 null) |
+| `data`          | string         | 이벤트 데이터                  |
+| `id`            | string \| null | `id:` 필드 값 (없으면 null)    |
 
 **반환값**:
 

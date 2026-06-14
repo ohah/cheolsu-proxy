@@ -84,7 +84,7 @@ claude mcp add cheolsu-proxy -- /path/to/cheolsu-proxy-mcp
 | `search_traffic`         | 호스트, HTTP 메서드, 상태코드, URL 경로로 캡처된 트래픽 검색          |
 | `get_transaction`        | 특정 트랜잭션의 요청/응답 헤더 및 바디 상세 조회                      |
 | `get_websocket_messages` | 캡처된 WebSocket 메시지 조회 (연결 URI 필터 지원)                     |
-| `get_sse_events`         | 캡처된 SSE(Server-Sent Events) 조회 (연결 URI 필터 지원)             |
+| `get_sse_events`         | 캡처된 SSE(Server-Sent Events) 조회 (연결 URI 필터 지원)              |
 | `diff_transactions`      | 두 트랜잭션(요청+응답)을 비교해 차이 표시. 회귀 테스트/배포 전후 비교 |
 | `proxy_status`           | 프록시 데몬 상태 및 트래픽 통계 확인                                  |
 | `clear_traffic`          | 메모리에 캡처된 트래픽 데이터 초기화                                  |
@@ -119,59 +119,59 @@ claude mcp add cheolsu-proxy -- /path/to/cheolsu-proxy-mcp
 
 ### 브레이크포인트
 
-| Tool                       | 설명                                                                          |
-| -------------------------- | ----------------------------------------------------------------------------- |
-| `list_breakpoints`         | 브레이크포인트 규칙 목록 조회                                                  |
-| `add_breakpoint`           | 브레이크포인트 규칙 추가 (매칭 요청/응답을 수동 편집을 위해 일시정지)          |
-| `remove_breakpoint`        | ID로 브레이크포인트 규칙 삭제                                                  |
-| `list_pending_breakpoints` | 현재 일시정지(대기) 중인 브레이크포인트 목록                                   |
-| `resolve_breakpoint`       | 대기 중 브레이크포인트 처리 (forward / modify_and_forward / drop / abort)      |
+| Tool                       | 설명                                                                      |
+| -------------------------- | ------------------------------------------------------------------------- |
+| `list_breakpoints`         | 브레이크포인트 규칙 목록 조회                                             |
+| `add_breakpoint`           | 브레이크포인트 규칙 추가 (매칭 요청/응답을 수동 편집을 위해 일시정지)     |
+| `remove_breakpoint`        | ID로 브레이크포인트 규칙 삭제                                             |
+| `list_pending_breakpoints` | 현재 일시정지(대기) 중인 브레이크포인트 목록                              |
+| `resolve_breakpoint`       | 대기 중 브레이크포인트 처리 (forward / modify_and_forward / drop / abort) |
 
 ### 호스트 매핑
 
-| Tool                  | 설명                                                                    |
-| --------------------- | ----------------------------------------------------------------------- |
-| `list_host_mappings`  | 호스트 매핑(DNS 스푸핑) 규칙 목록 조회                                   |
-| `add_host_mapping`    | 호스트 매핑 규칙 추가 (와일드카드 지원, 원본 Host 헤더 보존)            |
-| `remove_host_mapping` | ID로 호스트 매핑 규칙 삭제                                               |
+| Tool                  | 설명                                                         |
+| --------------------- | ------------------------------------------------------------ |
+| `list_host_mappings`  | 호스트 매핑(DNS 스푸핑) 규칙 목록 조회                       |
+| `add_host_mapping`    | 호스트 매핑 규칙 추가 (와일드카드 지원, 원본 Host 헤더 보존) |
+| `remove_host_mapping` | ID로 호스트 매핑 규칙 삭제                                   |
 
 ### 리버스 프록시
 
-| Tool                        | 설명                                                            |
-| --------------------------- | --------------------------------------------------------------- |
-| `list_reverse_proxy_rules`  | 리버스 프록시 규칙 목록 조회                                     |
+| Tool                        | 설명                                                               |
+| --------------------------- | ------------------------------------------------------------------ |
+| `list_reverse_proxy_rules`  | 리버스 프록시 규칙 목록 조회                                       |
 | `add_reverse_proxy_rule`    | 리버스 프록시 규칙 추가 (Host 패턴 → 백엔드 서버, 와일드카드 지원) |
-| `remove_reverse_proxy_rule` | ID로 리버스 프록시 규칙 삭제                                     |
+| `remove_reverse_proxy_rule` | ID로 리버스 프록시 규칙 삭제                                       |
 
 ### 서버 리플레이
 
-| Tool                   | 설명                                                                       |
-| ---------------------- | -------------------------------------------------------------------------- |
-| `list_server_replay`   | 서버 리플레이 항목 목록 조회                                                |
-| `add_server_replay`    | 캡처된 트랜잭션을 서버 리플레이로 등록 (매칭 요청에 캐시된 응답 반환)       |
-| `remove_server_replay` | ID로 서버 리플레이 항목 삭제                                                |
-| `clear_server_replay`  | 모든 서버 리플레이 항목 초기화                                              |
+| Tool                   | 설명                                                                  |
+| ---------------------- | --------------------------------------------------------------------- |
+| `list_server_replay`   | 서버 리플레이 항목 목록 조회                                          |
+| `add_server_replay`    | 캡처된 트랜잭션을 서버 리플레이로 등록 (매칭 요청에 캐시된 응답 반환) |
+| `remove_server_replay` | ID로 서버 리플레이 항목 삭제                                          |
+| `clear_server_replay`  | 모든 서버 리플레이 항목 초기화                                        |
 
 ### 설정
 
-| Tool                         | 설명                                                                      |
-| ---------------------------- | ------------------------------------------------------------------------- |
-| `update_upstream_proxy`      | 업스트림 프록시 설정 (모든 트래픽을 해당 프록시로 전달)                    |
-| `update_throttle`            | 네트워크 스로틀링 설정 (bytes/sec, 느린 연결 시뮬레이션)                  |
-| `update_proxy_auth`          | 프록시 인증 설정 (basic / bearer / apikey)                                |
-| `update_connection_strategy` | 업스트림 연결 전략 (lazy / eager / eager_with_fallback)                   |
-| `update_quick_settings`      | 빠른 설정 (no_caching, block_cookies, no_gzip, block_quic)               |
-| `update_client_certificate`  | mTLS 클라이언트 인증서 설정                                                |
-| `update_ssl_proxying_list`   | SSL proxying 목록 설정 (blacklist/whitelist 모드)                         |
+| Tool                         | 설명                                                       |
+| ---------------------------- | ---------------------------------------------------------- |
+| `update_upstream_proxy`      | 업스트림 프록시 설정 (모든 트래픽을 해당 프록시로 전달)    |
+| `update_throttle`            | 네트워크 스로틀링 설정 (bytes/sec, 느린 연결 시뮬레이션)   |
+| `update_proxy_auth`          | 프록시 인증 설정 (basic / bearer / apikey)                 |
+| `update_connection_strategy` | 업스트림 연결 전략 (lazy / eager / eager_with_fallback)    |
+| `update_quick_settings`      | 빠른 설정 (no_caching, block_cookies, no_gzip, block_quic) |
+| `update_client_certificate`  | mTLS 클라이언트 인증서 설정                                |
+| `update_ssl_proxying_list`   | SSL proxying 목록 설정 (blacklist/whitelist 모드)          |
 
 ### 세션 & 익스포트
 
-| Tool                    | 설명                                                                       |
-| ----------------------- | -------------------------------------------------------------------------- |
-| `save_session`          | 캡처 트래픽을 `.cheolsu` 세션 파일로 저장 (`.cheolsu.gz` 압축 지원)        |
+| Tool                    | 설명                                                                         |
+| ----------------------- | ---------------------------------------------------------------------------- |
+| `save_session`          | 캡처 트래픽을 `.cheolsu` 세션 파일로 저장 (`.cheolsu.gz` 압축 지원)          |
 | `load_session`          | 세션 파일(`.cheolsu`, `.cheolsu.gz`) 또는 HAR(`.har`) 불러오기 (append 옵션) |
-| `export_har`            | 캡처 트래픽을 HAR 1.2 JSON으로 내보내기 (호스트/경로 필터)                 |
-| `generate_openapi_spec` | 캡처 트래픽에서 OpenAPI 3.0 명세 자동 생성                                 |
+| `export_har`            | 캡처 트래픽을 HAR 1.2 JSON으로 내보내기 (호스트/경로 필터)                   |
+| `generate_openapi_spec` | 캡처 트래픽에서 OpenAPI 3.0 명세 자동 생성                                   |
 
 ### 스크립팅
 

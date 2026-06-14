@@ -6,12 +6,12 @@ Getting Cheolsu Proxy installed and running on your machine.
 
 ## System Requirements
 
-| Platform                         | Status      |
-| -------------------------------- | ----------- |
-| **macOS** (Apple Silicon)        | Supported   |
-| **macOS** (Intel / x64)          | Not built   |
-| **Windows**                      | Coming soon |
-| **Linux**                        | Coming soon |
+| Platform                  | Status      |
+| ------------------------- | ----------- |
+| **macOS** (Apple Silicon) | Supported   |
+| **macOS** (Intel / x64)   | Not built   |
+| **Windows**               | Coming soon |
+| **Linux**                 | Coming soon |
 
 Cheolsu Proxy is a native desktop application built with Rust and Tauri, so it runs with minimal resource overhead compared to Electron-based alternatives. There are no runtime dependencies like Java or Python to install.
 
