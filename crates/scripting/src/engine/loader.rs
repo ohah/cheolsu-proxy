@@ -4,13 +4,6 @@ use tracing::info;
 
 use super::ScriptEngine;
 
-/// 사용자 홈 디렉터리(HOME 또는 USERPROFILE)를 반환한다. 알 수 없으면 None.
-fn home_dir() -> Option<std::path::PathBuf> {
-    std::env::var_os("HOME")
-        .or_else(|| std::env::var_os("USERPROFILE"))
-        .map(std::path::PathBuf::from)
-}
-
 impl ScriptEngine {
     /// 사용자 스크립트 파일 로드 (JS/TS 모두 지원)
     pub fn load_script(&mut self, path: &str) -> Result<(), ScriptError> {
@@ -34,19 +27,10 @@ impl ScriptEngine {
             }
         }
 
-        // 디렉터리 화이트리스트: 스크립트는 사용자 홈 디렉터리 내부 파일만 허용한다.
-        // (확장자 검증 + v8 샌드박스(fs/net op 미노출)로 영향은 작지만, untrusted 호출자가
-        //  시스템 경로의 .js를 읽어 실행하는 것을 차단하는 방어심층 계층)
-        // 홈 디렉터리를 알 수 없는 환경에서는 제한하지 않는다(정상 동작 보장).
-        if let Some(home) = home_dir().and_then(|h| h.canonicalize().ok()) {
-            if !canonical.starts_with(&home) {
-                return Err(ScriptError::PathResolution {
-                    path: path.to_string(),
-                    reason: "스크립트는 홈 디렉터리 내부 파일만 로드할 수 있습니다".to_string(),
-                });
-            }
-        }
-
+        // 디렉터리 화이트리스트는 두지 않는다. 스크립트는 운영자가 직접 지정한 자기 자신의
+        // 파일이며, deno_core 샌드박스(fs/net op 미노출)가 실제 격리 계층이다. 홈 디렉터리
+        // 제한은 보안 이득이 미미한 반면 /tmp·외부 볼륨·홈 밖 프로젝트의 정상 스크립트 로드를
+        // 막는 회귀를 유발하므로, path traversal 방지(canonicalize)와 확장자 검증만 유지한다.
         let source = std::fs::read_to_string(&canonical)?;
 
         let code = if path.ends_with(".ts") || path.ends_with(".tsx") {

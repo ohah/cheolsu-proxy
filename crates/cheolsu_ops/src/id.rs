@@ -13,8 +13,11 @@ fn observe_counter(counter: &AtomicU32, id: &str, prefix: &str) {
         return;
     };
     let mut cur = counter.load(Ordering::Relaxed);
+    // n == u32::MAX인 ID("rule_4294967295")를 로드하면 n + 1이 오버플로(디버그 패닉/
+    // 릴리스 wrap)된다. saturating_add로 패닉 없이 카운터를 끌어올린다.
+    let target = n.saturating_add(1);
     while n >= cur {
-        match counter.compare_exchange_weak(cur, n + 1, Ordering::Relaxed, Ordering::Relaxed) {
+        match counter.compare_exchange_weak(cur, target, Ordering::Relaxed, Ordering::Relaxed) {
             Ok(_) => break,
             Err(actual) => cur = actual,
         }
@@ -50,4 +53,32 @@ pub fn next_server_replay_id() -> String {
         "sr_{}",
         SERVER_REPLAY_COUNTER.fetch_add(1, Ordering::Relaxed)
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn observe_at_u32_max_does_not_overflow() {
+        let counter = AtomicU32::new(0);
+        // n == u32::MAX인 ID를 관찰해도 패닉 없이 종료해야 한다.
+        observe_counter(&counter, "rule_4294967295", "rule_");
+        assert_eq!(counter.load(Ordering::Relaxed), u32::MAX);
+    }
+
+    #[test]
+    fn observe_raises_counter_above_loaded_id() {
+        let counter = AtomicU32::new(0);
+        observe_counter(&counter, "rule_41", "rule_");
+        assert_eq!(counter.load(Ordering::Relaxed), 42);
+    }
+
+    #[test]
+    fn observe_ignores_mismatched_prefix_or_garbage() {
+        let counter = AtomicU32::new(7);
+        observe_counter(&counter, "bp_100", "rule_");
+        observe_counter(&counter, "rule_abc", "rule_");
+        assert_eq!(counter.load(Ordering::Relaxed), 7);
+    }
 }
