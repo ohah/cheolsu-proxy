@@ -244,7 +244,7 @@ export async function buildHarLog(transactions: HttpTransaction[]): Promise<HarL
   return {
     log: {
       version: "1.2",
-      creator: { name: "Cheolsu Proxy", version: "0.1.1" },
+      creator: { name: "Cheolsu Proxy", version: "0.1.2" },
       entries,
     },
   };
