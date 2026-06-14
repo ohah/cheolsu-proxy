@@ -15,7 +15,9 @@ pub(crate) async fn start_proxy_v2<R: Runtime>(
     proxy: State<'_, ProxyV2State>,
     addr: SocketAddr,
 ) -> Result<ProxyStartResult, ProxyStartResult> {
-    let proxy_guard = proxy.lock().await;
+    // 가드를 시작 과정 내내 유지하여 동시 start 호출이 DaemonConnection을 중복 생성/누수하는
+    // 경쟁을 막는다(과거엔 여기서 drop 후 ensure_daemon 사이에 다른 호출이 끼어들 수 있었다).
+    let mut proxy_guard = proxy.lock().await;
     if proxy_guard.is_some() {
         let already_running_message = format!(
             "프록시가 이미 포트 {}에서 실행 중입니다. 시스템 프록시 설정을 127.0.0.1:{}로 변경하세요",
@@ -27,7 +29,6 @@ pub(crate) async fn start_proxy_v2<R: Runtime>(
             message: already_running_message,
         });
     }
-    drop(proxy_guard);
 
     let port = addr.port();
     let host = addr.ip().to_string();
@@ -229,7 +230,7 @@ pub(crate) async fn start_proxy_v2<R: Runtime>(
         }
     };
 
-    let mut proxy_guard = proxy.lock().await;
+    // 위에서 획득한 가드를 그대로 사용(재락하지 않음) — start 전 구간이 직렬화된다.
     proxy_guard.replace(conn);
 
     if let Some(ref conn) = *proxy_guard {
