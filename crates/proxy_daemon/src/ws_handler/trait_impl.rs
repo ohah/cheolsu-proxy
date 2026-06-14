@@ -78,6 +78,7 @@ impl WebSocketHandler for LoggingHandler {
 
         self.emit_ws_event(
             connection_id,
+            url,
             direction,
             message_type,
             payload,

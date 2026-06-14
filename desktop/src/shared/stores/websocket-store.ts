@@ -33,7 +33,10 @@ export const useWebSocketStore = create<WebSocketStoreState>()((set) => ({
         if (!connections.has(message.connection_id)) {
           connections.set(message.connection_id, {
             id: message.connection_id,
-            uri: message.connection_id,
+            // connection_id는 이제 고유 ID(UUID)이므로 표시용으로는 메시지가 운반하는
+            // 실제 URL을 우선 사용한다(Connected 이벤트가 유실돼 메시지로만 연결을
+            // 만드는 경우에도 UUID가 노출되지 않도록).
+            uri: message.url || message.connection_id,
             status: "connected",
             startTime: message.time,
             messageCount: 1,

@@ -119,8 +119,12 @@ pub enum WsMessageType {
 /// UI로 전달되는 WebSocket 메시지 정보
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct WsMessageInfo {
-    /// WebSocket 연결 ID (URI)
+    /// WebSocket 연결 ID (URI가 아닌 고유 ID — 동일 URI 동시 연결을 구분)
     pub connection_id: String,
+    /// 표시용 연결 URL(스킴 포함). connection_id가 고유 ID로 바뀐 뒤, 메시지만으로
+    /// 연결을 표시할 때 UUID가 노출되지 않도록 메시지가 직접 URL을 운반한다.
+    #[serde(default)]
+    pub url: String,
     /// 메시지 순번
     pub sequence: u64,
     /// 메시지 방향

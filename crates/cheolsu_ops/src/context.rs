@@ -226,6 +226,7 @@ mod tests {
     fn make_ws_message(seq: u64) -> WsMessageInfo {
         WsMessageInfo {
             connection_id: "ws://localhost".to_string(),
+            url: "ws://localhost".to_string(),
             sequence: seq,
             direction: WsDirection::ClientToServer,
             message_type: WsMessageType::Text,

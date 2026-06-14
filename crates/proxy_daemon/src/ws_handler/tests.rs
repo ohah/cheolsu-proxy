@@ -105,6 +105,7 @@ fn emit_ws_event_without_sender_does_nothing() {
     // ws_sender가 None이면 패닉 없이 조용히 반환
     handler.emit_ws_event(
         "conn1".to_string(),
+        "ws://example.com/conn1".to_string(),
         WsDirection::ClientToServer,
         WsMessageType::Text,
         "hello".to_string(),
@@ -161,6 +162,7 @@ fn emit_ws_event_sends_to_channel() {
     };
 
     handler.emit_ws_event(
+        "wss://example.com".to_string(),
         "wss://example.com".to_string(),
         WsDirection::ClientToServer,
         WsMessageType::Text,
@@ -234,6 +236,7 @@ fn emit_ws_event_increments_sequence() {
     for i in 0..3 {
         handler.emit_ws_event(
             "conn".to_string(),
+            "ws://example.com/conn".to_string(),
             WsDirection::ClientToServer,
             WsMessageType::Text,
             "msg".to_string(),
