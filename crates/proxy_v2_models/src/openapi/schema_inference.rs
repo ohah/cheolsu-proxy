@@ -133,7 +133,12 @@ pub fn merge_schemas(schemas: &[SchemaObject]) -> SchemaObject {
 
 fn truncate_example(s: &str) -> String {
     if s.len() > 100 {
-        format!("{}...", &s[..100])
+        // UTF-8 문자 경계에서 자르기(멀티바이트 경계 슬라이싱 패닉 방지)
+        let mut end = 100;
+        while end > 0 && !s.is_char_boundary(end) {
+            end -= 1;
+        }
+        format!("{}...", &s[..end])
     } else {
         s.to_string()
     }

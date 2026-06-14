@@ -279,29 +279,35 @@ pub fn parse_graphql_request_from_query_params(uri: &str) -> Vec<GraphqlOperatio
 
 /// 간단한 URL 디코딩 (percent-encoding)
 fn urlencoding_decode(input: &str) -> Option<String> {
-    let mut result = String::with_capacity(input.len());
+    // percent-decoding은 바이트 단위로 수행해야 한다. byte를 char로 바로 캐스팅하면
+    // 멀티바이트 UTF-8(예: %C3%A9 = 'é')이 두 개의 Latin-1 문자로 깨진다.
+    let mut bytes: Vec<u8> = Vec::with_capacity(input.len());
     let mut chars = input.chars();
     while let Some(c) = chars.next() {
         if c == '%' {
             let hex: String = chars.by_ref().take(2).collect();
             if hex.len() == 2 {
                 if let Ok(byte) = u8::from_str_radix(&hex, 16) {
-                    result.push(byte as char);
+                    bytes.push(byte);
                 } else {
-                    result.push('%');
-                    result.push_str(&hex);
+                    bytes.push(b'%');
+                    bytes.extend_from_slice(hex.as_bytes());
                 }
             } else {
-                result.push('%');
-                result.push_str(&hex);
+                bytes.push(b'%');
+                bytes.extend_from_slice(hex.as_bytes());
             }
         } else if c == '+' {
-            result.push(' ');
+            bytes.push(b' ');
         } else {
-            result.push(c);
+            let mut buf = [0u8; 4];
+            bytes.extend_from_slice(c.encode_utf8(&mut buf).as_bytes());
         }
     }
-    Some(result)
+    // 디코딩된 바이트를 UTF-8로 해석(잘못된 시퀀스는 lossy 대체)
+    let decoded = String::from_utf8(bytes)
+        .unwrap_or_else(|e| String::from_utf8_lossy(&e.into_bytes()).into_owned());
+    Some(decoded)
 }
 
 /// 응답 body에서 GraphQL 응답을 파싱
