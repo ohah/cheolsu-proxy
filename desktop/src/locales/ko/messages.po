@@ -337,7 +337,7 @@ msgstr "백엔드 스킴"
 msgid "Base URL"
 msgstr "기본 URL"
 
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:76
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:82
 msgid "Batch"
 msgstr "배치"
 
@@ -601,7 +601,7 @@ msgstr "유효한 인증서가 없는 클라이언트는 거부됩니다"
 #: src/features/transaction-details/ui/advanced-repeat-dialog.tsx:343
 #: src/features/transaction-details/ui/sequence-replay-dialog.tsx:222
 #: src/features/transaction-details/ui/transaction-header.tsx:63
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:159
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:165
 #: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:100
 #: src/widgets/sse-messages/ui/sse-message-detail.tsx:87
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:122
@@ -894,7 +894,7 @@ msgid "Duplicate Requests"
 msgstr "중복 요청"
 
 #: src/pages/analytics-dashboard/ui/performance-tab.tsx:49
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:62
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:68
 #: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:152
 #: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:33
 #: src/widgets/grpc-calls/ui/grpc-call-table.tsx:136
@@ -962,7 +962,7 @@ msgstr "활성"
 msgid "Encoding"
 msgstr ""
 
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:59
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:65
 #: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:30
 msgid "Endpoint"
 msgstr "엔드포인트"
@@ -990,7 +990,7 @@ msgstr "에러율"
 msgid "Error Status Code Distribution"
 msgstr "에러 상태 코드 분포"
 
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:245
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:251
 msgid "error(s)"
 msgstr "에러"
 
@@ -1003,7 +1003,7 @@ msgstr "오류"
 
 #: src/pages/analytics-dashboard/ui/analytics-dashboard.tsx:180
 #: src/pages/analytics-dashboard/ui/error-tab.tsx:72
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:126
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:132
 msgid "Errors"
 msgstr "에러"
 
@@ -1691,7 +1691,7 @@ msgstr "N+1"
 
 #: src/features/intercept-rule-form/ui/rule-form-dialog.tsx:150
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:190
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:56
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:62
 msgid "Name"
 msgstr "이름"
 
@@ -2160,7 +2160,7 @@ msgstr "proxy.company.com"
 msgid "Python Requests"
 msgstr "Python Requests"
 
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:113
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:119
 msgid "Query"
 msgstr "쿼리"
 
@@ -2353,7 +2353,7 @@ msgstr "인증서 필수"
 #: src/features/transaction-details/ui/replay-dialog.tsx:315
 #: src/features/transaction-details/ui/transaction-body-side-by-side.tsx:24
 #: src/pages/breakpoint/ui/breakpoint-page.tsx:287
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:121
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:127
 #: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:62
 msgid "Response"
 msgstr "응답"
@@ -2797,7 +2797,7 @@ msgstr "ClientHello 감지 직후 백그라운드에서 서버 연결을 시작�
 #: src/pages/intercept-rules/ui/intercept-rules-page.tsx:131
 #: src/pages/log-viewer/ui/logs-page.tsx:465
 #: src/shared/app-sidebar/ui/sidebar-status.tsx:39
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:69
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:75
 #: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:151
 #: src/widgets/grpc-calls/ui/grpc-call-table.tsx:134
 msgid "Status"
@@ -2918,7 +2918,7 @@ msgstr "처리량"
 #: src/pages/analytics-dashboard/ui/misc-tab.tsx:40
 #: src/pages/analytics-dashboard/ui/misc-tab.tsx:90
 #: src/pages/analytics-dashboard/ui/performance-tab.tsx:55
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:60
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:66
 #: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:153
 #: src/widgets/grpc-calls/ui/grpc-call-detail.tsx:31
 #: src/widgets/grpc-calls/ui/grpc-call-table.tsx:137
@@ -3015,7 +3015,7 @@ msgid "Trusted"
 msgstr "신뢰됨"
 
 #: src/features/map-rule-form/ui/map-rule-form-dialog.tsx:241
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:52
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:58
 #: src/widgets/graphql-operations/ui/graphql-operation-table.tsx:149
 #: src/widgets/websocket-messages/ui/ws-message-detail.tsx:50
 #: src/widgets/websocket-messages/ui/ws-message-table.tsx:184
@@ -3139,7 +3139,7 @@ msgstr "유효 기간"
 msgid "Value"
 msgstr "값"
 
-#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:116
+#: src/widgets/graphql-operations/ui/graphql-operation-detail.tsx:122
 msgid "Variables"
 msgstr "변수"
 

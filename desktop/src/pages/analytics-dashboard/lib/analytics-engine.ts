@@ -231,6 +231,7 @@ export function analyzeEndpoints(
     {
       method: string;
       path: string;
+      count: number;
       durations: number[];
       errorCount: number;
       responseSizes: number[];
@@ -245,12 +246,14 @@ export function analyzeEndpoints(
       map.set(key, {
         method: tx.request.method,
         path: getPath(tx.request.uri),
+        count: 0,
         durations: [],
         errorCount: 0,
         responseSizes: [],
       });
     }
     const ep = map.get(key)!;
+    ep.count += 1;
 
     const d = getDuration(tx);
     if (d != null && d >= 0) ep.durations.push(d);
@@ -262,7 +265,8 @@ export function analyzeEndpoints(
 
   const stats: EndpointStat[] = Array.from(map.values()).map((ep) => {
     const sorted = [...ep.durations].sort((a, b) => a - b);
-    const totalCount = Math.max(ep.durations.length, ep.responseSizes.length, 1);
+    // count는 실제 요청 수를 사용한다(과거엔 duration/응답 개수의 max라 부정확했음).
+    const totalCount = ep.count;
     return {
       method: ep.method,
       path: ep.path,
@@ -352,12 +356,19 @@ export function detectNPlusOne(transactions: HttpTransaction[], threshold = 3): 
 
   // Detect repetitive patterns: same base path with different IDs
   const pathPattern = /^(.*\/)[^/]+$/;
+  // 마지막 세그먼트가 ID(숫자 또는 UUID)인 요청만 N+1 후보로 본다.
+  // (그렇지 않으면 /api/users, /api/posts 같은 형제 엔드포인트가 /api/로 묶여 오탐)
+  const idSegment =
+    /^(\d+|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$/;
 
   for (const tx of sorted) {
     if (!tx.request) continue;
     const path = getPath(tx.request.uri);
     const match = pathPattern.exec(path);
     if (!match) continue;
+
+    const lastSegment = path.slice(match[1].length);
+    if (!idSegment.test(lastSegment)) continue;
 
     const basePath = match[1];
     const key = `${tx.request.method} ${basePath}`;
