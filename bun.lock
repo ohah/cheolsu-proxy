@@ -52,7 +52,7 @@
       "devDependencies": {
         "@anthropic-ai/sdk": "0.100.1",
         "@happy-dom/global-registrator": "^20.9.0",
-        "@hypothesi/tauri-mcp-server": "0.11.2",
+        "@hypothesi/tauri-mcp-server": "0.12.0",
         "@lingui/babel-plugin-lingui-macro": "6.2.0",
         "@lingui/cli": "6.2.0",
         "@lingui/vite-plugin": "6.2.0",
@@ -231,7 +231,7 @@
 
     "@hookform/resolvers": ["@hookform/resolvers@5.4.0", "", { "dependencies": { "@standard-schema/utils": "^0.3.0" }, "peerDependencies": { "react-hook-form": "^7.55.0" } }, "sha512-EIsqr/t/qbinPIhGjMdtvutIN1Kk4uwbROE9/UQ93CAVGR7GkA7Y92+fX80OzXi/OB67jVFYwKGO1WzkxmkFZw=="],
 
-    "@hypothesi/tauri-mcp-server": ["@hypothesi/tauri-mcp-server@0.11.2", "", { "dependencies": { "@modelcontextprotocol/sdk": "0.6.1", "aria-api": "0.8.0", "execa": "9.6.0", "html2canvas-pro": "1.6.6", "ws": "8.18.3", "zod": "3.25.76", "zod-to-json-schema": "3.25.0" }, "bin": { "mcp-server-tauri": "dist/index.js" } }, "sha512-Zh1tU4S5VeDjWnMpDLHDxAnUer2FgCTUnyppee3Av0vY27UGIf0ZhZPK7mexevPjriffdFkERcsvqyj+4z8xfA=="],
+    "@hypothesi/tauri-mcp-server": ["@hypothesi/tauri-mcp-server@0.12.0", "", { "dependencies": { "@modelcontextprotocol/sdk": "0.6.1", "aria-api": "0.8.0", "execa": "9.6.0", "html2canvas-pro": "1.6.6", "ws": "8.18.3", "zod": "3.25.76", "zod-to-json-schema": "3.25.0" }, "bin": { "mcp-server-tauri": "dist/index.js" } }, "sha512-BeJb9j1DYMYUxqp5C0X/21ZPbZwlSvWkB72dQJZ1XX9ClYUcsFVkxHibGM+Utgs8DjTpKxbL+NAW7d3EBvJd+w=="],
 
     "@inquirer/ansi": ["@inquirer/ansi@1.0.2", "", {}, "sha512-S8qNSZiYzFd0wAcyG5AXCvUHC5Sr7xpZ9wZ2py9XR88jUz8wooStVx5M6dRzczbBWjic9NP7+rY0Xi7qqK/aMQ=="],
 
