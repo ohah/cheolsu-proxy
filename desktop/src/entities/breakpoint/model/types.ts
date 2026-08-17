@@ -57,5 +57,5 @@ export interface BreakpointStoreState {
   addPendingBreakpoint: (bp: PendingBreakpoint) => void;
   removePendingBreakpoint: (id: string) => void;
   resolveBreakpoint: (id: string, action: BreakpointAction) => Promise<void>;
-  syncToProxy: () => Promise<void>;
+  syncToProxy: () => void;
 }
