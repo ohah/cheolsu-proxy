@@ -1,3 +1,13 @@
+[unstable]
+# nightly cargo 1.100(2026-08-15)부터 build-dir 새 레이아웃
+# (target/debug/build/<pkg>/<hash>/out)이 기본 활성화됐다.
+# tauri-build 2.6.3까지는 OUT_DIR의 3단계 상위를 target 디렉토리로 가정하므로
+# 새 레이아웃에서는 target/debug/build를 target으로 오인하고,
+# 사이드카 복사 대상이 디렉토리(target/debug/build/cheolsu-proxy)가 되어
+# remove_file이 EPERM으로 패닉한다(빌드 스크립트 exit 101).
+# stable cargo는 [unstable] 테이블을 무시하므로 CI(stable)에는 영향이 없다.
+build-dir-new-layout = false
+
 [env]
 # macOS: openssl-sys가 번들용 dylib(@rpath install_name)을 링크하도록 설정
 # build-mcp.sh가 이 디렉토리에 패치된 dylib + 헤더 심볼릭 링크를 준비함
