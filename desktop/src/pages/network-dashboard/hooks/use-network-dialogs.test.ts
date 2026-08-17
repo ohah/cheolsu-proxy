@@ -1,5 +1,6 @@
 import { describe, test, expect } from "bun:test";
 import { renderHook, act } from "@testing-library/react";
+import type { HttpTransaction } from "@/entities/proxy";
 
 import { useNetworkDialogs } from "./use-network-dialogs";
 
@@ -43,9 +44,7 @@ describe("useNetworkDialogs", () => {
   test("advancedRepeatTarget을 설정하고 해제할 수 있다", () => {
     const { result } = renderHook(() => useNetworkDialogs());
 
-    const mockTransaction = { id: "tx-1" } as Parameters<
-      typeof result.current.setAdvancedRepeatTarget
-    >[0];
+    const mockTransaction = { id: "tx-1" } as unknown as HttpTransaction;
 
     act(() => {
       result.current.setAdvancedRepeatTarget(mockTransaction);
