@@ -29,8 +29,8 @@ lru = "0.18"
 base64 = "0.22"
 dirs = "6.0"
 nix = { version = "0.31", features = ["signal", "process"] }
-# hyper-tungstenite 0.19 제약으로 0.28 고정 (proxyapi_v2 주석 참고)
-tokio-tungstenite = "0.28.0"
+# hyper-tungstenite와 같은 tungstenite 버전을 유지해야 한다 (proxyapi_v2 주석 참고)
+tokio-tungstenite = "0.30.0"
 thiserror = "2"
 tracing = "0.1"
 tracing-appender = "0.2"

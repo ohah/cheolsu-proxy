@@ -3272,17 +3272,17 @@ dependencies = [
 
 [[package]]
 name = "hyper-tungstenite"
-version = "0.19.0"
+version = "0.30.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bc778da281a749ed28d2be73a9f2cd13030680a1574bc729debd1195e44f00e9"
+checksum = "aee7ba11c4933715ee2c2fea1d8932f19356d31648c0a1bb65223ef5d7962c4c"
 dependencies = [
  "http-body-util",
  "hyper",
  "hyper-util",
  "pin-project-lite",
  "tokio",
- "tokio-tungstenite",
- "tungstenite",
+ "tokio-tungstenite 0.30.0",
+ "tungstenite 0.30.0",
 ]
 
 [[package]]
@@ -6280,7 +6280,7 @@ dependencies = [
  "tokio",
  "tokio-rustls",
  "tokio-stream",
- "tokio-tungstenite",
+ "tokio-tungstenite 0.30.0",
  "tracing",
  "tracing-appender",
  "tracing-subscriber",
@@ -6344,7 +6344,7 @@ dependencies = [
  "tokio-native-tls",
  "tokio-openssl",
  "tokio-rustls",
- "tokio-tungstenite",
+ "tokio-tungstenite 0.30.0",
  "tokio-util",
  "tower",
  "tower-service",
@@ -8382,7 +8382,7 @@ dependencies = [
  "tauri-plugin",
  "thiserror 1.0.69",
  "tokio",
- "tokio-tungstenite",
+ "tokio-tungstenite 0.28.0",
  "uuid",
  "webkit2gtk",
  "webview2-com",
@@ -8972,13 +8972,25 @@ checksum = "d25a406cddcc431a75d3d9afc6a7c0f7428d4891dd973e4d54c56b46127bf857"
 dependencies = [
  "futures-util",
  "log",
+ "tokio",
+ "tungstenite 0.28.0",
+]
+
+[[package]]
+name = "tokio-tungstenite"
+version = "0.30.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "17a073bfed563fa236697a068031408a93cd9522e08abf9933ead3e73411bd71"
+dependencies = [
+ "futures-util",
+ "log",
  "native-tls",
  "rustls",
  "rustls-pki-types",
  "tokio",
  "tokio-native-tls",
  "tokio-rustls",
- "tungstenite",
+ "tungstenite 0.30.0",
  "webpki-roots 0.26.11",
 ]
 
@@ -9337,13 +9349,29 @@ dependencies = [
  "http",
  "httparse",
  "log",
- "native-tls",
  "rand 0.9.5",
- "rustls",
- "rustls-pki-types",
  "sha1 0.10.7",
  "thiserror 2.0.21",
  "utf-8",
+]
+
+[[package]]
+name = "tungstenite"
+version = "0.30.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e48ac77174b19c110a50ab2128b24215ac9cb40e0e12e093fb602d175c569d22"
+dependencies = [
+ "bytes",
+ "data-encoding",
+ "http",
+ "httparse",
+ "log",
+ "native-tls",
+ "rand 0.10.3",
+ "rustls",
+ "rustls-pki-types",
+ "sha1 0.11.0",
+ "thiserror 2.0.21",
 ]
 
 [[package]]
