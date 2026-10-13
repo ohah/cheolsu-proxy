@@ -28,7 +28,7 @@ impl ScriptEngine {
         }
 
         // 디렉터리 화이트리스트는 두지 않는다. 스크립트는 운영자가 직접 지정한 자기 자신의
-        // 파일이며, deno_core 샌드박스(fs/net op 미노출)가 실제 격리 계층이다. 홈 디렉터리
+        // 파일이며, QuickJS 샌드박스(fs/net 등 호스트 API 미노출)가 실제 격리 계층이다. 홈 디렉터리
         // 제한은 보안 이득이 미미한 반면 /tmp·외부 볼륨·홈 밖 프로젝트의 정상 스크립트 로드를
         // 막는 회귀를 유발하므로, path traversal 방지(canonicalize)와 확장자 검증만 유지한다.
         let source = std::fs::read_to_string(&canonical)?;
@@ -39,9 +39,7 @@ impl ScriptEngine {
             source
         };
 
-        self.runtime
-            .execute_script(path.to_string(), code)
-            .map_err(|e| ScriptError::Execution(e.to_string()))?;
+        self.execute_script(path, &code)?;
 
         self.check_hooks()?;
 
@@ -59,9 +57,7 @@ impl ScriptEngine {
 
     /// 스크립트 코드 직접 로드 (JS)
     pub fn load_code(&mut self, code: &str) -> Result<(), ScriptError> {
-        self.runtime
-            .execute_script("<script>".to_string(), code.to_string())
-            .map_err(|e| ScriptError::Execution(e.to_string()))?;
+        self.execute_script("<script>", code)?;
 
         self.check_hooks()?;
 
