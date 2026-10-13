@@ -54,7 +54,7 @@ Rust-based **Man in the Middle proxy** for inspecting and manipulating HTTP/HTTP
 - **Intercept Rules** — Block, modify request/response, map to local file, or redirect to remote URL
 - **Server Replay** — Save captured responses and auto-replay on matching requests
 - **Request Replay** — Re-send individual or sequential requests
-- **Scripting** — TypeScript-based request/response/WebSocket manipulation (Deno Core / V8)
+- **Scripting** — TypeScript-based request/response/WebSocket manipulation (QuickJS)
 
 ### Filtering & Export
 

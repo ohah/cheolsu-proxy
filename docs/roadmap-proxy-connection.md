@@ -65,7 +65,7 @@ PAC 파일을 파싱/실행하여 조건별로 자동 프록시를 선택합니�
 **구현 범위:**
 
 - PAC 파일 로드 (로컬 파일 / URL)
-- `FindProxyForURL(url, host)` JavaScript 함수 실행 (Deno Core 활용)
+- `FindProxyForURL(url, host)` JavaScript 함수 실행 (스크립팅 엔진의 QuickJS 활용)
 - PAC 결과에 따른 프록시 라우팅 (`DIRECT`, `PROXY`, `SOCKS`)
 - 시스템 PAC 설정 자동 감지 (macOS, Windows)
 - PAC 테스트 도구 (URL 입력 → 어떤 프록시를 선택하는지 확인)

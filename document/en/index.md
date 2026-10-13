@@ -9,7 +9,7 @@ An HTTP/HTTPS debugging proxy built with Rust and Tauri. Capture, analyze, and m
 - **HTTP/HTTPS Traffic Capture**: Real-time network traffic monitoring and analysis
 - **WebSocket Support**: Plain Text, Socket.IO, MQTT protocol detection and message injection
 - **Intercept Rules**: 5 action types - Block, Modify Request/Response, Map Local, Map Remote
-- **JavaScript/TypeScript Scripting**: Deno Core based request/response/WebSocket hooks
+- **JavaScript/TypeScript Scripting**: QuickJS based request/response/WebSocket hooks
 - **Server Replay**: Cache captured responses and auto-return for identical requests
 - **MCP Server**: Integration with AI assistants like Claude Code, Cursor
 - **Cheolsu-Query**: Advanced traffic filtering query language

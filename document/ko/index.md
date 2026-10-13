@@ -9,7 +9,7 @@ Rust와 Tauri로 구축된 HTTP/HTTPS 디버깅 프록시입니다. 웹 브라�
 - **HTTP/HTTPS 트래픽 캡처**: 실시간 네트워크 트래픽 모니터링 및 분석
 - **WebSocket 지원**: Plain Text, Socket.IO, MQTT 프로토콜 감지 및 메시지 주입
 - **인터셉트 규칙**: Block, Modify Request/Response, Map Local, Map Remote 5가지 액션
-- **JavaScript/TypeScript 스크립팅**: Deno Core 기반 요청/응답/WebSocket 훅
+- **JavaScript/TypeScript 스크립팅**: QuickJS 기반 요청/응답/WebSocket 훅
 - **Server Replay**: 캡처된 응답을 캐싱하여 동일 요청에 자동 반환
 - **MCP Server**: Claude Code, Cursor 등 AI 어시스턴트 연동
 - **Cheolsu-Query**: 고급 트래픽 필터링 쿼리 언어
