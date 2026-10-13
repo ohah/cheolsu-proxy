@@ -1,6 +1,6 @@
 # Scripting
 
-Cheolsu Proxy includes a JavaScript/TypeScript scripting engine powered by Deno Core (V8). Scripts let you programmatically intercept and modify HTTP requests, responses, and WebSocket messages as they flow through the proxy.
+Cheolsu Proxy includes a JavaScript/TypeScript scripting engine powered by QuickJS (rquickjs), a lightweight embedded JavaScript engine. Scripts let you programmatically intercept and modify HTTP requests, responses, and WebSocket messages as they flow through the proxy.
 
 ## When to Use Scripting
 
@@ -265,8 +265,8 @@ TypeScript (`.ts`/`.tsx`) is automatically transpiled using oxc. No build step i
 
 ## Execution Limits
 
-- **Timeout**: each hook is limited to 30 seconds. If exceeded (e.g. an infinite loop), V8 execution is forcibly terminated and the hook is treated as pass-through.
-- **Memory**: the V8 heap is limited to roughly 4MB–64MB.
+- **Timeout**: each hook is limited to 30 seconds. If exceeded (e.g. an infinite loop), script execution is forcibly terminated and the hook is treated as pass-through. A hook that returns a Promise that never settles is also treated as pass-through.
+- **Memory**: the script runtime is limited to 64MB. Exceeding it fails the hook (pass-through) instead of aborting the process.
 - **Sandbox**: external I/O APIs such as `fetch`, `require`/`import`, `fs`, `process`, `Buffer`, `crypto`, and `Worker` are not exposed. Only `console.*` and timers (`setTimeout`/`setInterval`) are available.
 
 ---
@@ -322,28 +322,31 @@ Logs appear in real time, making it easy to trace script behavior as traffic flo
 | `RegExp`                                               | Regular expressions                          |
 | `Array` / `Object` / `String` / `Map` / `Set`          | Standard built-in objects                    |
 | `Symbol` / `WeakMap` / `WeakSet` / `Proxy` / `Reflect` | ECMAScript standard                          |
-| `TextEncoder` / `TextDecoder`                          | Text encoding (V8 built-in)                  |
-| `structuredClone()`                                    | Deep clone (V8 built-in)                     |
+| `queueMicrotask(callback)`                             | Schedule a microtask                         |
+| `atob()` / `btoa()`                                    | Base64 decode/encode                         |
 | TypeScript                                             | Automatic transpilation                      |
 
 ### Unavailable APIs
 
-| API                                  | Reason                                           |
-| ------------------------------------ | ------------------------------------------------ |
-| `fetch()`                            | Network I/O not registered                       |
-| `XMLHttpRequest`                     | Browser-only API                                 |
-| `require()`                          | CommonJS module system not supported             |
-| `import` / `export` (ESM)            | ES module system not supported                   |
-| `fs` / `path` / `os`                 | Node.js built-in modules not supported           |
-| `process`                            | Node.js-only global object                       |
-| `Buffer`                             | Node.js-only (use `Uint8Array` instead)          |
-| `crypto`                             | Web Crypto API not registered                    |
-| `WebSocket` (client)                 | Network I/O not supported                        |
-| `Worker` / `SharedWorker`            | Worker threads not supported                     |
-| `localStorage` / `sessionStorage`    | Browser-only API                                 |
-| `DOM API` (`document`, `window`)     | Browser-only                                     |
-| `alert()` / `confirm()` / `prompt()` | Browser-only                                     |
-| Top-level `await`                    | Not supported in script mode (only inside hooks) |
+| API                                  | Reason                                                              |
+| ------------------------------------ | ------------------------------------------------------------------- |
+| `fetch()`                            | Network I/O not registered                                          |
+| `XMLHttpRequest`                     | Browser-only API                                                    |
+| `require()`                          | CommonJS module system not supported                                |
+| `import` / `export` (ESM)            | ES module system not supported                                      |
+| `fs` / `path` / `os`                 | Node.js built-in modules not supported                              |
+| `process`                            | Node.js-only global object                                          |
+| `Buffer`                             | Node.js-only (use `Uint8Array` instead)                             |
+| `crypto`                             | Web Crypto API not registered                                       |
+| `Intl` / locale formatting           | Not supported by QuickJS (`toLocaleString` uses the default format) |
+| `TextEncoder` / `TextDecoder`        | Not registered                                                      |
+| `structuredClone()`                  | Not registered (use `JSON.parse(JSON.stringify(x))`)                |
+| `WebSocket` (client)                 | Network I/O not supported                                           |
+| `Worker` / `SharedWorker`            | Worker threads not supported                                        |
+| `localStorage` / `sessionStorage`    | Browser-only API                                                    |
+| `DOM API` (`document`, `window`)     | Browser-only                                                        |
+| `alert()` / `confirm()` / `prompt()` | Browser-only                                                        |
+| Top-level `await`                    | Not supported in script mode (only inside hooks)                    |
 
 ---
 

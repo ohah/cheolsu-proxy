@@ -2,7 +2,7 @@
 
 ## 개요
 
-Cheolsu Proxy의 스크립팅 엔진은 Deno Core(V8) 기반의 JavaScript/TypeScript 런타임으로, HTTP 요청/응답 및 WebSocket 메시지를 프로그래밍 방식으로 조작할 수 있습니다.
+Cheolsu Proxy의 스크립팅 엔진은 QuickJS(rquickjs) 기반의 경량 JavaScript/TypeScript 런타임으로, HTTP 요청/응답 및 WebSocket 메시지를 프로그래밍 방식으로 조작할 수 있습니다.
 
 인터셉트 규칙이 정적인 패턴 매칭과 사전 정의된 액션을 제공하는 반면, 스크립팅은 조건 분기, 데이터 변환, 상태 유지 등 코드로 표현할 수 있는 모든 로직을 적용할 수 있습니다. 다음과 같은 상황에서 인터셉트 규칙 대신 스크립팅을 사용하는 것이 적합합니다.
 
@@ -21,8 +21,8 @@ Cheolsu Proxy의 스크립팅 엔진은 Deno Core(V8) 기반의 JavaScript/TypeS
 
 ## 실행 제약
 
-- **타임아웃**: 각 훅 실행은 30초로 제한됩니다. 무한 루프 등으로 초과하면 V8 실행이 강제 종료되고 해당 훅은 통과 처리됩니다.
-- **메모리**: V8 힙은 약 4MB~64MB로 제한됩니다.
+- **타임아웃**: 각 훅 실행은 30초로 제한됩니다. 무한 루프 등으로 초과하면 스크립트 실행이 강제 종료되고 해당 훅은 통과 처리됩니다. 해결되지 않는 Promise를 반환한 훅도 통과 처리됩니다.
+- **메모리**: 스크립트 런타임 메모리는 64MB로 제한됩니다. 초과하면 프로세스가 중단되지 않고 해당 훅이 오류로 통과 처리됩니다.
 - **샌드박스**: `fetch`, `require`/`import`, `fs`, `process`, `Buffer`, `crypto`, `Worker` 등 외부 I/O API는 노출되지 않습니다. `console.*`과 타이머(`setTimeout`/`setInterval`)만 사용할 수 있습니다.
 
 ---
@@ -389,8 +389,8 @@ clearInterval(id);
 | `RegExp`                                               | 정규표현식                            |
 | `Array` / `Object` / `String` / `Map` / `Set`          | 표준 내장 객체                        |
 | `Symbol` / `WeakMap` / `WeakSet` / `Proxy` / `Reflect` | ECMAScript 표준                       |
-| `TextEncoder` / `TextDecoder`                          | 텍스트 인코딩 (V8 내장)               |
-| `structuredClone()`                                    | 깊은 복사 (V8 내장)                   |
+| `queueMicrotask(callback)`                             | 마이크로태스크 예약                   |
+| `atob()` / `btoa()`                                    | Base64 디코딩/인코딩                  |
 | TypeScript                                             | 자동 트랜스파일 지원                  |
 
 ### 사용 불가능한 기능
@@ -405,6 +405,9 @@ clearInterval(id);
 | `process`                            | Node.js 전용 전역 객체                        |
 | `Buffer`                             | Node.js 전용 (대신 `Uint8Array` 사용)         |
 | `crypto`                             | Web Crypto API 미등록                         |
+| `Intl` / 로케일 포맷                 | QuickJS 미지원 (`toLocaleString`은 기본 형식) |
+| `TextEncoder` / `TextDecoder`        | 미등록                                        |
+| `structuredClone()`                  | 미등록 (`JSON.parse(JSON.stringify(x))` 사용) |
 | `WebSocket` (클라이언트)             | 네트워크 I/O 미지원                           |
 | `Worker` / `SharedWorker`            | 워커 스레드 미지원                            |
 | `localStorage` / `sessionStorage`    | 브라우저 전용 API                             |

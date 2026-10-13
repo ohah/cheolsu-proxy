@@ -54,7 +54,7 @@ Rust 기반 **Man in the Middle 프록시**로, HTTP/HTTPS/WebSocket 트래픽�
 - **인터셉트 규칙** — 요청 차단, 요청/응답 수정, 로컬 파일 매핑, 원격 URL 리다이렉트
 - **서버 리플레이** — 캡처된 응답을 저장하고 동일 요청 시 자동 반환
 - **요청 리플레이** — 개별 또는 순차적 요청 재전송
-- **스크립팅** — TypeScript 기반 요청/응답/WebSocket 조작 (Deno Core / V8)
+- **스크립팅** — TypeScript 기반 요청/응답/WebSocket 조작 (QuickJS)
 
 ### 필터링 및 내보내기
 
