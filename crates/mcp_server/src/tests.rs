@@ -50,10 +50,10 @@ fn make_ws_message(connection_id: &str) -> WsMessageInfo {
 }
 
 fn extract_text(result: &CallToolResult) -> &str {
-    match &result.content[0].raw {
-        rmcp::model::RawContent::Text(t) => t.text.as_str(),
-        _ => panic!("Expected text content"),
-    }
+    result.content[0]
+        .as_text()
+        .map(|t| t.text.as_str())
+        .expect("Expected text content")
 }
 
 #[test]
