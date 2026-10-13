@@ -4,8 +4,9 @@ version = "0.1.2"
 edition = "2021"
 
 [dependencies]
-deno_core = "0.400"
-v8 = { version = "147", default-features = false }
+deno_core = "0.412"
+# deno_core 0.410부터 V8 바인딩이 deno_v8 크레이트로 이전됨 (deno_core와 동일 버전 유지)
+v8 = { package = "deno_v8", version = "0.4", default-features = false }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 thiserror = "2"
