@@ -56,7 +56,7 @@ impl ContractValidator {
             std::fs::read_to_string(path).map_err(|e| format!("파일 읽기 실패: {}", e))?;
 
         let spec: OpenApiSpec = if path.ends_with(".yaml") || path.ends_with(".yml") {
-            serde_yml::from_str(&content).map_err(|e| format!("YAML 파싱 실패: {}", e))?
+            serde_norway::from_str(&content).map_err(|e| format!("YAML 파싱 실패: {}", e))?
         } else {
             serde_json::from_str(&content).map_err(|e| format!("JSON 파싱 실패: {}", e))?
         };
