@@ -20,8 +20,8 @@ pub fn transpile_ts(source: &str, filename: &str) -> Result<String, ScriptError>
         ));
     }
 
-    if !parsed.errors.is_empty() {
-        let errors: Vec<String> = parsed.errors.iter().map(|e| e.to_string()).collect();
+    if !parsed.diagnostics.is_empty() {
+        let errors: Vec<String> = parsed.diagnostics.iter().map(|e| e.to_string()).collect();
         return Err(ScriptError::Transpile(format!(
             "TypeScript 파싱 오류: {}",
             errors.join(", ")
@@ -34,8 +34,12 @@ pub fn transpile_ts(source: &str, filename: &str) -> Result<String, ScriptError>
         .with_excess_capacity(2.0)
         .build(&program);
 
-    if !semantic_ret.errors.is_empty() {
-        let errors: Vec<String> = semantic_ret.errors.iter().map(|e| e.to_string()).collect();
+    if !semantic_ret.diagnostics.is_empty() {
+        let errors: Vec<String> = semantic_ret
+            .diagnostics
+            .iter()
+            .map(|e| e.to_string())
+            .collect();
         return Err(ScriptError::Transpile(format!(
             "시맨틱 분석 오류: {}",
             errors.join(", ")
@@ -48,8 +52,8 @@ pub fn transpile_ts(source: &str, filename: &str) -> Result<String, ScriptError>
     let ret = Transformer::new(&allocator, Path::new(filename), &transform_options)
         .build_with_scoping(scoping, &mut program);
 
-    if !ret.errors.is_empty() {
-        let errors: Vec<String> = ret.errors.iter().map(|e| e.to_string()).collect();
+    if !ret.diagnostics.is_empty() {
+        let errors: Vec<String> = ret.diagnostics.iter().map(|e| e.to_string()).collect();
         return Err(ScriptError::Transpile(format!(
             "트랜스파일 오류: {}",
             errors.join(", ")
