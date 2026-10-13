@@ -14,9 +14,9 @@ pub fn transpile_ts(source: &str, filename: &str) -> Result<String, ScriptError>
 
     let parsed = Parser::new(&allocator, source, source_type).parse();
 
-    if parsed.panicked {
+    if parsed.fatal_error {
         return Err(ScriptError::Transpile(
-            "TypeScript 파싱 중 패닉 발생".to_string(),
+            "TypeScript 파싱 중 치명적 오류 발생".to_string(),
         ));
     }
 
