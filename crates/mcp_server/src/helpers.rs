@@ -10,11 +10,13 @@ pub use cheolsu_ops::id::{
 };
 
 pub fn tool_error(msg: impl Into<String>) -> Result<CallToolResult, McpError> {
-    Ok(CallToolResult::error(vec![Content::text(msg.into())]))
+    Ok(CallToolResult::error(vec![ContentBlock::text(msg.into())]))
 }
 
 pub fn tool_ok(msg: impl Into<String>) -> Result<CallToolResult, McpError> {
-    Ok(CallToolResult::success(vec![Content::text(msg.into())]))
+    Ok(CallToolResult::success(vec![ContentBlock::text(
+        msg.into(),
+    )]))
 }
 
 pub fn op_result_to_mcp(r: OpResult) -> Result<CallToolResult, McpError> {
