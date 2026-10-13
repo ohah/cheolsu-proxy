@@ -456,3 +456,158 @@ fn test_set_timeout_basic() {
     };
     assert_eq!(response.body.unwrap(), "timer works");
 }
+
+fn get_request() -> ScriptRequest {
+    ScriptRequest {
+        method: "GET".to_string(),
+        url: "https://example.com".to_string(),
+        headers: HashMap::new(),
+        body: None,
+    }
+}
+
+fn respond_body(result: RequestAction) -> String {
+    let RequestAction::Respond { response } = result else {
+        unreachable!("Respond 액션을 기대했지만 다른 값이 반환됨: {:?}", result);
+    };
+    response.body.unwrap_or_default()
+}
+
+/// V8 classic script와 같이 sloppy 모드로 실행되어야 한다 (QuickJS 기본값은 strict).
+#[test]
+fn test_scripts_run_in_sloppy_mode() {
+    let mut engine = ScriptEngine::new().unwrap();
+    engine
+        .load_code(
+            r#"
+            undeclaredGlobal = "sloppy";
+            cheolsu.onRequest(() => ({
+                action: "respond",
+                response: { status: 200, headers: {}, body: undeclaredGlobal }
+            }));
+        "#,
+        )
+        .unwrap();
+    let result = block_on(engine.invoke_on_request(&get_request())).unwrap();
+    assert_eq!(respond_body(result), "sloppy");
+}
+
+/// 엔진 내부 네이티브 함수와 이전 런타임 전역은 사용자 스크립트에 노출되지 않아야 한다.
+#[test]
+fn test_internal_natives_are_hidden() {
+    let mut engine = ScriptEngine::new().unwrap();
+    engine
+        .load_code(
+            r#"
+            cheolsu.onRequest(() => ({
+                action: "respond",
+                response: {
+                    status: 200,
+                    headers: {},
+                    body: [typeof __cheolsu_now, typeof __cheolsu_print, typeof Deno].join(",")
+                }
+            }));
+        "#,
+        )
+        .unwrap();
+    let result = block_on(engine.invoke_on_request(&get_request())).unwrap();
+    assert_eq!(respond_body(result), "undefined,undefined,undefined");
+}
+
+/// setInterval은 반복 실행되고, clearInterval 이후에는 멈춰야 한다.
+/// 타이머는 만료 순서대로 실행되어야 한다.
+#[test]
+fn test_interval_and_timer_ordering() {
+    let mut engine = ScriptEngine::new().unwrap();
+    engine
+        .load_code(
+            r#"
+            cheolsu.onRequest(async () => {
+                const order = [];
+                let ticks = 0;
+                await new Promise((resolve) => {
+                    const id = setInterval(() => {
+                        ticks += 1;
+                        if (ticks === 3) {
+                            clearInterval(id);
+                            resolve();
+                        }
+                    }, 10);
+                });
+                await new Promise((resolve) => {
+                    setTimeout(() => order.push("b"), 20);
+                    setTimeout(() => order.push("a"), 5);
+                    setTimeout(() => { order.push("c"); resolve(); }, 30);
+                });
+                queueMicrotask(() => order.push("micro"));
+                await null;
+                return {
+                    action: "respond",
+                    response: { status: 200, headers: {}, body: ticks + ":" + order.join("") }
+                };
+            });
+        "#,
+        )
+        .unwrap();
+    let result = block_on(engine.invoke_on_request(&get_request())).unwrap();
+    assert_eq!(respond_body(result), "3:abcmicro");
+}
+
+/// 해결되지 않는 Promise는 무한 대기 대신 오류로 끝나야 한다.
+#[test]
+fn test_never_resolving_promise_errors() {
+    let mut engine = ScriptEngine::new().unwrap();
+    engine
+        .load_code(r#"cheolsu.onRequest(() => new Promise(() => {}));"#)
+        .unwrap();
+    let result = block_on(engine.invoke_on_request(&get_request()));
+    assert!(
+        matches!(result, Err(ScriptError::Execution(_))),
+        "해결되지 않는 Promise는 Execution 오류여야 함: {:?}",
+        result
+    );
+}
+
+/// 메모리 한도를 넘는 할당은 프로세스를 죽이지 않고 훅 오류(forward)로 처리되어야 하며,
+/// 이후에도 엔진을 계속 사용할 수 있어야 한다.
+#[test]
+fn test_memory_limit_does_not_abort() {
+    let mut engine = ScriptEngine::new().unwrap();
+    engine
+        .load_code(
+            r#"
+            let calls = 0;
+            cheolsu.onRequest(() => {
+                calls += 1;
+                if (calls === 1) {
+                    const hog = [];
+                    while (true) hog.push(new Array(100000).fill(calls));
+                }
+                return { action: "respond", response: { status: 200, headers: {}, body: "alive" } };
+            });
+        "#,
+        )
+        .unwrap();
+    let first = block_on(engine.invoke_on_request(&get_request()));
+    assert!(
+        matches!(
+            first,
+            Ok(RequestAction::Forward) | Err(ScriptError::Execution(_))
+        ),
+        "메모리 초과는 forward 또는 Execution 오류여야 함: {:?}",
+        first
+    );
+    let second = block_on(engine.invoke_on_request(&get_request())).unwrap();
+    assert_eq!(respond_body(second), "alive");
+}
+
+/// 문법 오류는 JS 오류 이름과 메시지를 담은 Execution 오류여야 한다.
+#[test]
+fn test_syntax_error_message() {
+    let mut engine = ScriptEngine::new().unwrap();
+    let err = engine.load_code("cheolsu.onRequest(() => {").unwrap_err();
+    let ScriptError::Execution(message) = err else {
+        unreachable!("Execution 오류를 기대함: {:?}", err);
+    };
+    assert!(message.contains("SyntaxError"), "메시지: {}", message);
+}

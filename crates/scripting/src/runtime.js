@@ -25,30 +25,33 @@
     return args.map((a) => (typeof a === "string" ? a : JSON.stringify(a))).join(" ");
   }
 
+  // ── 엔진 네이티브 함수 (Rust에서 등록) ──
+  // 사용자 스크립트에서 접근하지 못하도록 캡처 후 전역에서 제거한다.
+  const _now = globalThis.__cheolsu_now;
+  const _print = globalThis.__cheolsu_print;
+  delete globalThis.__cheolsu_now;
+  delete globalThis.__cheolsu_print;
+
   // ── 타이머 구현 ──
+  // 타이머는 큐에만 등록되고, Rust 쪽 이벤트 루프가 훅의 Promise를 기다리는 동안
+  // nextTimerDelay()/runDueTimers()로 만료된 콜백을 실행한다.
   const _timers = {
     nextId: 1,
+    // id -> { due, callback, args, interval }
     active: new Map(),
   };
 
-  globalThis.setTimeout = function (callback, delay, ...args) {
-    if (typeof callback !== "function") return 0;
+  function addTimer(callback, ms, args, interval) {
     const id = _timers.nextId;
     _timers.nextId += 1;
-    _timers.active.set(id, true);
-    const ms = Math.max(0, Math.trunc(Number(delay) || 0));
-    Deno.core.ops.op_timer_sleep(ms).then(() => {
-      if (_timers.active.has(id)) {
-        _timers.active.delete(id);
-        try {
-          callback(...args);
-        } catch (e) {
-          pushLog("error", "setTimeout callback error: " + (e.message || e));
-          Deno.core.print("[ERROR] setTimeout callback: " + (e.message || e) + "\n", true);
-        }
-      }
-    });
+    _timers.active.set(id, { due: _now() + ms, callback, args, interval });
     return id;
+  }
+
+  globalThis.setTimeout = function (callback, delay, ...args) {
+    if (typeof callback !== "function") return 0;
+    const ms = Math.max(0, Math.trunc(Number(delay) || 0));
+    return addTimer(callback, ms, args, 0);
   };
 
   globalThis.clearTimeout = function (id) {
@@ -57,31 +60,54 @@
 
   globalThis.setInterval = function (callback, delay, ...args) {
     if (typeof callback !== "function") return 0;
-    const id = _timers.nextId;
-    _timers.nextId += 1;
     // 최소 10ms: CPU 과부하 방지 (브라우저 표준 4ms보다 보수적으로 설정)
     const ms = Math.max(10, Math.trunc(Number(delay) || 10));
-    _timers.active.set(id, true);
-    function tick() {
-      Deno.core.ops.op_timer_sleep(ms).then(() => {
-        if (_timers.active.has(id)) {
-          try {
-            callback(...args);
-          } catch (e) {
-            pushLog("error", "setInterval callback error: " + (e.message || e));
-            Deno.core.print("[ERROR] setInterval callback: " + (e.message || e) + "\n", true);
-          }
-          tick();
-        }
-      });
-    }
-    tick();
-    return id;
+    return addTimer(callback, ms, args, ms);
   };
 
   globalThis.clearInterval = function (id) {
     _timers.active.delete(id);
   };
+
+  if (typeof globalThis.queueMicrotask !== "function") {
+    globalThis.queueMicrotask = function (callback) {
+      Promise.resolve().then(callback);
+    };
+  }
+
+  function nextTimerDelay() {
+    let earliest = -1;
+    for (const timer of _timers.active.values()) {
+      if (earliest < 0 || timer.due < earliest) earliest = timer.due;
+    }
+    return earliest < 0 ? -1 : Math.max(0, earliest - _now());
+  }
+
+  function runDueTimers() {
+    const now = _now();
+    const due = [];
+    for (const [id, timer] of _timers.active) {
+      if (timer.due <= now) due.push([id, timer]);
+    }
+    // 만료 시각 순, 같으면 등록 순으로 실행
+    due.sort((a, b) => a[1].due - b[1].due || a[0] - b[0]);
+    for (const [id, timer] of due) {
+      // 앞선 콜백이 이 타이머를 해제했을 수 있다
+      if (_timers.active.get(id) !== timer) continue;
+      if (timer.interval > 0) {
+        timer.due = now + timer.interval;
+      } else {
+        _timers.active.delete(id);
+      }
+      const kind = timer.interval > 0 ? "setInterval" : "setTimeout";
+      try {
+        timer.callback(...timer.args);
+      } catch (e) {
+        pushLog("error", kind + " callback error: " + (e.message || e));
+        _print("[ERROR] " + kind + " callback: " + (e.message || e) + "\n", true);
+      }
+    }
+  }
 
   // ── 사용자 API ──
   globalThis.cheolsu = Object.freeze({
@@ -104,27 +130,27 @@
     log(...args) {
       const msg = formatArgs(args);
       pushLog("info", msg);
-      Deno.core.print(msg + "\n", false);
+      _print(msg + "\n", false);
     },
     error(...args) {
       const msg = formatArgs(args);
       pushLog("error", msg);
-      Deno.core.print(msg + "\n", true);
+      _print(msg + "\n", true);
     },
     warn(...args) {
       const msg = formatArgs(args);
       pushLog("warn", msg);
-      Deno.core.print("[WARN] " + msg + "\n", true);
+      _print("[WARN] " + msg + "\n", true);
     },
     info(...args) {
       const msg = formatArgs(args);
       pushLog("info", msg);
-      Deno.core.print(msg + "\n", false);
+      _print(msg + "\n", false);
     },
     debug(...args) {
       const msg = formatArgs(args);
       pushLog("debug", msg);
-      Deno.core.print("[DEBUG] " + msg + "\n", false);
+      _print("[DEBUG] " + msg + "\n", false);
     },
   });
 
@@ -196,6 +222,12 @@
       _logBuffer.length = 0;
       return logs;
     },
+
+    // 가장 가까운 타이머까지 남은 시간(ms), 타이머가 없으면 -1
+    nextTimerDelay,
+
+    // 만료된 타이머 콜백 실행
+    runDueTimers,
 
     // 모든 타이머 해제 (스크립트 언로드 시 사용)
     clearAllTimers() {

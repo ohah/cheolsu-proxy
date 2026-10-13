@@ -1,4 +1,4 @@
-use crate::engine::ScriptEngine;
+use crate::engine::{InterruptHandle, ScriptEngine};
 use crate::error::ScriptError;
 use crate::types::{
     RequestAction, ResponseAction, ScriptLogEntry, ScriptRequest, ScriptResponse, ScriptSseEvent,
@@ -61,9 +61,9 @@ const SCRIPT_COMMAND_CHANNEL_CAPACITY: usize = 128;
 const SCRIPT_LOG_CHANNEL_CAPACITY: usize = 256;
 
 /// 엔진 스레드 외부에서 실행 중인 스크립트를 강제 종료하기 위한 제어 채널.
-/// `isolate`는 현재 엔진의 종료 핸들, `terminated`는 강제 종료가 요청되었음을 알리는 플래그다.
+/// `interrupt`는 현재 엔진의 종료 핸들, `terminated`는 강제 종료가 요청되었음을 알리는 플래그다.
 struct EngineControl {
-    isolate: Mutex<Option<v8::IsolateHandle>>,
+    interrupt: Mutex<Option<InterruptHandle>>,
     terminated: std::sync::atomic::AtomicBool,
 }
 
@@ -92,7 +92,7 @@ impl ScriptHandle {
         let active = Arc::new(std::sync::atomic::AtomicBool::new(false));
         let (log_tx, _) = broadcast::channel(SCRIPT_LOG_CHANNEL_CAPACITY);
         let control = Arc::new(EngineControl {
-            isolate: Mutex::new(None),
+            interrupt: Mutex::new(None),
             terminated: std::sync::atomic::AtomicBool::new(false),
         });
 
@@ -130,12 +130,12 @@ impl ScriptHandle {
     }
 
     /// 응답 타임아웃 시 호출: 엔진 스레드에서 실행 중인(무한 루프 등) 스크립트를
-    /// V8 terminate_execution으로 강제 중단시켜 엔진 스레드가 다음 명령을 처리할 수 있게 한다.
+    /// QuickJS 인터럽트 핸들러로 강제 중단시켜 엔진 스레드가 다음 명령을 처리할 수 있게 한다.
     fn terminate_running_script(&self) {
         self.control
             .terminated
             .store(true, std::sync::atomic::Ordering::Release);
-        if let Ok(guard) = self.control.isolate.lock() {
+        if let Ok(guard) = self.control.interrupt.lock() {
             if let Some(h) = guard.as_ref() {
                 h.terminate_execution();
             }
@@ -148,7 +148,7 @@ impl ScriptHandle {
             let _ = tx.send(ScriptCommand::Shutdown).await;
         }
         // 엔진 스레드가 무한 루프 등으로 멈춰 있으면 Shutdown 명령을 처리하지 못해 join이
-        // 영구 블로킹된다. V8 실행을 강제 종료해 엔진 스레드가 명령 루프로 복귀하도록 한다.
+        // 영구 블로킹된다. 스크립트 실행을 강제 종료해 엔진 스레드가 명령 루프로 복귀하도록 한다.
         self.terminate_running_script();
         // 엔진 스레드가 종료될 때까지 대기하여 리소스 leak 방지
         let handle = self.thread_handle.lock().ok().and_then(|mut g| g.take());
@@ -391,7 +391,7 @@ fn flush_logs(engine: &mut ScriptEngine, log_tx: &broadcast::Sender<ScriptLogEnt
     }
 }
 
-/// 이전 엔진의 타이머를 정리하고 안전하게 drop (V8 crash 방지)
+/// 이전 엔진의 타이머를 정리하고 drop
 fn safely_drop_engine(engine: &mut Option<ScriptEngine>) {
     if let Some(old) = engine.as_mut() {
         old.clear_timers();
@@ -424,17 +424,17 @@ fn replace_engine(
     }
 }
 
-/// 엔진 제어의 isolate 핸들 슬롯을 갱신한다.
-fn set_isolate(control: &Arc<EngineControl>, handle: Option<v8::IsolateHandle>) {
-    if let Ok(mut g) = control.isolate.lock() {
+/// 엔진 제어의 인터럽트 핸들 슬롯을 갱신한다.
+fn set_interrupt(control: &Arc<EngineControl>, handle: Option<InterruptHandle>) {
+    if let Ok(mut g) = control.interrupt.lock() {
         *g = handle;
     }
 }
 
-/// 기존 엔진을 정리하고 isolate 핸들 슬롯도 비운다.
+/// 기존 엔진을 정리하고 인터럽트 핸들 슬롯도 비운다.
 fn drop_engine_and_clear(engine: &mut Option<ScriptEngine>, control: &Arc<EngineControl>) {
     safely_drop_engine(engine);
-    set_isolate(control, None);
+    set_interrupt(control, None);
 }
 
 /// 새 엔진을 만들고(핸들을 먼저 등록해 로드 중 무한 루프도 종료 가능) 로더를 실행한다.
@@ -448,9 +448,9 @@ where
 {
     let mut e = ScriptEngine::new()?;
     // 로드(최상위 코드)에서 무한 루프가 발생해도 외부에서 terminate할 수 있도록 핸들을 먼저 등록
-    set_isolate(control, Some(e.isolate_handle()));
+    set_interrupt(control, Some(e.interrupt_handle()));
     // 이전 훅의 늦은 타임아웃이 남긴 stale terminated 플래그가 새 로드를 즉시 시간 초과로
-    // 오판하지 않도록 초기화한다(새 isolate라 V8 latch는 이미 없다).
+    // 오판하지 않도록 초기화한다(새 엔진의 인터럽트 플래그는 이미 비어 있다).
     control
         .terminated
         .store(false, std::sync::atomic::Ordering::Release);
@@ -461,7 +461,7 @@ where
         .swap(false, std::sync::atomic::Ordering::AcqRel)
     {
         e.cancel_termination();
-        set_isolate(control, None);
+        set_interrupt(control, None);
         return Err(ScriptError::Timeout(
             "스크립트 로드 중 시간 초과로 강제 종료됨".to_string(),
         ));
@@ -469,7 +469,7 @@ where
     match r {
         Ok(()) => Ok(e),
         Err(err) => {
-            set_isolate(control, None);
+            set_interrupt(control, None);
             Err(err)
         }
     }
@@ -478,16 +478,16 @@ where
 /// 훅 실행 직전, 이전 훅의 늦은 타임아웃이 남긴 stale terminate 상태를 제거한다.
 ///
 /// 어떤 훅이 타임아웃 직전에 정상 완료되면, 호출자 측 `terminate_running_script`가
-/// 이미 idle 상태인 isolate에 `terminate_execution`을 latch하고 `terminated` 플래그를
+/// 이미 idle 상태인 엔진에 `terminate_execution` 플래그를 남기고 `terminated` 플래그를
 /// 남길 수 있다. 이 상태가 남아 있으면 *다음* 정상 훅이 곧바로 강제 종료된다.
-/// 따라서 각 훅 실행 전에 플래그와 V8 latch를 모두 비워 클린 상태로 시작한다
+/// 따라서 각 훅 실행 전에 제어 플래그와 엔진 인터럽트 플래그를 모두 비워 클린 상태로 시작한다
 /// (이 시점에는 아직 훅이 실행되지 않았으므로 정상 terminate가 진행 중일 수 없다).
 fn clear_stale_termination(engine: &mut Option<ScriptEngine>, control: &Arc<EngineControl>) {
     control
         .terminated
         .store(false, std::sync::atomic::Ordering::Release);
     if let Some(e) = engine.as_mut() {
-        // latch가 없으면 무해한 no-op이므로 무조건 호출해 플래그/latch desync도 정리한다.
+        // 플래그가 없으면 무해한 no-op이므로 무조건 호출해 desync도 정리한다.
         e.cancel_termination();
     }
 }
@@ -628,7 +628,7 @@ mod tests {
             .await
             .expect("무한 루프 훅 로드는 성공해야 함");
 
-        // 훅 호출은 타임아웃되어야 하며 내부적으로 V8 실행을 강제 종료한다
+        // 훅 호출은 타임아웃되어야 하며 내부적으로 스크립트 실행을 강제 종료한다
         let r = handle.invoke_on_request(&dummy_request()).await;
         assert!(
             matches!(r, Err(ScriptError::Timeout(_))),
@@ -670,6 +670,59 @@ mod tests {
         invoke.abort();
     }
 
+    /// await 이후(마이크로태스크 안)에서 무한 루프에 빠진 async 훅도 강제 종료되고
+    /// 엔진이 복구되어야 한다.
+    #[tokio::test]
+    async fn infinite_loop_after_await_terminates_and_engine_recovers() {
+        let handle = ScriptHandle::new_with_timeout(Duration::from_millis(800));
+        handle
+            .load_code("cheolsu.onRequest(async (req) => { await null; while (true) {} });")
+            .await
+            .expect("훅 로드 성공");
+
+        let r = handle.invoke_on_request(&dummy_request()).await;
+        assert!(
+            matches!(r, Err(ScriptError::Timeout(_))),
+            "await 이후 무한 루프도 Timeout이어야 함, got {:?}",
+            r
+        );
+
+        handle
+            .load_code("cheolsu.onRequest((req) => ({ action: 'forward' }));")
+            .await
+            .expect("강제 종료 후 재로드 성공");
+        let r2 = handle.invoke_on_request(&dummy_request()).await;
+        assert!(r2.is_ok(), "복구 후 정상 호출: {:?}", r2);
+
+        handle.shutdown().await;
+    }
+
+    /// 긴 타이머를 기다리는 훅도 타임아웃 시 즉시 엔진 스레드를 풀어줘야 한다.
+    #[tokio::test]
+    async fn long_timer_wait_is_interrupted_on_timeout() {
+        let handle = ScriptHandle::new_with_timeout(Duration::from_millis(300));
+        handle
+            .load_code(
+                "cheolsu.onRequest(async (req) => { await new Promise(r => setTimeout(r, 60000)); return { action: 'forward' }; });",
+            )
+            .await
+            .expect("훅 로드 성공");
+
+        let r = handle.invoke_on_request(&dummy_request()).await;
+        assert!(matches!(r, Err(ScriptError::Timeout(_))), "got {:?}", r);
+
+        // 엔진 스레드가 60초 타이머에 묶여 있지 않아야 다음 명령이 바로 처리된다.
+        tokio::time::timeout(
+            Duration::from_secs(2),
+            handle.load_code("cheolsu.onRequest((req) => ({ action: 'forward' }));"),
+        )
+        .await
+        .expect("엔진 스레드가 긴 타이머에 묶이면 안 됨")
+        .expect("재로드 성공");
+
+        handle.shutdown().await;
+    }
+
     /// 회귀: idle 상태에서 늦게 도착한 terminate(이전 훅의 타임아웃 잔재)가
     /// 다음 정상 훅을 잘못 강제 종료해서는 안 된다.
     #[tokio::test]
@@ -685,7 +738,7 @@ mod tests {
         assert!(r1.is_ok(), "첫 호출은 성공해야 함: {:?}", r1);
 
         // 엔진이 idle인 상태에서 stale terminate를 시뮬레이션한다
-        // (이전 훅이 타임아웃 직전 완료되어 idle isolate에 terminate가 latch된 상황).
+        // (이전 훅이 타임아웃 직전 완료되어 idle 엔진에 종료 플래그가 남은 상황).
         handle.terminate_running_script();
 
         // 다음 정상 호출이 stale terminate로 잘못 강제 종료되지 않아야 한다.
